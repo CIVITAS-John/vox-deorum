@@ -1,7 +1,6 @@
+# Communication Protocol
 
-# Communication Protocol Documentation
-
-This document describes the complete communication protocol between the Community Patch DLL, Bridge Service, and external AI services in the Vox Populi AI system.
+This document describes the complete communication protocol between the Community Patch DLL, Bridge Service, and external AI services in the Vox Deorum system.
 
 ## Overview
 
@@ -24,7 +23,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 2. **Bridge → DLL (Winsock IPC)**
    ```json
-   {type: "lua_call", function: "MoveUnit", args: [5, 10, 12], id: "uuid"}
+   {"type": "lua_call", "function": "MoveUnit", "args": [5, 10, 12], "id": "uuid"}
    ```
 
 3. **DLL → Lua Environment**
@@ -34,7 +33,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 4. **Lua → DLL → Bridge (Winsock IPC)**
    ```json
-   {type: "lua_response", id: "uuid", success: true, result: {...}}
+   {"type": "lua_response", "id": "uuid", "success": true, "result": {...}}
    ```
 
 5. **Bridge → External Service (HTTP Response)**
@@ -54,14 +53,14 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 2. **Bridge → DLL (Sequential Winsock IPC calls)**
    ```json
-   {type: "lua_call", function: "GetUnit", args: 1, id: "uuid1"}
-   {type: "lua_call", function: "GetCity", args: 2, id: "uuid2"}
+   {"type": "lua_call", "function": "GetUnit", "args": 1, "id": "uuid1"}
+   {"type": "lua_call", "function": "GetCity", "args": 2, "id": "uuid2"}
    ```
 
 3. **DLL → Lua → DLL → Bridge (Multiple responses)**
    ```json
-   {type: "lua_response", id: "uuid1", success: true, result: {...}}
-   {type: "lua_response", id: "uuid2", success: true, result: {...}}
+   {"type": "lua_response", "id": "uuid1", "success": true, "result": {...}}
+   {"type": "lua_response", "id": "uuid2", "success": true, "result": {...}}
    ```
 
 4. **Bridge → External Service (Aggregated response)**
@@ -81,7 +80,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 2. **Bridge → DLL (Winsock IPC)**
    ```json
-   {type: "lua_execute", script: "return Game.GetGameTurn() * 2 + 1", id: "uuid"}
+   {"type": "lua_execute", "script": "return Game.GetGameTurn() * 2 + 1", "id": "uuid"}
    ```
 
 3. **DLL → Lua Environment**
@@ -89,7 +88,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 4. **Lua → DLL → Bridge**
    ```json
-   {type: "lua_response", id: "uuid", success: true, result: 101}
+   {"type": "lua_response", "id": "uuid", "success": true, "result": 101}
    ```
 
 5. **Bridge → External Service**
@@ -119,7 +118,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 3. **Bridge → DLL (Winsock IPC)**
    ```json
-   {type: "external_register", name: "AnalyzeThreat", async: true}
+   {"type": "external_register", "name": "AnalyzeThreat", "async": true}
    ```
 
 4. **DLL creates Lua binding**
@@ -129,7 +128,10 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 #### Function Invocation
 
-1. **Lua Environment → Game.CallExternal("AnalyzeThreat", {unitId = 5, playerId = 1})**
+1. **Lua Environment → DLL**
+   ```lua
+   Game.CallExternal("AnalyzeThreat", {unitId = 5, playerId = 1})
+   ```
    (Called from game mod scripts - args can be any JSON-compatible data)
 
 2. **DLL → Bridge (Winsock IPC)**
@@ -168,7 +170,27 @@ The Bridge Service acts as a communication hub using three primary channels:
 6. **DLL → Lua Environment**
    Game.CallExternal() callback receives the result object or returns it (if synchronous)
 
-### 3. Game Events Streaming
+### 3. Lua Function Registry Communication
+
+#### Function Registry Update (Internal Communication)
+
+1. **Lua Environment → DLL**
+   ```c++
+   RegisterLuaFunction("GetCity", GetCityByID);
+   ```
+
+2. **DLL → Bridge (Winsock IPC)**
+   ```json
+   {
+     "type": "function_registered",
+     "function": "GetCity"
+   }
+   ```
+
+3. **Bridge updates internal function cache**  
+   Used for /lua/functions endpoint responses
+
+### 4. Game Events Streaming
 
 #### Event Registration & Broadcasting
 
@@ -201,121 +223,9 @@ The Bridge Service acts as a communication hub using three primary channels:
    data: {"type": "turnStart", "player": 1, "turn": 50, "year": "500 AD", "timestamp": "2024-01-01T12:00:00Z"}
    ```
 
-### 4. Lua Function Registry Communication
+## HTTP API Responses
 
-#### Function Registry Update (Internal Communication)
-
-1. **Lua Environment → DLL**
-   ```c++
-   RegisterLuaFunction("GetCity", GetCityByID);
-   RegisterLuaFunction("MoveUnit", MoveUnitToPlot);
-   RegisterLuaFunction("GetPlayerGold", GetPlayerGoldAmount);
-   ```
-
-2. **DLL → Bridge (Winsock IPC)**
-   ```json
-   {
-     "type": "function_registered",
-     "function": "GetCity"
-   }
-   ```
-
-3. **Bridge updates internal function cache**  
-   Used for /lua/functions endpoint responses
-
-## Message Format Specifications
-
-### Winsock IPC Messages (Bridge ↔ DLL)
-
-#### Lua Function Call Request
-```json
-{
-  "type": "lua_call",
-  "function": "string",
-  "args": ["array", "of", "arguments"],
-  "id": "uuid-string"
-}
-```
-
-#### Lua Script Execute Request
-```json
-{
-  "type": "lua_execute",
-  "script": "lua-code-string",
-  "id": "uuid-string"
-}
-```
-
-#### Lua Response
-```json
-{
-  "type": "lua_response",
-  "id": "uuid-string",
-  "success": boolean,
-  "result": "any-value",
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "string",
-    "details": "string"
-  }
-}
-```
-
-#### External Function Call
-```json
-{
-  "type": "external_call",
-  "function": "string",
-  "args": "any (JSON object - could be array, object, or primitive)",
-  "id": "uuid-string",
-  "async": boolean
-}
-```
-
-#### External Function Response
-```json
-{
-  "type": "external_response",
-  "id": "uuid-string",
-  "success": boolean,
-  "result": "any-value",
-  "error": {
-    "code": "string",
-    "message": "string"
-  }
-}
-```
-
-#### Game Event
-```json
-{
-  "type": "game_event",
-  "event": "event-name",
-  "payload": {"event": "data"},
-  "timestamp": "ISO-8601-timestamp"
-}
-```
-
-#### External Function Registration
-```json
-{
-  "type": "external_register",
-  "name": "string",
-  "async": boolean
-}
-```
-
-#### Function Registry Update
-```json
-{
-  "type": "function_registry_update",
-  "functions": ["array", "of", "function", "names"]
-}
-```
-
-### HTTP API Responses
-
-#### Success Response
+### Success Response
 ```json
 {
   "success": true,
@@ -323,7 +233,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
-#### Error Response
+### Error Response
 ```json
 {
   "success": false,
@@ -372,11 +282,3 @@ The Bridge Service acts as a communication hub using three primary channels:
 2. Bridge returns error to Lua via DLL
 3. Service remains registered for future calls
 4. No automatic retry (handled by calling Lua code)
-
-## Security Considerations
-
-- **Lua Script Execution**: `/lua/execute` endpoint allows arbitrary code execution
-- **External Function Registration**: URLs should be validated and sanitized
-- **Timeout Management**: Prevents resource exhaustion from hanging calls
-- **Connection Validation**: IPC connection authenticated by process ownership
-- **Request Size Limits**: HTTP requests limited to prevent DoS attacks

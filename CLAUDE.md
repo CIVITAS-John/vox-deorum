@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - When asked to implement a feature, always delegate work to appropriate sub-agents and coordinate their work. 
 
 ## Project Overview
-This is Vox Populi AI - an LLM-enhanced AI system for Civilization V using the Community Patch framework.
+This is Vox Deorum - an LLM-enhanced AI system for Civilization V using the Community Patch framework.
 
 ### Architecture Components
 Each component has its own README with specific setup instructions.

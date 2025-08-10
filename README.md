@@ -1,4 +1,4 @@
-# Vox Populi AI
+# Vox Deorum
 
 LLM-enhanced AI system for Civilization V using the Community Patch framework.
 

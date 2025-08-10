@@ -1,5 +1,5 @@
 /**
- * Bridge Service Entry Point - Express server for Vox Populi AI communication layer
+ * Bridge Service Entry Point - Express server for Vox Deorum communication layer
  */
 
 import express, { Request, Response, NextFunction } from 'express';
@@ -152,7 +152,7 @@ app.use('/events', eventsRoutes);
  */
 app.get('/', (req: Request, res: Response) => {
   const response = {
-    service: 'Vox Populi AI Bridge Service',
+    service: 'Vox Deorum Bridge Service',
     version: process.env.npm_package_version || '1.0.0',
     status: bridgeService.isServiceRunning() ? 'running' : 'stopped',
     endpoints: {

@@ -1,5 +1,5 @@
 /**
- * Bridge Service - Main orchestration class for the Vox Populi AI Bridge Service
+ * Bridge Service - Main orchestration class for the Vox Deorum Bridge Service
  */
 
 import { EventEmitter } from 'events';

@@ -1,7 +1,7 @@
 {
   "name": "bridge-service",
   "version": "1.0.0",
-  "description": "Bridge Service for Civilization V Vox Populi AI - Communication layer between Lua and external AI services",
+  "description": "Bridge Service for Vox Deorum - Communication layer between Lua and external AI services",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -18,7 +18,7 @@
     "ai",
     "nodejs"
   ],
-  "author": "Vox Populi AI Team",
+  "author": "John Chen",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.6.2",
