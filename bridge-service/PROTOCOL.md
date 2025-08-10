@@ -14,203 +14,220 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 ### 1. External Service → Lua Function Call
 
-**Single Function Call**
-```
-1. External service → POST /lua/call
+#### Single Function Call
+
+1. **External service → POST /lua/call**
+   ```http
    Headers: Content-Type: application/json
    Body: {"function": "MoveUnit", "args": [5, 10, 12]}
+   ```
 
-2. Bridge → DLL (Winsock IPC)
-   Message: {type: "lua_call", function: "MoveUnit", args: [5, 10, 12], id: "uuid"}
+2. **Bridge → DLL (Winsock IPC)**
+   ```json
+   {type: "lua_call", function: "MoveUnit", args: [5, 10, 12], id: "uuid"}
+   ```
 
-3. DLL → Lua Environment
-   Execution: MoveUnit(5, 10, 12)
+3. **DLL → Lua Environment**
+   ```lua
+   MoveUnit([5, 10, 12])
+   ```
 
-4. Lua → DLL → Bridge (Winsock IPC)
-   Response: {type: "lua_response", id: "uuid", success: true, result: {...}}
+4. **Lua → DLL → Bridge (Winsock IPC)**
+   ```json
+   {type: "lua_response", id: "uuid", success: true, result: {...}}
+   ```
 
-5. Bridge → External Service (HTTP Response)
-   Body: {"success": true, "result": {...}}
-```
+5. **Bridge → External Service (HTTP Response)**
+   ```json
+   {"success": true, "result": {...}}
+   ```
 
-**Batch Function Calls**
-```
-1. External service → POST /lua/batch
-   Body: [
-     {"function": "GetUnit", "args": [1]},
-     {"function": "GetCity", "args": [2]}
+#### Batch Function Calls
+
+1. **External service → POST /lua/batch**
+   ```json
+   [
+     {"function": "GetUnit", "args": 1},
+     {"function": "GetCity", "args": 2}
    ]
+   ```
 
-2. Bridge → DLL (Sequential Winsock IPC calls)
-   Messages: 
-   - {type: "lua_call", function: "GetUnit", args: [1], id: "uuid1"}
-   - {type: "lua_call", function: "GetCity", args: [2], id: "uuid2"}
+2. **Bridge → DLL (Sequential Winsock IPC calls)**
+   ```json
+   {type: "lua_call", function: "GetUnit", args: 1, id: "uuid1"}
+   {type: "lua_call", function: "GetCity", args: 2, id: "uuid2"}
+   ```
 
-3. DLL → Lua → DLL → Bridge (Multiple responses)
-   Responses:
-   - {type: "lua_response", id: "uuid1", success: true, result: {...}}
-   - {type: "lua_response", id: "uuid2", success: true, result: {...}}
+3. **DLL → Lua → DLL → Bridge (Multiple responses)**
+   ```json
+   {type: "lua_response", id: "uuid1", success: true, result: {...}}
+   {type: "lua_response", id: "uuid2", success: true, result: {...}}
+   ```
 
-4. Bridge → External Service (Aggregated response)
-   Body: [
+4. **Bridge → External Service (Aggregated response)**
+   ```json
+   [
      {"success": true, "result": {...}},
      {"success": true, "result": {...}}
    ]
-```
+   ```
 
-**Raw Lua Script Execution**
-```
-1. External service → POST /lua/execute
-   Body: {"script": "return Game.GetGameTurn() * 2 + 1"}
+#### Raw Lua Script Execution
 
-2. Bridge → DLL (Winsock IPC)
-   Message: {type: "lua_execute", script: "return Game.GetGameTurn() * 2 + 1", id: "uuid"}
+1. **External service → POST /lua/execute**
+   ```json
+   {"script": "return Game.GetGameTurn() * 2 + 1"}
+   ```
 
-3. DLL → Lua Environment
-   Execution: Direct script evaluation
+2. **Bridge → DLL (Winsock IPC)**
+   ```json
+   {type: "lua_execute", script: "return Game.GetGameTurn() * 2 + 1", id: "uuid"}
+   ```
 
-4. Lua → DLL → Bridge
-   Response: {type: "lua_response", id: "uuid", success: true, result: 101}
+3. **DLL → Lua Environment**
+   Direct script evaluation
 
-5. Bridge → External Service
-   Body: {"success": true, "result": 101}
-```
+4. **Lua → DLL → Bridge**
+   ```json
+   {type: "lua_response", id: "uuid", success: true, result: 101}
+   ```
+
+5. **Bridge → External Service**
+   ```json
+   {"success": true, "result": 101}
+   ```
 
 ### 2. Lua → External Service Function Call
 
-**Function Registration**
-```
-1. External service → POST /external/register
-   Body: {
+#### Function Registration
+
+1. **External service → POST /external/register**
+   ```json
+   {
      "name": "AnalyzeThreat",
      "url": "http://localhost:3000/analyze",
      "async": true,
      "timeout": 5000,
      "description": "Analyzes military threats using AI"
    }
+   ```
 
-2. Bridge stores registration internally and responds
-   Response: {"registered": true, "luaFunction": "AnalyzeThreat"}
+2. **Bridge stores registration internally and responds**
+   ```json
+   {"success": true}
+   ```
 
-3. Bridge → DLL (Winsock IPC)
-   Message: {type: "external_register", name: "AnalyzeThreat", async: true}
+3. **Bridge → DLL (Winsock IPC)**
+   ```json
+   {type: "external_register", name: "AnalyzeThreat", async: true}
+   ```
 
-4. DLL creates Lua binding
-   Lua Function: callable via Game.CallExternal("AnalyzeThreat", args, callback)
-```
+4. **DLL creates Lua binding**
+   ```lua
+   Game.CallExternal("AnalyzeThreat", args, callback)
+   ```
 
-**Function Invocation**
-```
-1. Lua Environment → Game.CallExternal("AnalyzeThreat", {unitId = 5, playerId = 1})
+#### Function Invocation
+
+1. **Lua Environment → Game.CallExternal("AnalyzeThreat", {unitId = 5, playerId = 1})**
    (Called from game mod scripts - args can be any JSON-compatible data)
 
-2. DLL → Bridge (Winsock IPC)
-   Message: {
-     type: "external_call",
-     function: "AnalyzeThreat",
-     args: {unitId: 5, playerId: 1},
-     id: "uuid",
-     async: true
+2. **DLL → Bridge (Winsock IPC)**
+   ```json
+   {
+     "type": "external_call",
+     "function": "AnalyzeThreat",
+     "args": {"unitId": 5, "playerId": 1},
+     "id": "uuid",
+     "async": true
    }
+   ```
 
-3. Bridge → External Service (HTTP POST)
+3. **Bridge → External Service (HTTP POST)**
+   ```http
    URL: http://localhost:3000/analyze
    Headers: Content-Type: application/json
-   Body: {"args": {unitId, playerId}, "id": "uuid"}
+   Body: {"args": {"unitId": 5, "playerId": 1}, "id": "uuid"}
+   ```
 
-4. External Service → Bridge (HTTP Response)
-   Body: {"result": {"threatLevel": "high", "recommendation": "retreat"}}
+4. **External Service → Bridge (HTTP Response)**
+   ```json
+   {"success": true, "result": {"threatLevel": "high", "recommendation": "retreat"}}
+   ```
 
-5. Bridge → DLL (Winsock IPC)
-   Message: {
-     type: "external_response",
-     id: "uuid",
-     success: true,
-     result: {"threatLevel": "high", "recommendation": "retreat"}
+5. **Bridge → DLL (Winsock IPC)**
+   ```json
+   {
+     "type": "external_response",
+     "id": "uuid",
+     "success": true,
+     "result": {"threatLevel": "high", "recommendation": "retreat"}
    }
+   ```
 
-6. DLL → Lua Environment
-   Return: Game.CallExternal() callback receives the result object or returns it (if synchronous)
-```
+6. **DLL → Lua Environment**
+   Game.CallExternal() callback receives the result object or returns it (if synchronous)
 
 ### 3. Game Events Streaming
 
-**Event Registration & Broadcasting**
-```
-1. External Service → GET /events
+#### Event Registration & Broadcasting
+
+1. **External Service → GET /events**
+   ```http
    Headers: Accept: text/event-stream
+   ```
    (Establishes SSE connection)
 
-2. Lua Environment → Bridge.SendEvent("turnStart", {...})
+2. **Lua Environment → Bridge.SendEvent("turnStart", {...})**
    (Called from game event handlers)
 
-3. DLL → Bridge (Winsock IPC)
-   Message: {
-     type: "game_event",
-     event: "turnStart",
-     payload: {
-       player: 1,
-       turn: 50,
-       year: "500 AD"
+3. **DLL → Bridge (Winsock IPC)**
+   ```json
+   {
+     "type": "game_event",
+     "event": "turnStart",
+     "payload": {
+       "player": 1,
+       "turn": 50,
+       "year": "500 AD"
      },
-     timestamp: "2024-01-01T12:00:00Z"
+     "timestamp": "2024-01-01T12:00:00Z"
    }
+   ```
 
-4. Bridge → All SSE Clients
-   SSE Stream:
+4. **Bridge → All SSE Clients**
+   ```
    event: turnStart
    data: {"type": "turnStart", "player": 1, "turn": 50, "year": "500 AD", "timestamp": "2024-01-01T12:00:00Z"}
-```
+   ```
 
 ### 4. Lua Function Registry Communication
 
-**Function Registry Update (Internal Communication)**
-```
-1. DLL → Lua Environment
-   Requests list of registered Lua functions via Bridge.GetRegisteredFunctions()
+#### Function Registry Update (Internal Communication)
 
-2. Lua Environment → DLL
-   Returns array of function names: ["GetGameState", "MoveUnit", "GetCity", ...]
+1. **Lua Environment → DLL**
+   ```c++
+   RegisterLuaFunction("GetCity", GetCityByID);
+   RegisterLuaFunction("MoveUnit", MoveUnitToPlot);
+   RegisterLuaFunction("GetPlayerGold", GetPlayerGoldAmount);
+   ```
 
-3. DLL → Bridge (Winsock IPC)
-   Message: {
-     type: "function_registry_update",
-     functions: ["GetGameState", "MoveUnit", "GetCity", ...]
+2. **DLL → Bridge (Winsock IPC)**
+   ```json
+   {
+     "type": "function_registered",
+     "function": "GetCity"
    }
+   ```
 
-4. Bridge updates internal function cache
+3. **Bridge updates internal function cache**  
    Used for /lua/functions endpoint responses
-```
-
-**Function Registration Request (Internal Communication)**
-```
-1. Bridge → DLL (Winsock IPC)
-   Message: {
-     type: "lua_call",
-     function: "__get_registered_functions",
-     args: {},
-     id: "uuid"
-   }
-
-2. DLL → Lua Environment
-   Calls special internal function to get current function list
-
-3. Lua → DLL → Bridge
-   Response: {
-     type: "lua_response",
-     id: "uuid",
-     success: true,
-     result: ["GetGameState", "MoveUnit", "GetCity", ...]
-   }
-
-4. Bridge caches function list for /lua/functions endpoint
-```
 
 ## Message Format Specifications
 
 ### Winsock IPC Messages (Bridge ↔ DLL)
 
-**Lua Function Call Request**
+#### Lua Function Call Request
 ```json
 {
   "type": "lua_call",
@@ -220,7 +237,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
-**Lua Script Execute Request**
+#### Lua Script Execute Request
 ```json
 {
   "type": "lua_execute",
@@ -229,7 +246,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
-**Lua Response**
+#### Lua Response
 ```json
 {
   "type": "lua_response",
@@ -244,7 +261,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
-**External Function Call**
+#### External Function Call
 ```json
 {
   "type": "external_call",
@@ -255,7 +272,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
-**External Function Response**
+#### External Function Response
 ```json
 {
   "type": "external_response",
@@ -269,7 +286,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
-**Game Event**
+#### Game Event
 ```json
 {
   "type": "game_event",
@@ -279,7 +296,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
-**External Function Registration**
+#### External Function Registration
 ```json
 {
   "type": "external_register",
@@ -288,7 +305,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
-**Function Registry Update**
+#### Function Registry Update
 ```json
 {
   "type": "function_registry_update",
@@ -298,7 +315,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 ### HTTP API Responses
 
-**Success Response**
+#### Success Response
 ```json
 {
   "success": true,
@@ -306,7 +323,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
-**Error Response**
+#### Error Response
 ```json
 {
   "success": false,
@@ -341,22 +358,20 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 ### Connection Recovery
 
-**DLL Connection Loss**
-```
+#### DLL Connection Loss
+
 1. Bridge detects Winsock/IPC disconnection
 2. Bridge enters retry mode with exponential backoff
 3. All pending requests fail with DLL_DISCONNECTED
 4. Health check endpoint reports dll_connected: false
 5. Upon reconnection, Bridge re-registers all external functions
-```
 
-**External Service Unavailable**
-```
+#### External Service Unavailable
+
 1. HTTP call to external service fails
 2. Bridge returns error to Lua via DLL
 3. Service remains registered for future calls
 4. No automatic retry (handled by calling Lua code)
-```
 
 ## Security Considerations
 
