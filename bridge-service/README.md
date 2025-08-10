@@ -9,39 +9,12 @@ The Bridge Service acts as a bidirectional gateway:
 - **External → Lua**: Register external HTTP endpoints as Lua-callable functions
 - **Events**: Stream game events via Server-Sent Events (SSE)
 
-### Technology Stack
-
+The technology stack:
 - **Runtime**: Node.js 20+
 - **Language**: TypeScript
-- **Protocol**: HTTP/REST + SSE (Express)
-- **Communication**: TCP socket to DLL (node-ipc)
-
-### Communication Flow
-
-#### External → Lua Function Call
-```
-1. External service → POST /lua/call {"function": "MoveUnit", "args": [5, 10, 12]}
-2. Bridge → DLL (TCP): {type: "lua_call", function: "MoveUnit", args: [5, 10, 12]}
-3. DLL → Lua: MoveUnit(5, 10, 12)
-4. Lua → DLL → Bridge: {success: true, result: {...}}
-5. Bridge → External service: {success: true, result: {...}}
-```
-
-#### Lua → External Function Call
-```
-1. Lua: External.AnalyzeThreat(unitId, playerId)
-2. DLL → Bridge (TCP): {type: "external_call", function: "AnalyzeThreat", args: [...]}
-3. Bridge → HTTP POST to registered URL
-4. External service processes and responds
-5. Bridge → DLL → Lua: return value
-```
-
-#### Game Events Stream
-```
-1. Lua: Bridge.SendEvent("combatResult", {attacker: 5, defender: 8, ...})
-2. DLL → Bridge (TCP): {type: "event", payload: {...}}
-3. Bridge → SSE broadcast to all connected clients
-```
+- **Protocol**: HTTP/REST + SSE (using express)
+- **Test**: Vitest
+- **Communication**: Windows Socket to DLL (using node-ipc), as Client
 
 ## Getting Started
 
@@ -70,15 +43,13 @@ The service reads from the `config.json` for its configuration:
 
 ```json
 {
-  "bridge": {
+  "rest": {
     "port": 8080,
     "host": "localhost"
   },
-  "dll": {
-    "type": "tcp",
-    "host": "localhost", 
-    "port": 9000,
-    "reconnectInterval": 5000
+  "winsock": {
+    "id": "civ5",
+    "retry": 5000
   },
   "logging": {
     "level": "info"
@@ -213,7 +184,7 @@ Response:
 }
 ```
 
-Register an external HTTP endpoint as a Lua-callable function. The function will be available in Lua as `External.AnalyzeThreat(...)`.
+Register an external HTTP endpoint as a Lua-callable function. The function will be available in Lua via `Game.CallExternal("AnalyzeThreat", Arguments, Callback)`. For synchronous functions, the callback parameter can be omitted: `Game.CallExternal("AnalyzeThreat", Arguments)`.
 
 #### Unregister External Function
 ```http
@@ -333,10 +304,10 @@ events.onmessage = (event) => {
 -- Call external AI function registered via /external/register
 local function onCityProduction(city)
   -- This calls the external HTTP endpoint registered as 'GetCityBuildRecommendation'
-  local recommendation = External.GetCityBuildRecommendation(
-    city:GetID(),
-    city:GetOwner()
-  )
+  local recommendation = Game.CallExternal("GetCityBuildRecommendation", {
+    cityId = city:GetID(),
+    owner = city:GetOwner()
+  })
   
   if recommendation then
     print("AI recommends building: " .. recommendation.building)
@@ -408,22 +379,27 @@ The service returns structured error responses:
 bridge-service/
 ├── src/
 │   ├── index.ts           # Express app entry point
+│   ├── service.ts         # The Bridge Service
 │   ├── routes/
 │   │   ├── lua.ts         # Lua execution endpoints
 │   │   ├── external.ts    # External function registration
 │   │   └── events.ts      # SSE event streaming
 │   ├── services/
-│   │   ├── dll-connector.ts    # TCP connection to DLL
-│   │   ├── lua-executor.ts     # Lua function/script execution
-│   │   └── function-registry.ts # External function registry
+│   │   ├── dll-connector.ts     # Handles the Winsock connection to DLL
+│   │   ├── lua-manager.ts       # Handles Lua execution/return/registry
+│   │   ├── external-manager.ts  # Handles external function execution/return/registry
 │   ├── types/
-│   │   └── index.ts       # TypeScript type definitions
+│   │   └── lua.ts         # Lua-related interfaces
+│   │   └── external.ts    # External function-related interfaces
+│   │   └── event.ts       # Event-related interfaces
+│   │   └── api.ts         # API-related interfaces
 │   └── utils/
 │       ├── logger.ts      # Logging utility
 │       └── config.ts      # Configuration loader
 ├── tests/
 │   ├── lua.test.ts
 │   ├── external.test.ts
+│   ├── events.test.ts
 │   └── mocks/
 ├── package.json
 ├── tsconfig.json
