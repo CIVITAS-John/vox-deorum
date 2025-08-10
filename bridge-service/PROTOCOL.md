@@ -200,7 +200,10 @@ The Bridge Service acts as a communication hub using three primary channels:
    ```
    (Establishes SSE connection)
 
-2. **Lua Environment → Bridge.SendEvent("turnStart", {...})**
+2. **Lua Environment → DLL**
+   ```lua
+   Bridge.SendEvent("turnStart", {...})
+   ```
    (Called from game event handlers)
 
 3. **DLL → Bridge (Winsock IPC)**

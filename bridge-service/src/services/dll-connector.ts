@@ -98,28 +98,6 @@ export class DLLConnector extends EventEmitter {
   private setupEventHandlers(): void {
     const socket = ipc.of[config.winsock.id];
     if (!socket) return;
-
-    // Handle Lua responses
-    socket.on('lua_response', (data: any) => {
-      this.handleResponse(data);
-    });
-
-    // Handle external function calls from Lua
-    socket.on('external_call', (data: any) => {
-      this.emit('external_call', data);
-    });
-
-    // Handle game events
-    socket.on('game_event', (data: any) => {
-      this.emit('game_event', data);
-    });
-
-    // Handle external function responses
-    socket.on('external_response', (data: any) => {
-      this.handleResponse(data);
-    });
-
-    // Handle generic messages
     socket.on('message', (data: any) => {
       logger.debug('Received message:', data);
       this.handleMessage(data);
@@ -137,7 +115,6 @@ export class DLLConnector extends EventEmitter {
       // Route based on message type
       switch (data.type) {
         case 'lua_response':
-        case 'external_response':
           this.handleResponse(data);
           break;
         case 'external_call':
@@ -145,6 +122,9 @@ export class DLLConnector extends EventEmitter {
           break;
         case 'game_event':
           this.emit('game_event', data);
+          break;
+        case 'function_registered':
+          this.emit('function_registered', data);
           break;
         default:
           logger.warn('Unknown message type:', data.type);
