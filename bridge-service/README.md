@@ -1,0 +1,468 @@
+# Bridge Service
+
+A thin communication layer between Civilization V's Lua environment and external AI services. This service exposes Lua functions as HTTP endpoints and allows external services to register functions callable from Lua.
+
+## Overview
+
+The Bridge Service acts as a bidirectional gateway:
+- **Lua → External**: Execute Lua functions and scripts via HTTP
+- **External → Lua**: Register external HTTP endpoints as Lua-callable functions
+- **Events**: Stream game events via Server-Sent Events (SSE)
+
+### Technology Stack
+
+- **Runtime**: Node.js 20+
+- **Language**: TypeScript
+- **Framework**: Express with TypeScript
+- **Real-time**: SSE for event streaming
+- **Protocol**: HTTP/REST + SSE
+- **Communication**: TCP socket to DLL
+
+### Communication Flow
+
+#### External → Lua Function Call
+```
+1. External service → POST /lua/call {"function": "MoveUnit", "args": [5, 10, 12]}
+2. Bridge → DLL (TCP): {type: "lua_call", function: "MoveUnit", args: [5, 10, 12]}
+3. DLL → Lua: MoveUnit(5, 10, 12)
+4. Lua → DLL → Bridge: {success: true, result: {...}}
+5. Bridge → External service: {success: true, result: {...}}
+```
+
+#### Lua → External Function Call
+```
+1. Lua: External.AnalyzeThreat(unitId, playerId)
+2. DLL → Bridge (TCP): {type: "external_call", function: "AnalyzeThreat", args: [...]}
+3. Bridge → HTTP POST to registered URL
+4. External service processes and responds
+5. Bridge → DLL → Lua: return value
+```
+
+#### Game Events Stream
+```
+1. Lua: Bridge.SendEvent("combatResult", {attacker: 5, defender: 8, ...})
+2. DLL → Bridge (TCP): {type: "event", payload: {...}}
+3. Bridge → SSE broadcast to all connected clients
+```
+
+## Getting Started
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Development mode with hot reload
+npm run dev
+
+# Build TypeScript
+npm run build
+
+# Production mode
+npm start
+
+# Run tests
+npm test
+```
+
+### Configuration
+
+The service reads from the `config.json` for its configuration:
+
+```json
+{
+  "bridge": {
+    "port": 8080,
+    "host": "localhost"
+  },
+  "dll": {
+    "type": "tcp",
+    "host": "localhost", 
+    "port": 9000,
+    "reconnectInterval": 5000
+  },
+  "logging": {
+    "level": "info"
+  }
+}
+```
+
+### Docker Support
+
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+EXPOSE 8080
+CMD ["node", "dist/index.js"]
+```
+
+Run with Docker:
+```bash
+docker build -t bridge-service .
+docker run -p 8080:8080 -e DLL_HOST=host.docker.internal bridge-service
+```
+
+## API Reference
+
+### Core Endpoints
+
+#### Health Check
+```http
+GET /health
+
+Response:
+{
+  "status": "ok",
+  "dll_connected": true,
+  "uptime": 3600
+}
+```
+
+### Lua Execution API
+
+#### Execute Lua Function
+```http
+POST /lua/call
+Content-Type: application/json
+
+{
+  "function": "GetUnitInfo",
+  "args": [unitId]
+}
+
+Response: 
+{
+  "result": { /* Lua function return value */ },
+  "success": true
+}
+```
+
+Execute a registered Lua function with arguments.
+
+#### Batch Lua Calls
+```http
+POST /lua/batch
+Content-Type: application/json
+
+[
+  { "function": "GetUnit", "args": [1] },
+  { "function": "GetCity", "args": [2] }
+]
+
+Response:
+[
+  { "result": { /* unit data */ }, "success": true },
+  { "result": { /* city data */ }, "success": true }
+]
+```
+
+Execute multiple Lua functions in sequence.
+
+#### List Lua Functions
+```http
+GET /lua/functions
+
+Response:
+{
+  "functions": ["GetGameState", "GetUnit", "MoveUnit", "GetCity", "GetPlayer", ...]
+}
+```
+
+List all Lua functions available for calling via `/lua/call`.
+
+#### Execute Raw Lua Script
+```http
+POST /lua/execute
+Content-Type: application/json
+
+{
+  "script": "return Game.GetGameTurn() * 2 + 1"
+}
+
+Response:
+{
+  "result": 101,
+  "success": true
+}
+```
+
+Execute arbitrary Lua code in the game context. Useful for complex queries or debugging.
+
+### External Function API
+
+#### Register External Function
+```http
+POST /external/register
+Content-Type: application/json
+
+{
+  "name": "AnalyzeThreat",
+  "url": "http://localhost:3000/analyze",
+  "async": true,
+  "timeout": 5000,
+  "description": "Analyzes military threats using AI"
+}
+
+Response:
+{
+  "registered": true,
+  "luaFunction": "External.AnalyzeThreat"
+}
+```
+
+Register an external HTTP endpoint as a Lua-callable function. The function will be available in Lua as `External.AnalyzeThreat(...)`.
+
+#### Unregister External Function
+```http
+DELETE /external/register/{functionName}
+
+Response:
+{
+  "unregistered": true
+}
+```
+
+#### List External Functions
+```http
+GET /external/functions
+
+Response:
+{
+  "functions": [
+    {
+      "name": "AnalyzeThreat",
+      "url": "http://localhost:3000/analyze",
+      "async": true,
+      "timeout": 5000,
+      "description": "Analyzes military threats using AI"
+    },
+    {
+      "name": "PlanCityProduction",
+      "url": "http://localhost:3000/plan-production",
+      "async": false,
+      "timeout": 3000,
+      "description": "Plans optimal city production queue"
+    }
+  ]
+}
+```
+
+List all registered external functions callable from Lua.
+
+### Event Stream API
+
+```http
+GET /events
+Accept: text/event-stream
+
+Response (SSE stream):
+data: {"type": "turnStart", "player": 1, "turn": 50}
+data: {"type": "unitMoved", "unit": 5, "x": 10, "y": 12}
+...
+```
+
+Subscribe to real-time game events via Server-Sent Events.
+
+## Usage Examples
+
+### External Service Integration (MCP Client)
+
+```typescript
+// Get current game state
+const response = await fetch('http://localhost:8080/lua/call', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    function: 'GetGameState',
+    args: []
+  })
+});
+const gameState = await response.json();
+
+// Execute raw Lua for complex queries
+const query = await fetch('http://localhost:8080/lua/execute', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    script: `
+      local units = {}
+      for unit in Players[Game.GetActivePlayer()]:Units() do
+        table.insert(units, {
+          id = unit:GetID(),
+          type = unit:GetUnitType(),
+          x = unit:GetX(),
+          y = unit:GetY()
+        })
+      end
+      return units
+    `
+  })
+});
+const units = await query.json();
+
+// Register an AI function for Lua to call
+await fetch('http://localhost:8080/external/register', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    name: 'GetCityBuildRecommendation',
+    url: 'http://localhost:3000/ai/recommend-build',
+    async: false,
+    timeout: 3000
+  })
+});
+
+// List available external functions
+const externalFuncs = await fetch('http://localhost:8080/external/functions');
+const { functions } = await externalFuncs.json();
+
+// Listen to game events
+const events = new EventSource('http://localhost:8080/events');
+events.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Game event:', data.type, data);
+};
+```
+
+### Lua Integration (Game Mod)
+
+```lua
+-- Call external AI function registered via /external/register
+local function onCityProduction(city)
+  -- This calls the external HTTP endpoint registered as 'GetCityBuildRecommendation'
+  local recommendation = External.GetCityBuildRecommendation(
+    city:GetID(),
+    city:GetOwner()
+  )
+  
+  if recommendation then
+    print("AI recommends building: " .. recommendation.building)
+    -- Apply recommendation
+    city:PushOrder(recommendation.order, recommendation.data)
+  end
+end
+
+-- Send events to external services
+Events.ActivePlayerTurnStart.Add(function()
+  Bridge.SendEvent("turnStart", {
+    player = Game.GetActivePlayer(),
+    turn = Game.GetGameTurn(),
+    year = Game.GetGameTurnYear()
+  })
+end)
+
+-- Register Lua functions for external calling
+Bridge.RegisterFunction("GetGameState", function()
+  return {
+    turn = Game.GetGameTurn(),
+    player = Game.GetActivePlayer(),
+    players = GetPlayersData(),
+    map = GetMapData()
+  }
+end)
+
+Bridge.RegisterFunction("MoveUnit", function(unitId, x, y)
+  local unit = GetUnitByID(unitId)
+  if unit then
+    unit:MoveToPlot(x, y)
+    return { success = true }
+  end
+  return { success = false, error = "Unit not found" }
+end)
+```
+
+## Error Handling
+
+### Error Response Format
+
+The service returns structured error responses:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "LUA_EXECUTION_ERROR",
+    "message": "Failed to execute Lua function",
+    "details": "attempt to index nil value"
+  }
+}
+```
+
+### Error Codes
+
+- `DLL_DISCONNECTED` - No connection to game DLL
+- `LUA_EXECUTION_ERROR` - Lua script/function failed
+- `EXTERNAL_CALL_TIMEOUT` - External function call timed out
+- `EXTERNAL_CALL_FAILED` - External function returned error
+- `INVALID_FUNCTION` - Function not registered
+- `INVALID_SCRIPT` - Malformed Lua script
+
+## Development
+
+### Project Structure
+
+```
+bridge-service/
+├── src/
+│   ├── index.ts           # Express app entry point
+│   ├── routes/
+│   │   ├── lua.ts         # Lua execution endpoints
+│   │   ├── external.ts    # External function registration
+│   │   └── events.ts      # SSE event streaming
+│   ├── services/
+│   │   ├── dll-connector.ts    # TCP connection to DLL
+│   │   ├── lua-executor.ts     # Lua function/script execution
+│   │   └── function-registry.ts # External function registry
+│   ├── types/
+│   │   └── index.ts       # TypeScript type definitions
+│   └── utils/
+│       ├── logger.ts      # Logging utility
+│       └── config.ts      # Configuration loader
+├── tests/
+│   ├── lua.test.ts
+│   ├── external.test.ts
+│   └── mocks/
+├── package.json
+├── tsconfig.json
+├── Dockerfile
+├── .env.example
+└── README.md
+```
+
+### Development Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Run in development mode with hot reload
+npm run dev
+
+# Run tests
+npm test
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
+```
+
+## Security Considerations
+
+- The `/lua/execute` endpoint allows arbitrary code execution - use with caution
+- Consider adding authentication for production deployments
+- Validate and sanitize external function URLs
+- Implement rate limiting for expensive operations
+- Run in isolated environment/container
