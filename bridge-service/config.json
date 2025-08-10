@@ -1,0 +1,15 @@
+{
+  "bridge": {
+    "port": 8080,
+    "host": "localhost"
+  },
+  "dll": {
+    "type": "tcp",
+    "host": "localhost",
+    "port": 9000,
+    "reconnectInterval": 5000
+  },
+  "logging": {
+    "level": "info"
+  }
+}

@@ -17,7 +17,7 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 ## Components
 
 ### Community Patch DLL
-- A modified version of [Community-Patch-DLL](https://github.com/LoneGazebo/Community-Patch-DLL) as a submodule
+- A modified version of [Community-Patch-DLL](https://github.com/LoneGazebo/Community-Patch-DLL) as a submodule: `civ5-dll/`
 - Talks to the Bridge Service
 - Expose functions for Lua script integration within the game
 

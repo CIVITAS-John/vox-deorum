@@ -13,10 +13,8 @@ The Bridge Service acts as a bidirectional gateway:
 
 - **Runtime**: Node.js 20+
 - **Language**: TypeScript
-- **Framework**: Express with TypeScript
-- **Real-time**: SSE for event streaming
-- **Protocol**: HTTP/REST + SSE
-- **Communication**: TCP socket to DLL
+- **Protocol**: HTTP/REST + SSE (Express)
+- **Communication**: TCP socket to DLL (node-ipc)
 
 ### Communication Flow
 
