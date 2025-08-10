@@ -101,14 +101,14 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 **Function Invocation**
 ```
-1. Lua Environment → Game.CallExternal("AnalyzeThreat", {unitId, playerId})
-   (Called from game mod scripts)
+1. Lua Environment → Game.CallExternal("AnalyzeThreat", {unitId = 5, playerId = 1})
+   (Called from game mod scripts - args can be any JSON-compatible data)
 
 2. DLL → Bridge (Winsock IPC)
    Message: {
      type: "external_call",
      function: "AnalyzeThreat",
-     args: [unitId, playerId],
+     args: {unitId: 5, playerId: 1},
      id: "uuid",
      async: true
    }
@@ -116,7 +116,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 3. Bridge → External Service (HTTP POST)
    URL: http://localhost:3000/analyze
    Headers: Content-Type: application/json
-   Body: {"args": [unitId, playerId], "id": "uuid"}
+   Body: {"args": {unitId, playerId}, "id": "uuid"}
 
 4. External Service → Bridge (HTTP Response)
    Body: {"result": {"threatLevel": "high", "recommendation": "retreat"}}
@@ -162,6 +162,50 @@ The Bridge Service acts as a communication hub using three primary channels:
    data: {"type": "turnStart", "player": 1, "turn": 50, "year": "500 AD", "timestamp": "2024-01-01T12:00:00Z"}
 ```
 
+### 4. Lua Function Registry Communication
+
+**Function Registry Update (Internal Communication)**
+```
+1. DLL → Lua Environment
+   Requests list of registered Lua functions via Bridge.GetRegisteredFunctions()
+
+2. Lua Environment → DLL
+   Returns array of function names: ["GetGameState", "MoveUnit", "GetCity", ...]
+
+3. DLL → Bridge (Winsock IPC)
+   Message: {
+     type: "function_registry_update",
+     functions: ["GetGameState", "MoveUnit", "GetCity", ...]
+   }
+
+4. Bridge updates internal function cache
+   Used for /lua/functions endpoint responses
+```
+
+**Function Registration Request (Internal Communication)**
+```
+1. Bridge → DLL (Winsock IPC)
+   Message: {
+     type: "lua_call",
+     function: "__get_registered_functions",
+     args: {},
+     id: "uuid"
+   }
+
+2. DLL → Lua Environment
+   Calls special internal function to get current function list
+
+3. Lua → DLL → Bridge
+   Response: {
+     type: "lua_response",
+     id: "uuid",
+     success: true,
+     result: ["GetGameState", "MoveUnit", "GetCity", ...]
+   }
+
+4. Bridge caches function list for /lua/functions endpoint
+```
+
 ## Message Format Specifications
 
 ### Winsock IPC Messages (Bridge ↔ DLL)
@@ -205,7 +249,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 {
   "type": "external_call",
   "function": "string",
-  "args": ["array"],
+  "args": "any (JSON object - could be array, object, or primitive)",
   "id": "uuid-string",
   "async": boolean
 }
@@ -241,6 +285,14 @@ The Bridge Service acts as a communication hub using three primary channels:
   "type": "external_register",
   "name": "string",
   "async": boolean
+}
+```
+
+**Function Registry Update**
+```json
+{
+  "type": "function_registry_update",
+  "functions": ["array", "of", "function", "names"]
 }
 ```
 
