@@ -57,19 +57,20 @@ export class BridgeService extends EventEmitter {
   public async start(): Promise<void> {
     logger.info('Starting Bridge Service...');
     
+    this.isRunning = true;
+    
+    // Start attempting to connect to DLL (don't fail if initial connection fails)
+    logger.info('Attempting to connect to DLL...');
     try {
-      // Connect to DLL
-      logger.info('Attempting to connect to DLL...');
       await dllConnector.connect();
-      
-      this.isRunning = true;
-      logger.info('Bridge Service started successfully');
-      this.emit('started');
+      logger.info('Bridge Service started successfully with DLL connection');
     } catch (error) {
-      logger.error('Failed to start Bridge Service:', error);
-      this.emit('start_failed', error);
-      throw error;
+      logger.warn('Initial DLL connection failed, but service will continue to retry:', error);
+      // Use dll-connector's built-in reconnection logic
+      dllConnector.startReconnectionAttempts();
     }
+    
+    this.emit('started');
   }
 
   /**
@@ -80,7 +81,8 @@ export class BridgeService extends EventEmitter {
     
     try {
       this.isRunning = false;
-      // Disconnect from DLL
+      
+      // Disconnect from DLL (this will also clear any reconnection timers)
       dllConnector.disconnect();
       
       logger.info('Bridge Service shut down successfully');

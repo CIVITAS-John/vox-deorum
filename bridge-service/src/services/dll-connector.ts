@@ -30,7 +30,6 @@ export class DLLConnector extends EventEmitter {
   private connected: boolean = false;
   private pendingRequests: Map<string, PendingRequest> = new Map();
   private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 10;
   private reconnectTimer?: NodeJS.Timeout;
 
   constructor() {
@@ -44,7 +43,7 @@ export class DLLConnector extends EventEmitter {
   private setupIPC(): void {
     ipc.config.id = 'bridge-service';
     ipc.config.retry = config.winsock.retry;
-    ipc.config.maxRetries = this.maxReconnectAttempts;
+    ipc.config.maxRetries = false; // Infinite retries
     ipc.config.silent = true; // We'll handle our own logging
     ipc.config.rawBuffer = false;
     ipc.config.encoding = 'utf8';
@@ -79,6 +78,8 @@ export class DLLConnector extends EventEmitter {
         ipc.of[config.winsock.id].on('error', (error: any) => {
           logger.error('IPC error:', error);
           if (!this.connected) {
+            // For initial connection failures, also start reconnection attempts
+            this.handleDisconnection();
             reject(new Error(`Failed to connect to DLL: ${error.message || error}`));
           }
         });
@@ -87,6 +88,8 @@ export class DLLConnector extends EventEmitter {
       // Timeout for initial connection
       setTimeout(() => {
         if (!this.connected) {
+          // For timeouts, also start reconnection attempts
+          this.handleDisconnection();
           reject(new Error('Connection timeout - DLL may not be running'));
         }
       }, 10000);
@@ -178,22 +181,18 @@ export class DLLConnector extends EventEmitter {
     }
     this.pendingRequests.clear();
 
-    // Attempt reconnection
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-      
-      logger.info(`Attempting reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
-      
-      this.reconnectTimer = setTimeout(() => {
-        this.connect().catch((error) => {
-          logger.error('Reconnection failed:', error);
-        });
-      }, delay);
-    } else {
-      logger.error('Max reconnection attempts reached. Aborting.');
-      this.disconnect();
-    }
+    // Attempt reconnection (infinite retries)
+    this.reconnectAttempts++;
+    const delay = Math.min(1000 * Math.pow(2, Math.min(this.reconnectAttempts, 10)), 30000); // Cap exponential backoff at 10 attempts
+    
+    logger.info(`Attempting reconnection ${this.reconnectAttempts} in ${delay}ms`);
+    
+    this.reconnectTimer = setTimeout(() => {
+      this.connect().catch((error) => {
+        logger.error('Reconnection failed:', error);
+        // Will automatically try again via handleDisconnection
+      });
+    }, delay);
   }
 
   /**
@@ -284,6 +283,16 @@ export class DLLConnector extends EventEmitter {
     
     this.connected = false;
     this.emit('disconnected');
+  }
+
+  /**
+   * Manually trigger reconnection attempts (for startup failures)
+   */
+  public startReconnectionAttempts(): void {
+    if (!this.connected && !this.reconnectTimer) {
+      logger.info('Starting manual reconnection attempts');
+      this.handleDisconnection();
+    }
   }
 
   /**
