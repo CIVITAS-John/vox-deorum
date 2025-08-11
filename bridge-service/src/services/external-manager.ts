@@ -10,9 +10,10 @@ import {
   ExternalFunctionRegistration,
   ExternalFunction,
   ExternalCallRequest,
-  ExternalFunctionList 
+  ExternalFunctionList, 
+  ExternalCallResponse
 } from '../types/external';
-import { ErrorCode } from '../types/api';
+import { APIResponse, ErrorCode, respondSuccess, respondError } from '../types/api';
 
 const logger = createLogger('ExternalManager');
 
@@ -32,13 +33,13 @@ export class ExternalManager {
   /**
    * Register an external function
    */
-  public async registerFunction(registration: ExternalFunctionRegistration): Promise<{ registered: boolean; luaFunction?: string }> {
+  public async registerFunction(registration: ExternalFunctionRegistration): Promise<APIResponse<any>> {
     logger.info(`Registering external function: ${registration.name}`);
 
     // Validate registration
     const validationError = this.validateRegistration(registration);
     if (validationError) {
-      throw new Error(validationError);
+      return respondError(ErrorCode.INVALID_ARGUMENTS, validationError);
     }
 
     const externalFunction: ExternalFunction = {
@@ -50,70 +51,50 @@ export class ExternalManager {
       registeredAt: new Date()
     };
 
+    // Notify DLL about the registration
+    var response = dllConnector.sendNoWait({
+      type: 'external_register',
+      name: registration.name,
+      async: registration.async
+    } as any);
+    
     // Store function registration
     this.registeredFunctions.set(registration.name, externalFunction);
 
-    try {
-      // Notify DLL about the registration
-      if (dllConnector.isConnected()) {
-        dllConnector.sendNoWait({
-          type: 'external_register',
-          name: registration.name,
-          async: registration.async
-        });
-      }
-
-      logger.info(`Successfully registered external function: ${registration.name}`);
-      return {
-        registered: true,
-        luaFunction: registration.name
-      };
-    } catch (error) {
-      // Remove from local registry if DLL registration fails
-      this.registeredFunctions.delete(registration.name);
-      logger.error(`Failed to register function with DLL: ${registration.name}`, error);
-      throw error;
-    }
+    logger.info(`Successfully registered external function: ${registration.name}`);
+    return response;
   }
 
   /**
    * Unregister an external function
    */
-  public async unregisterFunction(name: string): Promise<{ unregistered: boolean }> {
+  public async unregisterFunction(name: string): Promise<APIResponse<any>> {
     logger.info(`Unregistering external function: ${name}`);
 
     if (!this.registeredFunctions.has(name)) {
-      throw new Error(`Function '${name}' is not registered`);
+      return respondError(ErrorCode.INVALID_FUNCTION, `Function '${name}' is not registered`);
     }
 
     // Remove from local registry
     this.registeredFunctions.delete(name);
 
-    try {
-      // Notify DLL about the unregistration
-      if (dllConnector.isConnected()) {
-        dllConnector.sendNoWait({
-          type: 'external_unregister',
-          name
-        });
-      }
+    // Notify DLL about the unregistration
+    dllConnector.sendNoWait({
+      type: 'external_unregister',
+      name
+    } as any);
 
-      logger.info(`Successfully unregistered external function: ${name}`);
-      return { unregistered: true };
-    } catch (error) {
-      logger.error(`Error notifying DLL about unregistration: ${name}`, error);
-      // Still return success since local unregistration succeeded
-      return { unregistered: true };
-    }
+    logger.info(`Successfully unregistered external function: ${name}`);
+    return respondSuccess({ });
   }
 
   /**
    * Get list of registered external functions
    */
-  public getFunctions(): ExternalFunctionList {
-    return {
+  public getFunctions(): APIResponse<ExternalFunctionList> {
+    return respondSuccess({
       functions: Array.from(this.registeredFunctions.values())
-    };
+    });
   }
 
   /**
@@ -122,49 +103,27 @@ export class ExternalManager {
   private async handleExternalCall(data: any): Promise<void> {
     const { function: functionName, args, id, async: isAsync } = data;
     logger.info(`Handling external call: ${functionName} (${isAsync ? 'async' : 'sync'})`);
-
+    // Check if function is registered
     const externalFunction = this.registeredFunctions.get(functionName);
     if (!externalFunction) {
-      const error = {
-        code: ErrorCode.INVALID_FUNCTION,
-        message: `External function '${functionName}' is not registered`
-      };
-      
-      this.sendExternalResponse(id, false, undefined, error);
+      this.sendExternalResponse(id, respondError(
+        ErrorCode.INVALID_FUNCTION,
+        `External function '${functionName}' is not registered`
+      ));
       return;
     }
 
-    try {
-      // Execute the external function call
-      const result = await this.executeExternalCall(externalFunction, args);
-      
-      // Send success response back to DLL
-      this.sendExternalResponse(id, true, result);
-    } catch (error: any) {
-      logger.error(`External function call failed: ${functionName}`, error);
-      
-      let errorCode = ErrorCode.EXTERNAL_CALL_FAILED;
-      let errorMessage = `External function call failed: ${functionName}`;
-      
-      if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-        errorCode = ErrorCode.NETWORK_ERROR;
-        errorMessage = `Network error calling external function: ${functionName}`;
-      } else if (error.name === 'TimeoutError') {
-        errorCode = ErrorCode.EXTERNAL_CALL_TIMEOUT;
-        errorMessage = `External function call timed out: ${functionName}`;
-      }
+    // Execute the external function call
+    const result = await this.executeExternalCall(externalFunction, args);
 
-      this.sendExternalResponse(id, false, undefined, {
-        code: errorCode,
-        message: errorMessage
-      });
-    }
+    // Send success response back to DLL
+    this.sendExternalResponse(id, result);
   }
 
   /**
    * Execute external function call via HTTP
    */
-  private async executeExternalCall(externalFunction: ExternalFunction, args: any): Promise<any> {
+  private async executeExternalCall<T>(externalFunction: ExternalFunction, args: any): Promise<ExternalCallResponse<T>> {
     const request: ExternalCallRequest = {
       args,
       id: uuidv4()
@@ -177,56 +136,49 @@ export class ExternalManager {
         timeout: externalFunction.timeout,
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'VoxPopuli-BridgeService/1.0'
+          'User-Agent': 'VoxDeorum-BridgeService/1.0'
         }
       });
 
       if (response.status >= 200 && response.status < 300) {
         const result = response.data;
         logger.debug(`External function success:`, result);
-        
-        // Handle different response formats
-        if (result && typeof result === 'object' && 'result' in result) {
-          return result.result;
-        }
         return result;
       } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        return respondError(ErrorCode.CALL_FAILED, 
+          `External function call ${externalFunction.name} failed with status ${response.status}: ${response.statusText}`, 
+          response.data ? JSON.stringify(response.data) : undefined);
       }
     } catch (error: any) {
       if (error.code === 'ECONNABORTED') {
-        const timeoutError = new Error(`Request timeout after ${externalFunction.timeout}ms`);
-        timeoutError.name = 'TimeoutError';
-        throw timeoutError;
+        return respondError(ErrorCode.CALL_TIMEOUT,
+          `External function call ${externalFunction.name} timed out after ${externalFunction.timeout}ms`);
       }
       
       if (error instanceof AxiosError) {
         const status = error.response?.status;
         const statusText = error.response?.statusText;
         const data = error.response?.data;
-        
-        throw new Error(`HTTP ${status || 'Error'}: ${statusText || error.message}${data ? ` - ${JSON.stringify(data)}` : ''}`);
+        return respondError(ErrorCode.NETWORK_ERROR,
+          `External function call ${externalFunction.name} failed with status ${status}: ${statusText ?? error.message}`, 
+          data ? JSON.stringify(data) : undefined);
       }
-      
-      throw error;
+
+      return respondError(ErrorCode.INTERNAL_ERROR,
+        `Unexpected error calling external function ${externalFunction.name}`, 
+        error.message);
     }
   }
 
   /**
    * Send external function response back to DLL
    */
-  private sendExternalResponse(id: string, success: boolean, result?: any, error?: any): void {
-    try {
-      dllConnector.sendNoWait({
-        type: 'external_response',
-        id,
-        success,
-        result,
-        error
-      });
-    } catch (err) {
-      logger.error('Failed to send external response:', err);
-    }
+  private sendExternalResponse(id: string, response: APIResponse<any>): void {
+    dllConnector.sendNoWait({
+      type: 'external_response',
+      id,
+      ...response
+    });
   }
 
   /**
@@ -271,17 +223,13 @@ export class ExternalManager {
    */
   public reregisterAll(): void {
     logger.info('Re-registering all external functions with DLL');
-    
     for (const func of this.registeredFunctions.values()) {
-      try {
-        dllConnector.sendNoWait({
-          type: 'external_register',
-          name: func.name,
-          async: func.async
-        });
-      } catch (error) {
-        logger.error(`Failed to re-register function: ${func.name}`, error);
-      }
+      dllConnector.sendNoWait({
+        type: 'external_register',
+        name: func.name,
+        async: func.async
+      } as any);
+      logger.debug(`Re-registered function: ${func.name}`);
     }
   }
 

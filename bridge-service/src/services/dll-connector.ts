@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger';
 import { config } from '../utils/config';
 import { IPCMessage } from '../types/event';
-import { APIResponse, ErrorCode, respondError } from '../types/api';
+import { APIResponse, ErrorCode, respondError, respondSuccess } from '../types/api';
 
 const logger = createLogger('DLLConnector');
 
@@ -220,17 +220,19 @@ export class DLLConnector extends EventEmitter {
   /**
    * Send a message without waiting for response
    */
-  public sendNoWait(message: IPCMessage): void {
+  public sendNoWait(message: IPCMessage): APIResponse<any> {
     if (!this.connected) {
-      logger.warn('Cannot send message - not connected to DLL');
-      return;
+      logger.warn('Cannot send message, DLL is disconnected');
+      return respondError(ErrorCode.DLL_DISCONNECTED);
     }
 
     try {
       ipc.of[config.winsock.id].emit('message', message);
       logger.debug('Sent no-wait message to DLL:', message);
+      return respondSuccess();
     } catch (error) {
       logger.error('Failed to send no-wait message:', error);
+      return respondError(ErrorCode.NETWORK_ERROR);
     }
   }
 
