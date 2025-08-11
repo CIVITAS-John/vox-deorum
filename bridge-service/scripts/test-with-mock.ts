@@ -86,9 +86,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Run the main function
-if (require.main === module) {
-  main().catch((error) => {
-    logger.error('Script error:', error);
-    process.exit(1);
-  });
-}
+main().catch((error) => {
+  logger.error('Script error:', error);
+  process.exit(1);
+});

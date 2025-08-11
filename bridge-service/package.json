@@ -15,9 +15,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "mock": "npm run build && tsx scripts/test-with-mock.ts",
-    "test:mock-dll": "tsx scripts/test-with-mock.ts",
-    "dev:with-mock": "npm run test:mock-dll & sleep 2 && npm run dev"
+    "test:mock": "USE_MOCK=true vitest run",
+    "test:real": "USE_MOCK=false vitest run",
+    "test:mock-watch": "USE_MOCK=true vitest",
+    "mock": "tsx watch scripts/test-with-mock.ts",
+    "dev:with-mock": "npm run mock & sleep 2 && npm run dev"
   },
   "keywords": [
     "civilization",

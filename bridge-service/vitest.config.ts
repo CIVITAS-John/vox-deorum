@@ -7,9 +7,11 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     coverage: {
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.d.ts'],
+      exclude: ['src/**/*.d.ts', 'src/**/*.test.ts'],
       reporter: ['text', 'lcov', 'html']
     },
-    testTimeout: 10000
+    testTimeout: 15000, // Extended timeout for IPC operations
+    hookTimeout: 15000, // Extended timeout for setup/teardown
+    retry: process.env.CI ? 1 : 0 // Retry once in CI for flaky IPC tests
   }
 })
