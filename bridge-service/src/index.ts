@@ -12,7 +12,7 @@ import { getSSEStats } from './routes/events';
 import luaRoutes from './routes/lua';
 import externalRoutes from './routes/external';
 import eventsRoutes from './routes/events';
-import { APIResponse } from './types/api';
+import { respondError, respondSuccess, ErrorCode } from './types/api';
 import { handleAPIError } from './utils/api';
 
 // Create Express application
@@ -64,10 +64,7 @@ app.get('/health', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/health', async () => {
     const healthStatus = bridgeService.getHealthStatus();
     
-    return {
-      success: true,
-      result: healthStatus
-    };
+    return respondSuccess(healthStatus);
   });
 });
 
@@ -79,13 +76,10 @@ app.get('/stats', async (_req: Request, res: Response) => {
     const stats = bridgeService.getServiceStats();
     const sseStats = getSSEStats();
     
-    return {
-      success: true,
-      result: {
-        ...stats,
-        sse: sseStats
-      }
-    };
+    return respondSuccess({
+      ...stats,
+      sse: sseStats
+    });
   });
 });
 
@@ -95,10 +89,7 @@ app.get('/stats', async (_req: Request, res: Response) => {
 app.post('/admin/reconnect', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/admin/reconnect', async () => {
     await bridgeService.reconnectDLL();
-    return {
-      success: true,
-      result: { message: 'DLL reconnection successful' }
-    };
+    return respondSuccess({ message: 'DLL reconnection successful' });
   });
 });
 
@@ -114,34 +105,31 @@ app.use('/events', eventsRoutes);
  */
 app.get('/', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/', async () => {
-    return {
-      success: true,
-      result: {
-        service: 'Vox Deorum Bridge Service',
-        version: process.env.npm_package_version || '1.0.0',
-        status: bridgeService.isServiceRunning() ? 'running' : 'stopped',
-        endpoints: {
-          health: '/health',
-          stats: '/stats',
-          lua: {
-            call: 'POST /lua/call',
-            batch: 'POST /lua/batch',
-            execute: 'POST /lua/execute',
-            functions: 'GET /lua/functions'
-          },
-          external: {
-            register: 'POST /external/register',
-            unregister: 'DELETE /external/register/:name',
-            functions: 'GET /external/functions'
-          },
-          events: 'GET /events (Server-Sent Events)',
-          admin: {
-            reconnect: 'POST /admin/reconnect'
-          }
+    return respondSuccess({
+      service: 'Vox Deorum Bridge Service',
+      version: process.env.npm_package_version || '1.0.0',
+      status: bridgeService.isServiceRunning() ? 'running' : 'stopped',
+      endpoints: {
+        health: '/health',
+        stats: '/stats',
+        lua: {
+          call: 'POST /lua/call',
+          batch: 'POST /lua/batch',
+          execute: 'POST /lua/execute',
+          functions: 'GET /lua/functions'
         },
-        documentation: 'See README.md and PROTOCOL.md for detailed API documentation'
-      }
-    };
+        external: {
+          register: 'POST /external/register',
+          unregister: 'DELETE /external/register/:name',
+          functions: 'GET /external/functions'
+        },
+        events: 'GET /events (Server-Sent Events)',
+        admin: {
+          reconnect: 'POST /admin/reconnect'
+        }
+      },
+      documentation: 'See README.md and PROTOCOL.md for detailed API documentation'
+    });
   });
 });
 
@@ -149,14 +137,11 @@ app.get('/', async (_req: Request, res: Response) => {
  * 404 handler
  */
 app.use('*', (req: Request, res: Response) => {
-  const response: APIResponse = {
-    success: false,
-    error: {
-      code: 'NOT_FOUND',
-      message: `Endpoint not found: ${req.method} ${req.originalUrl}`,
-      details: 'Check the API documentation for available endpoints'
-    }
-  };
+  const response = respondError(
+    ErrorCode.NOT_FOUND,
+    `Endpoint not found: ${req.method} ${req.originalUrl}`,
+    'Check the API documentation for available endpoints'
+  );
   res.status(404).json(response);
 });
 
@@ -166,14 +151,11 @@ app.use('*', (req: Request, res: Response) => {
 app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
   logger.error('Unhandled error:', error);
   
-  const response: APIResponse = {
-    success: false,
-    error: {
-      code: 'INTERNAL_ERROR',
-      message: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
-    }
-  };
+  const response = respondError(
+    ErrorCode.INTERNAL_ERROR,
+    'Internal server error',
+    process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+  );
   
   res.status(500).json(response);
 });

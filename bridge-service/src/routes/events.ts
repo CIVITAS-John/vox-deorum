@@ -8,6 +8,7 @@ import { createLogger } from '../utils/logger';
 import { handleAPIError } from '../utils/api';
 import { dllConnector } from '../services/dll-connector';
 import { GameEvent, SSEClient } from '../types/event';
+import { respondSuccess } from '../types/api';
 
 const logger = createLogger('EventRoutes');
 const router = Router();
@@ -71,10 +72,7 @@ router.get('/', async (req: Request, res: Response) => {
     });
 
     // Return success for handleAPIError - the connection is now established
-    return {
-      success: true,
-      result: { clientId, message: 'SSE connection established' }
-    };
+    return respondSuccess({ clientId, message: 'SSE connection established' });
   });
 });
 

@@ -37,7 +37,8 @@ export enum ErrorCode {
   INVALID_ARGUMENTS = 'INVALID_ARGUMENTS',
   NETWORK_ERROR = 'NETWORK_ERROR',
   SERIALIZATION_ERROR = 'SERIALIZATION_ERROR',
-  INTERNAL_ERROR = 'INTERNAL_ERROR'
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
+  NOT_FOUND = 'NOT_FOUND'
 }
 
 /**
@@ -53,7 +54,8 @@ const DEFAULT_ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ErrorCode.INVALID_ARGUMENTS]: 'Invalid or missing arguments',
   [ErrorCode.NETWORK_ERROR]: 'Network communication error',
   [ErrorCode.SERIALIZATION_ERROR]: 'Failed to serialize/deserialize data',
-  [ErrorCode.INTERNAL_ERROR]: 'Internal server error'
+  [ErrorCode.INTERNAL_ERROR]: 'Internal server error',
+  [ErrorCode.NOT_FOUND]: 'Resource not found'
 };
 
 /**

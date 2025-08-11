@@ -11,6 +11,7 @@ import {
   LuaExecuteRequest, 
   LuaBatchRequest 
 } from '../types/lua';
+import { respondError, respondSuccess, ErrorCode } from '../types/api';
 
 const logger = createLogger('LuaRoutes');
 const router = Router();
@@ -24,13 +25,10 @@ router.post('/call', async (req: Request, res: Response) => {
     
     // Basic validation - let manager handle detailed validation
     if (!request.function) {
-      return {
-        success: false,
-        error: {
-          code: 'INVALID_ARGUMENTS',
-          message: 'Missing function name'
-        }
-      };
+      return respondError(
+        ErrorCode.INVALID_ARGUMENTS,
+        'Missing function name'
+      );
     }
 
     // Default args if not provided
@@ -54,13 +52,10 @@ router.post('/batch', async (req: Request, res: Response) => {
     
     // Basic validation
     if (!Array.isArray(requests) || requests.length === 0) {
-      return {
-        success: false,
-        error: {
-          code: 'INVALID_ARGUMENTS',
-          message: 'Request body must be a non-empty array of function calls'
-        }
-      };
+      return respondError(
+        ErrorCode.INVALID_ARGUMENTS,
+        'Request body must be a non-empty array of function calls'
+      );
     }
 
     // Ensure args is defined for all requests
@@ -86,13 +81,10 @@ router.post('/execute', async (req: Request, res: Response) => {
     
     // Basic validation - let manager handle detailed validation
     if (!request.script) {
-      return {
-        success: false,
-        error: {
-          code: 'INVALID_SCRIPT',
-          message: 'Missing Lua script'
-        }
-      };
+      return respondError(
+        ErrorCode.INVALID_SCRIPT,
+        'Missing Lua script'
+      );
     }
 
     logger.info('Lua script execution');
@@ -111,10 +103,7 @@ router.get('/functions', async (_req: Request, res: Response) => {
     logger.info('Fetching available Lua functions');
     const functions = luaManager.getFunctions();
     
-    return {
-      success: true,
-      result: { functions }
-    };
+    return respondSuccess({ functions });
   });
 });
 
