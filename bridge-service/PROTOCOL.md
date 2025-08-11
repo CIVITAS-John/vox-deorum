@@ -294,6 +294,7 @@ All error codes are defined in the `ErrorCode` enum in `src/types/api.ts`:
 - **NETWORK_ERROR**: Network connectivity issues
 - **SERIALIZATION_ERROR**: Failed to serialize/deserialize data
 - **INTERNAL_ERROR**: Internal bridge service error
+- **NOT_FOUND**: Requested resource or endpoint not found
 
 ### Timeout Behavior
 

@@ -111,7 +111,18 @@ export class DLLConnector extends EventEmitter {
   private handleMessage(message: any): void {
     try {
       // Parse message if it's a string
-      const data = typeof message === 'string' ? JSON.parse(message) : message;
+      let data: any;
+      if (typeof message === 'string') {
+        try {
+          data = JSON.parse(message);
+        } catch (parseError) {
+          logger.error('Failed to parse JSON message from DLL:', parseError);
+          logger.debug('Raw message:', message);
+          return;
+        }
+      } else {
+        data = message;
+      }
       
       // Route based on message type
       switch (data.type) {
