@@ -199,7 +199,7 @@ export class DLLConnector extends EventEmitter {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined; // Clear the timer reference before attempting
       this.connect().catch((error) => {
-        logger.error('Reconnection failed:', error.message);
+        logger.error('Reconnection failed:', error);
       });
     }, delay);
   }

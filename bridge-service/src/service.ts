@@ -75,6 +75,7 @@ export class BridgeService extends EventEmitter {
    * Stop the bridge service
    */
   public async shutdown(): Promise<void> {
+    if (!this.isRunning) return;
     logger.info('Shutting down Bridge Service...');
     
     try {
