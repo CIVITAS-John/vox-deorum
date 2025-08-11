@@ -1,20 +1,50 @@
 /**
- * Connection test - Tests actual connection functionality between Bridge Service and DLL
- * 
- * This test verifies that:
- * 1. Bridge service can establish connection to DLL server
- * 2. Basic communication works (ping/pong)
- * 3. Connection can be terminated cleanly
- * 4. Error handling works for failed connections
+ * Connection test - Comprehensive tests for connection functionality between Bridge Service and DLL
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { globalMockDLL, USE_MOCK } from './setup.js';
 import { DLLConnector } from '../src/services/dll-connector.js';
 import { config } from '../src/utils/config.js';
 import { LuaCallMessage } from '../src/types/lua.js';
+import { ErrorCode } from '../src/types/api.js';
+import { bridgeService } from '../src/service.js';
+import { getSSEStats } from '../src/routes/events.js';
 
-describe('Bridge Service Connection Test', () => {
+
+// Configuration verification (supporting all connection tests)
+describe('Configuration', () => {
+  // Configuration loading and validation
+  it('should verify configuration is properly loaded', async () => {
+    // Verify configuration is loaded
+    expect(config).toBeDefined();
+    expect(config.rest.port).toBeTypeOf('number');
+    expect(config.winsock.id).toBeTypeOf('string');
+    expect(config.rest.host).toBeTypeOf('string');
+    
+    console.log('⚙️ Bridge service config:', {
+      port: config.rest.port,
+      host: config.rest.host,
+      winsockId: config.winsock.id
+    });
+  });
+});
+
+// 1. DLLConnector connection lifecycle (connect/disconnect)
+describe('DLLConnector Connection Lifecycle', () => {
+  let connector: DLLConnector;
+  
+  beforeEach(() => {
+    connector = new DLLConnector();
+  });
+  
+  afterEach(() => {
+    if (connector && connector.isConnected()) {
+      connector.disconnect();
+    }
+  });
+
+  // 1.1 - Basic connection establishment and communication
   it('should establish connection to DLL server', async () => {
     if (USE_MOCK && globalMockDLL) {
       // Verify mock server is running
@@ -23,46 +53,111 @@ describe('Bridge Service Connection Test', () => {
       console.log('📊 Mock server status:', status);
     }
 
-    // Create DLL connector instance
-    const connector = new DLLConnector();
+    // Test initial state
+    expect(connector.isConnected()).toBe(false);
     
+    // Test connection event emission
+    let connectedEventFired = false;
+    connector.on('connected', () => {
+      connectedEventFired = true;
+    });
+    
+    // Attempt to connect
+    await connector.connect();
+    expect(connector.isConnected()).toBe(true);
+    console.log('✅ Successfully connected to DLL server');
+
+    expect(connectedEventFired).toBe(true);
+    console.log('✅ Connection event fired');
+    
+    // Test basic communication - send a Lua call
+    if (USE_MOCK && globalMockDLL) {
+      const message: LuaCallMessage = {
+        type: 'lua_call',
+        function: 'GetPlayerName',
+        args: []
+      };
+      
+      const response = await connector.send(message);
+      
+      expect(response.success).toBe(true);
+      expect(response.result).toBe('Mock Player');
+      
+      console.log('✅ Basic communication test passed');
+    }
+  });
+  
+  // 1.2 - Clean disconnection with event emission
+  it('should handle clean disconnection', async () => {
+    await connector.connect();
+    expect(connector.isConnected()).toBe(true);
+    
+    // Test disconnection event emission
+    let disconnectedEventFired = false;
+    connector.on('disconnected', () => {
+      disconnectedEventFired = true;
+    });
+    
+    connector.disconnect();
+    expect(connector.isConnected()).toBe(false);
+    
+    // Give event time to fire
+    await new Promise(resolve => setTimeout(resolve, 10));
+    expect(disconnectedEventFired).toBe(true);
+    
+    console.log('✅ Connection closed cleanly');
+  });
+  
+  // 1.3 - Multiple connection attempts handling
+  it('should handle multiple connection attempts gracefully', async () => {
+    // First connection
+    await connector.connect();
+    expect(connector.isConnected()).toBe(true);
+    
+    // Second connection attempt should not cause issues
     try {
-      // Attempt to connect
       await connector.connect();
       expect(connector.isConnected()).toBe(true);
-      
-      console.log('✅ Successfully connected to DLL server');
-      
-      // Test basic communication - send a Lua call
-      if (USE_MOCK && globalMockDLL) {
-        // Send a test Lua function call
-        const message: LuaCallMessage = {
-          type: 'lua_call',
-          function: 'GetPlayerName',
-          args: []
-        };
-        
-        const response = await connector.send(message);
-        
-        expect(response.success).toBe(true);
-        expect(response.result).toBe('Mock Player');
-        
-        console.log('✅ Basic communication test passed');
-      }
-      
-    } finally {
-      // Always disconnect
+    } catch (error) {
+      // Some implementations might throw - that's also acceptable
+      expect(connector.isConnected()).toBe(true);
+    }
+    
+    console.log('✅ Multiple connection attempts handled gracefully');
+  });
+  
+  // 1.4 - Multiple disconnection calls handling
+  it('should handle multiple disconnection calls gracefully', async () => {
+    await connector.connect();
+    expect(connector.isConnected()).toBe(true);
+    
+    connector.disconnect();
+    expect(connector.isConnected()).toBe(false);
+    
+    // Second disconnect should not cause issues
+    connector.disconnect();
+    expect(connector.isConnected()).toBe(false);
+    
+    console.log('✅ Multiple disconnection calls handled gracefully');
+  });
+});
+
+// 2. Connection failure scenarios and error handling
+describe('Connection Error Handling', () => {
+  let connector: DLLConnector;
+  
+  beforeEach(() => {
+    connector = new DLLConnector();
+  });
+  
+  afterEach(() => {
+    if (connector && connector.isConnected()) {
       connector.disconnect();
-      expect(connector.isConnected()).toBe(false);
-      
-      console.log('✅ Connection closed cleanly');
     }
   });
 
+  // 2.1 - Connection failures with invalid configurations
   it('should handle connection failures gracefully', async () => {
-    // Create connector with invalid config to test error handling
-    const connector = new DLLConnector();
-    
     // Mock invalid connection scenario
     const originalConfig = config.winsock.id;
     config.winsock.id = 'invalid-id-that-does-not-exist';
@@ -77,18 +172,337 @@ describe('Bridge Service Connection Test', () => {
       config.winsock.id = originalConfig;
     }
   });
-
-  it('should verify configuration is properly loaded', async () => {
-    // Verify configuration is loaded
-    expect(config).toBeDefined();
-    expect(config.rest.port).toBeTypeOf('number');
-    expect(config.winsock.id).toBeTypeOf('string');
-    expect(config.rest.host).toBeTypeOf('string');
+  
+  // 2.2 - Connection timeout handling
+  it('should handle connection timeout', async () => {
+    const originalConfig = config.winsock.id;
+    config.winsock.id = 'non-existent-server';
     
-    console.log('⚙️ Bridge service config:', {
-      port: config.rest.port,
-      host: config.rest.host,
-      winsockId: config.winsock.id
-    });
+    try {
+      const startTime = Date.now();
+      await expect(connector.connect()).rejects.toThrow(/timeout/i);
+      const elapsed = Date.now() - startTime;
+      
+      // Should timeout in approximately 10 seconds (as configured in DLLConnector)
+      expect(elapsed).toBeGreaterThan(9000);
+      expect(elapsed).toBeLessThan(15000);
+      expect(connector.isConnected()).toBe(false);
+      
+      console.log('✅ Connection timeout handled correctly');
+    } finally {
+      config.winsock.id = originalConfig;
+    }
+  }, 20000); // Extended timeout for this test
+  
+  // 7. Pending request management during disconnections
+  it('should reject pending requests when disconnected', async () => {
+    await connector.connect();
+    expect(connector.isConnected()).toBe(true);
+    
+    // Start a request but don't wait for it
+    const messagePromise = connector.send({
+      type: 'lua_call',
+      id: 'test-request'
+    } as any);
+    
+    // Immediately disconnect
+    connector.disconnect();
+    
+    // The pending request should be rejected
+    const response = await messagePromise;
+    expect(response.success).toBe(false);
+    expect(response.error?.code).toBe(ErrorCode.DLL_DISCONNECTED);
+    
+    console.log('✅ Pending requests rejected on disconnect');
+  });
+});
+
+// 4. Message handling and request/response flow
+describe('Message Handling and Communication', () => {
+  let connector: DLLConnector;
+  
+  beforeEach(async () => {
+    connector = new DLLConnector();
+    await connector.connect();
+  });
+  
+  afterEach(() => {
+    if (connector && connector.isConnected()) {
+      connector.disconnect();
+    }
+  });
+
+  // 4.1 - Successful message responses
+  it('should handle successful message responses', async () => {
+    if (!USE_MOCK || !globalMockDLL) {
+      console.log('⏭️ Skipping mock-specific test in real server mode');
+      return;
+    }
+    
+    const message: LuaCallMessage = {
+      type: 'lua_call',
+      function: 'GetPlayerName',
+      args: []
+    };
+    
+    const response = await connector.send(message);
+    
+    expect(response.success).toBe(true);
+    expect(response.result).toBe('Mock Player');
+  });
+  
+  // 4.2 - Message error handling
+  it('should handle message errors', async () => {
+    if (!USE_MOCK || !globalMockDLL) {
+      console.log('⏭️ Skipping mock-specific test in real server mode');
+      return;
+    }
+    
+    const message: LuaCallMessage = {
+      type: 'lua_call',
+      function: 'NonExistentFunction',
+      args: []
+    };
+    
+    const response = await connector.send(message);
+    
+    expect(response.success).toBe(false);
+    expect(response.error).toBeDefined();
+  });
+  
+  // 8. Timeout handling and cleanup
+  it('should handle message timeout', async () => {
+    const message = {
+      type: 'test_timeout',
+      id: 'timeout-test'
+    } as any;
+    
+    const response = await connector.send(message, 100); // 100ms timeout
+    
+    expect(response.success).toBe(false);
+    expect(response.error?.code).toBe(ErrorCode.CALL_TIMEOUT);
+    
+    console.log('✅ Message timeout handled correctly');
+  });
+  
+  // 4.3 - SendNoWait message handling
+  it('should handle sendNoWait messages', async () => {
+    const message = {
+      type: 'lua_call',
+      id: 'no-wait-test'
+    } as any;
+    
+    const response = connector.sendNoWait(message);
+    
+    expect(response.success).toBe(true);
+    console.log('✅ No-wait message sent successfully');
+  });
+  
+  // 4.4 - SendNoWait rejection when disconnected
+  it('should reject sendNoWait when disconnected', async () => {
+    connector.disconnect();
+    
+    const message = {
+      type: 'lua_call',
+      id: 'disconnected-test'
+    } as any;
+    
+    const response = connector.sendNoWait(message);
+    
+    expect(response.success).toBe(false);
+    expect(response.error?.code).toBe(ErrorCode.DLL_DISCONNECTED);
+    
+    console.log('✅ SendNoWait rejection when disconnected working correctly');
+  });
+  
+  // 6. Event emission for connection state changes
+  it('should handle various event types', async () => {
+    const eventTypes = [
+      'game_event',
+      'external_call',
+      'lua_register'
+    ];
+    
+    // Just verify event handlers are set up correctly
+    // eventPromises would be used in a full integration test
+    
+    // In a real scenario, these events would come from the DLL
+    // For testing, we can simulate them by directly calling the message handler
+    if (USE_MOCK && globalMockDLL) {
+      // The mock server might send these events - just verify the handlers are set up
+      expect(connector.listenerCount('game_event')).toBeGreaterThan(0);
+      expect(connector.listenerCount('external_call')).toBeGreaterThan(0);
+      expect(connector.listenerCount('lua_register')).toBeGreaterThan(0);
+    }
+    
+    console.log('✅ Event handlers registered correctly');
+  });
+});
+
+// 5. Connection statistics and monitoring
+describe('Connection Statistics and Monitoring', () => {
+  let connector: DLLConnector;
+  
+  beforeEach(() => {
+    connector = new DLLConnector();
+  });
+  
+  afterEach(() => {
+    if (connector && connector.isConnected()) {
+      connector.disconnect();
+    }
+  });
+
+  // 5.1 - Accurate connection statistics tracking
+  it('should provide accurate connection statistics', async () => {
+    // Test initial stats
+    let stats = connector.getStats();
+    expect(stats.connected).toBe(false);
+    expect(stats.pendingRequests).toBe(0);
+    expect(stats.reconnectAttempts).toBe(0);
+    
+    // Test stats after connection
+    await connector.connect();
+    stats = connector.getStats();
+    expect(stats.connected).toBe(true);
+    expect(stats.pendingRequests).toBe(0);
+    expect(stats.reconnectAttempts).toBe(0);
+    
+    // Test stats after disconnect
+    connector.disconnect();
+    stats = connector.getStats();
+    expect(stats.connected).toBe(false);
+    expect(stats.pendingRequests).toBe(0);
+    
+    console.log('✅ Connection statistics working correctly');
+  });
+  
+  // 5.2 - Pending request tracking
+  it('should track pending requests', async () => {
+    await connector.connect();
+    
+    if (USE_MOCK && globalMockDLL) {
+      // Start a request but don't await it immediately
+      const requestPromise = connector.send({
+        type: 'lua_call',
+        function: 'GetPlayerName',
+        args: []
+      } as LuaCallMessage);
+      
+      // Note: Stats might be 0 if the mock server responds too quickly
+      
+      // Wait for response
+      await requestPromise;
+      
+      // Check stats after response
+      const statsAfterResponse = connector.getStats();
+      expect(statsAfterResponse.pendingRequests).toBe(0);
+    }
+    
+    console.log('✅ Pending request tracking working');
+  });
+});
+
+// 3. Reconnection logic with exponential backoff
+describe('Reconnection Logic', () => {
+  let connector: DLLConnector;
+  
+  beforeEach(() => {
+    connector = new DLLConnector();
+  });
+  
+  afterEach(() => {
+    if (connector && connector.isConnected()) {
+      connector.disconnect();
+    }
+  });
+
+  // 3.1 - Reconnection attempt tracking
+  it('should track reconnection attempts', async () => {
+    // Test with invalid connection to trigger reconnection attempts
+    const originalConfig = config.winsock.id;
+    config.winsock.id = 'invalid-reconnect-test';
+    
+    try {
+      // This should fail and start reconnection attempts
+      await expect(connector.connect()).rejects.toThrow();
+      
+      // Wait a bit for reconnection attempts to start
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const stats = connector.getStats();
+      expect(stats.reconnectAttempts).toBeGreaterThan(0);
+      
+      console.log('✅ Reconnection attempts tracked correctly');
+    } finally {
+      config.winsock.id = originalConfig;
+      connector.disconnect(); // This should stop reconnection attempts
+    }
+  });
+});
+
+// 10. Service-level connection coordination
+describe('Service-Level Connection Management', () => {
+  // 10.1 - Health status based on connection state
+  it('should provide health status based on connection state', async () => {
+    const healthStatus = bridgeService.getHealthStatus();
+    
+    expect(healthStatus).toHaveProperty('success');
+    expect(healthStatus).toHaveProperty('dll_connected');
+    expect(healthStatus).toHaveProperty('uptime');
+    expect(typeof healthStatus.uptime).toBe('number');
+    expect(healthStatus.uptime).toBeGreaterThanOrEqual(0);
+    
+    console.log('✅ Health status provides connection info');
+  });
+  
+  // 10.2 - Detailed service statistics
+  it('should provide detailed service statistics', async () => {
+    const stats = bridgeService.getServiceStats();
+    
+    expect(stats).toHaveProperty('uptime');
+    expect(stats).toHaveProperty('dll');
+    expect(stats).toHaveProperty('lua');
+    expect(stats).toHaveProperty('external');
+    expect(stats).toHaveProperty('memory');
+    
+    expect(stats.dll).toHaveProperty('connected');
+    expect(stats.dll).toHaveProperty('pendingRequests');
+    expect(stats.dll).toHaveProperty('reconnectAttempts');
+    
+    expect(typeof stats.dll.connected).toBe('boolean');
+    expect(typeof stats.dll.pendingRequests).toBe('number');
+    expect(typeof stats.dll.reconnectAttempts).toBe('number');
+    
+    console.log('✅ Service statistics include connection details');
+  });
+  
+  // 10.3 - Forced reconnection handling
+  it('should handle forced reconnection', async () => {
+    // This test just verifies the method exists and can be called
+    // In a real scenario, this would reconnect to the DLL
+    try {
+      await bridgeService.reconnectDLL();
+      console.log('✅ Forced reconnection completed');
+    } catch (error) {
+      // Reconnection might fail if DLL is not available
+      // That's acceptable for this test
+      console.log('⚠️ Forced reconnection failed (expected if no DLL):', error);
+    }
+  });
+});
+
+// 9. SSE connection management
+describe('SSE Connection Management', () => {
+  // 9.1 - SSE statistics and client tracking
+  it('should provide SSE statistics', async () => {
+    const sseStats = getSSEStats();
+    
+    expect(sseStats).toHaveProperty('activeClients');
+    expect(sseStats).toHaveProperty('clientIds');
+    expect(typeof sseStats.activeClients).toBe('number');
+    expect(Array.isArray(sseStats.clientIds)).toBe(true);
+    
+    console.log('✅ SSE statistics available');
   });
 });

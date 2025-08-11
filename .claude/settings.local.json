@@ -10,7 +10,9 @@
       "Bash(npm run test:*)",
       "Bash(npm test:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(npm audit:*)"
+      "Bash(npm audit:*)",
+      "Bash(npm install:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
