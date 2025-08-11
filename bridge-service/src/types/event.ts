@@ -3,18 +3,16 @@
  */
 
 /**
- * Game event from Lua
+ * Base IPC message structure
  */
-export interface GameEvent {
+export interface IPCMessage {
   type: string;
-  payload: any;
-  timestamp: string;
 }
 
 /**
  * IPC message for game event
  */
-export interface GameEventMessage {
+export interface GameEventMessage extends IPCMessage {
   type: 'game_event';
   event: string;
   payload: any;

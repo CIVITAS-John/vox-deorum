@@ -71,6 +71,24 @@ The Bridge Service acts as a communication hub using three primary channels:
    ]
    ```
 
+#### Function Registry Update (Internal Communication)
+
+1. **Lua Environment → DLL**
+   ```
+   Game.RegisterFunction("GetCity", GetCityByID);
+   ```
+
+2. **DLL → Bridge (Winsock IPC)**
+   ```json
+   {
+     "type": "lua_register",
+     "function": "GetCity"
+   }
+   ```
+
+3. **Bridge updates internal function cache**  
+   Used for /lua/functions endpoint responses
+
 #### Raw Lua Script Execution
 
 1. **External service → POST /lua/execute**
@@ -126,6 +144,8 @@ The Bridge Service acts as a communication hub using three primary channels:
    Game.CallExternal("AnalyzeThreat", args, callback)
    ```
 
+#### Function Unregistration
+
 #### Function Invocation
 
 1. **Lua Environment → DLL**
@@ -170,27 +190,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 6. **DLL → Lua Environment**
    Game.CallExternal() callback receives the result object or returns it (if synchronous)
 
-### 3. Lua Function Registry Communication
-
-#### Function Registry Update (Internal Communication)
-
-1. **Lua Environment → DLL**
-   ```c++
-   RegisterLuaFunction("GetCity", GetCityByID);
-   ```
-
-2. **DLL → Bridge (Winsock IPC)**
-   ```json
-   {
-     "type": "function_registered",
-     "function": "GetCity"
-   }
-   ```
-
-3. **Bridge updates internal function cache**  
-   Used for /lua/functions endpoint responses
-
-### 4. Game Events Streaming
+### 3. Game Events Streaming
 
 #### Event Registration & Broadcasting
 

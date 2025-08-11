@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger';
 import { config } from '../utils/config';
-import { IPCMessage } from '../types/api';
+import { IPCMessage } from '../types/event';
 
 const logger = createLogger('DLLConnector');
 
@@ -123,8 +123,8 @@ export class DLLConnector extends EventEmitter {
         case 'game_event':
           this.emit('game_event', data);
           break;
-        case 'function_registered':
-          this.emit('function_registered', data);
+        case 'lua_register':
+          this.emit('lua_register', data);
           break;
         default:
           logger.warn('Unknown message type:', data.type);

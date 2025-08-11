@@ -2,84 +2,31 @@
  * Type definitions for external function operations
  */
 
+import { APIResponse } from "./api";
+import { IPCMessage } from "./event";
+
 /**
- * External function registration request
+ * Registered external function details
  */
-export interface ExternalFunctionRegistration {
+export interface ExternalFunction extends ExternalFunctionMetadata {
+  registeredAt: Date;
+}
+
+/**
+ * Metadata for registering an external function
+ */
+export interface ExternalFunctionMetadata {
   name: string;
   url: string;
-  async: boolean;
+  async?: boolean;
   timeout?: number;
   description?: string;
 }
 
 /**
- * Registered external function details
- */
-export interface ExternalFunction {
-  name: string;
-  url: string;
-  async: boolean;
-  timeout: number;
-  description?: string;
-  registeredAt: Date;
-}
-
-/**
- * List of registered external functions
- */
-export interface ExternalFunctionList {
-  functions: ExternalFunction[];
-}
-
-/**
- * External function call from Lua
- */
-export interface ExternalCallRequest {
-  args: any;
-  id: string;
-}
-
-/**
- * External function response
- */
-export interface ExternalCallResponse {
-  result?: any;
-  error?: {
-    code: string;
-    message: string;
-  };
-}
-
-/**
- * IPC message for external function call
- */
-export interface ExternalCallMessage {
-  type: 'external_call';
-  function: string;
-  args: any;
-  id: string;
-  async: boolean;
-}
-
-/**
- * IPC message for external function response
- */
-export interface ExternalResponseMessage {
-  type: 'external_response';
-  id: string;
-  success: boolean;
-  result?: any;
-  error?: {
-    code: string;
-    message: string;
-  };
-}
-
-/**
  * IPC message for external function registration
  */
-export interface ExternalRegisterMessage {
+export interface ExternalRegisterMessage extends IPCMessage {
   type: 'external_register';
   name: string;
   async: boolean;
@@ -88,7 +35,37 @@ export interface ExternalRegisterMessage {
 /**
  * IPC message for external function unregistration
  */
-export interface ExternalUnregisterMessage {
+export interface ExternalUnregisterMessage extends IPCMessage {
   type: 'external_unregister';
   name: string;
+}
+
+/**
+ * External function call from Lua
+ */
+export interface ExternalCall {
+  args: any;
+  function: string;
+}
+
+/**
+ * Response for a Lua external function call
+ */
+export interface ExternalCallResponse<T = any> extends APIResponse<T> { }
+
+/**
+ * IPC message for external function call
+ */
+export interface ExternalCallMessage extends IPCMessage, ExternalCall {
+  type: 'external_call';
+  id: string;
+  async: boolean;
+}
+
+/**
+ * IPC message for external function response
+ */
+export interface ExternalResponseMessage<T = any> extends IPCMessage, ExternalCallResponse<T> {
+  type: 'external_response';
+  id: string;
 }

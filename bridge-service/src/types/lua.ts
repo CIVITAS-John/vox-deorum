@@ -2,12 +2,25 @@
  * Type definitions for Lua-related operations
  */
 
+import { APIResponse } from "./api";
+import { IPCMessage } from "./event";
+
 /**
  * Request to call a Lua function
  */
 export interface LuaCallRequest {
   function: string;
   args: any;
+}
+
+/**
+ * IPC message for Lua function call
+ */
+export interface LuaCallMessage extends IPCMessage {
+  type: 'lua_call';
+  function: string;
+  args: any;
+  id: string;
 }
 
 /**
@@ -23,17 +36,18 @@ export interface LuaExecuteRequest {
 export type LuaBatchRequest = LuaCallRequest[];
 
 /**
+ * IPC message for Lua script execution
+ */
+export interface LuaExecuteMessage extends IPCMessage {
+  type: 'lua_execute';
+  script: string;
+  id: string;
+}
+
+/**
  * Response from a Lua operation
  */
-export interface LuaResponse {
-  success: boolean;
-  result?: any;
-  error?: {
-    code: string;
-    message: string;
-    details?: string;
-  };
-}
+export interface LuaResponse<T = any> extends APIResponse<T> { }
 
 /**
  * Batch response for multiple Lua operations
@@ -50,42 +64,29 @@ export interface LuaFunctionList {
 /**
  * Registered Lua function metadata
  */
-export interface LuaFunction {
-  name: string;
-  description?: string;
+export interface LuaFunction extends LuaFunctionMetadata{
   registeredAt: Date;
 }
 
 /**
- * IPC message for Lua function call
+ * Metadata for a registering Lua function
  */
-export interface LuaCallMessage {
-  type: 'lua_call';
+export interface LuaFunctionMetadata {
   function: string;
-  args: any;
-  id: string;
+  description?: string;
 }
 
 /**
- * IPC message for Lua script execution
+ * IPC message for Lua function registration
  */
-export interface LuaExecuteMessage {
-  type: 'lua_execute';
-  script: string;
-  id: string;
+export interface LuaRegisterMessage extends IPCMessage, LuaFunctionMetadata {
+  type: 'lua_register';
 }
 
 /**
  * IPC response from Lua operation
  */
-export interface LuaResponseMessage {
+export interface LuaResponseMessage<T = any> extends IPCMessage, APIResponse<T> {
   type: 'lua_response';
   id: string;
-  success: boolean;
-  result?: any;
-  error?: {
-    code: string;
-    message: string;
-    details?: string;
-  };
 }
