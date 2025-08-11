@@ -29,25 +29,6 @@ export class BridgeService extends EventEmitter {
    * Setup event handlers for service coordination
    */
   private setupEventHandlers(): void {
-    // DLL connection events
-    dllConnector.on('connected', () => {
-      logger.info('DLL connected - bridge service fully operational');
-      this.emit('dll_connected');
-      
-      // Re-register all external functions after reconnection
-      externalManager.reregisterAll();
-    });
-
-    dllConnector.on('disconnected', () => {
-      logger.warn('DLL disconnected - limited functionality available');
-      this.emit('dll_disconnected');
-    });
-
-    dllConnector.on('max_reconnect_attempts', () => {
-      logger.error('Maximum DLL reconnection attempts reached');
-      this.emit('dll_connection_failed');
-    });
-
     // Handle service-level errors
     process.on('SIGTERM', () => {
       logger.info('SIGTERM received - shutting down gracefully');
@@ -98,13 +79,10 @@ export class BridgeService extends EventEmitter {
     logger.info('Shutting down Bridge Service...');
     
     try {
-      // Clear caches
-      luaManager.clearCache();
-      
+      this.isRunning = false;
       // Disconnect from DLL
       dllConnector.disconnect();
       
-      this.isRunning = false;
       logger.info('Bridge Service shut down successfully');
       this.emit('shutdown');
     } catch (error) {
@@ -121,7 +99,7 @@ export class BridgeService extends EventEmitter {
     const dllConnected = dllConnector.isConnected();
     
     return {
-      status: this.isRunning && dllConnected ? 'ok' : 'error',
+      success: this.isRunning && dllConnected,
       dll_connected: dllConnected,
       uptime,
       version: process.env.npm_package_version
@@ -140,7 +118,6 @@ export class BridgeService extends EventEmitter {
     };
     lua: {
       registeredFunctions: number;
-      cacheActive: boolean;
     };
     external: {
       registeredFunctions: number;
@@ -175,22 +152,10 @@ export class BridgeService extends EventEmitter {
    */
   public async reconnectDLL(): Promise<void> {
     logger.info('Forcing DLL reconnection...');
-    
-    try {
-      // Disconnect first
-      dllConnector.disconnect();
-      
-      // Wait a bit before reconnecting
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Reconnect
-      await dllConnector.connect();
-      
-      logger.info('DLL reconnection successful');
-    } catch (error) {
-      logger.error('DLL reconnection failed:', error);
-      throw error;
-    }
+    // Disconnect first
+    dllConnector.disconnect();
+    // Reconnect
+    await dllConnector.connect();
   }
 
   /**
