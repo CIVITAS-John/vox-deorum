@@ -158,6 +158,8 @@ export class DLLConnector extends EventEmitter {
    * Handle disconnection and attempt reconnection
    */
   private handleDisconnection(): void {
+    this.connected = false;
+    
     // Reject all pending requests
     for (const [, request] of this.pendingRequests) {
       clearTimeout(request.timeout);
