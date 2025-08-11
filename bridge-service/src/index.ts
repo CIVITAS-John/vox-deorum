@@ -5,7 +5,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { logger } from './utils/logger';
+import { createLogger } from './utils/logger';
 import { config } from './utils/config';
 import { bridgeService } from './service';
 import { getSSEStats } from './routes/events';
@@ -14,6 +14,8 @@ import externalRoutes from './routes/external';
 import eventsRoutes from './routes/events';
 import { respondError, respondSuccess, ErrorCode } from './types/api';
 import { handleAPIError } from './utils/api';
+
+const logger = createLogger('Index');
 
 // Create Express application
 const app = express();

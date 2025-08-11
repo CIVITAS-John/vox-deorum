@@ -66,8 +66,6 @@ export class BridgeService extends EventEmitter {
       logger.info('Bridge Service started successfully with DLL connection');
     } catch (error) {
       logger.warn('Initial DLL connection failed, but service will continue to retry:', error);
-      // Use dll-connector's built-in reconnection logic
-      dllConnector.startReconnectionAttempts();
     }
     
     this.emit('started');

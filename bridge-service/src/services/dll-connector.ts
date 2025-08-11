@@ -69,8 +69,10 @@ export class DLLConnector extends EventEmitter {
         });
 
         ipc.of[config.winsock.id].on('disconnect', () => {
-          this.connected = false;
-          logger.warn('Disconnected from DLL');
+          if (!this.disconnect) {
+            this.connected = false;
+            logger.warn('Disconnected from DLL');
+          }
           this.emit('disconnected');
           this.handleDisconnection();
         });
@@ -181,6 +183,12 @@ export class DLLConnector extends EventEmitter {
     }
     this.pendingRequests.clear();
 
+    // Prevent parallel reconnection attempts
+    if (this.reconnectTimer) {
+      logger.debug('Reconnection already scheduled, skipping duplicate attempt');
+      return;
+    }
+
     // Attempt reconnection (infinite retries)
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, Math.min(this.reconnectAttempts, 10)), 30000); // Cap exponential backoff at 10 attempts
@@ -188,6 +196,7 @@ export class DLLConnector extends EventEmitter {
     logger.info(`Attempting reconnection ${this.reconnectAttempts} in ${delay}ms`);
     
     this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = undefined; // Clear the timer reference before attempting
       this.connect().catch((error) => {
         logger.error('Reconnection failed:', error);
         // Will automatically try again via handleDisconnection
@@ -283,16 +292,6 @@ export class DLLConnector extends EventEmitter {
     
     this.connected = false;
     this.emit('disconnected');
-  }
-
-  /**
-   * Manually trigger reconnection attempts (for startup failures)
-   */
-  public startReconnectionAttempts(): void {
-    if (!this.connected && !this.reconnectTimer) {
-      logger.info('Starting manual reconnection attempts');
-      this.handleDisconnection();
-    }
   }
 
   /**

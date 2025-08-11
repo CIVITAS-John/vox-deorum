@@ -4,7 +4,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { logger } from './logger';
+import { createLogger } from './logger';
 
 /**
  * Service configuration structure
@@ -22,6 +22,8 @@ export interface ServiceConfig {
     level: string;
   };
 }
+
+const logger = createLogger('Config');
 
 /**
  * Default configuration values
