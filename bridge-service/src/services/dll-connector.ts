@@ -78,11 +78,12 @@ export class DLLConnector extends EventEmitter {
         });
 
         ipc.of[config.winsock.id].on('error', (error: any) => {
-          logger.error('IPC error:', error);
           if (!this.connected) {
             // For initial connection failures, also start reconnection attempts
             this.handleDisconnection();
             reject(new Error(`Failed to connect to DLL: ${error.message || error}`));
+          } else {
+            logger.error('IPC error:', error);
           }
         });
       });
@@ -198,8 +199,7 @@ export class DLLConnector extends EventEmitter {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined; // Clear the timer reference before attempting
       this.connect().catch((error) => {
-        logger.error('Reconnection failed:', error);
-        // Will automatically try again via handleDisconnection
+        logger.error('Reconnection failed:', error.message);
       });
     }, delay);
   }
