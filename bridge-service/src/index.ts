@@ -12,7 +12,8 @@ import { getSSEStats } from './routes/events';
 import luaRoutes from './routes/lua';
 import externalRoutes from './routes/external';
 import eventsRoutes from './routes/events';
-import { APIResponse, HealthCheckResponse } from './types/api';
+import { APIResponse } from './types/api';
+import { handleAPIError } from './utils/api';
 
 // Create Express application
 const app = express();
@@ -59,85 +60,46 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 /**
  * Health check endpoint
  */
-app.get('/health', (req: Request, res: Response) => {
-  try {
+app.get('/health', async (_req: Request, res: Response) => {
+  await handleAPIError(res, '/health', async () => {
     const healthStatus = bridgeService.getHealthStatus();
-    const statusCode = healthStatus.status === 'ok' ? 200 : 503;
     
-    const response: APIResponse<HealthCheckResponse> = {
+    return {
       success: true,
       result: healthStatus
     };
-    
-    res.status(statusCode).json(response);
-  } catch (error: any) {
-    logger.error('Health check error:', error);
-    const response: APIResponse = {
-      success: false,
-      error: {
-        code: 'HEALTH_CHECK_ERROR',
-        message: 'Health check failed',
-        details: error.message
-      }
-    };
-    res.status(500).json(response);
-  }
+  });
 });
 
 /**
  * Service statistics endpoint (for debugging/monitoring)
  */
-app.get('/stats', (req: Request, res: Response) => {
-  try {
+app.get('/stats', async (_req: Request, res: Response) => {
+  await handleAPIError(res, '/stats', async () => {
     const stats = bridgeService.getServiceStats();
     const sseStats = getSSEStats();
     
-    const response: APIResponse = {
+    return {
       success: true,
       result: {
         ...stats,
         sse: sseStats
       }
     };
-    
-    res.status(200).json(response);
-  } catch (error: any) {
-    logger.error('Stats endpoint error:', error);
-    const response: APIResponse = {
-      success: false,
-      error: {
-        code: 'STATS_ERROR',
-        message: 'Failed to get service statistics',
-        details: error.message
-      }
-    };
-    res.status(500).json(response);
-  }
+  });
 });
 
 /**
  * Service control endpoints (for debugging)
  */
-app.post('/admin/reconnect', async (req: Request, res: Response) => {
-  try {
+app.post('/admin/reconnect', async (_req: Request, res: Response) => {
+  await handleAPIError(res, '/admin/reconnect', async () => {
     await bridgeService.reconnectDLL();
-    const response: APIResponse = {
+    return {
       success: true,
       result: { message: 'DLL reconnection successful' }
     };
-    res.status(200).json(response);
-  } catch (error: any) {
-    logger.error('Reconnect endpoint error:', error);
-    const response: APIResponse = {
-      success: false,
-      error: {
-        code: 'RECONNECT_ERROR',
-        message: 'Failed to reconnect to DLL',
-        details: error.message
-      }
-    };
-    res.status(500).json(response);
-  }
+  });
 });
 
 /**
@@ -150,34 +112,37 @@ app.use('/events', eventsRoutes);
 /**
  * Default route
  */
-app.get('/', (req: Request, res: Response) => {
-  const response = {
-    service: 'Vox Deorum Bridge Service',
-    version: process.env.npm_package_version || '1.0.0',
-    status: bridgeService.isServiceRunning() ? 'running' : 'stopped',
-    endpoints: {
-      health: '/health',
-      stats: '/stats',
-      lua: {
-        call: 'POST /lua/call',
-        batch: 'POST /lua/batch',
-        execute: 'POST /lua/execute',
-        functions: 'GET /lua/functions'
-      },
-      external: {
-        register: 'POST /external/register',
-        unregister: 'DELETE /external/register/:name',
-        functions: 'GET /external/functions'
-      },
-      events: 'GET /events (Server-Sent Events)',
-      admin: {
-        reconnect: 'POST /admin/reconnect'
+app.get('/', async (_req: Request, res: Response) => {
+  await handleAPIError(res, '/', async () => {
+    return {
+      success: true,
+      result: {
+        service: 'Vox Deorum Bridge Service',
+        version: process.env.npm_package_version || '1.0.0',
+        status: bridgeService.isServiceRunning() ? 'running' : 'stopped',
+        endpoints: {
+          health: '/health',
+          stats: '/stats',
+          lua: {
+            call: 'POST /lua/call',
+            batch: 'POST /lua/batch',
+            execute: 'POST /lua/execute',
+            functions: 'GET /lua/functions'
+          },
+          external: {
+            register: 'POST /external/register',
+            unregister: 'DELETE /external/register/:name',
+            functions: 'GET /external/functions'
+          },
+          events: 'GET /events (Server-Sent Events)',
+          admin: {
+            reconnect: 'POST /admin/reconnect'
+          }
+        },
+        documentation: 'See README.md and PROTOCOL.md for detailed API documentation'
       }
-    },
-    documentation: 'See README.md and PROTOCOL.md for detailed API documentation'
-  };
-  
-  res.status(200).json(response);
+    };
+  });
 });
 
 /**
@@ -198,7 +163,7 @@ app.use('*', (req: Request, res: Response) => {
 /**
  * Global error handler
  */
-app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
   logger.error('Unhandled error:', error);
   
   const response: APIResponse = {
@@ -257,7 +222,7 @@ async function startServer(): Promise<void> {
       shutdown();
     });
 
-    process.on('unhandledRejection', (reason, promise) => {
+    process.on('unhandledRejection', (reason, _promise) => {
       logger.error('Unhandled Promise Rejection:', reason);
       // Don't exit on unhandled promise rejection in production
       if (process.env.NODE_ENV === 'development') {

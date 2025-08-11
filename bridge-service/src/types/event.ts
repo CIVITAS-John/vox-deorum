@@ -12,6 +12,15 @@ export interface IPCMessage {
 }
 
 /**
+ * Game event structure for SSE broadcast
+ */
+export interface GameEvent {
+  type: string;
+  payload: any;
+  timestamp: string;
+}
+
+/**
  * IPC message for game event
  */
 export interface GameEventMessage extends IPCMessage {

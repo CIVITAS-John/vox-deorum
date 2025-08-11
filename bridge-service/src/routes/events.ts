@@ -5,6 +5,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger';
+import { handleAPIError } from '../utils/api';
 import { dllConnector } from '../services/dll-connector';
 import { GameEvent, SSEClient } from '../types/event';
 
@@ -17,55 +18,63 @@ const sseClients: Map<string, SSEClient> = new Map();
 /**
  * GET /events - Server-Sent Events endpoint for game events
  */
-router.get('/', (req: Request, res: Response) => {
-  const clientId = uuidv4();
-  
-  logger.info(`New SSE client connected: ${clientId}`);
+router.get('/', async (req: Request, res: Response) => {
+  await handleAPIError(res, '/events', async () => {
+    const clientId = uuidv4();
+    
+    logger.info(`New SSE client connected: ${clientId}`);
 
-  // Set headers for Server-Sent Events
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Cache-Control'
-  });
+    // Set headers for Server-Sent Events
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Cache-Control'
+    });
 
-  // Store client connection
-  const client: SSEClient = {
-    id: clientId,
-    response: res,
-    connectedAt: new Date()
-  };
-  sseClients.set(clientId, client);
+    // Store client connection
+    const client: SSEClient = {
+      id: clientId,
+      response: res,
+      connectedAt: new Date()
+    };
+    sseClients.set(clientId, client);
 
-  // Send initial connection event
-  sendSSEMessage(res, 'connected', {
-    clientId,
-    timestamp: new Date().toISOString(),
-    message: 'Successfully connected to event stream'
-  });
+    // Send initial connection event
+    sendSSEMessage(res, 'connected', {
+      clientId,
+      timestamp: new Date().toISOString(),
+      message: 'Successfully connected to event stream'
+    });
 
-  // Send keep-alive ping every 30 seconds
-  const keepAlive = setInterval(() => {
-    if (!res.destroyed) {
-      sendSSEMessage(res, 'ping', { timestamp: new Date().toISOString() });
-    } else {
+    // Send keep-alive ping every 30 seconds
+    const keepAlive = setInterval(() => {
+      if (!res.destroyed) {
+        sendSSEMessage(res, 'ping', { timestamp: new Date().toISOString() });
+      } else {
+        clearInterval(keepAlive);
+      }
+    }, 30000);
+
+    // Handle client disconnect
+    req.on('close', () => {
+      logger.info(`SSE client disconnected: ${clientId}`);
+      sseClients.delete(clientId);
       clearInterval(keepAlive);
-    }
-  }, 30000);
+    });
 
-  // Handle client disconnect
-  req.on('close', () => {
-    logger.info(`SSE client disconnected: ${clientId}`);
-    sseClients.delete(clientId);
-    clearInterval(keepAlive);
-  });
+    req.on('error', (error) => {
+      logger.error(`SSE client error: ${clientId}`, error);
+      sseClients.delete(clientId);
+      clearInterval(keepAlive);
+    });
 
-  req.on('error', (error) => {
-    logger.error(`SSE client error: ${clientId}`, error);
-    sseClients.delete(clientId);
-    clearInterval(keepAlive);
+    // Return success for handleAPIError - the connection is now established
+    return {
+      success: true,
+      result: { clientId, message: 'SSE connection established' }
+    };
   });
 });
 

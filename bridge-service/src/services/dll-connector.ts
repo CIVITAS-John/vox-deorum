@@ -196,7 +196,7 @@ export class DLLConnector extends EventEmitter {
     // Add ID if not present
     const messageWithId = { ...message, id: (message as any).id || uuidv4() };
     
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       try {
         ipc.of[config.winsock.id].emit('message', messageWithId);
         logger.debug('Sent message to DLL:', messageWithId);
