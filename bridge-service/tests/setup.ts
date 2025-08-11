@@ -3,20 +3,41 @@
  * Global test setup for Bridge Service tests
  */
 
-// Configure test timeouts
 import { beforeAll, afterAll } from 'vitest';
+import { createTestMockDLL, MockDLLServer } from '../scripts/mock-dll-server.js';
+
+// Environment variable to switch between mock and real server
+const USE_MOCK = process.env.USE_MOCK !== 'false';
+
+// Global mock server instance
+let globalMockDLL: MockDLLServer | null = null;
 
 // Set longer timeouts for integration tests involving IPC
-beforeAll(() => {
-  // Default test timeout is extended for IPC operations
+beforeAll(async () => {
   console.log('🧪 Bridge Service Test Suite Starting');
-  console.log(`📊 Using ${process.env.USE_MOCK !== 'false' ? 'MOCK' : 'REAL'} server mode`);
-});
+  console.log(`📊 Using ${USE_MOCK ? 'MOCK' : 'REAL'} server mode`);
+  
+  if (USE_MOCK) {
+    console.log('🧪 Starting global mock DLL server for all tests');
+    globalMockDLL = await createTestMockDLL();
+    console.log('✅ Global mock DLL server started');
+  } else {
+    console.log('🎮 Using real DLL connection (make sure Civ5 is running)');
+  }
+}, 10000); // 10 second timeout for setup
 
-afterAll(() => {
+afterAll(async () => {
+  if (globalMockDLL) {
+    console.log('🛑 Stopping global mock DLL server');
+    await globalMockDLL.stop();
+    console.log('✅ Global mock DLL server stopped');
+  }
   console.log('🏁 Bridge Service Test Suite Complete');
-});
+}, 10000); // 10 second timeout for cleanup
 
 // Set process environment for consistent test behavior
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'error'; // Reduce noise in tests
+
+// Export global mock server instance for use in tests
+export { globalMockDLL, USE_MOCK };

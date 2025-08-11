@@ -7,7 +7,8 @@
       "Bash(npm run lint)",
       "WebFetch(domain:v6.vite.dev)",
       "Bash(npm run start:*)",
-      "Bash(npm run test:*)"
+      "Bash(npm run test:*)",
+      "Bash(npm test:*)"
     ],
     "deny": []
   }
