@@ -194,6 +194,13 @@ export class DLLConnector extends EventEmitter {
     const messageWithId = { ...message, id: (message as any).id || uuidv4() };
     
     return new Promise((resolve, reject) => {
+      try {
+        ipc.of[config.winsock.id].emit('message', messageWithId);
+        logger.debug('Sent message to DLL:', messageWithId);
+      } catch (error) {
+        reject(error);
+      }
+
       const request: PendingRequest = {
         id: messageWithId.id,
         resolve,
@@ -206,15 +213,6 @@ export class DLLConnector extends EventEmitter {
       };
 
       this.pendingRequests.set(messageWithId.id, request);
-
-      try {
-        ipc.of[config.winsock.id].emit('message', messageWithId);
-        logger.debug('Sent message to DLL:', messageWithId);
-      } catch (error) {
-        this.pendingRequests.delete(messageWithId.id);
-        clearTimeout(request.timeout);
-        reject(error);
-      }
     });
   }
 
@@ -256,7 +254,7 @@ export class DLLConnector extends EventEmitter {
     // Clear pending requests
     for (const [id, request] of this.pendingRequests) {
       clearTimeout(request.timeout);
-      request.reject(new Error('Service shutting down'));
+      request.reject(new Error('The game was shutting down'));
     }
     this.pendingRequests.clear();
 

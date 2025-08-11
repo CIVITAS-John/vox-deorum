@@ -20,7 +20,6 @@ export interface LuaCallMessage extends IPCMessage {
   type: 'lua_call';
   function: string;
   args: any;
-  id: string;
 }
 
 /**
@@ -41,7 +40,6 @@ export type LuaBatchRequest = LuaCallRequest[];
 export interface LuaExecuteMessage extends IPCMessage {
   type: 'lua_execute';
   script: string;
-  id: string;
 }
 
 /**
@@ -49,6 +47,12 @@ export interface LuaExecuteMessage extends IPCMessage {
  */
 export interface LuaResponse<T = any> extends APIResponse<T> { }
 
+/**
+ * IPC response from Lua operation
+ */
+export interface LuaResponseMessage<T = any> extends IPCMessage, LuaResponse<T> {
+  type: 'lua_response';
+}
 /**
  * Batch response for multiple Lua operations
  */
@@ -81,12 +85,4 @@ export interface LuaFunctionMetadata {
  */
 export interface LuaRegisterMessage extends IPCMessage, LuaFunctionMetadata {
   type: 'lua_register';
-}
-
-/**
- * IPC response from Lua operation
- */
-export interface LuaResponseMessage<T = any> extends IPCMessage, APIResponse<T> {
-  type: 'lua_response';
-  id: string;
 }

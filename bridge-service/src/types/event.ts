@@ -7,6 +7,8 @@
  */
 export interface IPCMessage {
   type: string;
+  // only for messages that would ask for a return value
+  id?: string;
 }
 
 /**
