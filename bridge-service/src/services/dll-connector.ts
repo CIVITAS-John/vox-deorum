@@ -279,7 +279,7 @@ export class DLLConnector extends EventEmitter {
     for (const [, request] of this.pendingRequests) {
       clearTimeout(request.timeout);
       request.reject(respondError(
-        ErrorCode.NETWORK_ERROR,
+        ErrorCode.DLL_DISCONNECTED,
         'The service was shutting down'
       ));
     }
