@@ -82,7 +82,8 @@ The Bridge Service acts as a communication hub using three primary channels:
    ```json
    {
      "type": "lua_register",
-     "function": "GetCity"
+     "function": "GetCity",
+     "description": "Gets a city by its ID"
    }
    ```
 
@@ -145,6 +146,23 @@ The Bridge Service acts as a communication hub using three primary channels:
    ```
 
 #### Function Unregistration
+
+1. **External service → POST /external/unregister**
+   ```json
+   {"name": "AnalyzeThreat"}
+   ```
+
+2. **Bridge removes registration and responds**
+   ```json
+   {"success": true}
+   ```
+
+3. **Bridge → DLL (Winsock IPC)**
+   ```json
+   {"type": "external_unregister", "name": "AnalyzeThreat"}
+   ```
+
+4. **DLL removes Lua binding**
 
 #### Function Invocation
 
@@ -228,6 +246,8 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 ## HTTP API Responses
 
+All response types follow the interfaces defined in `src/types/api.ts`.
+
 ### Success Response
 ```json
 {
@@ -248,9 +268,21 @@ The Bridge Service acts as a communication hub using three primary channels:
 }
 ```
 
+### Health Check Response
+```json
+{
+  "success": true,
+  "dll_connected": true,
+  "uptime": 3600,
+  "version": "1.0.0"
+}
+```
+
 ## Error Handling
 
 ### Error Codes
+
+All error codes are defined in the `ErrorCode` enum in `src/types/api.ts`:
 
 - **DLL_DISCONNECTED**: Bridge service lost connection to game DLL
 - **LUA_EXECUTION_ERROR**: Lua script or function execution failed
@@ -261,6 +293,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 - **INVALID_ARGUMENTS**: Function called with wrong number or type of arguments
 - **NETWORK_ERROR**: Network connectivity issues
 - **SERIALIZATION_ERROR**: Failed to serialize/deserialize data
+- **INTERNAL_ERROR**: Internal bridge service error
 
 ### Timeout Behavior
 
