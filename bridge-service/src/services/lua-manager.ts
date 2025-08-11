@@ -15,7 +15,7 @@ import {
   LuaCallMessage,
   LuaExecuteMessage 
 } from '../types/lua';
-import { ErrorCode } from '../types/api';
+import { ErrorCode, respondError } from '../types/api';
 
 const logger = createLogger('LuaManager');
 
@@ -35,44 +35,15 @@ export class LuaManager {
   /**
    * Call a Lua function
    */
-  public async callFunction(request: LuaCallRequest): Promise<LuaResponse> {
+  public async callFunction<T>(request: LuaCallRequest): Promise<LuaResponse<T>> {
     logger.info(`Calling Lua function: ${request.function}`);
-
-    if (!dllConnector.isConnected()) {
-      return {
-        success: false,
-        error: {
-          code: ErrorCode.DLL_DISCONNECTED,
-          message: 'Not connected to game DLL',
-          details: 'The bridge service has lost connection to the game'
-        }
-      };
-    }
-
-    try {
-      const message: LuaCallMessage = {
-        type: 'lua_call',
-        function: request.function,
-        args: request.args
-      };
-      const result = await dllConnector.send(message);
-
-      return {
-        success: true,
-        result
-      };
-    } catch (error: any) {
-      logger.error(`Failed to call Lua function ${request.function}:`, error);
-      
-      return {
-        success: false,
-        error: {
-          code: ErrorCode.LUA_EXECUTION_ERROR,
-          message: `Failed to execute Lua function: ${request.function}`,
-          details: error.message || String(error)
-        }
-      };
-    }
+    const message: LuaCallMessage = {
+      type: 'lua_call',
+      function: request.function,
+      args: request.args
+    };
+    const result = await dllConnector.send<T>(message);
+    return result;
   }
 
   /**
@@ -95,56 +66,22 @@ export class LuaManager {
   /**
    * Execute raw Lua script
    */
-  public async executeScript(request: LuaExecuteRequest): Promise<LuaResponse> {
+  public async executeScript<T = any>(request: LuaExecuteRequest): Promise<LuaResponse<T>> {
     logger.info('Executing Lua script');
     logger.debug('Script:', request.script);
 
-    if (!dllConnector.isConnected()) {
-      return {
-        success: false,
-        error: {
-          code: ErrorCode.DLL_DISCONNECTED,
-          message: 'Not connected to game DLL',
-          details: 'The bridge service has lost connection to the game'
-        }
-      };
-    }
-
     // Basic script validation
     if (!request.script || typeof request.script !== 'string') {
-      return {
-        success: false,
-        error: {
-          code: ErrorCode.INVALID_SCRIPT,
-          message: 'Invalid Lua script',
-          details: 'Script must be a non-empty string'
-        }
-      };
+      return respondError(ErrorCode.INVALID_SCRIPT);
     }
 
-    try {
-      const message: LuaExecuteMessage = {
-        type: 'lua_execute',
-        script: request.script
-      };
-      const result = await dllConnector.send(message);
+    const message: LuaExecuteMessage = {
+      type: 'lua_execute',
+      script: request.script
+    };
 
-      return {
-        success: true,
-        result
-      };
-    } catch (error: any) {
-      logger.error('Failed to execute Lua script:', error);
-      
-      return {
-        success: false,
-        error: {
-          code: ErrorCode.LUA_EXECUTION_ERROR,
-          message: 'Failed to execute Lua script',
-          details: error.message || String(error)
-        }
-      };
-    }
+    const result = await dllConnector.send<T>(message);
+    return result;
   }
 
   /**

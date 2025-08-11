@@ -8,16 +8,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger';
 import { config } from '../utils/config';
 import { IPCMessage } from '../types/event';
+import { APIResponse, ErrorCode, respondError } from '../types/api';
 
 const logger = createLogger('DLLConnector');
 
 /**
  * Pending request tracking
  */
-interface PendingRequest {
+interface PendingRequest<T = any> {
   id: string;
-  resolve: (value: any) => void;
-  reject: (error: any) => void;
+  resolve: (value: APIResponse<T>) => void;
+  reject: (error: APIResponse<T>) => void;
   timeout: NodeJS.Timeout;
   timestamp: Date;
 }
@@ -144,9 +145,9 @@ export class DLLConnector extends EventEmitter {
       this.pendingRequests.delete(data.id);
       
       if (data.success) {
-        request.resolve(data.result);
+        request.resolve(data);
       } else {
-        request.reject(data.error || new Error('Operation failed'));
+        request.reject(data);
       }
     } else {
       logger.warn('Received response for unknown request:', data.id);
@@ -158,9 +159,9 @@ export class DLLConnector extends EventEmitter {
    */
   private handleDisconnection(): void {
     // Reject all pending requests
-    for (const [id, request] of this.pendingRequests) {
+    for (const [, request] of this.pendingRequests) {
       clearTimeout(request.timeout);
-      request.reject(new Error('DLL disconnected'));
+      request.reject(respondError(ErrorCode.DLL_DISCONNECTED));
     }
     this.pendingRequests.clear();
 
@@ -177,17 +178,17 @@ export class DLLConnector extends EventEmitter {
         });
       }, delay);
     } else {
-      logger.error('Max reconnection attempts reached. Manual intervention required.');
-      this.emit('max_reconnect_attempts');
+      logger.error('Max reconnection attempts reached. Aborting.');
+      this.disconnect();
     }
   }
 
   /**
    * Send a message to the DLL
    */
-  public async send(message: IPCMessage, timeout: number = 30000): Promise<any> {
+  public async send<T>(message: IPCMessage, timeout: number = 30000): Promise<APIResponse<T>> {
     if (!this.connected) {
-      throw new Error('Not connected to DLL');
+      return respondError(ErrorCode.DLL_DISCONNECTED);
     }
 
     // Add ID if not present
@@ -198,17 +199,17 @@ export class DLLConnector extends EventEmitter {
         ipc.of[config.winsock.id].emit('message', messageWithId);
         logger.debug('Sent message to DLL:', messageWithId);
       } catch (error) {
-        reject(error);
+        resolve(respondError(ErrorCode.NETWORK_ERROR));
       }
 
-      const request: PendingRequest = {
+      const request: PendingRequest<T> = {
         id: messageWithId.id,
         resolve,
-        reject,
+        reject: resolve,
         timestamp: new Date(),
         timeout: setTimeout(() => {
           this.pendingRequests.delete(messageWithId.id);
-          reject(new Error(`Request timeout after ${timeout}ms`));
+          resolve(respondError(ErrorCode.CALL_TIMEOUT));
         }, timeout)
       };
 
@@ -252,9 +253,12 @@ export class DLLConnector extends EventEmitter {
     }
 
     // Clear pending requests
-    for (const [id, request] of this.pendingRequests) {
+    for (const [, request] of this.pendingRequests) {
       clearTimeout(request.timeout);
-      request.reject(new Error('The game was shutting down'));
+      request.reject(respondError(
+        ErrorCode.NETWORK_ERROR,
+        'The service was shutting down'
+      ));
     }
     this.pendingRequests.clear();
 

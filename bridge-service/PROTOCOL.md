@@ -286,8 +286,8 @@ All error codes are defined in the `ErrorCode` enum in `src/types/api.ts`:
 
 - **DLL_DISCONNECTED**: Bridge service lost connection to game DLL
 - **LUA_EXECUTION_ERROR**: Lua script or function execution failed
-- **EXTERNAL_CALL_TIMEOUT**: External service call exceeded timeout limit
-- **EXTERNAL_CALL_FAILED**: External service returned error or non-200 status
+- **CALL_TIMEOUT**: Function call exceeded timeout limit
+- **CALL_FAILED**: Function call returned error or non-200 status
 - **INVALID_FUNCTION**: Requested function not registered or available
 - **INVALID_SCRIPT**: Malformed or invalid Lua script
 - **INVALID_ARGUMENTS**: Function called with wrong number or type of arguments

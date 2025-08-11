@@ -345,32 +345,6 @@ Bridge.RegisterFunction("MoveUnit", function(unitId, x, y)
 end)
 ```
 
-## Error Handling
-
-### Error Response Format
-
-The service returns structured error responses:
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "LUA_EXECUTION_ERROR",
-    "message": "Failed to execute Lua function",
-    "details": "attempt to index nil value"
-  }
-}
-```
-
-### Error Codes
-
-- `DLL_DISCONNECTED` - No connection to game DLL
-- `LUA_EXECUTION_ERROR` - Lua script/function failed
-- `EXTERNAL_CALL_TIMEOUT` - External function call timed out
-- `EXTERNAL_CALL_FAILED` - External function returned error
-- `INVALID_FUNCTION` - Function not registered
-- `INVALID_SCRIPT` - Malformed Lua script
-
 ## Development
 
 ### Project Structure
