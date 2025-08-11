@@ -4,7 +4,10 @@
       "Bash(mkdir:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run build:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "WebFetch(domain:v6.vite.dev)",
+      "Bash(npm test)",
+      "Bash(npm run start:*)"
     ],
     "deny": []
   }

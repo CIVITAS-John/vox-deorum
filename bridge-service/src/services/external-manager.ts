@@ -4,16 +4,16 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import axios, { AxiosError } from 'axios';
-import { createLogger } from '../utils/logger';
-import { dllConnector } from './dll-connector';
+import { createLogger } from '../utils/logger.js';
+import { dllConnector } from './dll-connector.js';
 import { 
   ExternalFunctionRegistration,
   ExternalFunction,
   ExternalCallRequest,
   ExternalFunctionList, 
   ExternalCallResponse
-} from '../types/external';
-import { APIResponse, ErrorCode, respondSuccess, respondError } from '../types/api';
+} from '../types/external.js';
+import { APIResponse, ErrorCode, respondSuccess, respondError } from '../types/api.js';
 
 const logger = createLogger('ExternalManager');
 

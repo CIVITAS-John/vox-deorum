@@ -3,15 +3,15 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { createLogger } from '../utils/logger';
-import { handleAPIError } from '../utils/api';
-import { luaManager } from '../services/lua-manager';
+import { createLogger } from '../utils/logger.js';
+import { handleAPIError } from '../utils/api.js';
+import { luaManager } from '../services/lua-manager.js';
 import { 
   LuaCallRequest, 
   LuaExecuteRequest, 
   LuaBatchRequest 
-} from '../types/lua';
-import { respondError, respondSuccess, ErrorCode } from '../types/api';
+} from '../types/lua.js';
+import { respondError, respondSuccess, ErrorCode } from '../types/api.js';
 
 const logger = createLogger('LuaRoutes');
 const router = Router();

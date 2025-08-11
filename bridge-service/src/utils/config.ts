@@ -4,7 +4,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { createLogger } from './logger';
+import { createLogger } from './logger.js';
 
 /**
  * Service configuration structure

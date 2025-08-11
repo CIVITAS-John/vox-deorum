@@ -5,10 +5,10 @@
 import ipc from 'node-ipc';
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../utils/logger';
-import { config } from '../utils/config';
-import { IPCMessage } from '../types/event';
-import { APIResponse, ErrorCode, respondError, respondSuccess } from '../types/api';
+import { createLogger } from '../utils/logger.js';
+import { config } from '../utils/config.js';
+import { IPCMessage } from '../types/event.js';
+import { APIResponse, ErrorCode, respondError, respondSuccess } from '../types/api.js';
 
 const logger = createLogger('DLLConnector');
 

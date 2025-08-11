@@ -4,11 +4,11 @@
 
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from '../utils/logger';
-import { handleAPIError } from '../utils/api';
-import { dllConnector } from '../services/dll-connector';
-import { GameEvent, SSEClient } from '../types/event';
-import { respondSuccess } from '../types/api';
+import { createLogger } from '../utils/logger.js';
+import { handleAPIError } from '../utils/api.js';
+import { dllConnector } from '../services/dll-connector.js';
+import { GameEvent, SSEClient } from '../types/event.js';
+import { respondSuccess } from '../types/api.js';
 
 const logger = createLogger('EventRoutes');
 const router = Router();

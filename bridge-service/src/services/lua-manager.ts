@@ -2,8 +2,8 @@
  * Lua Manager - Handles Lua function execution and registry management
  */
 
-import { createLogger } from '../utils/logger';
-import { dllConnector } from './dll-connector';
+import { createLogger } from '../utils/logger.js';
+import { dllConnector } from './dll-connector.js';
 import { 
   LuaCallRequest, 
   LuaExecuteRequest, 
@@ -14,8 +14,8 @@ import {
   LuaRegisterMessage,
   LuaCallMessage,
   LuaExecuteMessage 
-} from '../types/lua';
-import { ErrorCode, respondError } from '../types/api';
+} from '../types/lua.js';
+import { ErrorCode, respondError } from '../types/api.js';
 
 const logger = createLogger('LuaManager');
 

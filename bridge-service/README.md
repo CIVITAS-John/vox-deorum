@@ -35,6 +35,9 @@ npm start
 
 # Run tests
 npm test
+
+# Start with mock DLL (no Civilization V required)
+npm run dev:with-mock
 ```
 
 ### Configuration
@@ -405,7 +408,44 @@ npm run type-check
 
 # Linting
 npm run lint
+
+# Start mock DLL server for testing
+npm run mock
+
+# Start both mock DLL and bridge service
+npm run dev:with-mock
 ```
+
+### Mock DLL Server
+
+For development and testing without Civilization V, use the mock DLL server:
+
+```bash
+# Terminal 1: Start mock DLL server
+npm run mock
+
+# Terminal 2: Start bridge service (connects to mock)
+npm run dev
+```
+
+The mock server:
+- Implements the same IPC protocol as the real Community Patch DLL
+- Simulates Lua function responses for common game queries
+- Generates automatic game events for testing
+- Supports external function registration/unregistration
+- Provides realistic test data for development
+
+**Available Mock Functions:**
+- `GetPlayerName` → Returns "Mock Player"
+- `GetCurrentTurn` → Returns simulated turn number
+- `GetCityCount` → Returns 3
+- `GetGameState` → Returns mock game state object
+
+**Auto-Generated Events:**
+- `turn_complete`
+- `city_founded`  
+- `unit_moved`
+- `tech_researched`
 
 ## Security Considerations
 

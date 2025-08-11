@@ -2,8 +2,8 @@
  * Type definitions for external function operations
  */
 
-import { APIResponse } from "./api";
-import { IPCMessage } from "./event";
+import { APIResponse } from "./api.js";
+import { IPCMessage } from "./event.js";
 
 /**
  * Registered external function details

@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { APIResponse, ErrorCode, respondError } from '../types/api';
+import { APIResponse, ErrorCode, respondError } from '../types/api.js';
 
 /**
  * Simple error handler for API endpoints

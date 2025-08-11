@@ -5,15 +5,15 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { createLogger } from './utils/logger';
-import { config } from './utils/config';
-import { bridgeService } from './service';
-import { getSSEStats } from './routes/events';
-import luaRoutes from './routes/lua';
-import externalRoutes from './routes/external';
-import eventsRoutes from './routes/events';
-import { respondError, respondSuccess, ErrorCode } from './types/api';
-import { handleAPIError } from './utils/api';
+import { createLogger } from './utils/logger.js';
+import { config } from './utils/config.js';
+import { bridgeService } from './service.js';
+import { getSSEStats } from './routes/events.js';
+import luaRoutes from './routes/lua.js';
+import externalRoutes from './routes/external.js';
+import eventsRoutes from './routes/events.js';
+import { respondError, respondSuccess, ErrorCode } from './types/api.js';
+import { handleAPIError } from './utils/api.js';
 
 const logger = createLogger('Index');
 
@@ -221,7 +221,7 @@ async function startServer(): Promise<void> {
 }
 
 // Start the server if this file is run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   startServer().catch((error) => {
     logger.error('Failed to start Bridge Service:', error);
     process.exit(1);

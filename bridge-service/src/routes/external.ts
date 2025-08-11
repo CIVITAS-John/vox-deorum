@@ -3,10 +3,10 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { createLogger } from '../utils/logger';
-import { handleAPIError } from '../utils/api';
-import { externalManager } from '../services/external-manager';
-import { ExternalFunctionRegistration } from '../types/external';
+import { createLogger } from '../utils/logger.js';
+import { handleAPIError } from '../utils/api.js';
+import { externalManager } from '../services/external-manager.js';
+import { ExternalFunctionRegistration } from '../types/external.js';
 
 const logger = createLogger('ExternalRoutes');
 const router = Router();

@@ -3,12 +3,12 @@
  */
 
 import { EventEmitter } from 'events';
-import { createLogger } from './utils/logger';
-import { config } from './utils/config';
-import { dllConnector } from './services/dll-connector';
-import { luaManager } from './services/lua-manager';
-import { externalManager } from './services/external-manager';
-import { HealthCheckResponse } from './types/api';
+import { createLogger } from './utils/logger.js';
+import { config } from './utils/config.js';
+import { dllConnector } from './services/dll-connector.js';
+import { luaManager } from './services/lua-manager.js';
+import { externalManager } from './services/external-manager.js';
+import { HealthCheckResponse } from './types/api.js';
 
 const logger = createLogger('BridgeService');
 
