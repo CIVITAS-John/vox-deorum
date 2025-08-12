@@ -208,13 +208,6 @@ export class DLLConnector extends EventEmitter {
     const messageWithId = { ...message, id: (message as any).id || uuidv4() };
     
     return new Promise((resolve) => {
-      try {
-        ipc.of[config.winsock.id].emit('message', messageWithId);
-        logger.debug('Sent message to DLL:', messageWithId);
-      } catch (error) {
-        resolve(respondError(ErrorCode.NETWORK_ERROR));
-      }
-
       const request: PendingRequest<T> = {
         id: messageWithId.id,
         resolve,
@@ -227,6 +220,14 @@ export class DLLConnector extends EventEmitter {
       };
 
       this.pendingRequests.set(messageWithId.id, request);
+
+      try {
+        ipc.of[config.winsock.id].emit('message', messageWithId);
+        logger.debug('Sent message to DLL:', messageWithId);
+      } catch (error) {
+        this.pendingRequests.delete(messageWithId.id);
+        resolve(respondError(ErrorCode.NETWORK_ERROR));
+      }
     });
   }
 
@@ -260,6 +261,11 @@ export class DLLConnector extends EventEmitter {
    * Disconnect from the DLL
    */
   public disconnect(): void {
+    if (!this.connected) {
+      logger.info('Already disconnected from DLL');
+      return;
+    }
+    
     logger.info('Disconnecting from DLL');
     
     if (this.reconnectTimer) {

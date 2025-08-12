@@ -281,9 +281,9 @@ export class MockDLLServer extends EventEmitter {
   private sendMessage(message: IPCMessage, socket?: any): void {
     try {
       if (socket) {
-        ipc.server.emit(socket, message.type, message);
+        ipc.server.emit(socket, 'message', message);
       } else {
-        ipc.server.broadcast(message.type, message);
+        ipc.server.broadcast('message', message);
       }
       logger.debug('Sent message to bridge:', message);
     } catch (error) {

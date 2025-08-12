@@ -67,9 +67,9 @@ describe('Message Handling and Communication', () => {
       type: 'test_timeout',
       id: 'timeout-test'
     } as any;
-    
-    const response = await connector.send(message, 100); // 100ms timeout
-    
+
+    const response = await connector.send(message, 10); // 10ms timeout
+
     expect(response.success).toBe(false);
     expect(response.error?.code).toBe(ErrorCode.CALL_TIMEOUT);
     
