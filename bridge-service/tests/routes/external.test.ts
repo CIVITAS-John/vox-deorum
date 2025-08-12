@@ -4,7 +4,6 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
-import express from 'express';
 import { app } from '../../src/index.js';
 import { externalManager } from '../../src/services/external-manager.js';
 import { dllConnector } from '../../src/services/dll-connector.js';
@@ -12,123 +11,41 @@ import bridgeService from '../../src/service.js';
 import config from '../../src/utils/config.js';
 import { ExternalFunctionRegistration } from '../../src/types/external.js';
 import { ErrorCode } from '../../src/types/api.js';
-
-/**
- * Mock external service for testing external function calls
- */
-class MockExternalService {
-  private app: express.Application;
-  private server: any;
-  private callCount: number = 0;
-  private lastRequest: any = null;
-  private responseDelay: number = 0;
-  private shouldFail: boolean = false;
-  private failureStatus: number = 500;
-
-  constructor(private port: number) {
-    this.app = express();
-    this.app.use(express.json());
-    
-    // Mock endpoint for external function calls
-    this.app.post('/execute', async (req, res) => {
-      this.callCount++;
-      this.lastRequest = req.body;
-      
-      if (this.responseDelay > 0) {
-        await new Promise(resolve => setTimeout(resolve, this.responseDelay));
-      }
-      
-      if (this.shouldFail) {
-        res.status(this.failureStatus).json({
-          success: false,
-          error: 'Mock failure'
-        });
-      } else {
-        res.json({
-          success: true,
-          result: {
-            echo: req.body.args,
-            processed: true,
-            timestamp: new Date().toISOString()
-          }
-        });
-      }
-    });
-  }
-
-  async start(): Promise<void> {
-    return new Promise(resolve => {
-      this.server = this.app.listen(this.port, () => {
-        resolve();
-      });
-    });
-  }
-
-  async stop(): Promise<void> {
-    return new Promise(resolve => {
-      if (this.server) {
-        this.server.close(() => resolve());
-      } else {
-        resolve();
-      }
-    });
-  }
-
-  setResponseDelay(ms: number): void {
-    this.responseDelay = ms;
-  }
-
-  setFailure(shouldFail: boolean, status: number = 500): void {
-    this.shouldFail = shouldFail;
-    this.failureStatus = status;
-  }
-
-  getCallCount(): number {
-    return this.callCount;
-  }
-
-  getLastRequest(): any {
-    return this.lastRequest;
-  }
-
-  reset(): void {
-    this.callCount = 0;
-    this.lastRequest = null;
-    this.responseDelay = 0;
-    this.shouldFail = false;
-    this.failureStatus = 500;
-  }
-}
+import { 
+  cleanupAllExternalFunctions, 
+  expectSuccessResponse, 
+  expectErrorResponse,
+  waitForDLLResponse,
+  logSuccess,
+  delay,
+  TestServer
+} from '../test-utils/helpers.js';
+import { MockExternalService } from '../test-utils/mock-external-service.js';
+import { TEST_PORTS, TEST_URLS, TEST_TIMEOUTS } from '../test-utils/constants.js';
 
 describe('External Routes', () => {
-  let server: any;
+  const testServer = new TestServer();
   let mockExternalService: MockExternalService;
-  const mockServicePort = 19876;  // Changed to avoid conflicts
-  const mockServiceUrl = `http://localhost:${mockServicePort}/execute`;
 
   // Setup and teardown
   beforeAll(async () => {
     // Start mock external service
-    mockExternalService = new MockExternalService(mockServicePort);
+    mockExternalService = new MockExternalService(TEST_PORTS.MOCK_EXTERNAL_SERVICE);
     await mockExternalService.start();
     
     // Start the bridge service (DLL connection)
     await bridgeService.start();
     
     // Start the Express server
-    server = app.listen(config.rest.port, config.rest.host);
+    await testServer.start(app, config.rest.port, config.rest.host);
     
     // Wait for server to be ready
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await delay(TEST_TIMEOUTS.VERY_SHORT);
   });
 
   afterAll(async () => {
     // Close the Express server
-    if (server) {
-      await new Promise<void>((resolve) => {
-        server.close(() => resolve());
-      });
-    }
+    await testServer.stop();
     
     // Shutdown bridge service
     await bridgeService.shutdown();
@@ -147,20 +64,15 @@ describe('External Routes', () => {
   describe('POST /external/register', () => {
     afterEach(async () => {
       // Clean up any registered functions
-      const functionsResponse = await request(app).get('/external/functions');
-      if (functionsResponse.body.success && functionsResponse.body.result.functions) {
-        for (const func of functionsResponse.body.result.functions) {
-          await request(app).delete(`/external/register/${func.name}`);
-        }
-      }
+      await cleanupAllExternalFunctions(app);
     });
 
     it('should register a valid external function', async () => {
       const registration: ExternalFunctionRegistration = {
         name: 'testFunction',
-        url: mockServiceUrl,
+        url: TEST_URLS.MOCK_SERVICE,
         async: true,
-        timeout: 5000,
+        timeout: TEST_TIMEOUTS.DEFAULT,
         description: 'Test function for unit tests'
       };
 
@@ -169,22 +81,23 @@ describe('External Routes', () => {
         .send(registration)
         .expect(200);
 
-      expect(response.body.success).toBe(true);
+      expectSuccessResponse(response);
       
       // Verify function is registered
       const functionsResponse = await request(app)
         .get('/external/functions')
         .expect(200);
       
-      expect(functionsResponse.body.success).toBe(true);
-      expect(functionsResponse.body.result.functions).toHaveLength(1);
-      expect(functionsResponse.body.result.functions[0].name).toBe('testFunction');
+      expectSuccessResponse(functionsResponse, (res) => {
+        expect(res.body.result.functions).toHaveLength(1);
+        expect(res.body.result.functions[0].name).toBe('testFunction');
+      });
     });
 
     it('should reject registration with invalid function name', async () => {
       const registration: ExternalFunctionRegistration = {
         name: '123-invalid-name!',
-        url: mockServiceUrl,
+        url: TEST_URLS.MOCK_SERVICE,
         async: true
       };
 
@@ -193,9 +106,7 @@ describe('External Routes', () => {
         .send(registration)
         .expect(500);
 
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe(ErrorCode.INVALID_ARGUMENTS);
-      expect(response.body.error.message).toContain('valid identifier');
+      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'valid identifier');
     });
 
     it('should reject registration with invalid URL', async () => {
@@ -210,15 +121,13 @@ describe('External Routes', () => {
         .send(registration)
         .expect(500);
 
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe(ErrorCode.INVALID_ARGUMENTS);
-      expect(response.body.error.message).toContain('valid URL');
+      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'valid URL');
     });
 
     it('should reject registration with invalid timeout', async () => {
       const registration: ExternalFunctionRegistration = {
         name: 'testFunction',
-        url: mockServiceUrl,
+        url: TEST_URLS.MOCK_SERVICE,
         async: true,
         timeout: -1000
       };
@@ -228,15 +137,13 @@ describe('External Routes', () => {
         .send(registration)
         .expect(500);
 
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe(ErrorCode.INVALID_ARGUMENTS);
-      expect(response.body.error.message).toContain('positive integer');
+      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'positive integer');
     });
 
     it('should reject duplicate function registration', async () => {
       const registration: ExternalFunctionRegistration = {
         name: 'duplicateFunction',
-        url: mockServiceUrl,
+        url: TEST_URLS.MOCK_SERVICE,
         async: true
       };
 
@@ -252,9 +159,7 @@ describe('External Routes', () => {
         .send(registration)
         .expect(500);
 
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe(ErrorCode.INVALID_ARGUMENTS);
-      expect(response.body.error.message).toContain('already registered');
+      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'already registered');
     });
   });
 
@@ -266,7 +171,7 @@ describe('External Routes', () => {
       // Register a test function
       const registration: ExternalFunctionRegistration = {
         name: 'functionToDelete',
-        url: mockServiceUrl,
+        url: TEST_URLS.MOCK_SERVICE,
         async: true
       };
       await request(app)
@@ -276,7 +181,7 @@ describe('External Routes', () => {
 
     afterEach(async () => {
       // Clean up
-      await request(app).delete('/external/register/functionToDelete');
+      await cleanupAllExternalFunctions(app);
     });
 
     it('should unregister an existing function', async () => {
@@ -284,14 +189,16 @@ describe('External Routes', () => {
         .delete('/external/register/functionToDelete')
         .expect(200);
 
-      expect(response.body.success).toBe(true);
+      expectSuccessResponse(response);
 
       // Verify function is unregistered
       const functionsResponse = await request(app)
         .get('/external/functions')
         .expect(200);
       
-      expect(functionsResponse.body.result.functions).toHaveLength(0);
+      expectSuccessResponse(functionsResponse, (res) => {
+        expect(res.body.result.functions).toHaveLength(0);
+      });
     });
 
     it('should return error when unregistering non-existent function', async () => {
@@ -299,9 +206,7 @@ describe('External Routes', () => {
         .delete('/external/register/nonExistentFunction')
         .expect(500);
 
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe(ErrorCode.INVALID_FUNCTION);
-      expect(response.body.error.message).toContain('not registered');
+      expectErrorResponse(response, ErrorCode.INVALID_FUNCTION, 'not registered');
     });
   });
 
@@ -311,20 +216,15 @@ describe('External Routes', () => {
   describe('GET /external/functions', () => {
     afterEach(async () => {
       // Clean up all registered functions
-      const functionsResponse = await request(app).get('/external/functions');
-      if (functionsResponse.body.success && functionsResponse.body.result.functions) {
-        for (const func of functionsResponse.body.result.functions) {
-          await request(app).delete(`/external/register/${func.name}`);
-        }
-      }
+      await cleanupAllExternalFunctions(app)
     });
 
     it('should return all registered functions', async () => {
       // Register multiple functions
       const functions = [
-        { name: 'func1', url: mockServiceUrl, async: true },
-        { name: 'func2', url: mockServiceUrl, async: false },
-        { name: 'func3', url: mockServiceUrl, async: true, description: 'Test function 3' }
+        { name: 'func1', url: TEST_URLS.MOCK_SERVICE, async: true },
+        { name: 'func2', url: TEST_URLS.MOCK_SERVICE, async: false },
+        { name: 'func3', url: TEST_URLS.MOCK_SERVICE, async: true, description: 'Test function 3' }
       ];
 
       for (const func of functions) {
@@ -337,8 +237,9 @@ describe('External Routes', () => {
         .get('/external/functions')
         .expect(200);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.result.functions).toHaveLength(3);
+      expectSuccessResponse(response, (res) => {
+        expect(res.body.result.functions).toHaveLength(3);
+      });
       
       const names = response.body.result.functions.map((f: any) => f.name);
       expect(names).toContain('func1');
@@ -349,7 +250,7 @@ describe('External Routes', () => {
       const func3 = response.body.result.functions.find((f: any) => f.name === 'func3');
       expect(func3.description).toBe('Test function 3');
       expect(func3.async).toBe(true);
-      expect(func3.url).toBe(mockServiceUrl);
+      expect(func3.url).toBe(TEST_URLS.MOCK_SERVICE);
     });
   });
 
@@ -361,16 +262,16 @@ describe('External Routes', () => {
       // Register test functions
       const syncFunction: ExternalFunctionRegistration = {
         name: 'syncTestFunction',
-        url: mockServiceUrl,
+        url: TEST_URLS.MOCK_SERVICE,
         async: false,
-        timeout: 2000
+        timeout: TEST_TIMEOUTS.SHORT
       };
       
       const asyncFunction: ExternalFunctionRegistration = {
         name: 'asyncTestFunction',
-        url: mockServiceUrl,
+        url: TEST_URLS.MOCK_SERVICE,
         async: true,
-        timeout: 2000
+        timeout: TEST_TIMEOUTS.SHORT
       };
       
       await request(app).post('/external/register').send(syncFunction);
@@ -379,26 +280,11 @@ describe('External Routes', () => {
 
     afterEach(async () => {
       // Clean up
-      await request(app).delete('/external/register/syncTestFunction');
-      await request(app).delete('/external/register/asyncTestFunction');
+      await cleanupAllExternalFunctions(app);
     });
 
     it('should handle synchronous external function call', async () => {
-      const responsePromise = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          dllConnector.off('ipc_send', handler);
-          reject(new Error('Timeout waiting for response'));
-        }, 5000);
-        
-        const handler = (data: any) => {
-          if (data.type === 'external_response' && data.id === 'test-sync-call-1') {
-            clearTimeout(timeout);
-            dllConnector.off('ipc_send', handler);
-            resolve(data);
-          }
-        };
-        dllConnector.on('ipc_send', handler);
-      });
+      const responsePromise = waitForDLLResponse(dllConnector, 'test-sync-call-1');
 
       // Simulate external call from DLL
       dllConnector.emit('external_call', {
@@ -421,18 +307,12 @@ describe('External Routes', () => {
       // Verify external service was called
       expect(mockExternalService.getCallCount()).toBe(1);
       expect(mockExternalService.getLastRequest().args).toEqual({ test: 'data', value: 42 });
+      
+      logSuccess('Synchronous external function call handled');
     });
 
     it('should handle asynchronous external function call', async () => {
-      const responsePromise = new Promise((resolve) => {
-        const handler = (data: any) => {
-          if (data.type === 'external_response' && data.id === 'test-async-call-1') {
-            dllConnector.off('ipc_send', handler);
-            resolve(data);
-          }
-        };
-        dllConnector.on('ipc_send', handler);
-      });
+      const responsePromise = waitForDLLResponse(dllConnector, 'test-async-call-1');
 
       // Simulate external call from DLL
       dllConnector.emit('external_call', {
@@ -451,21 +331,15 @@ describe('External Routes', () => {
       
       // Verify external service was called
       expect(mockExternalService.getCallCount()).toBe(1);
+      
+      logSuccess('Asynchronous external function call handled');
     });
 
     it('should handle external function call timeout', async () => {
       // Set response delay longer than timeout
       mockExternalService.setResponseDelay(3000);
       
-      const responsePromise = new Promise((resolve) => {
-        const handler = (data: any) => {
-          if (data.type === 'external_response' && data.id === 'test-timeout-call-1') {
-            dllConnector.off('ipc_send', handler);
-            resolve(data);
-          }
-        };
-        dllConnector.on('ipc_send', handler);
-      });
+      const responsePromise = waitForDLLResponse(dllConnector, 'test-timeout-call-1');
 
       // Simulate external call from DLL
       dllConnector.emit('external_call', {
@@ -483,21 +357,15 @@ describe('External Routes', () => {
       expect(response.error.code).toBe(ErrorCode.CALL_TIMEOUT);
       expect(response.error.message).toContain('timed out');
       expect(response.error.message).toContain('2000ms');
+      
+      logSuccess('External function timeout handled correctly');
     });
 
     it('should handle external service failure', async () => {
       // Configure mock service to fail
       mockExternalService.setFailure(true, 503);
       
-      const responsePromise = new Promise((resolve) => {
-        const handler = (data: any) => {
-          if (data.type === 'external_response' && data.id === 'test-failure-call-1') {
-            dllConnector.off('ipc_send', handler);
-            resolve(data);
-          }
-        };
-        dllConnector.on('ipc_send', handler);
-      });
+      const responsePromise = waitForDLLResponse(dllConnector, 'test-failure-call-1');
 
       // Simulate external call from DLL
       dllConnector.emit('external_call', {
@@ -514,18 +382,12 @@ describe('External Routes', () => {
       expect(response.success).toBe(false);
       expect(response.error.code).toBe(ErrorCode.NETWORK_ERROR);
       expect(response.error.message).toContain('failed with status 503');
+      
+      logSuccess('External service failure handled correctly');
     });
 
     it('should handle call to unregistered function', async () => {
-      const responsePromise = new Promise((resolve) => {
-        const handler = (data: any) => {
-          if (data.type === 'external_response' && data.id === 'test-unregistered-call-1') {
-            dllConnector.off('ipc_send', handler);
-            resolve(data);
-          }
-        };
-        dllConnector.on('ipc_send', handler);
-      });
+      const responsePromise = waitForDLLResponse(dllConnector, 'test-unregistered-call-1');
 
       // Simulate external call to unregistered function
       dllConnector.emit('external_call', {
@@ -542,6 +404,8 @@ describe('External Routes', () => {
       expect(response.success).toBe(false);
       expect(response.error.code).toBe(ErrorCode.INVALID_FUNCTION);
       expect(response.error.message).toContain('not registered');
+      
+      logSuccess('Unregistered function call handled correctly');
     });
   });
 
@@ -551,12 +415,7 @@ describe('External Routes', () => {
   describe('External Manager Statistics', () => {
     afterEach(async () => {
       // Clean up all registered functions
-      const functionsResponse = await request(app).get('/external/functions');
-      if (functionsResponse.body.success && functionsResponse.body.result.functions) {
-        for (const func of functionsResponse.body.result.functions) {
-          await request(app).delete(`/external/register/${func.name}`);
-        }
-      }
+      await cleanupAllExternalFunctions(app)
     });
 
     it('should report external function stats', () => {
@@ -570,7 +429,7 @@ describe('External Routes', () => {
     it('should update stats after registration', async () => {
       const registration: ExternalFunctionRegistration = {
         name: 'statsTestFunction',
-        url: mockServiceUrl,
+        url: TEST_URLS.MOCK_SERVICE,
         async: true
       };
 
@@ -591,8 +450,8 @@ describe('External Routes', () => {
     it('should re-register all functions after reconnection', async () => {
       // Register multiple functions
       const functions = [
-        { name: 'reconnectFunc1', url: mockServiceUrl, async: true },
-        { name: 'reconnectFunc2', url: mockServiceUrl, async: false }
+        { name: 'reconnectFunc1', url: TEST_URLS.MOCK_SERVICE, async: true },
+        { name: 'reconnectFunc2', url: TEST_URLS.MOCK_SERVICE, async: false }
       ];
 
       for (const func of functions) {
@@ -613,7 +472,7 @@ describe('External Routes', () => {
       externalManager.reregisterAll();
       
       // Wait for re-registration to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
       
       dllConnector.off('ipc_send', handler);
       
