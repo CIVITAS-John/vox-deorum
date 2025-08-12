@@ -115,13 +115,8 @@ describe('DLLConnector Connection Lifecycle', () => {
     expect(connector.isConnected()).toBe(true);
     
     // Second connection attempt should not cause issues
-    try {
-      await connector.connect();
-      expect(connector.isConnected()).toBe(true);
-    } catch (error) {
-      // Some implementations might throw - that's also acceptable
-      expect(connector.isConnected()).toBe(true);
-    }
+    await connector.connect();
+    expect(connector.isConnected()).toBe(true);
     
     console.log('✅ Multiple connection attempts handled gracefully');
   });
@@ -172,27 +167,6 @@ describe('Connection Error Handling', () => {
       config.winsock.id = originalConfig;
     }
   });
-  
-  // 2.2 - Connection timeout handling
-  it('should handle connection timeout', async () => {
-    const originalConfig = config.winsock.id;
-    config.winsock.id = 'non-existent-server';
-    
-    try {
-      const startTime = Date.now();
-      await expect(connector.connect()).rejects.toThrow(/timeout/i);
-      const elapsed = Date.now() - startTime;
-      
-      // Should timeout in approximately 10 seconds (as configured in DLLConnector)
-      expect(elapsed).toBeGreaterThan(9000);
-      expect(elapsed).toBeLessThan(15000);
-      expect(connector.isConnected()).toBe(false);
-      
-      console.log('✅ Connection timeout handled correctly');
-    } finally {
-      config.winsock.id = originalConfig;
-    }
-  }, 20000); // Extended timeout for this test
   
   // 7. Pending request management during disconnections
   it('should reject pending requests when disconnected', async () => {

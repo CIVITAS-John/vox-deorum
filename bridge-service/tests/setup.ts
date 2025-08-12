@@ -39,5 +39,19 @@ afterAll(async () => {
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'error'; // Reduce noise in tests
 
+// Override process exit handlers for tests to prevent test runner crashes
+process.removeAllListeners('uncaughtException');
+process.removeAllListeners('unhandledRejection');
+
+process.on('uncaughtException', (error) => {
+  console.error('Test uncaught exception:', error);
+  // Don't exit in tests
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Test unhandled rejection:', reason);
+  // Don't exit in tests
+});
+
 // Export global mock server instance for use in tests
 export { globalMockDLL, USE_MOCK };

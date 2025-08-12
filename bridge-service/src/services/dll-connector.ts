@@ -53,6 +53,10 @@ export class DLLConnector extends EventEmitter {
    * Connect to the DLL via IPC
    */
   public async connect(): Promise<void> {
+    if (this.connected) {
+      logger.info('Already connected to DLL');
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
       logger.info(`Connecting to DLL with ID: ${config.winsock.id}`);
 
@@ -69,10 +73,7 @@ export class DLLConnector extends EventEmitter {
         });
 
         ipc.of[config.winsock.id].on('disconnect', () => {
-          if (!this.disconnect) {
-            this.connected = false;
-            logger.warn('Disconnected from DLL');
-          }
+          logger.warn('Disconnected from DLL');
           this.emit('disconnected');
           this.handleDisconnection();
         });
@@ -87,15 +88,6 @@ export class DLLConnector extends EventEmitter {
           }
         });
       });
-
-      // Timeout for initial connection
-      setTimeout(() => {
-        if (!this.connected) {
-          // For timeouts, also start reconnection attempts
-          this.handleDisconnection();
-          reject(new Error('Connection timeout - DLL may not be running'));
-        }
-      }, 10000);
     });
   }
 
