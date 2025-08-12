@@ -30,7 +30,7 @@ describe('Configuration', () => {
   });
 });
 
-// 1. DLLConnector connection lifecycle (connect/disconnect)
+// DLLConnector connection lifecycle (connect/disconnect)
 describe('DLLConnector Connection Lifecycle', () => {
   let connector: DLLConnector;
   
@@ -44,7 +44,7 @@ describe('DLLConnector Connection Lifecycle', () => {
     }
   });
 
-  // 1.1 - Basic connection establishment and communication
+  // Basic connection establishment and communication
   it('should establish connection to DLL server', async () => {
     if (USE_MOCK && globalMockDLL) {
       // Verify mock server is running
@@ -87,7 +87,7 @@ describe('DLLConnector Connection Lifecycle', () => {
     }
   });
   
-  // 1.2 - Clean disconnection with event emission
+  // Clean disconnection with event emission
   it('should handle clean disconnection', async () => {
     await connector.connect();
     expect(connector.isConnected()).toBe(true);
@@ -108,7 +108,7 @@ describe('DLLConnector Connection Lifecycle', () => {
     console.log('✅ Connection closed cleanly');
   });
   
-  // 1.3 - Multiple connection attempts handling
+  // Multiple connection attempts handling
   it('should handle multiple connection attempts gracefully', async () => {
     // First connection
     await connector.connect();
@@ -121,7 +121,7 @@ describe('DLLConnector Connection Lifecycle', () => {
     console.log('✅ Multiple connection attempts handled gracefully');
   });
   
-  // 1.4 - Multiple disconnection calls handling
+  // Multiple disconnection calls handling
   it('should handle multiple disconnection calls gracefully', async () => {
     await connector.connect();
     expect(connector.isConnected()).toBe(true);
@@ -137,7 +137,7 @@ describe('DLLConnector Connection Lifecycle', () => {
   });
 });
 
-// 2. Connection failure scenarios and error handling
+// Connection failure scenarios and error handling
 describe('Connection Error Handling', () => {
   let connector: DLLConnector;
   
@@ -151,7 +151,7 @@ describe('Connection Error Handling', () => {
     }
   });
 
-  // 2.1 - Connection failures with invalid configurations
+  // Connection failures with invalid configurations
   it('should handle connection failures gracefully', async () => {
     // Mock invalid connection scenario
     const originalConfig = config.winsock.id;
@@ -168,7 +168,7 @@ describe('Connection Error Handling', () => {
     }
   });
   
-  // 7. Pending request management during disconnections
+  // Pending request management during disconnections
   it('should reject pending requests when disconnected', async () => {
     await connector.connect();
     expect(connector.isConnected()).toBe(true);
@@ -191,7 +191,7 @@ describe('Connection Error Handling', () => {
   });
 });
 
-// 4. Message handling and request/response flow
+// Message handling and request/response flow
 describe('Message Handling and Communication', () => {
   let connector: DLLConnector;
   
@@ -206,7 +206,7 @@ describe('Message Handling and Communication', () => {
     }
   });
 
-  // 4.1 - Successful message responses
+  // Successful message responses
   it('should handle successful message responses', async () => {
     if (!USE_MOCK || !globalMockDLL) {
       console.log('⏭️ Skipping mock-specific test in real server mode');
@@ -225,7 +225,7 @@ describe('Message Handling and Communication', () => {
     expect(response.result).toBe('Mock Player');
   });
   
-  // 4.2 - Message error handling
+  // Message error handling
   it('should handle message errors', async () => {
     if (!USE_MOCK || !globalMockDLL) {
       console.log('⏭️ Skipping mock-specific test in real server mode');
@@ -244,7 +244,7 @@ describe('Message Handling and Communication', () => {
     expect(response.error).toBeDefined();
   });
   
-  // 8. Timeout handling and cleanup
+  // Timeout handling and cleanup
   it('should handle message timeout', async () => {
     const message = {
       type: 'test_timeout',
@@ -259,7 +259,7 @@ describe('Message Handling and Communication', () => {
     console.log('✅ Message timeout handled correctly');
   });
   
-  // 4.3 - SendNoWait message handling
+  // SendNoWait message handling
   it('should handle sendNoWait messages', async () => {
     const message = {
       type: 'lua_call',
@@ -272,7 +272,7 @@ describe('Message Handling and Communication', () => {
     console.log('✅ No-wait message sent successfully');
   });
   
-  // 4.4 - SendNoWait rejection when disconnected
+  // SendNoWait rejection when disconnected
   it('should reject sendNoWait when disconnected', async () => {
     connector.disconnect();
     
@@ -289,7 +289,7 @@ describe('Message Handling and Communication', () => {
     console.log('✅ SendNoWait rejection when disconnected working correctly');
   });
   
-  // 6. Event emission for connection state changes
+  // Event emission for connection state changes
   it('should handle various event types', async () => {
     const eventTypes = [
       'game_event',
@@ -313,7 +313,7 @@ describe('Message Handling and Communication', () => {
   });
 });
 
-// 5. Connection statistics and monitoring
+// Connection statistics and monitoring
 describe('Connection Statistics and Monitoring', () => {
   let connector: DLLConnector;
   
@@ -327,7 +327,7 @@ describe('Connection Statistics and Monitoring', () => {
     }
   });
 
-  // 5.1 - Accurate connection statistics tracking
+  // Accurate connection statistics tracking
   it('should provide accurate connection statistics', async () => {
     // Test initial stats
     let stats = connector.getStats();
@@ -351,7 +351,7 @@ describe('Connection Statistics and Monitoring', () => {
     console.log('✅ Connection statistics working correctly');
   });
   
-  // 5.2 - Pending request tracking
+  // Pending request tracking
   it('should track pending requests', async () => {
     await connector.connect();
     
@@ -377,7 +377,7 @@ describe('Connection Statistics and Monitoring', () => {
   });
 });
 
-// 3. Reconnection logic with exponential backoff
+// Reconnection logic with exponential backoff
 describe('Reconnection Logic', () => {
   let connector: DLLConnector;
   
@@ -391,7 +391,7 @@ describe('Reconnection Logic', () => {
     }
   });
 
-  // 3.1 - Reconnection attempt tracking
+  // Reconnection attempt tracking
   it('should track reconnection attempts', async () => {
     // Test with invalid connection to trigger reconnection attempts
     const originalConfig = config.winsock.id;
@@ -415,9 +415,9 @@ describe('Reconnection Logic', () => {
   });
 });
 
-// 10. Service-level connection coordination
+// Service-level connection coordination
 describe('Service-Level Connection Management', () => {
-  // 10.1 - Health status based on connection state
+  // Health status based on connection state
   it('should provide health status based on connection state', async () => {
     const healthStatus = bridgeService.getHealthStatus();
     
@@ -430,7 +430,7 @@ describe('Service-Level Connection Management', () => {
     console.log('✅ Health status provides connection info');
   });
   
-  // 10.2 - Detailed service statistics
+  // Detailed service statistics
   it('should provide detailed service statistics', async () => {
     const stats = bridgeService.getServiceStats();
     
@@ -451,7 +451,7 @@ describe('Service-Level Connection Management', () => {
     console.log('✅ Service statistics include connection details');
   });
   
-  // 10.3 - Forced reconnection handling
+  // Forced reconnection handling
   it('should handle forced reconnection', async () => {
     // This test just verifies the method exists and can be called
     // In a real scenario, this would reconnect to the DLL
@@ -466,9 +466,9 @@ describe('Service-Level Connection Management', () => {
   });
 });
 
-// 9. SSE connection management
+// SSE connection management
 describe('SSE Connection Management', () => {
-  // 9.1 - SSE statistics and client tracking
+  // SSE statistics and client tracking
   it('should provide SSE statistics', async () => {
     const sseStats = getSSEStats();
     
