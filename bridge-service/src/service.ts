@@ -58,16 +58,8 @@ export class BridgeService extends EventEmitter {
     logger.info('Starting Bridge Service...');
     
     this.isRunning = true;
-    
-    // Start attempting to connect to DLL (don't fail if initial connection fails)
-    logger.info('Attempting to connect to DLL...');
-    try {
-      await dllConnector.connect();
-      logger.info('Bridge Service started successfully with DLL connection');
-    } catch (error) {
-      logger.warn('Initial DLL connection failed, but service will continue to retry:', error);
-    }
-    
+    await dllConnector.connect();
+
     this.emit('started');
   }
 
@@ -80,7 +72,6 @@ export class BridgeService extends EventEmitter {
     
     try {
       this.isRunning = false;
-      
       // Disconnect from DLL (this will also clear any reconnection timers)
       dllConnector.disconnect();
       

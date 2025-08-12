@@ -5,10 +5,9 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger.js';
-import { handleAPIError } from '../utils/api.js';
 import { dllConnector } from '../services/dll-connector.js';
 import { GameEvent, SSEClient } from '../types/event.js';
-import { respondSuccess } from '../types/api.js';
+import { respondError } from '../types/api.js';
 
 const logger = createLogger('EventRoutes');
 const router = Router();
@@ -19,8 +18,8 @@ const sseClients: Map<string, SSEClient> = new Map();
 /**
  * GET /events - Server-Sent Events endpoint for game events
  */
-router.get('/', async (req: Request, res: Response) => {
-  await handleAPIError(res, '/events', async () => {
+router.get('/', (req: Request, res: Response) => {
+  try {
     const clientId = uuidv4();
     
     logger.info(`New SSE client connected: ${clientId}`);
@@ -70,10 +69,17 @@ router.get('/', async (req: Request, res: Response) => {
       sseClients.delete(clientId);
       clearInterval(keepAlive);
     });
-
-    // Return success for handleAPIError - the connection is now established
-    return respondSuccess({ clientId, message: 'SSE connection established' });
-  });
+  } catch (error) {
+    logger.error('Error establishing SSE connection:', error);
+    // If headers not sent yet, send error response
+    if (!res.headersSent) {
+      res.status(500).json(respondError(
+        'INTERNAL_ERROR' as any,
+        'Failed to establish SSE connection',
+        error instanceof Error ? error.message : 'Unknown error'
+      ));
+    }
+  }
 });
 
 /**
