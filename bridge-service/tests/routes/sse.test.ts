@@ -2,7 +2,7 @@
  * SSE connection management test - Tests for Server-Sent Events client tracking and event broadcasting
  */
 
-import { describe, it, expect, afterEach, afterAll, beforeAll } from 'vitest';
+import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import { EventSource } from 'eventsource';
 import request from 'supertest';
 import { app } from '../../src/index.js';
