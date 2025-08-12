@@ -42,9 +42,3 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 - Always add/sync top-level comments to each code file
 - Always add/sync comments to all public/exported definitions (incl. classes, types, functions)
 - Always add/sync comments within long functions
-
-### Testing
-- Use Vitest for testing in the bridge-service
-- Test files should be in `tests/` directory with `.test.ts` extension
-- Run tests with `npm test`, watch mode with `npm run test:watch`, coverage with `npm run test:coverage`
-- Test setup file is at `tests/setup.ts` for global test configuration

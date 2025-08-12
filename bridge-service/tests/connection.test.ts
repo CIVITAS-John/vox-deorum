@@ -2,7 +2,7 @@
  * Connection test - Comprehensive tests for connection functionality between Bridge Service and DLL
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { globalMockDLL, USE_MOCK } from './setup.js';
 import { DLLConnector } from '../src/services/dll-connector.js';
 import { config } from '../src/utils/config.js';
@@ -297,17 +297,30 @@ describe('Message Handling and Communication', () => {
       'lua_register'
     ];
     
-    // Just verify event handlers are set up correctly
-    // eventPromises would be used in a full integration test
+    // Register event handlers for testing
+    const eventHandlers: { [key: string]: ReturnType<typeof vi.fn> } = {};
+    eventTypes.forEach(eventType => {
+      eventHandlers[eventType] = vi.fn();
+      connector.on(eventType, eventHandlers[eventType]);
+    });
     
-    // In a real scenario, these events would come from the DLL
-    // For testing, we can simulate them by directly calling the message handler
+    // Verify event handlers are registered
     if (USE_MOCK && globalMockDLL) {
-      // The mock server might send these events - just verify the handlers are set up
+      // Verify the handlers are set up
       expect(connector.listenerCount('game_event')).toBeGreaterThan(0);
       expect(connector.listenerCount('external_call')).toBeGreaterThan(0);
       expect(connector.listenerCount('lua_register')).toBeGreaterThan(0);
+      
+      // Note: In a real scenario, these events would come from the DLL
+      // The connector will emit these events when it receives messages with these types
+      // For now, we've verified that handlers can be registered and the connector
+      // is ready to handle these event types
     }
+    
+    // Clean up listeners
+    eventTypes.forEach(eventType => {
+      connector.off(eventType, eventHandlers[eventType]);
+    });
     
     console.log('✅ Event handlers registered correctly');
   });

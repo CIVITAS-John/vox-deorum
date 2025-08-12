@@ -52,7 +52,7 @@ export class ExternalManager {
     };
 
     // Notify DLL about the registration
-    var response = dllConnector.sendNoWait({
+    const response = dllConnector.sendNoWait({
       type: 'external_register',
       name: registration.name,
       async: registration.async
