@@ -227,6 +227,8 @@ export class DLLConnector extends EventEmitter {
       try {
         ipc.of[config.winsock.id].emit('message', messageWithId);
         logger.debug('Sent message to DLL:', messageWithId);
+        // Emit event for testing
+        this.emit('ipc_send', messageWithId);
       } catch (error) {
         this.pendingRequests.delete(messageWithId.id);
         resolve(respondError(ErrorCode.NETWORK_ERROR));
@@ -246,6 +248,8 @@ export class DLLConnector extends EventEmitter {
     try {
       ipc.of[config.winsock.id].emit('message', message);
       logger.debug('Sent no-wait message to DLL:', message);
+      // Emit event for testing
+      this.emit('ipc_send', message);
       return respondSuccess();
     } catch (error) {
       logger.error('Failed to send no-wait message:', error);
