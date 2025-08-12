@@ -108,18 +108,4 @@ describe('Service-Level Connection Management', () => {
     
     console.log('✅ Service statistics include connection details');
   });
-  
-  // Forced reconnection handling
-  it('should handle forced reconnection', async () => {
-    // This test just verifies the method exists and can be called
-    // In a real scenario, this would reconnect to the DLL
-    try {
-      await bridgeService.reconnectDLL();
-      console.log('✅ Forced reconnection completed');
-    } catch (error) {
-      // Reconnection might fail if DLL is not available
-      // That's acceptable for this test
-      console.log('⚠️ Forced reconnection failed (expected if no DLL):', error);
-    }
-  });
 });

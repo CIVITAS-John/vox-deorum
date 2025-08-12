@@ -86,16 +86,6 @@ app.get('/stats', async (_req: Request, res: Response) => {
 });
 
 /**
- * Service control endpoints (for debugging)
- */
-app.post('/admin/reconnect', async (_req: Request, res: Response) => {
-  await handleAPIError(res, '/admin/reconnect', async () => {
-    await bridgeService.reconnectDLL();
-    return respondSuccess({ message: 'DLL reconnection successful' });
-  });
-});
-
-/**
  * Route handlers
  */
 app.use('/lua', luaRoutes);
@@ -125,10 +115,7 @@ app.get('/', async (_req: Request, res: Response) => {
           unregister: 'DELETE /external/register/:name',
           functions: 'GET /external/functions'
         },
-        events: 'GET /events (Server-Sent Events)',
-        admin: {
-          reconnect: 'POST /admin/reconnect'
-        }
+        events: 'GET /events (Server-Sent Events)'
       },
       documentation: 'See README.md and PROTOCOL.md for detailed API documentation'
     });

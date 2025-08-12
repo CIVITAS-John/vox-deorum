@@ -147,18 +147,7 @@ export class BridgeService extends EventEmitter {
       }
     };
   }
-
-  /**
-   * Force reconnection to DLL
-   */
-  public async reconnectDLL(): Promise<void> {
-    logger.info('Forcing DLL reconnection...');
-    // Disconnect first
-    dllConnector.disconnect();
-    // Reconnect
-    await dllConnector.connect();
-  }
-
+  
   /**
    * Check if service is running
    */

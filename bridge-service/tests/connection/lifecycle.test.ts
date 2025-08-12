@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { globalMockDLL, USE_MOCK } from '../setup.js';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
+import bridgeService from '../../src/service.js';
 
 // DLLConnector connection lifecycle (connect/disconnect)
 describe('DLLConnector Connection Lifecycle', () => {
