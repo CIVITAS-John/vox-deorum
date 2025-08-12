@@ -175,37 +175,59 @@ export class MockDLLServer extends EventEmitter {
   private async handleLuaCall(data: LuaCallMessage, _socket: any): Promise<void> {
     logger.debug('Processing Lua call:', data.function);
 
-    // Mock different Lua functions with appropriate responses
-    let result: any;
-    switch (data.function) {
-      case 'GetPlayerName':
-        result = 'Mock Player';
-        break;
-      case 'GetCurrentTurn':
-        result = Math.floor(Date.now() / 1000) % 500; // Mock turn number
-        break;
-      case 'GetCityCount':
-        result = 3;
-        break;
-      case 'GetGameState':
-        result = {
-          turn: Math.floor(Date.now() / 1000) % 500,
-          era: 'Classical Era',
-          player: 'Mock Player',
-          cities: 3,
-          units: 8
-        };
-        break;
-      default:
-        result = `Mock result for ${data.function}`;
-    }
+    // Define known mock functions
+    const knownFunctions = new Set([
+      'GetPlayerName',
+      'GetCurrentTurn', 
+      'GetCityCount',
+      'GetGameState'
+    ]);
 
-    const response: LuaResponseMessage = {
-      type: 'lua_response',
-      id: data.id!,
-      success: true,
-      result
-    };
+    let response: LuaResponseMessage;
+
+    // Check if function exists
+    if (!knownFunctions.has(data.function)) {
+      // Return error for unknown functions
+      response = {
+        type: 'lua_response',
+        id: data.id!,
+        success: false,
+        error: {
+          code: 'FUNCTION_NOT_FOUND',
+          message: `Function '${data.function}' is not available in the mock DLL`
+        }
+      };
+    } else {
+      // Mock different Lua functions with appropriate responses
+      let result: any;
+      switch (data.function) {
+        case 'GetPlayerName':
+          result = 'Mock Player';
+          break;
+        case 'GetCurrentTurn':
+          result = Math.floor(Date.now() / 1000) % 500; // Mock turn number
+          break;
+        case 'GetCityCount':
+          result = 3;
+          break;
+        case 'GetGameState':
+          result = {
+            turn: Math.floor(Date.now() / 1000) % 500,
+            era: 'Classical Era',
+            player: 'Mock Player',
+            cities: 3,
+            units: 8
+          };
+          break;
+      }
+
+      response = {
+        type: 'lua_response',
+        id: data.id!,
+        success: true,
+        result
+      };
+    }
 
     this.sendMessage(response, _socket);
   }
