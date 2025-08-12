@@ -303,18 +303,22 @@ describe('Message Handling and Communication', () => {
       eventHandlers[eventType] = vi.fn();
       connector.on(eventType, eventHandlers[eventType]);
     });
-    
-    // Verify event handlers are registered
+
+    // Verify the handlers are set up
+    eventTypes.forEach(eventType => {
+      expect(connector.listenerCount(eventType)).toBe(1);
+    });
+
+    // When using the mock DLL, we can simulate events
     if (USE_MOCK && globalMockDLL) {
-      // Verify the handlers are set up
-      expect(connector.listenerCount('game_event')).toBeGreaterThan(0);
-      expect(connector.listenerCount('external_call')).toBeGreaterThan(0);
-      expect(connector.listenerCount('lua_register')).toBeGreaterThan(0);
-      
-      // Note: In a real scenario, these events would come from the DLL
-      // The connector will emit these events when it receives messages with these types
-      // For now, we've verified that handlers can be registered and the connector
-      // is ready to handle these event types
+      eventTypes.forEach(eventType => {
+        globalMockDLL!.sendRawMessage({ type: eventType });
+      });
+      // Wait a bit to ensure events are processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      eventTypes.forEach(eventType => {
+        expect(eventHandlers[eventType]).toHaveBeenCalled();
+      });
     }
     
     // Clean up listeners

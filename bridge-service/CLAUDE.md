@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+### Reading
+- Due to the ESM import reasons, when you see `import from '*.js'`, read the corresponding .ts file instead.
+
 ### Testing
 - Use Vitest, not JEST, for testing
 - Test files should be in `tests/` directory with `.test.ts` extension

@@ -281,9 +281,9 @@ export class MockDLLServer extends EventEmitter {
   private sendMessage(message: IPCMessage, socket?: any): void {
     try {
       if (socket) {
-        ipc.server.emit(socket, 'message', message);
+        ipc.server.emit(socket, message.type, message);
       } else {
-        ipc.server.broadcast('message', message);
+        ipc.server.broadcast(message.type, message);
       }
       logger.debug('Sent message to bridge:', message);
     } catch (error) {
@@ -324,6 +324,28 @@ export class MockDLLServer extends EventEmitter {
     };
 
     logger.info(`Simulating game event: ${eventType}`);
+    this.sendMessage(message);
+  }
+
+  /**
+   * Simulate Lua register event
+   */
+  public simulateLuaRegister(functionName: string, description?: string): void {
+    const message: LuaRegisterMessage = {
+      type: 'lua_register',
+      function: functionName,
+      description
+    };
+
+    logger.info(`Simulating Lua register: ${functionName}`);
+    this.sendMessage(message);
+  }
+
+  /**
+   * Send a raw message to the bridge service (for testing purposes)
+   */
+  public sendRawMessage(message: IPCMessage): void {
+    logger.info(`Sending raw message: ${message.type}`);
     this.sendMessage(message);
   }
 
