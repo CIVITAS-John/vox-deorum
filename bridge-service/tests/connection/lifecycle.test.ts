@@ -40,13 +40,18 @@ describe('DLLConnector Connection Lifecycle', () => {
       connectedEventFired = true;
     });
     
-    // Attempt to connect
+    // Attempt to connect, disconnect, and reconnect
     await connector.connect();
     expect(connector.isConnected()).toBe(true);
     console.log('✅ Successfully connected to DLL server');
 
     expect(connectedEventFired).toBe(true);
     console.log('✅ Connection event fired');
+
+    connector.disconnect();
+    await connector.connect();
+    expect(connector.isConnected()).toBe(true);
+    console.log('✅ Successfully reconnected to DLL server');
     
     // Test basic communication - send a Lua call
     if (USE_MOCK && globalMockDLL) {

@@ -28,6 +28,7 @@ interface PendingRequest<T = any> {
  */
 export class DLLConnector extends EventEmitter {
   private connected: boolean = false;
+  private shuttingDown: boolean = false;
   private pendingRequests: Map<string, PendingRequest> = new Map();
   private reconnectAttempts: number = 0;
   private reconnectTimer?: NodeJS.Timeout;
@@ -53,6 +54,7 @@ export class DLLConnector extends EventEmitter {
    * Connect to the DLL via IPC
    */
   public async connect(): Promise<void> {
+    this.shuttingDown = false;
     if (this.connected) {
       logger.info('Already connected to DLL');
       return Promise.resolve();
@@ -190,6 +192,7 @@ export class DLLConnector extends EventEmitter {
     
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined; // Clear the timer reference before attempting
+      if (this.shuttingDown) return; // Don't reconnect if shutting down
       this.connect().catch((error) => {
         logger.error('Reconnection failed:', error);
       });
@@ -268,11 +271,6 @@ export class DLLConnector extends EventEmitter {
     
     logger.info('Disconnecting from DLL');
     
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = undefined;
-    }
-
     // Clear pending requests
     for (const [, request] of this.pendingRequests) {
       clearTimeout(request.timeout);
@@ -283,13 +281,15 @@ export class DLLConnector extends EventEmitter {
     }
     this.pendingRequests.clear();
 
+    // Avoid reconnection attempts during shutdown
+    this.reconnectTimer = undefined;
+    this.shuttingDown = true;
+
     // Disconnect IPC
+    this.connected = false;
     if (ipc.of[config.winsock.id]) {
       ipc.disconnect(config.winsock.id);
     }
-    
-    this.connected = false;
-    this.emit('disconnected');
   }
 
   /**
