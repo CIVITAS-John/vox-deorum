@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { config } from '../../src/utils/config.js';
 import { ErrorCode } from '../../src/types/api.js';
+import { logSuccess } from '../test-utils/helpers.js';
 
 // Connection failure scenarios and error handling
 describe('Connection Error Handling', () => {
@@ -31,7 +32,7 @@ describe('Connection Error Handling', () => {
       await expect(connector.connect()).rejects.toThrow();
       expect(connector.isConnected()).toBe(false);
       
-      console.log('✅ Connection failure handled correctly');
+      logSuccess('Connection failure handled correctly');
     } finally {
       // Restore original config
       config.winsock.id = originalConfig;
@@ -57,6 +58,6 @@ describe('Connection Error Handling', () => {
     expect(response.success).toBe(false);
     expect(response.error?.code).toBe(ErrorCode.DLL_DISCONNECTED);
     
-    console.log('✅ Pending requests rejected on disconnect');
+    logSuccess('Pending requests rejected on disconnect');
   });
 });

@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { globalMockDLL, USE_MOCK } from '../setup.js';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
-import bridgeService from '../../src/service.js';
+import { logSuccess, delay } from '../test-utils/helpers.js';
 
 // DLLConnector connection lifecycle (connect/disconnect)
 describe('DLLConnector Connection Lifecycle', () => {
@@ -28,7 +28,7 @@ describe('DLLConnector Connection Lifecycle', () => {
       // Verify mock server is running
       const status = globalMockDLL.getStatus();
       expect(status.running).toBe(true);
-      console.log('📊 Mock server status:', status);
+      logSuccess(`Mock server status: running=${status.running}`);
     }
 
     // Test initial state
@@ -43,15 +43,15 @@ describe('DLLConnector Connection Lifecycle', () => {
     // Attempt to connect, disconnect, and reconnect
     await connector.connect();
     expect(connector.isConnected()).toBe(true);
-    console.log('✅ Successfully connected to DLL server');
+    logSuccess('Successfully connected to DLL server');
 
     expect(connectedEventFired).toBe(true);
-    console.log('✅ Connection event fired');
+    logSuccess('Connection event fired');
 
     connector.disconnect();
     await connector.connect();
     expect(connector.isConnected()).toBe(true);
-    console.log('✅ Successfully reconnected to DLL server');
+    logSuccess('Successfully reconnected to DLL server');
     
     // Test basic communication - send a Lua call
     if (USE_MOCK && globalMockDLL) {
@@ -66,7 +66,7 @@ describe('DLLConnector Connection Lifecycle', () => {
       expect(response.success).toBe(true);
       expect(response.result).toBe('Mock Player');
       
-      console.log('✅ Basic communication test passed');
+      logSuccess('Basic communication test passed');
     }
   });
   
@@ -85,10 +85,10 @@ describe('DLLConnector Connection Lifecycle', () => {
     expect(connector.isConnected()).toBe(false);
     
     // Give event time to fire
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await delay(10);
     expect(disconnectedEventFired).toBe(true);
     
-    console.log('✅ Connection closed cleanly');
+    logSuccess('Connection closed cleanly');
   });
   
   // Multiple connection attempts handling
@@ -101,7 +101,7 @@ describe('DLLConnector Connection Lifecycle', () => {
     await connector.connect();
     expect(connector.isConnected()).toBe(true);
     
-    console.log('✅ Multiple connection attempts handled gracefully');
+    logSuccess('Multiple connection attempts handled gracefully');
   });
   
   // Multiple disconnection calls handling
@@ -116,6 +116,6 @@ describe('DLLConnector Connection Lifecycle', () => {
     connector.disconnect();
     expect(connector.isConnected()).toBe(false);
     
-    console.log('✅ Multiple disconnection calls handled gracefully');
+    logSuccess('Multiple disconnection calls handled gracefully');
   });
 });

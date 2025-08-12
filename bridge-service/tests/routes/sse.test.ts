@@ -10,7 +10,8 @@ import { getSSEStats } from '../../src/routes/events.js';
 import { dllConnector } from '../../src/services/dll-connector.js';
 import config from '../../src/utils/config.js';
 import bridgeService from '../../src/service.js';
-import { before } from 'node:test';
+import { logSuccess, delay, TestServer, expectSuccessResponse } from '../test-utils/helpers.js';
+import { TEST_TIMEOUTS } from '../test-utils/constants.js';
 
 /**
  * Helper to wait for an SSE event with timeout
@@ -18,7 +19,7 @@ import { before } from 'node:test';
 function waitForSSEEvent(
   eventSource: EventSource, 
   eventType: string, 
-  timeout: number = 5000
+  timeout: number = TEST_TIMEOUTS.DEFAULT
 ): Promise<any> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -50,7 +51,7 @@ function createSSEClient(): EventSource {
 
 // SSE service functionality tests
 describe('SSE Service', () => {
-  let server: any;
+  const testServer = new TestServer();
 
   // Setup and teardown
   beforeAll(async () => {
@@ -58,19 +59,15 @@ describe('SSE Service', () => {
     await bridgeService.start();
     
     // Start the Express server
-    server = app.listen(config.rest.port, config.rest.host);
+    await testServer.start(app, config.rest.port, config.rest.host);
     
     // Wait for server to be ready
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await delay(TEST_TIMEOUTS.VERY_SHORT);
   });
 
   afterAll(async () => {
     // Close the Express server
-    if (server) {
-      await new Promise<void>((resolve) => {
-        server.close(() => resolve());
-      });
-    }
+    await testServer.stop();
     
     // Shutdown bridge service
     await bridgeService.shutdown();
@@ -90,7 +87,7 @@ describe('SSE Service', () => {
       expect(connectedEvent).toHaveProperty('message');
       expect(connectedEvent.message).toBe('Successfully connected to event stream');
       
-      console.log('✅ SSE connection established with connected event');
+      logSuccess('SSE connection established with connected event');
     });
 
     it('should handle client-initiated disconnection gracefully', async () => {
@@ -100,12 +97,12 @@ describe('SSE Service', () => {
       client.close();
       
       // Wait for server to process disconnection
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
       
       const finalStats = getSSEStats();
       expect(finalStats.activeClients).toBe(connectedStats.activeClients - 1);
       
-      console.log('✅ Client disconnection handled properly');
+      logSuccess('Client disconnection handled properly');
     });
   });
 
@@ -137,7 +134,7 @@ describe('SSE Service', () => {
       const uniqueIds = new Set(stats.clientIds);
       expect(uniqueIds.size).toBe(stats.clientIds.length);
       
-      console.log(`✅ Multiple SSE connections handled (${clientCount} clients)`);
+      logSuccess(`Multiple SSE connections handled (${clientCount} clients)`);
     });
 
     it('should broadcast events to all connected clients', async () => {
@@ -166,7 +163,7 @@ describe('SSE Service', () => {
         expect(event).toHaveProperty('timestamp');
       });
       
-      console.log(`✅ Event broadcast to all ${clientCount} clients`);
+      logSuccess(`Event broadcast to all ${clientCount} clients`);
     });
   });
 
@@ -194,12 +191,13 @@ describe('SSE Service', () => {
         .get('/stats')
         .expect(200);
       
-      expect(response.body.success).toBe(true);
-      expect(response.body.result).toHaveProperty('sse');
-      expect(response.body.result.sse.activeClients).toBe(2);
-      expect(response.body.result.sse.clientIds).toHaveLength(2);
+      expectSuccessResponse(response, (res) => {
+        expect(res.body.result).toHaveProperty('sse');
+        expect(res.body.result.sse.activeClients).toBe(2);
+        expect(res.body.result.sse.clientIds).toHaveLength(2);
+      });
       
-      console.log('✅ SSE stats available via REST endpoint');
+      logSuccess('SSE stats available via REST endpoint');
     });
   });
 });

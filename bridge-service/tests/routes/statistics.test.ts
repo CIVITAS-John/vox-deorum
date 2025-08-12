@@ -7,6 +7,7 @@ import { globalMockDLL, USE_MOCK } from '../setup.js';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
 import bridgeService from '../../src/service.js';
+import { logSuccess } from '../test-utils/helpers.js';
 
 // Connection statistics and monitoring
 describe('Connection Statistics and Monitoring', () => {
@@ -43,7 +44,7 @@ describe('Connection Statistics and Monitoring', () => {
     expect(stats.connected).toBe(false);
     expect(stats.pendingRequests).toBe(0);
     
-    console.log('✅ Connection statistics working correctly');
+    logSuccess('Connection statistics working correctly');
   });
   
   // Pending request tracking
@@ -68,7 +69,7 @@ describe('Connection Statistics and Monitoring', () => {
       expect(statsAfterResponse.pendingRequests).toBe(0);
     }
     
-    console.log('✅ Pending request tracking working');
+    logSuccess('Pending request tracking working');
   });
 });
 
@@ -85,7 +86,7 @@ describe('Service-Level Connection Management', () => {
     expect(typeof healthStatus.uptime).toBe('number');
     expect(healthStatus.uptime).toBeGreaterThanOrEqual(0);
     
-    console.log('✅ Health status provides connection info');
+    logSuccess('Health status provides connection info');
   });
   
   // Detailed service statistics
@@ -106,6 +107,6 @@ describe('Service-Level Connection Management', () => {
     expect(typeof stats.dll.pendingRequests).toBe('number');
     expect(typeof stats.dll.reconnectAttempts).toBe('number');
     
-    console.log('✅ Service statistics include connection details');
+    logSuccess('Service statistics include connection details');
   });
 });

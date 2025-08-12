@@ -5,6 +5,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { config } from '../../src/utils/config.js';
+import { logSuccess, delay } from '../test-utils/helpers.js';
+import { TEST_TIMEOUTS } from '../test-utils/constants.js';
 
 // Reconnection logic with exponential backoff
 describe('Reconnection Logic', () => {
@@ -31,12 +33,12 @@ describe('Reconnection Logic', () => {
       await expect(connector.connect()).rejects.toThrow();
       
       // Wait a bit for reconnection attempts to start
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
       
       const stats = connector.getStats();
       expect(stats.reconnectAttempts).toBeGreaterThan(0);
       
-      console.log('✅ Reconnection attempts tracked correctly');
+      logSuccess('Reconnection attempts tracked correctly');
     } finally {
       config.winsock.id = originalConfig;
       connector.disconnect(); // This should stop reconnection attempts

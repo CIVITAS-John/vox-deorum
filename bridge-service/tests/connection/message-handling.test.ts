@@ -7,6 +7,8 @@ import { globalMockDLL, USE_MOCK } from '../setup.js';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
 import { ErrorCode } from '../../src/types/api.js';
+import { logSuccess, delay } from '../test-utils/helpers.js';
+import { TEST_TIMEOUTS } from '../test-utils/constants.js';
 
 // Message handling and request/response flow
 describe('Message Handling and Communication', () => {
@@ -26,7 +28,7 @@ describe('Message Handling and Communication', () => {
   // Successful message responses
   it('should handle successful message responses', async () => {
     if (!USE_MOCK || !globalMockDLL) {
-      console.log('⏭️ Skipping mock-specific test in real server mode');
+      logSuccess('Skipping mock-specific test in real server mode');
       return;
     }
     
@@ -45,7 +47,7 @@ describe('Message Handling and Communication', () => {
   // Message error handling
   it('should handle message errors', async () => {
     if (!USE_MOCK || !globalMockDLL) {
-      console.log('⏭️ Skipping mock-specific test in real server mode');
+      logSuccess('Skipping mock-specific test in real server mode');
       return;
     }
     
@@ -73,7 +75,7 @@ describe('Message Handling and Communication', () => {
     expect(response.success).toBe(false);
     expect(response.error?.code).toBe(ErrorCode.CALL_TIMEOUT);
     
-    console.log('✅ Message timeout handled correctly');
+    logSuccess('Message timeout handled correctly');
   });
   
   // SendNoWait message handling
@@ -86,7 +88,7 @@ describe('Message Handling and Communication', () => {
     const response = connector.sendNoWait(message);
     
     expect(response.success).toBe(true);
-    console.log('✅ No-wait message sent successfully');
+    logSuccess('No-wait message sent successfully');
   });
   
   // SendNoWait rejection when disconnected
@@ -103,7 +105,7 @@ describe('Message Handling and Communication', () => {
     expect(response.success).toBe(false);
     expect(response.error?.code).toBe(ErrorCode.DLL_DISCONNECTED);
     
-    console.log('✅ SendNoWait rejection when disconnected working correctly');
+    logSuccess('SendNoWait rejection when disconnected working correctly');
   });
   
   // Event emission for connection state changes
@@ -132,7 +134,7 @@ describe('Message Handling and Communication', () => {
         globalMockDLL!.sendRawMessage({ type: eventType });
       });
       // Wait a bit to ensure events are processed
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
       eventTypes.forEach(eventType => {
         expect(eventHandlers[eventType]).toHaveBeenCalled();
       });
@@ -143,6 +145,6 @@ describe('Message Handling and Communication', () => {
       connector.off(eventType, eventHandlers[eventType]);
     });
     
-    console.log('✅ Event handlers registered correctly');
+    logSuccess('Event handlers registered correctly');
   });
 });
