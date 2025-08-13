@@ -12,9 +12,7 @@ import { ErrorCode } from '../../src/types/api.js';
 import { TEST_TIMEOUTS } from '../test-utils/constants.js';
 import config from '../../src/utils/config.js';
 import { globalMockDLL, USE_MOCK } from '../setup.js';
-// Import for type only if needed
-// import type { MockDLLServer } from '../../scripts/mock-dll-server.js';
-import type { LuaResponseMessage } from '../../src/types/lua.js';
+import type { MockDLLServer } from '../../scripts/mock-dll-server.js';
 
 /**
  * Lua Service Tests
@@ -24,49 +22,30 @@ describe('Lua Service', () => {
   const TEST_PORT = 3456; // Use a different port for tests
   
   /**
-   * Helper function to setup mock Lua function responses
+   * Helper function to setup mock Lua function responses using the new mock server API
    */
   const setupMockLuaFunction = (functionName: string, result: any, shouldSucceed: boolean = true) => {
-    if (!USE_MOCK || !globalMockDLL) return;
-    
-    // Override the handleLuaCall method for custom responses
-    const mockServer = globalMockDLL as any;
-    const originalHandler = mockServer.handleLuaCall;
-    
-    mockServer.handleLuaCall = async function(data: any, socket: any) {
-      if (data.function === functionName) {
-        const response: LuaResponseMessage = {
-          type: 'lua_response',
-          id: data.id!,
-          success: shouldSucceed,
-          result: shouldSucceed ? result : undefined,
-          error: shouldSucceed ? undefined : {
-            code: 'MOCK_ERROR',
-            message: result || `Mock error for ${functionName}`
-          }
-        };
-        this.sendMessage(response, socket);
-      } else {
-        originalHandler.call(this, data, socket);
-      }
-    }.bind(mockServer);
+    globalMockDLL!.addLuaFunction(functionName, () => result, shouldSucceed);
   };
 
   // Setup and teardown
   beforeAll(async () => {
     // Start the test server
     await testServer.start(app, TEST_PORT, config.rest.host);
-    
-    // Ensure connection is ready
-    if (!dllConnector.isConnected()) {
-      await dllConnector.connect();
-    }
   }, TEST_TIMEOUTS.LONG);
 
   afterAll(async () => {
     // Stop the test server
     await testServer.stop();
   }, TEST_TIMEOUTS.LONG);
+
+  afterEach(() => {
+    // Clear mock functions after each test to prevent interference
+    if (USE_MOCK && globalMockDLL) {
+      const mockServer = globalMockDLL as MockDLLServer;
+      mockServer.clearLuaFunctions();
+    }
+  });
 
   /**
    * Function Call Tests
@@ -163,7 +142,7 @@ describe('Lua Service', () => {
     });
 
     it('should handle malformed JSON', async () => {
-      const response = await request(app)
+      await request(app)
         .post('/lua/call')
         .set('Content-Type', 'application/json')
         .send('{"function": "test", args: }') // Invalid JSON

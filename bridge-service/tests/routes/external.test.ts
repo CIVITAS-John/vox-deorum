@@ -7,7 +7,6 @@ import request from 'supertest';
 import { app } from '../../src/index.js';
 import { externalManager } from '../../src/services/external-manager.js';
 import { dllConnector } from '../../src/services/dll-connector.js';
-import bridgeService from '../../src/service.js';
 import config from '../../src/utils/config.js';
 import { ExternalFunctionRegistration } from '../../src/types/external.js';
 import { ErrorCode } from '../../src/types/api.js';

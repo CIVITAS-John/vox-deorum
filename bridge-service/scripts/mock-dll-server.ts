@@ -38,13 +38,23 @@ export interface MockDLLConfig {
 }
 
 /**
+ * Mock function configuration
+ */
+export interface MockFunction {
+  name: string;
+  handler: (args: any) => any;
+  shouldSucceed?: boolean;
+}
+
+/**
  * Mock DLL Server class
  */
 export class MockDLLServer extends EventEmitter {
   private config: MockDLLConfig;
   private isRunning: boolean = false;
   private eventTimer?: NodeJS.Timeout;
-  private registeredFunctions: Set<string> = new Set();
+  private externalFunctions: Set<string> = new Set();
+  private luaFunctions: Map<string, MockFunction> = new Map();
 
   constructor(config: MockDLLConfig) {
     super();
@@ -173,63 +183,131 @@ export class MockDLLServer extends EventEmitter {
   }
 
   /**
+   * Add a lua function for testing
+   */
+  public addLuaFunction(name: string, handler: (args: any) => any, shouldSucceed: boolean = true): void {
+    this.luaFunctions.set(name, {
+      name,
+      handler,
+      shouldSucceed
+    });
+    logger.debug(`Added lua function: ${name}`);
+  }
+
+  /**
+   * Remove a lua function
+   */
+  public removeLuaFunction(name: string): void {
+    this.luaFunctions.delete(name);
+    logger.debug(`Removed lua function: ${name}`);
+  }
+
+  /**
+   * Clear all lua functions
+   */
+  public clearLuaFunctions(): void {
+    this.luaFunctions.clear();
+    logger.debug('Cleared all lua functions');
+  }
+
+  /**
    * Handle Lua function calls
    */
   private async handleLuaCall(data: LuaCallMessage, _socket: any): Promise<void> {
     logger.debug('Processing Lua call:', data.function);
 
-    // Define known mock functions
-    const knownFunctions = new Set([
-      'GetPlayerName',
-      'GetCurrentTurn', 
-      'GetCityCount',
-      'GetGameState'
-    ]);
-
     let response: LuaResponseMessage;
 
-    // Check if function exists
-    if (!knownFunctions.has(data.function)) {
-      // Return error for unknown functions
-      response = {
-        type: 'lua_response',
-        id: data.id!,
-        success: false,
-        error: {
-          code: 'FUNCTION_NOT_FOUND',
-          message: `Function '${data.function}' is not available in the mock DLL`
-        }
-      };
-    } else {
-      // Mock different Lua functions with appropriate responses
-      let result: any;
-      switch (data.function) {
-        case 'GetPlayerName':
-          result = 'Mock Player';
-          break;
-        case 'GetCurrentTurn':
-          result = Math.floor(Date.now() / 1000) % 500; // Mock turn number
-          break;
-        case 'GetCityCount':
-          result = 3;
-          break;
-        case 'GetGameState':
-          result = {
-            turn: Math.floor(Date.now() / 1000) % 500,
-            era: 'Classical Era',
-            player: 'Mock Player',
-            cities: 3,
-            units: 8
+    // First check if we have a registered mock function for this call
+    const mockFunction = this.luaFunctions.get(data.function);
+    if (mockFunction) {
+      logger.debug(`Using registered mock function for: ${data.function}`);
+      
+      if (mockFunction.shouldSucceed !== false) {
+        try {
+          const result = mockFunction.handler(data.args);
+          response = {
+            type: 'lua_response',
+            id: data.id!,
+            success: true,
+            result
           };
-          break;
+        } catch (error: any) {
+          response = {
+            type: 'lua_response',
+            id: data.id!,
+            success: false,
+            error: {
+              code: 'MOCK_ERROR',
+              message: error.message || `Mock function error for ${data.function}`
+            }
+          };
+        }
+      } else {
+        // Mock function configured to fail
+        const errorMessage = mockFunction.handler(data.args);
+        response = {
+          type: 'lua_response',
+          id: data.id!,
+          success: false,
+          error: {
+            code: 'MOCK_ERROR',
+            message: errorMessage || `Mock error for ${data.function}`
+          }
+        };
       }
+    } else {
+      // Fall back to default mock behavior
+      const knownFunctions = new Set([
+        'GetPlayerName',
+        'GetCurrentTurn', 
+        'GetCityCount',
+        'GetGameState'
+      ]);
 
-      response = {
-        type: 'lua_response',
-        id: data.id!,
-        success: true,
-        result
-      };
+      // Check if function exists in defaults
+      if (!knownFunctions.has(data.function)) {
+        // Return error for unknown functions
+        response = {
+          type: 'lua_response',
+          id: data.id!,
+          success: false,
+          error: {
+            code: 'FUNCTION_NOT_FOUND',
+            message: `Function '${data.function}' is not available in the mock DLL`
+          }
+        };
+      } else {
+        // Mock different Lua functions with appropriate responses
+        let result: any;
+        switch (data.function) {
+          case 'GetPlayerName':
+            result = 'Mock Player';
+            break;
+          case 'GetCurrentTurn':
+            result = Math.floor(Date.now() / 1000) % 500; // Mock turn number
+            break;
+          case 'GetCityCount':
+            result = 3;
+            break;
+          case 'GetGameState':
+            result = {
+              turn: Math.floor(Date.now() / 1000) % 500,
+              era: 'Classical Era',
+              player: 'Mock Player',
+              cities: 3,
+              units: 8
+            };
+            break;
+        }
+
+        response = {
+          type: 'lua_response',
+          id: data.id!,
+          success: true,
+          result
+        };
+      }
     }
 
     this.sendMessage(response, _socket);
@@ -241,45 +319,85 @@ export class MockDLLServer extends EventEmitter {
   private async handleLuaExecute(data: any, _socket: any): Promise<void> {
     logger.debug('Processing Lua script execution');
 
-    // Mock simple script execution
     let response: LuaResponseMessage;
     
-    try {
-      // For testing, just return a mock result based on the script content
-      let result: any = null;
+    // Check if we have a mock function for ExecuteScript
+    const mockFunction = this.luaFunctions.get('ExecuteScript');
+    if (mockFunction) {
+      logger.debug('Using registered mock function for script execution');
       
-      if (data.script) {
-        if (data.script.includes('return 42')) {
-          result = 42;
-        } else if (data.script.includes('return 30') || data.script.includes('add(10, 20)')) {
-          result = 30;
-        } else if (data.script.includes('result = result +')) {
-          // Sum calculation for long script
-          result = 4950; // Sum of 0 to 99
-        } else if (data.script.includes('Hello\\nWorld\\t')) {
-          result = 'Hello\nWorld\t!';
-        } else {
-          // Default mock result
-          result = 'Mock script executed';
+      if (mockFunction.shouldSucceed !== false) {
+        try {
+          const result = mockFunction.handler(data.script);
+          response = {
+            type: 'lua_response',
+            id: data.id!,
+            success: true,
+            result
+          };
+        } catch (error: any) {
+          response = {
+            type: 'lua_response',
+            id: data.id!,
+            success: false,
+            error: {
+              code: 'SCRIPT_ERROR',
+              message: error.message || 'Script execution failed'
+            }
+          };
         }
+      } else {
+        // Mock function configured to fail
+        const errorMessage = mockFunction.handler(data.script);
+        response = {
+          type: 'lua_response',
+          id: data.id!,
+          success: false,
+          error: {
+            code: 'SCRIPT_ERROR',
+            message: errorMessage || 'Script execution failed'
+          }
+        };
       }
-
-      response = {
-        type: 'lua_response',
-        id: data.id!,
-        success: true,
-        result
-      };
-    } catch (error: any) {
-      response = {
-        type: 'lua_response',
-        id: data.id!,
-        success: false,
-        error: {
-          code: 'SCRIPT_ERROR',
-          message: error.message || 'Script execution failed'
+    } else {
+      // Fall back to default mock behavior
+      try {
+        // For testing, just return a mock result based on the script content
+        let result: any = null;
+        
+        if (data.script) {
+          if (data.script.includes('return 42')) {
+            result = 42;
+          } else if (data.script.includes('return 30') || data.script.includes('add(10, 20)')) {
+            result = 30;
+          } else if (data.script.includes('result = result +')) {
+            // Sum calculation for long script
+            result = 4950; // Sum of 0 to 99
+          } else if (data.script.includes('Hello\\nWorld\\t')) {
+            result = 'Hello\nWorld\t!';
+          } else {
+            // Default mock result
+            result = 'Mock script executed';
+          }
         }
-      };
+
+        response = {
+          type: 'lua_response',
+          id: data.id!,
+          success: true,
+          result
+        };
+      } catch (error: any) {
+        response = {
+          type: 'lua_response',
+          id: data.id!,
+          success: false,
+          error: {
+            code: 'SCRIPT_ERROR',
+            message: error.message || 'Script execution failed'
+          }
+        };
+      }
     }
 
     this.sendMessage(response, _socket);
@@ -290,7 +408,7 @@ export class MockDLLServer extends EventEmitter {
    */
   private async handleExternalRegister(data: ExternalRegisterMessage, _socket: any): Promise<void> {
     logger.info(`Registering external function: ${data.name}`);
-    this.registeredFunctions.add(data.name);
+    this.externalFunctions.add(data.name);
 
     const response: LuaResponseMessage = {
       type: 'lua_response',
@@ -307,7 +425,7 @@ export class MockDLLServer extends EventEmitter {
    */
   private async handleExternalUnregister(data: ExternalUnregisterMessage, _socket: any): Promise<void> {
     logger.info(`Unregistering external function: ${data.name}`);
-    this.registeredFunctions.delete(data.name);
+    this.externalFunctions.delete(data.name);
 
     const response: LuaResponseMessage = {
       type: 'lua_response',
@@ -348,7 +466,7 @@ export class MockDLLServer extends EventEmitter {
    * Simulate external function call
    */
   public simulateExternalCall(functionName: string, args: any = {}): void {
-    if (!this.registeredFunctions.has(functionName)) {
+    if (!this.externalFunctions.has(functionName)) {
       logger.warn(`Cannot simulate call to unregistered function: ${functionName}`);
       return;
     }
@@ -445,7 +563,8 @@ export class MockDLLServer extends EventEmitter {
 
       ipc.server.stop();
       this.isRunning = false;
-      this.registeredFunctions.clear();
+      this.externalFunctions.clear();
+      this.luaFunctions.clear();
       
       this.emit('stopped');
       resolve();
@@ -457,12 +576,12 @@ export class MockDLLServer extends EventEmitter {
    */
   public getStatus(): {
     running: boolean;
-    registeredFunctions: string[];
+    externalFunctions: string[];
     autoEvents: boolean;
   } {
     return {
       running: this.isRunning,
-      registeredFunctions: Array.from(this.registeredFunctions),
+      externalFunctions: Array.from(this.externalFunctions),
       autoEvents: !!this.eventTimer
     };
   }
