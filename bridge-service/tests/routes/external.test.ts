@@ -25,12 +25,11 @@ import { TEST_PORTS, TEST_URLS, TEST_TIMEOUTS } from '../test-utils/constants.js
 
 describe('External Routes', () => {
   const testServer = new TestServer();
-  let mockExternalService: MockExternalService;
+  let mockExternalService = new MockExternalService(TEST_PORTS.MOCK_EXTERNAL_SERVICE);
 
   // Setup and teardown
   beforeAll(async () => {
     // Start mock external service
-    mockExternalService = new MockExternalService(TEST_PORTS.MOCK_EXTERNAL_SERVICE);
     await mockExternalService.start();
     
     // Start the test server
