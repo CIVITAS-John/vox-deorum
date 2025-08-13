@@ -51,7 +51,7 @@ describe('Connection Statistics and Monitoring', () => {
   it('should track pending requests', async () => {
     await connector.connect();
     
-    if (USE_MOCK && globalMockDLL) {
+    if (USE_MOCK) {
       // Start a request but don't await it immediately
       const requestPromise = connector.send({
         type: 'lua_call',

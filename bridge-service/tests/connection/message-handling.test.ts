@@ -125,7 +125,7 @@ describe('Message Handling and Communication', () => {
     });
 
     // When using the mock DLL, we can simulate events
-    if (USE_MOCK && globalMockDLL) {
+    if (USE_MOCK) {
       eventTypes.forEach(eventType => {
         globalMockDLL!.sendRawMessage({ type: eventType });
       });

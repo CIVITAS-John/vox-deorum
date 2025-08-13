@@ -24,7 +24,7 @@ describe('DLLConnector Connection Lifecycle', () => {
 
   // Basic connection establishment and communication
   it('should establish connection to DLL server', async () => {
-    if (USE_MOCK && globalMockDLL) {
+    if (USE_MOCK) {
       // Verify mock server is running
       const status = globalMockDLL.getStatus();
       expect(status.running).toBe(true);
@@ -54,7 +54,7 @@ describe('DLLConnector Connection Lifecycle', () => {
     logSuccess('Successfully reconnected to DLL server');
     
     // Test basic communication - send a Lua call
-    if (USE_MOCK && globalMockDLL) {
+    if (USE_MOCK) {
       const message: LuaCallMessage = {
         type: 'lua_call',
         function: 'GetPlayerName',
