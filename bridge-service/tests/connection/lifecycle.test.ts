@@ -91,31 +91,24 @@ describe('DLLConnector Connection Lifecycle', () => {
     logSuccess('Connection closed cleanly');
   });
   
-  // Multiple connection attempts handling
-  it('should handle multiple connection attempts gracefully', async () => {
-    // First connection
+  // Idempotent connection and disconnection operations
+  it('should handle idempotent connection and disconnection operations', async () => {
+    // Test multiple connection attempts
     await connector.connect();
     expect(connector.isConnected()).toBe(true);
     
     // Second connection attempt should not cause issues
     await connector.connect();
     expect(connector.isConnected()).toBe(true);
-    
     logSuccess('Multiple connection attempts handled gracefully');
-  });
-  
-  // Multiple disconnection calls handling
-  it('should handle multiple disconnection calls gracefully', async () => {
-    await connector.connect();
-    expect(connector.isConnected()).toBe(true);
     
+    // Test multiple disconnection calls
     connector.disconnect();
     expect(connector.isConnected()).toBe(false);
     
     // Second disconnect should not cause issues
     connector.disconnect();
     expect(connector.isConnected()).toBe(false);
-    
     logSuccess('Multiple disconnection calls handled gracefully');
   });
 });

@@ -78,34 +78,30 @@ describe('Message Handling and Communication', () => {
     logSuccess('Message timeout handled correctly');
   });
   
-  // SendNoWait message handling
-  it('should handle sendNoWait messages', async () => {
-    const message = {
+  // SendNoWait message handling (connected and disconnected states)
+  it('should handle sendNoWait messages in different connection states', async () => {
+    // Test sendNoWait when connected
+    const connectedMessage = {
       type: 'lua_call',
       id: 'no-wait-test'
     } as any;
     
-    const response = connector.sendNoWait(message);
+    const connectedResponse = connector.sendNoWait(connectedMessage);
+    expect(connectedResponse.success).toBe(true);
+    logSuccess('No-wait message sent successfully when connected');
     
-    expect(response.success).toBe(true);
-    logSuccess('No-wait message sent successfully');
-  });
-  
-  // SendNoWait rejection when disconnected
-  it('should reject sendNoWait when disconnected', async () => {
+    // Test sendNoWait when disconnected
     connector.disconnect();
     
-    const message = {
+    const disconnectedMessage = {
       type: 'lua_call',
       id: 'disconnected-test'
     } as any;
     
-    const response = connector.sendNoWait(message);
-    
-    expect(response.success).toBe(false);
-    expect(response.error?.code).toBe(ErrorCode.DLL_DISCONNECTED);
-    
-    logSuccess('SendNoWait rejection when disconnected working correctly');
+    const disconnectedResponse = connector.sendNoWait(disconnectedMessage);
+    expect(disconnectedResponse.success).toBe(false);
+    expect(disconnectedResponse.error?.code).toBe(ErrorCode.DLL_DISCONNECTED);
+    logSuccess('SendNoWait correctly rejected when disconnected');
   });
   
   // Event emission for connection state changes

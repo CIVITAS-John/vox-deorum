@@ -94,50 +94,42 @@ describe('External Routes', () => {
       });
     });
 
-    it('should reject registration with invalid function name', async () => {
-      const registration: ExternalFunctionRegistration = {
-        name: '123-invalid-name!',
-        url: TEST_URLS.MOCK_SERVICE,
-        async: true
-      };
-
+    it.each([
+      {
+        registration: {
+          name: '123-invalid-name!',
+          url: TEST_URLS.MOCK_SERVICE,
+          async: true
+        },
+        expectedError: 'valid identifier',
+        testCase: 'invalid function name'
+      },
+      {
+        registration: {
+          name: 'testFunction',
+          url: 'not-a-valid-url',
+          async: true
+        },
+        expectedError: 'valid URL',
+        testCase: 'invalid URL'
+      },
+      {
+        registration: {
+          name: 'testFunction',
+          url: TEST_URLS.MOCK_SERVICE,
+          async: true,
+          timeout: -1000
+        },
+        expectedError: 'positive integer',
+        testCase: 'invalid timeout'
+      }
+    ])('should reject registration with $testCase', async ({ registration, expectedError }) => {
       const response = await request(app)
         .post('/external/register')
         .send(registration)
         .expect(500);
 
-      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'valid identifier');
-    });
-
-    it('should reject registration with invalid URL', async () => {
-      const registration: ExternalFunctionRegistration = {
-        name: 'testFunction',
-        url: 'not-a-valid-url',
-        async: true
-      };
-
-      const response = await request(app)
-        .post('/external/register')
-        .send(registration)
-        .expect(500);
-
-      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'valid URL');
-    });
-
-    it('should reject registration with invalid timeout', async () => {
-      const registration: ExternalFunctionRegistration = {
-        name: 'testFunction',
-        url: TEST_URLS.MOCK_SERVICE,
-        async: true,
-        timeout: -1000
-      };
-
-      const response = await request(app)
-        .post('/external/register')
-        .send(registration)
-        .expect(500);
-
-      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'positive integer');
+      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, expectedError);
     });
 
     it('should reject duplicate function registration', async () => {
