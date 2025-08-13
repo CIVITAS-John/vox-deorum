@@ -9,7 +9,6 @@ import { app } from '../../src/index.js';
 import { getSSEStats } from '../../src/routes/events.js';
 import { dllConnector } from '../../src/services/dll-connector.js';
 import config from '../../src/utils/config.js';
-import bridgeService from '../../src/service.js';
 import { logSuccess, delay, TestServer, expectSuccessResponse } from '../test-utils/helpers.js';
 import { TEST_TIMEOUTS } from '../test-utils/constants.js';
 
@@ -55,22 +54,13 @@ describe('SSE Service', () => {
 
   // Setup and teardown
   beforeAll(async () => {
-    // Start the bridge service (DLL connection)
-    await bridgeService.start();
-    
-    // Start the Express server
+    // Start the test server
     await testServer.start(app, config.rest.port, config.rest.host);
-    
-    // Wait for server to be ready
-    await delay(TEST_TIMEOUTS.VERY_SHORT);
   });
 
   afterAll(async () => {
-    // Close the Express server
+    // Close the test server
     await testServer.stop();
-    
-    // Shutdown bridge service
-    await bridgeService.shutdown();
   });
 
   // Single SSE client connection

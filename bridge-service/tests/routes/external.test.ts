@@ -33,22 +33,13 @@ describe('External Routes', () => {
     mockExternalService = new MockExternalService(TEST_PORTS.MOCK_EXTERNAL_SERVICE);
     await mockExternalService.start();
     
-    // Start the bridge service (DLL connection)
-    await bridgeService.start();
-    
-    // Start the Express server
+    // Start the test server
     await testServer.start(app, config.rest.port, config.rest.host);
-    
-    // Wait for server to be ready
-    await delay(TEST_TIMEOUTS.VERY_SHORT);
   });
 
   afterAll(async () => {
-    // Close the Express server
+    // Close the test server
     await testServer.stop();
-    
-    // Shutdown bridge service
-    await bridgeService.shutdown();
     
     // Stop mock external service
     await mockExternalService.stop();

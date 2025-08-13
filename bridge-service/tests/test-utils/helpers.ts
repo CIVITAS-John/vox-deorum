@@ -5,6 +5,8 @@
 import { expect } from 'vitest';
 import request from 'supertest';
 import { Application } from 'express';
+import bridgeService from '../../src/service';
+import { TEST_TIMEOUTS } from './constants';
 
 /**
  * Standard response assertions
@@ -98,20 +100,27 @@ export function delay(ms: number): Promise<void> {
 }
 
 /**
- * Server lifecycle management
+ * Test server lifecycle management
  */
 export class TestServer {
   private server: any = null;
 
   async start(app: Application, port: number, host: string = 'localhost'): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      // Start the bridge service (DLL connection)
+      await bridgeService.start();
+      // Start the Express server
       this.server = app.listen(port, host, () => resolve());
+      // Wait for server to be ready
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
     });
   }
 
   async stop(): Promise<void> {
     if (this.server) {
-      return new Promise<void>((resolve) => {
+      return new Promise<void>(async (resolve) => {
+      // Shutdown bridge service
+      await bridgeService.shutdown();
         this.server.close(() => resolve());
       });
     }
