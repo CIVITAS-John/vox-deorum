@@ -152,6 +152,9 @@ export class MockDLLServer extends EventEmitter {
         case 'lua_call':
           await this.handleLuaCall(data as LuaCallMessage, socket);
           break;
+        case 'lua_execute':
+          await this.handleLuaExecute(data as any, socket);
+          break;
         case 'external_register':
           await this.handleExternalRegister(data as ExternalRegisterMessage, socket);
           break;
@@ -226,6 +229,56 @@ export class MockDLLServer extends EventEmitter {
         id: data.id!,
         success: true,
         result
+      };
+    }
+
+    this.sendMessage(response, _socket);
+  }
+
+  /**
+   * Handle Lua script execution
+   */
+  private async handleLuaExecute(data: any, _socket: any): Promise<void> {
+    logger.debug('Processing Lua script execution');
+
+    // Mock simple script execution
+    let response: LuaResponseMessage;
+    
+    try {
+      // For testing, just return a mock result based on the script content
+      let result: any = null;
+      
+      if (data.script) {
+        if (data.script.includes('return 42')) {
+          result = 42;
+        } else if (data.script.includes('return 30') || data.script.includes('add(10, 20)')) {
+          result = 30;
+        } else if (data.script.includes('result = result +')) {
+          // Sum calculation for long script
+          result = 4950; // Sum of 0 to 99
+        } else if (data.script.includes('Hello\\nWorld\\t')) {
+          result = 'Hello\nWorld\t!';
+        } else {
+          // Default mock result
+          result = 'Mock script executed';
+        }
+      }
+
+      response = {
+        type: 'lua_response',
+        id: data.id!,
+        success: true,
+        result
+      };
+    } catch (error: any) {
+      response = {
+        type: 'lua_response',
+        id: data.id!,
+        success: false,
+        error: {
+          code: 'SCRIPT_ERROR',
+          message: error.message || 'Script execution failed'
+        }
       };
     }
 

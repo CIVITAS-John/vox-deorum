@@ -27,7 +27,7 @@ describe('Message Handling and Communication', () => {
 
   // Successful message responses
   it('should handle successful message responses', async () => {
-    if (!USE_MOCK || !globalMockDLL) {
+    if (!USE_MOCK) {
       logSuccess('Skipping mock-specific test in real server mode');
       return;
     }
@@ -46,7 +46,7 @@ describe('Message Handling and Communication', () => {
   
   // Message error handling
   it('should handle message errors', async () => {
-    if (!USE_MOCK || !globalMockDLL) {
+    if (!USE_MOCK) {
       logSuccess('Skipping mock-specific test in real server mode');
       return;
     }
