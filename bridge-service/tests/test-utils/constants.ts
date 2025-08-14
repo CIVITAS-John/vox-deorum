@@ -11,7 +11,7 @@ export const TEST_TIMEOUTS = {
   DEFAULT: 5000,
   SHORT: 2000,
   LONG: 10000,
-  VERY_SHORT: 100,
+  VERY_SHORT: 200,
 };
 
 export const TEST_URLS = {

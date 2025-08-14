@@ -148,7 +148,7 @@ export class DLLConnector extends EventEmitter {
           this.emit('lua_register', data);
           break;
         default:
-          logger.warn('Unknown message type:', data.type);
+          logger.warn('Unknown message type: ' + data.type);
       }
     } catch (error) {
       logger.error('Failed to handle message:', error);
