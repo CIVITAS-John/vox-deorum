@@ -13,6 +13,8 @@ This is Vox Deorum - an LLM-enhanced AI system for Civilization V using the Comm
 Each component has its own README with specific setup instructions.
 
 1. **Community Patch DLL** (`civ5-dll/`) - Modified Community-Patch-DLL submodule that talks to Bridge Service
+- The full repository is too complicated. Focus on `CvCoreDLL_Expansion2` and `CvGameCoreDLLUtil` repositories only.
+- Make minimal changes on its source code.
 2. **Civ5 Mod** (`civ5-mod/`) - Lua scripts for Civilization V integration with game events
 3. **Bridge Service** (`bridge-service/`) - Communication wrapper between DLL and external services via JSON/REST+SSE API
 4. **MCP Server** (`mcp-server/`) - Exposes game state as resources, talks to Bridge Service

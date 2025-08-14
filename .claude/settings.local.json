@@ -1,19 +1,33 @@
 {
   "permissions": {
     "allow": [
+      "WebFetch(domain:v6.vite.dev)",
+      "mcp__ide__getDiagnostics",
       "Bash(mkdir:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run build:*)",
       "Bash(npm run lint)",
-      "WebFetch(domain:v6.vite.dev)",
       "Bash(npm run start:*)",
       "Bash(npm run test:*)",
       "Bash(npm test:*)",
-      "mcp__ide__getDiagnostics",
       "Bash(npm audit:*)",
       "Bash(npm install:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git submodule:*)"
     ],
-    "deny": []
+    "deny": [
+      "Read(civ5-dll/(1) Community Patch/**)",
+      "Read(civ5-dll/(2) Vox Populi/**)",
+      "Read(civ5-dll/(3a) EUI Compatibility Files/**)",
+      "Read(civ5-dll/(3b) 43 Civs Community Patch/**)",
+      "Read(civ5-dll/(4a) Squads for VP/**)",
+      "Read(civ5-dll/CvGameDatabase/**)",
+      "Read(civ5-dll/CvLocalization/**)",
+      "Read(civ5-dll/CvWorldBuilderMap/**)",
+      "Read(civ5-dll/ThirdPartyLibs/**)",
+      "Read(civ5-dll/UI_bc1/**)",
+      "Read(civ5-dll/VPUI/**)",
+      "Read(civ5-dll/VPUI Text/**)"
+    ]
   }
 }
