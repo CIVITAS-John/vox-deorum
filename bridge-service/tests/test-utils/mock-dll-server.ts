@@ -7,22 +7,22 @@
 
 import ipc from 'node-ipc';
 import { EventEmitter } from 'events';
-import { createLogger } from '../src/utils/logger';
+import { createLogger } from '../../src/utils/logger.js';
 import {
   IPCMessage,
   GameEventMessage
-} from '../src/types/event';
+} from '../../src/types/event.js';
 import {
   LuaCallMessage,
   LuaResponseMessage,
   LuaRegisterMessage
-} from '../src/types/lua';
+} from '../../src/types/lua.js';
 import {
   ExternalRegisterMessage,
   ExternalUnregisterMessage,
   ExternalCallMessage,
   ExternalResponseMessage
-} from '../src/types/external';
+} from '../../src/types/external.js';
 
 const logger = createLogger('MockDLL');
 
@@ -601,7 +601,7 @@ export async function createMockDLLServer(config: MockDLLConfig): Promise<MockDL
  */
 export async function createTestMockDLL(): Promise<MockDLLServer> {
   return createMockDLLServer({
-    id: 'civ5',
+    id: 'vox-deorum-bridge',
     simulateDelay: true,
     responseDelay: 50,
     autoEvents: false

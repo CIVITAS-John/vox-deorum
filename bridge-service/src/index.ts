@@ -208,7 +208,7 @@ async function startServer(): Promise<void> {
 }
 
 // Start the server if this file is run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1].endsWith("index.js")) {
   startServer().catch((error) => {
     logger.error('Failed to start Bridge Service:', error);
     process.exit(1);

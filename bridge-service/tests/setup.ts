@@ -4,7 +4,7 @@
  */
 
 import { beforeAll, afterAll } from 'vitest';
-import { createTestMockDLL, MockDLLServer } from '../scripts/mock-dll-server.js';
+import { createTestMockDLL, MockDLLServer } from './test-utils/mock-dll-server.js';
 
 // Environment variable to switch between mock and real server
 const USE_MOCK = process.env.USE_MOCK !== 'false';

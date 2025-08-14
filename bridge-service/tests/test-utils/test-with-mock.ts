@@ -9,8 +9,8 @@
  * Usage: npm run mock
  */
 
-import { createMockDLLServer } from './mock-dll-server';
-import { createLogger } from '../src/utils/logger';
+import { createMockDLLServer } from './mock-dll-server.js';
+import { createLogger } from '../../src/utils/logger.js';
 
 const logger = createLogger('TestScript');
 

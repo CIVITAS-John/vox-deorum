@@ -26,7 +26,7 @@ describe('DLLConnector Connection Lifecycle', () => {
   it('should establish connection to DLL server', async () => {
     if (USE_MOCK) {
       // Verify mock server is running
-      const status = globalMockDLL.getStatus();
+      const status = globalMockDLL!.getStatus();
       expect(status.running).toBe(true);
       logSuccess(`Mock server status: running=${status.running}`);
     }
