@@ -73,7 +73,7 @@ export class BridgeService extends EventEmitter {
     try {
       this.isRunning = false;
       // Disconnect from DLL (this will also clear any reconnection timers)
-      dllConnector.disconnect();
+      await dllConnector.disconnect();
       
       logger.info('Bridge Service shut down successfully');
       this.emit('shutdown');

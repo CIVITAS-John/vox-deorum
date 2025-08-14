@@ -18,8 +18,7 @@ describe('Reconnection Logic', () => {
   
   afterEach(async () => {
     if (connector && connector.isConnected()) {
-      connector.disconnect();
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
+      await connector.disconnect();
     }
   });
 
@@ -42,8 +41,7 @@ describe('Reconnection Logic', () => {
       logSuccess('Reconnection attempts tracked correctly');
     } finally {
       config.namedpipe.id = originalConfig;
-      connector.disconnect(); // This should stop reconnection attempts
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
+      await connector.disconnect(); // This should stop reconnection attempts
     }
   });
 });

@@ -19,8 +19,7 @@ describe('DLLConnector Connection Lifecycle', () => {
   
   afterEach(async () => {
     if (connector && connector.isConnected()) {
-      connector.disconnect();
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
+      await connector.disconnect();
     }
   });
 
@@ -49,8 +48,7 @@ describe('DLLConnector Connection Lifecycle', () => {
     expect(connectedEventFired).toBe(true);
     logSuccess('Connection event fired');
 
-    connector.disconnect();
-    await delay(TEST_TIMEOUTS.VERY_SHORT);
+    await connector.disconnect();
     await expect(connector.connect()).resolves.toBe(true);
     logSuccess('Successfully reconnected to DLL server');
     
@@ -81,8 +79,7 @@ describe('DLLConnector Connection Lifecycle', () => {
       disconnectedEventFired = true;
     });
     
-    connector.disconnect();
-    await delay(TEST_TIMEOUTS.VERY_SHORT);
+    await connector.disconnect();
     expect(connector.isConnected()).toBe(false);
     
     // Give event time to fire
@@ -101,13 +98,12 @@ describe('DLLConnector Connection Lifecycle', () => {
     logSuccess('Multiple connection attempts handled gracefully');
     
     // Test multiple disconnection calls
-    connector.disconnect();
+    await connector.disconnect();
     expect(connector.isConnected()).toBe(false);
     
     // Second disconnect should not cause issues
-    connector.disconnect();
+    await connector.disconnect();
     expect(connector.isConnected()).toBe(false);
-    await delay(TEST_TIMEOUTS.VERY_SHORT);
     logSuccess('Multiple disconnection calls handled gracefully');
   });
 });

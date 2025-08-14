@@ -21,8 +21,7 @@ describe('Message Handling and Communication', () => {
   
   afterEach(async () => {
     if (connector && connector.isConnected()) {
-      connector.disconnect();
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
+      await connector.disconnect();
     }
   });
 
@@ -92,8 +91,7 @@ describe('Message Handling and Communication', () => {
     logSuccess('No-wait message sent successfully when connected');
     
     // Test sendNoWait when disconnected
-    connector.disconnect();
-    await delay(TEST_TIMEOUTS.VERY_SHORT);
+    await connector.disconnect();
     
     const disconnectedMessage = {
       type: 'lua_call',

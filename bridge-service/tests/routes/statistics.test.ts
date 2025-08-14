@@ -20,8 +20,7 @@ describe('Connection Statistics and Monitoring', () => {
   
   afterEach(async () => {
     if (connector && connector.isConnected()) {
-      connector.disconnect();
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
+      await connector.disconnect();
     }
   });
 
@@ -41,8 +40,7 @@ describe('Connection Statistics and Monitoring', () => {
     expect(stats.reconnectAttempts).toBe(0);
     
     // Test stats after disconnect
-    connector.disconnect();
-    await delay(TEST_TIMEOUTS.VERY_SHORT);
+    await connector.disconnect();
     stats = connector.getStats();
     expect(stats.connected).toBe(false);
     expect(stats.pendingRequests).toBe(0);

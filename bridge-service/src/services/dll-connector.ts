@@ -272,7 +272,7 @@ export class DLLConnector extends EventEmitter {
   /**
    * Disconnect from the DLL
    */
-  public disconnect(): void {
+  public async disconnect(): Promise<void> {
     if (!this.connected) {
       logger.info('Already disconnected from DLL');
       return;
@@ -294,11 +294,31 @@ export class DLLConnector extends EventEmitter {
     this.reconnectTimer = undefined;
     this.shuttingDown = true;
 
+    // Create a promise that resolves when disconnected event is emitted
+    const disconnectedPromise = new Promise<void>((resolve) => {
+      const timeout = setTimeout(() => {
+        // If disconnected event doesn't fire within 2 seconds, resolve anyway
+        logger.warn('Disconnect timeout - resolving without event');
+        resolve();
+      }, 2000);
+
+      this.once('disconnected', () => {
+        clearTimeout(timeout);
+        setTimeout(() => {
+          resolve();
+        }, 200);
+      });
+    });
+
     // Disconnect IPC
     this.connected = false;
     if (ipc.of[config.namedpipe.id]) {
       ipc.disconnect(config.namedpipe.id);
     }
+
+    // Wait for disconnected event or timeout
+    await disconnectedPromise;
+    logger.info('Disconnected from DLL successfully');
   }
 
   /**

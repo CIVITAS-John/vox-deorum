@@ -358,8 +358,7 @@ describe('Lua Service', () => {
         });
 
       // Disconnect the connector mid-request
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
-      dllConnector.disconnect();
+      await dllConnector.disconnect();
 
       const response = await requestPromise;
 

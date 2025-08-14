@@ -19,8 +19,7 @@ describe('Connection Error Handling', () => {
   
   afterEach(async () => {
     if (connector && connector.isConnected()) {
-      connector.disconnect();
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
+      await connector.disconnect();
     }
   });
 
@@ -52,8 +51,7 @@ describe('Connection Error Handling', () => {
     } as any);
     
     // Immediately disconnect
-    connector.disconnect();
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
+    await connector.disconnect();
     
     // The pending request should be rejected
     const response = await messagePromise;
