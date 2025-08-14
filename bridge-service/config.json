@@ -3,7 +3,7 @@
     "port": 8080,
     "host": "localhost"
   },
-  "winsock": {
+  "namedpipe": {
     "id": "civ5",
     "retry": 5000
   },

@@ -25,8 +25,8 @@ describe('Reconnection Logic', () => {
   // Reconnection attempt tracking
   it('should track reconnection attempts', async () => {
     // Test with invalid connection to trigger reconnection attempts
-    const originalConfig = config.winsock.id;
-    config.winsock.id = 'invalid-reconnect-test';
+    const originalConfig = config.namedpipe.id;
+    config.namedpipe.id = 'invalid-reconnect-test';
     
     try {
       // This should fail and start reconnection attempts
@@ -40,7 +40,7 @@ describe('Reconnection Logic', () => {
       
       logSuccess('Reconnection attempts tracked correctly');
     } finally {
-      config.winsock.id = originalConfig;
+      config.namedpipe.id = originalConfig;
       connector.disconnect(); // This should stop reconnection attempts
     }
   });

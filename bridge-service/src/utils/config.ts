@@ -14,7 +14,7 @@ export interface ServiceConfig {
     port: number;
     host: string;
   };
-  winsock: {
+  namedpipe: {
     id: string;
     retry: number;
   };
@@ -33,7 +33,7 @@ const defaultConfig: ServiceConfig = {
     port: 8080,
     host: 'localhost'
   },
-  winsock: {
+  namedpipe: {
     id: 'civ5',
     retry: 5000
   },
@@ -66,9 +66,9 @@ export function loadConfig(): ServiceConfig {
       port: parseInt(process.env.PORT || '') || fileConfig.rest?.port || defaultConfig.rest.port,
       host: process.env.HOST || fileConfig.rest?.host || defaultConfig.rest.host
     },
-    winsock: {
-      id: process.env.WINSOCK_ID || fileConfig.winsock?.id || defaultConfig.winsock.id,
-      retry: parseInt(process.env.WINSOCK_RETRY || '') || fileConfig.winsock?.retry || defaultConfig.winsock.retry
+    namedpipe: {
+      id: process.env.namedpipe_ID || fileConfig.namedpipe?.id || defaultConfig.namedpipe.id,
+      retry: parseInt(process.env.namedpipe_RETRY || '') || fileConfig.namedpipe?.retry || defaultConfig.namedpipe.retry
     },
     logging: {
       level: process.env.LOG_LEVEL || fileConfig.logging?.level || defaultConfig.logging.level
@@ -80,7 +80,7 @@ export function loadConfig(): ServiceConfig {
 
   logger.info('Configuration loaded:', {
     rest: config.rest,
-    winsock: { id: config.winsock.id, retry: config.winsock.retry },
+    namedpipe: { id: config.namedpipe.id, retry: config.namedpipe.retry },
     logging: { level: config.logging.level }
   });
 

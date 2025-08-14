@@ -50,7 +50,7 @@ The service reads from the `config.json` for its configuration:
     "port": 8080,
     "host": "localhost"
   },
-  "winsock": {
+  "namedpipe": {
     "id": "civ5",
     "retry": 5000
   },
@@ -362,7 +362,7 @@ bridge-service/
 │   │   ├── external.ts    # External function registration
 │   │   └── events.ts      # SSE event streaming
 │   ├── services/
-│   │   ├── dll-connector.ts     # Handles the Winsock connection to DLL
+│   │   ├── dll-connector.ts     # Handles the Named Pipe connection to DLL
 │   │   ├── lua-manager.ts       # Handles Lua execution/return/registry
 │   │   ├── external-manager.ts  # Handles external function execution/return/registry
 │   ├── types/

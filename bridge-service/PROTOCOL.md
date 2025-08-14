@@ -5,7 +5,7 @@ This document describes the complete communication protocol between the Communit
 ## Overview
 
 The Bridge Service acts as a communication hub using three primary channels:
-- **Winsock/IPC**: Direct socket connection to the Community Patch DLL (using node-ipc)
+- **Named Pipe**: Named pipe connection to the Community Patch DLL (using node-ipc)
 - **HTTP REST API**: Endpoints for external services to call Lua functions and manage registrations
 - **Server-Sent Events (SSE)**: Real-time event streaming to external clients
 
@@ -21,7 +21,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    Body: {"function": "MoveUnit", "args": [5, 10, 12]}
    ```
 
-2. **Bridge → DLL (Winsock IPC)**
+2. **Bridge → DLL (Named Pipe)**
    ```json
    {"type": "lua_call", "function": "MoveUnit", "args": [5, 10, 12], "id": "uuid"}
    ```
@@ -31,7 +31,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    MoveUnit([5, 10, 12])
    ```
 
-4. **Lua → DLL → Bridge (Winsock IPC)**
+4. **Lua → DLL → Bridge (Named Pipe)**
    ```json
    {"type": "lua_response", "id": "uuid", "success": true, "result": {...}}
    ```
@@ -51,7 +51,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    ]
    ```
 
-2. **Bridge → DLL (Sequential Winsock IPC calls)**
+2. **Bridge → DLL (Sequential Named Pipe calls)**
    ```json
    {"type": "lua_call", "function": "GetUnit", "args": 1, "id": "uuid1"}
    {"type": "lua_call", "function": "GetCity", "args": 2, "id": "uuid2"}
@@ -78,7 +78,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    Game.RegisterFunction("GetCity", GetCityByID);
    ```
 
-2. **DLL → Bridge (Winsock IPC)**
+2. **DLL → Bridge (Named Pipe)**
    ```json
    {
      "type": "lua_register",
@@ -97,7 +97,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    {"script": "return Game.GetGameTurn() * 2 + 1"}
    ```
 
-2. **Bridge → DLL (Winsock IPC)**
+2. **Bridge → DLL (Named Pipe)**
    ```json
    {"type": "lua_execute", "script": "return Game.GetGameTurn() * 2 + 1", "id": "uuid"}
    ```
@@ -135,7 +135,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    {"success": true}
    ```
 
-3. **Bridge → DLL (Winsock IPC)**
+3. **Bridge → DLL (Named Pipe)**
    ```json
    {"type": "external_register", "name": "AnalyzeThreat", "async": true}
    ```
@@ -157,7 +157,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    {"success": true}
    ```
 
-3. **Bridge → DLL (Winsock IPC)**
+3. **Bridge → DLL (Named Pipe)**
    ```json
    {"type": "external_unregister", "name": "AnalyzeThreat"}
    ```
@@ -172,7 +172,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    ```
    (Called from game mod scripts - args can be any JSON-compatible data)
 
-2. **DLL → Bridge (Winsock IPC)**
+2. **DLL → Bridge (Named Pipe)**
    ```json
    {
      "type": "external_call",
@@ -195,7 +195,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    {"success": true, "result": {"threatLevel": "high", "recommendation": "retreat"}}
    ```
 
-5. **Bridge → DLL (Winsock IPC)**
+5. **Bridge → DLL (Named Pipe)**
    ```json
    {
      "type": "external_response",
@@ -224,7 +224,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    ```
    (Called from game event handlers)
 
-3. **DLL → Bridge (Winsock IPC)**
+3. **DLL → Bridge (Named Pipe)**
    ```json
    {
      "type": "game_event",
@@ -307,7 +307,7 @@ All error codes are defined in the `ErrorCode` enum in `src/types/api.ts`:
 
 #### DLL Connection Loss
 
-1. Bridge detects Winsock/IPC disconnection
+1. Bridge detects namedpipe/IPC disconnection
 2. Bridge enters retry mode with exponential backoff
 3. All pending requests fail with DLL_DISCONNECTED
 4. Health check endpoint reports dll_connected: false

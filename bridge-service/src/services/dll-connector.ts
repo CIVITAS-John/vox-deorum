@@ -43,7 +43,7 @@ export class DLLConnector extends EventEmitter {
    */
   private setupIPC(): void {
     ipc.config.id = 'bridge-service';
-    ipc.config.retry = config.winsock.retry;
+    ipc.config.retry = config.namedpipe.retry;
     ipc.config.maxRetries = false; // Infinite retries
     ipc.config.silent = true; // We'll handle our own logging
     ipc.config.rawBuffer = false;
@@ -60,10 +60,10 @@ export class DLLConnector extends EventEmitter {
       return Promise.resolve();
     }
     return new Promise((resolve, reject) => {
-      logger.info(`Connecting to DLL with ID: ${config.winsock.id}`);
+      logger.info(`Connecting to DLL with ID: ${config.namedpipe.id}`);
 
-      ipc.connectTo(config.winsock.id, () => {
-        ipc.of[config.winsock.id].on('connect', () => {
+      ipc.connectTo(config.namedpipe.id, () => {
+        ipc.of[config.namedpipe.id].on('connect', () => {
           this.connected = true;
           this.reconnectAttempts = 0;
           logger.info('Connected to DLL successfully');
@@ -74,13 +74,13 @@ export class DLLConnector extends EventEmitter {
           resolve();
         });
 
-        ipc.of[config.winsock.id].on('disconnect', () => {
+        ipc.of[config.namedpipe.id].on('disconnect', () => {
           logger.warn('Disconnected from DLL');
           this.emit('disconnected');
           this.handleDisconnection();
         });
 
-        ipc.of[config.winsock.id].on('error', (error: any) => {
+        ipc.of[config.namedpipe.id].on('error', (error: any) => {
           if (!this.connected) {
             // For initial connection failures, also start reconnection attempts
             this.handleDisconnection();
@@ -97,7 +97,7 @@ export class DLLConnector extends EventEmitter {
    * Setup event handlers for IPC messages
    */
   private setupEventHandlers(): void {
-    const socket = ipc.of[config.winsock.id];
+    const socket = ipc.of[config.namedpipe.id];
     if (!socket) return;
     socket.on('message', (data: any) => {
       logger.debug('Received message:', data);
@@ -225,7 +225,7 @@ export class DLLConnector extends EventEmitter {
       this.pendingRequests.set(messageWithId.id, request);
 
       try {
-        ipc.of[config.winsock.id].emit('message', messageWithId);
+        ipc.of[config.namedpipe.id].emit('message', messageWithId);
         logger.debug('Sent message to DLL:', messageWithId);
         // Emit event for testing
         this.emit('ipc_send', messageWithId);
@@ -246,7 +246,7 @@ export class DLLConnector extends EventEmitter {
     }
 
     try {
-      ipc.of[config.winsock.id].emit('message', message);
+      ipc.of[config.namedpipe.id].emit('message', message);
       logger.debug('Sent no-wait message to DLL:', message);
       // Emit event for testing
       this.emit('ipc_send', message);
@@ -291,8 +291,8 @@ export class DLLConnector extends EventEmitter {
 
     // Disconnect IPC
     this.connected = false;
-    if (ipc.of[config.winsock.id]) {
-      ipc.disconnect(config.winsock.id);
+    if (ipc.of[config.namedpipe.id]) {
+      ipc.disconnect(config.namedpipe.id);
     }
   }
 

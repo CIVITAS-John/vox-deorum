@@ -1,7 +1,7 @@
 # Vox Deorum DLL Integration Plan
 
 ## Executive Summary
-This document outlines the minimal-change strategy for integrating Winsock-based IPC communication into the Community Patch DLL to enable bidirectional communication with the Bridge Service.
+This document outlines the minimal-change strategy for integrating Named Pipe IPC communication into the Community Patch DLL to enable bidirectional communication with the Bridge Service.
 
 The implementation is separate into several stages. In each stage, focus on faithfully carring out the plan without over thinking. Then, plan the additional features for the next stage. 
 
@@ -11,6 +11,7 @@ The C++ code must:
 2. Make minimal changes to existing Community Patch DLL code
 3. Utilize existing logging infrastructure
 4. Allow graceful degradation if external services are unavailable
+5. Since Civilization only works on Windows, no need for other platform support
 
 ## Protocol Requirements
 Follow the `bridge-service/PROTOCOL.md`.
