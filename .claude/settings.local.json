@@ -13,7 +13,8 @@
       "Bash(npm audit:*)",
       "Bash(npm install:*)",
       "Bash(grep:*)",
-      "Bash(git submodule:*)"
+      "Bash(git submodule:*)",
+      "Bash(find:*)"
     ],
     "deny": [
       "Read(civ5-dll/(1) Community Patch/**)",
