@@ -53,6 +53,7 @@ describe('Connection Error Handling', () => {
     
     // Immediately disconnect
     connector.disconnect();
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
     
     // The pending request should be rejected
     const response = await messagePromise;

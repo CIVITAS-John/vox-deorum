@@ -42,6 +42,7 @@ describe('Connection Statistics and Monitoring', () => {
     
     // Test stats after disconnect
     connector.disconnect();
+    await delay(TEST_TIMEOUTS.VERY_SHORT);
     stats = connector.getStats();
     expect(stats.connected).toBe(false);
     expect(stats.pendingRequests).toBe(0);

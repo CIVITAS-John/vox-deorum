@@ -93,7 +93,7 @@ describe('Message Handling and Communication', () => {
     
     // Test sendNoWait when disconnected
     connector.disconnect();
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
+    await delay(TEST_TIMEOUTS.VERY_SHORT);
     
     const disconnectedMessage = {
       type: 'lua_call',

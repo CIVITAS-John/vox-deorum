@@ -107,6 +107,7 @@ describe('DLLConnector Connection Lifecycle', () => {
     // Second disconnect should not cause issues
     connector.disconnect();
     expect(connector.isConnected()).toBe(false);
+    await delay(TEST_TIMEOUTS.VERY_SHORT);
     logSuccess('Multiple disconnection calls handled gracefully');
   });
 });

@@ -43,6 +43,7 @@ describe('Reconnection Logic', () => {
     } finally {
       config.namedpipe.id = originalConfig;
       connector.disconnect(); // This should stop reconnection attempts
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
     }
   });
 });
