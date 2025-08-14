@@ -368,7 +368,7 @@ describe('Lua Service', () => {
       expect(response.body.success).toBeDefined();
       
       // Reconnect for next tests
-      await dllConnector.connect();
+      await expect(dllConnector.connect()).resolves.toBe(true);
 
       logSuccess('Connection loss during request handled');
     });

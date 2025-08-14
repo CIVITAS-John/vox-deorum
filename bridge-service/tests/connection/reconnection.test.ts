@@ -30,8 +30,8 @@ describe('Reconnection Logic', () => {
     
     try {
       // This should fail and start reconnection attempts
-      await expect(connector.connect()).rejects.toThrow();
-      
+      await expect(connector.connect()).resolves.toBe(false);
+
       // Wait a bit for reconnection attempts to start
       await delay(TEST_TIMEOUTS.VERY_SHORT);
       

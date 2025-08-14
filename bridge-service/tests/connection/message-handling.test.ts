@@ -16,7 +16,7 @@ describe('Message Handling and Communication', () => {
   
   beforeEach(async () => {
     connector = new DLLConnector();
-    await connector.connect();
+      await expect(connector.connect()).resolves.toBe(true);
   });
   
   afterEach(() => {

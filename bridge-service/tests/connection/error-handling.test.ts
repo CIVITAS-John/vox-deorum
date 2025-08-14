@@ -29,7 +29,7 @@ describe('Connection Error Handling', () => {
     config.namedpipe.id = 'invalid-id-that-does-not-exist';
     
     try {
-      await expect(connector.connect()).rejects.toThrow();
+      await expect(connector.connect()).resolves.toBe(false);
       expect(connector.isConnected()).toBe(false);
       
       logSuccess('Connection failure handled correctly');
@@ -41,8 +41,7 @@ describe('Connection Error Handling', () => {
   
   // Pending request management during disconnections
   it('should reject pending requests when disconnected', async () => {
-    await connector.connect();
-    expect(connector.isConnected()).toBe(true);
+      await expect(connector.connect()).resolves.toBe(true);
     
     // Start a request but don't wait for it
     const messagePromise = connector.send({

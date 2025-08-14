@@ -32,7 +32,7 @@ describe('Connection Statistics and Monitoring', () => {
     expect(stats.reconnectAttempts).toBe(0);
     
     // Test stats after connection
-    await connector.connect();
+    await expect(connector.connect()).resolves.toBe(true);
     stats = connector.getStats();
     expect(stats.connected).toBe(true);
     expect(stats.pendingRequests).toBe(0);
@@ -49,7 +49,7 @@ describe('Connection Statistics and Monitoring', () => {
   
   // Pending request tracking
   it('should track pending requests', async () => {
-    await connector.connect();
+    await expect(connector.connect()).resolves.toBe(true);
     
     if (USE_MOCK) {
       // Start a request but don't await it immediately

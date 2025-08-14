@@ -41,16 +41,14 @@ describe('DLLConnector Connection Lifecycle', () => {
     });
     
     // Attempt to connect, disconnect, and reconnect
-    await connector.connect();
-    expect(connector.isConnected()).toBe(true);
+      await expect(connector.connect()).resolves.toBe(true);
     logSuccess('Successfully connected to DLL server');
 
     expect(connectedEventFired).toBe(true);
     logSuccess('Connection event fired');
 
     connector.disconnect();
-    await connector.connect();
-    expect(connector.isConnected()).toBe(true);
+      await expect(connector.connect()).resolves.toBe(true);
     logSuccess('Successfully reconnected to DLL server');
     
     // Test basic communication - send a Lua call
@@ -72,8 +70,7 @@ describe('DLLConnector Connection Lifecycle', () => {
   
   // Clean disconnection with event emission
   it('should handle clean disconnection', async () => {
-    await connector.connect();
-    expect(connector.isConnected()).toBe(true);
+      await expect(connector.connect()).resolves.toBe(true);
     
     // Test disconnection event emission
     let disconnectedEventFired = false;
@@ -94,12 +91,10 @@ describe('DLLConnector Connection Lifecycle', () => {
   // Idempotent connection and disconnection operations
   it('should handle idempotent connection and disconnection operations', async () => {
     // Test multiple connection attempts
-    await connector.connect();
-    expect(connector.isConnected()).toBe(true);
+      await expect(connector.connect()).resolves.toBe(true);
     
     // Second connection attempt should not cause issues
-    await connector.connect();
-    expect(connector.isConnected()).toBe(true);
+      await expect(connector.connect()).resolves.toBe(true);
     logSuccess('Multiple connection attempts handled gracefully');
     
     // Test multiple disconnection calls

@@ -53,11 +53,11 @@ export class DLLConnector extends EventEmitter {
   /**
    * Connect to the DLL via IPC
    */
-  public async connect(): Promise<void> {
+  public async connect(): Promise<boolean> {
     this.shuttingDown = false;
     if (this.connected) {
       logger.info('Already connected to DLL');
-      return Promise.resolve();
+      return Promise.resolve(true);
     }
     return new Promise((resolve) => {
       logger.info(`Connecting to DLL with ID: ${config.namedpipe.id}`);
@@ -71,7 +71,7 @@ export class DLLConnector extends EventEmitter {
           
           // Re-register event handlers
           this.setupEventHandlers();
-          resolve();
+          resolve(true);
         });
 
         ipc.of[config.namedpipe.id].on('disconnect', () => {
@@ -85,6 +85,7 @@ export class DLLConnector extends EventEmitter {
             // For initial connection failures, also start reconnection attempts
             this.handleDisconnection();
             logger.error(`Failed to connect to DLL: ${error.message || error}`);
+            resolve(false);
           } else {
             logger.error('IPC error:', error);
           }
