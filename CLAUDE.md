@@ -16,6 +16,9 @@ Each component has its own README with specific setup instructions.
 - The full repository is too complicated. Focus on `CvCoreDLL_Expansion2` and `CvGameCoreDLLUtil` repositories only.
 - Make minimal changes on its source code.
 - Maintain compatibility with legacy Windows C++ code targeting 32-bit systems. 
+- To build the DLL, use `python build_vp_clang_sdk.py` (but only in Windows environment).
+- To build the DLL AND copy to the mod folder, use `build-and-copy.bat`.
+- To debug the building process, the log exists in `clang-output/Debug/build.log`.
 2. **Civ5 Mod** (`civ5-mod/`) - Lua scripts for Civilization V integration with game events
 3. **Bridge Service** (`bridge-service/`) - Communication wrapper between DLL and external services via JSON/REST+SSE API
 4. **MCP Server** (`mcp-server/`) - Exposes game state as resources, talks to Bridge Service

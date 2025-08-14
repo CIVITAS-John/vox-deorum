@@ -32,3 +32,9 @@ if (pLog)
 ```
 
 Then, inject the two functions into relevant entry points within existing game lifecycle.
+
+## Stage 2: Initialize the Minimal Named Pipe Server
+The NAMED PIPE server should only listen to message and write into logs, then send the same message back.
+- The server should spawn a child thread to wait for the client (Bridge Service) to connect
+- The server only intends to serve one client (Bridge Service), hence the listening/responding loop should happen in the same child thread.
+- The server should keep track of whether the client is connected and write logs accordingly.
