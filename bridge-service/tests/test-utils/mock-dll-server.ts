@@ -175,7 +175,7 @@ export class MockDLLServer extends EventEmitter {
           await this.handleExternalResponse(data as ExternalResponseMessage, socket);
           break;
         default:
-          logger.warn('Unknown message type from bridge:', data.type);
+          logger.warn('Unknown message type from bridge: ' + data.type);
       }
     } catch (error) {
       logger.error('Failed to handle message:', error);

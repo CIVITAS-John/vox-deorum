@@ -16,12 +16,13 @@ describe('Message Handling and Communication', () => {
   
   beforeEach(async () => {
     connector = new DLLConnector();
-      await expect(connector.connect()).resolves.toBe(true);
+    await expect(connector.connect()).resolves.toBe(true);
   });
   
-  afterEach(() => {
+  afterEach(async () => {
     if (connector && connector.isConnected()) {
       connector.disconnect();
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
     }
   });
 
@@ -92,6 +93,7 @@ describe('Message Handling and Communication', () => {
     
     // Test sendNoWait when disconnected
     connector.disconnect();
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
     
     const disconnectedMessage = {
       type: 'lua_call',

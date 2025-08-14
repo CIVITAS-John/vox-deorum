@@ -71,20 +71,28 @@ export class DLLConnector extends EventEmitter {
           
           // Re-register event handlers
           this.setupEventHandlers();
-          resolve(true);
+
+          // Wait for 100ms for Windows Named Pipe to work
+          setTimeout(() => {
+            resolve(true);
+          }, 100);
         });
 
         ipc.of[config.namedpipe.id].on('disconnect', () => {
-          logger.warn('Disconnected from DLL');
+          if (this.shuttingDown) {
+            logger.warn('Disconnected from DLL, shutting down...');
+          } else {
+            logger.warn('Disconnected from DLL, reconnecting...');
+            this.handleDisconnection();
+          }
           this.emit('disconnected');
-          this.handleDisconnection();
         });
 
         ipc.of[config.namedpipe.id].on('error', (error: any) => {
           if (!this.connected) {
             // For initial connection failures, also start reconnection attempts
+            logger.error(`Failed to connect to DLL: ${error.message || error}, reconnecting...`);
             this.handleDisconnection();
-            logger.error(`Failed to connect to DLL: ${error.message || error}`);
             resolve(false);
           } else {
             logger.error('IPC error:', error);
@@ -124,7 +132,7 @@ export class DLLConnector extends EventEmitter {
       } else {
         data = message;
       }
-      
+      logger.warn(JSON.stringify(data));
       // Route based on message type
       switch (data.type) {
         case 'lua_response':
@@ -162,7 +170,7 @@ export class DLLConnector extends EventEmitter {
         request.reject(data);
       }
     } else {
-      logger.warn('Received response for unknown request:', data.id);
+      logger.warn('Received response for unknown request: ' + data.id);
     }
   }
 
@@ -173,11 +181,7 @@ export class DLLConnector extends EventEmitter {
     this.connected = false;
     
     // Reject all pending requests
-    for (const [, request] of this.pendingRequests) {
-      clearTimeout(request.timeout);
-      request.reject(respondError(ErrorCode.DLL_DISCONNECTED));
-    }
-    this.pendingRequests.clear();
+    if (this.shuttingDown) return;
 
     // Prevent parallel reconnection attempts
     if (this.reconnectTimer) {

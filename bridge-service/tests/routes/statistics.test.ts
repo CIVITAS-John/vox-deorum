@@ -7,7 +7,8 @@ import { globalMockDLL, USE_MOCK } from '../setup.js';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
 import bridgeService from '../../src/service.js';
-import { logSuccess } from '../test-utils/helpers.js';
+import { delay, logSuccess } from '../test-utils/helpers.js';
+import { TEST_TIMEOUTS } from '../test-utils/constants.js';
 
 // Connection statistics and monitoring
 describe('Connection Statistics and Monitoring', () => {
@@ -17,9 +18,10 @@ describe('Connection Statistics and Monitoring', () => {
     connector = new DLLConnector();
   });
   
-  afterEach(() => {
+  afterEach(async () => {
     if (connector && connector.isConnected()) {
       connector.disconnect();
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
     }
   });
 

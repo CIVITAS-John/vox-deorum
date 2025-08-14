@@ -6,7 +6,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { config } from '../../src/utils/config.js';
 import { ErrorCode } from '../../src/types/api.js';
-import { logSuccess } from '../test-utils/helpers.js';
+import { delay, logSuccess } from '../test-utils/helpers.js';
+import { TEST_TIMEOUTS } from '../test-utils/constants.js';
 
 // Connection failure scenarios and error handling
 describe('Connection Error Handling', () => {
@@ -16,9 +17,10 @@ describe('Connection Error Handling', () => {
     connector = new DLLConnector();
   });
   
-  afterEach(() => {
+  afterEach(async () => {
     if (connector && connector.isConnected()) {
       connector.disconnect();
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
     }
   });
 

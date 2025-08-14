@@ -16,9 +16,10 @@ describe('Reconnection Logic', () => {
     connector = new DLLConnector();
   });
   
-  afterEach(() => {
+  afterEach(async () => {
     if (connector && connector.isConnected()) {
       connector.disconnect();
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
     }
   });
 

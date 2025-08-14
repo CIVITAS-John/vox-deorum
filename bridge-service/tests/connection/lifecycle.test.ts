@@ -7,6 +7,7 @@ import { globalMockDLL, USE_MOCK } from '../setup.js';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
 import { logSuccess, delay } from '../test-utils/helpers.js';
+import { TEST_TIMEOUTS } from '../test-utils/constants.js';
 
 // DLLConnector connection lifecycle (connect/disconnect)
 describe('DLLConnector Connection Lifecycle', () => {
@@ -16,9 +17,10 @@ describe('DLLConnector Connection Lifecycle', () => {
     connector = new DLLConnector();
   });
   
-  afterEach(() => {
+  afterEach(async () => {
     if (connector && connector.isConnected()) {
       connector.disconnect();
+      await delay(TEST_TIMEOUTS.VERY_SHORT);
     }
   });
 
@@ -41,14 +43,15 @@ describe('DLLConnector Connection Lifecycle', () => {
     });
     
     // Attempt to connect, disconnect, and reconnect
-      await expect(connector.connect()).resolves.toBe(true);
+    await expect(connector.connect()).resolves.toBe(true);
     logSuccess('Successfully connected to DLL server');
 
     expect(connectedEventFired).toBe(true);
     logSuccess('Connection event fired');
 
     connector.disconnect();
-      await expect(connector.connect()).resolves.toBe(true);
+    await delay(TEST_TIMEOUTS.VERY_SHORT);
+    await expect(connector.connect()).resolves.toBe(true);
     logSuccess('Successfully reconnected to DLL server');
     
     // Test basic communication - send a Lua call
@@ -70,7 +73,7 @@ describe('DLLConnector Connection Lifecycle', () => {
   
   // Clean disconnection with event emission
   it('should handle clean disconnection', async () => {
-      await expect(connector.connect()).resolves.toBe(true);
+    await expect(connector.connect()).resolves.toBe(true);
     
     // Test disconnection event emission
     let disconnectedEventFired = false;
@@ -79,10 +82,10 @@ describe('DLLConnector Connection Lifecycle', () => {
     });
     
     connector.disconnect();
+    await delay(TEST_TIMEOUTS.VERY_SHORT);
     expect(connector.isConnected()).toBe(false);
     
     // Give event time to fire
-    await delay(10);
     expect(disconnectedEventFired).toBe(true);
     
     logSuccess('Connection closed cleanly');
