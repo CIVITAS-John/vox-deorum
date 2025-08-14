@@ -20,6 +20,9 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 - A modified version of [Community-Patch-DLL](https://github.com/LoneGazebo/Community-Patch-DLL) as a submodule: `civ5-dll/`
 - Talks to the Bridge Service
 - Exposes functions for Lua script integration within the game through `Game.CallExternal("method", args, callback)` pattern
+- To build the DLL, use `python build_vp_clang_sdk.py` (but only in Windows environment).
+- To build the DLL AND copy to the mod folder, use `build-and-copy.bat`.
+- To debug the building process, the log exists in `clang-output/Debug/build.log`.
 
 ### Civ5 Mod
 - **Location**: `civ5-mod/`

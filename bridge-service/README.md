@@ -51,7 +51,7 @@ The service reads from the `config.json` for its configuration:
     "host": "localhost"
   },
   "namedpipe": {
-    "id": "civ5",
+    "id": "vox-deorum-bridge",
     "retry": 5000
   },
   "logging": {
