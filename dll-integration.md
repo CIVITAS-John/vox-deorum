@@ -98,3 +98,90 @@ Convert from string-based to JSON object-based message handling using nlohmann/j
 - Change queues and interfaces to use JSON objects
 - Incoming queue stores parsed JSON from Bridge
 - Outgoing queue stores JSON objects to send
+
+## Stage 5: Lua Execute Support
+Implement the most straightforward Lua execution case - handle `lua_execute` messages from Bridge Service to run arbitrary Lua scripts in the game environment.
+
+### Key Discovery: Game's Lua Integration
+The game uses `ICvEngineScriptSystem1` interface (accessed via `gDLL->GetScriptSystem()`) for all Lua operations. We should reuse the game's existing Lua state rather than creating a new one.
+
+### Implementation Components
+
+#### 1. Access Game's Lua State
+- Get script system: `ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem()`
+- Reuse the game's main Lua thread/state (no need to create new thread)
+- The game already manages the Lua state lifecycle
+
+#### 2. Message Type Recognition
+In ProcessMessages():
+```cpp
+if (messageType == "lua_execute") {
+    HandleLuaExecute(message);
+}
+```
+
+#### 3. Lua Script Execution Method
+Add to CvConnectionService:
+```cpp
+void HandleLuaExecute(const JsonDocument& message) {
+    // Extract script and id
+    const char* script = message["script"];
+    const char* id = message["id"];
+    
+    // Get the game's script system
+    ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
+    
+    // Execute using luaL_dostring (defined in lauxlib.h as luaL_loadstring + lua_pcall)
+    // This requires getting the raw lua_State pointer
+    
+    // Build and queue response
+}
+```
+
+#### 4. Direct Lua Execution
+Since ICvEngineScriptSystem1 doesn't expose raw script execution, we need to:
+1. Get a lua_State pointer (investigate if available through existing interfaces)
+2. Use `luaL_dostring(L, script)` macro for execution
+3. Handle return values from Lua stack
+
+#### 5. Thread Safety Considerations
+Follow the game's locking pattern (from LuaSupport):
+```cpp
+bool bHadLock = gDLL->HasGameCoreLock();
+if(bHadLock)
+    gDLL->ReleaseGameCoreLock();
+// Execute Lua code
+if(bHadLock)
+    gDLL->GetGameCoreLock();
+```
+
+### Response Format
+Queue lua_response messages:
+```json
+{
+    "type": "lua_response",
+    "id": "original-request-id",
+    "success": true,
+    "result": "converted-lua-return-value"
+}
+```
+
+### Error Handling
+- Use lua_pcall (via luaL_dostring) for safe execution
+- Capture Lua error messages
+- Return structured error response:
+```json
+{
+    "type": "lua_response",
+    "id": "original-request-id",
+    "success": false,
+    "error": "Lua execution error details"
+}
+```
+
+### Implementation Steps
+1. Add HandleLuaExecute method to CvConnectionService
+2. Update ProcessMessages to recognize "lua_execute" message type
+3. Investigate how to get raw lua_State* from game (may need to expose through existing interfaces)
+4. Convert Lua return values to JSON
+5. Queue response for Bridge Service
