@@ -76,7 +76,7 @@ export class MockDLLServer extends EventEmitter {
     ipc.config.retry = 1500;
     ipc.config.maxRetries = false;
     ipc.config.silent = true;
-    ipc.config.rawBuffer = false;
+    ipc.config.rawBuffer = true;
     ipc.config.encoding = 'utf8';
   }
 
@@ -118,7 +118,8 @@ export class MockDLLServer extends EventEmitter {
    * Setup message handlers
    */
   private setupMessageHandlers(): void {
-    ipc.server.on('message', (data: any, socket: any) => {
+    ipc.server.on('data', (data: any, socket: any) => {
+      data = JSON.parse(data);
       logger.debug('Received message from bridge:', data);
       this.handleMessage(data, socket);
     });
@@ -452,9 +453,9 @@ export class MockDLLServer extends EventEmitter {
   private sendMessage(message: IPCMessage, socket?: any): void {
     try {
       if (socket) {
-        ipc.server.emit(socket, 'message', message);
+        ipc.server.emit(socket, JSON.stringify(message));
       } else {
-        ipc.server.broadcast('message', message);
+        ipc.server.broadcast(JSON.stringify(message));
       }
       logger.debug('Sent message to bridge:', message);
     } catch (error) {

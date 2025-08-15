@@ -90,11 +90,15 @@ export class DLLConnector extends EventEmitter {
           } else {
             logger.error('IPC error:', error);
           }
-        }).on('message', (data: any) => {
-          logger.debug('Received message: ' + JSON.stringify(data));
-          this.handleMessage(data);
         }).on('data', (data: Buffer) => {
-          logger.debug('Received data: ' + data.toString());
+          // Parse into JSON
+          try {
+            const jsonData = JSON.parse(data.toString());
+            logger.debug('Received data: ' + JSON.stringify(jsonData));
+            this.handleMessage(jsonData);
+          } catch (error) {
+            logger.error('Failed to parse JSON data:', error);
+          }
         });
       });
     });
@@ -215,7 +219,7 @@ export class DLLConnector extends EventEmitter {
       this.pendingRequests.set(messageWithId.id, request);
 
       try {
-        ipc.of[config.namedpipe.id].emit('message', messageWithId);
+        ipc.of[config.namedpipe.id].emit(JSON.stringify(messageWithId));
         logger.debug('Sent message to DLL:', messageWithId);
         // Emit event for testing
         this.emit('ipc_send', messageWithId);
@@ -236,7 +240,7 @@ export class DLLConnector extends EventEmitter {
     }
 
     try {
-      ipc.of[config.namedpipe.id].emit('message', message);
+      ipc.of[config.namedpipe.id].emit(JSON.stringify(message));
       logger.debug('Sent no-wait message to DLL:', message);
       // Emit event for testing
       this.emit('ipc_send', message);
