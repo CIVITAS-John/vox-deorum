@@ -166,11 +166,11 @@ void SendLuaErrorResponse(const char* id, const char* error) {
 }
 ```
 
-#### 4. Direct Lua Execution
-Since ICvEngineScriptSystem1 doesn't expose raw script execution, we need to:
-1. Get a lua_State pointer (investigate if available through existing interfaces)
-2. Use `luaL_dostring(L, script)` macro for execution
-3. Handle return values from Lua stack
+#### 4. Initialize Lua State
+Since ICvEngineScriptSystem1 doesn't expose raw script execution, at thewe need to:
+1. At the service scope, create a Lua state through gDLL->GetScriptSystem()->CreateLuaThread()
+2. Register related game features via `LuaSupport::RegisterScriptData`
+3. Release the state during shutdown
 
 #### 5. Thread Safety Considerations
 Follow the game's locking pattern (from LuaSupport):
@@ -195,7 +195,6 @@ Queue lua_response messages:
 ```
 
 ### Error Handling
-- Use lua_pcall (via luaL_dostring) for safe execution
 - Capture Lua error messages
 - Return structured error response:
 ```json
@@ -210,6 +209,7 @@ Queue lua_response messages:
 ### Implementation Steps
 1. Add HandleLuaExecute method to CvConnectionService
 2. Update ProcessMessages to recognize "lua_execute" message type
-3. Investigate how to get raw lua_State* from game (may need to expose through existing interfaces)
-4. Convert Lua return values to JSON
-5. Queue response for Bridge Service
+3. Initialize service-wide Lua state
+4. Run the input lua script in the Lua state
+5. Convert Lua return values to JSON
+6. Queue response for Bridge Service
