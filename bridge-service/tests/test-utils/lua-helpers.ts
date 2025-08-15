@@ -101,13 +101,12 @@ export async function testLuaScriptExecution(
     setupMockLuaFunction('ExecuteScript', expectedResult, true);
   }
   
-  const expectedStatus = USE_MOCK ? 200 : 500;
   const response = await request(app)
     .post('/lua/execute')
     .send({ script })
-    .expect(expectedStatus);
+    .expect(200);
     
-  if (USE_MOCK && expectedStatus === 200 && expectedResult !== undefined) {
+  if (expectedResult !== undefined) {
     expect(response.body.success).toBe(true);
     expect(response.body.result).toEqual(expectedResult);
   }

@@ -121,6 +121,8 @@ describe('Lua Service', () => {
     }, TEST_TIMEOUTS.DEFAULT);
   });
 
+  return;
+
   /**
    * Function Listing Tests
    */

@@ -46,7 +46,7 @@ export class DLLConnector extends EventEmitter {
     ipc.config.retry = config.namedpipe.retry;
     ipc.config.maxRetries = false; // Infinite retries
     ipc.config.silent = true; // We'll handle our own logging
-    ipc.config.rawBuffer = false;
+    ipc.config.rawBuffer = true;
     ipc.config.encoding = 'utf8';
   }
 
@@ -73,9 +73,7 @@ export class DLLConnector extends EventEmitter {
           setTimeout(() => {
             resolve(true);
           }, 100);
-        });
-
-        ipc.of[config.namedpipe.id].on('disconnect', () => {
+        }).on('disconnect', () => {
           if (this.shuttingDown) {
             logger.warn('Disconnected from DLL, shutting down...');
           } else {
@@ -83,9 +81,7 @@ export class DLLConnector extends EventEmitter {
             this.handleDisconnection();
           }
           this.emit('disconnected');
-        });
-
-        ipc.of[config.namedpipe.id].on('error', (error: any) => {
+        }).on('error', (error: any) => {
           if (!this.connected) {
             // For initial connection failures, also start reconnection attempts
             logger.error(`Failed to connect to DLL: ${error.message || error}, reconnecting...`);
@@ -94,11 +90,11 @@ export class DLLConnector extends EventEmitter {
           } else {
             logger.error('IPC error:', error);
           }
-        });
-        
-        ipc.of[config.namedpipe.id].on('message', (data: any) => {
-          logger.debug('Received message:', data);
+        }).on('message', (data: any) => {
+          logger.debug('Received message: ' + JSON.stringify(data));
           this.handleMessage(data);
+        }).on('data', (data: Buffer) => {
+          logger.debug('Received data: ' + data.toString());
         });
       });
     });
