@@ -87,10 +87,14 @@ Add call to CvConnectionService::GetInstance().ProcessMessages() in CvGame::upda
 4. Modify HandleClientConnection to use queues
 5. Implement ProcessMessages with logging/echo logic
 6. Add ProcessMessages call to CvGame update loop
-7. Test with Bridge Service for message flow
 
-### Testing Strategy
-- Send test JSON from Bridge Service
-- Verify messages are logged during game loop
-- Confirm echo messages are received by Bridge
-- Monitor for thread safety issues (race conditions, deadlocks)
+## Stage 4: JSON Object-Based Message Queue
+Convert from string-based to JSON object-based message handling using nlohmann/json library.
+
+### Use ArduinoJson Library
+- Use single-header `ArduinoJson.hpp` existed in ThirdPartyLibs directory
+
+### Update Message Queue Types
+- Change queues and interfaces to use JSON objects
+- Incoming queue stores parsed JSON from Bridge
+- Outgoing queue stores JSON objects to send

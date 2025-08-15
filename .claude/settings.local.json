@@ -14,7 +14,9 @@
       "Bash(npm install:*)",
       "Bash(grep:*)",
       "Bash(git submodule:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [
       "Read(civ5-dll/(1) Community Patch/**)",
@@ -25,7 +27,6 @@
       "Read(civ5-dll/CvGameDatabase/**)",
       "Read(civ5-dll/CvLocalization/**)",
       "Read(civ5-dll/CvWorldBuilderMap/**)",
-      "Read(civ5-dll/ThirdPartyLibs/**)",
       "Read(civ5-dll/UI_bc1/**)",
       "Read(civ5-dll/VPUI/**)",
       "Read(civ5-dll/VPUI Text/**)"
