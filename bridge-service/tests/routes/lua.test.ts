@@ -45,6 +45,121 @@ describe('Lua Service', () => {
   });
 
   /**
+   * Script Execution Tests
+   */
+  describe('POST /lua/execute - Execute raw Lua script', () => {
+
+    it('should successfully execute a simple Lua script', async () => {
+      const script = 'return 42';
+      await testLuaScriptExecution(app, script, 42);
+      logSuccess('Simple Lua script execution handled');
+    }, TEST_TIMEOUTS.DEFAULT);
+
+    it('should execute complex Lua script with functions', async () => {
+      const script = `
+        local function add(a, b)
+          return a + b
+        end
+        return add(10, 20)
+      `;
+      await testLuaScriptExecution(app, script, 30);
+      logSuccess('Complex Lua script execution handled');
+    }, TEST_TIMEOUTS.DEFAULT);
+
+    it.each([
+      {
+        payload: {},
+        expectedError: 'Missing Lua script',
+        testCase: 'missing script field'
+      },
+      {
+        payload: { script: '' },
+        expectedError: 'Missing Lua script',
+        testCase: 'empty script'
+      }
+    ])('should handle $testCase', async ({ payload, expectedError }) => {
+      await request(app)
+        .post('/lua/execute')
+        .send(payload)
+        .expect(500)
+        .then(response => expectErrorResponse(response, ErrorCode.INVALID_SCRIPT, expectedError));
+    });
+
+    it('should handle syntax errors in Lua script', async () => {
+      const script = 'local x = ; return x'; // Syntax error
+
+      // Mock will still return a result, real DLL would error
+      const expectedStatus = USE_MOCK ? 200 : 500;
+      const response = await request(app)
+        .post('/lua/execute')
+        .send({ script })
+        .expect(expectedStatus);
+
+      // Will return an error from Lua execution or mock result
+      expect(response.body).toBeDefined();
+      if (!USE_MOCK) {
+        expect(response.body.success).toBe(false);
+      }
+
+      logSuccess('Lua syntax error handled');
+    }, TEST_TIMEOUTS.DEFAULT);
+
+    it('should handle very long scripts', async () => {
+      const script = `
+        local result = 0
+        ${Array.from({ length: 100 }, (_, i) => `result = result + ${i}`).join('\n')}
+        return result
+      `;
+      await testLuaScriptExecution(app, script, 4950);
+      logSuccess('Long Lua script handled');
+    }, TEST_TIMEOUTS.DEFAULT);
+
+    it('should handle scripts with special characters', async () => {
+      const script = 'return "Hello\\nWorld\\t!"';
+      await testLuaScriptExecution(app, script, 'Hello\nWorld\t!');
+      logSuccess('Script with special characters handled');
+    }, TEST_TIMEOUTS.DEFAULT);
+  });
+
+  /**
+   * Function Listing Tests
+   */
+  describe('GET /lua/functions - List available Lua functions', () => {
+    beforeEach(() => {
+      // Register some test functions
+      luaManager.registerFunction('TestFunction1', 'Test function 1');
+      luaManager.registerFunction('TestFunction2', 'Test function 2');
+    });
+
+    it('should return list of available Lua functions', async () => {
+      const response = await request(app)
+        .get('/lua/functions')
+        .expect(200);
+
+      validateFunctionListResponse(response);
+      logSuccess('List of Lua functions retrieved successfully');
+    });
+
+    it('should handle concurrent requests', async () => {
+      const requests = Array.from({ length: 10 }, () =>
+        request(app).get('/lua/functions')
+      );
+
+      const responses = await Promise.all(requests);
+
+      responses.forEach(response => {
+        expect(response.status).toBe(200);
+        expectSuccessResponse(response, (res) => {
+          expect(res.body.result).toHaveProperty('functions');
+          expect(res.body.result.functions).toBeInstanceOf(Array);
+        });
+      });
+
+      logSuccess('Concurrent requests handled successfully');
+    });
+  });
+
+  /**
    * Function Call Tests
    */
   describe('POST /lua/call - Execute Lua function', () => {
@@ -219,121 +334,6 @@ describe('Lua Service', () => {
       }
 
       logSuccess('Large batch request handled');
-    });
-  });
-
-  /**
-   * Script Execution Tests
-   */
-  describe('POST /lua/execute - Execute raw Lua script', () => {
-
-    it('should successfully execute a simple Lua script', async () => {
-      const script = 'return 42';
-      await testLuaScriptExecution(app, script, 42);
-      logSuccess('Simple Lua script execution handled');
-    }, TEST_TIMEOUTS.DEFAULT);
-
-    it('should execute complex Lua script with functions', async () => {
-      const script = `
-        local function add(a, b)
-          return a + b
-        end
-        return add(10, 20)
-      `;
-      await testLuaScriptExecution(app, script, 30);
-      logSuccess('Complex Lua script execution handled');
-    }, TEST_TIMEOUTS.DEFAULT);
-
-    it.each([
-      {
-        payload: {},
-        expectedError: 'Missing Lua script',
-        testCase: 'missing script field'
-      },
-      {
-        payload: { script: '' },
-        expectedError: 'Missing Lua script',
-        testCase: 'empty script'
-      }
-    ])('should handle $testCase', async ({ payload, expectedError }) => {
-      await request(app)
-        .post('/lua/execute')
-        .send(payload)
-        .expect(500)
-        .then(response => expectErrorResponse(response, ErrorCode.INVALID_SCRIPT, expectedError));
-    });
-
-    it('should handle syntax errors in Lua script', async () => {
-      const script = 'local x = ; return x'; // Syntax error
-
-      // Mock will still return a result, real DLL would error
-      const expectedStatus = USE_MOCK ? 200 : 500;
-      const response = await request(app)
-        .post('/lua/execute')
-        .send({ script })
-        .expect(expectedStatus);
-
-      // Will return an error from Lua execution or mock result
-      expect(response.body).toBeDefined();
-      if (!USE_MOCK) {
-        expect(response.body.success).toBe(false);
-      }
-
-      logSuccess('Lua syntax error handled');
-    }, TEST_TIMEOUTS.DEFAULT);
-
-    it('should handle very long scripts', async () => {
-      const script = `
-        local result = 0
-        ${Array.from({ length: 100 }, (_, i) => `result = result + ${i}`).join('\n')}
-        return result
-      `;
-      await testLuaScriptExecution(app, script, 4950);
-      logSuccess('Long Lua script handled');
-    }, TEST_TIMEOUTS.DEFAULT);
-
-    it('should handle scripts with special characters', async () => {
-      const script = 'return "Hello\\nWorld\\t!"';
-      await testLuaScriptExecution(app, script, 'Hello\nWorld\t!');
-      logSuccess('Script with special characters handled');
-    }, TEST_TIMEOUTS.DEFAULT);
-  });
-
-  /**
-   * Function Listing Tests
-   */
-  describe('GET /lua/functions - List available Lua functions', () => {
-    beforeEach(() => {
-      // Register some test functions
-      luaManager.registerFunction('TestFunction1', 'Test function 1');
-      luaManager.registerFunction('TestFunction2', 'Test function 2');
-    });
-
-    it('should return list of available Lua functions', async () => {
-      const response = await request(app)
-        .get('/lua/functions')
-        .expect(200);
-
-      validateFunctionListResponse(response);
-      logSuccess('List of Lua functions retrieved successfully');
-    });
-
-    it('should handle concurrent requests', async () => {
-      const requests = Array.from({ length: 10 }, () =>
-        request(app).get('/lua/functions')
-      );
-
-      const responses = await Promise.all(requests);
-
-      responses.forEach(response => {
-        expect(response.status).toBe(200);
-        expectSuccessResponse(response, (res) => {
-          expect(res.body.result).toHaveProperty('functions');
-          expect(res.body.result.functions).toBeInstanceOf(Array);
-        });
-      });
-
-      logSuccess('Concurrent requests handled successfully');
     });
   });
 
