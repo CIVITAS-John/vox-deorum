@@ -93,11 +93,7 @@ Convert from string-based to JSON object-based message handling using nlohmann/j
 
 ### Use ArduinoJson Library
 - Use single-header `ArduinoJson.hpp` existed in ThirdPartyLibs directory
-
-### Update Message Queue Types
-- Change queues and interfaces to use JSON objects
-- Incoming queue stores parsed JSON from Bridge
-- Outgoing queue stores JSON objects to send
+- Strip the Node-IPC data packet format {type:"message",data:...} to have parity with the stated protocol.
 
 ## Stage 5: Lua Execute Support
 Implement the most straightforward Lua execution case - handle `lua_execute` messages from Bridge Service to run arbitrary Lua scripts in the game environment.
@@ -112,29 +108,61 @@ The game uses `ICvEngineScriptSystem1` interface (accessed via `gDLL->GetScriptS
 - Reuse the game's main Lua thread/state (no need to create new thread)
 - The game already manages the Lua state lifecycle
 
-#### 2. Message Type Recognition
+#### 2. Message Type Recognition and Parameter Extraction
 In ProcessMessages():
 ```cpp
 if (messageType == "lua_execute") {
-    HandleLuaExecute(message);
-}
-```
-
-#### 3. Lua Script Execution Method
-Add to CvConnectionService:
-```cpp
-void HandleLuaExecute(const JsonDocument& message) {
-    // Extract script and id
+    // Extract parameters from JSON message
     const char* script = message["script"];
     const char* id = message["id"];
     
+    // Call handler with extracted parameters
+    HandleLuaExecute(script, id);
+}
+```
+
+#### 3. Decoupled Lua Execution Methods
+Add to CvConnectionService:
+```cpp
+// Main handler - receives extracted parameters, not JSON
+void HandleLuaExecute(const char* script, const char* id) {
     // Get the game's script system
     ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
     
     // Execute using luaL_dostring (defined in lauxlib.h as luaL_loadstring + lua_pcall)
     // This requires getting the raw lua_State pointer
     
-    // Build and queue response
+    // Call success or error response based on execution result
+    if (executionSucceeded) {
+        SendLuaSuccessResponse(id, resultValue);
+    } else {
+        SendLuaErrorResponse(id, errorMessage);
+    }
+}
+
+// Response builders - reusable for other Lua function calls
+void SendLuaSuccessResponse(const char* id, const char* result) {
+    // Build success response JSON following PROTOCOL.md
+    JsonDocument response;
+    response["type"] = "lua_response";
+    response["id"] = id;
+    response["success"] = true;
+    response["result"] = result;
+    
+    // Queue the response
+    QueueOutgoingMessage(response);
+}
+
+void SendLuaErrorResponse(const char* id, const char* error) {
+    // Build error response JSON following PROTOCOL.md
+    JsonDocument response;
+    response["type"] = "lua_response";
+    response["id"] = id;
+    response["success"] = false;
+    response["error"] = error;
+    
+    // Queue the response
+    QueueOutgoingMessage(response);
 }
 ```
 
