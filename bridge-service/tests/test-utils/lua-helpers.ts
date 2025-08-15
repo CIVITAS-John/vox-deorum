@@ -6,9 +6,9 @@ import { expect } from 'vitest';
 import request from 'supertest';
 import { Application } from 'express';
 import { globalMockDLL, USE_MOCK } from '../setup.js';
-import type { MockDLLServer } from '../../scripts/mock-dll-server.js';
 import { expectSuccessResponse, expectErrorResponse } from './helpers.js';
 import { ErrorCode } from '../../src/types/api.js';
+import { MockDLLServer } from './mock-dll-server.js';
 
 /**
  * Setup mock Lua function response
