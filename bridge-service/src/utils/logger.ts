@@ -142,6 +142,7 @@ export const logger = winston.createLogger({
     // File transport for all logs
     new winston.transports.File({
       filename: path.join(logsDir, 'combined.log'),
+      level: 'debug',
       format: jsonFormat,
       maxsize: 10485760, // 10MB
       maxFiles: 10

@@ -69,9 +69,6 @@ export class DLLConnector extends EventEmitter {
           logger.info('Connected to DLL successfully');
           this.emit('connected');
           
-          // Re-register event handlers
-          this.setupEventHandlers();
-
           // Wait for 100ms for Windows Named Pipe to work
           setTimeout(() => {
             resolve(true);
@@ -98,19 +95,12 @@ export class DLLConnector extends EventEmitter {
             logger.error('IPC error:', error);
           }
         });
+        
+        ipc.of[config.namedpipe.id].on('message', (data: any) => {
+          logger.debug('Received message:', data);
+          this.handleMessage(data);
+        });
       });
-    });
-  }
-
-  /**
-   * Setup event handlers for IPC messages
-   */
-  private setupEventHandlers(): void {
-    const socket = ipc.of[config.namedpipe.id];
-    if (!socket) return;
-    socket.on('message', (data: any) => {
-      logger.debug('Received message:', data);
-      this.handleMessage(data);
     });
   }
 
@@ -125,14 +115,13 @@ export class DLLConnector extends EventEmitter {
         try {
           data = JSON.parse(message);
         } catch (parseError) {
-          logger.error('Failed to parse JSON message from DLL:', parseError);
+          logger.error('Failed to parse JSON message from DLL:' + parseError);
           logger.debug('Raw message:', message);
           return;
         }
       } else {
         data = message;
       }
-      logger.warn(JSON.stringify(data));
       // Route based on message type
       switch (data.type) {
         case 'lua_response':

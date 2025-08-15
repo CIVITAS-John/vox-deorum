@@ -67,9 +67,6 @@ export class LuaManager {
    * Execute raw Lua script
    */
   public async executeScript<T = any>(request: LuaExecuteRequest): Promise<LuaResponse<T>> {
-    logger.info('Executing Lua script');
-    logger.debug('Script:', request.script);
-
     // Basic script validation
     if (!request.script || typeof request.script !== 'string') {
       return respondError(ErrorCode.INVALID_SCRIPT);

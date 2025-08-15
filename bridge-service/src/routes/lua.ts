@@ -87,9 +87,8 @@ router.post('/execute', async (req: Request, res: Response) => {
       );
     }
 
-    logger.info('Lua script execution');
-    logger.debug('Script:', request.script.substring(0, 200) + (request.script.length > 200 ? '...' : ''));
-    
+    logger.info(`Lua script execution: ${request.script.substring(0, 200)}${request.script.length > 200 ? '...' : ''}`);
+
     const result = await luaManager.executeScript(request);
     return result;
   });
