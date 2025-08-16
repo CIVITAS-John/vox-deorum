@@ -26,9 +26,17 @@ export class LuaManager {
   private registeredFunctions: Map<string, LuaFunction> = new Map();
 
   constructor() {
-    // Listen for individual function registrations from DLL
+    // Listen for function registry updates from DLL
     dllConnector.on('lua_register', (message: LuaRegisterMessage) => {
       this.registerFunction(message.function, message.description);
+    });
+    
+    dllConnector.on('lua_unregister', (message: { function: string }) => {
+      this.unregisterFunction(message.function);
+    });
+    
+    dllConnector.on('lua_clear', () => {
+      this.clearRegistry();
     });
   }
 
@@ -117,6 +125,7 @@ export class LuaManager {
    * Clear function registry
    */
   public clearRegistry(): void {
+    logger.info('Clearing all registered functions');
     this.registeredFunctions.clear();
   }
 

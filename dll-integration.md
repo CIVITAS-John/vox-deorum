@@ -278,7 +278,7 @@ public:
     void UnregisterLuaFunction(const char* name);
     
     // Clear all registered functions (called on shutdown)
-    void ClearAllRegisteredFunctions();
+    void ClearLuaFunctions();
     
 private:
     // Send registration notification to Bridge
@@ -352,7 +352,7 @@ void CvConnectionService::UnregisterLuaFunction(const char* name) {
     LeaveCriticalSection(&m_csFunctions);
 }
 
-void CvConnectionService::ClearAllRegisteredFunctions() {
+void CvConnectionService::ClearLuaFunctions() {
     EnterCriticalSection(&m_csFunctions);
     
     // Clear all Lua registry references
@@ -371,7 +371,7 @@ void CvConnectionService::ClearAllRegisteredFunctions() {
 
 #### 6. Integration Points
 - **Setup()**: Initialize m_csFunctions critical section
-- **Shutdown()**: Call ClearAllRegisteredFunctions() and delete critical section
+- **Shutdown()**: Call ClearLuaFunctions() and delete critical section
 - **ProcessMessages()**: Handle "lua_call" messages by looking up registered functions
 
 ### Usage from Lua

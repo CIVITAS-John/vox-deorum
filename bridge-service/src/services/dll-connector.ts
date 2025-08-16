@@ -127,17 +127,8 @@ export class DLLConnector extends EventEmitter {
         case 'lua_response':
           this.handleResponse(data);
           break;
-        case 'external_call':
-          this.emit('external_call', data);
-          break;
-        case 'game_event':
-          this.emit('game_event', data);
-          break;
-        case 'lua_register':
-          this.emit('lua_register', data);
-          break;
         default:
-          logger.warn('Unknown message type: ' + data.type);
+          this.emit(data.type, data);
       }
     } catch (error) {
       logger.error('Failed to handle message:', error);

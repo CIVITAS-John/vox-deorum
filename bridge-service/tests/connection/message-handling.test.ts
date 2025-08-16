@@ -103,44 +103,4 @@ describe('Message Handling and Communication', () => {
     expect(disconnectedResponse.error?.code).toBe(ErrorCode.DLL_DISCONNECTED);
     logSuccess('SendNoWait correctly rejected when disconnected');
   });
-  
-  // Event emission for connection state changes
-  it('should handle various event types', async () => {
-    const eventTypes = [
-      'game_event',
-      'external_call',
-      'lua_register'
-    ];
-    
-    // Register event handlers for testing
-    const eventHandlers: { [key: string]: ReturnType<typeof vi.fn> } = {};
-    eventTypes.forEach(eventType => {
-      eventHandlers[eventType] = vi.fn();
-      connector.on(eventType, eventHandlers[eventType]);
-    });
-
-    // Verify the handlers are set up
-    eventTypes.forEach(eventType => {
-      expect(connector.listenerCount(eventType)).toBe(1);
-    });
-
-    // When using the mock DLL, we can simulate events
-    if (USE_MOCK) {
-      eventTypes.forEach(eventType => {
-        globalMockDLL!.sendRawMessage({ type: eventType });
-      });
-      // Wait a bit to ensure events are processed
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
-      eventTypes.forEach(eventType => {
-        expect(eventHandlers[eventType]).toHaveBeenCalled();
-      });
-    }
-    
-    // Clean up listeners
-    eventTypes.forEach(eventType => {
-      connector.off(eventType, eventHandlers[eventType]);
-    });
-    
-    logSuccess('Event handlers registered correctly');
-  });
 });

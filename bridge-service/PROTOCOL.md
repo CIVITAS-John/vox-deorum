@@ -73,6 +73,8 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 #### Function Registry Update (Internal Communication)
 
+##### Function Registration
+
 1. **Lua Environment → DLL**
    ```
    Game.RegisterFunction("GetCity", GetCityByID);
@@ -89,6 +91,39 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 3. **Bridge updates internal function cache**  
    Used for /lua/functions endpoint responses
+
+##### Function Unregistration
+
+1. **Lua Environment → DLL**
+   ```
+   Game.UnregisterFunction("GetCity");
+   ```
+
+2. **DLL → Bridge (Named Pipe)**
+   ```json
+   {
+     "type": "lua_unregister",
+     "function": "GetCity"
+   }
+   ```
+
+3. **Bridge removes function from internal cache**
+
+##### Clear All Functions
+
+1. **Lua Environment → DLL**
+   ```
+   Game.ClearFunctions();
+   ```
+
+2. **DLL → Bridge (Named Pipe)**
+   ```json
+   {
+     "type": "lua_clear"
+   }
+   ```
+
+3. **Bridge clears entire function cache**
 
 #### Raw Lua Script Execution
 
