@@ -11,27 +11,110 @@ import { ErrorCode } from '../../src/types/api.js';
 import { MockDLLServer } from './mock-dll-server.js';
 
 /**
- * Setup mock Lua function response
+ * Register a Lua function (handles both mock and non-mock modes)
+ * In mock mode: adds a mock function handler
+ * In non-mock mode: registers via Game.RegisterFunction through /lua/execute
  */
-export function setupMockLuaFunction(
+export async function registerLuaFunction(
+  app: Application,
   functionName: string, 
-  result: any, 
-  shouldSucceed: boolean = true
-): void {
+  expected: any,
+  shouldSucceed: boolean = true,
+  implementation?: string
+): Promise<boolean> {
   if (USE_MOCK && globalMockDLL) {
-    globalMockDLL.addLuaFunction(functionName, () => result, shouldSucceed);
+    // In mock mode, add the function to mock DLL
+    globalMockDLL.addLuaFunction(functionName, () => expected, shouldSucceed);
+    return true;
+  } else {
+    // In non-mock mode, register through Game.RegisterFunction
+    const script = implementation || `
+      local function ${functionName.toLowerCase()}(args)
+        return ${JSON.stringify(expected)};
+      end
+      Game.RegisterFunction("${functionName}", ${functionName.toLowerCase()})
+      return true
+    `;
+    
+    try {
+      const response = await request(app)
+        .post('/lua/execute')
+        .send({ script });
+      
+      return response.status === 200 && response.body.success === true;
+    } catch {
+      return false;
+    }
   }
 }
 
 /**
- * Clear all mock Lua functions
+ * Unregister a Lua function (handles both mock and non-mock modes)
+ * In mock mode: removes the mock function
+ * In non-mock mode: unregisters via Game.UnregisterFunction through /lua/execute
  */
-export function clearMockLuaFunctions(): void {
+export async function unregisterLuaFunction(
+  app: Application,
+  functionName: string
+): Promise<boolean> {
   if (USE_MOCK && globalMockDLL) {
+    // In mock mode, remove the function from mock DLL
     const mockServer = globalMockDLL as MockDLLServer;
-    mockServer.clearLuaFunctions();
+    mockServer.removeLuaFunction(functionName);
+    return true;
+  } else {
+    // In non-mock mode, unregister through Game.UnregisterFunction
+    const script = `
+      Game.UnregisterFunction("${functionName}")
+      return true
+    `;
+    
+    try {
+      const response = await request(app)
+        .post('/lua/execute')
+        .send({ script });
+      
+      return response.status === 200 && response.body.success === true;
+    } catch {
+      return false;
+    }
   }
 }
+
+/**
+ * Clear all Lua functions (handles both mock and non-mock modes)
+ * In mock mode: clears all mock functions
+ * In non-mock mode: clears via Game.ClearFunctions through /lua/execute
+ */
+export async function clearLuaFunctions(app?: Application): Promise<boolean> {
+  if (USE_MOCK && globalMockDLL) {
+    // In mock mode, clear all functions from mock DLL
+    const mockServer = globalMockDLL as MockDLLServer;
+    mockServer.clearLuaFunctions();
+    return true;
+  } else if (app) {
+    // In non-mock mode, clear through Game.ClearFunctions
+    const script = `
+      Game.ClearFunctions()
+      return true
+    `;
+    
+    try {
+      const response = await request(app)
+        .post('/lua/execute')
+        .send({ script });
+      
+      return response.status === 200 && response.body.success === true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+// Backward compatibility aliases
+export const setupMockLuaFunction = registerLuaFunction;
+export const clearMockLuaFunctions = () => clearLuaFunctions();
 
 /**
  * Test a Lua function call with mock setup
@@ -44,8 +127,8 @@ export async function testLuaFunctionCall(
   mockResult?: any
 ): Promise<void> {
   // Setup mock if provided
-  if (mockResult !== undefined) {
-    setupMockLuaFunction(functionName, mockResult, true);
+  if (mockResult !== undefined && USE_MOCK) {
+    await registerLuaFunction(app, functionName, mockResult, true);
   }
   
   const response = await request(app)
@@ -73,10 +156,10 @@ export async function testLuaBatchCall(
   mockSetup?: Array<{ name: string; result: any; shouldSucceed?: boolean }>
 ): Promise<any> {
   // Setup mocks if provided
-  if (mockSetup) {
-    mockSetup.forEach(({ name, result, shouldSucceed = true }) => {
-      setupMockLuaFunction(name, result, shouldSucceed);
-    });
+  if (mockSetup && USE_MOCK) {
+    for (const { name, result, shouldSucceed = true } of mockSetup) {
+      await registerLuaFunction(app, name, result, shouldSucceed);
+    }
   }
   
   const expectedStatus = USE_MOCK ? 200 : 500;
@@ -97,8 +180,8 @@ export async function testLuaScriptExecution(
   expectedResult?: any
 ): Promise<any> {
   // Setup mock for script execution if expected result provided
-  if (expectedResult !== undefined) {
-    setupMockLuaFunction('ExecuteScript', expectedResult, true);
+  if (expectedResult !== undefined && USE_MOCK) {
+    await registerLuaFunction(app, 'ExecuteScript', expectedResult, true);
   }
   
   const response = await request(app)
