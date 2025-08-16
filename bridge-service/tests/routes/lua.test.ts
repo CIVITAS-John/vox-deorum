@@ -12,7 +12,7 @@ import {
   clearLuaFunctions,
   testLuaFunctionCall,
   testLuaScriptExecution,
-  validateFunctionListResponse
+  unregisterLuaFunction
 } from '../test-utils/lua-helpers.js';
 import { ErrorCode } from '../../src/types/api.js';
 import { TEST_TIMEOUTS } from '../test-utils/constants.js';
@@ -140,7 +140,12 @@ describe('Lua Service', () => {
         .get('/lua/functions')
         .expect(200);
 
-      validateFunctionListResponse(response);
+      expectSuccessResponse(response, (res) => {
+        expect(res.body.result).toHaveProperty('functions');
+        expect(res.body.result.functions).toBeInstanceOf(Array);
+        expect(res.body.result.functions).length.greaterThanOrEqual(2);
+      });
+      
       logSuccess('List of Lua functions retrieved successfully');
     });
 
@@ -225,16 +230,13 @@ describe('Lua Service', () => {
     });
 
     it('should handle invalid function calls', async () => {
-      // For mock: register a function that will fail
-      // For real DLL: the function simply won't exist
-      if (USE_MOCK) {
-        await registerLuaFunction(app, 'NonExistentFunction', 'Function not found', false);
-      }
+      // Ensure it's not registered
+      await unregisterLuaFunction(app, 'TestFunction1');
       
       const response = await request(app)
         .post('/lua/call')
         .send({
-          function: 'NonExistentFunction',
+          function: 'TestFunction1',
           args: {}
         })
         .expect(500);

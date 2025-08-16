@@ -168,22 +168,3 @@ export async function testLuaScriptExecution(
   
   return response;
 }
-
-/**
- * Validate Lua function list response
- */
-export function validateFunctionListResponse(response: any, expectedFunctions?: string[]): void {
-  expectSuccessResponse(response, (res) => {
-    expect(res.body.result).toHaveProperty('functions');
-    expect(res.body.result.functions).toBeInstanceOf(Array);
-    
-    if (expectedFunctions) {
-      expectedFunctions.forEach(funcName => {
-        const found = res.body.result.functions.some((f: any) => 
-          typeof f === 'string' ? f === funcName : f.name === funcName
-        );
-        expect(found).toBe(true);
-      });
-    }
-  });
-}
