@@ -112,10 +112,6 @@ export async function clearLuaFunctions(app?: Application): Promise<boolean> {
   return false;
 }
 
-// Backward compatibility aliases
-export const setupMockLuaFunction = registerLuaFunction;
-export const clearMockLuaFunctions = () => clearLuaFunctions();
-
 /**
  * Test a Lua function call with mock setup
  */
@@ -148,30 +144,6 @@ export async function testLuaFunctionCall(
 }
 
 /**
- * Test a batch of Lua function calls
- */
-export async function testLuaBatchCall(
-  app: Application,
-  batchRequests: Array<{ function: string; args?: any }>,
-  mockSetup?: Array<{ name: string; result: any; shouldSucceed?: boolean }>
-): Promise<any> {
-  // Setup mocks if provided
-  if (mockSetup && USE_MOCK) {
-    for (const { name, result, shouldSucceed = true } of mockSetup) {
-      await registerLuaFunction(app, name, result, shouldSucceed);
-    }
-  }
-  
-  const expectedStatus = USE_MOCK ? 200 : 500;
-  const response = await request(app)
-    .post('/lua/batch')
-    .send(batchRequests)
-    .expect(expectedStatus);
-    
-  return response;
-}
-
-/**
  * Test Lua script execution
  */
 export async function testLuaScriptExecution(
@@ -198,42 +170,6 @@ export async function testLuaScriptExecution(
 }
 
 /**
- * Test invalid request handling
- */
-export async function testInvalidRequest(
-  app: Application,
-  endpoint: string,
-  payload: any,
-  expectedErrorCode: string,
-  expectedErrorMessage: string
-): Promise<void> {
-  const response = await request(app)
-    .post(endpoint)
-    .send(payload)
-    .expect(500);
-    
-  expectErrorResponse(response, expectedErrorCode, expectedErrorMessage);
-}
-
-/**
- * Test multiple invalid requests using data-driven approach
- */
-export async function testInvalidRequests(
-  app: Application,
-  endpoint: string,
-  testCases: Array<{
-    payload: any;
-    expectedError: string;
-    errorCode?: string;
-    testCase: string;
-  }>
-): Promise<void> {
-  for (const { payload, expectedError, errorCode = ErrorCode.INVALID_ARGUMENTS } of testCases) {
-    await testInvalidRequest(app, endpoint, payload, errorCode, expectedError);
-  }
-}
-
-/**
  * Validate Lua function list response
  */
 export function validateFunctionListResponse(response: any, expectedFunctions?: string[]): void {
@@ -250,26 +186,4 @@ export function validateFunctionListResponse(response: any, expectedFunctions?: 
       });
     }
   });
-}
-
-/**
- * Test concurrent Lua requests
- */
-export async function testConcurrentLuaRequests(
-  app: Application,
-  endpoint: string,
-  requests: Array<any>,
-  mockSetup?: () => void
-): Promise<any[]> {
-  if (mockSetup) {
-    mockSetup();
-  }
-  
-  const promises = requests.map(reqData => 
-    request(app)
-      .post(endpoint)
-      .send(reqData)
-  );
-  
-  return Promise.all(promises);
 }

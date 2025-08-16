@@ -2,17 +2,15 @@
  * Lua execution endpoints test - Tests for Lua function calls, batch execution, script execution, and function listing
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/index.js';
-import { luaManager } from '../../src/services/lua-manager.js';
 import { dllConnector } from '../../src/services/dll-connector.js';
-import { expectSuccessResponse, expectErrorResponse, logSuccess, delay, TestServer } from '../test-utils/helpers.js';
+import { expectSuccessResponse, expectErrorResponse, logSuccess, TestServer } from '../test-utils/helpers.js';
 import { 
-  setupMockLuaFunction, 
-  clearMockLuaFunctions, 
+  registerLuaFunction, 
+  clearLuaFunctions,
   testLuaFunctionCall,
-  testLuaBatchCall,
   testLuaScriptExecution,
   validateFunctionListResponse
 } from '../test-utils/lua-helpers.js';
@@ -39,9 +37,9 @@ describe('Lua Service', () => {
     await testServer.stop();
   }, TEST_TIMEOUTS.LONG);
 
-  afterEach(() => {
-    // Clear mock functions after each test to prevent interference
-    clearMockLuaFunctions();
+  afterEach(async () => {
+    // Clear functions after each test to prevent interference
+    await clearLuaFunctions(app);
   });
 
   /**
@@ -125,10 +123,16 @@ describe('Lua Service', () => {
    * Function Listing Tests
    */
   describe('GET /lua/functions - List available Lua functions', () => {
-    beforeEach(() => {
-      // Register some test functions
-      luaManager.registerFunction('TestFunction1', 'Test function 1');
-      luaManager.registerFunction('TestFunction2', 'Test function 2');
+    beforeEach(async () => {
+      // Register test functions for both mock and real DLL
+      await registerLuaFunction(app, 'TestFunction1', 'Test function 1', true,
+        `local function testfunction1(args) return "Test function 1" end
+         Game.RegisterFunction("TestFunction1", testfunction1)
+         return true`);
+      await registerLuaFunction(app, 'TestFunction2', 'Test function 2', true,
+        `local function testfunction2(args) return "Test function 2" end
+         Game.RegisterFunction("TestFunction2", testfunction2)
+         return true`);
     });
 
     it('should return list of available Lua functions', async () => {
@@ -165,22 +169,37 @@ describe('Lua Service', () => {
   describe('POST /lua/call - Execute Lua function', () => {
 
     it('should successfully call a Lua function with arguments', async () => {
+      // Register the function for both mock and real DLL
+      await registerLuaFunction(app, 'GetPlayerName', 'Player 1', true,
+        `local function getplayername(args)
+           local playerId = args and args.playerId or 1
+           return "Player 1"
+         end
+         Game.RegisterFunction("GetPlayerName", getplayername)
+         return true`);
+      
       await testLuaFunctionCall(
         app,
         'GetPlayerName',
         { playerId: 1 },
-        'Mock Player',
-        'Mock Player'
+        'Player 1'
       );
       logSuccess('Lua function call with arguments successful');
     });
 
     it('should successfully call a Lua function without arguments', async () => {
+      // Register the function for both mock and real DLL
+      await registerLuaFunction(app, 'GetCurrentTurn', 150, true,
+        `local function getcurrentturn(args)
+           return 150
+         end
+         Game.RegisterFunction("GetCurrentTurn", getcurrentturn)
+         return true`);
+      
       await testLuaFunctionCall(
         app,
         'GetCurrentTurn',
         undefined,
-        150,
         150
       );
       logSuccess('Lua function call without arguments successful');
@@ -206,9 +225,10 @@ describe('Lua Service', () => {
     });
 
     it('should handle invalid function calls', async () => {
-      // Setup mock to return error for unknown function
+      // For mock: register a function that will fail
+      // For real DLL: the function simply won't exist
       if (USE_MOCK) {
-        setupMockLuaFunction('NonExistentFunction', 'Function not found', false);
+        await registerLuaFunction(app, 'NonExistentFunction', 'Function not found', false);
       }
       
       const response = await request(app)
@@ -221,9 +241,7 @@ describe('Lua Service', () => {
 
       // The actual error will come from the Lua execution
       expect(response.body.success).toBe(false);
-      if (USE_MOCK) {
-        expect(response.body.error).toBeDefined();
-      }
+      expect(response.body.error).toBeDefined();
 
       logSuccess('Invalid function call handled');
     });
@@ -235,42 +253,75 @@ describe('Lua Service', () => {
   describe('POST /lua/batch - Execute multiple Lua functions', () => {
 
     it('should successfully execute batch of Lua functions', async () => {
+      // Register functions for both mock and real DLL
+      await registerLuaFunction(app, 'GetPlayerName', 'Player 1', true,
+        `local function getplayername(args)
+           local playerId = args and args.playerId or 1
+           return "Player 1"
+         end
+         Game.RegisterFunction("GetPlayerName", getplayername)
+         return true`);
+      await registerLuaFunction(app, 'GetCurrentTurn', 100, true,
+        `local function getcurrentturn(args) return 100 end
+         Game.RegisterFunction("GetCurrentTurn", getcurrentturn)
+         return true`);
+      await registerLuaFunction(app, 'GetGameSpeed', 'Standard', true,
+        `local function getgamespeed(args) return "Standard" end
+         Game.RegisterFunction("GetGameSpeed", getgamespeed)
+         return true`);
+      
       const batchRequests = [
         { function: 'GetPlayerName', args: { playerId: 1 } },
         { function: 'GetCurrentTurn', args: {} },
         { function: 'GetGameSpeed', args: {} }
       ];
 
-      const mockSetup = [
-        { name: 'GetPlayerName', result: 'Mock Player' },
-        { name: 'GetCurrentTurn', result: 100 },
-        { name: 'GetGameSpeed', result: 'Standard' }
-      ];
+      const response = await request(app)
+        .post('/lua/batch')
+        .send(batchRequests);
 
-      const response = await testLuaBatchCall(app, batchRequests, mockSetup);
-
-      if (USE_MOCK && response.status === 200) {
-        expect(response.body.success).toBe(true);
-        expect(response.body.result).toHaveProperty('results');
-        expect(response.body.result.results).toHaveLength(3);
-      }
+      // Both mock and real should succeed
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.result).toHaveProperty('results');
+      expect(response.body.result.results).toHaveLength(3);
+      // Results are full response objects
+      expect(response.body.result.results[0].result).toBe('Player 1');
+      expect(response.body.result.results[0].success).toBe(true);
+      expect(response.body.result.results[1].result).toBe(100);
+      expect(response.body.result.results[1].success).toBe(true);
+      expect(response.body.result.results[2].result).toBe('Standard');
+      expect(response.body.result.results[2].success).toBe(true);
 
       logSuccess('Batch Lua function execution handled');
     });
 
     it('should handle batch with missing args', async () => {
+      // Register functions for both mock and real DLL
+      await registerLuaFunction(app, 'GetPlayerName', 'Default Player', true,
+        `local function getplayername(args)
+           return "Default Player"
+         end
+         Game.RegisterFunction("GetPlayerName", getplayername)
+         return true`);
+      await registerLuaFunction(app, 'GetCurrentTurn', 0, true,
+        `local function getcurrentturn(args) return 0 end
+         Game.RegisterFunction("GetCurrentTurn", getcurrentturn)
+         return true`);
+      
       const batchRequests = [
         { function: 'GetPlayerName' }, // Missing args
         { function: 'GetCurrentTurn' }
       ];
 
-      const mockSetup = [
-        { name: 'GetPlayerName', result: 'Default Player' },
-        { name: 'GetCurrentTurn', result: 0 }
-      ];
+      const response = await request(app)
+        .post('/lua/batch')
+        .send(batchRequests);
 
-      const response = await testLuaBatchCall(app, batchRequests, mockSetup);
+      expect(response.status).toBe(200);
       expect(response.body).toBeDefined();
+      expect(response.body.success).toBe(true);
+      expect(response.body.result.results).toHaveLength(2);
 
       logSuccess('Batch with missing args handled correctly');
     });
@@ -295,43 +346,77 @@ describe('Lua Service', () => {
     });
 
     it('should handle batch with mixed valid and invalid functions', async () => {
+      // Register valid functions for both mock and real DLL
+      await registerLuaFunction(app, 'GetPlayerName', 'Test Player', true,
+        `local function getplayername(args)
+           local playerId = args and args.playerId or 1
+           return "Test Player"
+         end
+         Game.RegisterFunction("GetPlayerName", getplayername)
+         return true`);
+      await registerLuaFunction(app, 'GetCurrentTurn', 200, true,
+        `local function getcurrentturn(args) return 200 end
+         Game.RegisterFunction("GetCurrentTurn", getcurrentturn)
+         return true`);
+      
+      // For mock: register InvalidFunction as failing
+      if (USE_MOCK) {
+        await registerLuaFunction(app, 'InvalidFunction', 'Function not found', false);
+      }
+      // For real DLL: InvalidFunction is not registered, so it will fail
+      
       const batchRequests = [
         { function: 'GetPlayerName', args: { playerId: 1 } },
         { function: 'InvalidFunction', args: {} },
         { function: 'GetCurrentTurn', args: {} }
       ];
 
-      const mockSetup = [
-        { name: 'GetPlayerName', result: 'Mock Player', shouldSucceed: true },
-        { name: 'InvalidFunction', result: 'Function not found', shouldSucceed: false },
-        { name: 'GetCurrentTurn', result: 200, shouldSucceed: true }
-      ];
-
-      const response = await testLuaBatchCall(app, batchRequests, mockSetup);
+      const response = await request(app)
+        .post('/lua/batch')
+        .send(batchRequests);
 
       expect(response.body).toBeDefined();
-      if (USE_MOCK && response.status === 200) {
-        expect(response.body.result).toHaveProperty('results');
-        expect(response.body.result.results).toHaveLength(3);
-      }
+      expect(response.body.result).toHaveProperty('results');
+      expect(response.body.result.results).toHaveLength(3);
+      
+      // First and third should succeed, second should fail
+      expect(response.body.result.results[0].result).toBe('Test Player');
+      expect(response.body.result.results[0].success).toBe(true);
+      expect(response.body.result.results[1].success).toBe(false); // Invalid function fails
+      expect(response.body.result.results[2].result).toBe(200);
+      expect(response.body.result.results[2].success).toBe(true);
 
       logSuccess('Batch with mixed valid/invalid functions handled');
     });
 
     it('should handle large batch requests', async () => {
+      // Register function for both mock and real DLL
+      await registerLuaFunction(app, 'GetPlayerName', 'Batch Player', true,
+        `local function getplayername(args)
+           local playerId = args and args.playerId or 0
+           return "Batch Player"
+         end
+         Game.RegisterFunction("GetPlayerName", getplayername)
+         return true`);
+      
       const batchRequests = Array.from({ length: 50 }, (_, i) => ({
         function: 'GetPlayerName',
         args: { playerId: i }
       }));
 
-      const mockSetup = [{ name: 'GetPlayerName', result: 'Batch Player' }];
-      const response = await testLuaBatchCall(app, batchRequests, mockSetup);
+      const response = await request(app)
+        .post('/lua/batch')
+        .send(batchRequests);
 
+      expect(response.status).toBe(200);
       expect(response.body).toBeDefined();
-      if (USE_MOCK && response.status === 200) {
-        expect(response.body.success).toBe(true);
-        expect(response.body.result.results).toHaveLength(50);
-      }
+      expect(response.body.success).toBe(true);
+      expect(response.body.result.results).toHaveLength(50);
+      // All results should be 'Batch Player'
+      response.body.result.results.forEach((result: any) => {
+        expect(result.result).toBe('Batch Player');
+        expect(result.success).toBe(true);
+      });
 
       logSuccess('Large batch request handled');
     });
@@ -343,11 +428,13 @@ describe('Lua Service', () => {
   describe('Error Handling and Edge Cases', () => {
 
     it('should handle connection loss during Lua call', async () => {
-      // Setup mock response if in mock mode
-      if (USE_MOCK) {
-        // Mock will still work even if connector disconnects
-        setupMockLuaFunction('GetPlayerName', 'Mock Player', true);
-      }
+      // Setup function for both mock and real DLL
+      await registerLuaFunction(app, 'GetPlayerName', 'Test Player', true,
+        `local function getplayername(args)
+           return "Test Player"
+         end
+         Game.RegisterFunction("GetPlayerName", getplayername)
+         return true`);
       
       // Start a request
       const requestPromise = request(app)
@@ -373,7 +460,14 @@ describe('Lua Service', () => {
     });
 
     it('should handle rapid sequential requests', async () => {
-      setupMockLuaFunction('GetPlayerName', 'Rapid Player', true);
+      // Register function for both mock and real DLL
+      await registerLuaFunction(app, 'GetPlayerName', 'Rapid Player', true,
+        `local function getplayername(args)
+           local playerId = args and args.playerId or 0
+           return "Rapid Player"
+         end
+         Game.RegisterFunction("GetPlayerName", getplayername)
+         return true`);
       
       const results: any[] = [];
       
@@ -392,7 +486,7 @@ describe('Lua Service', () => {
       expect(results).toHaveLength(20);
       results.forEach(result => {
         expect(result).toBeDefined();
-        if (USE_MOCK && result.success) {
+        if (result.success) {
           expect(result.result).toBe('Rapid Player');
         }
       });
