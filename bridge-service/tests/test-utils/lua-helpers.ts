@@ -7,8 +7,8 @@ import request from 'supertest';
 import { Application } from 'express';
 import { globalMockDLL, USE_MOCK } from '../setup.js';
 import { expectSuccessResponse, expectErrorResponse } from './helpers.js';
-import { ErrorCode } from '../../src/types/api.js';
 import { MockDLLServer } from './mock-dll-server.js';
+import luaManager from '../../src/services/lua-manager.js';
 
 /**
  * Register a Lua function (handles both mock and non-mock modes)
@@ -25,6 +25,7 @@ export async function registerLuaFunction(
   if (USE_MOCK && globalMockDLL) {
     // In mock mode, add the function to mock DLL
     globalMockDLL.addLuaFunction(functionName, () => expected, shouldSucceed);
+    luaManager.registerFunction(functionName, functionName);
     return true;
   } else {
     // In non-mock mode, register through Game.RegisterFunction
@@ -61,6 +62,7 @@ export async function unregisterLuaFunction(
     // In mock mode, remove the function from mock DLL
     const mockServer = globalMockDLL as MockDLLServer;
     mockServer.removeLuaFunction(functionName);
+    luaManager.unregisterFunction(functionName);
     return true;
   } else {
     // In non-mock mode, unregister through Game.UnregisterFunction
@@ -91,6 +93,7 @@ export async function clearLuaFunctions(app?: Application): Promise<boolean> {
     // In mock mode, clear all functions from mock DLL
     const mockServer = globalMockDLL as MockDLLServer;
     mockServer.clearLuaFunctions();
+    luaManager.clearRegistry();
     return true;
   } else if (app) {
     // In non-mock mode, clear through Game.ClearFunctions

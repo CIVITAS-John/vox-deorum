@@ -123,7 +123,7 @@ describe('Lua Service', () => {
    * Function Listing Tests
    */
   describe('GET /lua/functions - List available Lua functions', () => {
-    beforeEach(async () => {
+    beforeAll(async () => {
       // Register test functions for both mock and real DLL
       await registerLuaFunction(app, 'TestFunction1', 'Test function 1', true,
         `local function testfunction1(args) return "Test function 1" end
