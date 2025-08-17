@@ -47,27 +47,67 @@ Created a comprehensive system for Lua code to register callable functions with 
 **Usage Pattern:**
 Lua scripts can register functions that external services can invoke, enabling dynamic gameplay extensions without modifying core game code. The system handles parameter passing and return value conversion between Lua and JSON formats.
 
-### Stage 7: Lua Function Calling Implementation (In Progress)
-Implementing the ability for the Bridge Service to call registered Lua functions through the Named Pipe connection, following the protocol specifications in PROTOCOL.md.
+### Stage 7: Lua Function Calling Implementation ✓
+Implemented the ability for the Bridge Service to call registered Lua functions through the Named Pipe connection, following the protocol specifications in PROTOCOL.md.
 
-**Objectives:**
+**Achievements:**
 - Process incoming lua_call messages from the Bridge Service
 - Retrieve and execute registered Lua functions by name
 - Marshal JSON parameters to Lua and convert Lua return values to JSON
 - Send structured lua_response messages back with results or errors
+- Thread-safe execution within game's Lua context
 
 **Implementation Details:**
-- CvConnectionService::ProcessLuaCall() method to handle lua_call message type
+- CvConnectionService::ProcessLuaCall() method handles lua_call message type
 - Parameter conversion from JSON array to Lua stack arguments
 - Support for multiple return values from Lua functions
-- Error handling for missing functions or execution failures
-- Thread-safe execution within game's Lua context
+- Comprehensive error handling for missing functions or execution failures
+- Proper synchronization with game's Lua execution context
 
 **Protocol Compliance:**
 - Incoming: `{"type": "lua_call", "id": "...", "payload": {"function": "name", "args": [...]}}`
 - Outgoing: `{"type": "lua_response", "id": "...", "payload": {"success": true/false, "result": value/error}}`
 
 This stage completes the bidirectional Lua integration, allowing external services to invoke game logic dynamically through registered functions.
+
+### Stage 8: Game Event Forwarding via LuaSupport::CallHook (Planned)
+Implementing automatic forwarding of game events from the DLL to the Bridge Service by intercepting calls to LuaSupport::CallHook. This enables external services to monitor game events in real-time via Server-Sent Events (SSE) without requiring manual event registration in Lua scripts.
+
+**Objectives:**
+- Intercept all game events flowing through LuaSupport::CallHook
+- Forward event data to Bridge Service via Named Pipe connection
+- Maintain minimal performance impact on game execution
+- Follow the protocol defined in PROTOCOL.md
+
+**Technical Approach:**
+
+**Hook Integration:**
+- Modify LuaSupport::CallHook to forward events to CvConnectionService
+- Non-blocking event forwarding to avoid game performance impact
+- Preserve existing Lua hook functionality
+
+**Event Processing:**
+- CvConnectionService::ForwardGameEvent() method for event handling
+- Extract ICvEngineScriptSystemArgs1 arguments to JSON payload
+- Timestamp each event for chronological ordering
+- Queue-based async message delivery
+
+**Event Filtering System:**
+- Blacklist configuration for selective forwarding, default for high-frequency events (GameCoreUpdateBegin/End)
+
+**Protocol Messages:**
+- Outgoing: `{"type": "game_event", "event": "name", "timestamp": "...", "payload": {...}}`
+
+**Performance Considerations:**
+- Non-blocking message queue for event delivery
+- Minimal processing in CallHook to avoid frame drops
+- Fixed-size event payload buffers (2KB limit), reuse every time
+
+**Risk Mitigation:**
+- Wrap all event forwarding in exception handlers
+- No modification to existing Lua hook behavior
+
+This stage enables real-time game state monitoring for AI agents and external analytics systems while maintaining game stability and performance.
 
 ## Technical Constraints & Solutions
 
