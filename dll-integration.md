@@ -93,7 +93,7 @@ Implementing automatic forwarding of game events from the DLL to the Bridge Serv
 - Queue-based async message delivery
 
 **Event Filtering System:**
-- Blacklist configuration for selective forwarding, default for high-frequency events (GameCoreUpdateBegin/End)
+- A simple blacklist array for filtering out high-frequency events (GameCoreUpdateBegin/End)
 
 **Protocol Messages:**
 - Outgoing: `{"type": "game_event", "event": "name", "timestamp": "...", "payload": {...}}`
