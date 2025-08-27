@@ -95,16 +95,16 @@ Each component contains its own README with specific development instructions:
 ## Project Structure
 
 ```
-vox-populi-ai/
-├── community-patch-dll/    # Community Patch DLL submodule
+vox-deorum/
+├── civ5-dll/              # Community Patch DLL submodule
 ├── civ5-mod/              # Civilization V mod with Lua scripts
-├── bridge-service/         # Communication bridge and REST API with SSE
+├── bridge-service/        # Communication bridge and REST API with SSE
 ├── mcp-server/            # Game state MCP server
 ├── mcp-client/            # LLM agent MCP client
 ├── docs/                  # Documentation
 ├── scripts/               # Utility scripts
-├── CLAUDE.md             # Claude Code guidance
-└── README.md             # This file
+├── CLAUDE.md              # Claude Code guidance
+└── README.md              # This file
 ```
 
 ## Contributing
@@ -118,5 +118,8 @@ vox-populi-ai/
 ## License
 
 Author: John Chen (with assistance from Claude Code).
+Lecturer, University of Arizona, College of Information Science
+Different licenses are used for submodules:
 
-[License information to be added]
+- `civ5-dll` - GPL 3.0 (following the upstream license)
+- `bridge-service`, `mcp-client`, `mcp-server` - CC BY-NC-SA 4.0
