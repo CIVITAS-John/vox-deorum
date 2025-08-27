@@ -70,44 +70,57 @@ Implemented the ability for the Bridge Service to call registered Lua functions 
 
 This stage completes the bidirectional Lua integration, allowing external services to invoke game logic dynamically through registered functions.
 
-### Stage 8: Game Event Forwarding via LuaSupport::CallHook (Planned)
-Implementing automatic forwarding of game events from the DLL to the Bridge Service by intercepting calls to LuaSupport::CallHook. This enables external services to monitor game events in real-time via Server-Sent Events (SSE) without requiring manual event registration in Lua scripts.
+### Stage 8: Game Event Forwarding via LuaSupport::CallHook ✓
+Implemented automatic forwarding of game events from the DLL to the Bridge Service by intercepting LuaSupport::CallHook. External services can now monitor game events in real-time via Server-Sent Events (SSE).
+
+**Achievements:**
+- Intercept and forward all game events through CallHook
+- Non-blocking event forwarding with minimal performance impact
+- Event filtering system to exclude high-frequency events
+- Structured game_event messages with timestamps and payloads
+- Fixed-size event buffers (2KB) for memory efficiency
+
+**Protocol Compliance:**
+- Outgoing: `{"type": "game_event", "event": "name", "timestamp": "...", "payload": {...}}`
+
+### Stage 9: External Function Call System (Planned)
+Enable Lua scripts to call external functions registered through the Bridge Service, allowing the game to invoke AI services, external analytics, or other HTTP endpoints directly from Lua code.
 
 **Objectives:**
-- Intercept all game events flowing through LuaSupport::CallHook
-- Forward event data to Bridge Service via Named Pipe connection
-- Maintain minimal performance impact on game execution
-- Follow the protocol defined in PROTOCOL.md
+- Process external function registration/unregistration from Bridge Service
+- Provide Game.CallExternal() API for Lua scripts
+- Support both synchronous and asynchronous call patterns
+- Handle responses and errors from external services
 
 **Technical Approach:**
 
-**Hook Integration:**
-- Modify LuaSupport::CallHook to forward events to CvConnectionService
-- Non-blocking event forwarding to avoid game performance impact
-- Preserve existing Lua hook functionality
+**External Function Registry:**
+- CvConnectionService maintains map of registered external functions
+- Process external_register/external_unregister messages from Bridge
+- Track async flag per function for proper call handling
 
-**Event Processing:**
-- CvConnectionService::ForwardGameEvent() method for event handling
-- Extract ICvEngineScriptSystemArgs1 arguments to JSON payload
-- Timestamp each event for chronological ordering
-- Queue-based async message delivery
+**Lua API Implementation:**
+- Game.CallExternal(name, args) for synchronous calls
+- Game.CallExternalAsync(name, args, callback) for async calls
+- Marshal Lua arguments to JSON and convert responses back
 
-**Event Filtering System:**
-- A simple blacklist array for filtering out high-frequency events (GameCoreUpdateBegin/End)
+**Message Flow:**
+- Send external_call messages with unique IDs to Bridge
+- Synchronous calls block with Windows event objects until response
+- Async callbacks stored in Lua registry and invoked on response
+- Handle external_response messages with result or error
 
 **Protocol Messages:**
-- Outgoing: `{"type": "game_event", "event": "name", "timestamp": "...", "payload": {...}}`
+- Incoming: `{"type": "external_register", "name": "...", "async": true/false}`
+- Outgoing: `{"type": "external_call", "id": "...", "function": "...", "args": {...}}`
+- Incoming: `{"type": "external_response", "id": "...", "success": true/false, "result": {...}}`
 
-**Performance Considerations:**
-- Non-blocking message queue for event delivery
-- Minimal processing in CallHook to avoid frame drops
-- Fixed-size event payload buffers (2KB limit), reuse every time
+**Error Handling:**
+- Configurable timeout (default 5 seconds)
+- Graceful failure when Bridge unavailable
+- Clear error propagation to Lua context
 
-**Risk Mitigation:**
-- Wrap all event forwarding in exception handlers
-- No modification to existing Lua hook behavior
-
-This stage enables real-time game state monitoring for AI agents and external analytics systems while maintaining game stability and performance.
+This stage completes the bidirectional external service integration, enabling Lua scripts to leverage AI capabilities and external processing.
 
 ## Technical Constraints & Solutions
 

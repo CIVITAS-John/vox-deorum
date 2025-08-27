@@ -21,6 +21,7 @@ Each component has its own README with specific setup instructions.
 - To debug the building process, the log exists in `clang-output/Debug/build.log`.
 2. **Civ5 Mod** (`civ5-mod/`) - Lua scripts for Civilization V integration with game events
 3. **Bridge Service** (`bridge-service/`) - Communication wrapper between DLL and external services via JSON/REST+SSE API
+- Always follow the protocol.md when designing or implementing cross-module communications.
 4. **MCP Server** (`mcp-server/`) - Exposes game state as resources, talks to Bridge Service
 5. **MCP Client** (`mcp-client/`) - Produces strategies with LLM agents, talks to both Bridge Service and MCP Server
 
