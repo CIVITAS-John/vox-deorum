@@ -25,6 +25,14 @@ import { TEST_PORTS, TEST_URLS, TEST_TIMEOUTS } from '../test-utils/constants.js
 describe('External Routes', () => {
   const testServer = new TestServer();
   let mockExternalService = new MockExternalService(TEST_PORTS.MOCK_EXTERNAL_SERVICE);
+  const sentMessages: any[] = [];
+
+  // Capture messages sent to DLL
+  const captureHandler = (data: any) => {
+    if (data.type === 'external_register' || data.type === 'external_unregister') {
+      sentMessages.push(data);
+    }
+  };
 
   // Setup and teardown
   beforeAll(async () => {
@@ -33,9 +41,15 @@ describe('External Routes', () => {
     
     // Start the test server
     await testServer.start(app, config.rest.port, config.rest.host);
+    
+    // Listen for messages sent to DLL
+    dllConnector.on('ipc_send', captureHandler);
   });
 
   afterAll(async () => {
+    // Remove listener
+    dllConnector.off('ipc_send', captureHandler);
+    
     // Close the test server
     await testServer.stop();
     
@@ -45,6 +59,8 @@ describe('External Routes', () => {
 
   beforeEach(() => {
     mockExternalService.reset();
+    // Clear captured messages
+    sentMessages.length = 0;
   });
 
   /**
@@ -56,7 +72,7 @@ describe('External Routes', () => {
       await cleanupAllExternalFunctions(app);
     });
 
-    it('should register a valid external function', async () => {
+    it('should register a valid external function and send message to DLL', async () => {
       const registration: ExternalFunctionRegistration = {
         name: 'testFunction',
         url: TEST_URLS.MOCK_SERVICE,
@@ -71,6 +87,18 @@ describe('External Routes', () => {
         .expect(200);
 
       expectSuccessResponse(response);
+      
+      // Wait for message to be sent
+      await delay(100);
+
+      // Verify external_register message was sent to DLL
+      const registerMsg = sentMessages.find(msg => 
+        msg.type === 'external_register' && msg.name === 'testFunction'
+      );
+      
+      expect(registerMsg).toBeDefined();
+      expect(registerMsg.name).toBe('testFunction');
+      expect(registerMsg.async).toBe(true);
       
       // Verify function is registered
       const functionsResponse = await request(app)
@@ -165,12 +193,23 @@ describe('External Routes', () => {
       await cleanupAllExternalFunctions(app);
     });
 
-    it('should unregister an existing function', async () => {
+    it('should unregister an existing function and send message to DLL', async () => {
       const response = await request(app)
         .delete('/external/register/functionToDelete')
         .expect(200);
 
       expectSuccessResponse(response);
+
+      // Wait for message to be sent
+      await delay(100);
+
+      // Verify external_unregister message was sent to DLL
+      const unregisterMsg = sentMessages.find(msg => 
+        msg.type === 'external_unregister' && msg.name === 'functionToDelete'
+      );
+      
+      expect(unregisterMsg).toBeDefined();
+      expect(unregisterMsg.name).toBe('functionToDelete');
 
       // Verify function is unregistered
       const functionsResponse = await request(app)

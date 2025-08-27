@@ -16,7 +16,9 @@
       "Bash(git submodule:*)",
       "Bash(find:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(echo $OS)",
+      "Bash(python:*)"
     ],
     "deny": [
       "Read(civ5-dll/(1) Community Patch/**)",
