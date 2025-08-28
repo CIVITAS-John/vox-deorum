@@ -102,7 +102,7 @@ Enable Lua scripts to call external functions registered through the Bridge Serv
 - IsExternalFunctionRegistered provides safe registry queries
 
 **Lua API Implementation:**
-- `Game.CallExternal(name, args, [callback])` - Call external function with optional async callback
+- `Game.CallExternal(name, args, [callback])` - Call external function with optional async callback. In Sync mode, will return the result or nil if failed.
 - `Game.IsExternalRegistered(name)` - Check if external function is available
 - Automatic detection of async calls based on callback presence
 - Lua registry references maintain callback persistence across async operations

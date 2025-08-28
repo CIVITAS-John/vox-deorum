@@ -172,13 +172,18 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 3. **Bridge → DLL (Named Pipe)**
    ```json
-   {"type": "external_register", "name": "AnalyzeThreat", "async": true}
+   {"type": "external_register", "name": "AnalyzeThreat"}
    ```
 
 4. **DLL creates Lua binding**
    ```lua
    if Game.IsExternalRegistered("AnalyzeThreat") then
       Game.CallExternal("AnalyzeThreat", args, callback)
+   ```
+   Or, for sync mode:
+   ```lua
+   if Game.IsExternalRegistered("AnalyzeThreat") then
+      print(Game.CallExternal("AnalyzeThreat", args))
    ```
 
 #### Function Unregistration

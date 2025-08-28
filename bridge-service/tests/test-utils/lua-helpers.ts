@@ -24,7 +24,7 @@ export async function registerLuaFunction(
 ): Promise<boolean> {
   if (USE_MOCK) {
     // In mock mode, add the function to mock DLL
-    globalMockDLL.addLuaFunction(functionName, () => expected, shouldSucceed);
+    globalMockDLL!.addLuaFunction(functionName, () => expected, shouldSucceed);
     luaManager.registerFunction(functionName, functionName);
     return true;
   } else {
