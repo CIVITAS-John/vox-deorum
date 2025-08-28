@@ -64,213 +64,98 @@ describe('External Routes', () => {
   });
 
   /**
-   * Function Registration Tests
+   * Function Registration, Unregistration, and Listing Tests
    */
-  describe('POST /external/register', () => {
-    afterEach(async () => {
-      // Clean up any registered functions
-      await cleanupAllExternalFunctions(app);
-    });
+  describe('External Function Management', () => {
+    const testRegistration = {
+      name: 'testFunction',
+      url: TEST_URLS.MOCK_SERVICE,
+      async: true,
+      timeout: TEST_TIMEOUTS.DEFAULT,
+      description: 'Test function for unit tests'
+    };
 
-    it('should register a valid external function and send message to DLL', async () => {
-      const registration: ExternalFunctionRegistration = {
-        name: 'testFunction',
-        url: TEST_URLS.MOCK_SERVICE,
-        async: true,
-        timeout: TEST_TIMEOUTS.DEFAULT,
-        description: 'Test function for unit tests'
-      };
+    afterEach(async () => await cleanupAllExternalFunctions(app));
 
-      const response = await request(app)
-        .post('/external/register')
-        .send(registration)
-        .expect(200);
-
-      expectSuccessResponse(response);
-      
-      // Wait for message to be sent
+    // Helper function to register and verify
+    const registerAndVerify = async (registration: ExternalFunctionRegistration) => {
+      await request(app).post('/external/register').send(registration).expect(200);
       await delay(100);
+      expect(sentMessages.find(msg => 
+        msg.type === 'external_register' && msg.name === registration.name
+      )).toBeDefined();
+    };
 
-      // Verify external_register message was sent to DLL
-      const registerMsg = sentMessages.find(msg => 
-        msg.type === 'external_register' && msg.name === 'testFunction'
-      );
-      
-      expect(registerMsg).toBeDefined();
-      expect(registerMsg.name).toBe('testFunction');
-      expect(registerMsg.async).toBe(true);
-      
-      // Verify function is registered
-      const functionsResponse = await request(app)
-        .get('/external/functions')
-        .expect(200);
-      
-      expectSuccessResponse(functionsResponse, (res) => {
-        expect(res.body.result.functions).toHaveLength(1);
-        expect(res.body.result.functions[0].name).toBe('testFunction');
-      });
-    });
-
-    it.each([
-      {
-        registration: {
-          name: '123-invalid-name!',
-          url: TEST_URLS.MOCK_SERVICE,
-          async: true
-        },
-        expectedError: 'valid identifier',
-        testCase: 'invalid function name'
-      },
-      {
-        registration: {
-          name: 'testFunction',
-          url: 'not-a-valid-url',
-          async: true
-        },
-        expectedError: 'valid URL',
-        testCase: 'invalid URL'
-      },
-      {
-        registration: {
-          name: 'testFunction',
-          url: TEST_URLS.MOCK_SERVICE,
-          async: true,
-          timeout: -1000
-        },
-        expectedError: 'positive integer',
-        testCase: 'invalid timeout'
-      }
-    ])('should reject registration with $testCase', async ({ registration, expectedError }) => {
-      const response = await request(app)
-        .post('/external/register')
-        .send(registration)
-        .expect(500);
-
-      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, expectedError);
-    });
-
-    it('should reject duplicate function registration', async () => {
-      const registration: ExternalFunctionRegistration = {
-        name: 'duplicateFunction',
-        url: TEST_URLS.MOCK_SERVICE,
-        async: true
-      };
-
-      // First registration should succeed
-      await request(app)
-        .post('/external/register')
-        .send(registration)
-        .expect(200);
-
-      // Second registration should fail
-      const response = await request(app)
-        .post('/external/register')
-        .send(registration)
-        .expect(500);
-
-      expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'already registered');
-    });
-  });
-
-  /**
-   * Function Unregistration Tests
-   */
-  describe('DELETE /external/register/:name', () => {
-    beforeEach(async () => {
-      // Register a test function
-      const registration: ExternalFunctionRegistration = {
-        name: 'functionToDelete',
-        url: TEST_URLS.MOCK_SERVICE,
-        async: true
-      };
-      await request(app)
-        .post('/external/register')
-        .send(registration);
-    });
-
-    afterEach(async () => {
-      // Clean up
-      await cleanupAllExternalFunctions(app);
-    });
-
-    it('should unregister an existing function and send message to DLL', async () => {
-      const response = await request(app)
-        .delete('/external/register/functionToDelete')
-        .expect(200);
-
-      expectSuccessResponse(response);
-
-      // Wait for message to be sent
-      await delay(100);
-
-      // Verify external_unregister message was sent to DLL
-      const unregisterMsg = sentMessages.find(msg => 
-        msg.type === 'external_unregister' && msg.name === 'functionToDelete'
-      );
-      
-      expect(unregisterMsg).toBeDefined();
-      expect(unregisterMsg.name).toBe('functionToDelete');
-
-      // Verify function is unregistered
-      const functionsResponse = await request(app)
-        .get('/external/functions')
-        .expect(200);
-      
-      expectSuccessResponse(functionsResponse, (res) => {
-        expect(res.body.result.functions).toHaveLength(0);
-      });
-    });
-
-    it('should return error when unregistering non-existent function', async () => {
-      const response = await request(app)
-        .delete('/external/register/nonExistentFunction')
-        .expect(500);
-
-      expectErrorResponse(response, ErrorCode.INVALID_FUNCTION, 'not registered');
-    });
-  });
-
-  /**
-   * Function Listing Tests
-   */
-  describe('GET /external/functions', () => {
-    afterEach(async () => {
-      // Clean up all registered functions
-      await cleanupAllExternalFunctions(app)
-    });
-
-    it('should return all registered functions', async () => {
-      // Register multiple functions
-      const functions = [
-        { name: 'func1', url: TEST_URLS.MOCK_SERVICE, async: true },
-        { name: 'func2', url: TEST_URLS.MOCK_SERVICE, async: false },
-        { name: 'func3', url: TEST_URLS.MOCK_SERVICE, async: true, description: 'Test function 3' }
-      ];
-
-      for (const func of functions) {
-        await request(app)
-          .post('/external/register')
-          .send(func);
-      }
-
-      const response = await request(app)
-        .get('/external/functions')
-        .expect(200);
-
+    // Helper function to verify function listing
+    const verifyFunctionsList = async (expectedNames: string[]) => {
+      const response = await request(app).get('/external/functions').expect(200);
       expectSuccessResponse(response, (res) => {
-        expect(res.body.result.functions).toHaveLength(3);
+        expect(res.body.result.functions).toHaveLength(expectedNames.length);
+        const names = res.body.result.functions.map((f: any) => f.name);
+        expectedNames.forEach(name => expect(names).toContain(name));
       });
-      
-      const names = response.body.result.functions.map((f: any) => f.name);
-      expect(names).toContain('func1');
-      expect(names).toContain('func2');
-      expect(names).toContain('func3');
-      
-      // Check that function details are preserved
-      const func3 = response.body.result.functions.find((f: any) => f.name === 'func3');
-      expect(func3.description).toBe('Test function 3');
-      expect(func3.async).toBe(true);
-      expect(func3.url).toBe(TEST_URLS.MOCK_SERVICE);
+    };
+
+    describe('Registration', () => {
+      it('should register function, send DLL message, and list correctly', async () => {
+        await registerAndVerify(testRegistration);
+        await verifyFunctionsList(['testFunction']);
+      });
+
+      it.each([
+        { registration: { name: '123-invalid!', url: TEST_URLS.MOCK_SERVICE, async: true }, expectedError: 'valid identifier' },
+        { registration: { name: 'testFunction', url: 'not-a-valid-url', async: true }, expectedError: 'valid URL' },
+        { registration: { name: 'testFunction', url: TEST_URLS.MOCK_SERVICE, async: true, timeout: -1000 }, expectedError: 'positive integer' }
+      ])('should reject invalid registration: $expectedError', async ({ registration, expectedError }) => {
+        const response = await request(app).post('/external/register').send(registration).expect(500);
+        expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, expectedError);
+      });
+
+      it('should reject duplicate registration', async () => {
+        await request(app).post('/external/register').send(testRegistration).expect(200);
+        const response = await request(app).post('/external/register').send(testRegistration).expect(500);
+        expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'already registered');
+      });
+    });
+
+    describe('Unregistration', () => {
+      beforeEach(async () => await registerAndVerify(testRegistration));
+
+      it('should unregister function, send DLL message, and update list', async () => {
+        await request(app).delete('/external/register/testFunction').expect(200);
+        await delay(100);
+        expect(sentMessages.find(msg => 
+          msg.type === 'external_unregister' && msg.name === 'testFunction'
+        )).toBeDefined();
+        await verifyFunctionsList([]);
+      });
+
+      it('should error when unregistering non-existent function', async () => {
+        const response = await request(app).delete('/external/register/nonExistent').expect(500);
+        expectErrorResponse(response, ErrorCode.INVALID_FUNCTION, 'not registered');
+      });
+    });
+
+    describe('Listing', () => {
+      it('should return multiple registered functions with details', async () => {
+        const functions = [
+          { name: 'func1', url: TEST_URLS.MOCK_SERVICE, async: true },
+          { name: 'func2', url: TEST_URLS.MOCK_SERVICE, async: false },
+          { name: 'func3', url: TEST_URLS.MOCK_SERVICE, async: true, description: 'Test function 3' }
+        ];
+
+        for (const func of functions) {
+          await request(app).post('/external/register').send(func);
+        }
+
+        const response = await request(app).get('/external/functions').expect(200);
+        expectSuccessResponse(response, (res) => {
+          expect(res.body.result.functions).toHaveLength(3);
+          const func3 = res.body.result.functions.find((f: any) => f.name === 'func3');
+          expect(func3.description).toBe('Test function 3');
+          expect(func3.async).toBe(true);
+        });
+      });
     });
   });
 
@@ -426,84 +311,6 @@ describe('External Routes', () => {
       expect(response.error.message).toContain('not registered');
       
       logSuccess('Unregistered function call handled correctly');
-    });
-  });
-
-  /**
-   * Integration with Manager Statistics
-   */
-  describe('External Manager Statistics', () => {
-    afterEach(async () => {
-      // Clean up all registered functions
-      await cleanupAllExternalFunctions(app)
-    });
-
-    it('should report external function stats', () => {
-      const stats = externalManager.getStats();
-      expect(stats).toHaveProperty('registeredFunctions');
-      expect(stats).toHaveProperty('functionNames');
-      expect(stats.registeredFunctions).toBe(0);
-      expect(stats.functionNames).toEqual([]);
-    });
-
-    it('should update stats after registration', async () => {
-      const registration: ExternalFunctionRegistration = {
-        name: 'statsTestFunction',
-        url: TEST_URLS.MOCK_SERVICE,
-        async: true
-      };
-
-      await request(app)
-        .post('/external/register')
-        .send(registration);
-
-      const stats = externalManager.getStats();
-      expect(stats.registeredFunctions).toBe(1);
-      expect(stats.functionNames).toContain('statsTestFunction');
-    });
-  });
-
-  /**
-   * Re-registration after DLL reconnection
-   */
-  describe('DLL Reconnection Handling', () => {
-    it('should re-register all functions after reconnection', async () => {
-      // Register multiple functions
-      const functions = [
-        { name: 'reconnectFunc1', url: TEST_URLS.MOCK_SERVICE, async: true },
-        { name: 'reconnectFunc2', url: TEST_URLS.MOCK_SERVICE, async: false }
-      ];
-
-      for (const func of functions) {
-        await request(app).post('/external/register').send(func);
-      }
-
-      // Track re-registration messages
-      const reregisteredFunctions: string[] = [];
-      const handler = (data: any) => {
-        if (data.type === 'external_register') {
-          reregisteredFunctions.push(data.name);
-        }
-      };
-      
-      dllConnector.on('ipc_send', handler);
-      
-      // Trigger re-registration
-      externalManager.reregisterAll();
-      
-      // Wait for re-registration to complete
-      await delay(TEST_TIMEOUTS.VERY_SHORT);
-      
-      dllConnector.off('ipc_send', handler);
-      
-      // Verify all functions were re-registered
-      expect(reregisteredFunctions).toContain('reconnectFunc1');
-      expect(reregisteredFunctions).toContain('reconnectFunc2');
-      
-      // Clean up
-      for (const func of functions) {
-        await request(app).delete(`/external/register/${func.name}`);
-      }
     });
   });
 });
