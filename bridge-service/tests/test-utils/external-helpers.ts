@@ -64,9 +64,8 @@ export function generateExternalCallScript(
     // Asynchronous call with callback
     return `
       -- Trigger asynchronous external function call
-      local Bridge = Bridge or {}
-      if Bridge.IsExternalRegistered and Bridge.IsExternalRegistered("${functionName}") then
-        Bridge.CallExternalAsync("${functionName}", "${argsJson}", "${callId}")
+      if Game.IsExternalRegistered and Game.IsExternalRegistered("${functionName}") then
+        Game.CallExternalAsync("${functionName}", "${argsJson}", "${callId}")
         return {success = true, message = "Async call initiated"}
       else
         return {success = false, error = "Function not registered"}
@@ -75,14 +74,9 @@ export function generateExternalCallScript(
   } else {
     // Synchronous call
     return `
-      -- Trigger synchronous external function call  
-      local Bridge = Bridge or {}
-      if Bridge.IsExternalRegistered and Bridge.IsExternalRegistered("${functionName}") then
-        local result = Bridge.CallExternalSync("${functionName}", "${argsJson}", "${callId}")
-        return result
-      else
-        return {success = false, error = "Function not registered"}
-      end
+      -- Trigger synchronous external function call
+      local result = Game.CallExternalSync("${functionName}", "${argsJson}", "${callId}")
+      return result
     `;
   }
 }

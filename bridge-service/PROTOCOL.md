@@ -261,7 +261,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 2. **Lua Environment → DLL**
    ```lua
-   Bridge.SendEvent("turnStart", {...})
+   Game.SendEvent("turnStart", {...})
    ```
    (Called from game event handlers)
 

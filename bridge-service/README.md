@@ -321,7 +321,7 @@ end
 
 -- Send events to external services
 Events.ActivePlayerTurnStart.Add(function()
-  Bridge.SendEvent("turnStart", {
+  Game.SendEvent("turnStart", {
     player = Game.GetActivePlayer(),
     turn = Game.GetGameTurn(),
     year = Game.GetGameTurnYear()
@@ -329,7 +329,7 @@ Events.ActivePlayerTurnStart.Add(function()
 end)
 
 -- Register Lua functions for external calling
-Bridge.RegisterFunction("GetGameState", function()
+Game.RegisterFunction("GetGameState", function()
   return {
     turn = Game.GetGameTurn(),
     player = Game.GetActivePlayer(),
@@ -338,7 +338,7 @@ Bridge.RegisterFunction("GetGameState", function()
   }
 end)
 
-Bridge.RegisterFunction("MoveUnit", function(unitId, x, y)
+Game.RegisterFunction("MoveUnit", function(unitId, x, y)
   local unit = GetUnitByID(unitId)
   if unit then
     unit:MoveToPlot(x, y)

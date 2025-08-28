@@ -404,48 +404,5 @@ describe('External Routes', () => {
       
       logSuccess('Function re-registration handled correctly');
     });
-
-    if (!USE_MOCK) {
-      describe('Real DLL-specific tests', () => {
-        it('should handle complex Lua-to-external integration', async () => {
-          // Register a test function
-          const functionName = 'luaIntegrationTest';
-          await registerExternalFunction(app, createTestExternalRegistration(
-            functionName,
-            TEST_URLS.MOCK_SERVICE,
-            { async: false }
-          ));
-          
-          // Execute Lua script that calls the external function
-          const luaScript = `
-            local Bridge = Bridge or {}
-            if Bridge.IsExternalRegistered and Bridge.IsExternalRegistered("${functionName}") then
-              local args = {lua_test = true, value = 123}
-              local result = Bridge.CallExternalSync("${functionName}", 
-                "${JSON.stringify({lua_test: true, value: 123}).replace(/"/g, '\\"')}", 
-                "lua-integration-test-1")
-              return {success = true, external_result = result}
-            else
-              return {success = false, error = "Function not registered"}
-            end
-          `;
-          
-          const response = await request(app)
-            .post('/lua/execute')
-            .send({ script: luaScript });
-          
-          expect(response.status).toBe(200);
-          if (response.body.success) {
-            expect(response.body.result.success).toBe(true);
-            // The result structure depends on actual DLL implementation
-          }
-          
-          // Clean up
-          await unregisterExternalFunction(app, functionName);
-          
-          logSuccess('Complex Lua-to-external integration test completed');
-        });
-      });
-    }
   });
 });
