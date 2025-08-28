@@ -177,7 +177,8 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 4. **DLL creates Lua binding**
    ```lua
-   Game.CallExternal("AnalyzeThreat", args, callback)
+   if Game.IsExternalRegistered("AnalyzeThreat") then
+      Game.CallExternal("AnalyzeThreat", args, callback)
    ```
 
 #### Function Unregistration

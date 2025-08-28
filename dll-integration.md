@@ -83,44 +83,66 @@ Implemented automatic forwarding of game events from the DLL to the Bridge Servi
 **Protocol Compliance:**
 - Outgoing: `{"type": "game_event", "event": "name", "timestamp": "...", "payload": {...}}`
 
-### Stage 9: External Function Call System (Planned)
+### Stage 9: External Function Call System ✓
 Enable Lua scripts to call external functions registered through the Bridge Service, allowing the game to invoke AI services, external analytics, or other HTTP endpoints directly from Lua code.
 
-**Objectives:**
-- Process external function registration/unregistration from Bridge Service
-- Provide Game.CallExternal() API for Lua scripts
-- Support both synchronous and asynchronous call patterns
-- Handle responses and errors from external services
+**Achievements:**
+- Implemented Game.CallExternal() and Game.IsExternalRegistered() Lua APIs
+- Process external_register/external_unregister messages from Bridge Service
+- Support for both synchronous and asynchronous call patterns with callbacks
+- Full JSON marshaling between Lua arguments and external service responses
+- Thread-safe external function registry with proper lifecycle management
 
-**Technical Approach:**
+**Implementation Details:**
 
 **External Function Registry:**
-- CvConnectionService maintains map of registered external functions
-- Process external_register/external_unregister messages from Bridge
-- Track async flag per function for proper call handling
+- CvConnectionService maintains std::map of registered external functions
+- EnterCriticalSection/LeaveCriticalSection ensures thread safety
+- RegisterExternalFunction/UnregisterExternalFunction handle Bridge notifications
+- IsExternalFunctionRegistered provides safe registry queries
 
 **Lua API Implementation:**
-- Game.CallExternal(name, args) for synchronous calls
-- Game.CallExternalAsync(name, args, callback) for async calls
-- Marshal Lua arguments to JSON and convert responses back
+- `Game.CallExternal(name, args, [callback])` - Call external function with optional async callback
+- `Game.IsExternalRegistered(name)` - Check if external function is available
+- Automatic detection of async calls based on callback presence
+- Lua registry references maintain callback persistence across async operations
 
-**Message Flow:**
-- Send external_call messages with unique IDs to Bridge
-- Synchronous calls block with Windows event objects until response
-- Async callbacks stored in Lua registry and invoked on response
-- Handle external_response messages with result or error
+**Message Processing:**
+- Unique call IDs generated using thread ID, tick count, and counter
+- PendingExternalCall structure tracks in-flight async calls
+- external_call messages sent with proper JSON serialization of Lua arguments
+- external_response messages parsed and results converted back to Lua values
 
-**Protocol Messages:**
+**Protocol Compliance:**
 - Incoming: `{"type": "external_register", "name": "...", "async": true/false}`
 - Outgoing: `{"type": "external_call", "id": "...", "function": "...", "args": {...}}`
 - Incoming: `{"type": "external_response", "id": "...", "success": true/false, "result": {...}}`
 
 **Error Handling:**
-- Configurable timeout (default 5 seconds)
-- Graceful failure when Bridge unavailable
-- Clear error propagation to Lua context
+- Validation ensures function is registered before calling
+- Graceful degradation when Bridge Service unavailable
+- Clear error messages propagated to Lua callbacks
+- Memory-safe callback cleanup with proper reference management
 
-This stage completes the bidirectional external service integration, enabling Lua scripts to leverage AI capabilities and external processing.
+**Usage Example:**
+```lua
+-- Check if external function is registered
+if Game.IsExternalRegistered("AnalyzeThreat") then
+    -- Async call with callback
+    Game.CallExternal("AnalyzeThreat", 
+        {unitId = 5, playerId = 1}, 
+        function(success, result)
+            if success then
+                print("Threat level: " .. result.threatLevel)
+            else
+                print("Analysis failed: " .. result)
+            end
+        end
+    )
+end
+```
+
+This stage completes the bidirectional external service integration, enabling Lua scripts to leverage AI capabilities and external processing through a clean, type-safe API.
 
 ## Technical Constraints & Solutions
 
