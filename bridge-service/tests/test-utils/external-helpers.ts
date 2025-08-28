@@ -105,14 +105,14 @@ export async function registerExternalFunction(
 export async function testExternalFunctionCall<T = any>(
   app: Application,
   functionName: string,
-  callId: string,
+  result: string,
   async: boolean = true
 ): Promise<T> {
   // Set up promise to wait for the external_response
-  const responsePromise = waitForDLLResponse<T>(dllConnector, callId, 5000);
+  const responsePromise = waitForDLLResponse<T>(dllConnector, result, 5000);
   
   // Trigger the external function call
-  await triggerExternalFunctionCall(app, functionName, callId, async);
+  await triggerExternalFunctionCall(app, functionName, result, async);
   
   // Wait for and return the response
   return await responsePromise;

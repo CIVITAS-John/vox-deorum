@@ -215,6 +215,7 @@ describe('External Routes', () => {
     afterEach(async () => {
       // Clean up
       await cleanupAllExternalFunctions(app);
+      mockExternalService.reset();
     });
 
     it('should handle synchronous external function call', async () => {
@@ -326,17 +327,16 @@ describe('External Routes', () => {
       logSuccess('Unregistered function call handled correctly');
     });
 
-    // Additional tests for real DLL mode
     it('should handle multiple concurrent external calls', async () => {
-      const arguments = ['test-concurrent-1', 'test-concurrent-2', 'test-concurrent-3'];
+      const args = ['test-concurrent-1', 'test-concurrent-2', 'test-concurrent-3'];
       const promises: Promise<any>[] = [];
       
       // Start multiple concurrent calls
-      for (let i = 0; i < arguments.length; i++) {
+      for (let i = 0; i < args.length; i++) {
         const promise = testExternalFunctionCall(
           app,
           i % 2 === 0 ? 'syncTestFunction' : 'asyncTestFunction',
-          arguments[i],
+          args[i],
           i % 2 === 1 // alternate between sync and async
         );
         promises.push(promise);
@@ -347,7 +347,7 @@ describe('External Routes', () => {
       
       // Verify all responses are successful
       responses.forEach((response, i) => {
-        verifyExternalResponse(response, arguments[i], true);
+        verifyExternalResponse(response, args[i], true);
         expect(response.result.echo).toMatchObject({ index: i, test: 'concurrent' });
       });
       
