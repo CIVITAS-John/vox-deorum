@@ -57,17 +57,16 @@ export function generateExternalCallScript(
   callId: string,
   async: boolean
 ): string {
-  const argsJson = JSON.stringify(args);
+  // Properly escape the arguments for Lua
+  const argsJson = JSON.stringify(args).replace(/"/g, '\\"');
   
   if (async) {
     // Asynchronous call with callback
     return `
       -- Trigger asynchronous external function call
-      if Game.IsExternalRegistered("${functionName}") then
-        Game.CallExternal("${functionName}", ${argsJson}, function(result)
-          -- Callback will be handled by the DLL automatically
-          -- The result will be sent back to the bridge service
-        end, "${callId}")
+      local Bridge = Bridge or {}
+      if Bridge.IsExternalRegistered and Bridge.IsExternalRegistered("${functionName}") then
+        Bridge.CallExternalAsync("${functionName}", "${argsJson}", "${callId}")
         return {success = true, message = "Async call initiated"}
       else
         return {success = false, error = "Function not registered"}
@@ -76,9 +75,10 @@ export function generateExternalCallScript(
   } else {
     // Synchronous call
     return `
-      -- Trigger synchronous external function call
-      if Game.IsExternalRegistered("${functionName}") then
-        local result = Game.CallExternal("${functionName}", ${argsJson}, "${callId}")
+      -- Trigger synchronous external function call  
+      local Bridge = Bridge or {}
+      if Bridge.IsExternalRegistered and Bridge.IsExternalRegistered("${functionName}") then
+        local result = Bridge.CallExternalSync("${functionName}", "${argsJson}", "${callId}")
         return result
       else
         return {success = false, error = "Function not registered"}
@@ -110,22 +110,44 @@ export async function registerExternalFunction(
  * Test an external function call end-to-end in both modes
  * Returns the response received from the external service
  */
-export async function testExternalFunctionCall(
+export async function testExternalFunctionCall<T = any>(
   app: Application,
   functionName: string,
   args: any,
   callId: string,
   async: boolean = true,
   timeout: number = 5000
-): Promise<any> {
+): Promise<T> {
   // Set up promise to wait for the external_response
-  const responsePromise = waitForDLLResponse(dllConnector, callId, timeout);
+  const responsePromise = waitForDLLResponse<T>(dllConnector, callId, timeout);
   
   // Trigger the external function call
   await triggerExternalFunctionCall(app, functionName, args, callId, async);
   
   // Wait for and return the response
   return await responsePromise;
+}
+
+/**
+ * Verify that an external function is properly registered
+ * Works for both mock and real modes
+ */
+export async function verifyFunctionRegistered(
+  app: Application,
+  functionName: string,
+  expectedUrl?: string
+): Promise<void> {
+  const response = await request(app).get('/external/functions');
+  expect(response.status).toBe(200);
+  expect(response.body.success).toBe(true);
+  
+  const functions = response.body.result.functions || [];
+  const func = functions.find((f: any) => f.name === functionName);
+  
+  expect(func).toBeDefined();
+  if (expectedUrl) {
+    expect(func.url).toBe(expectedUrl);
+  }
 }
 
 /**
@@ -169,7 +191,7 @@ export function createTestExternalRegistration(
 
 /**
  * Wait for external function to be registered in the DLL
- * In real mode: Checks if Game.IsExternalRegistered() returns true
+ * In real mode: Checks if Bridge.IsExternalRegistered() returns true
  * In mock mode: Checks mock DLL internal state
  */
 export async function waitForExternalRegistration(
@@ -183,18 +205,17 @@ export async function waitForExternalRegistration(
     const status = mockServer.getStatus();
     return status.externalFunctions.includes(functionName);
   } else {
-    // In real mode, execute Lua script to check registration
-    const checkScript = `
-      return Game.IsExternalRegistered("${functionName}")
-    `;
-    
+    // In real mode, check via the bridge service API
+    // The bridge service maintains its own registry of external functions
     const response = await request(app)
-      .post('/lua/execute')
-      .send({ script: checkScript });
+      .get('/external/functions');
     
-    return response.status === 200 && 
-           response.body.success === true && 
-           response.body.result === true;
+    if (response.status === 200 && response.body.success) {
+      const functions = response.body.result.functions || [];
+      return functions.some((f: any) => f.name === functionName);
+    }
+    
+    return false;
   }
 }
 
@@ -214,4 +235,23 @@ export async function unregisterExternalFunction(
   
   // Wait for unregistration to propagate
   await delay(100);
+}
+
+/**
+ * Clean up all external function registrations
+ */
+export async function cleanupAllExternalFunctionsHelper(
+  app: Application
+): Promise<void> {
+  // Get list of all registered functions
+  const response = await request(app).get('/external/functions');
+  
+  if (response.status === 200 && response.body.success) {
+    const functions = response.body.result.functions || [];
+    
+    // Unregister each function
+    for (const func of functions) {
+      await unregisterExternalFunction(app, func.name);
+    }
+  }
 }

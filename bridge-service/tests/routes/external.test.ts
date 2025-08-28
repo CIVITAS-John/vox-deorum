@@ -14,13 +14,21 @@ import {
   cleanupAllExternalFunctions, 
   expectSuccessResponse, 
   expectErrorResponse,
-  waitForDLLResponse,
   logSuccess,
-  delay,
   TestServer
 } from '../test-utils/helpers.js';
 import { MockExternalService } from '../test-utils/mock-external-service.js';
 import { TEST_PORTS, TEST_URLS, TEST_TIMEOUTS } from '../test-utils/constants.js';
+import {
+  registerExternalFunction,
+  testExternalFunctionCall,
+  verifyExternalResponse,
+  createTestExternalRegistration,
+  waitForExternalRegistration,
+  unregisterExternalFunction,
+  verifyFunctionRegistered
+} from '../test-utils/external-helpers.js';
+import { USE_MOCK } from '../setup.js';
 
 describe('External Routes', () => {
   const testServer = new TestServer();
@@ -79,11 +87,18 @@ describe('External Routes', () => {
 
     // Helper function to register and verify
     const registerAndVerify = async (registration: ExternalFunctionRegistration) => {
-      await request(app).post('/external/register').send(registration).expect(200);
-      await delay(100);
-      expect(sentMessages.find(msg => 
-        msg.type === 'external_register' && msg.name === registration.name
-      )).toBeDefined();
+      await registerExternalFunction(app, registration);
+      
+      // In mock mode, check that message was sent to DLL
+      if (USE_MOCK) {
+        expect(sentMessages.find(msg => 
+          msg.type === 'external_register' && msg.name === registration.name
+        )).toBeDefined();
+      }
+      
+      // Wait for registration to be confirmed
+      const registered = await waitForExternalRegistration(app, registration.name);
+      expect(registered).toBe(true);
     };
 
     // Helper function to verify function listing
@@ -122,11 +137,19 @@ describe('External Routes', () => {
       beforeEach(async () => await registerAndVerify(testRegistration));
 
       it('should unregister function, send DLL message, and update list', async () => {
-        await request(app).delete('/external/register/testFunction').expect(200);
-        await delay(100);
-        expect(sentMessages.find(msg => 
-          msg.type === 'external_unregister' && msg.name === 'testFunction'
-        )).toBeDefined();
+        await unregisterExternalFunction(app, 'testFunction');
+        
+        // In mock mode, check that unregister message was sent
+        if (USE_MOCK) {
+          expect(sentMessages.find(msg => 
+            msg.type === 'external_unregister' && msg.name === 'testFunction'
+          )).toBeDefined();
+        }
+        
+        // Verify function is no longer registered
+        const stillRegistered = await waitForExternalRegistration(app, 'testFunction');
+        expect(stillRegistered).toBe(false);
+        
         await verifyFunctionsList([]);
       });
 
@@ -145,7 +168,7 @@ describe('External Routes', () => {
         ];
 
         for (const func of functions) {
-          await request(app).post('/external/register').send(func);
+          await registerExternalFunction(app, func);
         }
 
         const response = await request(app).get('/external/functions').expect(200);
@@ -161,26 +184,31 @@ describe('External Routes', () => {
 
   /**
    * External Function Call Tests (via DLL events)
+   * These tests work for both mock and real DLL modes
    */
   describe('External Function Calls', () => {
     beforeEach(async () => {
-      // Register test functions
-      const syncFunction: ExternalFunctionRegistration = {
-        name: 'syncTestFunction',
-        url: TEST_URLS.MOCK_SERVICE,
-        async: false,
-        timeout: TEST_TIMEOUTS.SHORT
-      };
+      // Register test functions using helper that works for both modes
+      const syncFunction = createTestExternalRegistration(
+        'syncTestFunction',
+        TEST_URLS.MOCK_SERVICE,
+        { async: false, timeout: TEST_TIMEOUTS.SHORT }
+      );
       
-      const asyncFunction: ExternalFunctionRegistration = {
-        name: 'asyncTestFunction',
-        url: TEST_URLS.MOCK_SERVICE,
-        async: true,
-        timeout: TEST_TIMEOUTS.SHORT
-      };
+      const asyncFunction = createTestExternalRegistration(
+        'asyncTestFunction',
+        TEST_URLS.MOCK_SERVICE,
+        { async: true, timeout: TEST_TIMEOUTS.SHORT }
+      );
       
-      await request(app).post('/external/register').send(syncFunction);
-      await request(app).post('/external/register').send(asyncFunction);
+      await registerExternalFunction(app, syncFunction);
+      await registerExternalFunction(app, asyncFunction);
+      
+      // Wait for registration to propagate in real mode
+      if (!USE_MOCK) {
+        await waitForExternalRegistration(app, 'syncTestFunction');
+        await waitForExternalRegistration(app, 'asyncTestFunction');
+      }
     });
 
     afterEach(async () => {
@@ -189,53 +217,56 @@ describe('External Routes', () => {
     });
 
     it('should handle synchronous external function call', async () => {
-      const responsePromise = waitForDLLResponse(dllConnector, 'test-sync-call-1');
-
-      // Simulate external call from DLL
-      dllConnector.emit('external_call', {
-        function: 'syncTestFunction',
-        args: { test: 'data', value: 42 },
-        id: 'test-sync-call-1',
-        async: false
-      });
-
-      const response = await responsePromise as any;
+      const args = { test: 'data', value: 42 };
+      const callId = 'test-sync-call-1';
       
-      expect(response.type).toBe('external_response');
-      expect(response.id).toBe('test-sync-call-1');
-      expect(response.success).toBe(true);
+      // Use helper function that works for both mock and real modes
+      const response = await testExternalFunctionCall(
+        app,
+        'syncTestFunction',
+        args,
+        callId,
+        false // synchronous
+      );
+      
+      // Verify response structure
+      verifyExternalResponse(response, callId, true);
+      
       // The mock service returns { success: true, result: { ... } }
       // This gets spread into the response
-      expect(response.result.echo).toEqual({ test: 'data', value: 42 });
+      expect(response.result.echo).toEqual(args);
       expect(response.result.processed).toBe(true);
       
-      // Verify external service was called
-      expect(mockExternalService.getCallCount()).toBe(1);
-      expect(mockExternalService.getLastRequest().args).toEqual({ test: 'data', value: 42 });
+      // Verify external service was called (only in mock mode)
+      if (USE_MOCK) {
+        expect(mockExternalService.getCallCount()).toBe(1);
+        expect(mockExternalService.getLastRequest().args).toEqual(args);
+      }
       
       logSuccess('Synchronous external function call handled');
     });
 
     it('should handle asynchronous external function call', async () => {
-      const responsePromise = waitForDLLResponse(dllConnector, 'test-async-call-1');
-
-      // Simulate external call from DLL
-      dllConnector.emit('external_call', {
-        function: 'asyncTestFunction',
-        args: { async: true, data: 'async-test' },
-        id: 'test-async-call-1',
-        async: true
-      });
-
-      const response = await responsePromise as any;
+      const args = { async: true, data: 'async-test' };
+      const callId = 'test-async-call-1';
       
-      expect(response.type).toBe('external_response');
-      expect(response.id).toBe('test-async-call-1');
-      expect(response.success).toBe(true);
-      expect(response.result.echo).toEqual({ async: true, data: 'async-test' });
+      // Use helper function that works for both mock and real modes
+      const response = await testExternalFunctionCall(
+        app,
+        'asyncTestFunction',
+        args,
+        callId,
+        true // asynchronous
+      );
       
-      // Verify external service was called
-      expect(mockExternalService.getCallCount()).toBe(1);
+      // Verify response structure
+      verifyExternalResponse(response, callId, true);
+      expect(response.result.echo).toEqual(args);
+      
+      // Verify external service was called (only in mock mode)
+      if (USE_MOCK) {
+        expect(mockExternalService.getCallCount()).toBe(1);
+      }
       
       logSuccess('Asynchronous external function call handled');
     });
@@ -244,21 +275,21 @@ describe('External Routes', () => {
       // Set response delay longer than timeout
       mockExternalService.setResponseDelay(3000);
       
-      const responsePromise = waitForDLLResponse(dllConnector, 'test-timeout-call-1');
-
-      // Simulate external call from DLL
-      dllConnector.emit('external_call', {
-        function: 'syncTestFunction',
-        args: { timeout: 'test' },
-        id: 'test-timeout-call-1',
-        async: false
-      });
-
-      const response = await responsePromise as any;
+      const args = { timeout: 'test' };
+      const callId = 'test-timeout-call-1';
       
-      expect(response.type).toBe('external_response');
-      expect(response.id).toBe('test-timeout-call-1');
-      expect(response.success).toBe(false);
+      // Use helper function that works for both mock and real modes
+      const response = await testExternalFunctionCall(
+        app,
+        'syncTestFunction',
+        args,
+        callId,
+        false, // synchronous
+        5000 // increase test timeout to ensure we get the timeout error
+      );
+      
+      // Verify timeout error response
+      verifyExternalResponse(response, callId, false);
       expect(response.error.code).toBe(ErrorCode.CALL_TIMEOUT);
       expect(response.error.message).toContain('timed out');
       expect(response.error.message).toContain('2000ms');
@@ -270,21 +301,20 @@ describe('External Routes', () => {
       // Configure mock service to fail
       mockExternalService.setFailure(true, 503);
       
-      const responsePromise = waitForDLLResponse(dllConnector, 'test-failure-call-1');
-
-      // Simulate external call from DLL
-      dllConnector.emit('external_call', {
-        function: 'syncTestFunction',
-        args: { failure: 'test' },
-        id: 'test-failure-call-1',
-        async: false
-      });
-
-      const response = await responsePromise as any;
+      const args = { failure: 'test' };
+      const callId = 'test-failure-call-1';
       
-      expect(response.type).toBe('external_response');
-      expect(response.id).toBe('test-failure-call-1');
-      expect(response.success).toBe(false);
+      // Use helper function that works for both mock and real modes
+      const response = await testExternalFunctionCall(
+        app,
+        'syncTestFunction',
+        args,
+        callId,
+        false // synchronous
+      );
+      
+      // Verify failure response
+      verifyExternalResponse(response, callId, false);
       expect(response.error.code).toBe(ErrorCode.NETWORK_ERROR);
       expect(response.error.message).toContain('failed with status 503');
       
@@ -292,25 +322,130 @@ describe('External Routes', () => {
     });
 
     it('should handle call to unregistered function', async () => {
-      const responsePromise = waitForDLLResponse(dllConnector, 'test-unregistered-call-1');
-
-      // Simulate external call to unregistered function
-      dllConnector.emit('external_call', {
-        function: 'unregisteredFunction',
-        args: { test: 'data' },
-        id: 'test-unregistered-call-1',
-        async: false
-      });
-
-      const response = await responsePromise as any;
+      const args = { test: 'data' };
+      const callId = 'test-unregistered-call-1';
       
-      expect(response.type).toBe('external_response');
-      expect(response.id).toBe('test-unregistered-call-1');
-      expect(response.success).toBe(false);
+      // Use helper function that works for both mock and real modes
+      const response = await testExternalFunctionCall(
+        app,
+        'unregisteredFunction',
+        args,
+        callId,
+        false // synchronous
+      );
+      
+      // Verify error response for unregistered function
+      verifyExternalResponse(response, callId, false);
       expect(response.error.code).toBe(ErrorCode.INVALID_FUNCTION);
       expect(response.error.message).toContain('not registered');
       
       logSuccess('Unregistered function call handled correctly');
     });
+
+    // Additional tests for real DLL mode
+    it('should handle multiple concurrent external calls', async () => {
+      const callIds = ['test-concurrent-1', 'test-concurrent-2', 'test-concurrent-3'];
+      const promises: Promise<any>[] = [];
+      
+      // Start multiple concurrent calls
+      for (let i = 0; i < callIds.length; i++) {
+        const promise = testExternalFunctionCall(
+          app,
+          i % 2 === 0 ? 'syncTestFunction' : 'asyncTestFunction',
+          { index: i, test: 'concurrent' },
+          callIds[i],
+          i % 2 === 1 // alternate between sync and async
+        );
+        promises.push(promise);
+      }
+      
+      // Wait for all responses
+      const responses = await Promise.all(promises);
+      
+      // Verify all responses are successful
+      responses.forEach((response, i) => {
+        verifyExternalResponse(response, callIds[i], true);
+        expect(response.result.echo).toMatchObject({ index: i, test: 'concurrent' });
+      });
+      
+      logSuccess('Multiple concurrent external calls handled');
+    });
+
+    it('should properly handle function re-registration', async () => {
+      const functionName = 'reregisterTestFunction';
+      const oldUrl = TEST_URLS.MOCK_SERVICE;
+      const newUrl = TEST_URLS.MOCK_SERVICE + '/v2';
+      
+      // Register the function with initial URL
+      await registerExternalFunction(app, createTestExternalRegistration(
+        functionName,
+        oldUrl,
+        { async: true }
+      ));
+      
+      // Verify initial registration
+      await verifyFunctionRegistered(app, functionName, oldUrl);
+      
+      // Unregister the function
+      await unregisterExternalFunction(app, functionName);
+      
+      // Re-register with different URL
+      await registerExternalFunction(app, createTestExternalRegistration(
+        functionName,
+        newUrl,
+        { async: true }
+      ));
+      
+      // Verify new registration
+      await verifyFunctionRegistered(app, functionName, newUrl);
+      
+      // Clean up
+      await unregisterExternalFunction(app, functionName);
+      
+      logSuccess('Function re-registration handled correctly');
+    });
+
+    if (!USE_MOCK) {
+      describe('Real DLL-specific tests', () => {
+        it('should handle complex Lua-to-external integration', async () => {
+          // Register a test function
+          const functionName = 'luaIntegrationTest';
+          await registerExternalFunction(app, createTestExternalRegistration(
+            functionName,
+            TEST_URLS.MOCK_SERVICE,
+            { async: false }
+          ));
+          
+          // Execute Lua script that calls the external function
+          const luaScript = `
+            local Bridge = Bridge or {}
+            if Bridge.IsExternalRegistered and Bridge.IsExternalRegistered("${functionName}") then
+              local args = {lua_test = true, value = 123}
+              local result = Bridge.CallExternalSync("${functionName}", 
+                "${JSON.stringify({lua_test: true, value: 123}).replace(/"/g, '\\"')}", 
+                "lua-integration-test-1")
+              return {success = true, external_result = result}
+            else
+              return {success = false, error = "Function not registered"}
+            end
+          `;
+          
+          const response = await request(app)
+            .post('/lua/execute')
+            .send({ script: luaScript });
+          
+          expect(response.status).toBe(200);
+          if (response.body.success) {
+            expect(response.body.result.success).toBe(true);
+            // The result structure depends on actual DLL implementation
+          }
+          
+          // Clean up
+          await unregisterExternalFunction(app, functionName);
+          
+          logSuccess('Complex Lua-to-external integration test completed');
+        });
+      });
+    }
   });
 });

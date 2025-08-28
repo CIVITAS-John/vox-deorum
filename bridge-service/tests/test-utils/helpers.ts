@@ -72,12 +72,12 @@ export function waitForEvent<T = any>(
 /**
  * Wait for a DLL response with specific ID
  */
-export function waitForDLLResponse(
+export function waitForDLLResponse<T = any>(
   dllConnector: any,
   responseId: string,
   timeout: number = 5000
-): Promise<any> {
-  return waitForEvent(
+): Promise<T> {
+  return waitForEvent<T>(
     dllConnector,
     'ipc_send',
     timeout,
