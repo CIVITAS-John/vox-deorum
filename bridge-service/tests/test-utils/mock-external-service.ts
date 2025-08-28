@@ -34,11 +34,7 @@ export class MockExternalService {
       } else {
         res.json({
           success: true,
-          result: {
-            echo: req.body.args,
-            processed: true,
-            timestamp: new Date().toISOString()
-          }
+          result: req.body.args
         });
       }
     });

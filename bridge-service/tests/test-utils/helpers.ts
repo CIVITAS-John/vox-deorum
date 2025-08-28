@@ -70,22 +70,6 @@ export function waitForEvent<T = any>(
 }
 
 /**
- * Wait for a DLL response with specific ID
- */
-export function waitForDLLResponse<T = any>(
-  dllConnector: any,
-  responseId: string,
-  timeout: number = 5000
-): Promise<T> {
-  return waitForEvent<T>(
-    dllConnector,
-    'ipc_send',
-    timeout,
-    (data) => data.type === 'external_response' && data.id === responseId
-  );
-}
-
-/**
  * Standard success log helper
  */
 export function logSuccess(message: string): void {
