@@ -19,7 +19,7 @@ import {  delay, waitForEvent } from './helpers.js';
 export async function triggerExternalFunctionCall(
   app: Application,
   functionName: string,
-  callId: string,
+  payload: string,
   async: boolean = true
 ): Promise<void> {
   if (USE_MOCK) {
@@ -28,14 +28,14 @@ export async function triggerExternalFunctionCall(
     const { dllConnector } = await import('../../src/services/dll-connector.js');
     dllConnector.emit('external_call', {
       function: functionName,
-      args: callId,
-      id: callId,
+      args: payload,
+      id: payload,
       async
     });
   } else {
     // Real mode: Execute Lua script that calls Game.CallExternal()
-    const luaScript = generateExternalCallScript(functionName, callId, async);
-    
+    const luaScript = generateExternalCallScript(functionName, payload, async);
+
     const response = await request(app)
       .post('/lua/execute')
       .send({ script: luaScript });
@@ -52,7 +52,7 @@ export async function triggerExternalFunctionCall(
  */
 export function generateExternalCallScript(
   functionName: string,
-  callId: string,
+  payload: string,
   async: boolean
 ): string {
   if (async) {
@@ -60,7 +60,7 @@ export function generateExternalCallScript(
     return `
       -- Trigger asynchronous external function call
       if Game.IsExternalRegistered and Game.IsExternalRegistered("${functionName}") then
-        Game.CallExternal("${functionName}", "${callId}", function(result)
+        Game.CallExternal("${functionName}", "${payload}", function(result)
           -- Callback function for async mode
           -- Result will be handled by the DLL
         end)
@@ -73,7 +73,7 @@ export function generateExternalCallScript(
     // Synchronous call
     return `
       -- Trigger synchronous external function call
-      local result = Game.CallExternal("${functionName}", "${callId}")
+      local result = Game.CallExternal("${functionName}", "${payload}")
       return result
     `;
   }
@@ -123,14 +123,14 @@ export async function testExternalFunctionCall<T = any>(
  */
 export function waitForDLLResponse<T = any>(
   dllConnector: any,
-  responseId: string,
+  result: string,
   timeout: number = 5000
 ): Promise<T> {
   return waitForEvent<T>(
     dllConnector,
     'ipc_send',
     timeout,
-    (data) => data.type === 'external_response' && data.result === responseId
+    (data) => data.type === 'external_response' && data.result == result
   );
 }
 

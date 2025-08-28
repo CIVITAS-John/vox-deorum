@@ -142,7 +142,7 @@ export class ExternalManager {
 
       if (response.status >= 200 && response.status < 300) {
         const result = response.data;
-        logger.debug(`External function success:`, result);
+        logger.debug(`External function success: ${JSON.stringify(result)}`);
         return result;
       } else {
         return respondError(ErrorCode.CALL_FAILED, 

@@ -218,43 +218,41 @@ describe('External Routes', () => {
     });
 
     it('should handle synchronous external function call', async () => {
-      const callId = 'test-sync-call-1';
-      
+      const argument = 'test-sync-call-1';
+
       // Use helper function that works for both mock and real modes
       const response = await testExternalFunctionCall(
         app,
         'syncTestFunction',
-        callId,
+        argument,
         false // synchronous
       );
       
       // Verify response structure
-      verifyExternalResponse(response, callId, true);
+      verifyExternalResponse(response, argument, true);
       
       // Verify external service was called (only in mock mode)
       if (USE_MOCK) {
         expect(mockExternalService.getCallCount()).toBe(1);
-        expect(mockExternalService.getLastRequest().args).toEqual(callId);
+        expect(mockExternalService.getLastRequest().args).toEqual(argument);
       }
       
       logSuccess('Synchronous external function call handled');
     });
 
-    return;
-
     it('should handle asynchronous external function call', async () => {
-      const callId = 'test-async-call-1';
+      const argument = 'test-async-call-1';
       
       // Use helper function that works for both mock and real modes
       const response = await testExternalFunctionCall(
         app,
         'asyncTestFunction',
-        callId,
+        argument,
         true // asynchronous
       );
       
       // Verify response structure
-      verifyExternalResponse(response, callId, true);
+      verifyExternalResponse(response, argument, true);
       
       // Verify external service was called (only in mock mode)
       if (USE_MOCK) {
@@ -267,18 +265,18 @@ describe('External Routes', () => {
     it('should handle external function call timeout', async () => {
       // Set response delay longer than timeout
       mockExternalService.setResponseDelay(3000);
-      const callId = 'test-timeout-call-1';
+      const argument = 'test-timeout-call-1';
       
       // Use helper function that works for both mock and real modes
       const response = await testExternalFunctionCall(
         app,
         'syncTestFunction',
-        callId,
+        argument,
         false // synchronous
       );
       
       // Verify timeout error response
-      verifyExternalResponse(response, callId, false);
+      verifyExternalResponse(response, argument, false);
       expect(response.error.code).toBe(ErrorCode.CALL_TIMEOUT);
       expect(response.error.message).toContain('timed out');
       
@@ -290,18 +288,18 @@ describe('External Routes', () => {
       mockExternalService.setFailure(true, 503);
       
       const args = { failure: 'test' };
-      const callId = 'test-failure-call-1';
+      const argument = 'test-failure-call-1';
       
       // Use helper function that works for both mock and real modes
       const response = await testExternalFunctionCall(
         app,
         'syncTestFunction',
-        callId,
+        argument,
         false // synchronous
       );
       
       // Verify failure response
-      verifyExternalResponse(response, callId, false);
+      verifyExternalResponse(response, argument, false);
       expect(response.error.code).toBe(ErrorCode.NETWORK_ERROR);
       expect(response.error.message).toContain('failed with status 503');
       
@@ -310,18 +308,18 @@ describe('External Routes', () => {
 
     it('should handle call to unregistered function', async () => {
       const args = { test: 'data' };
-      const callId = 'test-unregistered-call-1';
+      const argument = 'test-unregistered-call-1';
       
       // Use helper function that works for both mock and real modes
       const response = await testExternalFunctionCall(
         app,
         'unregisteredFunction',
-        callId,
+        argument,
         false // synchronous
       );
       
       // Verify error response for unregistered function
-      verifyExternalResponse(response, callId, false);
+      verifyExternalResponse(response, argument, false);
       expect(response.error.code).toBe(ErrorCode.INVALID_FUNCTION);
       expect(response.error.message).toContain('not registered');
       
@@ -330,15 +328,15 @@ describe('External Routes', () => {
 
     // Additional tests for real DLL mode
     it('should handle multiple concurrent external calls', async () => {
-      const callIds = ['test-concurrent-1', 'test-concurrent-2', 'test-concurrent-3'];
+      const arguments = ['test-concurrent-1', 'test-concurrent-2', 'test-concurrent-3'];
       const promises: Promise<any>[] = [];
       
       // Start multiple concurrent calls
-      for (let i = 0; i < callIds.length; i++) {
+      for (let i = 0; i < arguments.length; i++) {
         const promise = testExternalFunctionCall(
           app,
           i % 2 === 0 ? 'syncTestFunction' : 'asyncTestFunction',
-          callIds[i],
+          arguments[i],
           i % 2 === 1 // alternate between sync and async
         );
         promises.push(promise);
@@ -349,7 +347,7 @@ describe('External Routes', () => {
       
       // Verify all responses are successful
       responses.forEach((response, i) => {
-        verifyExternalResponse(response, callIds[i], true);
+        verifyExternalResponse(response, arguments[i], true);
         expect(response.result.echo).toMatchObject({ index: i, test: 'concurrent' });
       });
       

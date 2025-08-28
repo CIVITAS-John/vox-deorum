@@ -99,9 +99,7 @@ router.post('/execute', async (req: Request, res: Response) => {
  */
 router.get('/functions', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/lua/functions', async () => {
-    logger.info('Fetching available Lua functions');
     const functions = luaManager.getFunctions();
-    
     return respondSuccess({ functions });
   });
 });
