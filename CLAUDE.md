@@ -17,7 +17,7 @@ Each component has its own README with specific setup instructions.
 - Make minimal changes on its source code.
 - Maintain compatibility with legacy Windows C++ code targeting 32-bit systems. 
 - To build the DLL, use `python build_vp_clang_sdk.py` (but only in Windows environment).
-- To build the DLL AND copy to the mod folder, use `build-and-copy.bat`.
+- To build the DLL AND copy to the mod folder, use `build-and-copy.bat` by calling `cd "F:\Minor Solutions\vox-deorum\civ5-dll" && powershell -Command "& .\build-and-copy.bat" 2>&` (only on Windows; other systems cannot even compile it)
 - To debug the building process, the log exists in `clang-output/Debug/build.log`.
 2. **Civ5 Mod** (`civ5-mod/`) - Lua scripts for Civilization V integration with game events
 3. **Bridge Service** (`bridge-service/`) - Communication wrapper between DLL and external services via JSON/REST+SSE API

@@ -18,7 +18,8 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(echo $OS)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(powershell:powershell -Command \"& .\\build-and-copy.bat\"*)"
     ],
     "deny": [
       "Read(civ5-dll/(1) Community Patch/**)",
