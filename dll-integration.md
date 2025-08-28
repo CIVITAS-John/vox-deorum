@@ -89,7 +89,7 @@ Enable Lua scripts to call external functions registered through the Bridge Serv
 **Achievements:**
 - Implemented Game.CallExternal() and Game.IsExternalRegistered() Lua APIs
 - Process external_register/external_unregister messages from Bridge Service
-- Support for both synchronous and asynchronous call patterns with callbacks
+- Support for asynchronous call pattern with callbacks
 - Full JSON marshaling between Lua arguments and external service responses
 - Thread-safe external function registry with proper lifecycle management
 

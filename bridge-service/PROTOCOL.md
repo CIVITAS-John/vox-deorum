@@ -242,7 +242,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    ```
 
 6. **DLL → Lua Environment**
-   Game.CallExternal() callback receives the result object or returns it (if synchronous)
+   Game.CallExternal() callback receives the result object
 
 ### 3. Game Events Streaming
 

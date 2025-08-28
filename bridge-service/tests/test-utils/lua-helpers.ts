@@ -22,7 +22,7 @@ export async function registerLuaFunction(
   shouldSucceed: boolean = true,
   implementation?: string
 ): Promise<boolean> {
-  if (USE_MOCK && globalMockDLL) {
+  if (USE_MOCK) {
     // In mock mode, add the function to mock DLL
     globalMockDLL.addLuaFunction(functionName, () => expected, shouldSucceed);
     luaManager.registerFunction(functionName, functionName);
@@ -58,7 +58,7 @@ export async function unregisterLuaFunction(
   app: Application,
   functionName: string
 ): Promise<boolean> {
-  if (USE_MOCK && globalMockDLL) {
+  if (USE_MOCK) {
     // In mock mode, remove the function from mock DLL
     const mockServer = globalMockDLL as MockDLLServer;
     mockServer.removeLuaFunction(functionName);
@@ -89,7 +89,7 @@ export async function unregisterLuaFunction(
  * In non-mock mode: clears via Game.ClearFunctions through /lua/execute
  */
 export async function clearLuaFunctions(app?: Application): Promise<boolean> {
-  if (USE_MOCK && globalMockDLL) {
+  if (USE_MOCK) {
     // In mock mode, clear all functions from mock DLL
     const mockServer = globalMockDLL as MockDLLServer;
     mockServer.clearLuaFunctions();
