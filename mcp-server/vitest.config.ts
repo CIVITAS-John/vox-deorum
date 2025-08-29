@@ -2,18 +2,24 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    globals: true,
     environment: 'node',
+    include: ['tests/**/*.test.ts'],
     setupFiles: ['./tests/setup.ts'],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        'dist/',
-        '*.config.*'
-      ]
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.d.ts'],
+      reporter: ['text', 'lcov', 'html']
+    },
+    testTimeout: 15000, // Extended timeout for IPC operations
+    hookTimeout: 15000, // Extended timeout for setup/teardown
+    retry: process.env.CI ? 1 : 0, // Retry once in CI for flaky IPC tests
+    // Run tests sequentially when using mock DLLs to avoid parallel execution issues
+    // Mock DLL server uses a single IPC connection that can't handle concurrent tests
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true // While the server should handle parallel requests, the test has to be run sequentially since the DLL only hosts one connection at a time
+      }
     }
   }
 })

@@ -60,25 +60,6 @@ The service reads from the `config.json` for its configuration:
 }
 ```
 
-### Docker Support
-
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
-EXPOSE 8080
-CMD ["node", "dist/index.js"]
-```
-
-Run with Docker:
-```bash
-docker build -t bridge-service .
-docker run -p 8080:8080 -e DLL_HOST=host.docker.internal bridge-service
-```
-
 ## API Reference
 
 ### Core Endpoints
