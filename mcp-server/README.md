@@ -123,4 +123,4 @@ npm run dev
 npm test
 ```
 
-The server will expose MCP resources and tools via stdio for local MCP client integration.
+The server will expose MCP resources and tools for MCP client integration.

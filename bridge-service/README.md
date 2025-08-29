@@ -447,6 +447,51 @@ The mock server:
 - `unit_moved`
 - `tech_researched`
 
+## DLL Integration
+
+### DLL Architecture
+
+The Community Patch DLL integration consists of several key components:
+
+**ConnectionService Singleton:**
+- Manages Named Pipe server lifecycle
+- Provides thread-safe message queuing
+- Integrates with game initialization/shutdown sequences
+- Handles graceful degradation when Bridge Service unavailable
+
+**Thread Safety:**
+- Dedicated network thread handles Named Pipe I/O
+- Main game thread processes messages during update cycle
+- Separate critical sections prevent deadlocks
+- Windows critical sections ensure thread-safe operations
+
+**Lua Integration:**
+- Direct integration with game's Lua environment via ICvEngineScriptSystem1
+- Support for arbitrary script execution and function registration
+- Thread-safe execution with game core locking
+- JSON marshaling between Lua values and message payloads
+
+**Event Forwarding:**
+- Intercepts all game events through LuaSupport::CallHook
+- Non-blocking event forwarding with minimal performance impact
+- Event filtering system excludes high-frequency events
+
+### External Function System
+
+**DLL Implementation Details:**
+- Thread-safe external function registry with Windows critical sections
+- Unique call ID generation using thread ID, tick count, and counter
+- Lua registry references maintain callback persistence across async operations
+- Automatic JSON marshaling between Lua arguments and HTTP responses
+- Memory-safe callback cleanup with proper reference management
+
+### Platform Constraints
+
+- **Compatibility:** 32-bit Windows, Visual Studio 2008 SP1 toolset
+- **Dependencies:** Single-header libraries only (ArduinoJson for JSON)
+- **Thread Safety:** Windows critical sections, minimal lock duration
+- **Error Handling:** Graceful degradation, comprehensive logging
+
 ## Security Considerations
 
 - The `/lua/execute` endpoint allows arbitrary code execution - use with caution
