@@ -70,7 +70,7 @@ export function generateExternalCallScript(
         Game.CallExternal("${functionName}", "${payload}", function(result, message)
           -- Callback function for async mode
           -- Result will be handled by the DLL
-          print(result, message)
+          print("Async call result: " .. tostring(result) .. ", " .. tostring(message))
         end)
         return "${payload}"
       else
@@ -83,7 +83,11 @@ export function generateExternalCallScript(
       -- Trigger synchronous external function call
       local result, message = Game.CallExternal("${functionName}", "${payload}")
       if result == nil then
-        return message
+        if message == nil then
+          return "CALL_FAILED"
+        else
+          return message
+        end
       else
         return result
       end

@@ -262,29 +262,6 @@ describe('External Routes', () => {
       logSuccess('Asynchronous external function call handled');
     });
 
-    it('should handle external function call timeout', async () => {
-      // Set response delay longer than timeout
-      mockExternalService.setResponseDelay(3000);
-      const argument = 'test-timeout-call-1';
-      
-      // Use helper function that works for both mock and real modes
-      const response = await triggerExternalCall(
-        app,
-        'syncTestFunction',
-        argument
-      );
-
-      // Verify timeout error response
-      if (USE_MOCK) {
-        verifyExternalResponse(response);
-        expect(response.error.code).toBe(ErrorCode.CALL_TIMEOUT);
-      } else {
-        expect(response.result).toBe(ErrorCode.CALL_TIMEOUT);
-      }
-      
-      logSuccess('External function timeout handled correctly');
-    });
-
     it('should handle external service failure', async () => {
       // Configure mock service to fail
       mockExternalService.setFailure(true, 503);
@@ -293,7 +270,7 @@ describe('External Routes', () => {
       const response = await triggerExternalCall(
         app,
         'syncTestFunction',
-        "anything",
+        'test-failure',
       );
 
       // Verify timeout error response
@@ -305,6 +282,28 @@ describe('External Routes', () => {
       }
       
       logSuccess('External service failure handled correctly');
+    });
+
+    it('should handle external function call timeout', async () => {
+      // Set response delay longer than timeout
+      mockExternalService.setResponseDelay(3000);
+      
+      // Use helper function that works for both mock and real modes
+      const response = await triggerExternalCall(
+        app,
+        'syncTestFunction',
+        'test-timeout-call-1'
+      );
+
+      // Verify timeout error response
+      if (USE_MOCK) {
+        verifyExternalResponse(response);
+        expect(response.error.code).toBe(ErrorCode.CALL_TIMEOUT);
+      } else {
+        expect(response.result).toBe(ErrorCode.CALL_TIMEOUT);
+      }
+      
+      logSuccess('External function timeout handled correctly');
     });
 
     it('should handle call to unregistered function', async () => {
@@ -324,34 +323,6 @@ describe('External Routes', () => {
       }
       
       logSuccess('Unregistered function call handled correctly');
-    });
-
-    return;
-    it('should handle multiple concurrent external calls', async () => {
-      const args = ['test-concurrent-1', 'test-concurrent-2', 'test-concurrent-3'];
-      const promises: Promise<any>[] = [];
-      
-      // Start multiple concurrent calls
-      for (let i = 0; i < args.length; i++) {
-        const promise = triggerExternalCall(
-          app,
-          i % 2 === 0 ? 'syncTestFunction' : 'asyncTestFunction',
-          args[i],
-          i % 2 === 1 // alternate between sync and async
-        );
-        promises.push(promise);
-      }
-      
-      // Wait for all responses
-      const responses = await Promise.all(promises);
-      
-      // Verify all responses are successful
-      responses.forEach((response, i) => {
-        verifyExternalResponse(response, args[i]);
-        expect(response.result.echo).toMatchObject({ index: i, test: 'concurrent' });
-      });
-      
-      logSuccess('Multiple concurrent external calls handled');
     });
 
     it('should properly handle function re-registration', async () => {
