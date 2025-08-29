@@ -28,20 +28,21 @@ The MCP Server connects AI agents to live game data through a standardized proto
   - Manages resource/tool registration and discovery
   - Handles request/response routing and notifications
 
-2. **Bridge Client**: Provides interfaces for Bridge Service interaction
+2. **Bridge Service Integration**: Stateless manager for Bridge Service communication
   - Calls Lua functions via REST API
-  - Manages Lua functions registered by resources/tools (on-demand)
   - Receives game events via SSE stream
+  - Manages external function registration with Bridge Service
+  - Handles connection lifecycle and retry logic
     - Turn changes, combat results, diplomatic events
 
-3. **Data Layer**: Manages AI players' game knowledge
-  - Automatically saves / loads when the game state changes (e.g. game loading/saving/restarting)
-  - **Knowledge Retriver**: Retrieves game state as resources/other purposes
-  - **Knowledge Store**: Tracks what each AI player knows
+3. **Data Layer**: Manages AI players' game knowledge with serialization support
+  - **Knowledge Store**: Tracks what each AI player knows with serialization/deserialization
     - Personal knowledge: AI's short/long-term memories (e.g. plans)
     - Persistent knowledge: Records of in-game events (e.g. declaration of war)
     - Transient knowledge: Transient cache of in-game states (expiration by turn numbers)
-  - **Event Processing**: Processes in-game events
+    - Game context switching: Reset/reload for different game sessions
+  - **Knowledge Retriever**: Retrieves game state as resources/other purposes
+  - **Event Processing**: Processes in-game events for knowledge updates and notifications
     - Record keeping: Some events should be kept as record knowledge (e.g. declaration of war)
     - Notifying clients: Some events should be sent as MCP notifications to clients (e.g. player turn started)
 
@@ -109,6 +110,10 @@ MCP Client ←→ MCP Server ←→ Bridge Service ←→ Civilization V
 ```
 
 The server translates between MCP protocol and Bridge Service APIs, providing AI agents with structured access to live game data.
+
+## Implementation Plan
+
+See [docs/stages.md](docs/stages.md) for detailed implementation stages from project setup through full MCP integration.
 
 ## Getting Started
 
