@@ -12,6 +12,7 @@ import {
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from './utils/logger.js';
+import { config } from './utils/config.js';
 
 /**
  * VoxDeorumMCPServer - Main MCP server implementation
@@ -23,8 +24,8 @@ export class VoxDeorumMCPServer {
   constructor() {
     this.server = new Server(
       {
-        name: 'vox-deorum-mcp-server',
-        version: '1.0.0',
+        name: config.server.name,
+        version: config.server.version,
       },
       {
         capabilities: {

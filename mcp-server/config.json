@@ -1,0 +1,15 @@
+{
+  "server": {
+    "name": "vox-deorum-mcp-server",
+    "version": "1.0.0"
+  },
+  "bridgeService": {
+    "endpoint": {
+      "host": "localhost",
+      "port": 8080
+    }
+  },
+  "logging": {
+    "level": "info"
+  }
+}

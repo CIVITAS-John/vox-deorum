@@ -34,7 +34,7 @@ const defaultConfig: ServiceConfig = {
     host: 'localhost'
   },
   namedpipe: {
-    id: 'civ5',
+    id: 'vox-deorum-bridge',
     retry: 5000
   },
   logging: {
