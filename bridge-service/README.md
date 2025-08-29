@@ -242,7 +242,7 @@ Subscribe to real-time game events via Server-Sent Events.
 
 ## Usage Examples
 
-### External Service Integration (MCP Client)
+### External Service Integration
 
 ```typescript
 // Get current game state
