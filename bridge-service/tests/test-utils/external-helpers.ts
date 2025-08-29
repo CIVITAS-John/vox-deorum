@@ -10,22 +10,25 @@ import { globalMockDLL, USE_MOCK } from '../setup.js';
 import { ExternalFunctionRegistration } from '../../src/types/external.js';
 import { MockDLLServer } from './mock-dll-server.js';
 import {  delay, waitForEvent } from './helpers.js';
+import { ErrorCode } from '../../src/types/api.js';
 
 /**
  * Trigger an external function call in both mock and real modes
  * Mock mode: Directly emits external_call event via mock DLL
  * Real mode: Executes Lua script that calls Game.CallExternal()
  */
-export async function triggerExternalFunctionCall(
+export async function triggerExternalCall<T = any>(
   app: Application,
   functionName: string,
   payload: string,
-  async: boolean = true
-): Promise<void> {
+  async: boolean = false
+): Promise<T> {
+  const { dllConnector } = await import('../../src/services/dll-connector.js');
+  // Set up promise to wait for the external_response
+  const responsePromise = waitForDLLResponse<T>(dllConnector, payload, 5000);
   if (USE_MOCK) {
     // Mock mode: Directly emit external_call event to DLL connector
     // This simulates what the DLL would send to the bridge service
-    const { dllConnector } = await import('../../src/services/dll-connector.js');
     dllConnector.emit('external_call', {
       function: functionName,
       args: payload,
@@ -43,7 +46,11 @@ export async function triggerExternalFunctionCall(
     if (response.status !== 200 || !response.body.success) {
       throw new Error(`Failed to execute external call script: ${JSON.stringify(response.body)}`); // ?.error?.message || 'Unknown error'
     }
+
+    if (!async) return response.body;
   }
+  // Return the intercepted response.
+  return await responsePromise;
 }
 
 /**
@@ -60,21 +67,26 @@ export function generateExternalCallScript(
     return `
       -- Trigger asynchronous external function call
       if Game.IsExternalRegistered and Game.IsExternalRegistered("${functionName}") then
-        Game.CallExternal("${functionName}", "${payload}", function(result)
+        Game.CallExternal("${functionName}", "${payload}", function(result, message)
           -- Callback function for async mode
           -- Result will be handled by the DLL
+          print(result, message)
         end)
-        return {success = true, message = "Async call initiated"}
+        return "${payload}"
       else
-        return {success = false, error = "Function not registered"}
+        return "${ErrorCode.INVALID_FUNCTION}"
       end
     `;
   } else {
     // Synchronous call
     return `
       -- Trigger synchronous external function call
-      local result = Game.CallExternal("${functionName}", "${payload}")
-      return result
+      local result, message = Game.CallExternal("${functionName}", "${payload}")
+      if result == nil then
+        return message
+      else
+        return result
+      end
     `;
   }
 }
@@ -99,38 +111,18 @@ export async function registerExternalFunction(
 }
 
 /**
- * Test an external function call end-to-end in both modes
- * Returns the response received from the external service
- */
-export async function testExternalFunctionCall<T = any>(
-  app: Application,
-  functionName: string,
-  result: string,
-  async: boolean = true
-): Promise<T> {
-  // Set up promise to wait for the external_response
-  const responsePromise = waitForDLLResponse<T>(dllConnector, result, 5000);
-  
-  // Trigger the external function call
-  await triggerExternalFunctionCall(app, functionName, result, async);
-  
-  // Wait for and return the response
-  return await responsePromise;
-}
-
-/**
  * Wait for a DLL response with specific ID
  */
 export function waitForDLLResponse<T = any>(
   dllConnector: any,
-  result: string,
+  result: string | undefined,
   timeout: number = 5000
 ): Promise<T> {
   return waitForEvent<T>(
     dllConnector,
     'ipc_send',
     timeout,
-    (data) => data.type === 'external_response' && data.result == result
+    (data) => data.type === 'external_response' && (!result || data.result == result)
   );
 }
 
@@ -161,13 +153,11 @@ export async function verifyFunctionRegistered(
  */
 export function verifyExternalResponse(
   response: any,
-  expectedResult: string,
-  shouldSucceed: boolean = true
+  expectedResult?: string,
 ): void {
-  expect(response.type).toBe('external_response');
-  expect(response.success).toBe(shouldSucceed);
-  
-  if (shouldSucceed) {
+  expect(response.success).toBe(expectedResult !== undefined);
+
+  if (expectedResult) {
     expect(response).toHaveProperty('result');
     expect(response.result).toBe(expectedResult);
   } else {
