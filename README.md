@@ -24,12 +24,6 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 - To build the DLL AND copy to the mod folder, use `build-and-copy.bat`.
 - To debug the building process, the log exists in `clang-output/Debug/build.log`.
 
-### Civ5 Mod
-- **Location**: `civ5-mod/`
-- Contains Lua scripts for Civilization V integration
-- Interfaces with Community Patch DLL for game events
-- Handles AI turn triggers and game state updates
-
 ### Bridge Service
 - **Location**: `bridge-service/`
 - A thin layer of communication wrapper between DLL and external services
@@ -37,19 +31,19 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 
 ### MCP Server
 - **Location**: `mcp-server/`
-- Exposes game's internal state as resources
+- Exposes game's internal state as resources, tools, etc.
 - Talks to the Bridge Service via JSON, e.g.
   - Call a Lua function to gather game state data
 - Talks to the MCP Client via MCP protocol, e.g. 
   - Provides structured access to game data for LLM consumption
+  - Sending active notifications (e.g. turn started, war declared, etc.)
 
 ### MCP Client
 - **Location**: `mcp-client/`
 - Produces/revises strategies based on game state with LLM agents
-- Talks to the Bridge Service via JSON, e.g. 
-  - Called from Lua scripts during AI turns
 - Talks to the MCP Server via MCP protocol, e.g.
   - When the LLM needs access to game state data
+  - When the LLM wants to change the in-game AI preference
 
 ## Installation
 
@@ -97,7 +91,6 @@ Each component contains its own README with specific development instructions:
 ```
 vox-deorum/
 ├── civ5-dll/              # Community Patch DLL submodule
-├── civ5-mod/              # Civilization V mod with Lua scripts
 ├── bridge-service/        # Communication bridge and REST API with SSE
 ├── mcp-server/            # Game state MCP server
 ├── mcp-client/            # LLM agent MCP client
