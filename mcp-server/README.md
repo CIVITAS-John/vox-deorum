@@ -1,6 +1,6 @@
 # MCP Server
 
-A Model Context Protocol server that exposes Civilization V game state as structured resources and tools for AI agents. Each server serves a single game and connects with a single bridge service.
+A Model Context Protocol server that exposes Civilization V game state as structured resources and tools for AI agents. Each server serves a single game session and connects with a single bridge service/MCP client. 
 
 ## Overview
 
@@ -14,15 +14,17 @@ The MCP Server connects AI agents to live game data through a standardized proto
 - **Runtime**: Node.js + TypeScript
 - **Protocol**: Model Context Protocol (MCP)
 - **SDK**: https://github.com/modelcontextprotocol/typescript-sdk
+- **Test**: Vitest
 - **Transport**: stdio, Streamable HTTP
 - **Communication**: Bridge Service HTTP client
 
 ## Architecture
 
 ### Design Principles
-- **Modular**: Plugin-based architecture for new capabilities
+- **Modular**: Each resource/tool/etc exists independently
 - **Flexible Transport**: Support multiple MCP transport methods
-- **Event-Driven**: Real-time updates from game events
+- **Event-Driven**: Both the MCP client and the game can initiate actions
+- **Multi-Player**: Serves multiple LLM-enhanced AI players and keeps track of their knowledge separately (to avoid AI players knowing things they shouldn't)
 
 ## Communication Flow
 
