@@ -5,7 +5,9 @@
       "WebSearch",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Read(f:\\Minor Solutions\\vox-deorum\\mcp-server\\docs/**)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm ls:*)"
     ],
     "deny": [],
     "ask": []

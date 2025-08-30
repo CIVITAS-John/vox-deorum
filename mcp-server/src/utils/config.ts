@@ -7,12 +7,28 @@ import path from 'path';
 import { logger } from './logger.js';
 
 /**
+ * Transport types supported by the MCP Server
+ */
+export type TransportType = 'stdio' | 'http';
+
+/**
  * MCP Server configuration structure
  */
 export interface MCPServerConfig {
   server: {
     name: string;
     version: string;
+  };
+  transport: {
+    type: TransportType;
+    http?: {
+      port: number;
+      host: string;
+      cors: {
+        origin: string | string[] | boolean;
+        credentials: boolean;
+      };
+    };
   };
   bridgeService: {
     endpoint: {
@@ -32,6 +48,17 @@ const defaultConfig: MCPServerConfig = {
   server: {
     name: 'vox-deorum-mcp-server',
     version: '1.0.0'
+  },
+  transport: {
+    type: 'stdio',
+    http: {
+      port: 3000,
+      host: '0.0.0.0',
+      cors: {
+        origin: true,
+        credentials: true
+      }
+    }
   },
   bridgeService: {
     endpoint: {
@@ -62,11 +89,47 @@ export function loadConfig(): MCPServerConfig {
     }
   }
 
+  // Parse transport type from environment
+  const transportType = (process.env.MCP_TRANSPORT as TransportType) || 
+    fileConfig.transport?.type || 
+    defaultConfig.transport.type;
+
+  // Parse CORS origin from environment
+  let corsOrigin: string | string[] | boolean = defaultConfig.transport.http!.cors.origin;
+  if (process.env.MCP_CORS_ORIGIN) {
+    if (process.env.MCP_CORS_ORIGIN === 'true') {
+      corsOrigin = true;
+    } else if (process.env.MCP_CORS_ORIGIN === 'false') {
+      corsOrigin = false;
+    } else if (process.env.MCP_CORS_ORIGIN.includes(',')) {
+      corsOrigin = process.env.MCP_CORS_ORIGIN.split(',').map(s => s.trim());
+    } else {
+      corsOrigin = process.env.MCP_CORS_ORIGIN;
+    }
+  }
+
   // Build final configuration with environment variable overrides
   const config: MCPServerConfig = {
     server: {
       name: process.env.MCP_SERVER_NAME || fileConfig.server?.name || defaultConfig.server.name,
       version: process.env.MCP_SERVER_VERSION || fileConfig.server?.version || defaultConfig.server.version
+    },
+    transport: {
+      type: transportType,
+      http: {
+        port: parseInt(process.env.MCP_PORT || '') || 
+          fileConfig.transport?.http?.port || 
+          defaultConfig.transport.http!.port,
+        host: process.env.MCP_HOST || 
+          fileConfig.transport?.http?.host || 
+          defaultConfig.transport.http!.host,
+        cors: {
+          origin: corsOrigin,
+          credentials: process.env.MCP_CORS_CREDENTIALS === 'false' ? false :
+            fileConfig.transport?.http?.cors?.credentials ?? 
+            defaultConfig.transport.http!.cors.credentials
+        }
+      }
     },
     bridgeService: {
       endpoint: {
@@ -84,6 +147,7 @@ export function loadConfig(): MCPServerConfig {
 
   logger.info('Configuration loaded:', {
     server: config.server,
+    transport: config.transport,
     bridgeService: config.bridgeService,
     logging: { level: config.logging.level }
   });
