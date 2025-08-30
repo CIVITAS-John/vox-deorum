@@ -9,23 +9,24 @@ import { logger } from './utils/logger.js';
 
 /**
  * Start the MCP server with stdio transport
+ * @param setupSignalHandlers - Whether to set up SIGINT/SIGTERM handlers (default: true)
+ * @returns The transport instance for testing purposes
  */
-export async function startStdioServer(): Promise<void> {
+export async function startStdioServer(setupSignalHandlers = true): Promise<() => Promise<void>> {
   const server = MCPServer.getInstance();
   const transport = new StdioServerTransport();
 
   // Set up graceful shutdown
-  process.on('SIGINT', async () => {
-    logger.info('Received SIGINT, shutting down gracefully');
+  const shutdown = async () => {
+    logger.info('Shutting down stdio server gracefully');
     await server.shutdown();
-    process.exit(0);
-  });
+    await transport.close();
+  };
 
-  process.on('SIGTERM', async () => {
-    logger.info('Received SIGTERM, shutting down gracefully');
-    await server.shutdown();
-    process.exit(0);
-  });
+  if (setupSignalHandlers) {
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+  }
 
   try {
     await server.initialize();
@@ -33,8 +34,11 @@ export async function startStdioServer(): Promise<void> {
     await server.getServer().connect(transport);
     
     logger.info('MCP server connected via stdio transport');
+    return shutdown;
   } catch (error) {
     logger.error('Failed to start stdio server:', error);
-    process.exit(1);
+    if (setupSignalHandlers)
+      process.exit(1);
+    throw error;
   }
 }

@@ -3,9 +3,13 @@
  * Provides global test configuration and utilities
  */
 
-import { beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import { beforeAll, afterAll } from 'vitest';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { startStdioServer } from '../src/stdio.js';
+import { startHttpServer } from '../src/http.js';
+import { MCPServer } from '../src/server.js';
 
 // Set test environment variables
 process.env.NODE_ENV = 'test';
@@ -111,14 +115,31 @@ async function stopBridgeService(): Promise<void> {
   }
 }
 
+let server: MCPServer;
+let closeTransport: () => Promise<void>;
+
 // Global test setup - start bridge service once for all tests
 beforeAll(async () => {
   await startBridgeService();
+    // Start server with appropriate transport
+    switch (process.env.TEST_TRANSPORT ?? "http") {
+      case 'stdio':
+        closeTransport = await startStdioServer(false);
+        break;
+      case 'http':
+        closeTransport = await startHttpServer();
+        break;
+      default:
+        throw new Error(`Unknown transport type: ${process.env.TEST_TRANSPORT}`);
+    }
+  server = MCPServer.getInstance();
 }, 15000); // 15 second timeout for service startup
 
 // Global test teardown - stop bridge service
 afterAll(async () => {
   await stopBridgeService();
+  await closeTransport();
+  await server.shutdown();
 });
 
 // Export utilities for tests

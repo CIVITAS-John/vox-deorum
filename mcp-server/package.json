@@ -12,6 +12,7 @@
     "lint": "eslint src/**/*.ts",
     "clean": "rimraf dist",
     "test": "vitest run",
+    "test:http": "cross-env TEST_TRANSPORT=HTTP vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },

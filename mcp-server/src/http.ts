@@ -6,28 +6,26 @@
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { MCPServer } from './server.js';
 import { logger } from './utils/logger.js';
 import { config } from './utils/config.js';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 
 /**
  * Start the MCP server with HTTP transport
  */
-export async function startHttpServer(): Promise<void> {
+export async function startHttpServer(setupSignalHandlers = true): Promise<() => Promise<void>> {
   const mcpServer = MCPServer.getInstance();
   const app = express();
   const httpServer = createServer(app);
 
   // Configure CORS
-  const corsOptions = {
+  app.use(cors({
     origin: config.transport.cors?.origin || '*',
     methods: config.transport.cors?.methods || ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: config.transport.cors?.allowedHeaders || ['Content-Type', 'Authorization'],
     credentials: config.transport.cors?.credentials || true,
-  };
-
-  app.use(cors(corsOptions));
+  }));
   app.use(express.json());
 
   // Health check endpoint
@@ -107,8 +105,10 @@ export async function startHttpServer(): Promise<void> {
     process.exit(0);
   };
 
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
+  if (setupSignalHandlers) {
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+  }
 
   // Start the server
   const port = config.transport.port || 3000;
@@ -122,8 +122,11 @@ export async function startHttpServer(): Promise<void> {
       logger.info(`SSE endpoint: http://${host}:${port}/sse`);
       logger.info(`Health check: http://${host}:${port}/health`);
     });
+
+    return shutdown;
   } catch (error) {
     logger.error('Failed to start HTTP server:', error);
-    process.exit(1);
+    if (setupSignalHandlers) process.exit(1);
+    throw error;
   }
 }
