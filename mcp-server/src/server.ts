@@ -14,6 +14,8 @@ import { ResourceBase } from './resources/base.js';
 import { ToolBase } from './tools/base.js';
 import { logger } from './utils/logger.js';
 import { config } from './utils/config.js';
+import { registerAllResources } from './resources/index.js';
+import { registerAllTools } from './tools/index.js';
 
 /**
  * MCP Server manager that handles resource and tool registration
@@ -213,6 +215,11 @@ export class MCPServer {
     }
 
     logger.info('Initializing MCP server');
+    
+    // Register all resources and tools
+    registerAllResources();
+    registerAllTools();
+    
     this.initialized = true;
   }
 

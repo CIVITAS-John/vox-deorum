@@ -10,8 +10,6 @@ import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { MCPServer } from './server.js';
 import { logger } from './utils/logger.js';
 import { config } from './utils/config.js';
-import { registerAllResources } from './resources/index.js';
-import { registerAllTools } from './tools/index.js';
 
 /**
  * Start the MCP server with HTTP transport
@@ -119,10 +117,6 @@ export async function startHttpServer(): Promise<void> {
   try {
     logger.info('Initializing MCP server');
     await mcpServer.initialize();
-    
-    // Register all resources and tools
-    registerAllResources();
-    registerAllTools();
     
     httpServer.listen(port, host, () => {
       logger.info(`MCP HTTP server listening on http://${host}:${port}`);

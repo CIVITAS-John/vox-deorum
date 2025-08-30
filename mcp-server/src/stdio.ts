@@ -6,8 +6,6 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { MCPServer } from './server.js';
 import { logger } from './utils/logger.js';
-import { registerAllResources } from './resources/index.js';
-import { registerAllTools } from './tools/index.js';
 
 /**
  * Start the MCP server with stdio transport
@@ -32,11 +30,6 @@ export async function startStdioServer(): Promise<void> {
   try {
     logger.info('Starting MCP server with stdio transport');
     await server.initialize();
-    
-    // Register all resources and tools
-    registerAllResources();
-    registerAllTools();
-    
     // Connect the server to the transport
     await server.getServer().connect(transport);
     
