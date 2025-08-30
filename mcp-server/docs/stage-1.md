@@ -15,8 +15,9 @@ Read example code first: https://github.com/modelcontextprotocol/typescript-sdk
 ### 1. Main Server (`src/server.ts`)
 Implement the server as a singleton instance abstracted from the transport. 
 - Uses SDK's built-in Server class
-- Registers all resource and tool handlers
-- Sets up capabilities
+- Maintains registries for resources and tools
+- Provides registration methods for self-registering components
+- Sets up capabilities based on registered handlers
 
 ### 2. Multi-Transport Support
 Then, for each transport mode, create a separate entry file that sets up the instance:
@@ -25,19 +26,31 @@ Then, for each transport mode, create a separate entry file that sets up the ins
 The `src/index.ts` reads existing config from `src/utils/config.ts` and forward to either mode
 Graceful shutdown handling for both transport types
 
-### 3. Resource Registration System (`src/resources/registry.ts`)
-Pluggable resource handler architecture:
-- `ResourceHandler` interface for modular resources
-- Centralized registration with the MCP server
-- Error handling and resource discovery
-- Placeholder game state resource returning mock data
+### 3. Base Classes Architecture
+#### ResourceBase (`src/resources/base.ts`)
+Abstract base class for all resources:
+- Handles self-registration with the server
+- Manages resource metadata (URI, name, description, mimeType)
+- Provides hooks for lifecycle events (onRegistered, onRead, onSubscribed)
+- Built-in support for player-specific context handling
+- Error handling and validation framework
+- Abstract methods: `read()`, `getMetadata()`
 
-### 4. Tool Registration System (`src/tools/registry.ts`)
-Pluggable tool handler architecture:
-- `ToolHandler` interface for modular tools
+#### ToolBase (`src/tools/base.ts`)
+Abstract base class for all tools:
+- Handles self-registration with the server
+- Manages tool metadata (name, description, input schema)
+- Provides hooks for lifecycle events (onRegistered, onExecute)
+- Built-in support for player-specific execution contexts
 - Schema validation with Zod and JSON schema conversion
-- Centralized tool execution with error handling
-- Placeholder analysis tool with configurable options
+- Abstract methods: `execute()`, `getSchema()`
+
+### 4. Registration System
+Central registration (`src/server.ts`).
+- Resources and tools self-register during initialization
+- Server maintains internal registries
+- Automatic capability detection based on registered resources/tools
+- Support for dynamic registration/unregistration
 
 ## Testing Strategy
 
@@ -59,11 +72,20 @@ tests/
 - Tool discovery and execution
 - Transport-specific functionality (CORS for HTTP)
 - Client-server communication patterns
+- Self-registration verification
 
-**Component Tests**: Isolated testing of individual handlers:
-- Resource handlers: Mock data validation, URI handling
-- Tool handlers: Schema validation, execution logic
+**Component Tests**: Isolated testing of individual components:
+- Base classes: ResourceBase and ToolBase functionality
+- Resource implementations: Mock data validation, URI handling, context support
+- Tool implementations: Schema validation, execution logic, context handling
+- Registration system: Auto-registration, capability detection
 - Configuration: Environment variable parsing, schema validation
+
+**Unit Tests**: Base class behavior:
+- Lifecycle hooks (onRegistered, onRead, onExecute)
+- Metadata management and validation
+- Context handling for player-specific operations
+- Error propagation and handling
 
 ## Success Criteria
 1. ✅ Server starts with both stdio and HTTP transports
@@ -101,7 +123,10 @@ MCP_TRANSPORT=http MCP_PORT=8080 node dist/index.js  # Custom port
 - Restructure tests to component-based organization
 
 ## Preparation for Stage 2
-- **Extensible Resource System**: Plugin-based resources ready for Bridge Service data
+- **Base Class Architecture**: ResourceBase and ToolBase provide common infrastructure for Bridge Service integration
+- **Context-Aware Handlers**: Built-in support for player-specific operations ready for multi-player game state
+- **Self-Registration Pattern**: Easy to add new Bridge Service resources/tools without modifying core server
+- **Lifecycle Hooks**: Ready integration points for Bridge Service connection management
 - **Flexible Transport**: Both transports for different deployment scenarios
 - **Configuration Framework**: Existing config extended for Bridge Service settings
 - **Logging Infrastructure**: Existing winston logger ready for integration debugging
