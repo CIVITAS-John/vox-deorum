@@ -132,9 +132,12 @@ beforeAll(async () => {
     // Start server and client with appropriate transport
     switch (process.env.TEST_TRANSPORT ?? "http") {
       case 'stdio':
-        var transport = new StdioClientTransport({
-          command: 'npm run start'
-        });
+        config.transport.type = 'stdio';
+        await mcpClient.connect(new StdioClientTransport({
+          command: 'node',
+          args: ['dist/index.js']
+        }));
+        closeTransport = () => mcpClient.close();
         break;
       case 'http':
         closeTransport = await startHttpServer();

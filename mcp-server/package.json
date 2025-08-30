@@ -12,7 +12,7 @@
     "lint": "eslint src/**/*.ts",
     "clean": "rimraf dist",
     "test": "vitest run",
-    "test:http": "cross-env TEST_TRANSPORT=HTTP vitest run",
+    "test:stdio": "cross-env TEST_TRANSPORT=stdio vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
@@ -29,6 +29,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "cors": "2.8.5",
+    "cross-env": "^10.0.0",
     "express": "4.21.2",
     "winston": "^3.17.0",
     "zod": "^3.22.0",
