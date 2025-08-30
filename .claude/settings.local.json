@@ -7,7 +7,8 @@
       "Read(f:\\Minor Solutions\\vox-deorum\\mcp-server\\docs/**)",
       "Bash(npm install)",
       "Bash(npm run type-check:*)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

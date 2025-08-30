@@ -1,27 +1,31 @@
 /**
- * MCP Server for Vox Deorum
- * Exposes Civilization V game state as MCP resources and tools for AI agents
+ * Main MCP server implementation with registration system
+ * Singleton instance that manages resources and tools with self-registration
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { ResourceBase } from './resources/base.js';
+import { ToolBase } from './tools/base.js';
 import { logger } from './utils/logger.js';
 import { config } from './utils/config.js';
 
 /**
- * VoxDeorumMCPServer - Main MCP server implementation
- * Provides foundation for exposing game state and AI tools through MCP protocol
+ * MCP Server manager that handles resource and tool registration
  */
-export class VoxDeorumMCPServer {
+export class MCPServer {
+  private static instance: MCPServer;
   private server: Server;
+  private resources: Map<string, ResourceBase> = new Map();
+  private tools: Map<string, ToolBase> = new Map();
+  private initialized = false;
 
-  constructor() {
+  private constructor() {
     this.server = new Server(
       {
         name: config.server.name,
@@ -39,111 +43,186 @@ export class VoxDeorumMCPServer {
   }
 
   /**
-   * Set up MCP protocol request handlers
+   * Get singleton instance of MCP server
+   */
+  public static getInstance(): MCPServer {
+    if (!MCPServer.instance) {
+      MCPServer.instance = new MCPServer();
+    }
+    return MCPServer.instance;
+  }
+
+  /**
+   * Get the underlying SDK server instance
+   */
+  public getServer(): Server {
+    return this.server;
+  }
+
+  /**
+   * Setup MCP protocol handlers
    */
   private setupHandlers(): void {
-    // Resource handlers
+    // Handle resource list requests
     this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
-      logger.debug('Handling ListResources request');
-      return {
-        resources: [
-          {
-            uri: 'vox-deorum://game-state',
-            name: 'Game State',
-            description: 'Current Civilization V game state information',
-            mimeType: 'application/json',
-          },
-        ],
-      };
+      const resources = Array.from(this.resources.values()).map(r => {
+        const metadata = r.getMetadata();
+        return {
+          uri: metadata.uri,
+          name: metadata.name,
+          description: metadata.description,
+          mimeType: metadata.mimeType,
+        };
+      });
+
+      logger.debug(`Listing ${resources.length} resources`);
+      return { resources };
     });
 
+    // Handle resource read requests
     this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       const { uri } = request.params;
-      logger.debug('Handling ReadResource request', { uri });
+      const resource = this.resources.get(uri);
 
-      if (uri === 'vox-deorum://game-state') {
-        return {
-          contents: [
-            {
-              uri,
-              mimeType: 'application/json',
-              text: JSON.stringify({
-                status: 'hello-world',
-                message: 'MCP Server is running',
-                timestamp: new Date().toISOString(),
-              }),
-            },
-          ],
-        };
+      if (!resource) {
+        throw new Error(`Resource not found: ${uri}`);
       }
 
-      throw new Error(`Resource not found: ${uri}`);
-    });
-
-    // Tool handlers
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      logger.debug('Handling ListTools request');
+      logger.debug(`Reading resource: ${uri}`);
+      const content = await resource.read();
+      
       return {
-        tools: [
+        contents: [
           {
-            name: 'ping',
-            description: 'Simple ping tool to test MCP server connectivity',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                message: {
-                  type: 'string',
-                  description: 'Message to echo back',
-                },
-              },
-            },
+            uri,
+            mimeType: resource.getMetadata().mimeType || 'application/json',
+            text: typeof content === 'string' ? content : JSON.stringify(content, null, 2),
           },
         ],
       };
     });
 
+    // Handle tool list requests
+    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+      const tools = Array.from(this.tools.values()).map(t => {
+        const metadata = t.getMetadata();
+        return {
+          name: metadata.name,
+          description: metadata.description,
+          inputSchema: metadata.inputSchema,
+        };
+      });
+
+      logger.debug(`Listing ${tools.length} tools`);
+      return { tools };
+    });
+
+    // Handle tool execution requests
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-      logger.debug('Handling CallTool request', { name, args });
+      const tool = this.tools.get(name);
 
-      if (name === 'ping') {
-        const message = (args as { message?: string })?.message || 'Hello from MCP Server!';
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Pong: ${message}`,
-            },
-          ],
-        };
+      if (!tool) {
+        throw new Error(`Tool not found: ${name}`);
       }
 
-      throw new Error(`Tool not found: ${name}`);
+      logger.debug(`Executing tool: ${name}`);
+      const result = await tool.run(args);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
+          },
+        ],
+      };
     });
   }
 
   /**
-   * Start the MCP server with stdio transport
+   * Register a resource with the server
    */
-  async start(): Promise<void> {
-    const transport = new StdioServerTransport();
+  public registerResource(resource: ResourceBase): void {
+    const metadata = resource.getMetadata();
     
-    logger.info('Starting Vox Deorum MCP Server');
+    if (this.resources.has(metadata.uri)) {
+      logger.warn(`Resource already registered: ${metadata.uri}`);
+      return;
+    }
+
+    this.resources.set(metadata.uri, resource);
+    resource.register(this.server);
+    logger.info(`Registered resource: ${metadata.uri}`);
+  }
+
+  /**
+   * Register a tool with the server
+   */
+  public registerTool(tool: ToolBase): void {
+    const metadata = tool.getMetadata();
     
-    try {
-      await this.server.connect(transport);
-      logger.info('MCP Server connected and ready');
-    } catch (error) {
-      logger.error('Failed to start MCP Server', { error });
-      throw error;
+    if (this.tools.has(metadata.name)) {
+      logger.warn(`Tool already registered: ${metadata.name}`);
+      return;
+    }
+
+    this.tools.set(metadata.name, tool);
+    tool.register(this.server);
+    logger.info(`Registered tool: ${metadata.name}`);
+  }
+
+  /**
+   * Unregister a resource
+   */
+  public unregisterResource(uri: string): void {
+    if (this.resources.delete(uri)) {
+      logger.info(`Unregistered resource: ${uri}`);
     }
   }
 
   /**
-   * Stop the MCP server
+   * Unregister a tool
    */
-  async stop(): Promise<void> {
-    logger.info('Stopping MCP Server');
-    await this.server.close();
+  public unregisterTool(name: string): void {
+    if (this.tools.delete(name)) {
+      logger.info(`Unregistered tool: ${name}`);
+    }
+  }
+
+  /**
+   * Get all registered resources
+   */
+  public getResources(): ResourceBase[] {
+    return Array.from(this.resources.values());
+  }
+
+  /**
+   * Get all registered tools
+   */
+  public getTools(): ToolBase[] {
+    return Array.from(this.tools.values());
+  }
+
+  /**
+   * Initialize the server (can be extended in the future)
+   */
+  public async initialize(): Promise<void> {
+    if (this.initialized) {
+      return;
+    }
+
+    logger.info('Initializing MCP server');
+    this.initialized = true;
+  }
+
+  /**
+   * Shutdown the server
+   */
+  public async shutdown(): Promise<void> {
+    logger.info('Shutting down MCP server');
+    this.resources.clear();
+    this.tools.clear();
+    this.initialized = false;
   }
 }
