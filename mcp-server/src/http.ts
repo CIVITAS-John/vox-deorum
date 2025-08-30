@@ -7,9 +7,13 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { MCPServer } from './server.js';
-import { logger } from './utils/logger.js';
+import { createLogger } from './utils/logger.js';
 import { config } from './utils/config.js';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
+import { randomUUID } from 'crypto';
+
+const logger = createLogger('HTTP');
 
 /**
  * Start the MCP server with HTTP transport
@@ -38,53 +42,76 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
     });
   });
 
-  // SSE endpoint for MCP communication
-  app.get('/sse', async (req, res) => {
-    logger.info('New SSE connection established');
-    
-    // Set SSE headers
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      'X-Accel-Buffering': 'no', // Disable nginx buffering
-    });
+  // Map to store transports by session ID
+  const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
-    // Create SSE transport for this connection
-    const transport = new SSEServerTransport('/message', res as any);
-    
-    try {
-      // Connect the server to this transport
-      await mcpServer.getServer().connect(transport);
-      
-      // Keep connection alive with heartbeat
-      const heartbeat = setInterval(() => {
-        res.write(':heartbeat\n\n');
-      }, 30000);
+  // Handle POST requests for client-to-server communication
+  app.post('/mcp', async (req, res) => {
+    // Check for existing session ID
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+    let transport: StreamableHTTPServerTransport;
 
-      // Clean up on client disconnect
-      req.on('close', () => {
-        clearInterval(heartbeat);
-        logger.info('SSE connection closed');
+    if (sessionId && transports[sessionId]) {
+      // Reuse existing transport
+      transport = transports[sessionId];
+    } else if (!sessionId && isInitializeRequest(req.body)) {
+      // New initialization request
+      transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        onsessioninitialized: (sessionId) => {
+          // Store the transport by session ID
+          transports[sessionId] = transport;
+        },
+        // DNS rebinding protection is disabled by default for backwards compatibility. If you are running this server
+        // locally, make sure to set:
+        // enableDnsRebindingProtection: true,
+        // allowedHosts: ['127.0.0.1'],
       });
-    } catch (error) {
-      logger.error('Failed to establish SSE connection:', error);
-      res.end();
+
+      // Clean up transport when closed
+      transport.onclose = () => {
+        if (transport.sessionId) {
+          delete transports[transport.sessionId];
+        }
+      };
+
+      // Connect to the MCP server
+      await mcpServer.getServer().connect(transport);
+    } else {
+      // Invalid request
+      res.status(400).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32000,
+          message: 'Bad Request: No valid session ID provided',
+        },
+        id: null,
+      });
+      return;
     }
+
+    // Handle the request
+    await transport.handleRequest(req, res, req.body);
   });
 
-  // POST endpoint for receiving messages
-  app.post('/message', async (_req, res) => {
-    try {
-      // This endpoint would be used by the SSE transport to receive messages
-      // The actual message handling is done by the MCP SDK
-      res.json({ success: true });
-    } catch (error) {
-      logger.error('Failed to process message:', error);
-      res.status(500).json({ error: 'Internal server error' });
+  // Reusable handler for GET and DELETE requests
+  const handleSessionRequest = async (req: express.Request, res: express.Response) => {
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+    if (!sessionId || !transports[sessionId]) {
+      res.status(400).send('Invalid or missing session ID');
+      return;
     }
-  });
+    
+    const transport = transports[sessionId];
+    await transport.handleRequest(req, res);
+  };
 
+  // Handle GET requests for server-to-client notifications via SSE
+  app.get('/mcp', handleSessionRequest);
+
+  // Handle DELETE requests for session termination
+  app.delete('/mcp', handleSessionRequest);
+  
   // Error handling middleware
   app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     logger.error('Express error:', err);
@@ -102,7 +129,11 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
 
     // Shutdown MCP server
     await mcpServer.shutdown();
-    process.exit(0);
+    
+    // Only exit if not in test mode
+    if (process.env.NODE_ENV !== 'test') {
+      process.exit(0);
+    }
   };
 
   if (setupSignalHandlers) {

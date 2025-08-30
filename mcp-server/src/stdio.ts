@@ -5,7 +5,9 @@
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { MCPServer } from './server.js';
-import { logger } from './utils/logger.js';
+import { createLogger } from './utils/logger.js';
+
+const logger = createLogger('stdio');
 
 /**
  * Start the MCP server with stdio transport

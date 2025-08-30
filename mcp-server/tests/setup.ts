@@ -6,10 +6,13 @@
 import { beforeAll, afterAll } from 'vitest';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
-import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { startStdioServer } from '../src/stdio.js';
 import { startHttpServer } from '../src/http.js';
 import { MCPServer } from '../src/server.js';
+import config from '../src/utils/config.js';
 
 // Set test environment variables
 process.env.NODE_ENV = 'test';
@@ -117,17 +120,28 @@ async function stopBridgeService(): Promise<void> {
 
 let server: MCPServer;
 let closeTransport: () => Promise<void>;
+let mcpClient: Client;
 
 // Global test setup - start bridge service once for all tests
 beforeAll(async () => {
   await startBridgeService();
-    // Start server with appropriate transport
+    mcpClient = new Client({
+      name: "test-client",
+      version: "1.0.0"
+    });
+    // Start server and client with appropriate transport
     switch (process.env.TEST_TRANSPORT ?? "http") {
       case 'stdio':
-        closeTransport = await startStdioServer(false);
+        var transport = new StdioClientTransport({
+          command: 'npm run start'
+        });
         break;
       case 'http':
         closeTransport = await startHttpServer();
+        // Connect MCP client
+        await mcpClient.connect(new StreamableHTTPClientTransport(
+          new URL(`http://${config.transport.host || 'localhost'}:${config.transport.port || 3000}/mcp`)
+        ));
         break;
       default:
         throw new Error(`Unknown transport type: ${process.env.TEST_TRANSPORT}`);
@@ -144,6 +158,7 @@ afterAll(async () => {
 
 // Export utilities for tests
 export {
+  mcpClient,
   BRIDGE_SERVICE_URL,
   checkBridgeConnection
 };

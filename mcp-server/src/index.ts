@@ -4,9 +4,11 @@
  */
 
 import { config } from './utils/config.js';
-import { logger } from './utils/logger.js';
+import { createLogger } from './utils/logger.js';
 import { startStdioServer } from './stdio.js';
 import { startHttpServer } from './http.js';
+
+const logger = createLogger('index');
 
 /**
  * Main function - Initialize and start the MCP server with selected transport
