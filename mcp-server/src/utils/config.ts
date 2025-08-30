@@ -4,7 +4,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { logger } from './logger.js';
+import { createLogger } from './logger.js';
+
+const logger = createLogger('Config');
 
 /**
  * Transport types supported by the MCP Server

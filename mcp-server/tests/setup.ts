@@ -155,7 +155,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await stopBridgeService();
   await closeTransport();
-  await server.close();
 });
 
 // Export utilities for tests

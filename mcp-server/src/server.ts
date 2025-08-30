@@ -4,10 +4,11 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ToolBase } from './tools/base.js';
-import { logger } from './utils/logger.js';
+import { createLogger } from './utils/logger.js';
 import { config } from './utils/config.js';
-import { ZodRawShape } from 'zod';
+import * as tools from './tools/index.js';
+
+const logger = createLogger('Server');
 
 /**
  * MCP Server manager that handles resource and tool registration
@@ -37,20 +38,6 @@ export class MCPServer extends McpServer {
   }
 
   /**
-   * Register a tool with the server
-   */
-  public addTool<InputSchema extends ZodRawShape, OutputSchema extends ZodRawShape>(tool: ToolBase<InputSchema, OutputSchema>): void {
-    super.registerTool(tool.Name, {
-      title: tool.Title,
-      description: tool.Description,
-      inputSchema: tool.InputSchema,
-      outputSchema: tool.OutputSchema,
-      annotations: tool.Annotations,
-    }, tool.Execute);
-    logger.info(`Registered tool: ${tool.Name}`);
-  }
-
-  /**
    * Initialize the server (can be extended in the future)
    */
   public async initialize(): Promise<void> {
@@ -59,9 +46,8 @@ export class MCPServer extends McpServer {
     }
 
     logger.info('Initializing MCP server');
-    
     // Register all resources and tools
-    
+    tools.registerAllTools(this);
     this.initialized = true;
   }
 
