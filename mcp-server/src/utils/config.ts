@@ -21,13 +21,13 @@ export interface MCPServerConfig {
   };
   transport: {
     type: TransportType;
-    http?: {
-      port: number;
-      host: string;
-      cors: {
-        origin: string | string[] | boolean;
-        credentials: boolean;
-      };
+    port?: number;
+    host?: string;
+    cors?: {
+      origin?: string | string[] | boolean;
+      methods?: string[];
+      allowedHeaders?: string[];
+      credentials?: boolean;
     };
   };
   bridgeService: {
@@ -51,13 +51,13 @@ const defaultConfig: MCPServerConfig = {
   },
   transport: {
     type: 'stdio',
-    http: {
-      port: 3000,
-      host: '0.0.0.0',
-      cors: {
-        origin: true,
-        credentials: true
-      }
+    port: 3000,
+    host: '0.0.0.0',
+    cors: {
+      origin: true,
+      credentials: true,
+      methods: ['GET', 'POST', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization']
     }
   },
   bridgeService: {
@@ -95,7 +95,7 @@ export function loadConfig(): MCPServerConfig {
     defaultConfig.transport.type;
 
   // Parse CORS origin from environment
-  let corsOrigin: string | string[] | boolean = defaultConfig.transport.http!.cors.origin;
+  let corsOrigin: string | string[] | boolean = defaultConfig.transport.cors?.origin || true;
   if (process.env.MCP_CORS_ORIGIN) {
     if (process.env.MCP_CORS_ORIGIN === 'true') {
       corsOrigin = true;
@@ -116,19 +116,19 @@ export function loadConfig(): MCPServerConfig {
     },
     transport: {
       type: transportType,
-      http: {
-        port: parseInt(process.env.MCP_PORT || '') || 
-          fileConfig.transport?.http?.port || 
-          defaultConfig.transport.http!.port,
-        host: process.env.MCP_HOST || 
-          fileConfig.transport?.http?.host || 
-          defaultConfig.transport.http!.host,
-        cors: {
-          origin: corsOrigin,
-          credentials: process.env.MCP_CORS_CREDENTIALS === 'false' ? false :
-            fileConfig.transport?.http?.cors?.credentials ?? 
-            defaultConfig.transport.http!.cors.credentials
-        }
+      port: parseInt(process.env.MCP_PORT || '') || 
+        fileConfig.transport?.port || 
+        defaultConfig.transport.port,
+      host: process.env.MCP_HOST || 
+        fileConfig.transport?.host || 
+        defaultConfig.transport.host,
+      cors: {
+        origin: corsOrigin,
+        credentials: process.env.MCP_CORS_CREDENTIALS === 'false' ? false :
+          fileConfig.transport?.cors?.credentials ?? 
+          defaultConfig.transport.cors?.credentials,
+        methods: fileConfig.transport?.cors?.methods || defaultConfig.transport.cors?.methods,
+        allowedHeaders: fileConfig.transport?.cors?.allowedHeaders || defaultConfig.transport.cors?.allowedHeaders
       }
     },
     bridgeService: {

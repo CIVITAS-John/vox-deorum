@@ -8,7 +8,8 @@
       "Bash(npm install)",
       "Bash(npm run type-check:*)",
       "Bash(npm ls:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,33 +1,31 @@
 /**
  * Main entry point for Vox Deorum MCP Server
- * Initializes and starts the MCP server for Civilization V game state exposure
+ * Initializes and starts the MCP server with transport selection
  */
 
-import { VoxDeorumMCPServer } from './server.js';
+import { config } from './utils/config.js';
 import { logger } from './utils/logger.js';
+import { startStdioServer } from './stdio.js';
+import { startHttpServer } from './http.js';
 
 /**
- * Main function - Initialize and start the MCP server
+ * Main function - Initialize and start the MCP server with selected transport
  */
 async function main(): Promise<void> {
   try {
-    const server = new VoxDeorumMCPServer();
+    logger.info(`Starting MCP server with ${config.transport.type} transport`);
     
-    // Handle graceful shutdown
-    process.on('SIGINT', async () => {
-      logger.info('Received SIGINT, shutting down gracefully...');
-      await server.stop();
-      process.exit(0);
-    });
-
-    process.on('SIGTERM', async () => {
-      logger.info('Received SIGTERM, shutting down gracefully...');
-      await server.stop();
-      process.exit(0);
-    });
-
-    // Start the server
-    await server.start();
+    // Start server with appropriate transport
+    switch (config.transport.type) {
+      case 'stdio':
+        await startStdioServer();
+        break;
+      case 'http':
+        await startHttpServer();
+        break;
+      default:
+        throw new Error(`Unknown transport type: ${config.transport.type}`);
+    }
   } catch (error) {
     logger.error('Failed to start MCP Server', { error });
     process.exit(1);
