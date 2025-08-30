@@ -3,17 +3,16 @@
  * Singleton instance that manages resources and tools with self-registration
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { createLogger } from './utils/logger.js';
 import { config } from './utils/config.js';
-import * as tools from './tools/index.js';
 
 const logger = createLogger('Server');
 
 /**
  * MCP Server manager that handles resource and tool registration
  */
-export class MCPServer extends McpServer {
+export class MCPServer extends Server {
   private static instance: MCPServer;
   private initialized = false;
 
@@ -47,7 +46,7 @@ export class MCPServer extends McpServer {
 
     logger.info('Initializing MCP server');
     // Register all resources and tools
-    tools.registerAllTools(this);
+    
     this.initialized = true;
   }
 
