@@ -24,7 +24,7 @@ The MCP Server connects AI agents to live game data through a standardized proto
 
 1. **Protocol/Transport Layer**
   - Leverages official TypeScript MCP SDK for protocol implementation
-  - Handles MCP communication (stdio, stateless Streamable HTTP) via SDK
+  - Handles MCP communication (stdio, stateful Streamable HTTP) via SDK
   - Manages resource/tool registration and discovery
   - Handles request/response routing and notifications
 
