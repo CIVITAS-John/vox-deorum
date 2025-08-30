@@ -23,6 +23,7 @@
 - Always follow Model Context Protocol specifications
 - Use the official @modelcontextprotocol/sdk package
 - Implement proper resource and tool registration
+- Resource and tools are both defined as "ToolBase" to share the same infrastructure
 - Handle errors gracefully with proper MCP error responses
 - Support multiple transport methods (stdio, HTTP)
 

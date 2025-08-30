@@ -76,7 +76,7 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
       };
 
       // Connect to the MCP server
-      await mcpServer.getServer().connect(transport);
+      await mcpServer.connect(transport);
     } else {
       // Invalid request
       res.status(400).json({
@@ -128,7 +128,7 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
     });
 
     // Shutdown MCP server
-    await mcpServer.shutdown();
+    await mcpServer.close();
     
     // Only exit if not in test mode
     if (process.env.NODE_ENV !== 'test') {

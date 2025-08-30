@@ -47,6 +47,7 @@ The MCP Server connects AI agents to live game data through a standardized proto
     - Notifying clients: Some events should be sent as MCP notifications to clients (e.g. player turn started)
 
 4. **Service Layer**
+  - Resource and tools are both defined as "ToolBase" to share the same infrastructure.
   - **Resource Providers**: Expose game state as queryable MCP resources
     - Units, cities, technologies, diplomacy, records, etc.
   - **Tool Providers**: Analysis and decision-making capabilities
@@ -57,7 +58,6 @@ The MCP Server connects AI agents to live game data through a standardized proto
 - **Flexible Transport**: Support multiple MCP transport methods
 - **Event-Driven**: Both the MCP client and the game can initiate actions
 - **Multi-Player**: Serves multiple LLM-enhanced AI players and keeps track of their knowledge separately (to avoid AI players knowing things they shouldn't)
-- **Stateless Resources**: Resources are computed on-demand from cached state
 - **Idempotent Tools**: Tool operations can be safely retried
 
 ## Communication Flow
@@ -70,18 +70,7 @@ MCP Client ←→ MCP Server ←→ Bridge Service ←→ Civilization V
 
 ### Detailed Communication Patterns
 
-#### 1. Resource Query (MCP Client → Game)
-```
-1. MCP Client → resources/list → MCP Server
-2. MCP Server returns available resources
-3. MCP Client → resources/read → MCP Server  
-4. MCP Server → POST /lua/call → Bridge Service
-5. Bridge Service → Named Pipe → DLL → Lua
-6. Lua result → DLL → Bridge Service → MCP Server
-7. MCP Server formats and returns resource to MCP Client
-```
-
-#### 2. Tool Execution (MCP Client → Game Action)
+#### 1. Tool/Resource Execution (MCP Client → Game Action)
 ```
 1. MCP Client → tools/call → MCP Server
 2. MCP Server executes tool logic
@@ -91,7 +80,7 @@ MCP Client ←→ MCP Server ←→ Bridge Service ←→ Civilization V
 4. Tool result → MCP Client
 ```
 
-#### 3. Game Events (Game → MCP Client)
+#### 2. Game Events (Game → MCP Client)
 ```
 1. Lua event → DLL → Bridge Service
 2. Bridge Service → SSE event → MCP Server
@@ -100,7 +89,7 @@ MCP Client ←→ MCP Server ←→ Bridge Service ←→ Civilization V
 5. MCP Client receives real-time game update
 ```
 
-#### 4. External Function Call (Game → MCP Server)
+#### 3. External Function Call (Game → MCP Server)
 ```
 1. MCP Server registers function with Bridge Service
 2. Lua calls Game.CallExternal()
@@ -110,10 +99,6 @@ MCP Client ←→ MCP Server ←→ Bridge Service ←→ Civilization V
 ```
 
 The server translates between MCP protocol and Bridge Service APIs, providing AI agents with structured access to live game data.
-
-## Implementation Plan
-
-See [docs/stages.md](docs/stages.md) for detailed implementation stages from project setup through full MCP integration.
 
 ## Getting Started
 

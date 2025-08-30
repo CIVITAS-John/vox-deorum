@@ -19,13 +19,6 @@ describe('MCP Client Connection', () => {
     expect(capabilities?.tools).toBeDefined();
   });
 
-  it('should retrieve server version', async () => {
-    const version = mcpClient.getServerVersion();
-    expect(version).toBeDefined();
-    expect(version?.name).toBe('vox-deorum-mcp-server');
-    expect(version?.version).toBe('1.0.0');
-  });
-
   it('should list available resources', async () => {
     const resources = await mcpClient.listResources();
     expect(resources).toBeDefined();

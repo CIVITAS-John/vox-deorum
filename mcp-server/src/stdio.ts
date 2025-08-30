@@ -21,7 +21,7 @@ export async function startStdioServer(setupSignalHandlers = true): Promise<() =
   // Set up graceful shutdown
   const shutdown = async () => {
     logger.info('Shutting down stdio server gracefully');
-    await server.shutdown();
+    await server.close();
     await transport.close();
   };
 
@@ -33,7 +33,7 @@ export async function startStdioServer(setupSignalHandlers = true): Promise<() =
   try {
     await server.initialize();
     // Connect the server to the transport
-    await server.getServer().connect(transport);
+    await server.connect(transport);
     
     logger.info('MCP server connected via stdio transport');
     return shutdown;

@@ -9,7 +9,6 @@ import path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { startStdioServer } from '../src/stdio.js';
 import { startHttpServer } from '../src/http.js';
 import { MCPServer } from '../src/server.js';
 import config from '../src/utils/config.js';
@@ -156,7 +155,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await stopBridgeService();
   await closeTransport();
-  await server.shutdown();
+  await server.close();
 });
 
 // Export utilities for tests

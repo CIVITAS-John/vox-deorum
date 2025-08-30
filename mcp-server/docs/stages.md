@@ -26,13 +26,10 @@ Develop the AI player knowledge management system with serialization/deserializa
 ### Stage 5: External Function Registration Infrastructure
 Implement the bidirectional communication infrastructure for MCP Server to register external functions with the Bridge Service, enabling Lua scripts to call back into AI analysis tools. This creates the foundation for game-initiated AI requests with proper function lifecycle management, parameter marshaling, and response handling following the external function protocol. This infrastructure supports later resource and tool implementations.
 
-### Stage 6: Resource Providers
-Develop MCP resource providers that expose game state as queryable resources including units, cities, technologies, diplomacy status, and historical records. Each resource provider translates Bridge Service APIs into structured MCP resources with proper caching, on-demand computation, and real-time updates. Resources must be stateless and computed from the current cached game state maintained by the knowledge system.
-
-### Stage 7: Tool Providers
+### Stage 6: Resource/Tool Providers
 Implement MCP tools for AI decision-making capabilities including memory management (short/long-term), strategic analysis tools, and preference modification actions. Tools should be idempotent, support retry operations, and integrate with the AI knowledge system to provide contextual analysis. This includes both read-only analysis tools and write operations that affect AI behavior in-game through the external function infrastructure.
 
-### Stage 8: MCP Notifications & Client Communication
+### Stage 7: MCP Notifications & Client Communication
 Complete the event processing pipeline by implementing MCP notifications to connected clients based on processed game events. This includes intelligent notification routing based on AI player relevance, current game context, and client subscription preferences. The system should filter and format notifications appropriately for different types of AI agents and strategic contexts.
 
 ## Technical Constraints & Solutions
