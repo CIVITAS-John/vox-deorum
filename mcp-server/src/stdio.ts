@@ -39,8 +39,6 @@ export async function startStdioServer(setupSignalHandlers = true): Promise<() =
     return shutdown;
   } catch (error) {
     logger.error('Failed to start stdio server:', error);
-    if (setupSignalHandlers)
-      process.exit(1);
     throw error;
   }
 }

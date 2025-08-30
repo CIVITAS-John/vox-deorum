@@ -157,7 +157,6 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
     return shutdown;
   } catch (error) {
     logger.error('Failed to start HTTP server:', error);
-    if (setupSignalHandlers) process.exit(1);
     throw error;
   }
 }

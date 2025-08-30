@@ -14,23 +14,18 @@ const logger = createLogger('index');
  * Main function - Initialize and start the MCP server with selected transport
  */
 async function main(): Promise<void> {
-  try {
-    logger.info(`Starting MCP server with ${config.transport.type} transport`);
-    
-    // Start server with appropriate transport
-    switch (config.transport.type) {
-      case 'stdio':
-        await startStdioServer();
-        break;
-      case 'http':
-        await startHttpServer();
-        break;
-      default:
-        throw new Error(`Unknown transport type: ${config.transport.type}`);
-    }
-  } catch (error) {
-    logger.error('Failed to start MCP Server', { error });
-    process.exit(1);
+  logger.info(`Starting MCP server with ${config.transport.type} transport`);
+  
+  // Start server with appropriate transport
+  switch (config.transport.type) {
+    case 'stdio':
+      await startStdioServer();
+      break;
+    case 'http':
+      await startHttpServer();
+      break;
+    default:
+      throw new Error(`Unknown transport type: ${config.transport.type}`);
   }
 }
 
