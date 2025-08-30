@@ -38,6 +38,7 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 ### Planning
 - During the Plan mode, do not present an action plan until the human initiates. Do use to-do list.
 - Unless explicitly asked, you should not change the test scripts when asked to run tests and fix issues.
+- When you draft a plan, you should not include excessive technical details. Focus on the conceptual level.
 
 ### Code Convention
 - Code must be production-ready and follow best practices

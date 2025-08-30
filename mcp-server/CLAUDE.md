@@ -37,8 +37,3 @@
 - Use HTTP REST API for Lua function calls
 - Use Server-Sent Events (SSE) for real-time game updates
 - Handle connection failures and retry logic gracefully
-
-### Stage Implementation
-- This is Stage 0: Basic project setup and hello-world MCP server
-- Future stages will add Bridge Service integration, event processing, knowledge management, resources, and tools
-- Maintain backward compatibility when adding new stages

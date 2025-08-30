@@ -3,7 +3,9 @@
     "allow": [
       "WebFetch(domain:github.com)",
       "WebSearch",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Read(f:\\Minor Solutions\\vox-deorum\\mcp-server\\docs/**)",
+      "Bash(npm install)"
     ],
     "deny": [],
     "ask": []

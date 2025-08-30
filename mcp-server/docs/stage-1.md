@@ -1,233 +1,156 @@
-# Stage 1: Core MCP Infrastructure - Implementation Plan
+# Stage 1: Core MCP Infrastructure
 
 ## Overview
-Stage 1 establishes a functional MCP server using the TypeScript SDK. The SDK provides most of the protocol handling, transport management, and registration systems. We focus on creating a thin wrapper that adds logging, basic configuration, and prepares for Bridge Service integration in Stage 2.
+Build a functional MCP server using the TypeScript SDK. Create a thin wrapper that adds logging, configuration, and prepares for Bridge Service integration.
 
 ## Objectives
-1. Create a working MCP server using the SDK's built-in Server class
-2. Support both stdio and HTTP transports (SDK provides the implementations)
-3. Add structured logging for debugging and monitoring
-4. Implement basic placeholder resources and tools to verify the system works
-5. Prepare extension points for Bridge Service integration
-
-## What the SDK Provides (No Need to Implement)
-- **Protocol Handling**: Full MCP protocol implementation
-- **Transport Layer**: StdioServerTransport and HTTP transport classes
-- **Request/Response Management**: Automatic routing and validation
-- **Resource/Tool Registration**: Built-in registration via setRequestHandler
-- **Error Handling**: Protocol-compliant error responses
-- **Schema Validation**: Using Zod schemas
-- **Message Serialization**: JSON-RPC handling
+1. Working MCP server with SDK's built-in Server class
+2. Support stdio and HTTP transports 
+3. Placeholder resources and tools
+4. Extension points for Bridge Service integration
 
 ## What We Need to Implement
 
-### 1. Main Server (`src/server.ts`)
-**Purpose**: Thin wrapper around SDK's Server class
+### 1. Multi-Transport Support (`src/transport.ts`)
+Factory function to create transports based on existing configuration:
+- **Stdio Transport**: Default mode for direct client connections
+- **HTTP Transport**: Express server with SSE support and CORS
+- Use existing config from `src/utils/config.ts` (extend for transport settings)
+- Graceful shutdown handling for both transport types
 
-```typescript
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+### 2. Resource Registration System (`src/resources/index.ts`)
+Pluggable resource handler architecture:
+- `ResourceHandler` interface for modular resources
+- Centralized registration with the MCP server
+- Error handling and resource discovery
+- Placeholder game state resource returning mock data
 
-// Create server instance
-const server = new Server({
-  name: "vox-deorum-mcp",
-  version: "1.0.0"
-}, {
-  capabilities: {
-    resources: {},
-    tools: {}
-  }
-});
+### 3. Tool Registration System (`src/tools/index.ts`)
+Pluggable tool handler architecture:
+- `ToolHandler` interface for modular tools
+- Schema validation with Zod and JSON schema conversion
+- Centralized tool execution with error handling
+- Placeholder analysis tool with configurable options
 
-// Register placeholder resources
-// Register placeholder tools
-// Set up request handlers
-```
+### 4. Main Server Factory (`src/server.ts`)
+Creates configured MCP server instance:
+- Uses SDK's built-in Server class
+- Registers all resource and tool handlers
+- Sets up capabilities
 
-### 2. Transport Setup (`src/transport.ts`)
-**Purpose**: Initialize transport based on environment
-
-```typescript
-// For stdio (default)
-const transport = new StdioServerTransport();
-
-// For HTTP (when needed)
-// Simple Express setup for Streamable HTTP
-```
-
-### 3. Logging (`src/utils/logger.ts`)
-**Purpose**: Add winston logging for debugging
-
-```typescript
-import winston from 'winston';
-
-// Simple logger setup
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.Console()
-  ]
-});
-```
-
-### 4. Placeholder Resources (`src/resources/`)
-**Purpose**: Verify resource system works
-
-#### `src/resources/gameState.ts`
-```typescript
-// Placeholder resource that returns mock game state
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  return {
-    resources: [{
-      uri: "game://state",
-      name: "Game State",
-      description: "Current game state (placeholder)"
-    }]
-  };
-});
-
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  if (request.params.uri === "game://state") {
-    return {
-      contents: [{
-        uri: "game://state",
-        mimeType: "application/json",
-        text: JSON.stringify({ turn: 0, players: [] })
-      }]
-    };
-  }
-});
-```
-
-### 5. Placeholder Tools (`src/tools/`)
-**Purpose**: Verify tool system works
-
-#### `src/tools/analysis.ts`
-```typescript
-// Placeholder tool for game analysis
-const AnalyzePositionSchema = z.object({
-  playerId: z.number()
-});
-
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [{
-      name: "analyze_position",
-      description: "Analyze current game position (placeholder)",
-      inputSchema: zodToJsonSchema(AnalyzePositionSchema)
-    }]
-  };
-});
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  if (request.params.name === "analyze_position") {
-    return {
-      content: [{
-        type: "text",
-        text: "Position analysis placeholder"
-      }]
-    };
-  }
-});
-```
-
-### 6. Main Entry Point (`src/index.ts`)
-**Purpose**: Bootstrap the server
-
-```typescript
-import { server } from './server.js';
-import { setupTransport } from './transport.js';
-import { logger } from './utils/logger.js';
-
-async function main() {
-  try {
-    const transport = setupTransport();
-    await server.connect(transport);
-    logger.info('MCP Server started');
-    
-    // Handle shutdown
-    process.on('SIGINT', async () => {
-      await server.close();
-      process.exit(0);
-    });
-  } catch (error) {
-    logger.error('Failed to start server', error);
-    process.exit(1);
-  }
-}
-
-main();
-```
+### 5. Application Bootstrap (`src/index.ts`)
+Main entry point with full lifecycle management:
+- Use existing configuration and logging infrastructure
+- Server and transport creation
+- Graceful shutdown handling
+- Process signal management
 
 ## Testing Strategy
 
-### Integration Tests (`tests/integration/`)
-- Test server with actual MCP client connections
-- Verify resource listing and reading
-- Test tool listing and execution
-- Validate transport switching (stdio vs HTTP)
+### Test Structure
+Component-based test organization:
 
-### Unit Tests (`tests/unit/`)
-- Test placeholder resources return correct data
-- Test placeholder tools execute properly
-- Verify logging outputs
+```
+tests/
+├── integration/          # End-to-end tests with both transports
+├── resources/           # Resource handler tests
+├── tools/              # Tool handler tests
+├── config/             # Configuration validation tests
+├── utils/              # Utility function tests
+└── fixtures/           # Shared test data and helpers
+```
 
-## Development Tasks
+### Key Test Categories
 
-### Implementation Steps (2-3 days)
-1. Create basic server wrapper using SDK
-2. Add winston logging
-3. Implement placeholder resources (game state)
-4. Implement placeholder tools (analyze position)
-5. Set up transport initialization
-6. Create main entry point
-7. Write integration tests
-8. Test with MCP inspector or client
+**Integration Tests**: End-to-end testing with actual MCP clients for both stdio and HTTP transports. Tests include:
+- Resource listing and reading
+- Tool discovery and execution
+- Transport-specific functionality (CORS for HTTP)
+- Client-server communication patterns
+
+**Component Tests**: Isolated testing of individual handlers:
+- Resource handlers: Mock data validation, URI handling
+- Tool handlers: Schema validation, execution logic
+- Configuration: Environment variable parsing, schema validation
+
+## Implementation Steps (2-3 days)
+
+1. **Transport & Configuration** (Day 1)
+   - Extend existing config for transport settings (HTTP port, host, CORS)
+   - Multi-transport support (stdio/HTTP) with Express and SSE
+   - Leverage existing logging infrastructure
+
+2. **Handler Systems** (Day 1-2)
+   - Pluggable resource and tool registration architectures
+   - Placeholder implementations (game state resource, analysis tool)
+   - Schema validation and error handling
+
+3. **Testing & Validation** (Day 2-3)
+   - Integration tests for both transport modes
+   - Component-specific test suites with mock data
+   - MCP inspector validation and performance testing
 
 ## Success Criteria
-1. ✅ Server starts and accepts stdio connections
-2. ✅ Can list and read placeholder resources
-3. ✅ Can list and execute placeholder tools
-4. ✅ Logs server events properly
-5. ✅ Graceful shutdown handling
-6. ✅ Tests pass with good coverage
+1. ✅ Server starts with both stdio and HTTP transports
+2. ✅ Extended configuration supports transport settings
+3. ✅ Resources and tools work via both transport modes
+4. ✅ HTTP transport handles CORS and multiple clients
+5. ✅ Comprehensive test coverage (>90%) across all components
+6. ✅ Graceful shutdown for both transport modes
+7. ✅ Error handling and validation throughout
 
 ## Dependencies
-- @modelcontextprotocol/sdk - Core MCP protocol (already installed)
-- winston - Logging (to be added)
-- zod-to-json-schema - Schema conversion (may be needed)
+
+**Core Dependencies**: express, cors, zod-to-json-schema
+**Dev Dependencies**: @types/express, @types/cors  
+**Already Available**: @modelcontextprotocol/sdk, Vitest, TypeScript, winston (existing logging)
+
+## Usage Examples
+
+**Stdio Transport** (Default):
+```bash
+node dist/index.js  # Default mode
+MCP_TRANSPORT=stdio node dist/index.js  # Explicit
+```
+
+**HTTP Transport**:
+```bash
+MCP_TRANSPORT=http node dist/index.js  # Basic
+MCP_TRANSPORT=http MCP_PORT=8080 node dist/index.js  # Custom port
+```
 
 ## Migration Path from Stage 0
-1. Build on existing hello-world server
-2. Keep test infrastructure
-3. Extend with resources and tools
-4. Add logging layer
+- Extend existing structure with configuration layer
+- Preserve Vitest testing infrastructure  
+- Add new registration patterns while maintaining SDK compatibility
+- Restructure tests to component-based organization
 
 ## Preparation for Stage 2
-- Server structure ready for Bridge Service client
-- Logging in place for debugging integration
-- Resource/tool patterns established for real implementations
-- Transport flexibility for different deployment scenarios
+- **Extensible Resource System**: Plugin-based resources ready for Bridge Service data
+- **Flexible Transport**: Both transports for different deployment scenarios
+- **Configuration Framework**: Existing config extended for Bridge Service settings
+- **Logging Infrastructure**: Existing winston logger ready for integration debugging
+- **Test Patterns**: Established patterns for testing external service interactions
 
 ## File Structure
 ```
 mcp-server/
 ├── src/
-│   ├── index.ts           # Main entry point
-│   ├── server.ts          # Server setup and registration
-│   ├── transport.ts       # Transport initialization
-│   ├── resources/
-│   │   └── gameState.ts   # Placeholder game state resource
-│   ├── tools/
-│   │   └── analysis.ts    # Placeholder analysis tool
+│   ├── index.ts              # Main entry point with bootstrap
+│   ├── server.ts             # Server setup with plugin registration
+│   ├── transport.ts          # Multi-transport support
+│   ├── resources/            # Resource registration system
+│   ├── tools/                # Tool registration system
 │   └── utils/
-│       └── logger.ts      # Winston logger setup
-└── tests/
-    └── integration/
-        └── server.test.ts # Integration tests
+│       ├── config.ts         # Existing configuration (extend for transports)
+│       └── logger.ts         # Existing winston logger
+├── tests/
+│   ├── integration/          # End-to-end tests
+│   ├── resources/            # Resource handler tests
+│   ├── tools/                # Tool handler tests
+│   └── utils/                # Utility tests
+└── package.json              # Updated dependencies
 ```
 
 ## Summary
-Stage 1 creates a minimal but functional MCP server using the SDK's built-in capabilities. Instead of reimplementing protocol handling, we focus on creating a thin wrapper that adds logging and prepares the structure for Bridge Service integration in Stage 2. The SDK handles all the complex protocol details, allowing us to focus on our specific use case.
+Stage 1 creates a functional MCP server using the SDK's built-in capabilities. Instead of reimplementing protocol handling, we focus on creating a thin wrapper that adds logging, configuration, and prepares the structure for Bridge Service integration in Stage 2.
