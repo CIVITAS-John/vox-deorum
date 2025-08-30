@@ -50,9 +50,9 @@ const defaultConfig: MCPServerConfig = {
     version: '1.0.0'
   },
   transport: {
-    type: 'stdio',
+    type: 'http',
     port: 3000,
-    host: '0.0.0.0',
+    host: '127.0.0.1',
     cors: {
       origin: true,
       credentials: true,

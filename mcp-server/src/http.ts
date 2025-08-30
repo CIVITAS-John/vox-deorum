@@ -150,7 +150,7 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
     
     httpServer.listen(port, host, () => {
       logger.info(`MCP HTTP server listening on http://${host}:${port}`);
-      logger.info(`SSE endpoint: http://${host}:${port}/sse`);
+      logger.info(`Streamable HTTP endpoint: http://${host}:${port}/mcp`);
       logger.info(`Health check: http://${host}:${port}/health`);
     });
 
