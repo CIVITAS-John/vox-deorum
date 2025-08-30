@@ -115,7 +115,6 @@ export async function startHttpServer(): Promise<void> {
   const host = config.transport.host || 'localhost';
 
   try {
-    logger.info('Initializing MCP server');
     await mcpServer.initialize();
     
     httpServer.listen(port, host, () => {

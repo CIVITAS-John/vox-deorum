@@ -28,7 +28,6 @@ export async function startStdioServer(): Promise<void> {
   });
 
   try {
-    logger.info('Starting MCP server with stdio transport');
     await server.initialize();
     // Connect the server to the transport
     await server.getServer().connect(transport);
