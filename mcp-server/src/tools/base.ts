@@ -28,11 +28,10 @@ export abstract class ToolBase {
   /**
    * Optional annotations for the tool
    */
-  abstract readonly annotations?: ToolAnnotations
+  abstract readonly annotations?: ToolAnnotations;
 
   /**
    * Execute the tool with the given arguments
    */
   abstract execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>>;
 }
-
