@@ -1,4 +1,4 @@
-import { ToolBase } from "./base.js";
+import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { evaluate } from "mathjs";
 

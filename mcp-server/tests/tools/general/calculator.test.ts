@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mcpClient } from "../setup.js";
+import { mcpClient } from "../../setup.js";
 
 describe("Calculator Tool via MCP", () => {
 
