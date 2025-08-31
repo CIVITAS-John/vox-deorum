@@ -4,7 +4,7 @@
 
 ## Overview
 
-This document provides a comprehensive reference for all 51 Lua events that can be intercepted and forwarded by the Vox Deorum system. These events are automatically captured through the `LuaSupport::CallHook` interception mechanism in the Community Patch DLL and forwarded to external services via the Bridge Service using Server-Sent Events (SSE).
+This document provides a comprehensive reference for all 51 Lua events that can be intercepted and forwarded by the Vox Deorum system. These events are automatically captured through the `LuaSupport::CallHook` interception mechanism in the Community Patch DLL (Vox Populi mod for Civilization 5) and forwarded to external services via the Bridge Service using Server-Sent Events (SSE).
 
 The events documented here represent the complete set of game state changes and actions that external AI services can monitor and respond to, enabling real-time analysis and decision-making for enhanced Civilization V gameplay.
 
@@ -657,19 +657,6 @@ The 51 events are organized into the following logical categories:
 | TeamSetHasTech | Research completion | Trade, espionage, ruins |
 | UnitSetXY | Normal movement | Teleportation, unit creation |
 | PlayerAdoptPolicy | Culture spending | Free policies from wonders/events |
-
-## Integration Notes
-
-### Event Filtering
-The Vox Deorum system includes event filtering to prevent overwhelming external services with high-frequency events. The following events are filtered by default but can be enabled:
-- GameCoreUpdateBegin/End (occurs multiple times per turn)
-- UnitSetXY (occurs with every unit movement)
-- PushingMissionTo (frequent AI unit commands)
-
-### Performance Considerations
-- Events are processed asynchronously to avoid impacting game performance
-- Event payloads are limited to 2KB to ensure efficient transmission
-- High-frequency events should be sampled or aggregated when possible
 
 ### External Service Integration
 External services can register for specific events through the Bridge Service SSE endpoint at `/events`. Events are streamed in real-time with the following format:
