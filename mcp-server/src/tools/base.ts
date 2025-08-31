@@ -1,5 +1,7 @@
+import { RegisteredTool } from "@modelcontextprotocol/sdk/server/mcp";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types";
 import * as z from "zod";
+import { MCPServer } from "../server";
 
 /**
  * Base class for MCP server tools
@@ -18,17 +20,27 @@ export abstract class ToolBase {
   /**
    * JSON schema for the tool's input parameters
    */
-  abstract readonly inputSchema: z.ZodTypeAny;
+  abstract readonly inputSchema: z.ZodObject<any>;
 
   /**
    * JSON schema for the tool's output parameters
    */
-  abstract readonly outputSchema: z.ZodTypeAny;
+  abstract readonly outputSchema: z.ZodObject<any>;
 
   /**
    * Optional annotations for the tool
    */
   abstract readonly annotations?: ToolAnnotations;
+
+  /**
+   * Underlying McpServer instance
+   */
+  public server?: MCPServer;
+
+  /**
+   * Registered tool instance after registration with MCP server
+   */
+  public registered?: RegisteredTool;
 
   /**
    * Execute the tool with the given arguments

@@ -32,7 +32,7 @@ export async function startStdioServer(setupSignalHandlers = true): Promise<() =
 
   try {
     await server.initialize();
-    // Connect the server to the transport
+    // Connect the server to the transport using the underlying McpServer
     await server.connect(transport);
     
     logger.info('MCP server connected via stdio transport');
