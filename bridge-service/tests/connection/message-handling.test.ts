@@ -3,12 +3,11 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { globalMockDLL, USE_MOCK } from '../setup.js';
+import { USE_MOCK } from '../setup.js';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
 import { ErrorCode } from '../../src/types/api.js';
-import { logSuccess, delay } from '../test-utils/helpers.js';
-import { TEST_TIMEOUTS } from '../test-utils/constants.js';
+import { logSuccess } from '../test-utils/helpers.js';
 
 // Message handling and request/response flow
 describe('Message Handling and Communication', () => {

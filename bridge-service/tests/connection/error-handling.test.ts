@@ -6,8 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { config } from '../../src/utils/config.js';
 import { ErrorCode } from '../../src/types/api.js';
-import { delay, logSuccess } from '../test-utils/helpers.js';
-import { TEST_TIMEOUTS } from '../test-utils/constants.js';
+import { logSuccess } from '../test-utils/helpers.js';
 
 // Connection failure scenarios and error handling
 describe('Connection Error Handling', () => {

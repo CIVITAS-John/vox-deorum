@@ -109,7 +109,7 @@ function broadcastEvent(gameEvent: GameEvent): void {
       if (client.response.destroyed) {
         disconnectedClients.push(clientId);
       } else {
-        sendSSEMessage(client.response, gameEvent.type, {
+        sendSSEMessage(client.response, "message", {
           type: gameEvent.type,
           payload: gameEvent.payload,
           timestamp: gameEvent.timestamp

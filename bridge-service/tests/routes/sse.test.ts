@@ -133,7 +133,7 @@ describe('SSE Service', () => {
       // Create multiple clients
       for (let i = 0; i < clientCount; i++) {
         // Set up listener for game event
-        eventPromises.push(waitForSSEEvent(clients[i], 'test_event'));
+        eventPromises.push(waitForSSEEvent(clients[i], 'message'));
       }
       
       // Emit a game event from DLL connector
