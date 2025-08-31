@@ -3,7 +3,6 @@
  */
 
 import { CallToolResult } from "@modelcontextprotocol/sdk/types";
-import * as z from "zod";
 
 /**
  * Wraps tool execution results into the proper MCP CallToolResult format
