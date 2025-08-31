@@ -64,5 +64,6 @@
         "variant": "cpp",
         "vector": "cpp",
         "algorithm": "cpp"
-    }
+    },
+    "editor.tabSize": 2
 }
