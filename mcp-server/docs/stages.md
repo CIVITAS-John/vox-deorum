@@ -15,7 +15,15 @@ Establish the basic Node.js/TypeScript project structure with proper dependencie
 Establish the core MCP server infrastructure using the TypeScript SDK with support for multiple transport methods (stdio, Streamable HTTP). This stage focuses on protocol compliance, resource/tool registration systems, and basic request/response handling. The foundation includes proper error handling, logging infrastructure, and configuration management that aligns with the existing project patterns.
 
 ### Stage 2: Bridge Service Integration Manager
-Implement a manager object that exposes stateless APIs for Bridge Service interaction through HTTP REST API for Lua function calls and Server-Sent Events for real-time game updates. This manager abstracts Bridge Service communication without involving MCP message formats, providing clean interfaces for connection management, retry logic, event streaming, and protocol translation. The manager handles connection failures gracefully and maintains protocol compliance with PROTOCOL.md specifications.
+Implement a manager object that exposes stateless APIs for Bridge Service interaction through HTTP REST API for Lua function calls and Server-Sent Events for real-time game updates. This manager abstracts Bridge Service communication without involving MCP message formats, providing clean interfaces for connection management and timeout logic. The manager handles connection failures gracefully and maintains protocol compliance with PROTOCOL.md specifications.
+- It should be named `BridgeManager` which belongs to the MCPServer object.
+- It should support raw Lua script calling.
+- It should support function registration through a `LuaFunction` object:
+  - constructor(name, script)
+  - property: Registered (thus, we support lazy registration)
+  - execute(args) - registered if not already
+    - also, if the execution error is about unregistered function, register and try again automatically!
+- BridgeManager should keep track of registered functions and support reset - i.e. setting all LuaFunctions to unregistered (later we will use it; for example, when the game restarted).
 
 ### Stage 3: Event Processing & Real-time Updates
 Create the real-time event processing system that receives game events from Bridge Service SSE stream and processes them for AI knowledge updates. This includes event filtering, categorization, and initial processing pipeline. The system must handle different event types, maintain event history, and prepare events for knowledge storage and MCP client notifications. 
