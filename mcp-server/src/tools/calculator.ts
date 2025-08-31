@@ -27,7 +27,6 @@ class CalculatorTool extends ToolBase {
    * Output schema for calculation results
    */
   readonly outputSchema = z.object({
-    expression: z.string(),
     result: z.union([z.number(), z.string()])
   });
 
@@ -43,7 +42,6 @@ class CalculatorTool extends ToolBase {
     const result = evaluate(args.expression);
     
     return {
-      expression: args.expression,
       result: typeof result === 'number' ? result : String(result)
     };
   }

@@ -29,6 +29,8 @@
 - Support multiple transport methods (stdio, HTTP)
 
 ### Tools/Resources Implementation
+- Use the `calculator.ts` tool implementation as the template
+- Similarly, use the `calculator.test.ts` implementation as the test template
 - Tools/resources do not need to handle errors unless necessary to bypass them
 - Tool/resource tests should be done by doing MCP client calls
 - Tool/resource tests should use the mcpClient object exported by the setup.ts

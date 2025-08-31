@@ -124,30 +124,30 @@ let mcpClient: Client;
 // Global test setup - start bridge service once for all tests
 beforeAll(async () => {
   await startBridgeService();
-    mcpClient = new Client({
-      name: "test-client",
-      version: "1.0.0"
-    });
-    // Start server and client with appropriate transport
-    switch (process.env.TEST_TRANSPORT ?? "http") {
-      case 'stdio':
-        config.transport.type = 'stdio';
-        await mcpClient.connect(new StdioClientTransport({
-          command: 'node',
-          args: ['dist/index.js']
-        }));
-        closeTransport = () => mcpClient.close();
-        break;
-      case 'http':
-        closeTransport = await startHttpServer();
-        // Connect MCP client
-        await mcpClient.connect(new StreamableHTTPClientTransport(
-          new URL(`http://${config.transport.host || 'localhost'}:${config.transport.port || 3000}/mcp`)
-        ));
-        break;
-      default:
-        throw new Error(`Unknown transport type: ${process.env.TEST_TRANSPORT}`);
-    }
+  mcpClient = new Client({
+    name: "test-client",
+    version: "1.0.0"
+  });
+  // Start server and client with appropriate transport
+  switch (process.env.TEST_TRANSPORT ?? "http") {
+    case 'stdio':
+      config.transport.type = 'stdio';
+      await mcpClient.connect(new StdioClientTransport({
+        command: 'node',
+        args: ['dist/index.js']
+      }));
+      closeTransport = () => mcpClient.close();
+      break;
+    case 'http':
+      closeTransport = await startHttpServer();
+      // Connect MCP client
+      await mcpClient.connect(new StreamableHTTPClientTransport(
+        new URL(`http://${config.transport.host || 'localhost'}:${config.transport.port || 3000}/mcp`)
+      ));
+      break;
+    default:
+      throw new Error(`Unknown transport type: ${process.env.TEST_TRANSPORT}`);
+  }
   server = MCPServer.getInstance();
 }, 15000); // 15 second timeout for service startup
 
