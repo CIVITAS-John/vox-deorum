@@ -32,6 +32,9 @@ export interface MCPServerConfig {
       credentials?: boolean;
     };
   };
+  bridge?: {
+    url: string;
+  };
   bridgeService: {
     endpoint: {
       host: string;
@@ -111,6 +114,9 @@ export function loadConfig(): MCPServerConfig {
   }
 
   // Build final configuration with environment variable overrides
+  const bridgeHost = process.env.BRIDGE_SERVICE_HOST || fileConfig.bridgeService?.endpoint?.host || defaultConfig.bridgeService.endpoint.host;
+  const bridgePort = parseInt(process.env.BRIDGE_SERVICE_PORT || '') || fileConfig.bridgeService?.endpoint?.port || defaultConfig.bridgeService.endpoint.port;
+  
   const config: MCPServerConfig = {
     server: {
       name: process.env.MCP_SERVER_NAME || fileConfig.server?.name || defaultConfig.server.name,
@@ -133,10 +139,13 @@ export function loadConfig(): MCPServerConfig {
         allowedHeaders: fileConfig.transport?.cors?.allowedHeaders || defaultConfig.transport.cors?.allowedHeaders
       }
     },
+    bridge: {
+      url: process.env.BRIDGE_SERVICE_URL || fileConfig.bridge?.url || `http://${bridgeHost}:${bridgePort}`
+    },
     bridgeService: {
       endpoint: {
-        host: process.env.BRIDGE_SERVICE_HOST || fileConfig.bridgeService?.endpoint?.host || defaultConfig.bridgeService.endpoint.host,
-        port: parseInt(process.env.BRIDGE_SERVICE_PORT || '') || fileConfig.bridgeService?.endpoint?.port || defaultConfig.bridgeService.endpoint.port
+        host: bridgeHost,
+        port: bridgePort
       }
     },
     logging: {

@@ -9,6 +9,7 @@ import { config } from './utils/config.js';
 import { wrapResults } from './utils/mcp.js';
 import { ToolBase } from './tools/base.js';
 import { getAllTools } from './tools/index.js';
+import { BridgeManager } from './bridge/BridgeManager.js';
 import * as z from "zod";
 
 const logger = createLogger('Server');
@@ -21,6 +22,7 @@ export class MCPServer {
   private server: McpServer;
   private initialized = false;
   private tools = new Map<string, ToolBase>();
+  private bridgeManager: BridgeManager;
 
   /**
    * Private constructor for MCPServer
@@ -34,6 +36,9 @@ export class MCPServer {
         
       }
     });
+    
+    // Initialize BridgeManager
+    this.bridgeManager = new BridgeManager(config.bridge?.url);
   }
 
   /**
@@ -116,6 +121,13 @@ export class MCPServer {
   }
 
   /**
+   * Get the BridgeManager instance
+   */
+  public getBridgeManager(): BridgeManager {
+    return this.bridgeManager;
+  }
+
+  /**
    * Initialize the server (can be extended in the future)
    */
   public async initialize(): Promise<void> {
@@ -124,6 +136,32 @@ export class MCPServer {
     }
 
     logger.info('Initializing MCP server');
+    
+    // Check Bridge Service health
+    try {
+      const health = await this.bridgeManager.checkHealth();
+      logger.info('Bridge Service health:', health);
+      
+      // Connect to SSE stream for game events
+      this.bridgeManager.connectSSE();
+      
+      // Set up event listeners
+      this.bridgeManager.on('connected', () => {
+        logger.info('Connected to Bridge Service SSE stream');
+      });
+      
+      this.bridgeManager.on('disconnected', () => {
+        logger.warn('Disconnected from Bridge Service SSE stream');
+      });
+      
+      this.bridgeManager.on('gameEvent', (event) => {
+        logger.debug('Received game event:', event);
+        // TODO: Process game events in Stage 3
+      });
+    } catch (error: any) {
+      throw new Error('Failed to connect to Bridge Service: ' + (error.message ?? "unknown error"), error);
+    }
+    
     // Register all tools
     getAllTools().forEach(tool => this.registerTool(tool));
     
@@ -142,6 +180,10 @@ export class MCPServer {
    */
   public async close(): Promise<void> {
     logger.info('Shutting down MCP server');
+    
+    // Shutdown BridgeManager
+    this.bridgeManager.shutdown();
+    
     // McpServer doesn't have a close method, but we can reset our state
     this.initialized = false;
   }
