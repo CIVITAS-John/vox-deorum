@@ -95,14 +95,14 @@ export class BridgeManager extends EventEmitter {
         body: JSON.stringify({ script }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Lua execution failed with status ${response.status}`);
-      }
-
       const data = await response.json() as LuaResponse;
       
+      if (!data) {
+        throw new Error(`Lua function call failed with status ${response.status}: ${JSON.stringify(data)}`);
+      }
+
       if (!data.success) {
-        logger.error('Lua script execution failed:', data.error);
+        logger.error('Lua script execution failed: ' + (JSON.stringify(data)), data.error);
       }
       
       return data;
@@ -134,14 +134,14 @@ export class BridgeManager extends EventEmitter {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Lua function call failed with status ${response.status}`);
-      }
-
       const data = await response.json() as LuaResponse;
       
+      if (!data) {
+        throw new Error(`Lua function call failed with status ${response.status}: ${JSON.stringify(data)}`);
+      }
+
       if (!data.success) {
-        logger.error(`Lua function ${functionName} failed:`, data.error);
+        logger.error(`Lua function ${functionName} failed: ${JSON.stringify(data)}`, data.error);
       }
       
       return data;
