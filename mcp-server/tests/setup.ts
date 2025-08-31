@@ -155,6 +155,8 @@ beforeAll(async () => {
 afterAll(async () => {
   await stopBridgeService();
   await closeTransport();
+  // Delay 1s to allow cleanup
+  await new Promise(resolve => setTimeout(resolve, 1000));
 });
 
 // Export utilities for tests

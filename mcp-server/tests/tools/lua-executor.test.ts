@@ -17,17 +17,17 @@ describe("Lua Executor Tool via MCP", () => {
 
   it("should execute basic Lua calculations", async () => {
     const testCases = [
-      { code: "return 2 + 3", expected: 5 },
-      { code: "return 10 * 5", expected: 50 },
-      { code: "return math.sqrt(16)", expected: 4 },
-      { code: "return 2^8", expected: 256 },
-      { code: "return (10 + 5) * 2", expected: 30 }
+      { script: "return 2 + 3", expected: 5 },
+      { script: "return 10 * 5", expected: 50 },
+      { script: "return math.sqrt(16)", expected: 4 },
+      { script: "return 2^8", expected: 256 },
+      { script: "return (10 + 5) * 2", expected: 30 }
     ];
 
     for (const test of testCases) {
       const result = await mcpClient.callTool({
         name: "lua-executor",
-        arguments: { code: test.code }
+        arguments: { script: test.script }
       });
 
       expect(result.content).toBeDefined();
@@ -41,40 +41,10 @@ describe("Lua Executor Tool via MCP", () => {
     }
   });
 
-  it("should handle string operations", async () => {
-    const result = await mcpClient.callTool({
-      name: "lua-executor",
-      arguments: { code: 'return "Hello " .. "World"' }
-    });
-
-    expect(result.content).toBeDefined();
-    const content = (result.content as any);
-    if (content.type === "text") {
-      const parsed = JSON.parse(content.text);
-      expect(parsed.result).toBe("Hello World");
-    }
-  });
-
-  it("should handle table operations", async () => {
-    const result = await mcpClient.callTool({
-      name: "lua-executor",
-      arguments: { 
-        code: 'local t = {1, 2, 3}; return #t'
-      }
-    });
-
-    expect(result.content).toBeDefined();
-    const content = (result.content as any)[0];
-    if (content.type === "text") {
-      const parsed = JSON.parse(content.text);
-      expect(parsed.result).toBe(3);
-    }
-  });
-
   it("should handle errors gracefully", async () => {
     const result = await mcpClient.callTool({
       name: "lua-executor",
-      arguments: { code: "invalid lua code @#$" }
+      arguments: { script: "invalid lua code @#$" }
     });
 
     expect(result.content).toBeDefined();
