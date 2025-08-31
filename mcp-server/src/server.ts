@@ -8,8 +8,8 @@ import { createLogger } from './utils/logger.js';
 import { config } from './utils/config.js';
 import { wrapResults } from './utils/mcp.js';
 import { ToolBase } from './tools/base.js';
-import { getAllTools } from './tools/index.js';
-import { BridgeManager } from './bridge/BridgeManager.js';
+import { allTools } from './tools/index.js';
+import { BridgeManager } from './bridge/bridge-manager.js';
 import * as z from "zod";
 
 const logger = createLogger('Server');
@@ -163,7 +163,7 @@ export class MCPServer {
     }
     
     // Register all tools
-    getAllTools().forEach(tool => this.registerTool(tool));
+    allTools.forEach(tool => this.registerTool(tool));
     
     this.initialized = true;
   }

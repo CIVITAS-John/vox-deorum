@@ -5,7 +5,7 @@ import { evaluate } from "mathjs";
 /**
  * Calculator tool that wraps mathjs for mathematical operations
  */
-export class CalculatorTool extends ToolBase {
+class CalculatorTool extends ToolBase {
   /**
    * Unique identifier for the calculator tool
    */
@@ -48,3 +48,5 @@ export class CalculatorTool extends ToolBase {
     };
   }
 }
+
+export default new CalculatorTool();

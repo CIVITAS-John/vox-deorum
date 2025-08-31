@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 import { EventSource } from 'eventsource'
 import { createLogger } from '../utils/logger.js';
 import { config } from '../utils/config.js';
-import { LuaFunction } from './LuaFunction.js';
+import { LuaFunction } from './lua-function.js';
 
 const logger = createLogger('BridgeManager');
 
