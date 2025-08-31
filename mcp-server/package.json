@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:stdio": "cross-env TEST_TRANSPORT=stdio vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "inspect": "npx @modelcontextprotocol/inspector"
   },
   "keywords": [
     "civilization",
@@ -31,6 +32,7 @@
     "cors": "2.8.5",
     "cross-env": "^10.0.0",
     "express": "4.21.2",
+    "mathjs": "^14.6.0",
     "winston": "^3.17.0",
     "zod": "^3.22.0",
     "zod-to-json-schema": "3.24.6"

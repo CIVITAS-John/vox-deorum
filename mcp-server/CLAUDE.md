@@ -16,6 +16,7 @@
 ### Code Structure
 - Source code in `src/` directory
 - Utilities in `src/utils/` subdirectory  
+- Tools in `src/tools` subdirectory
 - Tests mirror source structure in `tests/` directory
 - Built output goes to `dist/` directory (gitignored)
 
@@ -26,6 +27,9 @@
 - Resource and tools are both defined as "ToolBase" to share the same infrastructure
 - Handle errors gracefully with proper MCP error responses
 - Support multiple transport methods (stdio, HTTP)
+
+### Tools Implementation
+- Tools do not need to handle errors unless necessary to bypass them
 
 ### Build & Development
 - `npm run dev` - Development with hot reload using tsx

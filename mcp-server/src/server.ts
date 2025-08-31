@@ -29,6 +29,10 @@ export class MCPServer {
     this.server = new McpServer({
       name: config.server.name,
       version: config.server.version,
+    }, {
+      capabilities: {
+        
+      }
     });
   }
 

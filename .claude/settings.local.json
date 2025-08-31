@@ -11,7 +11,8 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(npm test:*)",
-      "Bash(npm run start:*)"
+      "Bash(npm run start:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
