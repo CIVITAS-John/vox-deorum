@@ -28,8 +28,10 @@
 - Handle errors gracefully with proper MCP error responses
 - Support multiple transport methods (stdio, HTTP)
 
-### Tools Implementation
-- Tools do not need to handle errors unless necessary to bypass them
+### Tools/Resources Implementation
+- Tools/resources do not need to handle errors unless necessary to bypass them
+- Tool/resource tests should be done by doing MCP client calls
+- Tool/resource tests should use the mcpClient object exported by the setup.ts
 
 ### Build & Development
 - `npm run dev` - Development with hot reload using tsx

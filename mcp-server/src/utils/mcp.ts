@@ -3,6 +3,7 @@
  */
 
 import { CallToolResult } from "@modelcontextprotocol/sdk/types";
+import * as z from "zod";
 
 /**
  * Wraps tool execution results into the proper MCP CallToolResult format
@@ -54,7 +55,8 @@ export function wrapResults(result: any): CallToolResult {
   // Handle arrays - call recursively on each element
   if (Array.isArray(result)) {
     return {
-      content: result.flatMap(item => wrapResults(item).content)
+      content: result.flatMap(item => wrapResults(item).content), 
+      structuredContent: result as any
     };
   } else if (typeof result === 'object') {
     // Handle objects - serialize to JSON
@@ -62,7 +64,8 @@ export function wrapResults(result: any): CallToolResult {
       content: [{
         type: "text",
         text: JSON.stringify(result, null, 2)
-      }]
+      }], 
+      structuredContent: result as any
     };
   }
 

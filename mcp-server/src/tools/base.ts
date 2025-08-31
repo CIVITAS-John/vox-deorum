@@ -25,7 +25,7 @@ export abstract class ToolBase {
   /**
    * JSON schema for the tool's output parameters
    */
-  abstract readonly outputSchema: z.ZodObject<any>;
+  abstract readonly outputSchema: z.ZodObject<any> | z.ZodTypeAny;
 
   /**
    * Optional annotations for the tool

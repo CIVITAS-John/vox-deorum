@@ -69,17 +69,23 @@ export class MCPServer {
         title: tool.name,
         description: tool.description,
         inputSchema: tool.inputSchema.shape,
-        outputSchema: tool.outputSchema.shape,
+        outputSchema: (tool.outputSchema as any).shape,
         annotations: tool.annotations,
       },
       (async (args: z.infer<typeof tool.inputSchema>) => {
         try {
           const results = await tool.execute(args);
+          // If tool already returns CallToolResult, use it directly
+          if (results && typeof results === 'object' && 'content' in results) {
+            return results;
+          }
+          // Otherwise wrap for backward compatibility
           return wrapResults(results);
         } catch (error: any) {
           var message = `Error executing tool ${tool.name}: ${error?.message ?? "unknown"}`;
           logger.error(message, error);
           return {
+            isError: true,
             content: [
               {
                 type: "text",
