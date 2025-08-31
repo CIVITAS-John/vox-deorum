@@ -1,0 +1,716 @@
+{
+  "generatedAt": "2025-08-31T20:28:31.575Z",
+  "totalEvents": 51,
+  "events": {
+    "SetPopulation": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 16906,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"SetPopulation\", args.get(), bResult);",
+          "eventName": "SetPopulation",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        }
+      ]
+    },
+    "CityBoughtPlot": {
+      "occurrences": 3,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 17331,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityBoughtPlot\", args.get(), bResult);",
+          "eventName": "CityBoughtPlot",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 17378,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityBoughtPlot\", args.get(), bResult);",
+          "eventName": "CityBoughtPlot",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 28522,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityBoughtPlot\", args.get(), bResult);",
+          "eventName": "CityBoughtPlot",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        }
+      ]
+    },
+    "CityTrained": {
+      "occurrences": 3,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 29541,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityTrained\", args.get(), bResult);",
+          "eventName": "CityTrained",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 30591,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityTrained\", args.get(), bScriptResult);",
+          "eventName": "CityTrained",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 30651,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityTrained\", args.get(), bResult);",
+          "eventName": "CityTrained",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        }
+      ]
+    },
+    "CityConstructed": {
+      "occurrences": 3,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 29627,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConstructed\", args.get(), bScriptResult);",
+          "eventName": "CityConstructed",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 30856,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConstructed\", args.get(), bScriptResult);",
+          "eventName": "CityConstructed",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 30907,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConstructed\", args.get(), bScriptResult);",
+          "eventName": "CityConstructed",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        }
+      ]
+    },
+    "CityCreated": {
+      "occurrences": 2,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 29706,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityCreated\", args.get(), bScriptResult);",
+          "eventName": "CityCreated",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+          "line": 30994,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityCreated\", args.get(), bScriptResult);",
+          "eventName": "CityCreated",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+        }
+      ]
+    },
+    "CitySoldBuilding": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvDllNetMessageHandler.cpp",
+          "line": 1125,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CitySoldBuilding\", args.get(), bResult);",
+          "eventName": "CitySoldBuilding",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvDllNetMessageHandler.cpp"
+        }
+      ]
+    },
+    "GameCoreUpdateBegin": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 1528,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"GameCoreUpdateBegin\", args.get(), bResult);",
+          "eventName": "GameCoreUpdateBegin",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        }
+      ]
+    },
+    "GameCoreUpdateEnd": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 1619,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"GameCoreUpdateEnd\", args.get(), bResult);",
+          "eventName": "GameCoreUpdateEnd",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        }
+      ]
+    },
+    "TurnComplete": {
+      "occurrences": 5,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 2057,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+          "eventName": "TurnComplete",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 2127,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+          "eventName": "TurnComplete",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 2230,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+          "eventName": "TurnComplete",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 3631,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+          "eventName": "TurnComplete",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 3670,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+          "eventName": "TurnComplete",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        }
+      ]
+    },
+    "PushingMissionTo": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 2724,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PushingMissionTo\", args.get(), bResult);",
+          "eventName": "PushingMissionTo",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        }
+      ]
+    },
+    "UiDiploEvent": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 5493,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"UiDiploEvent\", args.get(), bResult);",
+          "eventName": "UiDiploEvent",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        }
+      ]
+    },
+    "GameCoreTestVictory": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+          "line": 9731,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"GameCoreTestVictory\", args.get(), bResult);",
+          "eventName": "GameCoreTestVictory",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+        }
+      ]
+    },
+    "UnitGetSpecialExploreTarget": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvHomelandAI.cpp",
+          "line": 2344,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitGetSpecialExploreTarget\", args.get(), bResult);",
+          "eventName": "UnitGetSpecialExploreTarget",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvHomelandAI.cpp"
+        }
+      ]
+    },
+    "SetAlly": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+          "line": 12449,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"SetAlly\", args.get(), bResult);",
+          "eventName": "SetAlly",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvMinorCivAI.cpp"
+        }
+      ]
+    },
+    "CityCaptureComplete": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 4361,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityCaptureComplete\", args.get(), bResult);",
+          "eventName": "CityCaptureComplete",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "PlayerDoTurn": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 10484,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerDoTurn\", args.get(), bResult);",
+          "eventName": "PlayerDoTurn",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "UnitUpgraded": {
+      "occurrences": 2,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 12760,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitUpgraded\", args.get(), bScriptResult);",
+          "eventName": "UnitUpgraded",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+          "line": 14314,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitUpgraded\", args.get(), bResult);",
+          "eventName": "UnitUpgraded",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnit.cpp"
+        }
+      ]
+    },
+    "GoodyHutTechResearched": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 12853,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"GoodyHutTechResearched\", args.get(), bScriptResult);",
+          "eventName": "GoodyHutTechResearched",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "PlayerCityFounded": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 13478,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerCityFounded\", args.get(), bResult);",
+          "eventName": "PlayerCityFounded",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "PlayerAdoptPolicy": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 23576,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerAdoptPolicy\", args.get(), bResult);",
+          "eventName": "PlayerAdoptPolicy",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "ChangeGoldenAgeProgressMeter": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 24171,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"ChangeGoldenAgeProgressMeter\", args.get(), bResult);",
+          "eventName": "ChangeGoldenAgeProgressMeter",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "UnitKilledInCombat": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 25021,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitKilledInCombat\", args.get(), bResult);",
+          "eventName": "UnitKilledInCombat",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "GreatPersonExpended": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 27934,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"GreatPersonExpended\", args.get(), bResult);",
+          "eventName": "GreatPersonExpended",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "PlayerEndTurnInitiated": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 32751,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerEndTurnInitiated\", args.get(), bResult);",
+          "eventName": "PlayerEndTurnInitiated",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "PlayerEndTurnCompleted": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 32810,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerEndTurnCompleted\", args.get(), bResult);",
+          "eventName": "PlayerEndTurnCompleted",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "GatherPerTurnReplayStats": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+          "line": 46699,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"GatherPerTurnReplayStats\", args.get(), bResult);",
+          "eventName": "GatherPerTurnReplayStats",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+        }
+      ]
+    },
+    "PlayerPreAIUnitUpdate": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlayerAI.cpp",
+          "line": 267,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerPreAIUnitUpdate\", args.get(), bResult);",
+          "eventName": "PlayerPreAIUnitUpdate",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayerAI.cpp"
+        }
+      ]
+    },
+    "NaturalWonderDiscovered": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+          "line": 11999,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"NaturalWonderDiscovered\", args.get(), bResult);",
+          "eventName": "NaturalWonderDiscovered",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlot.cpp"
+        }
+      ]
+    },
+    "BuildFinished": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+          "line": 12838,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"BuildFinished\", args.get(), bResult);",
+          "eventName": "BuildFinished",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlot.cpp"
+        }
+      ]
+    },
+    "PlayerAdoptPolicyBranch": {
+      "occurrences": 3,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPolicyAI.cpp",
+          "line": 743,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerAdoptPolicyBranch\", args.get(), bResult);",
+          "eventName": "PlayerAdoptPolicyBranch",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPolicyAI.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPolicyClasses.cpp",
+          "line": 5363,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerAdoptPolicyBranch\", args.get(), bResult);",
+          "eventName": "PlayerAdoptPolicyBranch",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPolicyClasses.cpp"
+        },
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvPolicyClasses.cpp",
+          "line": 5809,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerAdoptPolicyBranch\", args.get(), bResult);",
+          "eventName": "PlayerAdoptPolicyBranch",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPolicyClasses.cpp"
+        }
+      ]
+    },
+    "PantheonFounded": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+          "line": 1070,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"PantheonFounded\", args.get(), bResult);",
+          "eventName": "PantheonFounded",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvReligionClasses.cpp"
+        }
+      ]
+    },
+    "ReligionFounded": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+          "line": 1274,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"ReligionFounded\", args.get(), bResult);",
+          "eventName": "ReligionFounded",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvReligionClasses.cpp"
+        }
+      ]
+    },
+    "ReligionEnhanced": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+          "line": 1507,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"ReligionEnhanced\", args.get(), bResult);",
+          "eventName": "ReligionEnhanced",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvReligionClasses.cpp"
+        }
+      ]
+    },
+    "CityConvertsReligion": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+          "line": 5716,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConvertsReligion\", args.get(), bResult);",
+          "eventName": "CityConvertsReligion",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvReligionClasses.cpp"
+        }
+      ]
+    },
+    "CityConvertsPantheon": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+          "line": 5748,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConvertsPantheon\", args.get(), bResult);",
+          "eventName": "CityConvertsPantheon",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvReligionClasses.cpp"
+        }
+      ]
+    },
+    "DeclareWar": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+          "line": 1286,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"DeclareWar\", args.get(), bResult);",
+          "eventName": "DeclareWar",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+        }
+      ]
+    },
+    "MakePeace": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+          "line": 2164,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"MakePeace\", args.get(), bResult);",
+          "eventName": "MakePeace",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+        }
+      ]
+    },
+    "TeamMeet": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+          "line": 2528,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamMeet\", args.get(), bResult);",
+          "eventName": "TeamMeet",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+        }
+      ]
+    },
+    "CircumnavigatedGlobe": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+          "line": 7704,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CircumnavigatedGlobe\", args.get(), bResult);",
+          "eventName": "CircumnavigatedGlobe",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+        }
+      ]
+    },
+    "TeamTechResearched": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+          "line": 8271,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamTechResearched\", args.get(), bResult);",
+          "eventName": "TeamTechResearched",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+        }
+      ]
+    },
+    "TeamSetEra": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+          "line": 8965,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamSetEra\", args.get(), bResult);",
+          "eventName": "TeamSetEra",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+        }
+      ]
+    },
+    "TeamSetHasTech": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvTechClasses.cpp",
+          "line": 2372,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamSetHasTech\", args.get(), bResult);",
+          "eventName": "TeamSetHasTech",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTechClasses.cpp"
+        }
+      ]
+    },
+    "UnitPrekill": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+          "line": 2655,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitPrekill\", args.get(), bResult);",
+          "eventName": "UnitPrekill",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnit.cpp"
+        }
+      ]
+    },
+    "ParadropAt": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+          "line": 8915,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"ParadropAt\", args.get(), bResult);",
+          "eventName": "ParadropAt",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnit.cpp"
+        }
+      ]
+    },
+    "RebaseTo": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+          "line": 10281,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"RebaseTo\", args.get(), bResult);",
+          "eventName": "RebaseTo",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnit.cpp"
+        }
+      ]
+    },
+    "UnitPromoted": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+          "line": 13784,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitPromoted\", args.get(), bResult);",
+          "eventName": "UnitPromoted",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnit.cpp"
+        }
+      ]
+    },
+    "UnitSetXY": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+          "line": 20899,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitSetXY\", args.get(), bResult);",
+          "eventName": "UnitSetXY",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnit.cpp"
+        }
+      ]
+    },
+    "NuclearDetonation": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvUnitCombat.cpp",
+          "line": 2408,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"NuclearDetonation\", args.get(), bResult);",
+          "eventName": "NuclearDetonation",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnitCombat.cpp"
+        }
+      ]
+    },
+    "CombatResult": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvUnitCombat.cpp",
+          "line": 3293,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CombatResult\", args.get(), bResult);",
+          "eventName": "CombatResult",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnitCombat.cpp"
+        }
+      ]
+    },
+    "CombatEnded": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/CvUnitCombat.cpp",
+          "line": 3454,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"CombatEnded\", args.get(), bResult);",
+          "eventName": "CombatEnded",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnitCombat.cpp"
+        }
+      ]
+    },
+    "TestEvent": {
+      "occurrences": 1,
+      "references": [
+        {
+          "file": "CvGameCoreDLL_Expansion2/Lua/CvLuaGame.cpp",
+          "line": 3763,
+          "content": "LuaSupport::CallHook(pkScriptSystem, \"TestEvent\", args.get(), bResult);",
+          "eventName": "TestEvent",
+          "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\Lua\\CvLuaGame.cpp"
+        }
+      ]
+    }
+  }
+}

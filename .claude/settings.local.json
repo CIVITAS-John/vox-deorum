@@ -13,7 +13,10 @@
       "Bash(npm test:*)",
       "Bash(npm run start:*)",
       "Bash(dir:*)",
-      "WebFetch(domain:modiki.civfanatics.com)"
+      "WebFetch(domain:modiki.civfanatics.com)",
+      "Bash(node:*)",
+      "Read(f:\\Minor Solutions\\vox-deorum\\mcp-server\\docs\\events/**)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

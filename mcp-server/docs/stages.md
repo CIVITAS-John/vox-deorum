@@ -25,19 +25,21 @@ Implement a manager object that exposes stateless APIs for Bridge Service intera
     - also, if the execution error is about unregistered function, register and try again automatically!
 - BridgeManager should keep track of registered functions and support reset - i.e. setting all LuaFunctions to unregistered (later we will use it; for example, when the game restarted).
 
-### Stage 3: Event Processing & Real-time Updates
-Create the real-time event processing system that receives game events from Bridge Service SSE stream and processes them for AI knowledge updates. This includes event filtering, categorization, and initial processing pipeline. The system must handle different event types, maintain event history, and prepare events for knowledge storage and MCP client notifications. 
+### Stage 3: External Function Registration Infrastructure
+Implement the bidirectional communication infrastructure for MCP Server to register external functions with the Bridge Service, enabling Lua scripts to call back into AI analysis tools. This creates the foundation for game-initiated AI requests with proper function lifecycle management, parameter marshaling, and response handling following the external function protocol. This infrastructure supports later resource and tool implementations.
 
 ### Stage 4: Knowledge Management & Serialization
 Develop the AI player knowledge management system with serialization/deserialization capabilities and reset functionality for game context switching (loading different games). Implement Knowledge Retriever for game state access, Knowledge Store for tracking different types of AI knowledge (personal, persistent, transient), and proper data lifecycle management. This layer ensures proper isolation between AI players and handles game session transitions cleanly.
+- A manager instance (attached to Server) named `KnowledgeManager`
+  - The manager monitors: SSE connection/reconnection/DLL connection status events to check if the connected game instance is the same or not
+  - The manager saves & loads individual KnowledgeStore based on the game's unique ID
+    - Set up util functions to 
+- A knowledge store instance named `KnowledgeStore`
 
-### Stage 5: External Function Registration Infrastructure
-Implement the bidirectional communication infrastructure for MCP Server to register external functions with the Bridge Service, enabling Lua scripts to call back into AI analysis tools. This creates the foundation for game-initiated AI requests with proper function lifecycle management, parameter marshaling, and response handling following the external function protocol. This infrastructure supports later resource and tool implementations.
-
-### Stage 6: Resource/Tool Providers
+### Stage 5: Resource/Tool Providers
 Implement MCP tools for AI decision-making capabilities including memory management (short/long-term), strategic analysis tools, and preference modification actions. Tools should be idempotent, support retry operations, and integrate with the AI knowledge system to provide contextual analysis. This includes both read-only analysis tools and write operations that affect AI behavior in-game through the external function infrastructure.
 
-### Stage 7: MCP Notifications & Client Communication
+### Stage 6: MCP Notifications & Client Communication
 Complete the event processing pipeline by implementing MCP notifications to connected clients based on processed game events. This includes intelligent notification routing based on AI player relevance, current game context, and client subscription preferences. The system should filter and format notifications appropriately for different types of AI agents and strategic contexts.
 
 ## Technical Constraints & Solutions
