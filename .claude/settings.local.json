@@ -12,7 +12,8 @@
       "Bash(npm run build:*)",
       "Bash(npm test:*)",
       "Bash(npm run start:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "WebFetch(domain:modiki.civfanatics.com)"
     ],
     "deny": [],
     "ask": []
