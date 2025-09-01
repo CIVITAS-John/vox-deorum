@@ -41,6 +41,10 @@ export interface MCPServerConfig {
       port: number;
     };
   };
+  database?: {
+    language?: string;
+    autoConvertLocalization?: boolean;
+  };
   logging: {
     level: string;
   };
@@ -70,6 +74,10 @@ const defaultConfig: MCPServerConfig = {
       host: 'localhost',
       port: 8080
     }
+  },
+  database: {
+    language: 'en_US',
+    autoConvertLocalization: true
   },
   logging: {
     level: 'info'
@@ -147,6 +155,12 @@ export function loadConfig(): MCPServerConfig {
         host: bridgeHost,
         port: bridgePort
       }
+    },
+    database: {
+      language: process.env.DB_LANGUAGE || fileConfig.database?.language || defaultConfig.database?.language,
+      autoConvertLocalization: process.env.DB_AUTO_CONVERT_LOCALIZATION === 'false' ? false :
+        fileConfig.database?.autoConvertLocalization ?? 
+        defaultConfig.database?.autoConvertLocalization
     },
     logging: {
       level: process.env.LOG_LEVEL || fileConfig.logging?.level || defaultConfig.logging.level

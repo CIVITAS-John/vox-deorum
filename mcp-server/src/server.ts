@@ -10,6 +10,7 @@ import { wrapResults } from './utils/mcp.js';
 import { ToolBase } from './tools/base.js';
 import { allTools } from './tools/index.js';
 import { BridgeManager } from './bridge/bridge-manager.js';
+import { DatabaseManager } from './database/database-manager.js';
 import * as z from "zod";
 
 const logger = createLogger('Server');
@@ -23,6 +24,7 @@ export class MCPServer {
   private initialized = false;
   private tools = new Map<string, ToolBase>();
   private bridgeManager: BridgeManager;
+  private databaseManager: DatabaseManager;
 
   /**
    * Private constructor for MCPServer
@@ -39,6 +41,12 @@ export class MCPServer {
     
     // Initialize BridgeManager
     this.bridgeManager = new BridgeManager(config.bridge?.url);
+    
+    // Initialize DatabaseManager
+    this.databaseManager = new DatabaseManager({
+      language: config.database?.language || 'en_US',
+      autoConvertLocalization: config.database?.autoConvertLocalization ?? true,
+    });
   }
 
   /**
@@ -128,6 +136,13 @@ export class MCPServer {
   }
 
   /**
+   * Get the DatabaseManager instance
+   */
+  public getDatabaseManager(): DatabaseManager {
+    return this.databaseManager;
+  }
+
+  /**
    * Initialize the server (can be extended in the future)
    */
   public async initialize(): Promise<void> {
@@ -136,6 +151,9 @@ export class MCPServer {
     }
 
     logger.info('Initializing MCP server');
+    
+    // Initialize DatabaseManager
+    await this.databaseManager.initialize();
     
     // Check Bridge Service health
     try {
@@ -155,8 +173,8 @@ export class MCPServer {
       });
       
       this.bridgeManager.on('gameEvent', (event) => {
-        logger.debug('Received game event:', event);
-        // TODO: Process game events in Stage 3
+        logger.info('Received game event:', event);
+        // TODO: Process game events in Stage 4
       });
     } catch (error: any) {
       throw new Error('Failed to connect to Bridge Service: ' + (error.message ?? "unknown error"), error);
@@ -180,6 +198,9 @@ export class MCPServer {
    */
   public async close(): Promise<void> {
     logger.info('Shutting down MCP server');
+    
+    // Shutdown DatabaseManager
+    await this.databaseManager.close();
     
     // Shutdown BridgeManager
     this.bridgeManager.shutdown();
