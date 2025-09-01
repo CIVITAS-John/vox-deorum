@@ -5,61 +5,77 @@ A Model Context Protocol server that exposes Civilization V game state as struct
 ## Overview
 
 The MCP Server connects AI agents to live game data through a standardized protocol:
-- **Resources**: Game state as queryable MCP resources
-- **Tools**: Analysis capabilities for strategic decisions  
-- **Events**: Real-time game updates from Bridge Service
+- **Tools**: Both game state queries and action capabilities (unified as ToolBase)
+- **Events**: Real-time game updates from Bridge Service via SSE
+- **Database Access**: Direct access to Civ 5 game rules and localized text
+- **Bridge Integration**: Lua script execution and function calls
 
 ## Technology Stack
 
-- **Runtime**: Node.js + TypeScript
-- **Protocol**: Model Context Protocol (MCP)
-- **SDK**: https://github.com/modelcontextprotocol/typescript-sdk
-- **Test**: Vitest
-- **Transport**: stdio, Streamable HTTP
-- **Communication**: Bridge Service HTTP client
-- **Database**: Better-SQLite 3 + Kysely
+- **Runtime**: Node.js >=20.0.0 + TypeScript (ESM modules)
+- **Protocol**: Model Context Protocol (MCP) via official TypeScript SDK
+- **SDK**: @modelcontextprotocol/sdk
+- **Testing**: Vitest with coverage reporting
+- **Transport**: stdio (direct), HTTP with SSE (Express server)
+- **Bridge Communication**: REST API client + SSE event stream
+- **Database**: Better-SQLite3 + Kysely ORM for Civ 5 databases
+- **Logging**: Winston with module contexts
 
 ## Architecture
 
-### Layers
+### Core Components (Implemented)
 
-1. **Protocol/Transport Layer**
-  - Leverages official TypeScript MCP SDK for protocol implementation
-  - Handles MCP communication (stdio, stateful Streamable HTTP) via SDK
-  - Manages resource/tool registration and discovery
-  - Handles request/response routing and notifications
+1. **MCP Server Core** (`src/server.ts`)
+  - MCPServer singleton managing server lifecycle
+  - Tool registration and discovery system
+  - Integration with BridgeManager and DatabaseManager
+  - Multi-transport support (stdio/HTTP)
 
-2. **Bridge Service Integration**: Stateless manager for Bridge Service communication
-  - Calls Lua functions via REST API
-  - Receives game events via SSE stream
-  - Manages external function registration with Bridge Service
-  - Handles connection lifecycle and retry logic
-    - Turn changes, combat results, diplomatic events
+2. **Transport Layer**
+  - **Stdio Transport** (`src/stdio.ts`): Direct client connections
+  - **HTTP Transport** (`src/http.ts`): Express server with SSE support
+  - Config-based transport selection via entry point
 
-3. **Data Layer**: Manages AI players' game knowledge with serialization support
-  - **Knowledge Store**: Tracks what each AI player knows with serialization/deserialization
-    - Personal knowledge: AI's short/long-term memories (e.g. plans)
-    - Persistent knowledge: Records of in-game events (e.g. declaration of war)
-    - Transient knowledge: Transient cache of in-game states (expiration by turn numbers)
-    - Game context switching: Reset/reload for different game sessions
-  - **Knowledge Retriever**: Retrieves game state as resources/other purposes
-  - **Event Processing**: Processes in-game events for knowledge updates and notifications
-    - Record keeping: Some events should be kept as record knowledge (e.g. declaration of war)
-    - Notifying clients: Some events should be sent as MCP notifications to clients (e.g. player turn started)
+3. **Bridge Service Integration** (`src/bridge/`)
+  - **BridgeManager**: Central communication hub
+    - Health checking for Bridge Service and DLL status
+    - Lua script execution and function calls
+    - SSE connection with auto-reconnection
+    - Event emitter for game events
+  - **LuaFunction**: Encapsulated Lua function definitions
 
-4. **Service Layer**
-  - Resource and tools are both defined as "ToolBase" to share the same infrastructure.
-  - **Resource Providers**: Expose game state as queryable MCP resources
-    - Units, cities, technologies, diplomacy, records, etc.
-  - **Tool Providers**: Analysis and decision-making capabilities
-    - Short/long-term memories, analysis tools, and actions (i.e. changing in-game AI's preference)
+4. **Database Integration** (`src/database/`)
+  - **DatabaseManager**: Kysely-based database access
+    - Readonly connections to Civ 5 SQLite databases
+    - Automatic localization of TXT_KEY_* strings
+    - Batch localization for query results
+    - Type-safe queries with generated types
+
+5. **Tool System** (`src/tools/`)
+  - **ToolBase**: Abstract base class with Zod validation
+  - **Calculator**: Example arithmetic tool
+  - **LuaExecutor**: Execute Lua scripts via Bridge Service
+  - Self-registration pattern with server
+
+### Planned Components (Not Yet Implemented)
+
+1. **Data Layer**: AI player knowledge management
+  - Personal, persistent, and transient knowledge stores
+  - Game context switching for different sessions
+  - Event-driven knowledge updates
+
+2. **Additional Tools**: Game-specific capabilities
+  - Unit management, city operations
+  - Technology research, diplomacy actions
+  - Strategic analysis and planning tools
 
 ### Design Principles
-- **Modular**: Each resource/tool/etc exists independently
-- **Flexible Transport**: Support multiple MCP transport methods
-- **Event-Driven**: Both the MCP client and the game can initiate actions
-- **Multi-Player**: Serves multiple LLM-enhanced AI players and keeps track of their knowledge separately (to avoid AI players knowing things they shouldn't)
-- **Idempotent Tools**: Tool operations can be safely retried
+- **Unified Tool Architecture**: Resources and tools share the same ToolBase infrastructure
+- **Flexible Transport**: Support both stdio and HTTP/SSE transports
+- **Event-Driven**: Real-time game events via SSE stream
+- **Type-Safe**: Zod validation for tools, Kysely types for database
+- **Singleton Pattern**: Single instances of Server, Bridge, and Database managers
+- **Idempotent Operations**: Safe retry logic for all operations
 
 ## Communication Flow
 
@@ -71,47 +87,67 @@ MCP Client ←→ MCP Server ←→ Bridge Service ←→ Civilization V
 
 ### Detailed Communication Patterns
 
-#### 1. Tool/Resource Execution (MCP Client → Game Action)
+#### 1. Tool Execution (MCP Client → Game Action)
 ```
 1. MCP Client → tools/call → MCP Server
-2. MCP Server executes tool logic
-3. If game action needed:
-   - MCP Server → POST /lua/call → Bridge Service
-   - Bridge Service → DLL → Lua execution
-4. Tool result → MCP Client
+2. MCP Server validates input with Zod schema
+3. Tool implementation executes:
+   - Direct database queries via DatabaseManager
+   - Lua execution via BridgeManager.executeLuaScript()
+   - Function calls via BridgeManager.callLuaFunction()
+4. Tool result with localized text → MCP Client
 ```
 
-#### 2. Game Events (Game → MCP Client)
+#### 2. Game Events (Game → MCP Server)
 ```
-1. Lua event → DLL → Bridge Service
-2. Bridge Service → SSE event → MCP Server
-3. MCP Server processes event, updates state
-4. MCP Server → notification → MCP Client
-5. MCP Client receives real-time game update
-```
-
-#### 3. External Function Call (Game → MCP Server)
-```
-1. MCP Server registers function with Bridge Service
-2. Lua calls Game.CallExternal()
-3. DLL → Bridge Service → POST to MCP Server endpoint
-4. MCP Server processes, returns result
-5. Result → Bridge Service → DLL → Lua callback
+1. Game event → DLL → Bridge Service
+2. Bridge Service → SSE stream → MCP Server
+3. BridgeManager emits 'gameEvent' with payload
+4. Event handlers process and update state
+5. MCP Server → notification → MCP Client (if configured)
 ```
 
-The server translates between MCP protocol and Bridge Service APIs, providing AI agents with structured access to live game data.
+#### 3. Database Access Pattern
+```
+1. Tool requests game data
+2. DatabaseManager.getDatabase() returns Kysely instance
+3. Type-safe query built with Kysely query builder
+4. Results fetched from Civ5DebugDatabase.db
+5. DatabaseManager.localizeObject() translates TXT_KEY_* strings
+6. Localized results returned to tool
+```
+
+#### 4. SSE Connection Management
+```
+1. Server startup → BridgeManager.connectToEventStream()
+2. SSE connection established to Bridge Service /events
+3. Automatic reconnection on disconnect (5-second delay)
+4. Events parsed and emitted via EventEmitter
+5. Connection status tracked ('connected'/'disconnected' events)
+```
 
 ## Getting Started
 
+### Prerequisites
+1. Node.js >=20.0.0
+2. Civilization V with Community Patch installed
+3. Bridge Service running
+4. Game databases in Documents folder
+
+### Installation
 ```bash
 # Install dependencies
 npm install
 
-# Development mode
+# Build TypeScript
+npm run build
+
+# Development mode with hot reload
 npm run dev
 
 # Run tests
 npm test
-```
 
-The server will expose MCP resources and tools for MCP client integration.
+# Test with coverage
+npm run test:coverage
+```

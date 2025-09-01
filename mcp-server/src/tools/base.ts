@@ -1,7 +1,6 @@
 import { RegisteredTool } from "@modelcontextprotocol/sdk/server/mcp";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types";
 import * as z from "zod";
-import { MCPServer } from "../server";
 
 /**
  * Base class for MCP server tools

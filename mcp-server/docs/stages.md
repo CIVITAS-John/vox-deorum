@@ -44,19 +44,34 @@ Implement a manager object that exposes stateless APIs for Bridge Service intera
   - Each function should support the return of the full or a custom Zod schema that keeps the most core information (both generate from the SQLite schema from database/json/*.json)
   - Create one first as the template; don't create more than that.
 
-### Stage 4: Knowledge Management & Serialization
-Develop the AI player knowledge management system with serialization/deserialization capabilities and reset functionality for game context switching (loading different games). Implement Knowledge Retriever for game state access, Knowledge Store for tracking different types of AI knowledge (personal, persistent, transient), and proper data lifecycle management. This layer ensures proper isolation between AI players and handles game session transitions cleanly.
+### Stage 4: Knowledge Management
+Develop the AI player knowledge management system with serialization/deserialization capabilities and reset functionality for game context switching (loading different games). 
 - A manager instance (attached to Server) named `KnowledgeManager`
   - The manager monitors: SSE connection/reconnection/DLL connection status events to check if the connected game instance is the same or not
-  - The manager saves & loads individual KnowledgeStore based on the game's unique ID
-    - Set up util functions to 
+  - The manager saves & loads KnowledgeStore based on the game's unique ID
+    - Execute lua scripts to get/set the ID using the Civ 5 modding system's capabilities
+```
+local saveDB = Modding.OpenSaveData()
+-- Create a table
+for row in saveDB:Query('CREATE TABLE MyTest("ID" NOT NULL PRIMARY KEY, "A" INTEGER, "B" TEXT)') do end
+-- Insert something
+for row in saveDB:Query('INSERT INTO MyTest("ID","A","B") VALUES(1,2,"three")') do end
+-- Retrieve everything
+for row in saveDB:Query("SELECT * FROM MyTest") do 
+  print(row.ID, row.A, row.B)
+end
+```
+    - Also, keep track of the synchronization status by constantly saving a "last update timestamp" also using the OpenSaveData() - try to merge the two features into one
 - A knowledge store instance named `KnowledgeStore`
 
-### Stage 5: Resource/Tool Providers
-Implement MCP tools for AI decision-making capabilities including memory management (short/long-term), strategic analysis tools, and preference modification actions. Tools should be idempotent, support retry operations, and integrate with the AI knowledge system to provide contextual analysis. This includes both read-only analysis tools and write operations that affect AI behavior in-game through the external function infrastructure.
+### Stage 5: Per-Player Knowledge Store
+Implement Knowledge Store for tracking different types of AI knowledge (personal, persistent, transient) for individual players, ensuring proper isolation between AI players.
 
 ### Stage 6: MCP Notifications & Client Communication
 Complete the event processing pipeline by implementing MCP notifications to connected clients based on processed game events. This includes intelligent notification routing based on AI player relevance, current game context, and client subscription preferences. The system should filter and format notifications appropriately for different types of AI agents and strategic contexts.
+
+### Stage 7: More Resource/Tool Providers
+Implement MCP tools for AI decision-making capabilities including memory management (short/long-term), strategic analysis tools, and preference modification actions. Tools should be idempotent, support retry operations, and integrate with the AI knowledge system to provide contextual analysis. This includes both read-only analysis tools and write operations that affect AI behavior in-game through the external function infrastructure.
 
 ## Technical Constraints & Solutions
 

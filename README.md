@@ -61,10 +61,6 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 
 3. Set up each component:
    ```bash
-   # Civ5 Mod
-   cd civ5-mod
-   # Follow component-specific setup instructions
-   
    # Bridge Service
    cd ../bridge-service
    # Follow component-specific setup instructions
@@ -81,7 +77,6 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 ## Development
 
 Each component contains its own README with specific development instructions:
-- [`civ5-mod/README.md`](civ5-mod/README.md)
 - [`bridge-service/README.md`](bridge-service/README.md)
 - [`mcp-server/README.md`](mcp-server/README.md) 
 - [`mcp-client/README.md`](mcp-client/README.md)

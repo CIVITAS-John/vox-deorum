@@ -1,70 +1,86 @@
-# Stage 2: Bridge Service Integration Manager
+# Stage 2: Bridge Service Integration ✅
 
 ## Overview
-Create a manager component that handles all communication with the Bridge Service, abstracting the complexity of HTTP REST and SSE interactions while providing clean, stateless APIs for the MCP Server.
+Integration with the Bridge Service for game communication via HTTP REST and Server-Sent Events (SSE).
 
-## Goals
-- Establish reliable communication with the Bridge Service
-- Abstract protocol details from higher-level MCP operations
-- Support dynamic Lua function registration and execution
-- Handle connection failures gracefully
-- Maintain clean separation between MCP and Bridge protocols
+## What Was Actually Implemented
 
-## Components
+### 1. BridgeManager (`src/bridge/bridge-manager.ts`)
+Central manager for all Bridge Service communication:
+- **Health Checking**: `checkHealth()` monitors Bridge Service and DLL connection status
+- **Lua Script Execution**: `executeLuaScript()` sends raw Lua code for execution
+- **Lua Function Calls**: `callLuaFunction()` invokes named functions with arguments
+- **SSE Connection**: Event stream connection with automatic reconnection
+- **Event Emitter**: Extends EventEmitter for connection status and game events
+- **Function Registry**: Tracks LuaFunction instances (though not fully utilized)
 
-### BridgeManager
-The central manager object that coordinates all Bridge Service interactions:
-- **Connection Management**: Establish and maintain HTTP/SSE connections
-- **Lua Script Execution**: Send raw Lua scripts for execution in the game
-- **Function Registry**: Track registered Lua functions to avoid redundant registrations
-- **Error Recovery**: Handle connection failures and automatic retry logic
-- **State Reset**: Support clean resets when game sessions change
+### 2. LuaFunction Class (`src/bridge/lua-function.ts`)
+Encapsulates Lua function definitions:
+- Function name and implementation script storage
+- Registration state tracking
+- Lazy registration pattern (prepared but not fully implemented)
+- Reset capability for new game sessions
 
-### LuaFunction Class
-Encapsulates individual Lua functions with lazy registration:
-- **Definition**: Store function name and implementation script
-- **Registration State**: Track whether function is registered with Bridge
-- **Execution**: Handle registration-on-demand and automatic retry on registration errors
-- **Error Handling**: Detect registration failures and attempt recovery
+### 3. Integration Points
+- **Server Initialization**: BridgeManager created during MCPServer construction
+- **Singleton Access**: Exported `bridgeManager` instance from server.ts
+- **SSE Auto-Connect**: Connects to event stream during server initialization
+- **Error Handling**: Comprehensive error responses with structured error objects
 
-## Implementation Flow
+### 4. Protocol Implementation
+Following PROTOCOL.md specifications:
+- **REST Endpoints**: `/health`, `/lua/execute`, `/lua/call`
+- **SSE Stream**: `/events` endpoint for real-time updates
+- **Response Format**: Standardized success/error response structure
+- **Event Processing**: GameEvent interface for typed events
 
-### Phase 1: Basic Infrastructure
-1. Create BridgeManager class with HTTP client setup
-2. Implement connection health checking
-3. Add configuration for Bridge Service endpoints
-4. Set up logging for communication debugging
+## What Was NOT Implemented
+- Lazy registration of Lua functions (structure exists but not used)
+- Automatic re-registration on errors
+- Timeout mechanisms for hanging requests
+- Complex retry logic beyond SSE reconnection
+- Full utilization of LuaFunction registry
 
-### Phase 2: Lua Script Execution
-1. Implement raw Lua script execution endpoint
-2. Add response parsing and error handling
-3. Create timeout mechanisms for hanging requests
-4. Build retry logic for transient failures
+## Key Components
 
-### Phase 3: Function Registration System
-1. Create LuaFunction class with constructor and properties
-2. Implement lazy registration on first execution
-3. Add automatic re-registration on specific errors
-4. Build registry tracking in BridgeManager
+### Response Interfaces
+```typescript
+interface LuaResponse {
+  success: boolean;
+  result?: any;
+  error?: { code: string; message: string; details?: string; };
+}
 
-### Phase 4: State Management
-1. Implement reset functionality for all registered functions
-2. Add connection state monitoring
-3. Create event emitters for connection status changes
-4. Build recovery mechanisms for lost connections
+interface HealthResponse {
+  success: boolean;
+  dll_connected: boolean;
+  uptime: number;
+  version: string;
+}
 
-## Success Criteria
-- Can execute arbitrary Lua scripts through Bridge Service
-- Functions register automatically when first called
-- Failed registrations retry automatically
-- Connection failures handled gracefully
-- Can reset all state for new game sessions
-- All interactions follow PROTOCOL.md specifications
+interface GameEvent {
+  type: string;
+  payload: any;
+  timestamp: string;
+}
+```
 
-## Dependencies
-- Stage 1 (Core MCP Infrastructure) must be complete
-- Bridge Service must be running and accessible
-- HTTP client libraries configured and tested
+### Event System
+- `connected`: SSE stream established
+- `disconnected`: SSE stream lost
+- `gameEvent`: Game event received
 
-## Next Steps
-Stage 3 will build upon this foundation to process real-time game events from the SSE stream, enabling the MCP Server to maintain up-to-date game state knowledge.
+## Usage Example
+```typescript
+// Access via singleton
+import { bridgeManager } from './server.js';
+
+// Check health
+const health = await bridgeManager.checkHealth();
+
+// Execute Lua script
+const response = await bridgeManager.executeLuaScript('return Game.GetPlayer(0)');
+
+// Call Lua function
+const result = await bridgeManager.callLuaFunction('GetPlayerInfo', [0]);
+```
