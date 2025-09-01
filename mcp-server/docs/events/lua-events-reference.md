@@ -94,25 +94,27 @@ The 51 events are organized into the following logical categories:
 
 #### CityConstructed
 - **Category**: City Management
-- **Meaning**: Triggered when a city completes construction of a building or wonder
+- **Meaning**: Fired when a building is constructed in a city
 - **Arguments**:
-  - `cityID` (number): City that completed construction
-  - `buildingType` (string): Type of building/wonder constructed
-  - `isWonder` (boolean): True if the construction was a world/national wonder
-- **Source Location**: Building production completion handlers
+  - `iOwnerID` (number): Player who owns the city
+  - `iCityID` (number): City where building was constructed
+  - `iBuildingID` (number): Building that was constructed
+  - `bGold` (boolean): Whether built with gold
+  - `bFaith` (boolean): Whether built with faith or culture
+- **Source Location**: CvCity.cpp line 29627
 - **Trigger Conditions**: Natural construction completion, rush-bought buildings
 
-#### CityCreated
+#### UnitCityFounded
 - **Category**: City Management
-- **Meaning**: Fired when a new city is established
+- **Meaning**: Fired when a settler unit founds a new city
 - **Arguments**:
-  - `playerID` (number): Player who founded the city
-  - `cityID` (number): Unique identifier for the new city
-  - `cityName` (string): Name assigned to the city
-  - `plotX` (number): X coordinate of city location
-  - `plotY` (number): Y coordinate of city location
-- **Source Location**: City foundation code in settler actions
-- **Trigger Conditions**: Settler founds city, city gifted through diplomacy, city captured and kept
+  - `playerID` (number): Player who owns the settler unit
+  - `unitID` (number): ID of the settler unit that founded the city
+  - `unitType` (number): Type of the settler unit (e.g., UNIT_SETTLER)
+  - `plotX` (number): X coordinate where city was founded
+  - `plotY` (number): Y coordinate where city was founded
+- **Source Location**: CvUnit.cpp line 10898
+- **Trigger Conditions**: Settler unit successfully founds a city
 
 #### CitySoldBuilding
 - **Category**: City Management
@@ -139,14 +141,14 @@ The 51 events are organized into the following logical categories:
 
 #### UnitKilledInCombat
 - **Category**: Combat & Military
-- **Meaning**: Fired when a unit is destroyed in battle
+- **Meaning**: Fired when a unit is killed specifically in combat
 - **Arguments**:
-  - `deadUnitID` (number): ID of the unit that was killed
-  - `killerUnitID` (number): ID of the unit that made the kill
-  - `plotX` (number): X coordinate where combat occurred
-  - `plotY` (number): Y coordinate where combat occurred
-- **Source Location**: Combat resolution code
-- **Trigger Conditions**: Unit health reaches 0 in combat, unit destroyed by ranged attack
+  - `iKillerPlayerID` (number): Killer's player ID
+  - `iKilledPlayerID` (number): Killed unit owner's player ID
+  - `eUnitType` (number): Killed unit type
+  - `iKillerUnitID` (number): Killer unit ID (or -1 if none)
+- **Source Location**: CvPlayer.cpp line 25021
+- **Trigger Conditions**: Unit killed during combat resolution
 
 #### CombatResult
 - **Category**: Combat & Military
@@ -163,13 +165,25 @@ The 51 events are organized into the following logical categories:
 
 #### CombatEnded
 - **Category**: Combat & Military
-- **Meaning**: Triggered when a combat sequence completely finishes
+- **Meaning**: Triggered when combat between units ends (requires MOD_EVENTS_RED_COMBAT_ENDED)
 - **Arguments**:
-  - `attackerID` (number): Final attacking unit ID
-  - `defenderID` (number): Final defending unit ID (may be -1 if killed)
-  - `combatResult` (string): Outcome description ("AttackerWins", "DefenderWins", "Stalemate")
-- **Source Location**: Combat cleanup and animation completion
-- **Trigger Conditions**: Combat animations finish, all combat effects applied
+  - `iAttackingPlayer` (number): Attacker's player ID
+  - `iAttackingUnit` (number): Attacker's unit ID
+  - `attackerDamage` (number): Damage inflicted BY attacker TO defender
+  - `attackerFinalDamage` (number): Final damage state of attacker after combat
+  - `attackerMaxHP` (number): Attacker's max hit points
+  - `iDefendingPlayer` (number): Defender's player ID
+  - `iDefendingUnit` (number): Defender's unit ID
+  - `defenderDamage` (number): Damage inflicted BY defender TO attacker
+  - `defenderFinalDamage` (number): Final damage state of defender after combat
+  - `defenderMaxHP` (number): Defender's max hit points
+  - `iInterceptingPlayer` (number): Interceptor's player ID (NO_PLAYER if none)
+  - `iInterceptingUnit` (number): Interceptor's unit ID (-1 if none)
+  - `interceptorDamage` (number): Damage related to interceptor
+  - `plotX` (number): X coordinate of combat location
+  - `plotY` (number): Y coordinate of combat location
+- **Source Location**: CvUnitCombat.cpp
+- **Trigger Conditions**: Combat resolution when MOD_EVENTS_RED_COMBAT_ENDED is enabled
 
 #### NuclearDetonation
 - **Category**: Combat & Military
@@ -185,15 +199,14 @@ The 51 events are organized into the following logical categories:
 
 #### UnitUpgraded
 - **Category**: Combat & Military
-- **Meaning**: Called when a unit is upgraded to a more advanced type
+- **Meaning**: Fired when a unit is upgraded
 - **Arguments**:
-  - `oldUnitID` (number): ID of unit before upgrade
-  - `newUnitID` (number): ID of unit after upgrade
-  - `oldUnitType` (string): Original unit type
-  - `newUnitType` (string): Upgraded unit type
-  - `upgradeCost` (number): Gold cost of upgrade
-- **Source Location**: Unit upgrade processing code
-- **Trigger Conditions**: Player manually upgrades unit, automatic upgrade triggers
+  - `iPlayerID` (number): Player who owns the unit
+  - `iOldUnitID` (number): ID of the unit being upgraded
+  - `iNewUnitID` (number): ID of the newly created unit
+  - `bGoodyHut` (boolean): Whether upgrade came from goody hut (true) or regular upgrade (false)
+- **Source Location**: CvPlayer.cpp line 12746, CvUnit.cpp line 14300
+- **Trigger Conditions**: Player manually upgrades unit, goody hut upgrade
 
 #### UnitPromoted
 - **Category**: Combat & Military
@@ -219,13 +232,17 @@ The 51 events are organized into the following logical categories:
 
 #### UnitPrekill
 - **Category**: Combat & Military
-- **Meaning**: Called just before a unit is about to be destroyed
+- **Meaning**: Fired just before a unit is about to be destroyed
 - **Arguments**:
-  - `unitID` (number): ID of unit about to die
-  - `killerID` (number): ID of unit/city causing death (may be -1)
-  - `killReason` (string): Reason for death ("Combat", "Starvation", "Disbanded", etc.)
-- **Source Location**: Unit destruction preparation code
-- **Trigger Conditions**: Unit health reaches 0, unit disbanded, unit starved
+  - `iKilledPlayerID` (number): Unit owner's player ID
+  - `iKilledUnitID` (number): Unit being killed ID
+  - `eUnitType` (number): Unit type
+  - `iKilledX` (number): X coordinate where unit is killed
+  - `iKilledY` (number): Y coordinate where unit is killed
+  - `bDelay` (boolean): Delay flag
+  - `ePlayer` (number): Killer player ID (or NO_PLAYER)
+- **Source Location**: CvUnit.cpp line 2655
+- **Trigger Conditions**: Unit about to be destroyed for any reason (combat, disbanding, etc.)
 
 ### Diplomacy & Politics Events
 
@@ -545,18 +562,15 @@ The 51 events are organized into the following logical categories:
 - **Meaning**: Triggered during a player's turn processing
 - **Arguments**:
   - `playerID` (number): Player whose turn is being processed
-  - `isHuman` (boolean): True if human player, false if AI
-  - `turnPhase` (string): Current phase of turn processing
-- **Source Location**: Turn processing and player action handling
-- **Trigger Conditions**: Player turn begins, AI turn processing phases
+- **Source Location**: CvPlayer.cpp line 10484
+- **Trigger Conditions**: Player turn processing
 
 #### PlayerEndTurnInitiated
 - **Category**: Player Actions
 - **Meaning**: Called when a player begins the end-turn process
 - **Arguments**:
   - `playerID` (number): Player initiating end turn
-  - `forcedEndTurn` (boolean): True if turn ended automatically
-- **Source Location**: Turn ending initialization code
+- **Source Location**: CvPlayer.cpp line 32751
 - **Trigger Conditions**: Player clicks end turn, automatic turn progression
 
 #### PlayerEndTurnCompleted
@@ -564,9 +578,7 @@ The 51 events are organized into the following logical categories:
 - **Meaning**: Fired when a player's end-turn process finishes completely
 - **Arguments**:
   - `playerID` (number): Player completing end turn
-  - `nextPlayerID` (number): Next player in turn order
-  - `turnTransitionTime` (number): Time taken for turn transition
-- **Source Location**: Turn completion and transition code
+- **Source Location**: CvPlayer.cpp line 32810
 - **Trigger Conditions**: All end-turn processing complete, next player turn begins
 
 #### PlayerPreAIUnitUpdate
@@ -593,15 +605,13 @@ The 51 events are organized into the following logical categories:
 
 #### PlayerCityFounded
 - **Category**: Player Actions
-- **Meaning**: Triggered when a player successfully founds a new city
+- **Meaning**: Fired when a player successfully founds a new city
 - **Arguments**:
   - `playerID` (number): Player founding the city
-  - `settlerID` (number): Settler unit that founded the city
-  - `cityID` (number): Newly created city ID
-  - `foundingX` (number): X coordinate of city location
-  - `foundingY` (number): Y coordinate of city location
-- **Source Location**: City founding validation and creation
-- **Trigger Conditions**: Settler action completes successfully
+  - `cityX` (number): X coordinate of city location
+  - `cityY` (number): Y coordinate of city location
+- **Source Location**: CvPlayer.cpp line 13478
+- **Trigger Conditions**: Player successfully founds a city
 
 ### Construction & Development Events
 
@@ -622,7 +632,7 @@ The 51 events are organized into the following logical categories:
 ### Events by Category
 | Category | Event Count | Key Events |
 |----------|-------------|------------|
-| City Management | 7 | SetPopulation, CityCreated, CityCaptureComplete |
+| City Management | 7 | SetPopulation, UnitCityFounded, CityCaptureComplete |
 | Combat & Military | 8 | UnitKilledInCombat, CombatResult, NuclearDetonation |
 | Diplomacy & Politics | 6 | DeclareWar, MakePeace, SetAlly |
 | Technology & Research | 4 | TeamTechResearched, TeamSetEra |
@@ -653,7 +663,7 @@ The 51 events are organized into the following logical categories:
 | Event | Primary Trigger | Secondary Triggers |
 |-------|----------------|-------------------|
 | SetPopulation | Natural growth | Conquest effects, great person effects |
-| CityCreated | Settler founding | Diplomatic city gifts, conquest |
+| UnitCityFounded | Settler founding | Settler unit successfully founds city |
 | TeamSetHasTech | Research completion | Trade, espionage, ruins |
 | UnitSetXY | Normal movement | Teleportation, unit creation |
 | PlayerAdoptPolicy | Culture spending | Free policies from wonders/events |
