@@ -73,7 +73,7 @@ export class MCPServer {
     if (this.tools.has(tool.name)) {
       logger.warn(`Tool ${tool.name} already registered, replacing`);
     }
-    
+
     // Register tool with McpServer using a generic handler
     // Since we can't directly pass ZodTypeAny as ZodRawShape, we'll use a generic approach
     tool.registered = this.server.registerTool(
@@ -209,7 +209,6 @@ export class MCPServer {
     // Shutdown BridgeManager
     this.bridgeManager.shutdown();
     
-    // McpServer doesn't have a close method, but we can reset our state
     this.initialized = false;
   }
 }

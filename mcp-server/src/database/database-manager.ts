@@ -3,8 +3,7 @@
  * Provides structured access to game rules, units, buildings, technologies, and localized text
  */
 
-import { Database, open } from 'sqlite';
-import sqlite3 from 'sqlite3';
+import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -26,8 +25,8 @@ export interface DatabaseConfig {
  * Manages SQLite database connections and queries for Civilization V
  */
 export class DatabaseManager {
-  private mainDb?: Database<sqlite3.Database, sqlite3.Statement>;
-  private localizationDb?: Database<sqlite3.Database, sqlite3.Statement>;
+  private mainDb?: Database.Database;
+  private localizationDb?: Database.Database;
   private config: DatabaseConfig;
   private documentsPath?: string;
   private initialized = false;
@@ -94,19 +93,11 @@ export class DatabaseManager {
 
     try {
       // Open main database in read-only mode
-      this.mainDb = await open({
-        filename: mainDbPath,
-        driver: sqlite3.Database,
-        mode: sqlite3.OPEN_READONLY,
-      });
+      this.mainDb = new Database(mainDbPath, { readonly: true });
       logger.info('Connected to main database');
 
       // Open localization database in read-only mode
-      this.localizationDb = await open({
-        filename: localizationDbPath,
-        driver: sqlite3.Database,
-        mode: sqlite3.OPEN_READONLY,
-      });
+      this.localizationDb = new Database(localizationDbPath, { readonly: true });
       logger.info('Connected to localization database');
 
       this.initialized = true;
@@ -125,14 +116,15 @@ export class DatabaseManager {
     }
 
     try {
-      const results = await this.mainDb.all(sql, params);
+      const stmt = this.mainDb.prepare(sql);
+      const results = params ? stmt.all(...params) : stmt.all();
       
       // Auto-convert localization keys if enabled
       if (this.config.autoConvertLocalization) {
-        return this.convertLocalizationKeys(results);
+        return this.convertLocalizationKeys(results as Record<string, any>[]);
       }
       
-      return results;
+      return results as Record<string, any>[];
     } catch (error) {
       logger.error('Query failed:', error);
       throw new Error(`Query failed: ${error}`);
@@ -148,10 +140,10 @@ export class DatabaseManager {
     }
 
     try {
-      const result = await this.localizationDb.get(
-        'SELECT Text FROM LocalizedText WHERE Language = ? AND Tag = ?',
-        [this.config.language, key]
+      const stmt = this.localizationDb.prepare(
+        'SELECT Text FROM LocalizedText WHERE Language = ? AND Tag = ?'
       );
+      const result = stmt.get(this.config.language, key) as { Text?: string } | undefined;
       
       return result?.Text || key; // Return key if no translation found
     } catch (error) {
@@ -205,12 +197,12 @@ export class DatabaseManager {
     logger.info('Closing database connections');
     
     if (this.mainDb) {
-      await this.mainDb.close();
+      this.mainDb.close();
       this.mainDb = undefined;
     }
     
     if (this.localizationDb) {
-      await this.localizationDb.close();
+      this.localizationDb.close();
       this.localizationDb = undefined;
     }
     
