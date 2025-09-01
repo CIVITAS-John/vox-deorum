@@ -107,10 +107,7 @@ export class MCPServer {
       }) as any
     );
 
-    // Link tool back to server
-    tool.server = this;
     this.tools.set(tool.name, tool);
-    
     logger.info(`Registered tool: ${tool.name}`);
     return tool.registered;
   }
@@ -209,3 +206,13 @@ export class MCPServer {
     this.initialized = false;
   }
 }
+
+/**
+ * Export singleton bridge manager for easy access
+ */
+export const bridgeManager = MCPServer.getInstance().getBridgeManager();
+
+/**
+ * Export singleton database manager for easy access
+ */
+export const databaseManager = MCPServer.getInstance().getDatabaseManager();

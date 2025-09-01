@@ -33,11 +33,6 @@ export abstract class ToolBase {
   abstract readonly annotations?: ToolAnnotations;
 
   /**
-   * Underlying McpServer instance
-   */
-  public server?: MCPServer;
-
-  /**
    * Registered tool instance after registration with MCP server
    */
   public registered?: RegisteredTool;

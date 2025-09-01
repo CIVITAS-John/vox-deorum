@@ -1,3 +1,4 @@
+import { bridgeManager } from "../../server.js";
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 
@@ -45,7 +46,6 @@ class LuaExecutorTool extends ToolBase {
    * Execute the Lua script using BridgeManager
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    const bridgeManager = this.server!.getBridgeManager();
     const response = await bridgeManager.executeLuaScript(args.script);
     
     return {

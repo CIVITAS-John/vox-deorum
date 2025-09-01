@@ -3,7 +3,7 @@
  * Provides structured access to game rules, units, buildings, technologies, and localized text
  */
 
-import { Kysely, SqliteDialect, sql } from 'kysely';
+import { Kysely, SqliteDialect } from 'kysely';
 import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
 import path from 'path';
@@ -174,21 +174,11 @@ export class DatabaseManager {
   /**
    * Get the main database instance for direct Kysely queries
    */
-  public getMainDb(): Kysely<MainDB> {
+  public getDatabase(): Kysely<MainDB> {
     if (!this.mainDb) {
       throw new Error('Database not initialized. Call initialize() first.');
     }
     return this.mainDb;
-  }
-
-  /**
-   * Get the localization database instance for direct Kysely queries
-   */
-  public getLocalizationDb(): Kysely<LocalizationDB> {
-    if (!this.localizationDb) {
-      throw new Error('Localization database not initialized. Call initialize() first.');
-    }
-    return this.localizationDb;
   }
 
   /**
