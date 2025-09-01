@@ -1,0 +1,60 @@
+{
+  "tableName": "Trait_FreeResourceFirstXCities",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "TraitType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "ResourceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "ResourceQuantity",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "NumCities",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "ResourceType",
+      "referencedTable": "Resources",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TraitType",
+      "referencedTable": "Traits",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Trait_FreeResourceFirstXCities ('TraitType' text , 'ResourceType' text , 'ResourceQuantity' integer , 'NumCities' integer , foreign key (TraitType) references Traits(Type), foreign key (ResourceType) references Resources(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.435Z"
+  }
+}

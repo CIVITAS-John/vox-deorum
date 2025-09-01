@@ -1,0 +1,52 @@
+{
+  "tableName": "Trait_ExtraYieldThresholds",
+  "rowCount": 1,
+  "columns": [
+    {
+      "name": "TraitType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "YieldType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Yield",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "YieldType",
+      "referencedTable": "Yields",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TraitType",
+      "referencedTable": "Traits",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Trait_ExtraYieldThresholds ('TraitType' text , 'YieldType' text , 'Yield' integer , foreign key (TraitType) references Traits(Type), foreign key (YieldType) references Yields(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.431Z"
+  }
+}

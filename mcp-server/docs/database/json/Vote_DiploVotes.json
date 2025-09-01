@@ -1,0 +1,37 @@
+{
+  "tableName": "Vote_DiploVotes",
+  "rowCount": 1,
+  "columns": [
+    {
+      "name": "VoteType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "DiploVoteType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "VoteType",
+      "referencedTable": "Votes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Vote_DiploVotes ('VoteType' text , 'DiploVoteType' text , foreign key (VoteType) references Votes(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.538Z"
+  }
+}

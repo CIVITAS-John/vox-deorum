@@ -1,0 +1,37 @@
+{
+  "tableName": "CitySizes",
+  "rowCount": 3,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_CitySizes_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE CitySizes ('ID' integer primary key autoincrement , 'Type' text  not null unique )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.135Z"
+  }
+}

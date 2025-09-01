@@ -1,0 +1,39 @@
+{
+  "tableName": "AnimationPaths",
+  "rowCount": 41,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "MissionPath",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE AnimationPaths ('ID' integer primary key autoincrement , 'Type' text , 'MissionPath' boolean default 0 )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.960Z"
+  }
+}

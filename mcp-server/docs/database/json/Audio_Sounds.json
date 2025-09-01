@@ -1,0 +1,69 @@
+{
+  "tableName": "Audio_Sounds",
+  "rowCount": 145,
+  "columns": [
+    {
+      "name": "SoundID",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "FileName",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "LoadType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'DynamicResident'",
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "OnlyLoadOneVariationEachTime",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "DontCache",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    }
+  ],
+  "primaryKeys": [
+    "SoundID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "LoadType",
+      "referencedTable": "Audio_SoundLoadTypes",
+      "referencedColumn": "SoundLoadType",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Audio_Sounds_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Audio_Sounds('SoundID' TEXT PRIMARY KEY,\r\n\t\t\t\t\t\t  'FileName' TEXT NOT NULL,\r\n\t\t\t\t\t\t  'LoadType' TEXT DEFAULT 'DynamicResident',\r\n\t\t\t\t\t\t  'OnlyLoadOneVariationEachTime' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t  'DontCache' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t  FOREIGN KEY('LoadType') REFERENCES Audio_SoundLoadTypes('SoundLoadType'))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.973Z"
+  }
+}

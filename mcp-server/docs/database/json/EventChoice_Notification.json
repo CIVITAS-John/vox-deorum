@@ -1,0 +1,106 @@
+{
+  "tableName": "EventChoice_Notification",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "EventChoiceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "NotificationType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "ShortDescription",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "IsWorldEvent",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "NeedPlayerID",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "Variable1",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "Variable2",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 7
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "ShortDescription",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "NotificationType",
+      "referencedTable": "Notifications",
+      "referencedColumn": "NotificationType",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EventChoiceType",
+      "referencedTable": "EventChoices",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE EventChoice_Notification ('EventChoiceType' text , 'NotificationType' text , 'Description' text , 'ShortDescription' text , 'IsWorldEvent' boolean default 0 , 'NeedPlayerID' boolean default 0 , 'Variable1' integer default '-1' , 'Variable2' integer default '-1' , foreign key (EventChoiceType) references EventChoices(Type), foreign key (NotificationType) references Notifications(NotificationType), foreign key (Description) references Language_en_US(Tag), foreign key (ShortDescription) references Language_en_US(Tag))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.188Z"
+  }
+}

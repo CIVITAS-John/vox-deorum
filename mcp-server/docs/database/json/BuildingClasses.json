@@ -1,0 +1,101 @@
+{
+  "tableName": "BuildingClasses",
+  "rowCount": 120,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "DefaultBuilding",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "MaxGlobalInstances",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "MaxTeamInstances",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "MaxPlayerInstances",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "ExtraPlayerInstances",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "NoLimit",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "Monument",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_BuildingClasses_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE BuildingClasses ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'DefaultBuilding' text , 'MaxGlobalInstances' integer default '-1' , 'MaxTeamInstances' integer default '-1' , 'MaxPlayerInstances' integer default '-1' , 'ExtraPlayerInstances' integer default 0 , 'NoLimit' boolean default 0 , 'Monument' boolean default 0 )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.023Z"
+  }
+}

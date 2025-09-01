@@ -1,0 +1,58 @@
+{
+  "tableName": "UnitPromotions_UnitCombats",
+  "rowCount": 290,
+  "columns": [
+    {
+      "name": "PromotionType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "UnitCombatType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "PediaType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "UnitCombatType",
+      "referencedTable": "UnitCombatInfos",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PromotionType",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_UnitPromotions_UnitCombats_ON_PromotionType_AND_UnitCombatType",
+      "unique": false,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE UnitPromotions_UnitCombats ('PromotionType' text , 'UnitCombatType' text , 'PediaType' text , foreign key (PromotionType) references UnitPromotions(Type), foreign key (UnitCombatType) references UnitCombatInfos(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.510Z"
+  }
+}

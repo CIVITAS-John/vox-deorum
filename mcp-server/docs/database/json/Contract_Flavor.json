@@ -1,0 +1,52 @@
+{
+  "tableName": "Contract_Flavor",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "ContractType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "FlavorType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Flavor",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "FlavorType",
+      "referencedTable": "Flavors",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ContractType",
+      "referencedTable": "Contracts",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Contract_Flavor ('ContractType' text , 'FlavorType' text , 'Flavor' integer  not null , foreign key (ContractType) references Contracts(Type), foreign key (FlavorType) references Flavors(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.155Z"
+  }
+}

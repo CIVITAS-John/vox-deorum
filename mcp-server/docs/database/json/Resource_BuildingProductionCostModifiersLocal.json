@@ -1,0 +1,67 @@
+{
+  "tableName": "Resource_BuildingProductionCostModifiersLocal",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "ResourceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "RequiredEra",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "ObsoleteEra",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "CostModifier",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "ObsoleteEra",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredEra",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ResourceType",
+      "referencedTable": "Resources",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Resource_BuildingProductionCostModifiersLocal ('ResourceType' text , 'RequiredEra' text , 'ObsoleteEra' text , 'CostModifier' integer  not null , foreign key (ResourceType) references Resources(Type), foreign key (RequiredEra) references Eras(Type), foreign key (ObsoleteEra) references Eras(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.380Z"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "tableName": "Audio_SpeakerChannels",
+  "rowCount": 13,
+  "columns": [
+    {
+      "name": "SpeakerChannel",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Value",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [
+    "SpeakerChannel"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Audio_SpeakerChannels_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Audio_SpeakerChannels('SpeakerChannel' TEXT PRIMARY KEY, 'Value' INTEGER NOT NULL)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.974Z"
+  }
+}

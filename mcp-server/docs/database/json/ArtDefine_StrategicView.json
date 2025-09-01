@@ -1,0 +1,58 @@
+{
+  "tableName": "ArtDefine_StrategicView",
+  "rowCount": 275,
+  "columns": [
+    {
+      "name": "StrategicViewType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "TileType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 1,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "Asset",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "StrategicViewType",
+    "TileType"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_ArtDefine_StrategicView_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE ArtDefine_StrategicView(\"StrategicViewType\" TEXT,\r\n\t\t\t\t\t\t\t\t\t \"TileType\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t \"Asset\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t PRIMARY KEY(\"StrategicViewType\", \"TileType\"))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.963Z"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "tableName": "Concepts_RelatedConcept",
+  "rowCount": 1227,
+  "columns": [
+    {
+      "name": "ConceptType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "RelatedConcept",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "RelatedConcept",
+      "referencedTable": "Concepts",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ConceptType",
+      "referencedTable": "Concepts",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_Concepts_RelatedConcept_ON_ConceptType",
+      "unique": false,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Concepts_RelatedConcept ('ConceptType' text , 'RelatedConcept' text , foreign key (ConceptType) references Concepts(Type), foreign key (RelatedConcept) references Concepts(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.153Z"
+  }
+}

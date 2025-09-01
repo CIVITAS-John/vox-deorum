@@ -1,0 +1,52 @@
+{
+  "tableName": "CityEventChoice_ConvertNumPopToReligion",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "CityEventChoiceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "ReligionType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Population",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "ReligionType",
+      "referencedTable": "Religions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "CityEventChoiceType",
+      "referencedTable": "CityEventChoices",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE CityEventChoice_ConvertNumPopToReligion ('CityEventChoiceType' text , 'ReligionType' text , 'Population' integer  not null , foreign key (CityEventChoiceType) references CityEventChoices(Type), foreign key (ReligionType) references Religions(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.119Z"
+  }
+}

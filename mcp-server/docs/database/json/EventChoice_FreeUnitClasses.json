@@ -1,0 +1,52 @@
+{
+  "tableName": "EventChoice_FreeUnitClasses",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "EventChoiceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "UnitClassType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Quantity",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "UnitClassType",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EventChoiceType",
+      "referencedTable": "EventChoices",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE EventChoice_FreeUnitClasses ('EventChoiceType' text , 'UnitClassType' text , 'Quantity' integer  not null , foreign key (EventChoiceType) references EventChoices(Type), foreign key (UnitClassType) references UnitClasses(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.184Z"
+  }
+}

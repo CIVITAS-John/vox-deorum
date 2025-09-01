@@ -1,0 +1,52 @@
+{
+  "tableName": "MinorCivilization_Flavors",
+  "rowCount": 271,
+  "columns": [
+    {
+      "name": "MinorCivType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "FlavorType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Flavor",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "FlavorType",
+      "referencedTable": "Flavors",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "MinorCivType",
+      "referencedTable": "MinorCivilizations",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE MinorCivilization_Flavors ('MinorCivType' text , 'FlavorType' text , 'Flavor' integer default '-1' , foreign key (MinorCivType) references MinorCivilizations(Type), foreign key (FlavorType) references Flavors(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.273Z"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "tableName": "IconFontTextures",
+  "rowCount": 4,
+  "columns": [
+    {
+      "name": "IconFontTexture",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "IconFontTextureFile",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [
+    "IconFontTexture"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_IconFontTextures_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE IconFontTextures ('IconFontTexture' text primary key , 'IconFontTextureFile' text )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.221Z"
+  }
+}

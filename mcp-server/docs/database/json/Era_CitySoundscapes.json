@@ -1,0 +1,52 @@
+{
+  "tableName": "Era_CitySoundscapes",
+  "rowCount": 24,
+  "columns": [
+    {
+      "name": "EraType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "CitySizeType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "SoundscapeScript",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "CitySizeType",
+      "referencedTable": "CitySizes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EraType",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Era_CitySoundscapes ('EraType' text , 'CitySizeType' text , 'SoundscapeScript' text , foreign key (EraType) references Eras(Type), foreign key (CitySizeType) references CitySizes(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.175Z"
+  }
+}

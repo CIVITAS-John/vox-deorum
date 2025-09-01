@@ -1,0 +1,37 @@
+{
+  "tableName": "Defines",
+  "rowCount": 3006,
+  "columns": [
+    {
+      "name": "Name",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Value",
+      "type": "variant",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [
+    "Name"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Defines_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Defines ('Name' text primary key , 'Value' variant )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.168Z"
+  }
+}

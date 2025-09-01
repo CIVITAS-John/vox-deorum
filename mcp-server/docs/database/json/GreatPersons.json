@@ -1,0 +1,91 @@
+{
+  "tableName": "GreatPersons",
+  "rowCount": 9,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Class",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "Specialist",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "IconString",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'[ICON_GREAT_PEOPLE]'",
+      "primaryKey": false,
+      "position": 5
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "Specialist",
+      "referencedTable": "Specialists",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Class",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_GreatPersons_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE GreatPersons ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Class' text  not null , 'Specialist' text default NULL , 'IconString' text default '[ICON_GREAT_PEOPLE]' , foreign key (Description) references Language_en_US(Tag), foreign key (Class) references UnitClasses(Type), foreign key (Specialist) references Specialists(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.207Z"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "tableName": "ArtDefine_UnitMemberInfos",
+  "rowCount": 291,
+  "columns": [
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0,
+      "constraints": "NOT NULL PRIMARY KEY",
+      "isPrimaryKey": true,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "Scale",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ZOffset",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Domain",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Model",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "MaterialTypeTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MaterialTypeSoundOverrideTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "Type"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_ArtDefine_UnitMemberInfos_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE ArtDefine_UnitMemberInfos(\t\"Type\" TEXT NOT NULL PRIMARY KEY, \r\n\t\t\t\t\t\t\t\t\t\t\"Scale\" FLOAT, \r\n\t\t\t\t\t\t\t\t\t\t\"ZOffset\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\"Domain\" TEXT,\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\"Model\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\t\"MaterialTypeTag\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\t\"MaterialTypeSoundOverrideTag\" TEXT)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.967Z"
+  }
+}

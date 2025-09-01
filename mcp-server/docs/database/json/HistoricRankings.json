@@ -1,0 +1,47 @@
+{
+  "tableName": "HistoricRankings",
+  "rowCount": 21,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "HistoricLeader",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "LeaderQuote",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "LeaderScore",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE HistoricRankings ('ID' integer primary key autoincrement , 'HistoricLeader' text , 'LeaderQuote' text , 'LeaderScore' integer default 0 )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.218Z"
+  }
+}

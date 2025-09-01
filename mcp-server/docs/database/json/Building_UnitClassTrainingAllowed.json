@@ -1,0 +1,44 @@
+{
+  "tableName": "Building_UnitClassTrainingAllowed",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "BuildingType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "UnitClassType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "UnitClassType",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "BuildingType",
+      "referencedTable": "Buildings",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Building_UnitClassTrainingAllowed ('BuildingType' text  not null , 'UnitClassType' text  not null , foreign key (BuildingType) references Buildings(Type), foreign key (UnitClassType) references UnitClasses(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.068Z"
+  }
+}

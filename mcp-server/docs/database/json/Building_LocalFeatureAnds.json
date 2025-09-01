@@ -1,0 +1,44 @@
+{
+  "tableName": "Building_LocalFeatureAnds",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "BuildingType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "FeatureType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "FeatureType",
+      "referencedTable": "Features",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "BuildingType",
+      "referencedTable": "Buildings",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Building_LocalFeatureAnds ('BuildingType' text  not null , 'FeatureType' text  not null , foreign key (BuildingType) references Buildings(Type), foreign key (FeatureType) references Features(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.047Z"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "tableName": "Policy_UnitCombatProductionModifiers",
+  "rowCount": 1,
+  "columns": [
+    {
+      "name": "PolicyType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "UnitCombatType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "ProductionModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "UnitCombatType",
+      "referencedTable": "UnitCombatInfos",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PolicyType",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Policy_UnitCombatProductionModifiers ('PolicyType' text , 'UnitCombatType' text , 'ProductionModifier' integer , foreign key (PolicyType) references Policies(Type), foreign key (UnitCombatType) references UnitCombatInfos(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.342Z"
+  }
+}

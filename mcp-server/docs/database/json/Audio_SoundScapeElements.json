@@ -1,0 +1,78 @@
+{
+  "tableName": "Audio_SoundScapeElements",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "ScriptID",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "SoundScapeIndex",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 1
+    },
+    {
+      "name": "ScriptType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "MinTimeMustNotPlayAgain",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "MaxTimeMustNotPlayAgain",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "IsSoundBed",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    }
+  ],
+  "primaryKeys": [
+    "ScriptID",
+    "SoundScapeIndex"
+  ],
+  "foreignKeys": [
+    {
+      "column": "ScriptType",
+      "referencedTable": "Audio_ScriptTypes",
+      "referencedColumn": "ScriptType",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Audio_SoundScapeElements_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Audio_SoundScapeElements('ScriptID' TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t  'SoundScapeIndex' INTEGER NOT NULL,\r\n\t\t\t\t\t\t\t\t\t  'ScriptType' TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t  'MinTimeMustNotPlayAgain' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t\t\t  'MaxTimeMustNotPlayAgain' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t\t\t  'IsSoundBed' INTEGER,\r\n\t\t\t\t\t\t\t\t\t  PRIMARY KEY('ScriptID', 'SoundScapeIndex'),\r\n\t\t\t\t\t\t\t\t\t  FOREIGN KEY('ScriptType') REFERENCES Audio_ScriptTypes('ScriptType'))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.972Z"
+  }
+}

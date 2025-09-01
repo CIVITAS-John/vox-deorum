@@ -1,0 +1,53 @@
+{
+  "tableName": "IconFontMapping",
+  "rowCount": 223,
+  "columns": [
+    {
+      "name": "IconName",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "IconMapping",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "IconFontTexture",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'ICON_FONT_TEXTURE_DEFAULT'",
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [
+    "IconName"
+  ],
+  "foreignKeys": [
+    {
+      "column": "IconFontTexture",
+      "referencedTable": "IconFontTextures",
+      "referencedColumn": "IconFontTexture",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_IconFontMapping_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE IconFontMapping ('IconName' text primary key , 'IconMapping' integer , 'IconFontTexture' text default 'ICON_FONT_TEXTURE_DEFAULT' , foreign key (IconFontTexture) references IconFontTextures(IconFontTexture))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.220Z"
+  }
+}

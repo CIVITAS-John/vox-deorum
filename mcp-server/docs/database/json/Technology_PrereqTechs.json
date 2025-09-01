@@ -1,0 +1,55 @@
+{
+  "tableName": "Technology_PrereqTechs",
+  "rowCount": 135,
+  "columns": [
+    {
+      "name": "TechType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "PrereqTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "PrereqTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TechType",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_Technology_PrereqTechs_ON_PrereqTech",
+      "unique": false,
+      "partial": false
+    },
+    {
+      "name": "idx_Technology_PrereqTechs_ON_TechType",
+      "unique": false,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Technology_PrereqTechs ('TechType' text , 'PrereqTech' text , foreign key (TechType) references Technologies(Type), foreign key (PrereqTech) references Technologies(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.411Z"
+  }
+}

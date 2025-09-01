@@ -1,0 +1,117 @@
+{
+  "tableName": "MapScripts",
+  "rowCount": 38,
+  "columns": [
+    {
+      "name": "FileName",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Name",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "IsAdvancedMap",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "SupportsSinglePlayer",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "SupportsMultiplayer",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "DefaultCityStates",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "Hidden",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "IconIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'WORLDTYPE_ATLAS'",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "FolderType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 10
+    }
+  ],
+  "primaryKeys": [
+    "FileName"
+  ],
+  "foreignKeys": [
+    {
+      "column": "FolderType",
+      "referencedTable": "Map_Folders",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_MapScripts_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE MapScripts('FileName' TEXT PRIMARY KEY COLLATE NOCASE, \r\n\t\t\t\t\t\t'Name' TEXT NOT NULL, \r\n\t\t\t\t\t\t'Description' TEXT, \r\n\t\t\t\t\t\t'IsAdvancedMap' INTEGER DEFAULT 0, \r\n\t\t\t\t\t\t'SupportsSinglePlayer' INTEGER DEFAULT 1, \r\n\t\t\t\t\t\t'SupportsMultiplayer' INTEGER DEFAULT 1, \r\n\t\t\t\t\t\t'DefaultCityStates' INTEGER, \r\n\t\t\t\t\t\t'Hidden' INTEGER DEFAULT 0, \r\n\t\t\t\t\t\t'IconIndex' INTEGER DEFAULT 0, \r\n\t\t\t\t\t\t'IconAtlas' TEXT DEFAULT 'WORLDTYPE_ATLAS',\r\n\t\t\t\t\t\t'FolderType' TEXT DEFAULT NULL,\r\n\t\t\t\t\t\tFOREIGN KEY('FolderType') REFERENCES Map_Folders('Type'))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.265Z"
+  }
+}

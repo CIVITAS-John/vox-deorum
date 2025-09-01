@@ -1,0 +1,44 @@
+{
+  "tableName": "Unit_AITypes",
+  "rowCount": 305,
+  "columns": [
+    {
+      "name": "UnitType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "UnitAIType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "UnitAIType",
+      "referencedTable": "UnitAIInfos",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "UnitType",
+      "referencedTable": "Units",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Unit_AITypes ('UnitType' text , 'UnitAIType' text , foreign key (UnitType) references Units(Type), foreign key (UnitAIType) references UnitAIInfos(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.518Z"
+  }
+}

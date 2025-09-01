@@ -1,0 +1,53 @@
+{
+  "tableName": "MinorCivTraits_Status",
+  "rowCount": 6,
+  "columns": [
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "StatusIcon",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "PositiveStatusMeter",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "NegativeStatusMeter",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "StatusMeterIconAtlasIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE MinorCivTraits_Status ('Type' text , 'StatusIcon' text , 'PositiveStatusMeter' text , 'NegativeStatusMeter' text , 'StatusMeterIconAtlasIndex' integer )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.271Z"
+  }
+}

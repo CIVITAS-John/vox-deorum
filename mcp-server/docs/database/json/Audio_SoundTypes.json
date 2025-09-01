@@ -1,0 +1,29 @@
+{
+  "tableName": "Audio_SoundTypes",
+  "rowCount": 8,
+  "columns": [
+    {
+      "name": "SoundType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    }
+  ],
+  "primaryKeys": [
+    "SoundType"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Audio_SoundTypes_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Audio_SoundTypes('SoundType' TEXT PRIMARY KEY)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.973Z"
+  }
+}

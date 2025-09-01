@@ -1,0 +1,69 @@
+{
+  "tableName": "Colors",
+  "rowCount": 220,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Red",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "1.0",
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Green",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "1.0",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "Blue",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "1.0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Alpha",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "1.0",
+      "primaryKey": false,
+      "position": 5
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Colors_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Colors ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Red' float default 1.0 , 'Green' float default 1.0 , 'Blue' float default 1.0 , 'Alpha' float default 1.0 )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.151Z"
+  }
+}

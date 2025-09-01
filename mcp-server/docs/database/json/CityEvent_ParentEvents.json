@@ -1,0 +1,44 @@
+{
+  "tableName": "CityEvent_ParentEvents",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "CityEventChoiceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "CityEventType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "CityEventType",
+      "referencedTable": "CityEvents",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "CityEventChoiceType",
+      "referencedTable": "CityEventChoices",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE CityEvent_ParentEvents ('CityEventChoiceType' text , 'CityEventType' text , foreign key (CityEventChoiceType) references CityEventChoices(Type), foreign key (CityEventType) references CityEvents(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.134Z"
+  }
+}

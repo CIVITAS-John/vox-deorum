@@ -1,0 +1,473 @@
+{
+  "tableName": "GameSpeeds",
+  "rowCount": 4,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Help",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "DealDuration",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "GrowthPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "TrainPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "ConstructPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "CreatePercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "ResearchPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "GoldPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "GoldGiftMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "BuildPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "ImprovementPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "GreatPeoplePercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "CulturePercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "FaithPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "BarbPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "FeatureProductionPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "UnitDiscoverPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "UnitHurryPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "UnitTradePercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "GoldenAgePercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "HurryPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "InflationPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "InflationOffset",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "ReligiousPressureAdjacentCity",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "VictoryDelayPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27
+    },
+    {
+      "name": "MinorCivElectionFreqMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 28
+    },
+    {
+      "name": "OpinionDurationPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 29
+    },
+    {
+      "name": "SpyRatePercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 30
+    },
+    {
+      "name": "PeaceDealDuration",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 31
+    },
+    {
+      "name": "RelationshipDuration",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 32
+    },
+    {
+      "name": "LeaguePercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 33
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 34
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 35
+    },
+    {
+      "name": "TradeRouteSpeedMod",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 36,
+      "constraints": "DEFAULT 100",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "StartingHappiness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 37,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "InstantYieldPercent",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 38,
+      "constraints": "DEFAULT 100",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "DifficultyBonusPercent",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 39,
+      "constraints": "DEFAULT 100",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MilitaryRatingDecayPercent",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 40,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "TechCostPerTurnMultiplier",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "30",
+      "primaryKey": false,
+      "position": 41,
+      "constraints": "DEFAULT 30",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinimumVassalLiberateTurns",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "50",
+      "primaryKey": false,
+      "position": 42,
+      "constraints": "DEFAULT 50",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinimumVassalTurns",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "50",
+      "primaryKey": false,
+      "position": 43,
+      "constraints": "DEFAULT 50",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinimumVoluntaryVassalTurns",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "10",
+      "primaryKey": false,
+      "position": 44,
+      "constraints": "DEFAULT 10",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinimumVassalTaxTurns",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "25",
+      "primaryKey": false,
+      "position": 45,
+      "constraints": "DEFAULT 25",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NumTurnsBetweenVassals",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "30",
+      "primaryKey": false,
+      "position": 46,
+      "constraints": "DEFAULT 30",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PietyMin",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 47,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PietyMax",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 48,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "IconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_GameSpeeds_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE GameSpeeds ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Help' text , 'DealDuration' integer default 0 , 'GrowthPercent' integer default 0 , 'TrainPercent' integer default 0 , 'ConstructPercent' integer default 0 , 'CreatePercent' integer default 0 , 'ResearchPercent' integer default 0 , 'GoldPercent' integer default 0 , 'GoldGiftMod' integer default 0 , 'BuildPercent' integer default 0 , 'ImprovementPercent' integer default 0 , 'GreatPeoplePercent' integer default 0 , 'CulturePercent' integer default 0 , 'FaithPercent' integer default 0 , 'BarbPercent' integer default 0 , 'FeatureProductionPercent' integer default 0 , 'UnitDiscoverPercent' integer default 0 , 'UnitHurryPercent' integer default 0 , 'UnitTradePercent' integer default 0 , 'GoldenAgePercent' integer default 0 , 'HurryPercent' integer default 0 , 'InflationPercent' integer default 0 , 'InflationOffset' integer default 0 , 'ReligiousPressureAdjacentCity' integer default 0 , 'VictoryDelayPercent' integer default 0 , 'MinorCivElectionFreqMod' integer default 0 , 'OpinionDurationPercent' integer default 0 , 'SpyRatePercent' integer default 0 , 'PeaceDealDuration' integer default 0 , 'RelationshipDuration' integer default 0 , 'LeaguePercent' integer default 0 , 'PortraitIndex' integer default '-1' , 'IconAtlas' text default NULL , TradeRouteSpeedMod integer DEFAULT 100, StartingHappiness integer DEFAULT 0, InstantYieldPercent integer DEFAULT 100, DifficultyBonusPercent integer DEFAULT 100, MilitaryRatingDecayPercent integer DEFAULT 0, TechCostPerTurnMultiplier float DEFAULT 30, MinimumVassalLiberateTurns integer DEFAULT 50, MinimumVassalTurns integer DEFAULT 50, MinimumVoluntaryVassalTurns integer DEFAULT 10, MinimumVassalTaxTurns integer DEFAULT 25, NumTurnsBetweenVassals integer DEFAULT 30, PietyMin integer DEFAULT 0, PietyMax integer DEFAULT 0, foreign key (IconAtlas) references IconTextureAtlases(Atlas))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.206Z"
+  }
+}

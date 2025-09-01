@@ -1,0 +1,1037 @@
+{
+  "tableName": "Natural_Wonder_Placement",
+  "rowCount": 17,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "NaturalWonderType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "EligibilityMethodNumber",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "OccurrenceFrequency",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "10",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "RequireBiggestLandmass",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "AvoidBiggestLandmass",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "RequireFreshWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "AvoidFreshWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "LandBased",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "RequireLandAdjacentToOcean",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "AvoidLandAdjacentToOcean",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "RequireLandOnePlotInland",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "AvoidLandOnePlotInland",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "RequireLandTwoOrMorePlotsInland",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "AvoidLandTwoOrMorePlotsInland",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "CoreTileCanBeAnyPlotType",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "CoreTileCanBeFlatland",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "CoreTileCanBeHills",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "CoreTileCanBeMountain",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "CoreTileCanBeOcean",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "CoreTileCanBeAnyTerrainType",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "CoreTileCanBeGrass",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "CoreTileCanBePlains",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "CoreTileCanBeDesert",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "CoreTileCanBeTundra",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "CoreTileCanBeSnow",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "CoreTileCanBeShallowWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "CoreTileCanBeDeepWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27
+    },
+    {
+      "name": "CoreTileCanBeAnyFeatureType",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 28
+    },
+    {
+      "name": "CoreTileCanBeNoFeature",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 29
+    },
+    {
+      "name": "CoreTileCanBeForest",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 30
+    },
+    {
+      "name": "CoreTileCanBeJungle",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 31
+    },
+    {
+      "name": "CoreTileCanBeOasis",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 32
+    },
+    {
+      "name": "CoreTileCanBeFloodPlains",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 33
+    },
+    {
+      "name": "CoreTileCanBeMarsh",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 34
+    },
+    {
+      "name": "CoreTileCanBeIce",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 35
+    },
+    {
+      "name": "CoreTileCanBeAtoll",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 36
+    },
+    {
+      "name": "AdjacentTilesCareAboutPlotTypes",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 37
+    },
+    {
+      "name": "AdjacentTilesAvoidAnyland",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 38
+    },
+    {
+      "name": "AdjacentTilesRequireFlatland",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 39
+    },
+    {
+      "name": "RequiredNumberOfAdjacentFlatland",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 40
+    },
+    {
+      "name": "AdjacentTilesRequireHills",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 41
+    },
+    {
+      "name": "RequiredNumberOfAdjacentHills",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 42
+    },
+    {
+      "name": "AdjacentTilesRequireMountain",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 43
+    },
+    {
+      "name": "RequiredNumberOfAdjacentMountain",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 44
+    },
+    {
+      "name": "AdjacentTilesRequireHillsPlusMountains",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 45
+    },
+    {
+      "name": "RequiredNumberOfAdjacentHillsPlusMountains",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 46
+    },
+    {
+      "name": "AdjacentTilesRequireOcean",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 47
+    },
+    {
+      "name": "RequiredNumberOfAdjacentOcean",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 48
+    },
+    {
+      "name": "AdjacentTilesAvoidFlatland",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 49
+    },
+    {
+      "name": "MaximumAllowedAdjacentFlatland",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 50
+    },
+    {
+      "name": "AdjacentTilesAvoidHills",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 51
+    },
+    {
+      "name": "MaximumAllowedAdjacentHills",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 52
+    },
+    {
+      "name": "AdjacentTilesAvoidMountain",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 53
+    },
+    {
+      "name": "MaximumAllowedAdjacentMountain",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 54
+    },
+    {
+      "name": "AdjacentTilesAvoidHillsPlusMountains",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 55
+    },
+    {
+      "name": "MaximumAllowedAdjacentHillsPlusMountains",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 56
+    },
+    {
+      "name": "AdjacentTilesAvoidOcean",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 57
+    },
+    {
+      "name": "MaximumAllowedAdjacentOcean",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 58
+    },
+    {
+      "name": "AdjacentTilesCareAboutTerrainTypes",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 59
+    },
+    {
+      "name": "AdjacentTilesRequireGrass",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 60
+    },
+    {
+      "name": "RequiredNumberOfAdjacentGrass",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 61
+    },
+    {
+      "name": "AdjacentTilesRequirePlains",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 62
+    },
+    {
+      "name": "RequiredNumberOfAdjacentPlains",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 63
+    },
+    {
+      "name": "AdjacentTilesRequireDesert",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 64
+    },
+    {
+      "name": "RequiredNumberOfAdjacentDesert",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 65
+    },
+    {
+      "name": "AdjacentTilesRequireTundra",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 66
+    },
+    {
+      "name": "RequiredNumberOfAdjacentTundra",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 67
+    },
+    {
+      "name": "AdjacentTilesRequireSnow",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 68
+    },
+    {
+      "name": "RequiredNumberOfAdjacentSnow",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 69
+    },
+    {
+      "name": "AdjacentTilesRequireShallowWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 70
+    },
+    {
+      "name": "RequiredNumberOfAdjacentShallowWater",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 71
+    },
+    {
+      "name": "AdjacentTilesRequireDeepWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 72
+    },
+    {
+      "name": "RequiredNumberOfAdjacentDeepWater",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 73
+    },
+    {
+      "name": "AdjacentTilesAvoidGrass",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 74
+    },
+    {
+      "name": "MaximumAllowedAdjacentGrass",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 75
+    },
+    {
+      "name": "AdjacentTilesAvoidPlains",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 76
+    },
+    {
+      "name": "MaximumAllowedAdjacentPlains",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 77
+    },
+    {
+      "name": "AdjacentTilesAvoidDesert",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 78
+    },
+    {
+      "name": "MaximumAllowedAdjacentDesert",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 79
+    },
+    {
+      "name": "AdjacentTilesAvoidTundra",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 80
+    },
+    {
+      "name": "MaximumAllowedAdjacentTundra",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 81
+    },
+    {
+      "name": "AdjacentTilesAvoidSnow",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 82
+    },
+    {
+      "name": "MaximumAllowedAdjacentSnow",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 83
+    },
+    {
+      "name": "AdjacentTilesAvoidShallowWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 84
+    },
+    {
+      "name": "MaximumAllowedAdjacentShallowWater",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 85
+    },
+    {
+      "name": "AdjacentTilesAvoidDeepWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 86
+    },
+    {
+      "name": "MaximumAllowedAdjacentDeepWater",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 87
+    },
+    {
+      "name": "AdjacentTilesCareAboutFeatureTypes",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 88
+    },
+    {
+      "name": "AdjacentTilesRequireNoFeature",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 89
+    },
+    {
+      "name": "RequiredNumberOfAdjacentNoFeature",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 90
+    },
+    {
+      "name": "AdjacentTilesRequireForest",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 91
+    },
+    {
+      "name": "RequiredNumberOfAdjacentForest",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 92
+    },
+    {
+      "name": "AdjacentTilesRequireJungle",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 93
+    },
+    {
+      "name": "RequiredNumberOfAdjacentJungle",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 94
+    },
+    {
+      "name": "AdjacentTilesRequireOasis",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 95
+    },
+    {
+      "name": "RequiredNumberOfAdjacentOasis",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 96
+    },
+    {
+      "name": "AdjacentTilesRequireFloodPlains",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 97
+    },
+    {
+      "name": "RequiredNumberOfAdjacentFloodPlains",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 98
+    },
+    {
+      "name": "AdjacentTilesRequireMarsh",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 99
+    },
+    {
+      "name": "RequiredNumberOfAdjacentMarsh",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 100
+    },
+    {
+      "name": "AdjacentTilesRequireIce",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 101
+    },
+    {
+      "name": "RequiredNumberOfAdjacentIce",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 102
+    },
+    {
+      "name": "AdjacentTilesRequireAtoll",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 103
+    },
+    {
+      "name": "RequiredNumberOfAdjacentAtoll",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 104
+    },
+    {
+      "name": "AdjacentTilesAvoidNoFeature",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 105
+    },
+    {
+      "name": "MaximumAllowedAdjacentNoFeature",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 106
+    },
+    {
+      "name": "AdjacentTilesAvoidForest",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 107
+    },
+    {
+      "name": "MaximumAllowedAdjacentForest",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 108
+    },
+    {
+      "name": "AdjacentTilesAvoidJungle",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 109
+    },
+    {
+      "name": "MaximumAllowedAdjacentJungle",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 110
+    },
+    {
+      "name": "AdjacentTilesAvoidOasis",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 111
+    },
+    {
+      "name": "MaximumAllowedAdjacentOasis",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 112
+    },
+    {
+      "name": "AdjacentTilesAvoidFloodPlains",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 113
+    },
+    {
+      "name": "MaximumAllowedAdjacentFloodPlains",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 114
+    },
+    {
+      "name": "AdjacentTilesAvoidMarsh",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 115
+    },
+    {
+      "name": "MaximumAllowedAdjacentMarsh",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 116
+    },
+    {
+      "name": "AdjacentTilesAvoidIce",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 117
+    },
+    {
+      "name": "MaximumAllowedAdjacentIce",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 118
+    },
+    {
+      "name": "AdjacentTilesAvoidAtoll",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 119
+    },
+    {
+      "name": "MaximumAllowedAdjacentAtoll",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "99",
+      "primaryKey": false,
+      "position": 120
+    },
+    {
+      "name": "TileChangesMethodNumber",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 121
+    },
+    {
+      "name": "ChangeCoreTileToMountain",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 122
+    },
+    {
+      "name": "ChangeCoreTileToFlatland",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 123
+    },
+    {
+      "name": "ChangeCoreTileTerrainToGrass",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 124
+    },
+    {
+      "name": "ChangeCoreTileTerrainToPlains",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 125
+    },
+    {
+      "name": "SetAdjacentTilesToShallowWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 126
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Natural_Wonder_Placement_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Natural_Wonder_Placement ('ID' integer primary key autoincrement , 'NaturalWonderType' text  not null unique , 'EligibilityMethodNumber' integer default '-1' , 'OccurrenceFrequency' integer default 10 , 'RequireBiggestLandmass' boolean default 0 , 'AvoidBiggestLandmass' boolean default 0 , 'RequireFreshWater' boolean default 0 , 'AvoidFreshWater' boolean default 1 , 'LandBased' boolean default 1 , 'RequireLandAdjacentToOcean' boolean default 0 , 'AvoidLandAdjacentToOcean' boolean default 0 , 'RequireLandOnePlotInland' boolean default 0 , 'AvoidLandOnePlotInland' boolean default 0 , 'RequireLandTwoOrMorePlotsInland' boolean default 0 , 'AvoidLandTwoOrMorePlotsInland' boolean default 0 , 'CoreTileCanBeAnyPlotType' boolean default 1 , 'CoreTileCanBeFlatland' boolean default 0 , 'CoreTileCanBeHills' boolean default 0 , 'CoreTileCanBeMountain' boolean default 0 , 'CoreTileCanBeOcean' boolean default 0 , 'CoreTileCanBeAnyTerrainType' boolean default 1 , 'CoreTileCanBeGrass' boolean default 0 , 'CoreTileCanBePlains' boolean default 0 , 'CoreTileCanBeDesert' boolean default 0 , 'CoreTileCanBeTundra' boolean default 0 , 'CoreTileCanBeSnow' boolean default 0 , 'CoreTileCanBeShallowWater' boolean default 0 , 'CoreTileCanBeDeepWater' boolean default 0 , 'CoreTileCanBeAnyFeatureType' boolean default 1 , 'CoreTileCanBeNoFeature' boolean default 0 , 'CoreTileCanBeForest' boolean default 0 , 'CoreTileCanBeJungle' boolean default 0 , 'CoreTileCanBeOasis' boolean default 0 , 'CoreTileCanBeFloodPlains' boolean default 0 , 'CoreTileCanBeMarsh' boolean default 0 , 'CoreTileCanBeIce' boolean default 0 , 'CoreTileCanBeAtoll' boolean default 0 , 'AdjacentTilesCareAboutPlotTypes' boolean default 0 , 'AdjacentTilesAvoidAnyland' boolean default 0 , 'AdjacentTilesRequireFlatland' boolean default 0 , 'RequiredNumberOfAdjacentFlatland' integer default 0 , 'AdjacentTilesRequireHills' boolean default 0 , 'RequiredNumberOfAdjacentHills' integer default 0 , 'AdjacentTilesRequireMountain' boolean default 0 , 'RequiredNumberOfAdjacentMountain' integer default 0 , 'AdjacentTilesRequireHillsPlusMountains' boolean default 0 , 'RequiredNumberOfAdjacentHillsPlusMountains' integer default 0 , 'AdjacentTilesRequireOcean' boolean default 0 , 'RequiredNumberOfAdjacentOcean' integer default 0 , 'AdjacentTilesAvoidFlatland' boolean default 0 , 'MaximumAllowedAdjacentFlatland' integer default 99 , 'AdjacentTilesAvoidHills' boolean default 0 , 'MaximumAllowedAdjacentHills' integer default 99 , 'AdjacentTilesAvoidMountain' boolean default 0 , 'MaximumAllowedAdjacentMountain' integer default 99 , 'AdjacentTilesAvoidHillsPlusMountains' boolean default 0 , 'MaximumAllowedAdjacentHillsPlusMountains' integer default 99 , 'AdjacentTilesAvoidOcean' boolean default 0 , 'MaximumAllowedAdjacentOcean' integer default 99 , 'AdjacentTilesCareAboutTerrainTypes' boolean default 0 , 'AdjacentTilesRequireGrass' boolean default 0 , 'RequiredNumberOfAdjacentGrass' integer default 0 , 'AdjacentTilesRequirePlains' boolean default 0 , 'RequiredNumberOfAdjacentPlains' integer default 0 , 'AdjacentTilesRequireDesert' boolean default 0 , 'RequiredNumberOfAdjacentDesert' integer default 0 , 'AdjacentTilesRequireTundra' boolean default 0 , 'RequiredNumberOfAdjacentTundra' integer default 0 , 'AdjacentTilesRequireSnow' boolean default 0 , 'RequiredNumberOfAdjacentSnow' integer default 0 , 'AdjacentTilesRequireShallowWater' boolean default 0 , 'RequiredNumberOfAdjacentShallowWater' integer default 0 , 'AdjacentTilesRequireDeepWater' boolean default 0 , 'RequiredNumberOfAdjacentDeepWater' integer default 0 , 'AdjacentTilesAvoidGrass' boolean default 0 , 'MaximumAllowedAdjacentGrass' integer default 99 , 'AdjacentTilesAvoidPlains' boolean default 0 , 'MaximumAllowedAdjacentPlains' integer default 99 , 'AdjacentTilesAvoidDesert' boolean default 0 , 'MaximumAllowedAdjacentDesert' integer default 99 , 'AdjacentTilesAvoidTundra' boolean default 0 , 'MaximumAllowedAdjacentTundra' integer default 99 , 'AdjacentTilesAvoidSnow' boolean default 1 , 'MaximumAllowedAdjacentSnow' integer default 0 , 'AdjacentTilesAvoidShallowWater' boolean default 0 , 'MaximumAllowedAdjacentShallowWater' integer default 99 , 'AdjacentTilesAvoidDeepWater' boolean default 0 , 'MaximumAllowedAdjacentDeepWater' integer default 99 , 'AdjacentTilesCareAboutFeatureTypes' boolean default 0 , 'AdjacentTilesRequireNoFeature' boolean default 0 , 'RequiredNumberOfAdjacentNoFeature' integer default 0 , 'AdjacentTilesRequireForest' boolean default 0 , 'RequiredNumberOfAdjacentForest' integer default 0 , 'AdjacentTilesRequireJungle' boolean default 0 , 'RequiredNumberOfAdjacentJungle' integer default 0 , 'AdjacentTilesRequireOasis' boolean default 0 , 'RequiredNumberOfAdjacentOasis' integer default 0 , 'AdjacentTilesRequireFloodPlains' boolean default 0 , 'RequiredNumberOfAdjacentFloodPlains' integer default 0 , 'AdjacentTilesRequireMarsh' boolean default 0 , 'RequiredNumberOfAdjacentMarsh' integer default 0 , 'AdjacentTilesRequireIce' boolean default 0 , 'RequiredNumberOfAdjacentIce' integer default 0 , 'AdjacentTilesRequireAtoll' boolean default 0 , 'RequiredNumberOfAdjacentAtoll' integer default 0 , 'AdjacentTilesAvoidNoFeature' boolean default 0 , 'MaximumAllowedAdjacentNoFeature' integer default 99 , 'AdjacentTilesAvoidForest' boolean default 0 , 'MaximumAllowedAdjacentForest' integer default 99 , 'AdjacentTilesAvoidJungle' boolean default 0 , 'MaximumAllowedAdjacentJungle' integer default 99 , 'AdjacentTilesAvoidOasis' boolean default 0 , 'MaximumAllowedAdjacentOasis' integer default 99 , 'AdjacentTilesAvoidFloodPlains' boolean default 0 , 'MaximumAllowedAdjacentFloodPlains' integer default 99 , 'AdjacentTilesAvoidMarsh' boolean default 0 , 'MaximumAllowedAdjacentMarsh' integer default 99 , 'AdjacentTilesAvoidIce' boolean default 1 , 'MaximumAllowedAdjacentIce' integer default 0 , 'AdjacentTilesAvoidAtoll' boolean default 0 , 'MaximumAllowedAdjacentAtoll' integer default 99 , 'TileChangesMethodNumber' integer default '-1' , 'ChangeCoreTileToMountain' boolean default 0 , 'ChangeCoreTileToFlatland' boolean default 0 , 'ChangeCoreTileTerrainToGrass' boolean default 0 , 'ChangeCoreTileTerrainToPlains' boolean default 0 , 'SetAdjacentTilesToShallowWater' boolean default 0 )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.282Z"
+  }
+}

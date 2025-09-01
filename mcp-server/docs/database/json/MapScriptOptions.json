@@ -1,0 +1,77 @@
+{
+  "tableName": "MapScriptOptions",
+  "rowCount": 152,
+  "columns": [
+    {
+      "name": "FileName",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "OptionID",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Name",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "ReadOnly",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Hidden",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "DefaultValue",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "SortPriority",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE MapScriptOptions('FileName' TEXT NOT NULL COLLATE NOCASE, 'OptionID' TEXT NOT NULL, 'Name' TEXT NOT NULL, 'Description' TEXT, 'ReadOnly' INTEGER DEFAULT 0, 'Hidden' INTEGER DEFAULT 0, 'DefaultValue' INTEGER NOT NULL, 'SortPriority' INTEGER NOT NULL)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.263Z"
+  }
+}

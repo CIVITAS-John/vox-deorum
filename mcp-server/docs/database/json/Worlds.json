@@ -1,0 +1,309 @@
+{
+  "tableName": "Worlds",
+  "rowCount": 6,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Help",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "DefaultPlayers",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "DefaultMinorCivs",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "FogTilesPerBarbarianCamp",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "NumNaturalWonders",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "UnitNameModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "TargetNumCities",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "NumFreeBuildingResources",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "BuildingClassPrereqModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "MaxConscriptModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "GridWidth",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "GridHeight",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "MaxActiveReligions",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "TerrainGrainChange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "FeatureGrainChange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "ResearchPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "NumCitiesUnhappinessPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "NumCitiesPolicyCostMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "NumCitiesTechCostMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "AdvancedStartPointsMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "EstimatedNumCities",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "TradeRouteDistanceMod",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 26,
+      "constraints": "DEFAULT 100",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinDistanceCities",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinDistanceCityStates",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 28,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ReformationPercentRequired",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 29,
+      "constraints": "DEFAULT 100",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NumCitiesTourismCostMod",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 30,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NumCitiesUnitSupplyMod",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 31,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "IconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Worlds_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Worlds ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Help' text , 'DefaultPlayers' integer , 'DefaultMinorCivs' integer , 'FogTilesPerBarbarianCamp' integer , 'NumNaturalWonders' integer , 'UnitNameModifier' integer , 'TargetNumCities' integer , 'NumFreeBuildingResources' integer , 'BuildingClassPrereqModifier' integer , 'MaxConscriptModifier' integer , 'GridWidth' integer , 'GridHeight' integer , 'MaxActiveReligions' integer , 'TerrainGrainChange' integer , 'FeatureGrainChange' integer , 'ResearchPercent' integer , 'NumCitiesUnhappinessPercent' integer , 'NumCitiesPolicyCostMod' integer , 'NumCitiesTechCostMod' integer , 'AdvancedStartPointsMod' integer , 'EstimatedNumCities' integer , 'PortraitIndex' integer default '-1' , 'IconAtlas' text default NULL , TradeRouteDistanceMod integer DEFAULT 100, MinDistanceCities integer DEFAULT 0, MinDistanceCityStates integer DEFAULT 0, ReformationPercentRequired integer DEFAULT 100, NumCitiesTourismCostMod integer DEFAULT 0, NumCitiesUnitSupplyMod integer DEFAULT 0, foreign key (IconAtlas) references IconTextureAtlases(Atlas))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.539Z"
+  }
+}

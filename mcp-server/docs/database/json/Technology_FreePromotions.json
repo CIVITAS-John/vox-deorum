@@ -1,0 +1,44 @@
+{
+  "tableName": "Technology_FreePromotions",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "TechType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "PromotionType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "PromotionType",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TechType",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Technology_FreePromotions ('TechType' text , 'PromotionType' text , foreign key (TechType) references Technologies(Type), foreign key (PromotionType) references UnitPromotions(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.409Z"
+  }
+}

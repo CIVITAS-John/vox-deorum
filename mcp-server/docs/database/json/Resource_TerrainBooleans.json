@@ -1,0 +1,55 @@
+{
+  "tableName": "Resource_TerrainBooleans",
+  "rowCount": 72,
+  "columns": [
+    {
+      "name": "ResourceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "TerrainType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "TerrainType",
+      "referencedTable": "Terrains",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ResourceType",
+      "referencedTable": "Resources",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_Resource_TerrainBooleans_ON_TerrainType",
+      "unique": false,
+      "partial": false
+    },
+    {
+      "name": "idx_Resource_TerrainBooleans_ON_ResourceType",
+      "unique": false,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Resource_TerrainBooleans ('ResourceType' text , 'TerrainType' text , foreign key (ResourceType) references Resources(Type), foreign key (TerrainType) references Terrains(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.388Z"
+  }
+}

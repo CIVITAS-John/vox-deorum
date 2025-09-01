@@ -1,0 +1,105 @@
+{
+  "tableName": "ArtDefine_UnitInfos",
+  "rowCount": 204,
+  "columns": [
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0,
+      "constraints": "NOT NULL PRIMARY KEY",
+      "isPrimaryKey": true,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "DamageStates",
+      "type": "INT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Formation",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "UnitFlagAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "UnitFlagIconOffset",
+      "type": "INT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "INT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "Type"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_ArtDefine_UnitInfos_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE ArtDefine_UnitInfos(\t\"Type\" TEXT NOT NULL PRIMARY KEY,\r\n\t\t\t\t\t\t\t\t\t\"DamageStates\" INT,\r\n\t\t\t\t\t\t\t\t\t\"Formation\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\"UnitFlagAtlas\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\"UnitFlagIconOffset\" INT,\r\n\t\t\t\t\t\t\t\t\t\"IconAtlas\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\"PortraitIndex\" INT\r\n\t\t\t\t\t\t\t\t\t)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.965Z"
+  }
+}

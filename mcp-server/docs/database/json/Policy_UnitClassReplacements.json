@@ -1,0 +1,59 @@
+{
+  "tableName": "Policy_UnitClassReplacements",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "PolicyType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "ReplacedUnitClassType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "ReplacementUnitClassType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "ReplacementUnitClassType",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ReplacedUnitClassType",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PolicyType",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Policy_UnitClassReplacements ('PolicyType' text , 'ReplacedUnitClassType' text , 'ReplacementUnitClassType' text , foreign key (PolicyType) references Policies(Type), foreign key (ReplacedUnitClassType) references UnitClasses(Type), foreign key (ReplacementUnitClassType) references UnitClasses(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.340Z"
+  }
+}

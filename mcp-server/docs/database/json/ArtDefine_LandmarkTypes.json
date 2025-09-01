@@ -1,0 +1,49 @@
+{
+  "tableName": "ArtDefine_LandmarkTypes",
+  "rowCount": 143,
+  "columns": [
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "LandmarkType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "FriendlyName",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE ArtDefine_LandmarkTypes( \"Type\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t  \"LandmarkType\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t  \"FriendlyName\" TEXT)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.961Z"
+  }
+}

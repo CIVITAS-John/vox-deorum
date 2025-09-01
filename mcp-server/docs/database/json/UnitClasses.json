@@ -1,0 +1,97 @@
+{
+  "tableName": "UnitClasses",
+  "rowCount": 83,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "MaxGlobalInstances",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "MaxTeamInstances",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "MaxPlayerInstances",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "InstanceCostModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "DefaultUnit",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "UnitInstancePerCity",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "-1",
+      "primaryKey": false,
+      "position": 8,
+      "constraints": "DEFAULT -1",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_UnitClasses_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE UnitClasses ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'MaxGlobalInstances' integer default '-1' , 'MaxTeamInstances' integer default '-1' , 'MaxPlayerInstances' integer default '-1' , 'InstanceCostModifier' integer default 0 , 'DefaultUnit' text , UnitInstancePerCity integer DEFAULT -1)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.497Z"
+  }
+}

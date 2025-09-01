@@ -1,0 +1,50 @@
+{
+  "tableName": "Unit_FreePromotions",
+  "rowCount": 310,
+  "columns": [
+    {
+      "name": "UnitType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "PromotionType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "PromotionType",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "UnitType",
+      "referencedTable": "Units",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_Unit_FreePromotions_ON_UnitType_AND_PromotionType",
+      "unique": false,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Unit_FreePromotions ('UnitType' text , 'PromotionType' text , foreign key (UnitType) references Units(Type), foreign key (PromotionType) references UnitPromotions(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.525Z"
+  }
+}

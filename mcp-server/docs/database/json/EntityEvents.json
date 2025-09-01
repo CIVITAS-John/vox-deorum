@@ -1,0 +1,39 @@
+{
+  "tableName": "EntityEvents",
+  "rowCount": 34,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "UpdateFormation",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE EntityEvents ('ID' integer primary key autoincrement , 'Type' text , 'UpdateFormation' boolean default 0 )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.174Z"
+  }
+}
