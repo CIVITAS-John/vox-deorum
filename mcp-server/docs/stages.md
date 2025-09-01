@@ -25,8 +25,22 @@ Implement a manager object that exposes stateless APIs for Bridge Service intera
     - also, if the execution error is about unregistered function, register and try again automatically!
 - BridgeManager should keep track of registered functions and support reset - i.e. setting all LuaFunctions to unregistered (later we will use it; for example, when the game restarted).
 
-### Stage 3: External Function Registration Infrastructure
-Implement the bidirectional communication infrastructure for MCP Server to register external functions with the Bridge Service, enabling Lua scripts to call back into AI analysis tools. This creates the foundation for game-initiated AI requests with proper function lifecycle management, parameter marshaling, and response handling following the external function protocol. This infrastructure supports later resource and tool implementations.
+### Stage 3: Game Database Integration
+- Game's main database exists at %Document$\My Games\Sid Meier's Civilization 5\cache\Civ5DebugDatabase.db, in SQLite format
+- Game's localization database exists at %Document$\My Games\Sid Meier's Civilization 5\cache\Localization-Merged.db
+- Create a manager instance (attached to Server) named `DatabaseManager` responsible for querying it
+- Throw an error if cannot find or open the database (in read-only mode, don't lock it)
+- Should handle raw SQL query in the main database and return structured JSON data (Record<string, any>)
+- For localization, just one feature: GetLocalization(Key): string
+  - Schema: CREATE TABLE LocalizedText("Language" TEXT,
+						   "Tag" TEXT,
+						   "Text" TEXT,						
+						   "Gender" TEXT,
+						   "Plurality" TEXT,
+						   PRIMARY KEY(Language, Tag))
+- Create a number of example util functions to extract structured information about game database.
+  - Each group of util functions in its own file (e.g. `src/database/technology.ts`)
+  - Each function should support the return of a generic record; or adhere to a schema 
 
 ### Stage 4: Knowledge Management & Serialization
 Develop the AI player knowledge management system with serialization/deserialization capabilities and reset functionality for game context switching (loading different games). Implement Knowledge Retriever for game state access, Knowledge Store for tracking different types of AI knowledge (personal, persistent, transient), and proper data lifecycle management. This layer ensures proper isolation between AI players and handles game session transitions cleanly.

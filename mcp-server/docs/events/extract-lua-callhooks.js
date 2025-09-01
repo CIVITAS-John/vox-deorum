@@ -57,16 +57,61 @@ function searchFileForCallHooks(filePath) {
         const lines = content.split('\n');
         
         lines.forEach((line, index) => {
-            if (line.includes('CallHook') && line.includes('LuaSupport::CallHook')) {
+            if (line.includes('LuaSupport::CallHook')) {
                 // Extract the event name from the CallHook call
                 const eventNameMatch = line.match(/CallHook\([^,]+,\s*"([^"]+)"/);
                 const eventName = eventNameMatch ? eventNameMatch[1] : null;
+                
+                // Extract preceding argument-related code
+                const argLines = [];
+                let searchIndex = index - 1;
+                let bracketDepth = 0;
+                let foundArgSetup = false;
+                
+                // Look backwards for argument setup code
+                while (searchIndex >= 0 && searchIndex >= index - 50) { // Limit search to 50 lines back
+                    const prevLine = lines[searchIndex];
+                    const trimmedLine = prevLine.trim();
+                    
+                    // Check for closing braces that might indicate we've gone too far back
+                    if (trimmedLine === '}' && !foundArgSetup) {
+                        bracketDepth++;
+                        if (bracketDepth > 2) break; // Stop if we've gone too deep
+                    }
+                    
+                    // Check for opening braces
+                    if (trimmedLine === '{') {
+                        bracketDepth--;
+                        if (bracketDepth < 0) break; // We've gone outside the current scope
+                    }
+                    
+                    // Look for argument-related patterns
+                    if (trimmedLine.includes('args->')) {
+                        foundArgSetup = true;
+                        argLines.unshift({
+                            line: searchIndex + 1,
+                            content: trimmedLine
+                        });
+                    } else if (foundArgSetup) {
+                        // If we've found args but this line doesn't contain args, check if it's related
+                        if (trimmedLine.includes('CvLuaArgsHandle args')) {
+                            // Skip variable declarations, empty lines, and comments
+                            break;
+                        } else if (!trimmedLine.includes('{') && !trimmedLine.includes('}')) {
+                            // Stop if we hit unrelated code
+                            break;
+                        }
+                    }
+                    
+                    searchIndex--;
+                }
                 
                 references.push({
                     file: filePath.replace(/\\/g, '/').replace(/^.*civ5-dll\//, ''),
                     line: index + 1,
                     content: line.trim(),
                     eventName: eventName,
+                    args: argLines,
                     fullPath: filePath
                 });
             }
@@ -123,15 +168,6 @@ function groupReferencesByEvent(references) {
 }
 
 function saveResults(references, eventMap) {
-    // Save all references
-    /*const allReferencesFile = join(OUTPUT_DIR, 'lua-callhook-references.json');
-    writeFileSync(allReferencesFile, JSON.stringify({
-        generatedAt: new Date().toISOString(),
-        totalReferences: references.length,
-        references: references
-    }, null, 2));
-    console.log(`Saved ${references.length} references to ${allReferencesFile}`);*/
-    
     // Save events grouped by name
     const eventsByNameFile = join(OUTPUT_DIR, 'lua-events-by-name.json');
     const eventsData = {};
@@ -167,7 +203,6 @@ function saveResults(references, eventMap) {
     console.log(`Saved summary to ${summaryFile}`);
     
     return {
-        allReferencesFile,
         eventsByNameFile,
         summaryFile,
         summary
@@ -194,7 +229,6 @@ function main() {
     console.log(`Found ${references.length} CallHook references`);
     console.log(`Found ${eventMap.size} unique event names`);
     console.log(`Files generated:`);
-    console.log(`  - ${results.allReferencesFile}`);
     console.log(`  - ${results.eventsByNameFile}`);
     console.log(`  - ${results.summaryFile}`);
     
