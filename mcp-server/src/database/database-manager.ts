@@ -132,24 +132,66 @@ export class DatabaseManager {
   /**
    * Convert TXT_KEY_* strings in results to localized text
    */
-  public localizeObject<T extends Record<string, any>>(results: Record<string, any>[]): T {
-    const converted: T = {} as T;
-    
+  public localizeObject<T extends Record<string, any>[]>(results: T): T {
+    if (!this.localizationDb) {
+      throw new Error('Localization database not initialized. Call initialize() first.');
+    }
+
+    // Collect all unique TXT_KEY_* values
+    const txtKeys = new Set<string>();
     for (const row of results) {
+      for (const value of Object.values(row)) {
+        if (typeof value === 'string' && value.startsWith('TXT_KEY_')) {
+          txtKeys.add(value);
+        }
+      }
+    }
+
+    // If no keys to localize, return original results
+    if (txtKeys.size === 0) return results;
+
+    // Batch fetch all localizations at once
+    const localizationMap = new Map<string, string>();
+    
+    try {
+      // Build parameterized query for batch fetch
+      const placeholders = Array.from(txtKeys).map(() => '?').join(', ');
+      const stmt = this.localizationDb.prepare(
+        `SELECT Tag, Text FROM LocalizedText WHERE Language = ? AND Tag IN (${placeholders})`
+      );
+      
+      const localizations = stmt.all(this.config.language, ...Array.from(txtKeys)) as Array<{ Tag: string; Text: string }>;
+      
+      // Build map of key -> localized text
+      for (const { Tag, Text } of localizations) {
+        localizationMap.set(Tag, Text);
+      }
+      
+      // Add any missing keys to the map (use key as fallback)
+      for (const key of txtKeys) {
+        if (!localizationMap.has(key)) {
+          localizationMap.set(key, key);
+        }
+      }
+    } catch (error) {
+      logger.error('Batch localization lookup failed:', error);
+      return results;
+    }
+
+    // Convert results using the localization map
+    return results.map(row => {
       const convertedRow: Record<string, any> = {};
       
       for (const [key, value] of Object.entries(row)) {
         if (typeof value === 'string' && value.startsWith('TXT_KEY_')) {
-          convertedRow[key] = this.localize(value);
+          convertedRow[key] = localizationMap.get(value) || value;
         } else {
           convertedRow[key] = value;
         }
       }
       
-      converted.push(convertedRow);
-    }
-    
-    return converted;
+      return convertedRow;
+    }) as T;
   }
 
   /**
