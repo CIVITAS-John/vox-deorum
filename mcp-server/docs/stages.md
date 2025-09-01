@@ -31,6 +31,7 @@ Implement a manager object that exposes stateless APIs for Bridge Service intera
 - Create a manager instance (attached to Server) named `DatabaseManager` responsible for querying it
 - Throw an error if cannot find or open the database (in read-only mode, don't lock it)
 - Should handle raw SQL query in the main database and return structured JSON data (Record<string, any>)
+  - Should automatically convert Localization text into the corresponding localized text. Should set up a configuration item about the game text language.
 - For localization, just one feature: GetLocalization(Key): string
   - Schema: CREATE TABLE LocalizedText("Language" TEXT,
 						   "Tag" TEXT,
@@ -40,7 +41,8 @@ Implement a manager object that exposes stateless APIs for Bridge Service intera
 						   PRIMARY KEY(Language, Tag))
 - Create a number of example util functions to extract structured information about game database.
   - Each group of util functions in its own file (e.g. `src/database/technology.ts`)
-  - Each function should support the return of a generic record; or adhere to a schema 
+  - Each function should support the return of the full or a custom Zod schema that keeps the most core information (both generate from the SQLite schema from database/json/*.json)
+  - Create one first as the template; don't create more than that.
 
 ### Stage 4: Knowledge Management & Serialization
 Develop the AI player knowledge management system with serialization/deserialization capabilities and reset functionality for game context switching (loading different games). Implement Knowledge Retriever for game state access, Knowledge Store for tracking different types of AI knowledge (personal, persistent, transient), and proper data lifecycle management. This layer ensures proper isolation between AI players and handles game session transitions cleanly.
