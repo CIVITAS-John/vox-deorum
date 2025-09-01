@@ -69,11 +69,11 @@ export class MCPServer {
   /**
    * Register a tool with the server
    */
-  public registerTool(tool: ToolBase): void {
+  public registerTool(tool: ToolBase) {
     if (this.tools.has(tool.name)) {
       logger.warn(`Tool ${tool.name} already registered, replacing`);
     }
-    this.tools.set(tool.name, tool);
+    
     // Register tool with McpServer using a generic handler
     // Since we can't directly pass ZodTypeAny as ZodRawShape, we'll use a generic approach
     tool.registered = this.server.registerTool(
@@ -109,9 +109,13 @@ export class MCPServer {
         }
       }) as any
     );
+
+    // Link tool back to server
     tool.server = this;
+    this.tools.set(tool.name, tool);
     
     logger.info(`Registered tool: ${tool.name}`);
+    return tool.registered;
   }
 
   /**

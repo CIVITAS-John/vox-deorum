@@ -15,7 +15,8 @@
     "test:stdio": "cross-env TEST_TRANSPORT=stdio vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "inspect": "npx @modelcontextprotocol/inspector"
+    "inspect": "npx @modelcontextprotocol/inspector",
+    "codegen": "kysely-codegen --dialect sqlite --singularize --out-file ./src/database/database.d.ts"
   },
   "keywords": [
     "civilization",
