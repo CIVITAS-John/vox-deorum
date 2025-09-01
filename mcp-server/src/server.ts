@@ -43,10 +43,7 @@ export class MCPServer {
     this.bridgeManager = new BridgeManager(config.bridge?.url);
     
     // Initialize DatabaseManager
-    this.databaseManager = new DatabaseManager({
-      language: config.database?.language || 'en_US',
-      autoConvertLocalization: config.database?.autoConvertLocalization ?? true,
-    });
+    this.databaseManager = new DatabaseManager();
   }
 
   /**

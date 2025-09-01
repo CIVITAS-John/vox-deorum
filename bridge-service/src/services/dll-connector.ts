@@ -171,7 +171,7 @@ export class DLLConnector extends EventEmitter {
 
     // Attempt reconnection (infinite retries)
     this.reconnectAttempts++;
-    const delay = Math.min(1000 * Math.pow(1.2, Math.min(this.reconnectAttempts, 10)), 10000); // Cap exponential backoff at 10 attempts
+    const delay = Math.min(1000 * Math.pow(1.2, this.reconnectAttempts), 10000); // Cap exponential backoff at 10 attempts
     
     logger.info(`Attempting reconnection ${this.reconnectAttempts} in ${delay}ms`);
     

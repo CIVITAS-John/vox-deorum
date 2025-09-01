@@ -16,7 +16,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "inspect": "npx @modelcontextprotocol/inspector",
-    "codegen": "kysely-codegen --dialect sqlite --singularize --out-file ./src/database/database.d.ts"
+    "codegen": "kysely-codegen --dialect sqlite --singularize --out-file ./src/database/localization.d.ts"
   },
   "keywords": [
     "civilization",

@@ -47,7 +47,6 @@ export interface MCPServerConfig {
   };
   database?: {
     language?: string;
-    autoConvertLocalization?: boolean;
     documentsPath?: string;
   };
   logging: {
@@ -82,7 +81,6 @@ const defaultConfig: MCPServerConfig = {
   },
   database: {
     language: 'en_US',
-    autoConvertLocalization: true,
     documentsPath: undefined // Will be auto-detected if not specified
   },
   logging: {
@@ -164,9 +162,6 @@ export function loadConfig(): MCPServerConfig {
     },
     database: {
       language: process.env.DB_LANGUAGE || fileConfig.database?.language || defaultConfig.database?.language,
-      autoConvertLocalization: process.env.DB_AUTO_CONVERT_LOCALIZATION === 'false' ? false :
-        fileConfig.database?.autoConvertLocalization ?? 
-        defaultConfig.database?.autoConvertLocalization,
       documentsPath: process.env.DB_DOCUMENTS_PATH || fileConfig.database?.documentsPath || defaultConfig.database?.documentsPath
     },
     logging: {

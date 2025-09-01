@@ -1,43 +1,33 @@
 /**
- * DatabaseManager - Manages connections to Civilization V SQLite databases
+ * DatabaseManager - Manages connections to Civilization V SQLite databases using Kysely
  * Provides structured access to game rules, units, buildings, technologies, and localized text
  */
 
+import { Kysely, SqliteDialect, sql } from 'kysely';
 import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
 import path from 'path';
 import fs from 'fs/promises';
-import { config as appConfig, getDocumentsPath } from '../utils/config.js';
+import { config, getDocumentsPath } from '../utils/config.js';
+import type { DB as MainDB } from './database.js';
+import type { DB as LocalizationDB } from './localization.js';
 
 const logger = createLogger('DatabaseManager');
 
 /**
- * Configuration for DatabaseManager
- */
-export interface DatabaseConfig {
-  language?: string; // Language code for localization (e.g., 'en_US')
-  autoConvertLocalization?: boolean; // Auto-convert TXT_KEY_* to localized text
-  documentsPath?: string; // Custom path to documents folder (defaults to system Documents)
-}
-
-/**
- * Manages SQLite database connections and queries for Civilization V
+ * Manages SQLite database connections and queries for Civilization V using Kysely
  */
 export class DatabaseManager {
-  private mainDb?: Database.Database;
-  private localizationDb?: Database.Database;
-  private config: DatabaseConfig;
+  private mainDb?: Kysely<MainDB>;
+  private localizationDb?: Kysely<LocalizationDB>;
+  private language: string;
   private initialized = false;
 
   /**
    * Create a new DatabaseManager instance
    */
-  constructor(config?: DatabaseConfig) {
-    this.config = {
-      language: config?.language ?? appConfig.database?.language ?? 'en_US',
-      autoConvertLocalization: config?.autoConvertLocalization ?? appConfig.database?.autoConvertLocalization ?? true,
-      documentsPath: config?.documentsPath ?? appConfig.database?.documentsPath,
-    };
+  constructor() {
+    this.language = config.database?.language ?? 'en_US';
   }
 
   /**
@@ -69,12 +59,20 @@ export class DatabaseManager {
     }
 
     try {
-      // Open main database in read-only mode
-      this.mainDb = new Database(mainDbPath, { readonly: true });
+      // Create Kysely instance for main database
+      this.mainDb = new Kysely<MainDB>({
+        dialect: new SqliteDialect({
+          database: new Database(mainDbPath, { readonly: true }),
+        }),
+      });
       logger.info('Connected to main database');
 
-      // Open localization database in read-only mode
-      this.localizationDb = new Database(localizationDbPath, { readonly: true });
+      // Create Kysely instance for localization database
+      this.localizationDb = new Kysely<LocalizationDB>({
+        dialect: new SqliteDialect({
+          database: new Database(localizationDbPath, { readonly: true }),
+        }),
+      });
       logger.info('Connected to localization database');
 
       this.initialized = true;
@@ -85,42 +83,20 @@ export class DatabaseManager {
   }
 
   /**
-   * Execute a raw SQL query on the main database
-   */
-  public async query(sql: string, params?: any[]): Promise<Record<string, any>[]> {
-    if (!this.mainDb) {
-      throw new Error('Database not initialized. Call initialize() first.');
-    }
-
-    try {
-      const stmt = this.mainDb.prepare(sql);
-      const results = params ? stmt.all(...params) : stmt.all();
-      
-      // Auto-convert localization keys if enabled
-      if (this.config.autoConvertLocalization) {
-        return this.localizeObject(results as Record<string, any>[]);
-      }
-      
-      return results as Record<string, any>[];
-    } catch (error) {
-      logger.error('Query failed:', error);
-      throw new Error(`Query failed: ${error}`);
-    }
-  }
-
-  /**
    * Get localized text for a given key
    */
-  public localize(key: string): string {
+  public async localize(key: string): Promise<string> {
     if (!this.localizationDb) {
       throw new Error('Localization database not initialized. Call initialize() first.');
     }
 
     try {
-      const stmt = this.localizationDb.prepare(
-        'SELECT Text FROM LocalizedText WHERE Language = ? AND Tag = ?'
-      );
-      const result = stmt.get(this.config.language, key) as { Text?: string } | undefined;
+      const result = await this.localizationDb
+        .selectFrom('LocalizedText')
+        .select('Text')
+        .where('Language', '=', this.language)
+        .where('Tag', '=', key)
+        .executeTakeFirst();
       
       return result?.Text || key; // Return key if no translation found
     } catch (error) {
@@ -132,7 +108,7 @@ export class DatabaseManager {
   /**
    * Convert TXT_KEY_* strings in results to localized text
    */
-  public localizeObject<T extends Record<string, any>[]>(results: T): T {
+  public async localizeObject<T extends Record<string, any>[]>(results: T): Promise<T> {
     if (!this.localizationDb) {
       throw new Error('Localization database not initialized. Call initialize() first.');
     }
@@ -154,17 +130,18 @@ export class DatabaseManager {
     const localizationMap = new Map<string, string>();
     
     try {
-      // Build parameterized query for batch fetch
-      const placeholders = Array.from(txtKeys).map(() => '?').join(', ');
-      const stmt = this.localizationDb.prepare(
-        `SELECT Tag, Text FROM LocalizedText WHERE Language = ? AND Tag IN (${placeholders})`
-      );
-      
-      const localizations = stmt.all(this.config.language, ...Array.from(txtKeys)) as Array<{ Tag: string; Text: string }>;
+      const localizations = await this.localizationDb
+        .selectFrom('LocalizedText')
+        .select(['Tag', 'Text'])
+        .where('Language', '=', this.language)
+        .where('Tag', 'in', Array.from(txtKeys))
+        .execute();
       
       // Build map of key -> localized text
       for (const { Tag, Text } of localizations) {
-        localizationMap.set(Tag, Text);
+        if (Tag && Text) {
+          localizationMap.set(Tag, Text);
+        }
       }
       
       // Add any missing keys to the map (use key as fallback)
@@ -195,10 +172,30 @@ export class DatabaseManager {
   }
 
   /**
+   * Get the main database instance for direct Kysely queries
+   */
+  public getMainDb(): Kysely<MainDB> {
+    if (!this.mainDb) {
+      throw new Error('Database not initialized. Call initialize() first.');
+    }
+    return this.mainDb;
+  }
+
+  /**
+   * Get the localization database instance for direct Kysely queries
+   */
+  public getLocalizationDb(): Kysely<LocalizationDB> {
+    if (!this.localizationDb) {
+      throw new Error('Localization database not initialized. Call initialize() first.');
+    }
+    return this.localizationDb;
+  }
+
+  /**
    * Set the language for localization
    */
   public setLanguage(language: string): void {
-    this.config.language = language;
+    this.language = language;
     logger.info(`Language set to: ${language}`);
   }
 
@@ -206,7 +203,7 @@ export class DatabaseManager {
    * Get current language setting
    */
   public getLanguage(): string {
-    return this.config.language || 'en_US';
+    return this.language;
   }
 
   /**
@@ -216,12 +213,12 @@ export class DatabaseManager {
     logger.info('Closing database connections');
     
     if (this.mainDb) {
-      this.mainDb.close();
+      await this.mainDb.destroy();
       this.mainDb = undefined;
     }
     
     if (this.localizationDb) {
-      this.localizationDb.close();
+      await this.localizationDb.destroy();
       this.localizationDb = undefined;
     }
     
