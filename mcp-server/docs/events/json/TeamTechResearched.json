@@ -1,0 +1,28 @@
+{
+  "eventName": "TeamTechResearched",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 8271,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamTechResearched\", args.get(), bResult);",
+      "eventName": "TeamTechResearched",
+      "args": [
+        {
+          "line": 8266,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 8267,
+          "content": "args->Push(eTech);"
+        },
+        {
+          "line": 8268,
+          "content": "args->Push(iChange);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+    }
+  ]
+}

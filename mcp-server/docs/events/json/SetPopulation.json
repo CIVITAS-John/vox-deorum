@@ -1,0 +1,32 @@
+{
+  "eventName": "SetPopulation",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 16906,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"SetPopulation\", args.get(), bResult);",
+      "eventName": "SetPopulation",
+      "args": [
+        {
+          "line": 16900,
+          "content": "args->Push(getX());"
+        },
+        {
+          "line": 16901,
+          "content": "args->Push(getY());"
+        },
+        {
+          "line": 16902,
+          "content": "args->Push(iOldPopulation);"
+        },
+        {
+          "line": 16903,
+          "content": "args->Push(iNewValue);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+    }
+  ]
+}

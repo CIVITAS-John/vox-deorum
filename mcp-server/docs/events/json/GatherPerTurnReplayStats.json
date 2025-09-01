@@ -1,0 +1,20 @@
+{
+  "eventName": "GatherPerTurnReplayStats",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 46699,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"GatherPerTurnReplayStats\", args.get(), bResult);",
+      "eventName": "GatherPerTurnReplayStats",
+      "args": [
+        {
+          "line": 46696,
+          "content": "args->Push(GetID());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+    }
+  ]
+}

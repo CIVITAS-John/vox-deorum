@@ -1,0 +1,72 @@
+{
+  "eventName": "TurnComplete",
+  "occurrences": 5,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 2057,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+      "eventName": "TurnComplete",
+      "args": [
+        {
+          "line": 2054,
+          "content": "args->Push(getActivePlayer());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 2127,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+      "eventName": "TurnComplete",
+      "args": [
+        {
+          "line": 2124,
+          "content": "args->Push(getActivePlayer());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 2230,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+      "eventName": "TurnComplete",
+      "args": [
+        {
+          "line": 2227,
+          "content": "args->Push(getActivePlayer());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 3631,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+      "eventName": "TurnComplete",
+      "args": [
+        {
+          "line": 3628,
+          "content": "args->Push(getActivePlayer());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 3670,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TurnComplete\", args.get(), bResult);",
+      "eventName": "TurnComplete",
+      "args": [
+        {
+          "line": 3667,
+          "content": "args->Push(getActivePlayer());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+    }
+  ]
+}

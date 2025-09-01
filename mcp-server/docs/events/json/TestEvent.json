@@ -1,0 +1,32 @@
+{
+  "eventName": "TestEvent",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/Lua/CvLuaGame.cpp",
+      "line": 3763,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TestEvent\", args.get(), bResult);",
+      "eventName": "TestEvent",
+      "args": [
+        {
+          "line": 3757,
+          "content": "args->Push(-1);"
+        },
+        {
+          "line": 3758,
+          "content": "args->Push(-1);"
+        },
+        {
+          "line": 3759,
+          "content": "args->Push(-1);"
+        },
+        {
+          "line": 3760,
+          "content": "args->Push(-1);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\Lua\\CvLuaGame.cpp"
+    }
+  ]
+}

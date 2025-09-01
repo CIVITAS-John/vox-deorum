@@ -1,0 +1,28 @@
+{
+  "eventName": "PantheonFounded",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+      "line": 1070,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"PantheonFounded\", args.get(), bResult);",
+      "eventName": "PantheonFounded",
+      "args": [
+        {
+          "line": 1065,
+          "content": "args->Push(pCapital ? pCapital->GetID() : 0);"
+        },
+        {
+          "line": 1066,
+          "content": "args->Push(RELIGION_PANTHEON);"
+        },
+        {
+          "line": 1067,
+          "content": "args->Push(eBelief);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvReligionClasses.cpp"
+    }
+  ]
+}

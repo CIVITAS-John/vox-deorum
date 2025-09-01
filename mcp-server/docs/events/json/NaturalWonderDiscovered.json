@@ -1,0 +1,36 @@
+{
+  "eventName": "NaturalWonderDiscovered",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 11999,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"NaturalWonderDiscovered\", args.get(), bResult);",
+      "eventName": "NaturalWonderDiscovered",
+      "args": [
+        {
+          "line": 11992,
+          "content": "args->Push(eTeam);"
+        },
+        {
+          "line": 11993,
+          "content": "args->Push(getFeatureType());"
+        },
+        {
+          "line": 11994,
+          "content": "args->Push(getX());"
+        },
+        {
+          "line": 11995,
+          "content": "args->Push(getY());"
+        },
+        {
+          "line": 11996,
+          "content": "args->Push((getNumMajorCivsRevealed() == 0)); // bFirst"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlot.cpp"
+    }
+  ]
+}

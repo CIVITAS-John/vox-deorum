@@ -1,0 +1,32 @@
+{
+  "eventName": "UnitKilledInCombat",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 25021,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitKilledInCombat\", args.get(), bResult);",
+      "eventName": "UnitKilledInCombat",
+      "args": [
+        {
+          "line": 25015,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 25016,
+          "content": "args->Push(eKilledPlayer);"
+        },
+        {
+          "line": 25017,
+          "content": "args->Push(eUnitType);"
+        },
+        {
+          "line": 25018,
+          "content": "args->Push(pKillingUnit ? pKillingUnit->GetID() : -1);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+    }
+  ]
+}

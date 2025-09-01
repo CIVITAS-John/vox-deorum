@@ -1,0 +1,24 @@
+{
+  "eventName": "GreatPersonExpended",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 27934,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"GreatPersonExpended\", args.get(), bResult);",
+      "eventName": "GreatPersonExpended",
+      "args": [
+        {
+          "line": 27930,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 27931,
+          "content": "args->Push(eGreatPersonUnit);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+    }
+  ]
+}

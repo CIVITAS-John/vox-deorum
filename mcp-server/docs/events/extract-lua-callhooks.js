@@ -178,11 +178,11 @@ function saveResults(references, eventMap) {
         };
     });
     
-    writeFileSync(eventsByNameFile, JSON.stringify({
+    /*writeFileSync(eventsByNameFile, JSON.stringify({
         generatedAt: new Date().toISOString(),
         totalEvents: eventMap.size,
         events: eventsData
-    }, null, 2));
+    }, null, 2));*/
     console.log(`Saved ${eventMap.size} unique events to ${eventsByNameFile}`);
     
     // Create a summary file

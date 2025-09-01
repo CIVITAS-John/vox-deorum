@@ -1,0 +1,24 @@
+{
+  "eventName": "ChangeGoldenAgeProgressMeter",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 24171,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"ChangeGoldenAgeProgressMeter\", args.get(), bResult);",
+      "eventName": "ChangeGoldenAgeProgressMeter",
+      "args": [
+        {
+          "line": 24165,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 24166,
+          "content": "args->Push(iChange);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+    }
+  ]
+}

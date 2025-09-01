@@ -1,0 +1,24 @@
+{
+  "eventName": "GoodyHutTechResearched",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 12853,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"GoodyHutTechResearched\", args.get(), bScriptResult);",
+      "eventName": "GoodyHutTechResearched",
+      "args": [
+        {
+          "line": 12849,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 12850,
+          "content": "args->Push(eBestTech);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+    }
+  ]
+}

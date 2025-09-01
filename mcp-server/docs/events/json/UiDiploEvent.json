@@ -1,0 +1,32 @@
+{
+  "eventName": "UiDiploEvent",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 5493,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"UiDiploEvent\", args.get(), bResult);",
+      "eventName": "UiDiploEvent",
+      "args": [
+        {
+          "line": 5487,
+          "content": "args->Push(eEvent);"
+        },
+        {
+          "line": 5488,
+          "content": "args->Push(eAIPlayer);"
+        },
+        {
+          "line": 5489,
+          "content": "args->Push(iArg1);"
+        },
+        {
+          "line": 5490,
+          "content": "args->Push(iArg2);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+    }
+  ]
+}

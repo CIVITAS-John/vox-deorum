@@ -1,0 +1,106 @@
+{
+  "eventName": "CityBoughtPlot",
+  "occurrences": 3,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 17331,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityBoughtPlot\", args.get(), bResult);",
+      "eventName": "CityBoughtPlot",
+      "args": [
+        {
+          "line": 17323,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 17324,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 17325,
+          "content": "args->Push(pPlotToAcquire->getX());"
+        },
+        {
+          "line": 17326,
+          "content": "args->Push(pPlotToAcquire->getY());"
+        },
+        {
+          "line": 17327,
+          "content": "args->Push(false); // bGold"
+        },
+        {
+          "line": 17328,
+          "content": "args->Push(true); // bFaith/bCulture"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 17378,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityBoughtPlot\", args.get(), bResult);",
+      "eventName": "CityBoughtPlot",
+      "args": [
+        {
+          "line": 17370,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 17371,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 17372,
+          "content": "args->Push(pPlotToAcquire->getX());"
+        },
+        {
+          "line": 17373,
+          "content": "args->Push(pPlotToAcquire->getY());"
+        },
+        {
+          "line": 17374,
+          "content": "args->Push(false); // bGold"
+        },
+        {
+          "line": 17375,
+          "content": "args->Push(true); // bFaith/bCulture"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 28522,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityBoughtPlot\", args.get(), bResult);",
+      "eventName": "CityBoughtPlot",
+      "args": [
+        {
+          "line": 28514,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 28515,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 28516,
+          "content": "args->Push(iPlotX);"
+        },
+        {
+          "line": 28517,
+          "content": "args->Push(iPlotY);"
+        },
+        {
+          "line": 28518,
+          "content": "args->Push(bWithGold); // bGold"
+        },
+        {
+          "line": 28519,
+          "content": "args->Push(false); // bFaith/bCulture"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+    }
+  ]
+}

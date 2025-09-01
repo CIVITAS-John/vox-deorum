@@ -1,0 +1,24 @@
+{
+  "eventName": "TeamMeet",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 2528,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamMeet\", args.get(), bResult);",
+      "eventName": "TeamMeet",
+      "args": [
+        {
+          "line": 2524,
+          "content": "args->Push(eTeam);"
+        },
+        {
+          "line": 2525,
+          "content": "args->Push(GetID());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+    }
+  ]
+}

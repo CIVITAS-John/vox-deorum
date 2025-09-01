@@ -1,0 +1,36 @@
+{
+  "eventName": "NuclearDetonation",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnitCombat.cpp",
+      "line": 2408,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"NuclearDetonation\", args.get(), bResult);",
+      "eventName": "NuclearDetonation",
+      "args": [
+        {
+          "line": 2401,
+          "content": "args->Push(kAttacker.getOwner());"
+        },
+        {
+          "line": 2402,
+          "content": "args->Push(plot.getX());"
+        },
+        {
+          "line": 2403,
+          "content": "args->Push(plot.getY());"
+        },
+        {
+          "line": 2404,
+          "content": "args->Push(bWar);"
+        },
+        {
+          "line": 2405,
+          "content": "args->Push(bBystander);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnitCombat.cpp"
+    }
+  ]
+}

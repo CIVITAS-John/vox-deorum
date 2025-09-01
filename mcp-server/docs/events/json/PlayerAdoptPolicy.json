@@ -1,0 +1,24 @@
+{
+  "eventName": "PlayerAdoptPolicy",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 23576,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerAdoptPolicy\", args.get(), bResult);",
+      "eventName": "PlayerAdoptPolicy",
+      "args": [
+        {
+          "line": 23570,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 23571,
+          "content": "args->Push(ePolicy);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+    }
+  ]
+}

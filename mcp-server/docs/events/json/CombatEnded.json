@@ -1,0 +1,76 @@
+{
+  "eventName": "CombatEnded",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnitCombat.cpp",
+      "line": 3454,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CombatEnded\", args.get(), bResult);",
+      "eventName": "CombatEnded",
+      "args": [
+        {
+          "line": 3437,
+          "content": "args->Push(iAttackingPlayer);"
+        },
+        {
+          "line": 3438,
+          "content": "args->Push(iAttackingUnit);"
+        },
+        {
+          "line": 3439,
+          "content": "args->Push(attackerDamage);"
+        },
+        {
+          "line": 3440,
+          "content": "args->Push(attackerFinalDamage);"
+        },
+        {
+          "line": 3441,
+          "content": "args->Push(attackerMaxHP);"
+        },
+        {
+          "line": 3442,
+          "content": "args->Push(iDefendingPlayer);"
+        },
+        {
+          "line": 3443,
+          "content": "args->Push(iDefendingUnit);"
+        },
+        {
+          "line": 3444,
+          "content": "args->Push(defenderDamage);"
+        },
+        {
+          "line": 3445,
+          "content": "args->Push(defenderFinalDamage);"
+        },
+        {
+          "line": 3446,
+          "content": "args->Push(defenderMaxHP);"
+        },
+        {
+          "line": 3447,
+          "content": "args->Push(iInterceptingPlayer);"
+        },
+        {
+          "line": 3448,
+          "content": "args->Push(iInterceptingUnit);"
+        },
+        {
+          "line": 3449,
+          "content": "args->Push(interceptorDamage);"
+        },
+        {
+          "line": 3450,
+          "content": "args->Push(plotX);"
+        },
+        {
+          "line": 3451,
+          "content": "args->Push(plotY);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnitCombat.cpp"
+    }
+  ]
+}

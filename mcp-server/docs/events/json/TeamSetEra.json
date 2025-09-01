@@ -1,0 +1,24 @@
+{
+  "eventName": "TeamSetEra",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 8965,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamSetEra\", args.get(), bResult);",
+      "eventName": "TeamSetEra",
+      "args": [
+        {
+          "line": 8961,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 8962,
+          "content": "args->Push(GetCurrentEra());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "eventName": "ReligionEnhanced",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+      "line": 1507,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"ReligionEnhanced\", args.get(), bResult);",
+      "eventName": "ReligionEnhanced",
+      "args": [
+        {
+          "line": 1501,
+          "content": "args->Push(ePlayer);"
+        },
+        {
+          "line": 1502,
+          "content": "args->Push(eReligion);"
+        },
+        {
+          "line": 1503,
+          "content": "args->Push(eBelief1);"
+        },
+        {
+          "line": 1504,
+          "content": "args->Push(eBelief2);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvReligionClasses.cpp"
+    }
+  ]
+}

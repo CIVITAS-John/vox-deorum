@@ -1,0 +1,36 @@
+{
+  "eventName": "PushingMissionTo",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 2724,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"PushingMissionTo\", args.get(), bResult);",
+      "eventName": "PushingMissionTo",
+      "args": [
+        {
+          "line": 2717,
+          "content": "args->Push(pkSelectedUnit->getOwner());"
+        },
+        {
+          "line": 2718,
+          "content": "args->Push(pkSelectedUnit->GetID());"
+        },
+        {
+          "line": 2719,
+          "content": "args->Push(pPlot->getX());"
+        },
+        {
+          "line": 2720,
+          "content": "args->Push(pPlot->getY());"
+        },
+        {
+          "line": 2721,
+          "content": "args->Push(iData2);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+    }
+  ]
+}

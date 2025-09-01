@@ -1,0 +1,28 @@
+{
+  "eventName": "CityConvertsPantheon",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+      "line": 5748,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConvertsPantheon\", args.get(), bResult);",
+      "eventName": "CityConvertsPantheon",
+      "args": [
+        {
+          "line": 5741,
+          "content": "args->Push(m_pCity->getOwner());"
+        },
+        {
+          "line": 5742,
+          "content": "args->Push(m_pCity->getX());"
+        },
+        {
+          "line": 5743,
+          "content": "args->Push(m_pCity->getY());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvReligionClasses.cpp"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "eventName": "PlayerCityFounded",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 13478,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerCityFounded\", args.get(), bResult);",
+      "eventName": "PlayerCityFounded",
+      "args": [
+        {
+          "line": 13473,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 13474,
+          "content": "args->Push(pCity->getX());"
+        },
+        {
+          "line": 13475,
+          "content": "args->Push(pCity->getY());"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPlayer.cpp"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "eventName": "CityCreated",
+  "occurrences": 2,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 29706,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityCreated\", args.get(), bScriptResult);",
+      "eventName": "CityCreated",
+      "args": [
+        {
+          "line": 29699,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 29700,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 29701,
+          "content": "args->Push(eCreateProject);"
+        },
+        {
+          "line": 29702,
+          "content": "args->Push(false); // bGold"
+        },
+        {
+          "line": 29703,
+          "content": "args->Push(false); // bFaith/bCulture"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 30994,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityCreated\", args.get(), bScriptResult);",
+      "eventName": "CityCreated",
+      "args": [
+        {
+          "line": 30987,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 30988,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 30989,
+          "content": "args->Push(eProjectType);"
+        },
+        {
+          "line": 30990,
+          "content": "args->Push(true); // bGold"
+        },
+        {
+          "line": 30991,
+          "content": "args->Push(false); // bFaith/bCulture"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+    }
+  ]
+}

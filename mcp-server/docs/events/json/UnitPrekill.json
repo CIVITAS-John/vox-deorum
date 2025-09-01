@@ -1,0 +1,44 @@
+{
+  "eventName": "UnitPrekill",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 2655,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitPrekill\", args.get(), bResult);",
+      "eventName": "UnitPrekill",
+      "args": [
+        {
+          "line": 2646,
+          "content": "args->Push(((int)eUnitOwner));"
+        },
+        {
+          "line": 2647,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 2648,
+          "content": "args->Push(getUnitType());"
+        },
+        {
+          "line": 2649,
+          "content": "args->Push(getX());"
+        },
+        {
+          "line": 2650,
+          "content": "args->Push(getY());"
+        },
+        {
+          "line": 2651,
+          "content": "args->Push(bDelay);"
+        },
+        {
+          "line": 2652,
+          "content": "args->Push(ePlayer);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvUnit.cpp"
+    }
+  ]
+}

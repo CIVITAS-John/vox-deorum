@@ -1,0 +1,20 @@
+{
+  "eventName": "CircumnavigatedGlobe",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 7704,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CircumnavigatedGlobe\", args.get(), bResult);",
+      "eventName": "CircumnavigatedGlobe",
+      "args": [
+        {
+          "line": 7701,
+          "content": "args->Push(eTeamID);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTeam.cpp"
+    }
+  ]
+}

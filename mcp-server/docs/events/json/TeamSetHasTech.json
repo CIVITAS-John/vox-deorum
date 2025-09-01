@@ -1,0 +1,28 @@
+{
+  "eventName": "TeamSetHasTech",
+  "occurrences": 1,
+  "generatedAt": "2025-09-01T01:20:46.712Z",
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTechClasses.cpp",
+      "line": 2372,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamSetHasTech\", args.get(), bResult);",
+      "eventName": "TeamSetHasTech",
+      "args": [
+        {
+          "line": 2365,
+          "content": "args->Push(m_pTeam->GetID());"
+        },
+        {
+          "line": 2366,
+          "content": "args->Push(eIndex);"
+        },
+        {
+          "line": 2367,
+          "content": "args->Push(bNewValue);"
+        }
+      ],
+      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvTechClasses.cpp"
+    }
+  ]
+}
