@@ -4,7 +4,11 @@
 
 import fs from 'fs';
 import path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { createLogger } from './logger.js';
+
+const execAsync = promisify(exec);
 
 const logger = createLogger('Config');
 
@@ -44,6 +48,7 @@ export interface MCPServerConfig {
   database?: {
     language?: string;
     autoConvertLocalization?: boolean;
+    documentsPath?: string;
   };
   logging: {
     level: string;
@@ -77,7 +82,8 @@ const defaultConfig: MCPServerConfig = {
   },
   database: {
     language: 'en_US',
-    autoConvertLocalization: true
+    autoConvertLocalization: true,
+    documentsPath: undefined // Will be auto-detected if not specified
   },
   logging: {
     level: 'info'
@@ -160,7 +166,8 @@ export function loadConfig(): MCPServerConfig {
       language: process.env.DB_LANGUAGE || fileConfig.database?.language || defaultConfig.database?.language,
       autoConvertLocalization: process.env.DB_AUTO_CONVERT_LOCALIZATION === 'false' ? false :
         fileConfig.database?.autoConvertLocalization ?? 
-        defaultConfig.database?.autoConvertLocalization
+        defaultConfig.database?.autoConvertLocalization,
+      documentsPath: process.env.DB_DOCUMENTS_PATH || fileConfig.database?.documentsPath || defaultConfig.database?.documentsPath
     },
     logging: {
       level: process.env.LOG_LEVEL || fileConfig.logging?.level || defaultConfig.logging.level
@@ -178,6 +185,42 @@ export function loadConfig(): MCPServerConfig {
   });
 
   return config;
+}
+
+/**
+ * Get the Documents folder path (configurable or auto-detected)
+ * This function caches the result after first call
+ */
+let cachedDocumentsPath: string | undefined;
+
+export async function getDocumentsPath(): Promise<string> {
+  // Return cached value if available
+  if (cachedDocumentsPath) {
+    return cachedDocumentsPath;
+  }
+
+  // First check if a custom path is configured
+  if (config.database?.documentsPath) {
+    cachedDocumentsPath = config.database.documentsPath;
+    logger.info(`Using configured documents path: ${cachedDocumentsPath}`);
+    return cachedDocumentsPath;
+  }
+
+  // Fall back to auto-detection using PowerShell on Windows
+  try {
+    const { stdout } = await execAsync(
+      'powershell -Command "[Environment]::GetFolderPath(\'MyDocuments\')"'
+    );
+    cachedDocumentsPath = stdout.trim();
+    logger.info(`Auto-detected documents folder path: ${cachedDocumentsPath}`);
+    return cachedDocumentsPath;
+  } catch (error) {
+    logger.error('Failed to get Documents folder path:', error);
+    // Fall back to a reasonable default
+    cachedDocumentsPath = path.join(process.env.USERPROFILE || process.env.HOME || '.', 'Documents');
+    logger.warn(`Using fallback documents path: ${cachedDocumentsPath}`);
+    return cachedDocumentsPath;
+  }
 }
 
 /**

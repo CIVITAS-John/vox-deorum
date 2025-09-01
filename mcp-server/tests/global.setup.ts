@@ -42,7 +42,12 @@ async function waitForBridgeService(): Promise<boolean> {
  * Start bridge service in real mode
  */
 async function startBridgeService(): Promise<void> {
-  console.log('Starting Bridge Service for tests...');
+  if (await checkBridgeConnection()) {
+    console.log('Bridge Service is already running and connected.');
+    return;
+  } else {
+    console.log('Starting Bridge Service for tests...');
+  }
 
   bridgeServiceProcess = spawn('npm', ['start'], {
     cwd: BRIDGE_SERVICE_PATH,

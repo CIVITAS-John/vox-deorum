@@ -5,12 +5,10 @@
 
 import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs/promises';
+import { config as appConfig, getDocumentsPath } from '../utils/config.js';
 
-const execAsync = promisify(exec);
 const logger = createLogger('DatabaseManager');
 
 /**
@@ -19,6 +17,7 @@ const logger = createLogger('DatabaseManager');
 export interface DatabaseConfig {
   language?: string; // Language code for localization (e.g., 'en_US')
   autoConvertLocalization?: boolean; // Auto-convert TXT_KEY_* to localized text
+  documentsPath?: string; // Custom path to documents folder (defaults to system Documents)
 }
 
 /**
@@ -28,7 +27,6 @@ export class DatabaseManager {
   private mainDb?: Database.Database;
   private localizationDb?: Database.Database;
   private config: DatabaseConfig;
-  private documentsPath?: string;
   private initialized = false;
 
   /**
@@ -36,31 +34,10 @@ export class DatabaseManager {
    */
   constructor(config?: DatabaseConfig) {
     this.config = {
-      language: config?.language || 'en_US',
-      autoConvertLocalization: config?.autoConvertLocalization ?? true,
+      language: config?.language ?? appConfig.database?.language ?? 'en_US',
+      autoConvertLocalization: config?.autoConvertLocalization ?? appConfig.database?.autoConvertLocalization ?? true,
+      documentsPath: config?.documentsPath ?? appConfig.database?.documentsPath,
     };
-  }
-
-  /**
-   * Get the Windows Documents folder path using PowerShell
-   */
-  private async getDocumentsPath(): Promise<string> {
-    if (this.documentsPath) {
-      return this.documentsPath;
-    }
-
-    try {
-      // Use PowerShell to get the Documents folder path
-      const { stdout } = await execAsync(
-        'powershell -Command "[Environment]::GetFolderPath(\'MyDocuments\')"'
-      );
-      this.documentsPath = stdout.trim();
-      logger.info(`Documents folder path: ${this.documentsPath}`);
-      return this.documentsPath;
-    } catch (error) {
-      logger.error('Failed to get Documents folder path:', error);
-      throw new Error('Could not determine Documents folder path');
-    }
   }
 
   /**
@@ -73,7 +50,7 @@ export class DatabaseManager {
 
     logger.info('Initializing DatabaseManager');
     
-    const documentsPath = await this.getDocumentsPath();
+    const documentsPath = await getDocumentsPath();
     const civ5Path = path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5', 'cache');
     
     const mainDbPath = path.join(civ5Path, 'Civ5DebugDatabase.db');
@@ -121,7 +98,7 @@ export class DatabaseManager {
       
       // Auto-convert localization keys if enabled
       if (this.config.autoConvertLocalization) {
-        return this.convertLocalizationKeys(results as Record<string, any>[]);
+        return this.localizeObject(results as Record<string, any>[]);
       }
       
       return results as Record<string, any>[];
@@ -134,7 +111,7 @@ export class DatabaseManager {
   /**
    * Get localized text for a given key
    */
-  public async getLocalization(key: string): Promise<string> {
+  public localize(key: string): string {
     if (!this.localizationDb) {
       throw new Error('Localization database not initialized. Call initialize() first.');
     }
@@ -155,15 +132,15 @@ export class DatabaseManager {
   /**
    * Convert TXT_KEY_* strings in results to localized text
    */
-  private async convertLocalizationKeys(results: Record<string, any>[]): Promise<Record<string, any>[]> {
-    const converted = [];
+  public localizeObject<T extends Record<string, any>>(results: Record<string, any>[]): T {
+    const converted: T = {} as T;
     
     for (const row of results) {
       const convertedRow: Record<string, any> = {};
       
       for (const [key, value] of Object.entries(row)) {
         if (typeof value === 'string' && value.startsWith('TXT_KEY_')) {
-          convertedRow[key] = await this.getLocalization(value);
+          convertedRow[key] = this.localize(value);
         } else {
           convertedRow[key] = value;
         }
