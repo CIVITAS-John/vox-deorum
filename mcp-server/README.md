@@ -17,6 +17,7 @@ The MCP Server connects AI agents to live game data through a standardized proto
 - **Test**: Vitest
 - **Transport**: stdio, Streamable HTTP
 - **Communication**: Bridge Service HTTP client
+- **Database**: Better-SQLite 3 + Kysely
 
 ## Architecture
 

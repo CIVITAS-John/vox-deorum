@@ -29,10 +29,12 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.4",
+    "better-sqlite3": "^12.2.0",
     "cors": "2.8.5",
     "cross-env": "^10.0.0",
     "eventsource": "^4.0.0",
     "express": "4.21.2",
+    "kysely": "^0.28.5",
     "mathjs": "^14.6.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
@@ -48,6 +50,7 @@
     "@typescript-eslint/parser": "^6.13.1",
     "@vitest/coverage-v8": "^2.0.5",
     "eslint": "^8.54.0",
+    "kysely-codegen": "^0.18.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.6.2",
     "typescript": "^5.3.2",
@@ -55,5 +58,10 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "overrides": {
+    "kysely-codegen": {
+      "better-sqlite3": "^12.2.0"
+    }
   }
 }
