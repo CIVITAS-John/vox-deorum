@@ -17,6 +17,12 @@ import { EventName, eventSchemas } from './schema/events/index.js';
 
 const logger = createLogger('KnowledgeStore');
 
+// List of event types to block from being stored
+const blockedEventTypes = new Set<string>([
+  "GatherPerTurnReplayStats",
+  "GameCoreTestVictory",
+]);
+
 /**
  * Foundation for storing and managing AI player knowledge with SQLite persistence
  */

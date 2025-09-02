@@ -52,6 +52,12 @@ export interface TimedKnowledge extends Knowledge {
   Player13: Generated<boolean>; // Whether Player 13 knows this
   Player14: Generated<boolean>; // Whether Player 14 knows this
   Player15: Generated<boolean>; // Whether Player 15 knows this
+  Player16: Generated<boolean>; // Whether Player 16 knows this
+  Player17: Generated<boolean>; // Whether Player 17 knows this
+  Player18: Generated<boolean>; // Whether Player 18 knows this
+  Player19: Generated<boolean>; // Whether Player 19 knows this
+  Player20: Generated<boolean>; // Whether Player 20 knows this
+  Player21: Generated<boolean>; // Whether Player 21 knows this
   Payload: JSONColumnType<Record<string, unknown>>;
   CreatedAt: Generated<number>; // Unix timestamp in milliseconds
 }

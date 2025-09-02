@@ -67,7 +67,7 @@ export async function createTimedKnowledgeIndexes(
   typeColumn?: string
 ): Promise<void> {
   // Create index for owner queries
-  for (let i = 0; i <= 15; i++) {
+  for (let i = 0; i <= 21; i++) {
     if (typeColumn) {
       await db.schema
         .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
@@ -96,7 +96,7 @@ export async function createMutableKnowledgeIndexes(
   typeColumn?: string
 ): Promise<void> {
   // Create index for owner queries
-  for (let i = 0; i <= 15; i++) {
+  for (let i = 0; i <= 21; i++) {
     if (typeColumn) {
       await db.schema
         .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
