@@ -6,29 +6,29 @@ The `ChangeGoldenAgeProgressMeter` event is triggered when a player's progress t
 
 This event is triggered when the `ChangeGoldenAgeProgressMeter` function is called on a player object in the following scenarios:
 
-- **Production conversion to Golden Age points**: When cities convert production to Golden Age points through specific mechanics
-- **Religion compensation**: When faith is converted to Golden Age points during religion founding
-- **Historic events**: When difficulty bonuses grant Golden Age points through historic events
-- **Goody huts**: When tribal villages provide Golden Age point rewards
-- **Happiness accumulation**: During turn processing when excess happiness generates Golden Age points
-- **Empire-wide bonuses**: When empire-wide effects contribute Golden Age points
-- **World Congress rewards**: When voting resolutions provide Golden Age point benefits
-- **Yield conversions**: When other yield types are converted to Golden Age points
+- **Production conversion to Golden Age points**: When cities convert production to Golden Age points through specific mechanics (found in `CvCity.cpp`)
+- **Religion compensation**: When faith is converted to Golden Age points during religion founding (found in `CvReligionClasses.cpp`)
+- **World Congress rewards**: When voting resolutions provide Golden Age point benefits (found in `CvVotingClasses.cpp`)
+- **Happiness accumulation**: During turn processing when excess happiness generates Golden Age points (found in `CvPlayer.cpp`)
+- **Empire-wide bonuses**: When empire-wide effects contribute Golden Age points through `GetGoldenAgePointsFromEmpireTimes100()` (found in `CvPlayer.cpp`)
+
+Note: The event is only fired when the `MOD_ISKA_GOLDENAGEPOINTS_TO_PRESTIGE` mod flag is enabled and the change value is positive.
 
 # Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `playerID` | integer | The ID of the player whose Golden Age progress meter is being changed |
-| `change` | integer | The amount by which the Golden Age progress meter is being modified (can be positive or negative) |
+| `iChange` | integer | The amount by which the Golden Age progress meter is being modified (must be positive) |
 
 # Event Details
 
 The event is fired through the Lua script system whenever the internal `ChangeGoldenAgeProgressMeter` function is executed. The function internally calls `ChangeGoldenAgeProgressMeterTimes100`, which handles the precise calculation including fractional Golden Age points.
 
 **Key behaviors:**
-- The event is only triggered when the `NO_HAPPINESS` game option is not enabled
-- Changes can be both positive (accumulating points) and negative (reducing progress)
+- The event is only triggered when the `GAMEOPTION_NO_HAPPINESS` game option is not enabled
+- The event is only triggered when the `MOD_ISKA_GOLDENAGEPOINTS_TO_PRESTIGE` mod flag is enabled
+- The event is only triggered for positive changes (iChange > 0)
 - The meter progress contributes to triggering Golden Age periods when thresholds are reached
 - The event provides visibility into Golden Age point accumulation across all game mechanics
 
@@ -49,11 +49,16 @@ The event is fired through the Lua script system whenever the internal `ChangeGo
 
 **Preconditions**:
 - Game option `GAMEOPTION_NO_HAPPINESS` must not be enabled
+- Mod flag `MOD_ISKA_GOLDENAGEPOINTS_TO_PRESTIGE` must be enabled
+- Change value (`iChange`) must be positive (> 0)
 - Script system must be initialized and available
+- Player must not be in a Golden Age if `MOD_BALANCE_NO_GAP_DURING_GA` is enabled
 
 **Event Flow**:
 1. Game logic calls `ChangeGoldenAgeProgressMeter` or `ChangeGoldenAgeProgressMeterTimes100`
-2. Function checks for happiness game option
-3. If enabled, the Lua script system is invoked
-4. Event arguments (player ID and change amount) are pushed to Lua stack
-5. Registered event listeners are notified through the hook system
+2. Function checks for `GAMEOPTION_NO_HAPPINESS` game option (returns early if enabled)
+3. Function checks for `MOD_BALANCE_NO_GAP_DURING_GA` flag and current Golden Age status (returns early if in Golden Age)
+4. Golden Age progress meter is updated internally
+5. If `MOD_ISKA_GOLDENAGEPOINTS_TO_PRESTIGE` is enabled and `iChange` is positive, the Lua script system is invoked
+6. Event arguments (player ID and change amount) are pushed to Lua stack
+7. Registered event listeners are notified through the hook system

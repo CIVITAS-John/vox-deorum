@@ -53,7 +53,7 @@ The GameCoreTestVictory event serves as an extension point for the victory condi
 
 **Source Location**: `CvGameCoreDLL_Expansion2/CvGame.cpp`, line 9731
 
-**Function Context**: Called within the game's victory testing system, likely in `CvGame::testVictory()` or similar function
+**Function Context**: Called within the `CvGame::testVictory()` function before standard victory checks are performed
 
 **Script System Integration**: Uses `LuaSupport::CallHook` with the script system to call "GameCoreTestVictory"
 
@@ -67,9 +67,9 @@ The GameCoreTestVictory event serves as an extension point for the victory condi
 2. Script system availability is verified
 3. Lua args handle is created for the script call
 4. `GameCoreTestVictory` hook is invoked with empty arguments
-5. Scripts can execute custom victory condition logic
-6. Script results are collected and can influence subsequent victory checks
-7. Standard built-in victory condition testing may proceed based on script results
+5. Scripts can execute custom victory condition logic and set victory state directly
+6. Script results are collected but the primary mechanism is for scripts to call game methods directly
+7. Standard built-in victory condition testing proceeds after script execution
 8. Victory state is updated if any conditions are met
 
 **Related Events**:

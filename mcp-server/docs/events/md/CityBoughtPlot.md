@@ -17,8 +17,7 @@ This event is triggered in multiple contexts when a city gains control of a new 
 - **Forced cultural expansion**: When specific buildings or policies force cultural plot acquisition
 
 **Special acquisition contexts:**
-- **Faith purchases**: When faith is used instead of gold to purchase plots (with appropriate policies/buildings)
-- **Free plot acquisition**: When plots are acquired at zero cost due to cultural overflow or special mechanics
+- **Free plot acquisition**: When plots are acquired at zero cost due to cultural overflow, automatic building purchases, or special mechanics
 
 # Parameters
 
@@ -29,7 +28,7 @@ This event is triggered in multiple contexts when a city gains control of a new 
 | `plotX` | integer | The X coordinate of the plot being acquired |
 | `plotY` | integer | The Y coordinate of the plot being acquired |
 | `bGold` | boolean | True if the plot was purchased with gold, false otherwise |
-| `bFaithCulture` | boolean | True if the plot was acquired via faith/culture, false if via gold |
+| `bFaithCulture` | boolean | True if the plot was acquired via cultural expansion, false if via gold purchase |
 
 # Event Details
 
@@ -38,7 +37,6 @@ The CityBoughtPlot event serves as a comprehensive tracker for all forms of terr
 **Acquisition methods:**
 - **Gold purchases**: Direct player spending or automated building purchases using treasury funds
 - **Cultural expansion**: Natural border growth through accumulated culture points exceeding thresholds  
-- **Faith-based expansion**: Using faith as currency for plot purchases (requires specific policies/buildings)
 - **Free acquisition**: Cultural overflow or special mechanics providing zero-cost plots
 
 **Strategic implications:**
@@ -50,13 +48,13 @@ The CityBoughtPlot event serves as a comprehensive tracker for all forms of terr
 **Multiple trigger scenarios:**
 The event has three distinct call sites in the code:
 1. **Cultural border expansion** (lines 17331, 17378): `bGold=false, bFaithCulture=true`
-2. **Gold-based purchases** (line 28522): `bGold=true, bFaithCulture=false`
-3. **Special acquisitions**: Various combinations based on acquisition method
+2. **Gold-based purchases** (line 28522): `bGold=bWithGold, bFaithCulture=false` 
+   - Note: `bGold` can be `false` even in gold purchase path if cultural overflow provides a discount
 
 **Related mechanics:**
 - Cultural level increases trigger automatic plot selection and acquisition
 - Building effects can provide free plot purchases or reduced costs
-- Policy effects can change purchase currencies (gold to faith)
+- Policy and building effects can provide plot purchase discounts or free acquisitions
 - Distance limitations apply based on city size and civilization bonuses
 
 # Technical Details
@@ -91,5 +89,5 @@ The event has three distinct call sites in the code:
 
 **Parameter Combinations**:
 - `bGold=true, bFaithCulture=false`: Direct gold purchase or automated building purchase
-- `bGold=false, bFaithCulture=true`: Cultural border expansion or faith-based acquisition  
-- `bGold=false, bFaithCulture=false`: Free acquisition through special mechanics
+- `bGold=false, bFaithCulture=true`: Cultural border expansion through accumulated culture
+- `bGold=false, bFaithCulture=false`: Gold purchase path with cultural overflow discount (special case)

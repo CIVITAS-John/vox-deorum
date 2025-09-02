@@ -22,9 +22,9 @@ This event is triggered when the `DoStartEvent()` function is called on a city w
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `playerID` | integer | The ID of the player who owns the city where the event is activated (from `getOwner()`) |
+| `playerID` | integer | The ID of the player who owns the city where the event is activated (from `getOwner()`, returns `PlayerTypes` enum cast to int) |
 | `cityID` | integer | The unique identifier of the city where the event is activated (from `GetID()`) |
-| `eventID` | integer | The identifier of the specific city event being activated (`eChosenEvent`) |
+| `eventID` | integer | The identifier of the specific city event type being activated (`eChosenEvent`, `CityEventTypes` enum cast to int) |
 
 # Event Details
 

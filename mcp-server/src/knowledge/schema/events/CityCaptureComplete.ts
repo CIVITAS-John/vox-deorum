@@ -1,0 +1,34 @@
+import { z } from 'zod';
+
+/**
+ * Schema for the CityCaptureComplete event.
+ * Triggered when a city has been successfully transferred from one player to another.
+ */
+export const CityCaptureComplete = z.object({
+  /** The player ID of the city's previous owner */
+  OldOwnerId: z.number(),
+  
+  /** True if the captured city was a capital city */
+  IsCapital: z.boolean(),
+  
+  /** The X coordinate of the captured city */
+  CityX: z.number(),
+  
+  /** The Y coordinate of the captured city */
+  CityY: z.number(),
+  
+  /** The player ID of the city's new owner (the acquiring player) */
+  NewOwnerId: z.number(),
+  
+  /** The population of the city at the time of capture */
+  Population: z.number(),
+  
+  /** True if the city was taken through military conquest */
+  IsConquest: z.boolean(),
+  
+  /** Total number of Great Works that were in the city */
+  TotalGreatWorks: z.number(),
+  
+  /** Number of Great Works successfully transferred to the new owner */
+  CapturedGreatWorks: z.number()
+});

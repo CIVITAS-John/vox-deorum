@@ -58,13 +58,13 @@ WLTKD is a key happiness and growth mechanic in Civilization V that provides sig
 **Script System Integration**: Uses `GAMEEVENTINVOKE_HOOK` macro with `GAMEEVENT_CityBeginsWLTKD`
 
 **Preconditions**:
-- `iChange` parameter must be positive (> 0)
+- `iChange` parameter must be positive (> 0) - function returns early if <= 0
 - City's current WLTKD counter must be <= 0 (not currently celebrating)
 - City must be valid and have a proper owner
 
 **Event Flow**:
-1. Game logic calls `ChangeWeLoveTheKingDayCounter` with positive change
-2. Function checks if change is positive; returns early if not
+1. Game logic calls `ChangeWeLoveTheKingDayCounter` with change value
+2. Function checks if change is positive (> 0); returns early if not
 3. Instant yield processing occurs via `doInstantYield(INSTANT_YIELD_TYPE_WLTKD_START)`
 4. Function determines if this is a new WLTKD (counter was <= 0)
 5. WLTKD counter is updated via `SetWeLoveTheKingDayCounter`

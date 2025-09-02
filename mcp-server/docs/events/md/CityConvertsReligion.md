@@ -1,14 +1,15 @@
 # Overview
 
-The `CityConvertsReligion` event is triggered when a city's religious majority changes from one religion to another. This event captures significant religious shifts within cities and provides information about the new dominant religion.
+The `CityConvertsReligion` event is triggered when a city undergoes religious changes, either through a change in religious majority or a change in follower counts. This event captures religious activity within cities and provides information about the current dominant religion.
 
 # Event Triggers
 
-This event is triggered in one specific scenario:
+This event is triggered in two scenarios:
 
 1. **Religious Majority Change**: When a city's religious composition shifts such that a different religion becomes the majority faith
+2. **Religious Follower Count Change**: When the number of followers in a city changes, even if the majority religion remains the same
 
-The trigger occurs within the religious follower change processing system in the Community Patch DLL.
+The trigger occurs within the religious follower change processing system in the Community Patch DLL, specifically when either the majority religion changes OR the follower count changes.
 
 # Parameters
 
@@ -28,7 +29,7 @@ The event provides comprehensive information about religious conversions:
 - **New Majority Religion**: The religion parameter identifies which faith has gained dominance in the city
 - **City Location**: The X and Y coordinates allow precise identification of the affected city's position
 - **Ownership Context**: The owner parameter identifies which player's city has undergone the religious conversion
-- **Conversion Significance**: The event only triggers for majority changes, not minor fluctuations in religious followers
+- **Conversion Significance**: The event triggers for both majority religion changes and any changes in religious follower counts, capturing all forms of religious activity in the city
 
 The event occurs after the city's religious state has been fully updated to reflect the new majority religion, ensuring accurate game state when handlers execute.
 
@@ -41,6 +42,6 @@ The event occurs after the city's religious state has been fully updated to refl
 
 **Event System**: Uses the Lua scripting hook system via `LuaSupport::CallHook()`
 
-**Context**: The event is part of the broader religious conversion system that tracks and responds to changes in city religious demographics. It represents a significant shift in religious influence rather than minor population changes.
+**Context**: The event is part of the broader religious conversion system that tracks and responds to changes in city religious demographics. It captures both significant religious shifts and general religious activity, including follower count fluctuations.
 
 **Integration**: This event works alongside other religious events and systems to provide comprehensive religious gameplay mechanics, including interactions with faith generation, religious pressure, and civilization-wide religious effects.

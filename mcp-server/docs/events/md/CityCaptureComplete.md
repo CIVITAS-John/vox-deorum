@@ -26,15 +26,15 @@ This event is triggered at the completion of the `acquireCity()` function after 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `oldOwner` | integer | The player ID of the city's previous owner |
+| `eOldOwner` | integer | The player ID of the city's previous owner |
 | `bCapital` | boolean | True if the captured city was a capital city |
-| `cityX` | integer | The X coordinate of the captured city |
-| `cityY` | integer | The Y coordinate of the captured city |
+| `iCityX` | integer | The X coordinate of the captured city |
+| `iCityY` | integer | The Y coordinate of the captured city |
 | `newOwner` | integer | The player ID of the city's new owner (the acquiring player) |
-| `population` | integer | The population of the city at the time of capture |
+| `iPopulation` | integer | The population of the city at the time of capture |
 | `bConquest` | boolean | True if the city was taken through military conquest |
 | `totalGreatWorks` | integer | Total number of Great Works that were in the city |
-| `capturedGreatWorks` | integer | Number of Great Works successfully transferred to the new owner |
+| `iCaptureGreatWorks` | integer | Number of Great Works successfully transferred to the new owner |
 
 # Event Details
 
@@ -97,6 +97,6 @@ The CityCaptureComplete event represents the culmination of complex city transfe
 
 **Parameter relationships:**
 - `bCapital` and conquest victory tracking
-- `totalGreatWorks` vs `capturedGreatWorks` indicating cultural preservation success
-- `population` reflecting city value and resistance potential
+- `totalGreatWorks` vs `iCaptureGreatWorks` indicating cultural preservation success
+- `iPopulation` reflecting city value and resistance potential
 - `bConquest` determining post-capture mechanics and diplomatic penalties

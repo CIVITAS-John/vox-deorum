@@ -25,7 +25,7 @@ This event is triggered when the `DoCityRevolt()` function is called on a player
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `cityPtr` | CvCity* | Pointer to the city object that is flipping/revolting (`pMostUnhappyCity`) |
+| `cityID` | integer | The ID of the city that is flipping/revolting (converted from `pMostUnhappyCity` pointer) |
 | `recipientID` | integer | The player ID of the recipient who will receive the city (`eRecipient`) |
 | `originalOwnerID` | integer | The player ID of the current owner who is losing the city (`pMostUnhappyCity->getOwner()`) |
 

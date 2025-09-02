@@ -28,7 +28,7 @@ This event is triggered when unit creation occurs as a consequence of event choi
 |-----------|------|-------------|
 | `playerID` | integer | The ID of the player who will receive the created unit (from `getOwner()` or `GetID()`) |
 | `eventChoiceID` | integer | The identifier of the event choice that triggered the unit creation (`eEventChoice`) |
-| `unitPointer` | Unit* | Pointer to the created unit object (`pUnit`) |
+| `unitPointer` | integer | Pointer to the created unit object cast as integer (`pUnit`) |
 
 # Event Details
 
@@ -61,7 +61,7 @@ Event unit creation represents a reward or consequence mechanism within the even
 - `CvGameCoreDLL_Expansion2/CvCity.cpp`, lines 7109, 7139
 - `CvGameCoreDLL_Expansion2/CvPlayer.cpp`, lines 8341, 8383
 
-**Function Context**: Called within event choice processing systems when unit creation is specified as an effect
+**Function Context**: Called within `CvCity::DoEventChoice` and `CvPlayer::DoEventChoice` functions when unit creation is specified as an effect
 
 **Script System Integration**: Uses `GAMEEVENTINVOKE_HOOK` macro with `GAMEEVENT_EventUnitCreated`
 

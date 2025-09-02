@@ -10,7 +10,7 @@ The `CapitalChanged` event is triggered in the following scenarios:
 2. **City Conquest**: When a player acquires a new city through conquest and it becomes their new capital (either the first capital or replacing a lost one)
 3. **City Purchase**: When acquiring cities through diplomatic or special means (such as Venice's Merchant of Venice ability)
 4. **Automatic Capital Relocation**: When the current capital is lost or destroyed and the game automatically selects a new capital from the player's remaining cities
-5. **Capital Building Construction**: When a city gains capital status through building construction (such as building the Palace or other capital-specific buildings)
+5. **First City Foundation**: When a civilization's first city is founded and receives free civilization buildings, including the Palace building (capital building)
 
 The event is only fired when the `MOD_EVENTS_CITY_CAPITAL` custom mod option is enabled in the game configuration.
 
@@ -68,7 +68,7 @@ if (iI == iCapitalBuilding && MOD_EVENTS_CITY_CAPITAL)
     GAMEEVENTINVOKE_HOOK(GAMEEVENT_CapitalChanged, getOwner(), GetID(), -1);
 }
 ```
-Triggered when capital buildings are constructed in a city.
+Triggered when a civilization's first city is founded and receives free civilization buildings. This occurs specifically when the Palace (capital building) is added to the first city, establishing it as the capital.
 
 ### CvPlayer.cpp (Line 4153)
 ```cpp

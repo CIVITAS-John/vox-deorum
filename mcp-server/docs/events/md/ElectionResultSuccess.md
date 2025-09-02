@@ -46,7 +46,10 @@ The event includes location data to identify which minor civilization was target
 - Y Coordinate (integer)
 
 **Source File:** `CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp`
+**Function:** `DoElection()`
 **Line Number:** 17248
 **Implementation:** `GAMEEVENTINVOKE_HOOK(GAMEEVENT_ElectionResultSuccess, (int)ePlayer, iSpyID, iValue, pCapital->getX(), pCapital->getY());`
 
-The event is conditionally compiled based on the `MOD_EVENTS_ESPIONAGE` preprocessor directive and triggers additional game mechanics such as achievement unlocks, instant yield bonuses, and spy experience gains when successful election rigging occurs.
+**Conditional Compilation:** This event is only triggered when `MOD_EVENTS_ESPIONAGE` is enabled, ensuring it's included only in builds that support extended espionage event handling.
+
+The event is part of a sequence that includes achievement unlocks (`MOD_API_ACHIEVEMENTS`), instant yield bonuses (`MOD_BALANCE_VP`), and spy experience gains when successful election rigging occurs.

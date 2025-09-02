@@ -66,7 +66,7 @@ Unit training represents the fundamental military and civilian development mecha
 
 # Technical Details
 
-**Source Location**: `CvGameCoreDLL_Expansion2/CvCity.cpp`, lines 29526, 30577, and 30637
+**Source Location**: `CvGameCoreDLL_Expansion2/CvCity.cpp`, lines 29541, 30591, and 30651
 
 **Function Context**: Called within various unit creation functions:
 - Production training: Standard unit completion processing

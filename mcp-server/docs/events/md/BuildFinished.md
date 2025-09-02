@@ -30,7 +30,7 @@ The event is invoked with four parameters:
 | `ePlayer` | PlayerTypes (int) | Function parameter | The player ID who completed the build action |
 | `iPlotX` | int | `getX()` | The X coordinate of the plot where the build was completed |
 | `iPlotY` | int | `getY()` | The Y coordinate of the plot where the build was completed |
-| `eImprovement` | ImprovementTypes (int) | `pkBuildInfo->getImprovement()` | The improvement type that was constructed (NO_IMPROVEMENT if not an improvement build) |
+| `eImprovement` | ImprovementTypes (int) | `pkBuildInfo->getImprovement()` | The improvement type defined in the build info (NO_IMPROVEMENT for non-improvement builds like routes, feature removal, repairs) |
 
 Parameter signature: `"iiii"` (four integers)
 
