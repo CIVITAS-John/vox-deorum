@@ -71,9 +71,9 @@ export interface GameEvent extends TimedKnowledge {
  */
 export interface PlayerInformation extends PublicKnowledge {
   PlayerId: number;
+  TeamId: number;
   Civilization: string;
   Leader: string;
-  TeamId?: number;
   IsHuman: boolean;
 }
 // #endregion
