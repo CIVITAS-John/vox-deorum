@@ -11,6 +11,7 @@ import { ToolBase } from './tools/base.js';
 import { allTools } from './tools/index.js';
 import { BridgeManager } from './bridge/bridge-manager.js';
 import { DatabaseManager } from './database/database-manager.js';
+import { KnowledgeManager } from './knowledge/KnowledgeManager.js';
 import * as z from "zod";
 
 const logger = createLogger('Server');
@@ -25,6 +26,7 @@ export class MCPServer {
   private tools = new Map<string, ToolBase>();
   private bridgeManager: BridgeManager;
   private databaseManager: DatabaseManager;
+  private knowledgeManager: KnowledgeManager;
 
   /**
    * Private constructor for MCPServer
@@ -44,6 +46,9 @@ export class MCPServer {
     
     // Initialize DatabaseManager
     this.databaseManager = new DatabaseManager();
+    
+    // Initialize KnowledgeManager
+    this.knowledgeManager = new KnowledgeManager();
   }
 
   /**
@@ -141,6 +146,13 @@ export class MCPServer {
   }
 
   /**
+   * Get the KnowledgeManager instance
+   */
+  public getKnowledgeManager(): KnowledgeManager {
+    return this.knowledgeManager;
+  }
+
+  /**
    * Initialize the server (can be extended in the future)
    */
   public async initialize(): Promise<void> {
@@ -150,8 +162,9 @@ export class MCPServer {
 
     logger.info('Initializing MCP server');
     
-    // Initialize DatabaseManager
+    // Initialize databases
     await this.databaseManager.initialize();
+    await this.knowledgeManager.initialize();
     
     // Check Bridge Service health
     try {
@@ -197,7 +210,8 @@ export class MCPServer {
   public async close(): Promise<void> {
     logger.info('Shutting down MCP server');
     
-    // Shutdown DatabaseManager
+    // Shutdown databases
+    await this.knowledgeManager.shutdown();
     await this.databaseManager.close();
     
     // Shutdown BridgeManager
@@ -215,4 +229,9 @@ export const bridgeManager = MCPServer.getInstance().getBridgeManager();
 /**
  * Export singleton database manager for easy access
  */
-export const databaseManager = MCPServer.getInstance().getDatabaseManager();
+export const gameDatabase = MCPServer.getInstance().getDatabaseManager();
+
+/**
+ * Export singleton knowledge manager for easy access
+ */
+export const knowledgeManager = MCPServer.getInstance().getKnowledgeManager();
