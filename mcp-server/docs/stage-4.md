@@ -37,14 +37,19 @@ local saveDB = Modding.OpenSaveData()
 Foundation for storing and managing AI player knowledge with SQLite-based persistence.
 
 **Database Schema:**
-- Each knowledge item also serves as history - e.g. a city's information at Turn X, Y, Z...
-  - Hence, when retrieving knowledge, could be about the history or the latest status
-  - Also provides a way to cull knowledge (if loaded to an earlier stage)
-- All tables include automatic timestamps (created_at)
-- Separate tables for different knowledge types but all inherit from a base class `Knowledge`
+- Separate tables for each knowledge type all inherit from `Knowledge`.
+  - Two types of knowledge: public knowledge `PublicKnowledge`, turn-based access-controlled information `TimedKnowledge`. 
+  - For example, basic information about players is public 
+- For turn-based knowledge types and each inherit from a base class `TimedKnowledge`
   - Preparing for Stage 5, e.g. all knowledge items could have access control per player
-- Efficient indexing for quick retrieval
+  - The base class includes automatic timestamps (created_at) and serves as history - e.g. a city's information at Turn X, Y, Z...
+    - Hence, when retrieving those knowledge, could be about the history or the latest status
+    - Some knowledge is mutable, some is not (base class `MutableKnowledge`)
+      - When updating mutable knowledge, record a new item if anything has changed
+      - That said, we need a field to record changed information for each record item
+    - Also provides a way to cull knowledge (if loaded to an earlier stage)
 - A key-value table for storing metadata (e.g. game identifier, turn number, last sync timestamp)
+- Efficient indexing for quick retrieval
 
 ## Implementation Flow
 
