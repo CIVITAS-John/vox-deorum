@@ -29,16 +29,17 @@ export function createTimedKnowledgeTable<T extends string>(
   db: Kysely<KnowledgeDatabase>,
   tableName: T
 ): CreateTableBuilder<T, 'ID' | 'Turn' | 'Key' | 'OwnerID' | 'KnownByIDs' | 'Payload' | 'IsLatest' | 'CreatedAt'> {
-  return db.schema
+  var schema = db.schema
     .createTable(tableName)
     .ifNotExists()
     .addColumn('ID', 'integer', (col) => col.primaryKey().autoIncrement())
     .addColumn('Turn', 'integer', (col) => col.notNull())
-    .addColumn('OwnerID', 'integer')
-    .addColumn('KnownByIDs', 'text', (col) => col.notNull()) // JSON array
     .addColumn('Payload', 'text', (col) => col.notNull()) // JSON object
-    .addColumn('IsLatest', 'boolean', (col) => col.notNull().defaultTo(true))
     .addColumn('CreatedAt', 'integer', (col) => col.notNull().defaultTo(sql`(unixepoch())`));
+  for (let i = 0; i <= 15; i++) {
+    schema = schema.addColumn(`Player${i}`, 'boolean', (col) => col.notNull().defaultTo(false));
+  }
+  return schema;
 }
 
 /**
@@ -52,6 +53,7 @@ export function createMutableKnowledgeTable<T extends string>(
   return createTimedKnowledgeTable(db, tableName)
     .addColumn('Key', 'integer', (col) => col.notNull())
     .addColumn('Version', 'integer', (col) => col.notNull().defaultTo(1))
+    .addColumn('IsLatest', 'boolean', (col) => col.notNull().defaultTo(true))
     .addColumn('Changes', 'text', (col) => col.notNull().defaultTo('[]')); // JSON array
 }
 
@@ -74,19 +76,33 @@ export async function createTimedKnowledgeIndexes(
       .execute();
   }
   
+  // Create index for owner queries
+  for (let i = 0; i <= 15; i++) {
+    await db.schema
+      .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
+      .on(tableName)
+      .column(`Player${i}`)
+      .ifNotExists()
+      .execute();
+  }
+}
+
+/**
+ * Creates standard indexes for MutableKnowledge tables
+ * Includes composite indexes for turn/type queries and key/latest lookups
+ */
+export async function createMutableKnowledgeIndexes(
+  db: Kysely<KnowledgeDatabase>,
+  tableName: string,
+  typeColumn?: string
+): Promise<void> {
+  createTimedKnowledgeIndexes(db, tableName, typeColumn);
+  
   // Create composite index for latest events by key
   await db.schema
     .createIndex(`idx_${tableName.toLowerCase()}_key_latest`)
     .on(tableName)
     .columns(['Key', 'IsLatest'])
-    .ifNotExists()
-    .execute();
-  
-  // Create index for owner queries
-  await db.schema
-    .createIndex(`idx_${tableName.toLowerCase()}_owner`)
-    .on(tableName)
-    .column('OwnerID')
     .ifNotExists()
     .execute();
 }

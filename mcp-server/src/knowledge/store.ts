@@ -3,7 +3,7 @@
  * Provides type-safe CRUD operations using Kysely query builder
  */
 
-import { Kysely, SqliteDialect } from 'kysely';
+import { Kysely, ParseJSONResultsPlugin, SqliteDialect } from 'kysely';
 import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
 import type { 
@@ -48,6 +48,7 @@ export class KnowledgeStore {
       dialect: new SqliteDialect({
         database: sqliteDb,
       }),
+      plugins: [new ParseJSONResultsPlugin()],
     });
 
     // Setup database schema if needed
@@ -154,9 +155,6 @@ export class KnowledgeStore {
       .values({
         Turn: knowledgeManager.getTurn(),
         Type: type,
-        OwnerID: 0,
-        IsLatest: true,
-        KnownByIDs: "[]",
         Payload: JSON.stringify(payload),
       })
       .execute();
