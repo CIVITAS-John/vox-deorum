@@ -4,20 +4,26 @@ The MakePeace event is triggered when two teams formally establish peace and end
 
 # Event Triggers
 
-This event is fired in the `CvTeam.cpp` file when a team makes peace with another team through the diplomatic system. The event is invoked through the Lua scripting system hook mechanism, allowing external systems to monitor and respond to peace agreements in real-time.
+This event is fired in the `CvTeam.cpp` file when a team makes peace with another team through the diplomatic system. The event uses different mechanisms depending on mod configuration.
 
-**Trigger Location:** `CvGameCoreDLL_Expansion2/CvTeam.cpp:2164`
+**Trigger Locations:** 
+- `CvGameCoreDLL_Expansion2/CvTeam.cpp:2152` (Modern path)
+- `CvGameCoreDLL_Expansion2/CvTeam.cpp:2164` (Legacy path)
 
 **Trigger Condition:** When a team establishes peace with another team, ending their state of war
 
 # Parameters
 
-The MakePeace event passes the following parameters:
+The MakePeace event passes different parameters depending on the implementation path:
 
+**Modern Path (if MOD_EVENTS_WAR_AND_PEACE is enabled):**
+1. **Originating Player ID** (`eOriginatingPlayer`) - The unique identifier of the player who initiated the peace
+2. **Target Team ID** (`eTeam`) - The unique identifier of the team that peace is being made with
+3. **Pacifier Flag** (`bPacifier`) - Boolean indicating if this is a "pacifier" peace (specific diplomatic context)
+
+**Legacy Path (Lua Hook):**
 1. **Initiating Team ID** (`GetID()`) - The unique identifier of the team that is making peace
 2. **Target Team ID** (`eTeam`) - The unique identifier of the team that peace is being made with
-
-Both parameters are pushed to the Lua arguments stack in sequence, with the peace-initiating team ID first, followed by the target team ID.
 
 # Event Details
 
@@ -33,15 +39,24 @@ The event is fired before the actual peace state changes take effect, allowing s
 
 # Technical Details
 
-**Event Name:** `MakePeace`
-**Hook Type:** Lua scripting system hook
-**Parameters Count:** 2
-**Parameter Types:**
-- Team ID (integer)
-- Target Team ID (integer)
-
 **Source File:** `CvGameCoreDLL_Expansion2/CvTeam.cpp`
-**Line Number:** 2164
-**Implementation:** `LuaSupport::CallHook(pkScriptSystem, "MakePeace", args.get(), bResult);`
+
+**Triggering Function:**
+- `CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotification, PlayerTypes eOriginatingPlayer)` - Main function handling peace between teams
+
+**Event Implementation:**
+The event uses different mechanisms depending on mod configuration:
+- **Modern Path:** Uses `GAMEEVENT_MakePeace` with extended parameters if `MOD_EVENTS_WAR_AND_PEACE` is enabled
+- **Legacy Path:** Uses Lua script hook `MakePeace` with basic parameters for compatibility
+
+**Modern Game Event Hook:**
+```cpp
+GAMEEVENTINVOKE_HOOK(GAMEEVENT_MakePeace, eOriginatingPlayer, eTeam, bPacifier);
+```
+
+**Legacy Lua Hook:**
+```cpp
+LuaSupport::CallHook(pkScriptSystem, "MakePeace", args.get(), bResult);
+```
 
 The event is triggered during the peace-making process, immediately followed by the actual state changes that set both teams to no longer be at war with each other (`setAtWar(eTeam, false, bPacifier)` and `kTeam.setAtWar(GetID(), false, !bPacifier)`). The event also coincides with the resetting of city damage counters between the formerly warring civilizations.

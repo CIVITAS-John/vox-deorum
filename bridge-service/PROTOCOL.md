@@ -270,11 +270,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    {
      "type": "game_event",
      "event": "turnStart",
-     "payload": {
-       "player": 1,
-       "turn": 50,
-       "year": "500 AD"
-     },
+     "payload": [1, 50, 20],
      "timestamp": "2024-01-01T12:00:00Z"
    }
    ```
@@ -282,7 +278,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 4. **Bridge → All SSE Clients**
    ```
    event: turnStart
-   data: {"type": "turnStart", "player": 1, "turn": 50, "year": "500 AD", "timestamp": "2024-01-01T12:00:00Z"}
+   data: {"type": "turnStart", "payload": ..., "timestamp": "2024-01-01T12:00:00Z"}
    ```
 
 ## HTTP API Responses

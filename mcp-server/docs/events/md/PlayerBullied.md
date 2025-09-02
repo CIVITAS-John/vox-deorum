@@ -6,8 +6,8 @@ The `PlayerBullied` event is triggered when a major civilization successfully bu
 
 This event is triggered from three distinct bullying scenarios within the minor civilization AI system, representing different types of tribute extraction:
 
-1. **Gold Tribute**: When a major civilization bullies a city-state into providing gold payments
-2. **Science Tribute**: When a major civilization forces a city-state to share scientific knowledge or research
+1. **Gold Tribute**: When a major civilization bullies a city-state into providing gold payments (direct gold extraction)
+2. **Heavy Tribute from Science City-States**: When a major civilization bullies a science city-state for heavy tribute (provides gold but in science city-state context)
 3. **Unit Tribute**: When a major civilization coerces a city-state into providing military units
 
 All triggers occur within the `CvMinorCivAI` class during diplomatic interactions where the major civilization uses intimidation tactics to extract resources.
@@ -20,11 +20,11 @@ The event passes seven parameters to event handlers:
 |-----------|------|-------------|
 | BullyingPlayer | PlayerTypes | The ID of the major civilization performing the bullying |
 | MinorPlayer | PlayerTypes | The ID of the minor civilization (city-state) being bullied |
-| GoldAmount | int | Amount of gold extracted (or -1 if not applicable) |
+| Amount | int | Amount of tribute extracted (gold amount for both gold and science tribute, or -1 for unit tribute) |
 | UnitType | int | Type of unit provided (or -1 if not applicable) |
 | UnitX | int | X coordinate of provided unit (or -1 if not applicable) |
 | UnitY | int | Y coordinate of provided unit (or -1 if not applicable) |
-| YieldType | YieldTypes | Type of yield being extracted (GOLD, SCIENCE, or -1 for units) |
+| YieldType | YieldTypes | Context of the bullying action (YIELD_GOLD, YIELD_SCIENCE, or -1 for units) |
 
 # Event Details
 
@@ -58,6 +58,7 @@ The multiple parameter pattern allows the event to handle different tribute type
 - Often involve risk/reward calculations based on military strength and diplomatic consequences
 
 **Parameter Patterns**:
-- **Gold/Science**: Uses positive values in the respective fields, -1 in unused parameters
-- **Units**: Uses -1 for gold, unit type/coordinates for unit information, -1 for yield type
+- **Gold Tribute**: Uses gold amount in Amount field, YIELD_GOLD in YieldType, -1 in unit-related parameters
+- **Heavy Tribute (Science Context)**: Uses gold amount in Amount field, YIELD_SCIENCE in YieldType to indicate science city-state context, -1 in unit-related parameters
+- **Unit Tribute**: Uses -1 for Amount, unit type/coordinates for unit information, -1 for YieldType
 - **Consistency**: The seven-parameter structure accommodates all tribute types while maintaining event signature consistency

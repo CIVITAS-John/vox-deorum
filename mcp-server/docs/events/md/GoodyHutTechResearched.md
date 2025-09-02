@@ -34,11 +34,13 @@ This event is particularly important for:
 
 **Source Location:** `CvGameCoreDLL_Expansion2/CvPlayer.cpp:12853`
 
-**Trigger Context:** The event is invoked within the `CvPlayer` class during goody hut processing, specifically when a technology reward is being processed. The event uses Lua scripting system integration.
+**Trigger Context:** The event is invoked within the `CvPlayer::receiveGoody` function during goody hut processing, specifically when a technology reward is being processed. The event uses Lua scripting system integration.
 
 **Event Hook:** Uses `LuaSupport::CallHook` to trigger the Lua-based event system with the event name "GoodyHutTechResearched"
 
 **Script System Integration:** This event integrates with the game's Lua scripting system (`ICvEngineScriptSystem1`) for mod and scenario customization.
+
+**Conditional Behavior:** If `MOD_EVENTS_GOODY_TECH` is enabled, the system uses `GAMEEVENTINVOKE_HOOK` instead of the Lua script system.
 
 **Code Reference:**
 ```cpp

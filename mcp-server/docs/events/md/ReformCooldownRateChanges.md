@@ -17,7 +17,7 @@ This event is triggered in the following scenarios:
 The event passes the following parameters:
 
 1. **Player ID** (`GetID()`) - The unique identifier of the player whose reform cooldown rate has changed
-2. **Rate Change Value** (`iValue`) - The amount by which the cooldown rate is being modified (positive values speed up cooldown reduction, negative values slow it down)
+2. **Value** (`iValue`) - The value being processed (either the change amount in `ChangeReformCooldownRate()` or the new absolute value in `SetReformCooldownRate()`)
 
 # Event Details
 
@@ -66,10 +66,10 @@ GAMEEVENTINVOKE_HOOK(GAMEEVENT_ReformCooldownRateChanges, GetID(), iValue);
 ```
 
 **Parameter Behavior:**
-- Unlike the base cooldown event, this passes the change value (`iValue`) rather than the current total rate
-- Allows listeners to track incremental modifications to the rate system
-- Positive values indicate rate improvements (faster cooldown reduction)
-- Negative values indicate rate penalties (slower cooldown reduction)
+- In `ChangeReformCooldownRate()`: `iValue` represents the change amount being added to the current rate
+- In `SetReformCooldownRate()`: `iValue` represents the new absolute value being set
+- For change operations: positive values indicate rate improvements (faster cooldown reduction), negative values indicate rate penalties
+- For set operations: the absolute value being assigned as the new rate
 
 **Related Systems:**
 - Base reform cooldown system (separate event for absolute cooldown changes)

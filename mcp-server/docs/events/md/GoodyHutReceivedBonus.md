@@ -37,7 +37,7 @@ The event captures both the spatial context (coordinates) and the specific rewar
 
 **Source Location:** `CvGameCoreDLL_Expansion2/CvPlayer.cpp:13129`
 
-**Trigger Context:** The event is invoked within the `CvPlayer` class during goody hut processing, specifically after the `receiveGoody()` method has been called but before achievement processing begins.
+**Trigger Context:** The event is invoked within the `CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)` function during goody hut processing, specifically after the `receiveGoody()` method has been called but before achievement processing begins.
 
 **Event Hook:** Uses the `GAMEEVENTINVOKE_HOOK` macro with event type `GAMEEVENT_GoodyHutReceivedBonus`
 

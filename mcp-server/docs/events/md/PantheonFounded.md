@@ -47,7 +47,7 @@ The event fires after the pantheon has been successfully established and the min
 # Technical Details
 
 **Source Files:**
-- `CvGameCoreDLL_Expansion2/CvReligionClasses.cpp` (lines 1046, 1070)
+- `CvGameCoreDLL_Expansion2/CvReligionClasses.cpp` (line 1070 for Lua hook, line 1046 for GAMEEVENT hook)
 
 **Triggering Functions:**
 - `CvGameReligions::FoundPantheon(PlayerTypes ePlayer, BeliefTypes eBelief)` - Main function handling pantheon founding

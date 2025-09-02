@@ -4,12 +4,12 @@ The `PlayerAdoptsCurrency` event is triggered when a player changes their active
 
 # Event Triggers
 
-This event is triggered from two scenarios within the currency management system:
+This event is triggered whenever a player's currency changes through the `SetCurrency` function in the `CvPlayer` class. The event is called with different previous currency values depending on the player's current state:
 
-1. **New Currency Adoption**: When a player adopts a currency for the first time or switches to a different currency
-2. **Currency Abandonment**: When a player stops using their current currency (indicated by the previous currency parameter)
+1. **First Currency Adoption**: When a player adopts a currency for the first time (HasCurrency() returns false), the event is triggered with -1 as the previous currency
+2. **Currency Change**: When a player already has a currency and switches to a different one, the event is triggered with the current currency as the previous currency
 
-Both triggers occur within the `CvPlayer` class during currency management operations, ensuring that currency changes are properly tracked and communicated to the game systems.
+Both scenarios occur within the same `SetCurrency` function, ensuring that all currency changes are properly tracked and communicated to the game systems.
 
 # Parameters
 
@@ -18,8 +18,8 @@ The event passes three parameters to event handlers:
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | PlayerID | PlayerTypes | The ID of the player whose currency changed |
-| NewCurrency | int | The ID of the newly adopted currency, or the currency being changed |
-| PreviousCurrency | int | The ID of the previous currency (-1 if no previous currency) or current currency |
+| NewCurrency | int | The ID of the currency being adopted |
+| PreviousCurrency | int | The ID of the previous currency (-1 if no previous currency existed) |
 
 # Event Details
 
@@ -38,8 +38,8 @@ The event captures the dynamic nature of currency systems where players may chan
 **Source File**: `CvGameCoreDLL_Expansion2/CvPlayer.cpp`
 
 **Trigger Locations**:
-- Line 29733: Currency abandonment (previous currency set to -1, indicating removal)
-- Line 29737: Currency adoption (includes both new and current currency information)
+- Line 29733: First currency adoption (previous currency set to -1, indicating no previous currency)
+- Line 29737: Currency change (includes both new currency and current currency as previous)
 
 **Event System**: Uses the game event system via `GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerAdoptsCurrency)`
 

@@ -6,10 +6,9 @@ The PlayerPreAIUnitUpdate event is triggered just before the AI player performs 
 
 This event is triggered when:
 - An AI player is about to perform their unit update phase
-- The player does not have any busy units or cities
 - The script system is available and functional
 
-The event fires after checking for busy units/cities but before any actual AI unit processing begins.
+The event fires before checking for busy units/cities and before any actual AI unit processing begins.
 
 # Parameters
 
@@ -35,7 +34,7 @@ The event only passes the player ID, keeping the interface minimal while providi
 
 **Execution Context**: The event is invoked:
 - After script system availability check
-- After busy unit/city verification (only fires if no busy units/cities exist)
+- Before busy unit/city verification (fires regardless of busy unit/city status)
 - Before any actual AI unit processing begins
 
 **Script Integration**: This event uses the Lua scripting system through `LuaSupport::CallHook`, making it accessible to Lua-based modifications and allowing for script-based return values that could potentially influence subsequent processing.

@@ -7,6 +7,7 @@ import { createLogger } from '../utils/logger.js';
 import { bridgeManager } from '../server.js';
 import { GameIdentity, syncGameIdentity } from '../utils/lua/game-identity.js';
 import { KnowledgeStore } from './store.js';
+import { eventSchemas, EventName } from './schema/events/index.js';
 import path from 'path';
 
 const logger = createLogger('KnowledgeManager');
@@ -30,10 +31,65 @@ export class KnowledgeManager {
       this.checkGameContext();
     });
     bridgeManager.on('gameEvent', (data) => {
-      logger.debug('Turn start event received', data);
+      logger.debug('Game event received: ' + data.type, data);
+      this.handleGameEvent(data.type, data.payload);
       this.checkGameContext();
     });
     this.startAutoSave();
+  }
+
+  /**
+   * Handle incoming game events by validating against schemas
+   */
+  private handleGameEvent(type: string, payload: unknown): void {
+    try {
+      // Check if the payload is an array (it should be an array from the DLL)
+      if (!Array.isArray(payload)) {
+        logger.warn('Invalid game event payload: not an array');
+        return;
+      }
+
+      // Check if we have a schema for this event type
+      if (!(type in eventSchemas)) {
+        logger.debug(`Unknown event type: ${type}`);
+        return;
+      }
+
+      // Get the corresponding schema
+      const schema = eventSchemas[type as EventName];
+
+      // Get the schema shape to map payload array to object
+      // We need to get the field names from the schema
+      const schemaShape = schema._def.shape();
+      const fieldNames = Object.keys(schemaShape);
+
+      // Create an object from the payload array
+      const eventObject: Record<string, unknown> = {};
+      fieldNames.forEach((fieldName, index) => {
+        if (index < payload.length) {
+          eventObject[fieldName] = payload[index];
+        }
+      });
+
+      // Validate the event object against the schema
+      const result = schema.safeParse(eventObject);
+
+      if (result.success) {
+        logger.info(`Valid ${type} event:`, result.data);
+        if (this.knowledgeStore) {
+          // Store event in database - implementation depends on store structure
+          // this.knowledgeStore.storeEvent(eventType, result.data, eventData.timestamp);
+        }
+      } else {
+        logger.warn(`Invalid ${type} event:`, {
+          errors: result.error.errors,
+          payload,
+          eventObject
+        });
+      }
+    } catch (error) {
+      logger.error('Error handling game event:', error);
+    }
   }
 
   /**

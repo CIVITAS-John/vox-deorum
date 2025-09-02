@@ -53,7 +53,7 @@ The GameCoreUpdateBegin event serves as an entry point for custom logic that nee
 
 **Source Location**: `CvGameCoreDLL_Expansion2/CvGame.cpp`, line 1528
 
-**Function Context**: Called at the beginning of the game's core update function, likely `CvGame::update()` or similar
+**Function Context**: Called at the beginning of the `CvGame::update()` function before main update processing
 
 **Script System Integration**: Uses `LuaSupport::CallHook` with the script system to call "GameCoreUpdateBegin"
 

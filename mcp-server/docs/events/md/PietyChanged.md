@@ -17,7 +17,7 @@ This event is triggered in the following scenarios:
 The event passes the following parameters:
 
 1. **Player ID** (`GetID()`) - The unique identifier of the player whose Piety has changed
-2. **Current Piety** (`GetPiety()`) - The current total Piety value after the change
+2. **Current Piety** (`GetPiety()`) - The current total Piety value before the change
 3. **Change Value** (`iValue`) - The amount being set (for SetPiety) or the delta amount being applied (for ChangePiety)
 
 # Event Details

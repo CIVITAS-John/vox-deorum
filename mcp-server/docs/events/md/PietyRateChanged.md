@@ -17,7 +17,7 @@ This event is triggered in the following scenarios:
 The event passes the following parameters:
 
 1. **Player ID** (`GetID()`) - The unique identifier of the player whose Piety rate has changed
-2. **Current Piety Rate** (`GetPietyRate()`) - The current Piety generation rate per turn after the change
+2. **Current Piety Rate** (`GetPietyRate()`) - The current Piety generation rate per turn before the change
 3. **Change Value** (`iValue`) - The amount being set (for SetPietyRate) or the delta amount being applied (for ChangePietyRate)
 
 # Event Details

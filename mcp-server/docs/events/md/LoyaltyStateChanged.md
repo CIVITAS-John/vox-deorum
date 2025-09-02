@@ -27,6 +27,8 @@ The loyalty state system uses the `LoyaltyStateTypes` enumeration with these pos
 - `LOYALTY_JFD_NEUTRAL` (0): Neutral loyalty state
 - `LOYALTY_JFD_PATRIOTIC` (1): Patriotic loyalty state  
 - `LOYALTY_JFD_ALLEGIANT` (2): Allegiant loyalty state
+- `LOYALTY_JFD_REBELLIOUS` (3): Rebellious loyalty state
+- `LOYALTY_JFD_SEPARATIST` (4): Separatist loyalty state
 
 The event captures transitions between these states, allowing AI systems to track city loyalty changes and respond accordingly. This is particularly useful for monitoring:
 - Cities becoming more loyal or disloyal over time

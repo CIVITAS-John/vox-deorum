@@ -54,7 +54,7 @@ The GatherPerTurnReplayStats event serves as an extension point for the replay s
 
 **Source Location**: `CvGameCoreDLL_Expansion2/CvPlayer.cpp`, line 46699
 
-**Function Context**: Called within the player's statistics gathering function, likely `CvPlayer::GatherPerTurnReplayStats()` or similar
+**Function Context**: Called within the `CvPlayer::GatherPerTurnReplayStats(int iGameTurn)` function during per-turn statistics collection
 
 **Script System Integration**: Uses `LuaSupport::CallHook` with the script system to call "GatherPerTurnReplayStats"
 

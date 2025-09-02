@@ -56,7 +56,7 @@ The GameCoreUpdateEnd event serves as a finalization point for custom logic that
 
 **Source Location**: `CvGameCoreDLL_Expansion2/CvGame.cpp`, line 1619
 
-**Function Context**: Called at the end of the game's core update function, likely `CvGame::update()` or similar
+**Function Context**: Called at the very end of the `CvGame::update()` function after all update processing is complete
 
 **Script System Integration**: Uses `LuaSupport::CallHook` with the script system to call "GameCoreUpdateEnd"
 

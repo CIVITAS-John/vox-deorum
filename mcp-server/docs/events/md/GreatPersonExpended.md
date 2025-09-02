@@ -15,13 +15,16 @@ This event is triggered in the following scenarios:
 
 The event passes the following parameters:
 
+**Legacy Path (Lua Hook):**
 1. **Player ID** (`GetID()`) - The unique identifier of the player who owned the Great Person
 2. **Great Person Unit Type** (`eGreatPersonUnit`) - The specific type identifier of the Great Person unit that was expended
 
-**Extended Parameters (if MOD_EVENTS_GREAT_PEOPLE is enabled):**
-- **Unit ID** - The unique identifier of the specific Great Person unit
-- **X Coordinate** - The X map coordinate where the Great Person was expended
-- **Y Coordinate** - The Y map coordinate where the Great Person was expended
+**Modern Path (if MOD_EVENTS_GREAT_PEOPLE is enabled):**
+1. **Player ID** (`GetID()`) - The unique identifier of the player who owned the Great Person
+2. **Unit ID** (`pGreatPersonUnit->GetID()`) - The unique identifier of the specific Great Person unit
+3. **Great Person Unit Type** (`eGreatPersonUnit`) - The specific type identifier of the Great Person unit that was expended
+4. **X Coordinate** (`pGreatPersonUnit->getX()`) - The X map coordinate where the Great Person was expended
+5. **Y Coordinate** (`pGreatPersonUnit->getY()`) - The Y map coordinate where the Great Person was expended
 
 # Event Details
 
@@ -43,7 +46,7 @@ This timing ensures that external systems can analyze both the action taken and 
 # Technical Details
 
 **Source Files:**
-- `CvGameCoreDLL_Expansion2/CvPlayer.cpp` (line 27934)
+- `CvGameCoreDLL_Expansion2/CvPlayer.cpp` (lines 27922, 27934)
 
 **Triggering Functions:**
 - `CvPlayer::DoGreatPersonExpended(UnitTypes eGreatPersonUnit, CvUnit* pGreatPersonUnit)` - Main function handling Great Person expenditure
@@ -53,7 +56,12 @@ The event uses different mechanisms depending on mod configuration:
 - **Modern Path:** Uses `GAMEEVENT_GreatPersonExpended` with extended parameters if `MOD_EVENTS_GREAT_PEOPLE` is enabled
 - **Legacy Path:** Uses Lua script hook `GreatPersonExpended` with basic parameters for compatibility
 
-**Lua Hook:**
+**Modern Game Event Hook:**
+```cpp
+GAMEEVENTINVOKE_HOOK(GAMEEVENT_GreatPersonExpended, GetID(), pGreatPersonUnit->GetID(), eGreatPersonUnit, pGreatPersonUnit->getX(), pGreatPersonUnit->getY());
+```
+
+**Legacy Lua Hook:**
 ```cpp
 LuaSupport::CallHook(pkScriptSystem, "GreatPersonExpended", args.get(), bResult);
 ```
