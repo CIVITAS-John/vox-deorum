@@ -44,7 +44,7 @@ The MCP Server connects AI agents to live game data through a standardized proto
     - Event emitter for game events
   - **LuaFunction**: Encapsulated Lua function definitions
 
-4. **Database Integration** (`src/database/`)
+4. **Civ 5 Database Integration** (`src/database/`)
   - **DatabaseManager**: Kysely-based database access
     - Readonly connections to Civ 5 SQLite databases
     - Automatic localization of TXT_KEY_* strings

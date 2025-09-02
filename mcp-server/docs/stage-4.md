@@ -36,7 +36,7 @@ local saveDB = Modding.OpenSaveData()
 ### KnowledgeStore
 Foundation for storing and managing AI player knowledge with SQLite-based persistence.
 
-**Database Schema:**
+**Database Schema:** (src/knowledge/schema)
 - Separate tables for each knowledge type all inherit from `Knowledge`.
   - Two types of knowledge: public knowledge `PublicKnowledge`, turn-based access-controlled information `TimedKnowledge`. 
   - For example, basic information about players is public 
@@ -83,8 +83,7 @@ Foundation for storing and managing AI player knowledge with SQLite-based persis
 ### Phase 6: Integration and Testing
 1. Connect all components to MCPServer with Kysely database instance
 2. Test game switching scenarios with query validation
-3. Verify timestamp consistency through Kysely migrations
-4. Validate persistence across restarts with type-safe queries
+3. Validate persistence across restarts with type-safe queries
 
 ## Technical Specifications
 
