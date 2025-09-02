@@ -43,6 +43,8 @@
 
 ### Integration with Bridge Service
 - Follow PROTOCOL.md specifications when implementing Bridge Service communication
-- Use HTTP REST API for Lua function calls
-- Use Server-Sent Events (SSE) for real-time game updates
+- Always use the BridgeManager class (`src/bridge/bridge-manager.ts`) for all Bridge Service communication
+  - Do NOT use direct fetch/HTTP calls to the Bridge Service
+  - BridgeManager provides methods for Lua script execution, function calls, and SSE handling
+  - Import the singleton instance through `import { bridgeManager } from '../server.js';`
 - Handle connection failures and retry logic gracefully

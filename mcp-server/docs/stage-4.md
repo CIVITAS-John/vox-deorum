@@ -63,15 +63,15 @@ Foundation for storing and managing AI player knowledge with SQLite-based persis
 2. Implement SSE event monitoring hooks
 3. Add Bridge Service connection status tracking
 
-### Phase 3: KnowledgeStore Foundation
-1. Create KnowledgeStore class with Kysely query builder
-2. Implement type-safe CRU operations with automatic timestamps using <T extends Knowledge>
-
-### Phase 4: Game Identity Management
+### Phase 3: Game Identity Management
 1. Implement Lua script execution for game ID operations
 2. Create game session tracking using Kysely table operations
 3. Add validation queries for game context changes
 4. Build game change detection logic using Kysely queries
+
+### Phase 4: KnowledgeStore Foundation
+1. Create KnowledgeStore class with Kysely query builder
+2. Implement type-safe CRU operations with automatic timestamps using <T extends Knowledge>
 
 ### Phase 5: Persistence Layer
 1. Implement auto-save triggers using Kysely insert/update queries 

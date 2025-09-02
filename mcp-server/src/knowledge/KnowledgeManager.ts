@@ -5,11 +5,12 @@
 
 import { logger } from '../utils/logger.js';
 import { bridgeManager } from '../server.js';
+import { GameIdentity, syncGameIdentity } from '../utils/lua/game-identity.js';
 
 export class KnowledgeManager {
-  private currentGameId: string | null = null;
+  private gameIdentity?: GameIdentity;
   private autoSaveTimer: NodeJS.Timeout | null = null;
-  
+
   private config = {
     databasePath: 'saves/',
     autoSaveInterval: 30000,
@@ -18,17 +19,15 @@ export class KnowledgeManager {
   /**
    * Setup event listeners for SSE and Bridge Service events
    */
-  constructor() {
+  async initialize() {
     bridgeManager.on('connected', () => {
       logger.info('Bridge Service connected');
       this.checkGameContext();
     });
-
-    bridgeManager.on('gameEvent', (data: any) => {
+    bridgeManager.on('gameEvent', (data) => {
       logger.debug('Turn start event received', data);
       this.checkGameContext();
     });
-    
     this.startAutoSave();
   }
 
@@ -37,11 +36,10 @@ export class KnowledgeManager {
    */
   private async checkGameContext(): Promise<void> {
     try {
-      const gameId = await this.getGameId();
-      
-      if (gameId && gameId !== this.currentGameId) {
-        logger.info(`Game context change detected: ${this.currentGameId} -> ${gameId}`);
-        await this.switchGameContext(gameId);
+      const gameIdentity = await syncGameIdentity();
+      if (gameIdentity && gameIdentity.gameId !== this.gameIdentity?.gameId) {
+        logger.info(`Game context change detected: ${this.gameIdentity?.gameId ?? "(empty)"} -> ${gameIdentity.gameId}`);
+        await this.switchGameContext(gameIdentity);
       }
     } catch (error) {
       logger.error('Error checking game context:', error);
@@ -51,10 +49,10 @@ export class KnowledgeManager {
   /**
    * Switch to a new game context
    */
-  private async switchGameContext(gameId: string): Promise<void> {
+  private async switchGameContext(identity: GameIdentity): Promise<void> {
     await this.saveKnowledge();
-    this.currentGameId = gameId;
-    await this.loadKnowledge(gameId);
+    this.gameIdentity = identity;
+    await this.loadKnowledge(identity.gameId);
   }
 
   /**
@@ -64,7 +62,7 @@ export class KnowledgeManager {
     if (this.autoSaveTimer) {
       clearInterval(this.autoSaveTimer);
     }
-    
+
     this.autoSaveTimer = setInterval(() => {
       this.saveKnowledge();
     }, this.config.autoSaveInterval);
@@ -74,10 +72,10 @@ export class KnowledgeManager {
    * Save current knowledge to database
    */
   async saveKnowledge(): Promise<void> {
-    if (!this.currentGameId) return;
-    logger.info(`Saving knowledge for game: ${this.currentGameId}`);
+    if (!this.gameIdentity) return;
+    logger.info(`Saving knowledge for game: ${this.gameIdentity.gameId}`);
     // TODO: Implement actual save to KnowledgeStore (Phase 3)
-    
+
   }
 
   /**
@@ -86,7 +84,7 @@ export class KnowledgeManager {
   async loadKnowledge(gameId: string): Promise<void> {
     logger.info(`Loading knowledge for game: ${gameId}`);
     // TODO: Implement actual load from KnowledgeStore (Phase 3)
-    
+
   }
 
   /**
@@ -94,10 +92,10 @@ export class KnowledgeManager {
    */
   async shutdown(): Promise<void> {
     logger.info('Shutting down KnowledgeManager');
-    
+
     if (this.autoSaveTimer)
       clearInterval(this.autoSaveTimer);
-    
+
     await this.saveKnowledge();
   }
 }
