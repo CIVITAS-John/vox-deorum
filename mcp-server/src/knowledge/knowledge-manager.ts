@@ -3,16 +3,21 @@
  * Monitors game state changes and manages persistence.
  */
 
-import { logger } from '../utils/logger.js';
+import { createLogger } from '../utils/logger.js';
 import { bridgeManager } from '../server.js';
 import { GameIdentity, syncGameIdentity } from '../utils/lua/game-identity.js';
+import { KnowledgeStore } from './knowledge-store.js';
+import path from 'path';
+
+const logger = createLogger('KnowledgeManager');
 
 export class KnowledgeManager {
   private gameIdentity?: GameIdentity;
+  private knowledgeStore?: KnowledgeStore;
   private autoSaveTimer: NodeJS.Timeout | null = null;
 
   private config = {
-    databasePath: 'saves/',
+    databasePath: 'data/',
     autoSaveInterval: 30000,
   };
 
@@ -51,6 +56,13 @@ export class KnowledgeManager {
    */
   private async switchGameContext(identity: GameIdentity): Promise<void> {
     await this.saveKnowledge();
+    
+    // Close existing store if any
+    if (this.knowledgeStore) {
+      await this.knowledgeStore.close();
+      this.knowledgeStore = undefined;
+    }
+    
     this.gameIdentity = identity;
     await this.loadKnowledge(identity.gameId);
   }
@@ -72,10 +84,17 @@ export class KnowledgeManager {
    * Save current knowledge to database
    */
   async saveKnowledge(): Promise<void> {
-    if (!this.gameIdentity) return;
+    if (!this.gameIdentity || !this.knowledgeStore) return;
+    
     logger.info(`Saving knowledge for game: ${this.gameIdentity.gameId}`);
-    // TODO: Implement actual save to KnowledgeStore (Phase 3)
-
+    
+    try {
+      // Update last save timestamp
+      await this.knowledgeStore.setMetadata('turn', this.gameIdentity.turn.toString());
+      await this.knowledgeStore.setMetadata('lastSave', Date.now().toString());
+    } catch (error) {
+      logger.error('Failed to save knowledge:', error);
+    }
   }
 
   /**
@@ -83,8 +102,27 @@ export class KnowledgeManager {
    */
   async loadKnowledge(gameId: string): Promise<void> {
     logger.info(`Loading knowledge for game: ${gameId}`);
-    // TODO: Implement actual load from KnowledgeStore (Phase 3)
-
+    
+    try {
+      // Create new KnowledgeStore instance
+      this.knowledgeStore = new KnowledgeStore();
+      
+      // Build database path based on game ID
+      const dbPath = path.join(this.config.databasePath, `${gameId}.db`);
+      
+      // Initialize the store with the database
+      await this.knowledgeStore.initialize(dbPath, gameId);
+      
+      // Log successful load
+      const lastSave = await this.knowledgeStore.getMetadata('lastSave');
+      if (lastSave) {
+        logger.info(`Loaded knowledge from save at: ${new Date(parseInt(lastSave)).toISOString()}`);
+      }
+      
+    } catch (error) {
+      logger.error('Failed to load knowledge:', error);
+      this.knowledgeStore = undefined;
+    }
   }
 
   /**
@@ -93,9 +131,26 @@ export class KnowledgeManager {
   async shutdown(): Promise<void> {
     logger.info('Shutting down KnowledgeManager');
 
-    if (this.autoSaveTimer)
+    if (this.autoSaveTimer) {
       clearInterval(this.autoSaveTimer);
+    }
 
     await this.saveKnowledge();
+    
+    // Close knowledge store
+    if (this.knowledgeStore) {
+      await this.knowledgeStore.close();
+      this.knowledgeStore = undefined;
+    }
+  }
+  
+  /**
+   * Get current knowledge store instance (for testing or direct access)
+   */
+  getStore(): KnowledgeStore {
+    if (!this.knowledgeStore) {
+      throw new Error('KnowledgeStore not initialized. Call loadKnowledge() first.');
+    }
+    return this.knowledgeStore;
   }
 }

@@ -12,6 +12,7 @@ import type {
 } from './schema.js';
 import { setupKnowledgeDatabase } from './setup.js';
 import fs from 'fs/promises';
+import path from 'path';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -33,33 +34,29 @@ export class KnowledgeStore {
 
     this.gameId = gameId;
     
-    // Ensure directory exists
-    await fs.mkdir(dbPath, { recursive: true });
+    // Ensure the directory for the database file exists
+    const dbDir = path.dirname(dbPath);
+    await fs.mkdir(dbDir, { recursive: true });
 
-    logger.info(`Initializing KnowledgeStore for game: ${gameId}`);
+    logger.info(`Initializing KnowledgeStore for game: ${gameId} at path: ${dbPath}`);
 
-    try {
-      // Create Kysely instance with Better-SQLite3
-      const sqliteDb = new Database(dbPath);
-      
-      this.db = new Kysely<KnowledgeDatabase>({
-        dialect: new SqliteDialect({
-          database: sqliteDb,
-        }),
-      });
+    // Create Kysely instance with Better-SQLite3
+    const sqliteDb = new Database(dbPath);
+    
+    this.db = new Kysely<KnowledgeDatabase>({
+      dialect: new SqliteDialect({
+        database: sqliteDb,
+      }),
+    });
 
-      // Setup database schema if needed
-      await setupKnowledgeDatabase(this.db);
-      
-      // Store game ID in metadata
-      await this.setMetadata('gameId', gameId);
-      await this.setMetadata('lastSync', Date.now().toString());
-      
-      logger.info(`KnowledgeStore initialized successfully for game: ${gameId}`);
-    } catch (error) {
-      logger.error('Failed to initialize KnowledgeStore:', error);
-      throw error;
-    }
+    // Setup database schema if needed
+    await setupKnowledgeDatabase(this.db);
+    
+    // Store game ID in metadata
+    await this.setMetadata('gameId', gameId);
+    await this.setMetadata('lastSync', Date.now().toString());
+    
+    logger.info(`KnowledgeStore initialized successfully for game: ${gameId}`);
   }
 
   /**
