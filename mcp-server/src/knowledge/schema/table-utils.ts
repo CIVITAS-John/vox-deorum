@@ -66,24 +66,23 @@ export async function createTimedKnowledgeIndexes(
   tableName: string,
   typeColumn?: string
 ): Promise<void> {
-  // Create composite index for turn and type queries if type column exists
-  if (typeColumn) {
-    await db.schema
-      .createIndex(`idx_${tableName.toLowerCase()}_turn_type`)
-      .on(tableName)
-      .columns(['Turn', typeColumn])
-      .ifNotExists()
-      .execute();
-  }
-  
   // Create index for owner queries
   for (let i = 0; i <= 15; i++) {
-    await db.schema
-      .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
-      .on(tableName)
-      .column(`Player${i}`)
-      .ifNotExists()
-      .execute();
+    if (typeColumn) {
+      await db.schema
+        .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
+        .on(tableName)
+        .columns([`Turn`, typeColumn, `Player${i}`])
+        .ifNotExists()
+        .execute();
+    } else {
+      await db.schema
+        .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
+        .on(tableName)
+        .columns([`Turn`, `Player${i}`])
+        .ifNotExists()
+        .execute();
+    }
   }
 }
 
@@ -96,15 +95,24 @@ export async function createMutableKnowledgeIndexes(
   tableName: string,
   typeColumn?: string
 ): Promise<void> {
-  createTimedKnowledgeIndexes(db, tableName, typeColumn);
-  
-  // Create composite index for latest events by key
-  await db.schema
-    .createIndex(`idx_${tableName.toLowerCase()}_key_latest`)
-    .on(tableName)
-    .columns(['Key', 'IsLatest'])
-    .ifNotExists()
-    .execute();
+  // Create index for owner queries
+  for (let i = 0; i <= 15; i++) {
+    if (typeColumn) {
+      await db.schema
+        .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
+        .on(tableName)
+        .columns([`Turn`, `Key`, `IsLatest`, typeColumn, `Player${i}`])
+        .ifNotExists()
+        .execute();
+    } else {
+      await db.schema
+        .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
+        .on(tableName)
+        .columns([`Turn`, `Key`, `IsLatest`, `Player${i}`])
+        .ifNotExists()
+        .execute();
+    }
+  }
 }
 
 /**
