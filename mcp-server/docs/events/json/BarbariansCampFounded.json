@@ -1,0 +1,17 @@
+{
+  "eventName": "BarbariansCampFounded",
+  "generatedAt": "2025-09-02T16:48:30.112Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 8286,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_BarbariansCampFounded, getX(), getY());",
+      "eventName": "BarbariansCampFounded",
+      "args": [
+        "getX()",
+        "getY()"
+      ]
+    }
+  ]
+}

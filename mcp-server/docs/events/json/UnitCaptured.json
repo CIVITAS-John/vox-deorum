@@ -1,0 +1,91 @@
+{
+  "eventName": "UnitCaptured",
+  "generatedAt": "2025-09-02T16:48:30.104Z",
+  "occurrences": 6,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvBeliefClasses.cpp",
+      "line": 4683,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitCaptured, pPlayer->GetID(), pByUnit->GetID(), pUnit->getOwner(), pUnit->GetID(), false, 4);",
+      "eventName": "UnitCaptured",
+      "args": [
+        "pPlayer->GetID()",
+        "pByUnit->GetID()",
+        "pUnit->getOwner()",
+        "pUnit->GetID()",
+        "false",
+        "4"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTraitClasses.cpp",
+      "line": 7906,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitCaptured, m_pPlayer->GetID(), pByUnit->GetID(), m_pPlayer->GetID(), pGiftUnit->GetID(), false, 2);",
+      "eventName": "UnitCaptured",
+      "args": [
+        "m_pPlayer->GetID()",
+        "pByUnit->GetID()",
+        "m_pPlayer->GetID()",
+        "pGiftUnit->GetID()",
+        "false",
+        "2"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTraitClasses.cpp",
+      "line": 7920,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitCaptured, m_pPlayer->GetID(), pByUnit->GetID(), m_pPlayer->GetID(), pGiftUnit->GetID(), false, 2);",
+      "eventName": "UnitCaptured",
+      "args": [
+        "m_pPlayer->GetID()",
+        "pByUnit->GetID()",
+        "m_pPlayer->GetID()",
+        "pGiftUnit->GetID()",
+        "false",
+        "2"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTraitClasses.cpp",
+      "line": 7972,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitCaptured, m_pPlayer->GetID(), pByUnit->GetID(), pUnit->getOwner(), pUnit->GetID(), false, 3);",
+      "eventName": "UnitCaptured",
+      "args": [
+        "m_pPlayer->GetID()",
+        "pByUnit->GetID()",
+        "pUnit->getOwner()",
+        "pUnit->GetID()",
+        "false",
+        "3"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 2789,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitCaptured, kCaptureDef.eCapturingPlayer, kCaptureDef.eCaptureUnitType, eUnitOwner, GetID(), false, 1);",
+      "eventName": "UnitCaptured",
+      "args": [
+        "kCaptureDef.eCapturingPlayer",
+        "kCaptureDef.eCaptureUnitType",
+        "eUnitOwner",
+        "GetID()",
+        "false",
+        "1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 20078,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitCaptured, getOwner(), GetID(), pLoopUnit->getOwner(), pLoopUnit->GetID(), !bDoCapture, 0);",
+      "eventName": "UnitCaptured",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "pLoopUnit->getOwner()",
+        "pLoopUnit->GetID()",
+        "!bDoCapture",
+        "0"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "eventName": "CityRazed",
+  "generatedAt": "2025-09-02T16:48:30.109Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 11599,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityRazed, GetID(), pPlot->getX(), pPlot->getY());",
+      "eventName": "CityRazed",
+      "args": [
+        "GetID()",
+        "pPlot->getX()",
+        "pPlot->getY()"
+      ]
+    }
+  ]
+}

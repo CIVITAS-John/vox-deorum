@@ -1,0 +1,17 @@
+{
+  "eventName": "ContractEnded",
+  "generatedAt": "2025-09-02T16:48:30.107Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvContractClasses.cpp",
+      "line": 837,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_ContractEnded, eHolder, eContract);",
+      "eventName": "ContractEnded",
+      "args": [
+        "eHolder",
+        "eContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "eventName": "CityPrepared",
+  "generatedAt": "2025-09-02T16:48:30.107Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCityCitizens.cpp",
+      "line": 2961,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityPrepared, GetCity()->getOwner(), GetCity(), eSpecialist, iGPPChange, iGPThreshold);",
+      "eventName": "CityPrepared",
+      "args": [
+        "GetCity()->getOwner()",
+        "GetCity()",
+        "eSpecialist",
+        "iGPPChange",
+        "iGPThreshold"
+      ]
+    }
+  ]
+}

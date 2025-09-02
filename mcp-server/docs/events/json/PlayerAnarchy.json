@@ -1,0 +1,29 @@
+{
+  "eventName": "PlayerAnarchy",
+  "generatedAt": "2025-09-02T16:48:30.110Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 23600,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerAnarchy, GetID(), true, iValue);",
+      "eventName": "PlayerAnarchy",
+      "args": [
+        "GetID()",
+        "true",
+        "iValue"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 23602,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerAnarchy, GetID(), false, 0);",
+      "eventName": "PlayerAnarchy",
+      "args": [
+        "GetID()",
+        "false",
+        "0"
+      ]
+    }
+  ]
+}

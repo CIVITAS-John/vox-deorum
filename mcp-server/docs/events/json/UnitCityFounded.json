@@ -1,0 +1,20 @@
+{
+  "eventName": "UnitCityFounded",
+  "generatedAt": "2025-09-02T16:48:30.114Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 10898,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitCityFounded, getOwner(), GetID(), getUnitType(), getX(), getY());",
+      "eventName": "UnitCityFounded",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "getUnitType()",
+        "getX()",
+        "getY()"
+      ]
+    }
+  ]
+}

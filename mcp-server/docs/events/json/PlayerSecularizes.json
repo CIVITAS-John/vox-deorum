@@ -1,0 +1,18 @@
+{
+  "eventName": "PlayerSecularizes",
+  "generatedAt": "2025-09-02T16:48:30.111Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 29542,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerSecularizes, GetID(), GetReligions()->GetStateReligion(), bValue);",
+      "eventName": "PlayerSecularizes",
+      "args": [
+        "GetID()",
+        "GetReligions()->GetStateReligion()",
+        "bValue"
+      ]
+    }
+  ]
+}

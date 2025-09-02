@@ -1,0 +1,62 @@
+{
+  "eventName": "CapitalChanged",
+  "generatedAt": "2025-09-02T16:48:30.104Z",
+  "occurrences": 5,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 883,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CapitalChanged, getOwner(), GetID(), -1);",
+      "eventName": "CapitalChanged",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 4153,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CapitalChanged, GetID(), pNewCity->GetID(), (pCurrentCapital ? pCurrentCapital->GetID() : -1));",
+      "eventName": "CapitalChanged",
+      "args": [
+        "GetID()",
+        "pNewCity->GetID()",
+        "(pCurrentCapital ? pCurrentCapital->GetID() : -1)"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 4517,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CapitalChanged, GetID(), pNewCity->GetID(), -1);",
+      "eventName": "CapitalChanged",
+      "args": [
+        "GetID()",
+        "pNewCity->GetID()",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 4533,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CapitalChanged, GetID(), pNewCity->GetID(), -1);",
+      "eventName": "CapitalChanged",
+      "args": [
+        "GetID()",
+        "pNewCity->GetID()",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 11400,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CapitalChanged, GetID(), pBestCity->GetID(), (pOldCapital ? pOldCapital->GetID() : -1));",
+      "eventName": "CapitalChanged",
+      "args": [
+        "GetID()",
+        "pBestCity->GetID()",
+        "(pOldCapital ? pOldCapital->GetID() : -1)"
+      ]
+    }
+  ]
+}

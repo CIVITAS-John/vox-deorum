@@ -1,0 +1,33 @@
+{
+  "eventName": "ResolutionResult",
+  "generatedAt": "2025-09-02T16:48:30.115Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvVotingClasses.cpp",
+      "line": 8701,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_ResolutionResult, pProposal->GetType(), pProposal->GetProposalPlayer(), iDecision, true, pProposal->IsPassed(GetVotesSpentThisSession()));",
+      "eventName": "ResolutionResult",
+      "args": [
+        "pProposal->GetType()",
+        "pProposal->GetProposalPlayer()",
+        "iDecision",
+        "true",
+        "pProposal->IsPassed(GetVotesSpentThisSession())"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvVotingClasses.cpp",
+      "line": 8742,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_ResolutionResult, pProposal->GetType(), pProposal->GetProposalPlayer(), pProposal->GetProposerDecision()->GetDecision(), false, pProposal->IsPassed(iTotalSessionVotes));",
+      "eventName": "ResolutionResult",
+      "args": [
+        "pProposal->GetType()",
+        "pProposal->GetProposalPlayer()",
+        "pProposal->GetProposerDecision()->GetDecision()",
+        "false",
+        "pProposal->IsPassed(iTotalSessionVotes)"
+      ]
+    }
+  ]
+}

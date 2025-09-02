@@ -1,0 +1,29 @@
+{
+  "eventName": "PietyChanged",
+  "generatedAt": "2025-09-02T16:48:30.110Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 29465,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PietyChanged, GetID(), GetPiety(), iValue);",
+      "eventName": "PietyChanged",
+      "args": [
+        "GetID()",
+        "GetPiety()",
+        "iValue"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 29473,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PietyChanged, GetID(), GetPiety(), iValue);",
+      "eventName": "PietyChanged",
+      "args": [
+        "GetID()",
+        "GetPiety()",
+        "iValue"
+      ]
+    }
+  ]
+}
