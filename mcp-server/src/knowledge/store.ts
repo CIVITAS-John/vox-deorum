@@ -106,6 +106,11 @@ export class KnowledgeStore {
    */
   handleGameEvent(type: string, payload: unknown): void {
     try {
+      if (blockedEventTypes.has(type)) {
+        logger.debug(`Blocked event type: ${type}`);
+        return;
+      }
+
       // Check if the payload is an array (it should be an array from the DLL)
       if (!Array.isArray(payload)) {
         logger.warn(`Invalid ${type} event payload: not an array`);

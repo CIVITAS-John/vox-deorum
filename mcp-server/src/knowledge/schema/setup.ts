@@ -9,7 +9,9 @@ import {
   createPublicKnowledgeTable, 
   createTimedKnowledgeTable,
   createTimedKnowledgeIndexes,
-  createPublicKnowledgeIndexes
+  createPublicKnowledgeIndexes,
+  createMutableKnowledgeTable,
+  createMutableKnowledgeIndexes
 } from './table-utils.js';
 
 /**
@@ -29,11 +31,19 @@ export async function setupKnowledgeDatabase(
     .addColumn('Value', 'text', (col) => col.notNull())
     .execute();
   
+  // Create PlayerStatus table (MutableKnowledge implementation)
+  await createMutableKnowledgeTable(db, 'PlayerStatus')
+    .execute();
+  // Create indexes for MutableKnowledge table
+  await createMutableKnowledgeIndexes(db, 'PlayerStatus');
+  
   // Create GameEvents table (TimedKnowledge implementation)
   await createTimedKnowledgeTable(db, 'GameEvents')
     .addColumn('Type', 'text', (col) => col.notNull())
     .execute();
-  
+  // Create indexes for GameEvents table
+  await createTimedKnowledgeIndexes(db, 'GameEvents', 'Type');
+
   // Create PlayerInformation table (PublicKnowledge implementation)
   await createPublicKnowledgeTable(db, 'PlayerInformation')
     .addColumn('PlayerId', 'integer', (col) => col.notNull().unique())
@@ -42,10 +52,6 @@ export async function setupKnowledgeDatabase(
     .addColumn('TeamId', 'integer')
     .addColumn('IsHuman', 'boolean', (col) => col.notNull())
     .execute();
-
-  // Create indexes for GameEvents table
-  await createTimedKnowledgeIndexes(db, 'GameEvents', 'Type');
-  
   // Create indexes for PlayerInformation table
   await createPublicKnowledgeIndexes(db, 'PlayerInformation', ['PlayerId']);
 
