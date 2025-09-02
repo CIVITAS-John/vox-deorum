@@ -14,7 +14,7 @@
 
 ### Prompt for Generating Event Definitions
 - Read through each MD file in `mcp-server/docs/events/md` and dispatch a subagent for it
-- For each event, generate a Typescript definition file in `mcp-server/src/knowledge/events` that
+- For each event, generate a Typescript definition file in `mcp-server/src/knowledge/schema/events` that
   - Strictly follow the order and type of event arguments
   - Use PascalCase naming convention with sensible/reasonable names for each argument
   - Add comments to the interface and member definitions

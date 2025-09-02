@@ -4,7 +4,7 @@
  */
 
 import { Kysely } from 'kysely';
-import type { KnowledgeDatabase } from './schema.js';
+import type { KnowledgeDatabase } from './base.js';
 import { 
   createPublicKnowledgeTable, 
   createTimedKnowledgeTable,

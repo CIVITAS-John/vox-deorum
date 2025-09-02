@@ -9,8 +9,8 @@ import { createLogger } from '../utils/logger.js';
 import type { 
   KnowledgeDatabase, 
   GameEvent,
-} from './schema.js';
-import { setupKnowledgeDatabase } from './setup.js';
+} from './schema/base.js';
+import { setupKnowledgeDatabase } from './schema/setup.js';
 import fs from 'fs/promises';
 import path from 'path';
 

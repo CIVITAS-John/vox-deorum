@@ -4,7 +4,7 @@
  */
 
 import { Kysely, sql, CreateTableBuilder } from 'kysely';
-import type { KnowledgeDatabase } from './schema.js';
+import type { KnowledgeDatabase } from './base.js';
 
 /**
  * Creates base columns for PublicKnowledge-derived tables
