@@ -1,0 +1,29 @@
+{
+  "eventName": "PlayerAdoptsCurrency",
+  "generatedAt": "2025-09-02T16:43:10.305Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 29733,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerAdoptsCurrency, GetID(), iValue, -1);",
+      "eventName": "PlayerAdoptsCurrency",
+      "args": [
+        "GetID()",
+        "iValue",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 29737,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerAdoptsCurrency, GetID(), iValue, GetCurrency());",
+      "eventName": "PlayerAdoptsCurrency",
+      "args": [
+        "GetID()",
+        "iValue",
+        "GetCurrency()"
+      ]
+    }
+  ]
+}

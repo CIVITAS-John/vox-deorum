@@ -1,0 +1,29 @@
+{
+  "eventName": "BarbariansSpawnedUnit",
+  "generatedAt": "2025-09-02T16:43:10.299Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvBarbarians.cpp",
+      "line": 1202,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_BarbariansSpawnedUnit, pPlot->getX(), pPlot->getY(), eUnit);",
+      "eventName": "BarbariansSpawnedUnit",
+      "args": [
+        "pPlot->getX()",
+        "pPlot->getY()",
+        "eUnit"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvBarbarians.cpp",
+      "line": 1330,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_BarbariansSpawnedUnit, pSpawnPlot->getX(), pSpawnPlot->getY(), eUnit);",
+      "eventName": "BarbariansSpawnedUnit",
+      "args": [
+        "pSpawnPlot->getX()",
+        "pSpawnPlot->getY()",
+        "eUnit"
+      ]
+    }
+  ]
+}

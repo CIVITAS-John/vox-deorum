@@ -1,0 +1,23 @@
+{
+  "eventName": "ReligionFounded",
+  "generatedAt": "2025-09-02T16:43:10.306Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+      "line": 1256,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_ReligionFounded, ePlayer, pkHolyCity->GetID(), eReligion, eBelief, eBelief1, eBelief2, eBelief3, eBelief4);",
+      "eventName": "ReligionFounded",
+      "args": [
+        "ePlayer",
+        "pkHolyCity->GetID()",
+        "eReligion",
+        "eBelief",
+        "eBelief1",
+        "eBelief2",
+        "eBelief3",
+        "eBelief4"
+      ]
+    }
+  ]
+}

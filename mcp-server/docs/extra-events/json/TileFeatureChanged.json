@@ -1,0 +1,20 @@
+{
+  "eventName": "TileFeatureChanged",
+  "generatedAt": "2025-09-02T16:43:10.305Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 7570,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TileFeatureChanged, getX(), getY(), getOwner(), eOldFeature, eNewValue);",
+      "eventName": "TileFeatureChanged",
+      "args": [
+        "getX()",
+        "getY()",
+        "getOwner()",
+        "eOldFeature",
+        "eNewValue"
+      ]
+    }
+  ]
+}

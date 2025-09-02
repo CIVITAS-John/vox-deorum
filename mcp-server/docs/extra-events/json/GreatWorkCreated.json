@@ -1,0 +1,18 @@
+{
+  "eventName": "GreatWorkCreated",
+  "generatedAt": "2025-09-02T16:43:10.307Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 9590,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_GreatWorkCreated, getOwner(), GetID(), iValue);",
+      "eventName": "GreatWorkCreated",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "iValue"
+      ]
+    }
+  ]
+}

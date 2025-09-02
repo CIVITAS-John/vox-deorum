@@ -1,0 +1,35 @@
+{
+  "eventName": "CityBoughtPlot",
+  "generatedAt": "2025-09-02T16:43:10.300Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 17362,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityBoughtPlot, getOwner(), GetID(), pPlotToAcquire->getX(), pPlotToAcquire->getY(), false, true);",
+      "eventName": "CityBoughtPlot",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "pPlotToAcquire->getX()",
+        "pPlotToAcquire->getY()",
+        "false",
+        "true"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 28506,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityBoughtPlot, getOwner(), GetID(), iPlotX, iPlotY, bWithGold, false);",
+      "eventName": "CityBoughtPlot",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "iPlotX",
+        "iPlotY",
+        "bWithGold",
+        "false"
+      ]
+    }
+  ]
+}

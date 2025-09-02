@@ -1,0 +1,183 @@
+{
+  "eventName": "TerraformingPlot",
+  "generatedAt": "2025-09-02T16:43:10.305Z",
+  "occurrences": 11,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 5660,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_AREA, m_iX, m_iY, 0, iNewValue, m_iArea, -1, -1);",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_AREA",
+        "m_iX",
+        "m_iY",
+        "0",
+        "iNewValue",
+        "m_iArea",
+        "-1",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 5689,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_LANDMASS, m_iX, m_iY, 0, iNewValue, m_iLandmass, -1, -1);",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_LANDMASS",
+        "m_iX",
+        "m_iY",
+        "0",
+        "iNewValue",
+        "m_iLandmass",
+        "-1",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 6221,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_RIVER, m_iX, m_iY, DIRECTION_NORTHEAST, bNewValue, isNEOfRiver(), eRiverDir, getRiverSWFlowDirection());",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_RIVER",
+        "m_iX",
+        "m_iY",
+        "DIRECTION_NORTHEAST",
+        "bNewValue",
+        "isNEOfRiver()",
+        "eRiverDir",
+        "getRiverSWFlowDirection()"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 6269,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_RIVER, m_iX, m_iY, DIRECTION_WEST, bNewValue, isWOfRiver(), eRiverDir, getRiverEFlowDirection());",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_RIVER",
+        "m_iX",
+        "m_iY",
+        "DIRECTION_WEST",
+        "bNewValue",
+        "isWOfRiver()",
+        "eRiverDir",
+        "getRiverEFlowDirection()"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 6317,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_RIVER, m_iX, m_iY, DIRECTION_NORTHWEST, bNewValue, isNWOfRiver(), eRiverDir, getRiverSEFlowDirection());",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_RIVER",
+        "m_iX",
+        "m_iY",
+        "DIRECTION_NORTHWEST",
+        "bNewValue",
+        "isNWOfRiver()",
+        "eRiverDir",
+        "getRiverSEFlowDirection()"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 7107,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_PLOT, m_iX, m_iY, 0, eNewValue, m_ePlotType, -1, -1);",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_PLOT",
+        "m_iX",
+        "m_iY",
+        "0",
+        "eNewValue",
+        "m_ePlotType",
+        "-1",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 7357,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_TERRAIN, m_iX, m_iY, 0, eNewValue, m_eTerrainType, -1, -1);",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_TERRAIN",
+        "m_iX",
+        "m_iY",
+        "0",
+        "eNewValue",
+        "m_eTerrainType",
+        "-1",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 7449,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_FEATURE, m_iX, m_iY, 0, eNewValue, m_eFeatureType, -1, -1);",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_FEATURE",
+        "m_iX",
+        "m_iY",
+        "0",
+        "eNewValue",
+        "m_eFeatureType",
+        "-1",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 7952,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_CITY, m_iX, m_iY, 0, -1, getOwner(), -1, getOwningCityID());",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_CITY",
+        "m_iX",
+        "m_iY",
+        "0",
+        "-1",
+        "getOwner()",
+        "-1",
+        "getOwningCityID()"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 7995,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_CITY, m_iX, m_iY, 0, getOwner(), -1, getOwningCityID(), -1);",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_CITY",
+        "m_iX",
+        "m_iY",
+        "0",
+        "getOwner()",
+        "-1",
+        "getOwningCityID()",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 14264,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TerraformingPlot, TERRAFORMINGEVENT_CONTINENT, m_iX, m_iY, 0, cContinent, m_cContinentType, -1, -1);",
+      "eventName": "TerraformingPlot",
+      "args": [
+        "TERRAFORMINGEVENT_CONTINENT",
+        "m_iX",
+        "m_iY",
+        "0",
+        "cContinent",
+        "m_cContinentType",
+        "-1",
+        "-1"
+      ]
+    }
+  ]
+}

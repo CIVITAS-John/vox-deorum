@@ -1,0 +1,22 @@
+{
+  "eventName": "UnitPrekill",
+  "generatedAt": "2025-09-02T16:43:10.307Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 2639,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitPrekill, eUnitOwner, GetID(), getUnitType(), getX(), getY(), bDelay, ePlayer);",
+      "eventName": "UnitPrekill",
+      "args": [
+        "eUnitOwner",
+        "GetID()",
+        "getUnitType()",
+        "getX()",
+        "getY()",
+        "bDelay",
+        "ePlayer"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "eventName": "CityInvestedBuilding",
+  "generatedAt": "2025-09-02T16:43:10.300Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 11547,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityInvestedBuilding, getOwner(), GetID(), eBuildingClass, bNewValue);",
+      "eventName": "CityInvestedBuilding",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "eBuildingClass",
+        "bNewValue"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "eventName": "StateReligionChanged",
+  "generatedAt": "2025-09-02T16:43:10.306Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+      "line": 3825,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_StateReligionChanged, m_pPlayer->GetID(), eNewStateReligion, GetStateReligion());",
+      "eventName": "StateReligionChanged",
+      "args": [
+        "m_pPlayer->GetID()",
+        "eNewStateReligion",
+        "GetStateReligion()"
+      ]
+    }
+  ]
+}

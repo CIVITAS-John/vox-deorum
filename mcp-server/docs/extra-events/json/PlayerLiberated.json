@@ -1,0 +1,18 @@
+{
+  "eventName": "PlayerLiberated",
+  "generatedAt": "2025-09-02T16:43:10.303Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 9028,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerLiberated, GetID(), ePlayer, pNewCity->GetID());",
+      "eventName": "PlayerLiberated",
+      "args": [
+        "GetID()",
+        "ePlayer",
+        "pNewCity->GetID()"
+      ]
+    }
+  ]
+}

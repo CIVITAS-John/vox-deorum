@@ -1,0 +1,20 @@
+{
+  "eventName": "ElectionResultFailure",
+  "generatedAt": "2025-09-02T16:43:10.302Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+      "line": 17336,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_ElectionResultFailure, (int)ePlayer, iSpyID, iDiminishAmount, pCapital->getX(), pCapital->getY());",
+      "eventName": "ElectionResultFailure",
+      "args": [
+        "(int)ePlayer",
+        "iSpyID",
+        "iDiminishAmount",
+        "pCapital->getX()",
+        "pCapital->getY()"
+      ]
+    }
+  ]
+}

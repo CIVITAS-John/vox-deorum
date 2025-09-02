@@ -1,0 +1,18 @@
+{
+  "eventName": "DeclareWar",
+  "generatedAt": "2025-09-02T16:43:10.306Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 1273,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_DeclareWar, eOriginatingPlayer, eTeam, bAggressor);",
+      "eventName": "DeclareWar",
+      "args": [
+        "eOriginatingPlayer",
+        "eTeam",
+        "bAggressor"
+      ]
+    }
+  ]
+}

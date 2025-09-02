@@ -1,3 +1,6 @@
+### Prompt for Generating Markdown Documents
+
+
 ### Prompt for Generating Event Definitions
 - Read through each MD file in mcp-server/docs/events/md and dispatch a subagent for it
 - For each event, generate a Typescript definition file that

@@ -1,0 +1,20 @@
+{
+  "eventName": "UnitConverted",
+  "generatedAt": "2025-09-02T16:43:10.307Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 2257,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitConverted, pUnit->getOwner(),getOwner(), pUnit->GetID(), GetID(), bIsUpgrade);",
+      "eventName": "UnitConverted",
+      "args": [
+        "pUnit->getOwner()",
+        "getOwner()",
+        "pUnit->GetID()",
+        "GetID()",
+        "bIsUpgrade"
+      ]
+    }
+  ]
+}

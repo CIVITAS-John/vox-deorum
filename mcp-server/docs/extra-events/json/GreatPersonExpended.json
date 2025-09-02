@@ -1,0 +1,20 @@
+{
+  "eventName": "GreatPersonExpended",
+  "generatedAt": "2025-09-02T16:43:10.304Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 27922,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_GreatPersonExpended, GetID(), pGreatPersonUnit->GetID(), eGreatPersonUnit, pGreatPersonUnit->getX(), pGreatPersonUnit->getY());",
+      "eventName": "GreatPersonExpended",
+      "args": [
+        "GetID()",
+        "pGreatPersonUnit->GetID()",
+        "eGreatPersonUnit",
+        "pGreatPersonUnit->getX()",
+        "pGreatPersonUnit->getY()"
+      ]
+    }
+  ]
+}

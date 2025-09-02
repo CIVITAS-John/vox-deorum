@@ -1,0 +1,21 @@
+{
+  "eventName": "PlayerBuilding",
+  "generatedAt": "2025-09-02T16:43:10.307Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 13415,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerBuilding, getOwner(), GetID(), getX(), getY(), eBuild, (iStartedYet == 0));",
+      "eventName": "PlayerBuilding",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "getX()",
+        "getY()",
+        "eBuild",
+        "(iStartedYet == 0)"
+      ]
+    }
+  ]
+}

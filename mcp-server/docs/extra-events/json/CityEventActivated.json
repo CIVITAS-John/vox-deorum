@@ -1,0 +1,18 @@
+{
+  "eventName": "CityEventActivated",
+  "generatedAt": "2025-09-02T16:43:10.299Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 3525,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityEventActivated, getOwner(), GetID(), eChosenEvent);",
+      "eventName": "CityEventActivated",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "eChosenEvent"
+      ]
+    }
+  ]
+}

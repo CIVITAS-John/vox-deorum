@@ -1,0 +1,35 @@
+{
+  "eventName": "TileRouteChanged",
+  "generatedAt": "2025-09-02T16:43:10.305Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 9269,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TileRouteChanged, getX(), getY(), getOwner(), eOldRoute, eNewValue, IsRoutePillaged());",
+      "eventName": "TileRouteChanged",
+      "args": [
+        "getX()",
+        "getY()",
+        "getOwner()",
+        "eOldRoute",
+        "eNewValue",
+        "IsRoutePillaged()"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 9309,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TileRouteChanged, getX(), getY(), getOwner(), getRouteType(), getRouteType(), IsRoutePillaged());",
+      "eventName": "TileRouteChanged",
+      "args": [
+        "getX()",
+        "getY()",
+        "getOwner()",
+        "getRouteType()",
+        "getRouteType()",
+        "IsRoutePillaged()"
+      ]
+    }
+  ]
+}

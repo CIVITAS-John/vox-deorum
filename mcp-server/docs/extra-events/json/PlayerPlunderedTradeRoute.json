@@ -1,0 +1,24 @@
+{
+  "eventName": "PlayerPlunderedTradeRoute",
+  "generatedAt": "2025-09-02T16:43:10.307Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTradeClasses.cpp",
+      "line": 5152,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerPlunderedTradeRoute, pUnit->getOwner(), pUnit->GetID(), iPlunderGoldValue, pOriginCity->getOwner(), pOriginCity->GetID(), pDestCity->getOwner(), pDestCity->GetID(), eConnectionType, eDomain);",
+      "eventName": "PlayerPlunderedTradeRoute",
+      "args": [
+        "pUnit->getOwner()",
+        "pUnit->GetID()",
+        "iPlunderGoldValue",
+        "pOriginCity->getOwner()",
+        "pOriginCity->GetID()",
+        "pDestCity->getOwner()",
+        "pDestCity->GetID()",
+        "eConnectionType",
+        "eDomain"
+      ]
+    }
+  ]
+}

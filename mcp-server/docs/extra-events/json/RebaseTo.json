@@ -1,0 +1,19 @@
+{
+  "eventName": "RebaseTo",
+  "generatedAt": "2025-09-02T16:43:10.307Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 10268,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_RebaseTo, getOwner(), GetID(), iX, iY);",
+      "eventName": "RebaseTo",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "iX",
+        "iY"
+      ]
+    }
+  ]
+}

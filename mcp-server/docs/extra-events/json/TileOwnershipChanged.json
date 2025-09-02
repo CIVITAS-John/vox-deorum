@@ -1,0 +1,19 @@
+{
+  "eventName": "TileOwnershipChanged",
+  "generatedAt": "2025-09-02T16:43:10.305Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 6737,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_TileOwnershipChanged, getX(), getY(), getOwner(), eOldOwner);",
+      "eventName": "TileOwnershipChanged",
+      "args": [
+        "getX()",
+        "getY()",
+        "getOwner()",
+        "eOldOwner"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "eventName": "CircumnavigatedGlobe",
+  "generatedAt": "2025-09-02T16:43:10.306Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 7690,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CircumnavigatedGlobe, eTeamID);",
+      "eventName": "CircumnavigatedGlobe",
+      "args": [
+        "eTeamID"
+      ]
+    }
+  ]
+}

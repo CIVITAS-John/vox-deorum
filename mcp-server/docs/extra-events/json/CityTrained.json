@@ -1,0 +1,46 @@
+{
+  "eventName": "CityTrained",
+  "generatedAt": "2025-09-02T16:43:10.300Z",
+  "occurrences": 3,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 29526,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityTrained, getOwner(), GetID(), pUnit->GetID(), false, false);",
+      "eventName": "CityTrained",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "pUnit->GetID()",
+        "false",
+        "false"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 30577,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityTrained, getOwner(), GetID(), pUnit->GetID(), true, false);",
+      "eventName": "CityTrained",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "pUnit->GetID()",
+        "true",
+        "false"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 30637,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityTrained, getOwner(), GetID(), pUnit->GetID(), false, true);",
+      "eventName": "CityTrained",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "pUnit->GetID()",
+        "false",
+        "true"
+      ]
+    }
+  ]
+}

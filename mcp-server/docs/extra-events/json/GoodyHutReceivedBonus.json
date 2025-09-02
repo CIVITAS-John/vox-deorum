@@ -1,0 +1,20 @@
+{
+  "eventName": "GoodyHutReceivedBonus",
+  "generatedAt": "2025-09-02T16:43:10.303Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 13129,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_GoodyHutReceivedBonus, GetID(), pUnit ? pUnit->GetID() : -1, eGoody, pPlot->getX(), pPlot->getY());",
+      "eventName": "GoodyHutReceivedBonus",
+      "args": [
+        "GetID()",
+        "pUnit ? pUnit->GetID() : -1",
+        "eGoody",
+        "pPlot->getX()",
+        "pPlot->getY()"
+      ]
+    }
+  ]
+}

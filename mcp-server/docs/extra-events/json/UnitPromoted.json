@@ -1,0 +1,29 @@
+{
+  "eventName": "UnitPromoted",
+  "generatedAt": "2025-09-02T16:43:10.307Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 13771,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitPromoted, getOwner(), GetID(), ePromotion);",
+      "eventName": "UnitPromoted",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "ePromotion"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 21517,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_UnitPromoted, getOwner(), GetID(), eNewPromotion);",
+      "eventName": "UnitPromoted",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "eNewPromotion"
+      ]
+    }
+  ]
+}
