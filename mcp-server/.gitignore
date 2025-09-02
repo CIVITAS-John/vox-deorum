@@ -34,6 +34,7 @@ Thumbs.db
 
 # Logs
 logs/
+data/
 *.log
 
 # Coverage

@@ -71,7 +71,7 @@ Foundation for storing and managing AI player knowledge with SQLite-based persis
 
 ### Phase 4: KnowledgeStore Foundation
 1. Create KnowledgeStore class with Kysely query builder
-2. Implement type-safe CRU operations with automatic timestamps using <T extends Knowledge>
+2. Implement type-safe CRU operations (no need for delete) <T extends Knowledge>
 
 ### Phase 5: Persistence Layer
 1. Implement auto-save triggers using Kysely insert/update queries 

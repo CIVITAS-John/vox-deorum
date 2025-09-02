@@ -11,7 +11,7 @@ import { ToolBase } from './tools/base.js';
 import { allTools } from './tools/index.js';
 import { BridgeManager } from './bridge/bridge-manager.js';
 import { DatabaseManager } from './database/database-manager.js';
-import { KnowledgeManager } from './knowledge/KnowledgeManager.js';
+import { KnowledgeManager } from './knowledge/knowledge-manager.js';
 import * as z from "zod";
 
 const logger = createLogger('Server');
@@ -184,8 +184,8 @@ export class MCPServer {
       });
       
       this.bridgeManager.on('gameEvent', (event) => {
-        logger.info('Received game event:', event);
-        // TODO: Process game events in Stage 4
+        logger.debug('Received game event:', event);
+        // Game events are now processed by KnowledgeManager
       });
     } catch (error: any) {
       throw new Error('Failed to connect to Bridge Service: ' + (error.message ?? "unknown error"), error);
