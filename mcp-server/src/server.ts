@@ -9,9 +9,9 @@ import { config } from './utils/config.js';
 import { wrapResults } from './utils/mcp.js';
 import { ToolBase } from './tools/base.js';
 import { allTools } from './tools/index.js';
-import { BridgeManager } from './bridge/bridge-manager.js';
-import { DatabaseManager } from './database/database-manager.js';
-import { KnowledgeManager } from './knowledge/knowledge-manager.js';
+import { BridgeManager } from './bridge/manager.js';
+import { DatabaseManager } from './database/manager.js';
+import { KnowledgeManager } from './knowledge/manager.js';
 import * as z from "zod";
 
 const logger = createLogger('Server');

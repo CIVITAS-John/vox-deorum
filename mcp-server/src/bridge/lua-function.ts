@@ -5,7 +5,7 @@
 
 import { createLogger } from '../utils/logger.js';
 import { MCPServer } from '../server.js';
-import type { LuaResponse } from './bridge-manager.js';
+import type { LuaResponse } from './manager.js';
 
 const logger = createLogger('LuaFunction');
 

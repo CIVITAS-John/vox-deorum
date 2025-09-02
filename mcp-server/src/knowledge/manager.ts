@@ -6,7 +6,7 @@
 import { createLogger } from '../utils/logger.js';
 import { bridgeManager } from '../server.js';
 import { GameIdentity, syncGameIdentity } from '../utils/lua/game-identity.js';
-import { KnowledgeStore } from './knowledge-store.js';
+import { KnowledgeStore } from './store.js';
 import path from 'path';
 
 const logger = createLogger('KnowledgeManager');
