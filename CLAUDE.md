@@ -44,6 +44,7 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 - Ensure code is testable and maintainable
 - Maintain consistency with existing codebase style and patterns
 - Implement proper error handling and validation
+  - Proper does not mean always or excessive - avoid having unnecessary layers of error handling
 - Follow DRY (Don't Repeat Yourself) principles
 
 ### Comment Convention

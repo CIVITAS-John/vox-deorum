@@ -96,7 +96,7 @@ export class KnowledgeStore {
   /**
    * Store a game event
    */
-  async storeGameEvent(event: Omit<GameEvent, 'ID' | 'CreatedAt'>): Promise<void> {
+  async storeGameEvent(event: GameEvent): Promise<void> {
     await this.getDatabase()
       .insertInto('GameEvents')
       .values({
