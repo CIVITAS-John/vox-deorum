@@ -36,7 +36,6 @@ export interface PublicKnowledge extends Knowledge {
  */
 export interface TimedKnowledge extends Knowledge {
   Turn: number;
-  Key: number; // Item identifier
   OwnerID?: number;
   KnownByIDs: JSONColumnType<number[]>; // Array of player IDs who know this item
   Payload: JSONColumnType<Record<string, unknown>>;
@@ -49,6 +48,7 @@ export interface TimedKnowledge extends Knowledge {
  * Tracks changes between versions
  */
 export interface MutableKnowledge extends TimedKnowledge {
+  Key: number; // Item identifier
   Version: number;
   Changes: JSONColumnType<string[]>; // Array of changed field names
 }

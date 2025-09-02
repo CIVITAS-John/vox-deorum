@@ -34,7 +34,6 @@ export function createTimedKnowledgeTable<T extends string>(
     .ifNotExists()
     .addColumn('ID', 'integer', (col) => col.primaryKey().autoIncrement())
     .addColumn('Turn', 'integer', (col) => col.notNull())
-    .addColumn('Key', 'integer', (col) => col.notNull())
     .addColumn('OwnerID', 'integer')
     .addColumn('KnownByIDs', 'text', (col) => col.notNull()) // JSON array
     .addColumn('Payload', 'text', (col) => col.notNull()) // JSON object
@@ -51,6 +50,7 @@ export function createMutableKnowledgeTable<T extends string>(
   tableName: T
 ): CreateTableBuilder<T, 'ID' | 'Turn' | 'Key' | 'OwnerID' | 'KnownByIDs' | 'Payload' | 'IsLatest' | 'CreatedAt' | 'Version' | 'Changes'> {
   return createTimedKnowledgeTable(db, tableName)
+    .addColumn('Key', 'integer', (col) => col.notNull())
     .addColumn('Version', 'integer', (col) => col.notNull().defaultTo(1))
     .addColumn('Changes', 'text', (col) => col.notNull().defaultTo('[]')); // JSON array
 }

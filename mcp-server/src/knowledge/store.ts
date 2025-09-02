@@ -8,11 +8,12 @@ import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
 import type { 
   KnowledgeDatabase, 
-  GameEvent,
 } from './schema/base.js';
 import { setupKnowledgeDatabase } from './schema/setup.js';
 import fs from 'fs/promises';
 import path from 'path';
+import { knowledgeManager } from '../server.js';
+import { EventName, eventSchemas } from './schema/events/index.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -94,23 +95,73 @@ export class KnowledgeStore {
   }
 
   /**
+   * Handle incoming game events by validating against schemas
+   */
+  handleGameEvent(type: string, payload: unknown): void {
+    try {
+      // Check if the payload is an array (it should be an array from the DLL)
+      if (!Array.isArray(payload)) {
+        logger.warn(`Invalid ${type} event payload: not an array`);
+        return;
+      }
+
+      // Check if we have a schema for this event type
+      if (!(type in eventSchemas)) {
+        logger.debug(`Unknown event type: ${type}`);
+        return;
+      }
+
+      // Get the corresponding schema
+      const schema = eventSchemas[type as EventName];
+
+      // Get the schema shape to map payload array to object
+      // We need to get the field names from the schema
+      const schemaShape = schema._def.shape();
+      const fieldNames = Object.keys(schemaShape);
+
+      // Create an object from the payload array
+      const eventObject: Record<string, unknown> = {};
+      fieldNames.forEach((fieldName, index) => {
+        if (index < payload.length) {
+          eventObject[fieldName] = payload[index];
+        }
+      });
+
+      // Validate the event object against the schema
+      const result = schema.safeParse(eventObject);
+
+      if (result.success) {
+        logger.info(`Valid ${type} event:`, result.data);
+        this.storeGameEvent(type, result.data);
+      } else {
+        logger.warn(`Invalid ${type} event:`, {
+          errors: result.error.errors,
+          payload,
+          eventObject
+        });
+      }
+    } catch (error) {
+      logger.error('Error handling game event:', error);
+    }
+  }
+
+  /**
    * Store a game event
    */
-  async storeGameEvent(event: GameEvent): Promise<void> {
+  async storeGameEvent<T>(type: string, payload: T): Promise<void> {
     await this.getDatabase()
       .insertInto('GameEvents')
       .values({
-        Turn: event.Turn,
-        Key: event.Key,
-        Type: event.Type,
-        OwnerID: event.OwnerID,
-        IsLatest: event.IsLatest,
-        KnownByIDs: JSON.stringify(event.KnownByIDs),
-        Payload: JSON.stringify(event.Payload),
+        Turn: knowledgeManager.getTurn(),
+        Type: type,
+        OwnerID: 0,
+        IsLatest: true,
+        KnownByIDs: "[]",
+        Payload: JSON.stringify(payload),
       })
       .execute();
 
-    logger.debug(`Stored game event: ${event.Type} at turn ${event.Turn}`);
+    logger.info(`Stored game event: ${type} at turn ${knowledgeManager.getTurn()}`);
   }
 
   /**

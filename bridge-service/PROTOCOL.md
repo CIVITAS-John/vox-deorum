@@ -270,7 +270,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    {
      "type": "game_event",
      "event": "turnStart",
-     "payload": [1, 50, 20],
+     "payload": { "args": [1, 50, 20] },
      "timestamp": "2024-01-01T12:00:00Z"
    }
    ```
