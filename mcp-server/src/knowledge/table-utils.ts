@@ -39,7 +39,7 @@ export function createTimedKnowledgeTable<T extends string>(
     .addColumn('KnownByIDs', 'text', (col) => col.notNull()) // JSON array
     .addColumn('Payload', 'text', (col) => col.notNull()) // JSON object
     .addColumn('IsLatest', 'boolean', (col) => col.notNull().defaultTo(true))
-    .addColumn('CreatedAt', 'integer', (col) => col.notNull().defaultTo(sql`unixepoch()`));
+    .addColumn('CreatedAt', 'integer', (col) => col.notNull().defaultTo(sql`(unixepoch())`));
 }
 
 /**
