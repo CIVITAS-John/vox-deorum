@@ -1,7 +1,7 @@
 {
   "eventName": "CityTrained",
+  "generatedAt": "2025-09-02T03:40:22.138Z",
   "occurrences": 3,
-  "generatedAt": "2025-09-01T01:20:46.712Z",
   "references": [
     {
       "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
@@ -29,8 +29,7 @@
           "line": 29538,
           "content": "args->Push(false); // bFaith/bCulture"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+      ]
     },
     {
       "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
@@ -58,8 +57,7 @@
           "line": 30588,
           "content": "args->Push(false); // bFaith/bCulture"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+      ]
     },
     {
       "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
@@ -87,8 +85,7 @@
           "line": 30648,
           "content": "args->Push(true); // bFaith/bCulture"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+      ]
     }
   ]
 }

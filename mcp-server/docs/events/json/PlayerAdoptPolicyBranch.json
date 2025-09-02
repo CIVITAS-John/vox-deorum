@@ -1,7 +1,7 @@
 {
   "eventName": "PlayerAdoptPolicyBranch",
+  "generatedAt": "2025-09-02T03:40:22.146Z",
   "occurrences": 3,
-  "generatedAt": "2025-09-01T01:20:46.712Z",
   "references": [
     {
       "file": "CvGameCoreDLL_Expansion2/CvPolicyAI.cpp",
@@ -17,8 +17,7 @@
           "line": 740,
           "content": "args->Push(eChosenBranch);"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPolicyAI.cpp"
+      ]
     },
     {
       "file": "CvGameCoreDLL_Expansion2/CvPolicyClasses.cpp",
@@ -34,8 +33,7 @@
           "line": 5358,
           "content": "args->Push(eBranchType);"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPolicyClasses.cpp"
+      ]
     },
     {
       "file": "CvGameCoreDLL_Expansion2/CvPolicyClasses.cpp",
@@ -51,8 +49,7 @@
           "line": 5806,
           "content": "args->Push(eNewBranchType);"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvPolicyClasses.cpp"
+      ]
     }
   ]
 }

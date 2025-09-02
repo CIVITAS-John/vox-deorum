@@ -10,11 +10,16 @@ import { join, extname, resolve } from 'path';
 // Configuration
 const CIV5_DLL_PATH = '../../../civ5-dll';
 const OUTPUT_DIR = './';
+const JSON_DIR = './json';
 
 function ensureOutputDir() {
     if (!existsSync(OUTPUT_DIR)) {
         mkdirSync(OUTPUT_DIR, { recursive: true });
         console.log(`Created output directory: ${OUTPUT_DIR}`);
+    }
+    if (!existsSync(JSON_DIR)) {
+        mkdirSync(JSON_DIR, { recursive: true });
+        console.log(`Created JSON directory: ${JSON_DIR}`);
     }
 }
 
@@ -111,8 +116,7 @@ function searchFileForCallHooks(filePath) {
                     line: index + 1,
                     content: line.trim(),
                     eventName: eventName,
-                    args: argLines,
-                    fullPath: filePath
+                    args: argLines
                 });
             }
         });
@@ -168,22 +172,21 @@ function groupReferencesByEvent(references) {
 }
 
 function saveResults(references, eventMap) {
-    // Save events grouped by name
-    const eventsByNameFile = join(OUTPUT_DIR, 'lua-events-by-name.json');
-    const eventsData = {};
+    // Save individual event files
+    const eventFiles = [];
     eventMap.forEach((refs, eventName) => {
-        eventsData[eventName] = {
+        const eventData = {
+            eventName: eventName,
+            generatedAt: new Date().toISOString(),
             occurrences: refs.length,
             references: refs
         };
+        
+        const eventFile = join(JSON_DIR, `${eventName}.json`);
+        writeFileSync(eventFile, JSON.stringify(eventData, null, 2));
+        eventFiles.push(eventFile);
     });
-    
-    /*writeFileSync(eventsByNameFile, JSON.stringify({
-        generatedAt: new Date().toISOString(),
-        totalEvents: eventMap.size,
-        events: eventsData
-    }, null, 2));*/
-    console.log(`Saved ${eventMap.size} unique events to ${eventsByNameFile}`);
+    console.log(`Saved ${eventMap.size} individual event files to ${JSON_DIR}/`);
     
     // Create a summary file
     const summaryFile = join(OUTPUT_DIR, 'lua-events-summary.json');
@@ -203,7 +206,7 @@ function saveResults(references, eventMap) {
     console.log(`Saved summary to ${summaryFile}`);
     
     return {
-        eventsByNameFile,
+        eventFiles,
         summaryFile,
         summary
     };
@@ -229,7 +232,7 @@ function main() {
     console.log(`Found ${references.length} CallHook references`);
     console.log(`Found ${eventMap.size} unique event names`);
     console.log(`Files generated:`);
-    console.log(`  - ${results.eventsByNameFile}`);
+    console.log(`  - ${eventMap.size} individual event files in ${JSON_DIR}/`);
     console.log(`  - ${results.summaryFile}`);
     
     console.log('\nTop events by frequency:');

@@ -1,15 +1,14 @@
 {
   "eventName": "GameCoreTestVictory",
+  "generatedAt": "2025-09-02T03:40:22.144Z",
   "occurrences": 1,
-  "generatedAt": "2025-09-01T01:20:46.712Z",
   "references": [
     {
       "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
       "line": 9731,
       "content": "LuaSupport::CallHook(pkScriptSystem, \"GameCoreTestVictory\", args.get(), bResult);",
       "eventName": "GameCoreTestVictory",
-      "args": [],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvGame.cpp"
+      "args": []
     }
   ]
 }

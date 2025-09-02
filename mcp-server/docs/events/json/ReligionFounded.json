@@ -1,7 +1,7 @@
 {
   "eventName": "ReligionFounded",
+  "generatedAt": "2025-09-02T03:40:22.146Z",
   "occurrences": 1,
-  "generatedAt": "2025-09-01T01:20:46.712Z",
   "references": [
     {
       "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
@@ -41,8 +41,7 @@
           "line": 1271,
           "content": "args->Push(eBelief4);"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvReligionClasses.cpp"
+      ]
     }
   ]
 }

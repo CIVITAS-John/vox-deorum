@@ -1,7 +1,7 @@
 {
   "eventName": "CityCreated",
+  "generatedAt": "2025-09-02T03:40:22.139Z",
   "occurrences": 2,
-  "generatedAt": "2025-09-01T01:20:46.712Z",
   "references": [
     {
       "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
@@ -29,8 +29,7 @@
           "line": 29703,
           "content": "args->Push(false); // bFaith/bCulture"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+      ]
     },
     {
       "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
@@ -58,8 +57,7 @@
           "line": 30991,
           "content": "args->Push(false); // bFaith/bCulture"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvCity.cpp"
+      ]
     }
   ]
 }

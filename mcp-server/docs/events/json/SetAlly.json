@@ -1,7 +1,7 @@
 {
   "eventName": "SetAlly",
+  "generatedAt": "2025-09-02T03:40:22.144Z",
   "occurrences": 1,
-  "generatedAt": "2025-09-01T01:20:46.712Z",
   "references": [
     {
       "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
@@ -21,8 +21,7 @@
           "line": 12446,
           "content": "args->Push(eNewAlly);"
         }
-      ],
-      "fullPath": "F:\\Minor Solutions\\vox-deorum\\civ5-dll\\CvGameCoreDLL_Expansion2\\CvMinorCivAI.cpp"
+      ]
     }
   ]
 }
