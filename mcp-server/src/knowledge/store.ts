@@ -107,7 +107,7 @@ export class KnowledgeStore {
 
       // Check if we have a schema for this event type
       if (!(type in eventSchemas)) {
-        logger.debug(`Unknown event type: ${type}`);
+        logger.warn(`Unknown event type: ${type}`);
         return;
       }
 

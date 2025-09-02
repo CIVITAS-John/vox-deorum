@@ -25,6 +25,48 @@ import { CityInvestedBuilding } from './CityInvestedBuilding.js';
 import { CityInvestedUnit } from './CityInvestedUnit.js';
 import { CityPrepared } from './CityPrepared.js';
 import { CityProjectComplete } from './CityProjectComplete.js';
+import { CityPuppeted } from './CityPuppeted.js';
+import { CityRazed } from './CityRazed.js';
+import { CitySoldBuilding } from './CitySoldBuilding.js';
+import { CityTrained } from './CityTrained.js';
+import { CombatEnded } from './CombatEnded.js';
+import { CombatResult } from './CombatResult.js';
+import { ContractEnded } from './ContractEnded.js';
+import { ContractStarted } from './ContractStarted.js';
+import { ContractsRefreshed } from './ContractsRefreshed.js';
+import { DeclareWar } from './DeclareWar.js';
+import { ElectionResultFailure } from './ElectionResultFailure.js';
+import { ElectionResultSuccess } from './ElectionResultSuccess.js';
+import { EspionageNotificationData } from './EspionageNotificationData.js';
+import { EspionageResult } from './EspionageResult.js';
+import { EspionageState } from './EspionageState.js';
+import { EventActivated } from './EventActivated.js';
+import { EventChoiceActivated } from './EventChoiceActivated.js';
+import { EventChoiceEnded } from './EventChoiceEnded.js';
+import { EventUnitCreated } from './EventUnitCreated.js';
+import { GameCoreTestVictory } from './GameCoreTestVictory.js';
+import { GameCoreUpdateBegin } from './GameCoreUpdateBegin.js';
+import { GameCoreUpdateEnd } from './GameCoreUpdateEnd.js';
+import { GameSave } from './GameSave.js';
+import { GatherPerTurnReplayStats } from './GatherPerTurnReplayStats.js';
+import { GoodyHutReceivedBonus } from './GoodyHutReceivedBonus.js';
+import { GoodyHutTechResearched } from './GoodyHutTechResearched.js';
+import { GovernmentCooldownChanges } from './GovernmentCooldownChanges.js';
+import { GovernmentCooldownRateChanges } from './GovernmentCooldownRateChanges.js';
+import { GreatPersonExpended } from './GreatPersonExpended.js';
+import { GreatWorkCreated } from './GreatWorkCreated.js';
+import { IdeologyAdopted } from './IdeologyAdopted.js';
+import { IdeologySwitched } from './IdeologySwitched.js';
+import { LoyaltyStateChanged } from './LoyaltyStateChanged.js';
+import { MakePeace } from './MakePeace.js';
+import { MinorAlliesChanged } from './MinorAlliesChanged.js';
+import { MinorFriendsChanged } from './MinorFriendsChanged.js';
+import { MinorGift } from './MinorGift.js';
+import { MinorGiftUnit } from './MinorGiftUnit.js';
+import { NaturalWonderDiscovered } from './NaturalWonderDiscovered.js';
+import { NuclearDetonation } from './NuclearDetonation.js';
+import { PantheonFounded } from './PantheonFounded.js';
+import { ParadropAt } from './ParadropAt.js';
 
 export const eventSchemas = {
   'BarbariansCampCleared': BarbariansCampCleared,
@@ -51,6 +93,48 @@ export const eventSchemas = {
   'CityInvestedUnit': CityInvestedUnit,
   'CityPrepared': CityPrepared,
   'CityProjectComplete': CityProjectComplete,
+  'CityPuppeted': CityPuppeted,
+  'CityRazed': CityRazed,
+  'CitySoldBuilding': CitySoldBuilding,
+  'CityTrained': CityTrained,
+  'CombatEnded': CombatEnded,
+  'CombatResult': CombatResult,
+  'ContractEnded': ContractEnded,
+  'ContractStarted': ContractStarted,
+  'ContractsRefreshed': ContractsRefreshed,
+  'DeclareWar': DeclareWar,
+  'ElectionResultFailure': ElectionResultFailure,
+  'ElectionResultSuccess': ElectionResultSuccess,
+  'EspionageNotificationData': EspionageNotificationData,
+  'EspionageResult': EspionageResult,
+  'EspionageState': EspionageState,
+  'EventActivated': EventActivated,
+  'EventChoiceActivated': EventChoiceActivated,
+  'EventChoiceEnded': EventChoiceEnded,
+  'EventUnitCreated': EventUnitCreated,
+  'GameCoreTestVictory': GameCoreTestVictory,
+  'GameCoreUpdateBegin': GameCoreUpdateBegin,
+  'GameCoreUpdateEnd': GameCoreUpdateEnd,
+  'GameSave': GameSave,
+  'GatherPerTurnReplayStats': GatherPerTurnReplayStats,
+  'GoodyHutReceivedBonus': GoodyHutReceivedBonus,
+  'GoodyHutTechResearched': GoodyHutTechResearched,
+  'GovernmentCooldownChanges': GovernmentCooldownChanges,
+  'GovernmentCooldownRateChanges': GovernmentCooldownRateChanges,
+  'GreatPersonExpended': GreatPersonExpended,
+  'GreatWorkCreated': GreatWorkCreated,
+  'IdeologyAdopted': IdeologyAdopted,
+  'IdeologySwitched': IdeologySwitched,
+  'LoyaltyStateChanged': LoyaltyStateChanged,
+  'MakePeace': MakePeace,
+  'MinorAlliesChanged': MinorAlliesChanged,
+  'MinorFriendsChanged': MinorFriendsChanged,
+  'MinorGift': MinorGift,
+  'MinorGiftUnit': MinorGiftUnit,
+  'NaturalWonderDiscovered': NaturalWonderDiscovered,
+  'NuclearDetonation': NuclearDetonation,
+  'PantheonFounded': PantheonFounded,
+  'ParadropAt': ParadropAt,
 };
 
 export type EventName = keyof typeof eventSchemas;

@@ -191,12 +191,12 @@ export function logStartup(serviceName: string, version: string, port?: number):
 
 // Log unhandled errors
 process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error);
+  logger.error('Uncaught Exception: ' + error.message, error);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection at: ', promise?.toString() + ', reason:', reason);
 });
 
 export default logger;
