@@ -86,5 +86,5 @@ export interface KnowledgeDatabase {
   // Timed Knowledge
   GameEvents: GameEvent;
   // Public Knowledge
-  PlayerInformation: PlayerInformation;
+  PlayerInformation: PlayerInformation; 
 }
