@@ -29,6 +29,12 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 - A thin layer of communication wrapper between DLL and external services
 - Exposes JSON/REST+SSE API endpoints for both synchronous and asynchronous calls
 
+### Civ 5 Mod
+- **Location**: `civ5-mod/`
+- Contains mod options and interface scripts
+- Provides Lua scripts for in-game UI and AI integration
+- Configures game settings and mod parameters
+
 ### MCP Server
 - **Location**: `mcp-server/`
 - Exposes game's internal state as resources, tools, etc.
@@ -85,6 +91,7 @@ Each component contains its own README with specific development instructions:
 
 ```
 vox-deorum/
+├── civ5-mod/              # Mod options and interface scripts
 ├── civ5-dll/              # Community Patch DLL submodule
 ├── bridge-service/        # Communication bridge and REST API with SSE
 ├── mcp-server/            # Game state MCP server
@@ -110,4 +117,4 @@ Lecturer, University of Arizona, College of Information Science
 Different licenses are used for submodules:
 
 - `civ5-dll` - GPL 3.0 (following the upstream license)
-- `bridge-service`, `mcp-client`, `mcp-server` - CC BY-NC-SA 4.0
+- `bridge-service`, `mcp-client`, `mcp-server`, `civ5-mod` - CC BY-NC-SA 4.0

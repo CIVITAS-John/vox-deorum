@@ -14,14 +14,16 @@ const logger = createLogger('LuaFunction');
  */
 export class LuaFunction {
   public readonly name: string;
+  public readonly arguments: string[];
   public readonly script: string;
   private _registered: boolean = false;
 
   /**
    * Create a new LuaFunction
    */
-  constructor(name: string, script: string) {
+  constructor(name: string, args: string[], script: string) {
     this.name = name;
+    this.arguments = args;
     this.script = script;
   }
 
@@ -40,7 +42,9 @@ export class LuaFunction {
     
     // Create registration script that defines the function
     const registrationScript = `
-      Game.RegisterFunction("${this.name}", ${this.script})
+      Game.RegisterFunction("${this.name}", function(${this.arguments.join(", ")})
+        ${this.script}
+      end)
       return true
     `;
 

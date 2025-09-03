@@ -15,7 +15,7 @@ export interface GameIdentity {
   timestamp?: number;
 }
 
-const luaFunc = new LuaFunction("syncGameIdentity", `
+const luaFunc = new LuaFunction("syncGameIdentity", ["time", "uuid"], `
     -- Open save data for persistent storage
     local saveDB = Modding.OpenSaveData()
     local gameId = nil
@@ -38,12 +38,12 @@ const luaFunc = new LuaFunction("syncGameIdentity", `
     end
     
     -- Update timestamp
-    local currentTimestamp = ${Date.now()}
+    local currentTimestamp = time
     
     -- Create new game ID if not exists
     if not gameId then
       -- Generate unique ID using timestamp
-      gameId = "${crypto.randomUUID()}"
+      gameId = uuid
       
       -- Store both GameID and LastSync in save data
       for row in saveDB.Query("INSERT INTO Deorum (Key, Value) VALUES ('GameID', ?)", gameId) do end
@@ -66,11 +66,7 @@ const luaFunc = new LuaFunction("syncGameIdentity", `
  * @returns The unique game ID and current turn number
  */
 export async function syncGameIdentity(): Promise<GameIdentity | undefined> {
-  const script = `
-
-  `;
-
-  const response = await bridgeManager.executeLuaScript(script);
+  const response = await luaFunc.execute(Date.now(), crypto.randomUUID());
   if (!response.success) return undefined;
   return response.result as GameIdentity;
 }
