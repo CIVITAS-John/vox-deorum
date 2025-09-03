@@ -1,4 +1,5 @@
-import { PlayerVisibility } from "../../knowledge/schema/base";
+import { PlayerVisibility } from "../../knowledge/schema/base.js";
+import { analyzeEventVisibility } from "../lua/event-visibility.js";
 
 /**
  * Marks the visibility of a knowledge item to specific players
@@ -34,4 +35,19 @@ export function parseVisibility<T extends PlayerVisibility>(data: T): Set<number
  */
 export function isVisibleToPlayer<T extends PlayerVisibility>(data: T, playerId: number): boolean {
   return (data as any)[`Player${playerId}`] || false;
+}
+
+/**
+ * Automatically determine event visibility based on event type and payload
+ * @param eventType The type of the event
+ * @param payload The event payload
+ * @returns Set of player IDs that can see this event
+ */
+export async function determineEventVisibility(eventType: string, payload: any): Promise<Set<number>> {
+  const visibilityArray = await analyzeEventVisibility(eventType, payload);
+  if (!visibilityArray) {
+    // If analysis fails, default to no visibility
+    return new Set<number>();
+  }
+  return new Set(visibilityArray);
 }
