@@ -3,6 +3,7 @@
  * Uses BridgeManager to execute Lua scripts and interact with Civ V's save data
  */
 
+import { LuaFunction } from '../../bridge/lua-function.js';
 import { bridgeManager } from '../../server.js';
 
 /**
@@ -14,13 +15,7 @@ export interface GameIdentity {
   timestamp?: number;
 }
 
-/**
- * Get or create a unique game ID for the current game session
- * Uses Civ V's Modding.OpenSaveData() to persist the ID
- * @returns The unique game ID and current turn number
- */
-export async function syncGameIdentity(): Promise<GameIdentity | undefined> {
-  const script = `
+const luaFunc = new LuaFunction("syncGameIdentity", `
     -- Open save data for persistent storage
     local saveDB = Modding.OpenSaveData()
     local gameId = nil
@@ -63,6 +58,16 @@ export async function syncGameIdentity(): Promise<GameIdentity | undefined> {
       turn = turn,
       timestamp = lastSyncTimestamp
     }
+`);
+
+/**
+ * Get or create a unique game ID for the current game session
+ * Uses Civ V's Modding.OpenSaveData() to persist the ID
+ * @returns The unique game ID and current turn number
+ */
+export async function syncGameIdentity(): Promise<GameIdentity | undefined> {
+  const script = `
+
   `;
 
   const response = await bridgeManager.executeLuaScript(script);

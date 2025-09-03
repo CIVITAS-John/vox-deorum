@@ -67,6 +67,34 @@ import { NaturalWonderDiscovered } from './NaturalWonderDiscovered.js';
 import { NuclearDetonation } from './NuclearDetonation.js';
 import { PantheonFounded } from './PantheonFounded.js';
 import { ParadropAt } from './ParadropAt.js';
+import { PietyChanged } from './PietyChanged.js';
+import { PietyRateChanged } from './PietyRateChanged.js';
+import { PlaceResource } from './PlaceResource.js';
+import { PlayerAdoptPolicy } from './PlayerAdoptPolicy.js';
+import { PlayerAdoptPolicyBranch } from './PlayerAdoptPolicyBranch.js';
+import { PlayerAdoptsCurrency } from './PlayerAdoptsCurrency.js';
+import { PlayerAdoptsGovernment } from './PlayerAdoptsGovernment.js';
+import { PlayerAnarchy } from './PlayerAnarchy.js';
+import { PlayerBoughtOut } from './PlayerBoughtOut.js';
+import { PlayerBuilding } from './PlayerBuilding.js';
+import { PlayerBuilt } from './PlayerBuilt.js';
+import { PlayerBullied } from './PlayerBullied.js';
+import { PlayerCityFounded } from './PlayerCityFounded.js';
+import { PlayerDoTurn } from './PlayerDoTurn.js';
+import { PlayerDoneTurn } from './PlayerDoneTurn.js';
+import { PlayerEndOfMayaLongCount } from './PlayerEndOfMayaLongCount.js';
+import { PlayerEndTurnCompleted } from './PlayerEndTurnCompleted.js';
+import { PlayerEndTurnInitiated } from './PlayerEndTurnInitiated.js';
+import { PlayerGifted } from './PlayerGifted.js';
+import { PlayerGoldenAge } from './PlayerGoldenAge.js';
+import { PlayerLiberated } from './PlayerLiberated.js';
+import { PlayerPlunderedTradeRoute } from './PlayerPlunderedTradeRoute.js';
+import { PlayerPreAIUnitUpdate } from './PlayerPreAIUnitUpdate.js';
+import { PlayerProtected } from './PlayerProtected.js';
+import { PlayerRevoked } from './PlayerRevoked.js';
+import { PlayerSecularizes } from './PlayerSecularizes.js';
+import { PlayerTradeRouteCompleted } from './PlayerTradeRouteCompleted.js';
+import { ProvinceLevelChanged } from './ProvinceLevelChanged.js';
 
 export const eventSchemas = {
   'BarbariansCampCleared': BarbariansCampCleared,
@@ -135,6 +163,34 @@ export const eventSchemas = {
   'NuclearDetonation': NuclearDetonation,
   'PantheonFounded': PantheonFounded,
   'ParadropAt': ParadropAt,
+  'PietyChanged': PietyChanged,
+  'PietyRateChanged': PietyRateChanged,
+  'PlaceResource': PlaceResource,
+  'PlayerAdoptPolicy': PlayerAdoptPolicy,
+  'PlayerAdoptPolicyBranch': PlayerAdoptPolicyBranch,
+  'PlayerAdoptsCurrency': PlayerAdoptsCurrency,
+  'PlayerAdoptsGovernment': PlayerAdoptsGovernment,
+  'PlayerAnarchy': PlayerAnarchy,
+  'PlayerBoughtOut': PlayerBoughtOut,
+  'PlayerBuilding': PlayerBuilding,
+  'PlayerBuilt': PlayerBuilt,
+  'PlayerBullied': PlayerBullied,
+  'PlayerCityFounded': PlayerCityFounded,
+  'PlayerDoTurn': PlayerDoTurn,
+  'PlayerDoneTurn': PlayerDoneTurn,
+  'PlayerEndOfMayaLongCount': PlayerEndOfMayaLongCount,
+  'PlayerEndTurnCompleted': PlayerEndTurnCompleted,
+  'PlayerEndTurnInitiated': PlayerEndTurnInitiated,
+  'PlayerGifted': PlayerGifted,
+  'PlayerGoldenAge': PlayerGoldenAge,
+  'PlayerLiberated': PlayerLiberated,
+  'PlayerPlunderedTradeRoute': PlayerPlunderedTradeRoute,
+  'PlayerPreAIUnitUpdate': PlayerPreAIUnitUpdate,
+  'PlayerProtected': PlayerProtected,
+  'PlayerRevoked': PlayerRevoked,
+  'PlayerSecularizes': PlayerSecularizes,
+  'PlayerTradeRouteCompleted': PlayerTradeRouteCompleted,
+  'ProvinceLevelChanged': ProvinceLevelChanged,
 };
 
 export type EventName = keyof typeof eventSchemas;

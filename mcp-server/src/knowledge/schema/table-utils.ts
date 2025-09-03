@@ -36,7 +36,7 @@ export function createTimedKnowledgeTable<T extends string>(
     .addColumn('Turn', 'integer', (col) => col.notNull())
     .addColumn('Payload', 'text', (col) => col.notNull()) // JSON object
     .addColumn('CreatedAt', 'integer', (col) => col.notNull().defaultTo(sql`(unixepoch())`));
-  for (let i = 0; i <= 15; i++) {
+  for (let i = 0; i <= 21; i++) {
     schema = schema.addColumn(`Player${i}`, 'boolean', (col) => col.notNull().defaultTo(false));
   }
   return schema;

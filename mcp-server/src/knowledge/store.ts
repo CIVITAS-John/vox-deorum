@@ -143,7 +143,6 @@ export class KnowledgeStore {
       const result = schema.safeParse(eventObject);
 
       if (result.success) {
-        logger.info(`Valid ${type} event:`, result.data);
         this.storeGameEvent(type, result.data);
       } else {
         logger.warn(`Invalid ${type} event:`, {
@@ -170,7 +169,7 @@ export class KnowledgeStore {
       })
       .execute();
 
-    logger.info(`Stored game event: ${type} at turn ${knowledgeManager.getTurn()}`);
+    logger.info(`Stored game event: ${type} at turn ${knowledgeManager.getTurn()}`, payload);
   }
 
   /**
