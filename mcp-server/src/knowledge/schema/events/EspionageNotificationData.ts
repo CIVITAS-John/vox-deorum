@@ -12,7 +12,7 @@ export const EspionageNotificationData = z.object({
   CityY: z.number(),
   
   /** The unique identifier of the player conducting the espionage operation */
-  AttackingPlayerID: z.number(),
+  SourcePlayerID: z.number(),
   
   /** The unique identifier of the player being targeted by the espionage operation */
   TargetPlayerID: z.number(),
