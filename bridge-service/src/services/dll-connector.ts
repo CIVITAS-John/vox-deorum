@@ -115,8 +115,7 @@ export class DLLConnector extends EventEmitter {
         try {
           data = JSON.parse(message);
         } catch (parseError) {
-          logger.error('Failed to parse JSON message from DLL:' + parseError);
-          logger.debug('Raw message:', message);
+          logger.error('Failed to parse JSON message from DLL:' + parseError, message);
           return;
         }
       } else {
@@ -189,6 +188,7 @@ export class DLLConnector extends EventEmitter {
    */
   public async send<T>(message: IPCMessage, timeout: number = 30000): Promise<APIResponse<T>> {
     if (!this.connected) {
+      logger.warn('Cannot send message, DLL is disconnected');
       return respondError(ErrorCode.DLL_DISCONNECTED);
     }
 

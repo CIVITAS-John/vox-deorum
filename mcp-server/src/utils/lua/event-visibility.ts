@@ -13,6 +13,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   local visibilityFlags = {}
   local invalidations = {}
   local extraPayloads = {}
+  local scannedPlayers = {}
   local maxMajorCivs = ${MaxMajorCivs} - 1
   
   -- Initialize visibility flags for all players
@@ -39,11 +40,11 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   local function addTeam(teamID, value, key)
     if teamID < 0 then return end
 
-    local metadata = {}
     -- Invalidate the team's cached metadata
-    invalidations["team_" .. teamID] = true
+    invalidations["Team_" .. teamID] = true
 
     -- All team players should have the same visibility
+    local metadata = {}
     for otherID = 0, maxMajorCivs do
       local otherPlayer = Players[otherID]
       if otherPlayer and otherPlayer:GetTeam() == teamID then
@@ -75,24 +76,81 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   
   -- Helper function to add player-based visibility
   local function addPlayer(playerID, value, key)
-    local metadata = {}
-
     -- Check if player exists
     local player = Players[playerID]
     if not player then return end
 
-    -- Get the succinct metadata for the player
-    metadata["name"] = player:GetName()
-    metadata["civilization"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
-
     -- Invalidate the player's cached metadata
-    invalidations["player_" .. playerID] = true
+    invalidations["Player_" .. playerID] = true
 
     -- Team members can see each other's events
     addTeam(player:GetTeam(), value)
 
-    -- Add to the extra payload
-    addPayload(key, metadata)
+    -- Get the succinct metadata for the player
+    if key ~= nil then
+      local metadata = {}
+      metadata["name"] = player:GetName()
+      metadata["civilization"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
+      addPayload(key, metadata)
+      table.insert(scannedPlayers, player)
+    end
+  end
+
+  -- Helper function to add unit-based visibility
+  local function addUnit(unitID, value, key)
+    -- Check if the unit exists
+    if unitID < 0 then return end
+
+    -- Find the unit's owner
+    local unit = nil
+    for _, player in pairs(scannedPlayers) do
+      unit = player:GetUnitByID(unitID)
+      if unit ~= nil then
+        break
+      end
+    end
+    
+    -- Check if unit is visible to other players based on plot visibility
+    local plotX = unit:GetX()
+    local plotY = unit:GetY()
+    addPlotVisibility(plotX, plotY, value)
+
+    -- Get unit metadata
+    if key ~= nil then
+      local metadata = {}
+      metadata["model"] = Locale.ConvertTextKey(unit:GetNameKey())
+      metadata["aiType"] = unit:GetUnitAIType()
+      metadata["hp"] = unit:GetCurrHitPoints()
+      metadata["maxHp"] = unit:GetMaxHitPoints()
+      addPayload(key, metadata)
+    end
+    
+    -- Invalidate the unit's cached metadata
+    invalidations["Unit_" .. unitID] = true
+  end
+
+  -- Helper function to handle plot-based visibility
+  local function addPlotVisibility(plotX, plotY, value)
+    if plotX < 0 or plotY < 0 then return end
+    
+    local plot = Map.GetPlot(plotX, plotY)
+    if not plot then return end
+    
+    -- Check visibility for all players
+    for playerID = 0, maxMajorCivs do
+      local player = Players[playerID]
+      if player then
+        local teamID = player:GetTeam()
+        -- Check if plot is revealed to this team
+        if plot:IsRevealed(teamID) then
+          if plot:IsVisible(teamID) then
+            setVisible(playerID, value)
+          else
+            setVisible(playerID, math.min(value - 1, 1))  -- Reduced visibility if revealed but not visible
+          end
+        end
+      end
+    end
   end
 
   -- Analyze visibility based on event type and payload
@@ -103,8 +161,24 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     end
     
     -- Check for team-related fields in payload
-    if (string.match(key, "TeamID$")) then
+    if string.match(key, "TeamID$") then
       addTeam(value, 2, key)
+    end
+    
+    -- Handle plot coordinates for visibility
+    if key == "PlotX" then
+      local plotY = payload["PlotY"]
+      if plotY then
+        addPlotVisibility(value, plotY, 1)
+      end
+    end
+  end
+
+  -- A second round for units
+  for key, value in pairs(payload) do
+    -- Check for unit-related fields in payload
+    if key == "UnitID" or string.match(key, "UnitID$") then
+      addUnit(value, 2, key)
     end
   end
 

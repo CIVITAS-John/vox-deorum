@@ -6,7 +6,7 @@ import { z } from 'zod';
  */
 export const NuclearDetonation = z.object({
   /** The player ID of the civilization that launched the nuclear weapon */
-  AttackerID: z.number(),
+  PlayerID: z.number(),
   
   /** The X coordinate where the nuclear weapon detonated */
   PlotX: z.number(),
