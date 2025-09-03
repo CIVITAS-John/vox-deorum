@@ -5,11 +5,11 @@ import { z } from 'zod';
  */
 export const CityFlipped = z.object({
   /** The ID of the city that is flipping/revolting */
-  CityId: z.number(),
+  CityID: z.number(),
   
   /** The player ID of the recipient who will receive the city */
-  RecipientId: z.number(),
+  RecipientID: z.number(),
   
   /** The player ID of the current owner who is losing the city */
-  OriginalOwnerId: z.number()
+  OriginalOwnerID: z.number()
 });

@@ -9,10 +9,10 @@ export const NuclearDetonation = z.object({
   AttackerID: z.number(),
   
   /** The X coordinate where the nuclear weapon detonated */
-  X: z.number(),
+  PlotX: z.number(),
   
   /** The Y coordinate where the nuclear weapon detonated */
-  Y: z.number(),
+  PlotY: z.number(),
   
   /** Whether the nuclear attack was against a civilization currently at war */
   IsWar: z.boolean(),

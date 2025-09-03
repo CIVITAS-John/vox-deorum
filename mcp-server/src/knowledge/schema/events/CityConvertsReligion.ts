@@ -10,7 +10,7 @@ export const CityConvertsReligion = z.object({
   /** The type of religion that has become the new majority */
   ReligionID: z.number(),
   /** The X coordinate of the city on the game map */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the city on the game map */
   Y: z.number()
 });

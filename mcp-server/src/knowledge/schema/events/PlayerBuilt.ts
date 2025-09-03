@@ -10,9 +10,9 @@ export const PlayerBuilt = z.object({
   /** The unique identifier of the unit that finished the building work */
   UnitID: z.number(),
   /** The X coordinate of the tile where construction was completed */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the tile where construction was completed */
-  Y: z.number(),
+  PlotY: z.number(),
   /** The type of improvement or construction that was completed */
   BuildType: z.number()
 });

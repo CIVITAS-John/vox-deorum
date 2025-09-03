@@ -9,10 +9,10 @@ export const TerraformingPlot = z.object({
   EventType: z.number(),
   
   /** The X coordinate of the plot being modified */
-  X: z.number(),
+  PlotX: z.number(),
   
   /** The Y coordinate of the plot being modified */
-  Y: z.number(),
+  PlotY: z.number(),
   
   /** Direction parameter (used for river changes, 0 for others) */
   Direction: z.number(),

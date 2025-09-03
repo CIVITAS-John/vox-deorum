@@ -6,16 +6,16 @@ import { z } from 'zod';
  */
 export const NaturalWonderDiscovered = z.object({
   /** The ID of the team that discovered the natural wonder */
-  TeamId: z.number(),
+  TeamID: z.number(),
   
   /** The type/ID of the natural wonder feature discovered */
   FeatureType: z.number(),
   
   /** The X coordinate of the natural wonder location */
-  X: z.number(),
+  PlotX: z.number(),
   
   /** The Y coordinate of the natural wonder location */
-  Y: z.number(),
+  PlotY: z.number(),
   
   /** Whether this team is the first major civilization to discover this wonder */
   IsFirst: z.boolean()

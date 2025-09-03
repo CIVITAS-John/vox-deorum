@@ -6,13 +6,13 @@ import { z } from 'zod';
  */
 export const PlaceResource = z.object({
   /** The ID of the player receiving the placed resource */
-  PlayerId: z.number(),
+  PlayerID: z.number(),
   /** The type/ID of the resource being placed */
   ResourceType: z.number(),
   /** The quantity of the resource being placed */
   Quantity: z.number(),
   /** The X coordinate where the resource is being placed */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate where the resource is being placed */
   Y: z.number()
 });

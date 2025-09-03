@@ -5,7 +5,7 @@ import { z } from "zod";
  */
 export const PlayerBoughtOut = z.object({
   /** The ID of the major civilization that performed the buyout */
-  BuyingPlayerId: z.number(),
+  BuyingPlayerID: z.number(),
   /** The ID of the minor civilization (city-state) that was bought out */
-  MinorPlayerId: z.number()
+  MinorPlayerID: z.number()
 });

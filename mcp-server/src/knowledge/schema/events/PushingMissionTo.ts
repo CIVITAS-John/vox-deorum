@@ -10,9 +10,9 @@ export const PushingMissionTo = z.object({
   /** The unique identifier of the selected unit being given the mission */
   UnitID: z.number(),
   /** The X coordinate of the plot that is the target of the mission */
-  TargetX: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the plot that is the target of the mission */
-  TargetY: z.number(),
+  PlotY: z.number(),
   /** Additional mission-specific data */
   MissionData: z.number(),
 });

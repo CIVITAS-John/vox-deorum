@@ -11,7 +11,7 @@ export const UnitCreated = z.object({
   /** The type identifier of the unit that was created */
   UnitType: z.number(),
   /** The X coordinate where the unit was created */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate where the unit was created */
-  Y: z.number(),
+  PlotY: z.number(),
 });

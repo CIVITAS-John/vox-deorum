@@ -11,7 +11,7 @@ export const UnitCityFounded = z.object({
   /** The type identifier of the unit that founded the city */
   UnitType: z.number(),
   /** The X coordinate where the city was founded */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate where the city was founded */
-  Y: z.number(),
+  PlotY: z.number(),
 });

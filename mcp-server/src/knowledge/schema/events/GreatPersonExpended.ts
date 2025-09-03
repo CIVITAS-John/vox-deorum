@@ -12,7 +12,7 @@ export const GreatPersonExpended = z.object({
   /** The specific type identifier of the Great Person unit that was expended */
   GreatPersonUnitType: z.number(),
   /** The X map coordinate where the Great Person was expended */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y map coordinate where the Great Person was expended */
   Y: z.number()
 });

@@ -6,13 +6,13 @@ import { z } from 'zod';
  */
 export const GoodyHutReceivedBonus = z.object({
   /** The ID of the player who received the goody hut bonus */
-  PlayerId: z.number(),
+  PlayerID: z.number(),
   /** The ID of the unit that explored the goody hut (-1 if no unit) */
-  UnitId: z.number(),
+  UnitID: z.number(),
   /** The type/ID of the bonus received from the goody hut */
   GoodyType: z.number(),
   /** The X coordinate of the plot where the goody hut was located */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the plot where the goody hut was located */
-  Y: z.number(),
+  PlotY: z.number(),
 });

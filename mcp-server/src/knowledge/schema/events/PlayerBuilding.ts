@@ -11,10 +11,10 @@ export const PlayerBuilding = z.object({
   UnitID: z.number(),
   
   /** The X coordinate of the tile being improved */
-  X: z.number(),
+  PlotX: z.number(),
   
   /** The Y coordinate of the tile being improved */
-  Y: z.number(),
+  PlotY: z.number(),
   
   /** The type of improvement or construction being performed */
   BuildType: z.number(),

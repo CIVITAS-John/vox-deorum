@@ -9,7 +9,7 @@ export const RebaseTo = z.object({
   /** The unique identifier of the unit that is rebasing */
   UnitID: z.number(),
   /** The X coordinate of the destination tile for the rebase */
-  TargetX: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the destination tile for the rebase */
-  TargetY: z.number(),
+  PlotY: z.number(),
 });

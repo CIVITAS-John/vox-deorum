@@ -5,10 +5,10 @@ import { z } from 'zod';
  */
 export const PlayerGifted = z.object({
   /** The ID of the major civilization giving the gift */
-  GivingPlayerId: z.number(),
+  GivingPlayerID: z.number(),
   
   /** The ID of the minor civilization receiving the gift */
-  ReceivingPlayerId: z.number(),
+  ReceivingPlayerID: z.number(),
   
   /** Amount of gold given (-1 for non-gold gifts) */
   GoldAmount: z.number(),

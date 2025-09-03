@@ -11,9 +11,9 @@ export const UnitPrekill = z.object({
   /** The type identifier of the unit about to be killed */
   UnitType: z.number(),
   /** The X coordinate of the unit's current location */
-  XCoordinate: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the unit's current location */
-  YCoordinate: z.number(),
+  PlotY: z.number(),
   /** Whether the kill operation should be delayed */
   DelayKill: z.boolean(),
   /** The ID of the player responsible for the kill (if applicable) */

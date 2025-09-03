@@ -8,7 +8,7 @@ export const PlayerCityFounded = z.object({
   /** The ID of the player who founded the city */
   PlayerID: z.number(),
   /** The X coordinate of the city's location */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the city's location */
   Y: z.number()
 });

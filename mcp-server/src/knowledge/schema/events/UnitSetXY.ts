@@ -9,7 +9,7 @@ export const UnitSetXY = z.object({
   /** The unique identifier of the unit whose position is being set */
   UnitID: z.number(),
   /** The new X coordinate where the unit is being placed */
-  X: z.number(),
+  PlotX: z.number(),
   /** The new Y coordinate where the unit is being placed */
-  Y: z.number(),
+  PlotY: z.number(),
 });

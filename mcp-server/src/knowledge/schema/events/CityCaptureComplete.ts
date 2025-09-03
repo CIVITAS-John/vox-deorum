@@ -6,7 +6,7 @@ import { z } from 'zod';
  */
 export const CityCaptureComplete = z.object({
   /** The player ID of the city's previous owner */
-  OldOwnerId: z.number(),
+  OldOwnerID: z.number(),
   
   /** True if the captured city was a capital city */
   IsCapital: z.boolean(),
@@ -18,7 +18,7 @@ export const CityCaptureComplete = z.object({
   CityY: z.number(),
   
   /** The player ID of the city's new owner (the acquiring player) */
-  NewOwnerId: z.number(),
+  NewOwnerID: z.number(),
   
   /** The population of the city at the time of capture */
   Population: z.number(),

@@ -7,10 +7,10 @@ import { z } from 'zod';
  */
 export const CombatResult = z.object({
   /** Player ID of the attacking player */
-  AttackingPlayerId: z.number(),
+  AttackingPlayerID: z.number(),
   
   /** Unit ID of the attacking unit */
-  AttackingUnitId: z.number(),
+  AttackingUnitID: z.number(),
   
   /** Predicted initial damage for the attacker */
   AttackerDamage: z.number(),
@@ -22,10 +22,10 @@ export const CombatResult = z.object({
   AttackerMaxHp: z.number(),
   
   /** Player ID of the defending player */
-  DefendingPlayerId: z.number(),
+  DefendingPlayerID: z.number(),
   
   /** Unit ID of the defending unit */
-  DefendingUnitId: z.number(),
+  DefendingUnitID: z.number(),
   
   /** Predicted initial damage for the defender */
   DefenderDamage: z.number(),
@@ -37,10 +37,10 @@ export const CombatResult = z.object({
   DefenderMaxHp: z.number(),
   
   /** Player ID of any intercepting unit (if applicable) */
-  InterceptingPlayerId: z.number(),
+  InterceptingPlayerID: z.number(),
   
   /** Unit ID of any intercepting unit (if applicable) */
-  InterceptingUnitId: z.number(),
+  InterceptingUnitID: z.number(),
   
   /** Predicted damage for interceptor */
   InterceptorDamage: z.number(),

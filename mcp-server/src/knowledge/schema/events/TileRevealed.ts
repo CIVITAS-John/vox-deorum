@@ -5,9 +5,9 @@ import { z } from 'zod';
  */
 export const TileRevealed = z.object({
   /** The X coordinate of the tile being revealed */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the tile being revealed */
-  Y: z.number(),
+  PlotY: z.number(),
   /** The team ID that is gaining vision of the tile */
   RevealedToTeamID: z.number(),
   /** The team ID responsible for the revelation (if applicable) */

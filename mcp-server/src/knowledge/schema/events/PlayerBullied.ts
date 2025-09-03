@@ -6,10 +6,10 @@ import { z } from 'zod';
  */
 export const PlayerBullied = z.object({
   /** The ID of the major civilization performing the bullying */
-  BullyingPlayerId: z.number(),
+  BullyingPlayerID: z.number(),
   
   /** The ID of the minor civilization (city-state) being bullied */
-  MinorPlayerId: z.number(),
+  MinorPlayerID: z.number(),
   
   /** Amount of tribute extracted (gold amount for both gold and science tribute, or -1 for unit tribute) */
   Amount: z.number(),
@@ -18,10 +18,10 @@ export const PlayerBullied = z.object({
   UnitType: z.number(),
   
   /** X coordinate of provided unit (or -1 if not applicable) */
-  UnitX: z.number(),
+  PlotX: z.number(),
   
   /** Y coordinate of provided unit (or -1 if not applicable) */
-  UnitY: z.number(),
+  PlotY: z.number(),
   
   /** Context of the bullying action (YIELD_GOLD, YIELD_SCIENCE, or -1 for units) */
   YieldType: z.number()

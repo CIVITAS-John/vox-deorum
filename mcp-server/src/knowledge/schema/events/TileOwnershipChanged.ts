@@ -5,9 +5,9 @@ import { z } from 'zod';
  */
 export const TileOwnershipChanged = z.object({
   /** The X coordinate of the tile that changed ownership */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the tile that changed ownership */
-  Y: z.number(),
+  PlotY: z.number(),
   /** The player ID of the new owner (NO_PLAYER if becoming neutral) */
   NewOwnerID: z.number(),
   /** The player ID of the previous owner (NO_PLAYER if was neutral) */

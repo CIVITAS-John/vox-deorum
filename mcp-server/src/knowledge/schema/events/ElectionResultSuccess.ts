@@ -12,7 +12,7 @@ export const ElectionResultSuccess = z.object({
   /** The value or benefit gained from the successful election rigging operation */
   Value: z.number(),
   /** The X coordinate of the minor civilization's capital city where the operation succeeded */
-  CapitalX: z.number(),
+  CityX: z.number(),
   /** The Y coordinate of the minor civilization's capital city where the operation succeeded */
-  CapitalY: z.number(),
+  CityY: z.number(),
 });

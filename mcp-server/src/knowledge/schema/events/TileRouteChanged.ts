@@ -5,9 +5,9 @@ import { z } from 'zod';
  */
 export const TileRouteChanged = z.object({
   /** The X coordinate of the tile where the route changed */
-  X: z.number(),
+  PlotX: z.number(),
   /** The Y coordinate of the tile where the route changed */
-  Y: z.number(),
+  PlotY: z.number(),
   /** The player ID of the tile's current owner (if any) */
   OwnerID: z.number(),
   /** The type/ID of the previous route (NO_ROUTE if none) */
