@@ -22,7 +22,8 @@ const blockedEventTypes = new Set<string>([
   "GatherPerTurnReplayStats",
   "GameCoreTestVictory",
   "TestEvent",
-  "PlayerPreAIUnitUpdate"
+  "PlayerPreAIUnitUpdate",
+  "UnitPreKill"
 ]);
 
 /**

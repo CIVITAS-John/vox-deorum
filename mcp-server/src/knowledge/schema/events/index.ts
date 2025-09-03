@@ -95,6 +95,42 @@ import { PlayerRevoked } from './PlayerRevoked.js';
 import { PlayerSecularizes } from './PlayerSecularizes.js';
 import { PlayerTradeRouteCompleted } from './PlayerTradeRouteCompleted.js';
 import { ProvinceLevelChanged } from './ProvinceLevelChanged.js';
+import { PushingMissionTo } from './PushingMissionTo.js';
+import { RebaseTo } from './RebaseTo.js';
+import { ReformCooldownChanges } from './ReformCooldownChanges.js';
+import { ReformCooldownRateChanges } from './ReformCooldownRateChanges.js';
+import { ReligionEnhanced } from './ReligionEnhanced.js';
+import { ReligionFounded } from './ReligionFounded.js';
+import { ReligionReformed } from './ReligionReformed.js';
+import { ResolutionResult } from './ResolutionResult.js';
+import { SetAlly } from './SetAlly.js';
+import { SetPopulation } from './SetPopulation.js';
+import { StateReligionAdopted } from './StateReligionAdopted.js';
+import { StateReligionChanged } from './StateReligionChanged.js';
+import { TeamMeet } from './TeamMeet.js';
+import { TeamSetEra } from './TeamSetEra.js';
+import { TeamSetHasTech } from './TeamSetHasTech.js';
+import { TeamTechResearched } from './TeamTechResearched.js';
+import { TerraformingMap } from './TerraformingMap.js';
+import { TerraformingPlot } from './TerraformingPlot.js';
+import { TestEvent } from './TestEvent.js';
+import { TileFeatureChanged } from './TileFeatureChanged.js';
+import { TileImprovementChanged } from './TileImprovementChanged.js';
+import { TileOwnershipChanged } from './TileOwnershipChanged.js';
+import { TileRevealed } from './TileRevealed.js';
+import { TileRouteChanged } from './TileRouteChanged.js';
+import { TurnComplete } from './TurnComplete.js';
+import { UiDiploEvent } from './UiDiploEvent.js';
+import { UnitCaptured } from './UnitCaptured.js';
+import { UnitCityFounded } from './UnitCityFounded.js';
+import { UnitConverted } from './UnitConverted.js';
+import { UnitCreated } from './UnitCreated.js';
+import { UnitGetSpecialExploreTarget } from './UnitGetSpecialExploreTarget.js';
+import { UnitKilledInCombat } from './UnitKilledInCombat.js';
+import { UnitPrekill } from './UnitPrekill.js';
+import { UnitPromoted } from './UnitPromoted.js';
+import { UnitSetXY } from './UnitSetXY.js';
+import { UnitUpgraded } from './UnitUpgraded.js';
 
 export const eventSchemas = {
   'BarbariansCampCleared': BarbariansCampCleared,
@@ -191,6 +227,42 @@ export const eventSchemas = {
   'PlayerSecularizes': PlayerSecularizes,
   'PlayerTradeRouteCompleted': PlayerTradeRouteCompleted,
   'ProvinceLevelChanged': ProvinceLevelChanged,
+  'PushingMissionTo': PushingMissionTo,
+  'RebaseTo': RebaseTo,
+  'ReformCooldownChanges': ReformCooldownChanges,
+  'ReformCooldownRateChanges': ReformCooldownRateChanges,
+  'ReligionEnhanced': ReligionEnhanced,
+  'ReligionFounded': ReligionFounded,
+  'ReligionReformed': ReligionReformed,
+  'ResolutionResult': ResolutionResult,
+  'SetAlly': SetAlly,
+  'SetPopulation': SetPopulation,
+  'StateReligionAdopted': StateReligionAdopted,
+  'StateReligionChanged': StateReligionChanged,
+  'TeamMeet': TeamMeet,
+  'TeamSetEra': TeamSetEra,
+  'TeamSetHasTech': TeamSetHasTech,
+  'TeamTechResearched': TeamTechResearched,
+  'TerraformingMap': TerraformingMap,
+  'TerraformingPlot': TerraformingPlot,
+  'TestEvent': TestEvent,
+  'TileFeatureChanged': TileFeatureChanged,
+  'TileImprovementChanged': TileImprovementChanged,
+  'TileOwnershipChanged': TileOwnershipChanged,
+  'TileRevealed': TileRevealed,
+  'TileRouteChanged': TileRouteChanged,
+  'TurnComplete': TurnComplete,
+  'UiDiploEvent': UiDiploEvent,
+  'UnitCaptured': UnitCaptured,
+  'UnitCityFounded': UnitCityFounded,
+  'UnitConverted': UnitConverted,
+  'UnitCreated': UnitCreated,
+  'UnitGetSpecialExploreTarget': UnitGetSpecialExploreTarget,
+  'UnitKilledInCombat': UnitKilledInCombat,
+  'UnitPrekill': UnitPrekill,
+  'UnitPromoted': UnitPromoted,
+  'UnitSetXY': UnitSetXY,
+  'UnitUpgraded': UnitUpgraded,
 };
 
 export type EventName = keyof typeof eventSchemas;

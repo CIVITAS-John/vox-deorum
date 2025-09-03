@@ -4,7 +4,6 @@
  */
 
 import { LuaFunction } from '../../bridge/lua-function.js';
-import { bridgeManager } from '../../server.js';
 
 /**
  * Game identity information

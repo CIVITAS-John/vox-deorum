@@ -17,6 +17,11 @@ export abstract class LuaFunctionTool extends ToolBase {
   protected abstract readonly script: string;
 
   /**
+   * The Lua function arguments in the signature
+   */
+  protected abstract readonly arguments: string[];
+
+  /**
    * The LuaFunction instance used to execute the script
    */
   function?: LuaFunction
@@ -40,7 +45,7 @@ export abstract class LuaFunctionTool extends ToolBase {
    * Execute the Lua script using BridgeManager
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    this.function = this.function ?? new LuaFunction("default-func-" + this.name, this.script);
+    this.function = this.function ?? new LuaFunction("default-func-" + this.name, this.arguments, this.script);
     const response = await this.function.execute(args);
     
     return {
