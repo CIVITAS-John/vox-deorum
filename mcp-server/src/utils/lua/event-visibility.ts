@@ -48,7 +48,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   local function addPlayer(playerID)
     -- Check if player exists
     local player = Players[playerID]
-    if not player then return
+    if not player then return end
     
     -- Team members can see each other's events
     addTeam(teamID)
@@ -62,7 +62,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     end
     
     -- Check for team-related fields in payload
-    if (string.match(key, "TeamID$") then
+    if (string.match(key, "TeamID$")) then
       addTeam(value)
     end
   end
