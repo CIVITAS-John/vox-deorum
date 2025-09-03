@@ -15,7 +15,7 @@ export const TileRevealed = z.object({
   /** Whether this is the first major civilization to discover this tile */
   IsFirstMajorCiv: z.boolean(),
   /** The player ID of the unit owner causing the revelation (NO_PLAYER if not unit-based) */
-  UnitOwnerID: z.number(),
+  PlayerID: z.number(),
   /** The ID of the specific unit revealing the tile (-1 if not unit-based) */
   UnitID: z.number(),
 });

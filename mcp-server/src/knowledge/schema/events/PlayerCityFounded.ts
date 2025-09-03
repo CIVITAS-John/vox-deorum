@@ -10,5 +10,5 @@ export const PlayerCityFounded = z.object({
   /** The X coordinate of the city's location */
   PlotX: z.number(),
   /** The Y coordinate of the city's location */
-  Y: z.number()
+  PlotY: z.number()
 });

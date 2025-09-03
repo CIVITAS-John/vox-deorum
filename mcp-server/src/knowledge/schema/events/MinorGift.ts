@@ -6,10 +6,10 @@ import { z } from 'zod';
  */
 export const MinorGift = z.object({
   /** The city-state providing the gift */
-  MinorCivPlayerID: z.number(),
+  MinorPlayerID: z.number(),
   
   /** The major civilization receiving the gift */
-  MajorCivPlayerID: z.number(),
+  MajorPlayerID: z.number(),
   
   /** The primary gift value (varies by city-state type) */
   GiftValue: z.number(),

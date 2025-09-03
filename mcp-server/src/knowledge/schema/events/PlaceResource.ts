@@ -12,7 +12,7 @@ export const PlaceResource = z.object({
   /** The quantity of the resource being placed */
   Quantity: z.number(),
   /** The X coordinate where the resource is being placed */
-  PlotX: z.number(),
+  CityX: z.number(),
   /** The Y coordinate where the resource is being placed */
-  Y: z.number()
+  CityY: z.number()
 });

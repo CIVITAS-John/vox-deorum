@@ -6,10 +6,10 @@ import { z } from 'zod';
  */
 export const MinorAlliesChanged = z.object({
   /** The city-state whose ally relationship changed */
-  MinorCivPlayerID: z.number(),
+  MinorPlayerID: z.number(),
   
   /** The major civilization involved in the ally change */
-  MajorCivPlayerID: z.number(),
+  MajorPlayerID: z.number(),
   
   /** Boolean indicating whether the major civ is now an ally */
   IsNowAlly: z.boolean(),

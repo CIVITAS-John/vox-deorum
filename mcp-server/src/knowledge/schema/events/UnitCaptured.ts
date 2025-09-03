@@ -6,11 +6,11 @@ import { z } from 'zod';
  */
 export const UnitCaptured = z.object({
   /** The ID of the player who captured/converted the unit */
-  CapturingPlayerID: z.number(),
+  NewOwnerID: z.number(),
   /** The ID of the unit that performed the capture, or unit type if from capture definition */
   CapturingUnitID: z.number(),
   /** The ID of the player who originally owned the captured unit */
-  OriginalOwnerID: z.number(),
+  OldOwnerID: z.number(),
   /** The unique identifier of the unit that was captured/converted */
   CapturedUnitID: z.number(),
   /** Whether the unit was killed instead of captured (true = killed, false = captured) */

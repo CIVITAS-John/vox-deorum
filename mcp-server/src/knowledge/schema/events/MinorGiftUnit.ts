@@ -6,9 +6,9 @@ import { z } from 'zod';
  */
 export const MinorGiftUnit = z.object({
   /** The militaristic city-state gifting the unit */
-  MinorCivPlayerID: z.number(),
+  MinorPlayerID: z.number(),
   /** The major civilization receiving the unit */
-  MajorCivPlayerID: z.number(),
+  MajorPlayerID: z.number(),
   /** The type identifier of the spawned unit */
   UnitType: z.number(),
 });

@@ -15,13 +15,13 @@ export const PlayerPlunderedTradeRoute = z.object({
   PlunderGoldValue: z.number(),
   
   /** The player ID who owns the origin city of the plundered trade route */
-  OriginCityOwnerID: z.number(),
+  OriginOwnerID: z.number(),
   
   /** The unique identifier of the origin city */
   OriginCityID: z.number(),
   
   /** The player ID who owns the destination city of the plundered trade route */
-  DestinationCityOwnerID: z.number(),
+  DestinationOwnerID: z.number(),
   
   /** The unique identifier of the destination city */
   DestinationCityID: z.number(),

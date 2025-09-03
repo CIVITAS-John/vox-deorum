@@ -5,7 +5,7 @@ import { z } from 'zod';
  */
 export const UnitConverted = z.object({
   /** The ID of the player who originally owned the unit before conversion */
-  OriginalOwnerID: z.number(),
+  OldOwnerID: z.number(),
   /** The ID of the player who now owns the unit after conversion */
   NewOwnerID: z.number(),
   /** The ID of the unit before conversion */

@@ -5,7 +5,7 @@ import { z } from 'zod';
  */
 export const SetAlly = z.object({
   /** The city-state whose ally relationship changed */
-  MinorCivPlayerID: z.number(),
+  MinorPlayerID: z.number(),
   /** The previous ally (NO_PLAYER if none) */
   OldAllyPlayerID: z.number(),
   /** The current ally (NO_PLAYER if none) */

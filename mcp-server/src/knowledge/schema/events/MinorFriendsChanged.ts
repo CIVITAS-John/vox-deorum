@@ -6,10 +6,10 @@ import { z } from 'zod';
  */
 export const MinorFriendsChanged = z.object({
   /** The city-state whose friendship relationship changed */
-  MinorCivPlayerID: z.number(),
+  MinorPlayerID: z.number(),
   
   /** The major civilization involved in the friendship change */
-  MajorCivPlayerID: z.number(),
+  MajorPlayerID: z.number(),
   
   /** Whether the major civ is now a friend */
   IsNowFriend: z.boolean(),

@@ -9,7 +9,7 @@ export const PantheonFounded = z.object({
   PlayerID: z.number(),
   
   /** The unique identifier of the player's capital city */
-  CapitalCityID: z.number(),
+  CityID: z.number(),
   
   /** Fixed identifier indicating this is a pantheon (RELIGION_PANTHEON) */
   ReligionType: z.number(),
