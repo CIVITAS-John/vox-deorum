@@ -1,4 +1,4 @@
-import { PlayerVisibility } from "../../knowledge/schema/base.js";
+import { MaxMajorCivs, PlayerVisibility } from "../../knowledge/schema/base.js";
 import { analyzeEventVisibility } from "../lua/event-visibility.js";
 
 /**
@@ -6,7 +6,7 @@ import { analyzeEventVisibility } from "../lua/event-visibility.js";
  */
 export function markVisibility<T extends PlayerVisibility>(data: T, visibility: Set<number>, override = false): T {
   if (override) {
-    for (let i = 0; i <= 21; i++) {
+    for (let i = 0; i < MaxMajorCivs; i++) {
       (data as any)[`Player${i}`] = false;
     }
   }
@@ -21,7 +21,7 @@ export function markVisibility<T extends PlayerVisibility>(data: T, visibility: 
  */
 export function parseVisibility<T extends PlayerVisibility>(data: T): Set<number> {
   const visibleTo = new Set<number>();
-  for (let i = 0; i <= 21; i++) {
+  for (let i = 0; i < MaxMajorCivs; i++) {
     if ((data as any)[`Player${i}`]) {
       visibleTo.add(i);
     }

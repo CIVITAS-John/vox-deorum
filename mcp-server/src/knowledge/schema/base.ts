@@ -6,6 +6,11 @@
 import type { Generated, JSONColumnType } from 'kysely';
 
 /**
+ * The maximum number of major civilizations.
+ */
+export const MaxMajorCivs = 22;
+
+/**
  * Player visibility flags for knowledge entries
  */
 export interface PlayerVisibility {

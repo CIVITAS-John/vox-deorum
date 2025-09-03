@@ -4,7 +4,7 @@
  */
 
 import { Kysely, sql, CreateTableBuilder } from 'kysely';
-import type { KnowledgeDatabase } from './base.js';
+import { MaxMajorCivs, type KnowledgeDatabase } from './base.js';
 
 /**
  * Creates base columns for PublicKnowledge-derived tables
@@ -36,7 +36,7 @@ export function createTimedKnowledgeTable<T extends string>(
     .addColumn('Turn', 'integer', (col) => col.notNull())
     .addColumn('Payload', 'text', (col) => col.notNull()) // JSON object
     .addColumn('CreatedAt', 'integer', (col) => col.notNull().defaultTo(sql`(unixepoch())`));
-  for (let i = 0; i <= 21; i++) {
+  for (let i = 0; i < MaxMajorCivs; i++) {
     schema = schema.addColumn(`Player${i}`, 'boolean', (col) => col.notNull().defaultTo(false));
   }
   return schema;
@@ -67,7 +67,7 @@ export async function createTimedKnowledgeIndexes(
   typeColumn?: string
 ): Promise<void> {
   // Create index for owner queries
-  for (let i = 0; i <= 21; i++) {
+  for (let i = 0; i < MaxMajorCivs; i++) {
     if (typeColumn) {
       await db.schema
         .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
@@ -96,7 +96,7 @@ export async function createMutableKnowledgeIndexes(
   typeColumn?: string
 ): Promise<void> {
   // Create index for owner queries
-  for (let i = 0; i <= 21; i++) {
+  for (let i = 0; i < MaxMajorCivs; i++) {
     if (typeColumn) {
       await db.schema
         .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
