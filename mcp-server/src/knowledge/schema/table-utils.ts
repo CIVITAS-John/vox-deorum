@@ -37,7 +37,7 @@ export function createTimedKnowledgeTable<T extends string>(
     .addColumn('Payload', 'text', (col) => col.notNull()) // JSON object
     .addColumn('CreatedAt', 'integer', (col) => col.notNull().defaultTo(sql`(unixepoch())`));
   for (let i = 0; i < MaxMajorCivs; i++) {
-    schema = schema.addColumn(`Player${i}`, 'boolean', (col) => col.notNull().defaultTo(false));
+    schema = schema.addColumn(`Player${i}`, 'integer', (col) => col.notNull().defaultTo(false));
   }
   return schema;
 }
@@ -53,7 +53,7 @@ export function createMutableKnowledgeTable<T extends string>(
   return createTimedKnowledgeTable(db, tableName)
     .addColumn('Key', 'integer', (col) => col.notNull())
     .addColumn('Version', 'integer', (col) => col.notNull().defaultTo(1))
-    .addColumn('IsLatest', 'boolean', (col) => col.notNull().defaultTo(true))
+    .addColumn('IsLatest', 'integer', (col) => col.notNull().defaultTo(true))
     .addColumn('Changes', 'text', (col) => col.notNull().defaultTo('[]')); // JSON array
 }
 

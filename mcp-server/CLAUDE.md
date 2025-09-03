@@ -35,9 +35,6 @@
 - Tool/resource tests should be done by doing MCP client calls
 - Tool/resource tests should use the mcpClient object exported by the setup.ts
 
-### Database
-- While SQLite does not support boolean type, Kysely supports it. Do not convert booleans to 0/1.
-
 ### Build & Development
 - `npm run dev` - Development with hot reload using tsx
 - `npm run build` - TypeScript compilation to dist/

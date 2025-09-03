@@ -15,67 +15,61 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   
   -- Initialize visibility flags for all players
   for i = 0, maxMajorCivs do
-    visibilityFlags[i] = false
+    visibilityFlags[i] = 0
   end
-  
+
   -- Helper function to mark player as able to see the event
-  local function setVisible(playerID)
-    visibilityFlags[playerID] = true
+  local function setVisible(playerID, value)
+    if visibilityFlags[playerID] < value then
+      visibilityFlags[playerID] = value
+    end
   end
 
   -- Helper function to add team-based visibility
-  local function addTeam(teamID)
+  local function addTeam(teamID, value)
     for otherID = 0, maxMajorCivs do
       local otherPlayer = Players[otherID]
       if otherPlayer and otherPlayer:GetTeam() == teamID then
-        setVisible(otherID)
+        setVisible(otherID, value)
       end
     end
   end
 
   -- Helper function to add met leaders visibility
-  local function addMetPlayer(playerid)
+  local function addMetPlayer(playerid, value)
     for otherID = 0, maxMajorCivs do
       local otherPlayer = Players[otherID]
       local otherTeam = Teams[otherPlayer:GetTeam()]
       if otherTeam and otherTeam:IsHasMet(teamID) then
-        setVisible(otherID)
+        setVisible(otherID, value)
       end
     end
   end
   
   -- Helper function to add player-based visibility
-  local function addPlayer(playerID)
+  local function addPlayer(playerID, value)
     -- Check if player exists
     local player = Players[playerID]
     if not player then return end
     
     -- Team members can see each other's events
-    addTeam(teamID)
+    addTeam(player:GetTeam(), value)
   end
 
   -- Analyze visibility based on event type and payload
   for key, value in pairs(payload) do
     -- Check for player-related fields in payload
     if (string.match(key, "PlayerID$") or string.match(key, "OwnerID$")) then
-      addPlayer(value)
+      addPlayer(value, 2)
     end
     
     -- Check for team-related fields in payload
     if (string.match(key, "TeamID$")) then
-      addTeam(value)
+      addTeam(value, 2)
     end
   end
-  
-  -- Convert visibility flags to list of visible player IDs
-  local visiblePlayers = {}
-  for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
-    if visibilityFlags[playerID] then
-      table.insert(visiblePlayers, playerID)
-    end
-  end
-  
-  return visiblePlayers
+
+  return visibilityFlags
 `);
 
 /**
@@ -86,6 +80,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
  */
 export async function analyzeEventVisibility(eventType: string, payload: any): Promise<number[] | undefined> {
   const response = await analyzeVisibilityFunc.execute(eventType, payload);
+  console.log(response.result);
   if (!response.success) {
     return undefined;
   }

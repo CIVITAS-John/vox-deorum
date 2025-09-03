@@ -1,17 +1,12 @@
 import { MaxMajorCivs, PlayerVisibility } from "../../knowledge/schema/base.js";
-import { analyzeEventVisibility } from "../lua/event-visibility.js";
 
 /**
  * Marks the visibility of a knowledge item to specific players
  */
-export function markVisibility<T extends PlayerVisibility>(data: T, visibility: Set<number>, override = false): T {
-  if (override) {
-    for (let i = 0; i < MaxMajorCivs; i++) {
-      (data as any)[`Player${i}`] = false;
-    }
-  }
-  for (const playerId of visibility) {
-    (data as any)[`Player${playerId}`] = true;
+export function applyVisibility<T extends PlayerVisibility>(data: T, visibility?: number[]): T {
+  if (!visibility) return data;
+  for (let i = 0; i < MaxMajorCivs; i++) {
+    (data as any)[`Player${i}`] = visibility[i];
   }
   return data;
 }
@@ -19,35 +14,18 @@ export function markVisibility<T extends PlayerVisibility>(data: T, visibility: 
 /**
  * Parses visibility flags into a set of player IDs who can see the item
  */
-export function parseVisibility<T extends PlayerVisibility>(data: T): Set<number> {
-  const visibleTo = new Set<number>();
+export function parseVisibility<T extends PlayerVisibility>(data: T): number[] {
+  const visibleTo: number[] = [];
   for (let i = 0; i < MaxMajorCivs; i++) {
-    if ((data as any)[`Player${i}`]) {
-      visibleTo.add(i);
-    }
+    visibleTo.push((data as any)[`Player${i}`]);
   }
   return visibleTo;
 }
 
 /**
  * Checks if a knowledge item is visible to a specific player
- * Returns true if visible, false otherwise
+ * Returns 2 if fully visible, 1 if partly visible, 0 if not visible
  */
-export function isVisibleToPlayer<T extends PlayerVisibility>(data: T, playerId: number): boolean {
-  return (data as any)[`Player${playerId}`] || false;
-}
-
-/**
- * Automatically determine event visibility based on event type and payload
- * @param eventType The type of the event
- * @param payload The event payload
- * @returns Set of player IDs that can see this event
- */
-export async function determineEventVisibility(eventType: string, payload: any): Promise<Set<number>> {
-  const visibilityArray = await analyzeEventVisibility(eventType, payload);
-  if (!visibilityArray) {
-    // If analysis fails, default to no visibility
-    return new Set<number>();
-  }
-  return new Set(visibilityArray);
+export function getVisibility<T extends PlayerVisibility>(data: T, playerId: number): number {
+  return (data as any)[`Player${playerId}`];
 }

@@ -14,7 +14,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { knowledgeManager } from '../server.js';
 import { EventName, eventSchemas } from './schema/events/index.js';
-import { determineEventVisibility, markVisibility } from '../utils/knowledge/visibility.js';
+import { analyzeEventVisibility } from '../utils/lua/event-visibility.js';
+import { applyVisibility } from '../utils/knowledge/visibility.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -165,17 +166,16 @@ export class KnowledgeStore {
    */
   async storeGameEvent<T>(type: string, payload: T): Promise<void> {
     // Determine visibility for this event
-    const visibility = await determineEventVisibility(type, payload);
+    const visibility = await analyzeEventVisibility(type, payload);
     
     // Create event object with visibility markers
-    const eventWithVisibility = markVisibility(
+    const eventWithVisibility = applyVisibility(
       {
         Turn: knowledgeManager.getTurn(),
         Type: type,
         Payload: JSON.stringify(payload),
       } as any,
-      visibility,
-      true // Override to set all visibility fields
+      visibility
     );
 
     await this.getDatabase()
@@ -183,8 +183,12 @@ export class KnowledgeStore {
       .values(eventWithVisibility)
       .execute();
 
-    const visiblePlayers = Array.from(visibility).join(', ');
-    logger.info(`Stored game event: ${type} at turn ${knowledgeManager.getTurn()}, visible to players: [${visiblePlayers}]`, payload);
+    if (visibility) {
+      const visiblePlayers = Array.from(visibility).join(', ');
+      logger.info(`Stored game event: ${type} at turn ${knowledgeManager.getTurn()}, visible to players: [${visiblePlayers}]`, payload);
+    } else {
+      logger.info(`Stored game event: ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`);
+    }
   }
 
   /**

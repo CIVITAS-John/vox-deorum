@@ -50,7 +50,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('Civilization', 'text', (col) => col.notNull())
     .addColumn('Leader', 'text', (col) => col.notNull())
     .addColumn('TeamId', 'integer')
-    .addColumn('IsHuman', 'boolean', (col) => col.notNull())
+    .addColumn('IsHuman', 'integer', (col) => col.notNull())
     .execute();
   // Create indexes for PlayerInformation table
   await createPublicKnowledgeIndexes(db, 'PlayerInformation', ['PlayerId']);
