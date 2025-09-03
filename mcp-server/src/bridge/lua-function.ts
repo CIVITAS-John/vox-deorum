@@ -17,6 +17,7 @@ export class LuaFunction {
   public readonly arguments: string[];
   public readonly script: string;
   private _registered: boolean = false;
+  private _registrationPromise: Promise<boolean> | null = null;
 
   /**
    * Create a new LuaFunction
@@ -38,6 +39,31 @@ export class LuaFunction {
    * Register the function with the Bridge Service
    */
   public async register(): Promise<boolean> {
+    // If already registered, return success
+    if (this._registered) {
+      return true;
+    }
+
+    // If registration is already in progress, wait for it
+    if (this._registrationPromise)
+      return this._registrationPromise;
+
+    // Start new registration
+    this._registrationPromise = this.performRegistration();
+    
+    try {
+      const result = await this._registrationPromise;
+      return result;
+    } finally {
+      // Clear the promise after completion
+      this._registrationPromise = null;
+    }
+  }
+
+  /**
+   * Perform the actual registration
+   */
+  private async performRegistration(): Promise<boolean> {
     logger.info(`Registering function: ${this.name}`);
     
     // Create registration script that defines the function
@@ -101,6 +127,7 @@ export class LuaFunction {
    */
   public resetRegistration(): void {
     this._registered = false;
+    this._registrationPromise = null;
     logger.debug(`Reset registration for function: ${this.name}`);
   }
 }

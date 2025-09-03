@@ -15,13 +15,13 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   
   -- Initialize visibility flags for all players
   for i = 0, maxMajorCivs do
-    visibilityFlags[i] = 0
+    table.insert(visibilityFlags, 0)
   end
 
   -- Helper function to mark player as able to see the event
   local function setVisible(playerID, value)
-    if visibilityFlags[playerID] < value then
-      visibilityFlags[playerID] = value
+    if visibilityFlags[playerID + 1] < value then
+      visibilityFlags[playerID + 1] = value
     end
   end
 
@@ -80,7 +80,6 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
  */
 export async function analyzeEventVisibility(eventType: string, payload: any): Promise<number[] | undefined> {
   const response = await analyzeVisibilityFunc.execute(eventType, payload);
-  console.log(response.result);
   if (!response.success) {
     return undefined;
   }
