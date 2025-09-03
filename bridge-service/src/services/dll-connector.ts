@@ -210,7 +210,7 @@ export class DLLConnector extends EventEmitter {
       this.pendingRequests.set(messageWithId.id, request);
 
       try {
-        ipc.of[config.namedpipe.id].emit(JSON.stringify(messageWithId));
+        ipc.of[config.namedpipe.id].emit(JSON.stringify(messageWithId) + "!@#$%^!");
         logger.debug('Sent message to DLL:', messageWithId);
         // Emit event for testing
         this.emit('ipc_send', messageWithId);
