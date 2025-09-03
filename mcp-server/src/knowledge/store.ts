@@ -164,7 +164,7 @@ export class KnowledgeStore {
   /**
    * Store a game event with automatic visibility determination
    */
-  async storeGameEvent<T>(type: string, payload: T): Promise<void> {
+  async storeGameEvent<T extends object>(type: string, payload: T): Promise<void> {
     // Determine visibility for this event
     const visibilityResult = await analyzeEventVisibility(type, payload);
     
@@ -181,11 +181,6 @@ export class KnowledgeStore {
       visibilityFlags
     );
 
-    await this.getDatabase()
-      .insertInto('GameEvents')
-      .values(eventWithVisibility)
-      .execute();
-
     if (visibilityResult) {
       // Log invalidations if any exist
       const invalidationKeys = Object.keys(visibilityResult.invalidations);
@@ -198,10 +193,18 @@ export class KnowledgeStore {
         .map((flag, idx) => flag > 0 ? idx : -1)
         .filter(idx => idx !== -1)
         .join(', ');
-      logger.info(`Stored game event: ${type} at turn ${knowledgeManager.getTurn()}, visible to players: [${visiblePlayers}]`, payload);
+
+      // Save the extra payloads
+      Object.assign(payload, visibilityResult.extraPayload);
+      logger.info(`Storing game event: ${type} at turn ${knowledgeManager.getTurn()}, visible to players: [${visiblePlayers}]`, payload);
     } else {
-      logger.info(`Stored game event: ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`);
+      logger.info(`Storing game event: ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
     }
+    
+    await this.getDatabase()
+      .insertInto('GameEvents')
+      .values(eventWithVisibility)
+      .execute();
   }
 
   /**

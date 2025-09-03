@@ -12,11 +12,19 @@ import { MaxMajorCivs } from '../../knowledge/schema/base.js';
 const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventType", "payload"], `
   local visibilityFlags = {}
   local invalidations = {}
+  local extraPayloads = {}
   local maxMajorCivs = ${MaxMajorCivs} - 1
   
   -- Initialize visibility flags for all players
   for i = 0, maxMajorCivs do
     table.insert(visibilityFlags, 0)
+  end
+
+  -- Helper function to add an extra payload
+  local function addPayload(key, value)
+    if key ~= nil then
+      extraPayloads[string.sub(key, 1, -3)] = value
+    end
   end
 
   -- Helper function to mark player as able to see the event
@@ -28,7 +36,10 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   end
 
   -- Helper function to add team-based visibility
-  local function addTeam(teamID, value)
+  local function addTeam(teamID, value, key)
+    if teamID < 0 then return end
+
+    local metadata = {}
     -- Invalidate the team's cached metadata
     invalidations["team_" .. teamID] = true
 
@@ -36,9 +47,13 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     for otherID = 0, maxMajorCivs do
       local otherPlayer = Players[otherID]
       if otherPlayer and otherPlayer:GetTeam() == teamID then
+        metadata["player_" .. otherID] = otherPlayer:GetName()
         setVisible(otherID, value)
       end
     end
+
+    -- Add to the extra payload
+    addPayload(key, metadata)
   end
 
   -- Helper function to add met leaders visibility
@@ -59,32 +74,41 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   end
   
   -- Helper function to add player-based visibility
-  local function addPlayer(playerID, value)
+  local function addPlayer(playerID, value, key)
+    local metadata = {}
+
     -- Check if player exists
     local player = Players[playerID]
     if not player then return end
+
+    -- Get the succinct metadata for the player
+    metadata["name"] = player:GetName()
+    metadata["civilization"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
 
     -- Invalidate the player's cached metadata
     invalidations["player_" .. playerID] = true
 
     -- Team members can see each other's events
     addTeam(player:GetTeam(), value)
+
+    -- Add to the extra payload
+    addPayload(key, metadata)
   end
 
   -- Analyze visibility based on event type and payload
   for key, value in pairs(payload) do
     -- Check for player-related fields in payload
     if (string.match(key, "PlayerID$") or string.match(key, "OwnerID$")) then
-      addPlayer(value, 2)
+      addPlayer(value, 2, key)
     end
     
     -- Check for team-related fields in payload
     if (string.match(key, "TeamID$")) then
-      addTeam(value, 2)
+      addTeam(value, 2, key)
     end
   end
 
-  return {visibilityFlags, invalidations}
+  return {visibilityFlags, invalidations, extraPayloads}
 `);
 
 /**
@@ -93,6 +117,8 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
 export interface EventVisibilityResult {
   /** Array of visibility flags for each player (0=invisible, 1=partial, 2=full) */
   visibilityFlags: number[];
+  /** Summary information about each referenced identity */
+  extraPayload: Record<string, any>;
   /** Map of cache invalidation keys */
   invalidations: Record<string, boolean>;
 }
@@ -105,11 +131,12 @@ export interface EventVisibilityResult {
  */
 export async function analyzeEventVisibility(eventType: string, payload: any): Promise<EventVisibilityResult | undefined> {
   const response = await analyzeVisibilityFunc.execute(eventType, payload);
-  if (!response.success || !Array.isArray(response.result) || response.result.length !== 2) {
+  if (!response.success || !Array.isArray(response.result) || response.result.length !== 3) {
     return undefined;
   }
   return {
     visibilityFlags: response.result[0],
-    invalidations:  response.result[1]
+    invalidations: response.result[1],
+    extraPayload: response.result[2]
   };
 }
