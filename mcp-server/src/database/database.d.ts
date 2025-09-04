@@ -8827,7 +8827,7 @@ export interface DB {
   // TechnologyFlavors: TechnologyFlavor;
   // TechnologyFreePromotions: TechnologyFreePromotion;
   // TechnologyORPrereqTechs: TechnologyOrPrereqTech;
-  TechnologyPrereqTechs: TechnologyPrereqTech;
+  Technology_PrereqTechs: TechnologyPrereqTech;
   // TechnologyTradeRouteDomainExtraRange: TechnologyTradeRouteDomainExtraRange;
   // TechSpecialistYieldChanges: TechSpecialistYieldChange;
   // TerrainCoastalLandYields: TerrainCoastalLandYield;

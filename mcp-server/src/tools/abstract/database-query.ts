@@ -114,12 +114,16 @@ export abstract class DatabaseQueryTool<
       
       // Apply fuzzy search if search term provided
       if (args.search) {
-        const searchOptions = {
+        let matches = search(args.search, summaries, {
           keySelector: (item: TSummary) => this.getSearchKeys(item),
-          threshold: this.getSearchThreshold()
-        };
-        
-        results = search(args.search, summaries, searchOptions);
+          threshold: this.getSearchThreshold(),
+          returnMatchData: true
+        });
+        if (matches.length > 0 && matches[0].score == 1) {
+          results = [matches[0].item];
+        } else {
+          results = matches.map(r => r.item);
+        }
       }
       
       // Limit results

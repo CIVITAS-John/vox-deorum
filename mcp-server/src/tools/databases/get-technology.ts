@@ -85,7 +85,7 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
     
     // Get prerequisite technologies
     const prereqTechs = await db
-      .selectFrom('TechnologyPrereqTechs')
+      .selectFrom('Technology_PrereqTechs')
       .select('PrereqTech')
       .where('TechType', '=', techType)
       .execute();
@@ -102,13 +102,15 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
       .selectFrom('Buildings')
       .innerJoin('BuildingClasses as c', 'c.Type', 'Buildings.BuildingClass')
       .where('PrereqTech', '=', techType)
-      .select(['Description', 'c.MaxGlobalInstances', 'c.MaxPlayerInstances'])
+      .select(['Buildings.Description', 'c.MaxGlobalInstances', 'c.MaxPlayerInstances'])
       .execute();
     
     // Get unlocked improvements
     const improvementsUnlocked = await db
       .selectFrom('Builds')
       .select('ImprovementType')
+      .innerJoin('Improvements as i', 'i.Type', 'Builds.ImprovementType')
+      .select(['i.Description'])
       .where('PrereqTech', '=', techType)
       .execute();
     
