@@ -10,7 +10,7 @@ export const GreatPersonExpended = z.object({
   /** The unique identifier of the specific Great Person unit */
   UnitID: z.number(),
   /** The specific type identifier of the Great Person unit that was expended */
-  GreatPersonUnitType: z.number(),
+  GreatPersonType: z.number(),
   /** The X map coordinate where the Great Person was expended */
   CityX: z.number(),
   /** The Y map coordinate where the Great Person was expended */

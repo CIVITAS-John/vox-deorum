@@ -8,5 +8,5 @@ export const ContractEnded = z.object({
   /** The player ID who held/owned the contract */
   HolderPlayerID: z.number(),
   /** The type/ID of the contract that ended */
-  ContractTypeID: z.number()
+  ContractType: z.number()
 });

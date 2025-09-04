@@ -8,8 +8,8 @@ export const CityFlipped = z.object({
   CityID: z.number(),
   
   /** The player ID of the recipient who will receive the city */
-  RecipientID: z.number(),
+  NewOwnerID: z.number(),
   
   /** The player ID of the current owner who is losing the city */
-  OriginalOwnerID: z.number()
+  OldOwnerID: z.number()
 });

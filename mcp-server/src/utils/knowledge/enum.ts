@@ -1,14 +1,20 @@
+import { CaptureTypes } from "../../database/enums/CaptureTypes.js";
+import { TradeConnectionTypes } from "../../database/enums/ConnectionTypes.js";
 import { FeatureTypes } from "../../database/enums/FeatureTypes.js";
 import { PlotTypes } from "../../database/enums/PlotTypes.js";
 import { TerrainTypes } from "../../database/enums/TerrainTypes.js";
 import { UnitAITypes } from "../../database/enums/UnitAITypes.js";
+import { YieldTypes } from "../../database/enums/YieldTypes.js";
 
 // Mappings between object keys and mappings.
 export const enumMappings: Record<string, Record<number, string>> = {
   "TerrainType": TerrainTypes,
   "FeatureType": FeatureTypes,
   "PlotType": PlotTypes,
-  "AIType": UnitAITypes
+  "AIType": UnitAITypes,
+  "YieldType": YieldTypes,
+  "ConnectionType": TradeConnectionTypes,
+  "CaptureType": CaptureTypes,
 }
 
 /**
@@ -20,9 +26,23 @@ export function explainEnums<T extends Record<string, any>>(obj: T): T {
   const entries = Object.entries(obj);
   // Handle objects
   for (const [key, value] of entries) {
-    // Check if this key has an enum mapping
+    // Check if this key has an enum mapping (exact match or fuzzy match)
+    let enumMapping: Record<number, string> | undefined;
+    
+    // First try exact match
     if (key in enumMappings) {
-      const enumMapping = enumMappings[key];
+      enumMapping = enumMappings[key];
+    } else {
+      // Try fuzzy match: check if key ends with any of the enum mapping keys
+      for (const [mappingKey, mappingValue] of Object.entries(enumMappings)) {
+        if (key.endsWith(mappingKey)) {
+          enumMapping = mappingValue;
+          break;
+        }
+      }
+    }
+    
+    if (enumMapping) {
       // Try to replace the value with the enum mapping
       if (typeof value === 'number' && value in enumMapping) {
         (obj as any)[key] = enumMapping[value];

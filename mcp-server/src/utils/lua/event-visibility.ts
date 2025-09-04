@@ -165,7 +165,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     -- Get unit metadata
     if key ~= nil then
       local metadata = {}
-      metadata["Model"] = Locale.ConvertTextKey(unit:GetNameKey())
+      metadata["UnitType"] = unit:GetUnitType()
       metadata["AIType"] = unit:GetUnitAIType()
       metadata["Hp"] = unit:GetCurrHitPoints()
       metadata["MaxHp"] = unit:GetMaxHitPoints()

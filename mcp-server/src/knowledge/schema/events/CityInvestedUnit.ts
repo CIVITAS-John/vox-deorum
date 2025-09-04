@@ -12,7 +12,7 @@ export const CityInvestedUnit = z.object({
   CityID: z.number(),
   
   /** The unit class identifier for the type of units being invested in */
-  UnitClassID: z.number(),
+  UnitClass: z.number(),
   
   /** Whether the investment is being activated (true) or deactivated (false) */
   Invested: z.boolean()

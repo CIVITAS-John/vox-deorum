@@ -8,5 +8,5 @@ export const PlayerAdoptPolicy = z.object({
   /** The ID of the player who adopted the policy */
   PlayerID: z.number(),
   /** The type of policy that was adopted */
-  PolicyType: z.number()
+  PolicyID: z.number()
 });

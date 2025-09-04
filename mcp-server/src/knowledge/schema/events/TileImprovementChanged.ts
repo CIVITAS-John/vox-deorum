@@ -11,9 +11,9 @@ export const TileImprovementChanged = z.object({
   /** The player ID of the tile's current owner (if any) */
   OwnerID: z.number(),
   /** The type/ID of the previous improvement (NO_IMPROVEMENT if none) */
-  OldImprovementID: z.number(),
+  OldImprovementType: z.number(),
   /** The type/ID of the new improvement (NO_IMPROVEMENT if removed) */
-  NewImprovementID: z.number(),
+  NewImprovementType: z.number(),
   /** Whether the improvement is currently in a pillaged state */
   IsPillaged: z.boolean(),
 });

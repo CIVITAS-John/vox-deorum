@@ -9,5 +9,5 @@ export const BarbariansSpawnedUnit = z.object({
   /** The Y coordinate of the plot where the barbarian unit was spawned */
   PlotY: z.number(),
   /** The internal unit type ID (UnitTypes enum) of the spawned barbarian unit */
-  UnitTypeID: z.number()
+  UnitType: z.number()
 });

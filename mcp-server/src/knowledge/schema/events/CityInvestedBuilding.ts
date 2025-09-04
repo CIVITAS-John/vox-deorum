@@ -12,7 +12,7 @@ export const CityInvestedBuilding = z.object({
   CityID: z.number(),
   
   /** The building class identifier for the type of building being invested in */
-  BuildingClassID: z.number(),
+  BuildingClass: z.number(),
   
   /** Whether the investment is being activated (true) or deactivated (false) */
   Invested: z.boolean()

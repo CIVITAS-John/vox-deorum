@@ -5,7 +5,7 @@ import { z } from 'zod';
  */
 export const UnitPrekill = z.object({
   /** The ID of the player who owns the unit about to be killed */
-  OwnerPlayerID: z.number(),
+  OwnerID: z.number(),
   /** The unique identifier of the unit about to be killed */
   UnitID: z.number(),
   /** The type identifier of the unit about to be killed */

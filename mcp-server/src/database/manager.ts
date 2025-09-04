@@ -231,8 +231,21 @@ export class DatabaseManager {
    * Initialize enum-like mappings
    */
   async initializeMappings() {
-    this.addEnumMappings("Improvements", "ImprovementID");
+    this.addEnumMappings("Improvements", "ImprovementType");
+    this.addEnumMappings("Buildings", "BuildingType");
+    this.addEnumMappings("BuildingClasses", "BuildingClass");
+    this.addEnumMappings("Projects", "ProjectType");
+    this.addEnumMappings("Specialists", "SpecialistType");
+    this.addEnumMappings("GreatWorks", "GreatWorkType");
+    this.addEnumMappings("Beliefs", "BeliefType");
+    this.addEnumMappings("GoodyHuts", "GoodyType");
+    this.addEnumMappings("GreatPersons", "GreatPersonType");
+    this.addEnumMappings("PolicyBranchTypes", "BranchType");
+    this.addEnumMappings("Resolutions", "ResolutionType");
+    this.addEnumMappings("Units", "UnitType");
+    this.addEnumMappings("UnitClasses", "UnitClass");
     this.addEnumMappings("Technologies", "TechID");
+    this.addEnumMappings("Policies", "PolicyID");
     this.addEnumMappings("Resources", "ResourceID");
     this.addEnumMappings("Religions", "ReligionID");
   }
