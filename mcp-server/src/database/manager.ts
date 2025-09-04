@@ -125,22 +125,40 @@ export class DatabaseManager {
       throw new Error('Localization database not initialized. Call initialize() first.');
     }
 
+    // Recursively collect TXT_KEY_* values
+    const collectTxtKeys = (obj: any, keys: Set<string>): void => {
+      if (obj == null) return;
+      
+      if (Array.isArray(obj)) {
+        obj.forEach(item => {
+          if (typeof item === 'string') {
+            if (item.startsWith('TXT_KEY_') || /^[A-Z_]+$/.test(item)) {
+              keys.add(item);
+            }
+          } else {
+            collectTxtKeys(item, keys);
+          }
+        });
+      } else if (typeof obj === 'object') {
+        Object.entries(obj).forEach(([key, value]) => {
+          if (typeof value === 'string') {
+            if (value.startsWith('TXT_KEY_') || 
+                (!key.includes("Type") && /^[A-Z_]+$/.test(value))) {
+              keys.add(value);
+            }
+          } else if (typeof value === 'object') {
+            collectTxtKeys(value, keys);
+          }
+        });
+      }
+    };
+
     // Collect all unique TXT_KEY_* values
     const txtKeys = new Set<string>();
-    for (const row of results) {
-      for (const [key, value] of Object.entries(row)) {
-        if (typeof value !== 'string') continue;
-        if (value.startsWith('TXT_KEY_'))
-          txtKeys.add(value);
-        if (key.indexOf("Type") == -1 && value.match(/[A-Z_]*/))
-          txtKeys.add(value);
-      }
-    }
-
-    // If no keys to localize, return original results
+    collectTxtKeys(results, txtKeys);
     if (txtKeys.size === 0) return results;
 
-    // Batch fetch all localizations at once
+    // Batch fetch all localizations
     const localizationMap = new Map<string, string>();
     
     try {
@@ -148,43 +166,50 @@ export class DatabaseManager {
         .selectFrom('LocalizedText')
         .select(['Tag', 'Text'])
         .where('Language', '=', this.language)
-        .where('Tag', 'in', Array.from(txtKeys).map(
-          k => k.startsWith("TXT_KEY_") ? k : "TXT_KEY_" + k
+        .where('Tag', 'in', Array.from(txtKeys).map(k => 
+          k.startsWith("TXT_KEY_") ? k : `TXT_KEY_${k}`
         ))
         .execute();
       
-      // Build map of key -> localized text
-      for (const { Tag, Text } of localizations) {
-        if (Tag && Text) {
-          localizationMap.set(Tag, Text);
-        }
-      }
+      // Build localization map with fallbacks
+      localizations.forEach(({ Tag, Text }) => {
+        if (Tag && Text) localizationMap.set(Tag, Text);
+      });
+      txtKeys.forEach(key => {
+        if (!localizationMap.has(key)) localizationMap.set(key, key);
+      });
       
-      // Add any missing keys to the map (use key as fallback)
-      for (const key of txtKeys) {
-        if (!localizationMap.has(key)) {
-          localizationMap.set(key, key);
-        }
-      }
+      console.log(localizationMap);
     } catch (error) {
       logger.error('Batch localization lookup failed:', error);
       return results;
     }
 
-    // Convert results using the localization map
-    return results.map(row => {
-      const convertedRow: Record<any, any> = {};
-      
-      for (const [key, value] of Object.entries(row)) {
-        if (typeof value === 'string' && localizationMap.has(value)) {
-          convertedRow[key] = localizationMap.get(value) || value;
-        } else {
-          convertedRow[key] = value;
-        }
+    // Recursively localize values
+    const localizeValue = (obj: any): any => {
+      if (obj == null) return obj;
+      if (Array.isArray(obj)) {
+        // Handle array of strings directly
+        return obj.map(item => {
+          if (typeof item === 'string' && localizationMap.has(item)) {
+            return localizationMap.get(item);
+          }
+          return localizeValue(item);
+        });
       }
-      
-      return convertedRow;
-    }) as T;
+      if (typeof obj === 'object') {
+        return Object.entries(obj).reduce((acc, [key, value]) => {
+          acc[key] = typeof value === 'string' && localizationMap.has(value) 
+            ? localizationMap.get(value) 
+            : typeof value === 'object' ? localizeValue(value) : value;
+          return acc;
+        }, {} as Record<any, any>);
+      }
+      return typeof obj === 'string' && localizationMap.has(obj) 
+        ? localizationMap.get(obj) : obj;
+    };
+
+    return results.map(localizeValue) as T;
   }
 
   /**

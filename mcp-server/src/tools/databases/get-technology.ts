@@ -126,7 +126,7 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
       BuildingsUnlocked: buildingsUnlocked.filter(b => b.MaxGlobalInstances == 0 && b.MaxPlayerInstances == 0).map(b => b.Description!),
       NationalWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),
       WorldWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),
-      ImprovementsUnlocked: improvementsUnlocked.map(i => i.ImprovementType!),
+      ImprovementsUnlocked: improvementsUnlocked.map(i => i.Description!),
     };
     
     return fullTech;
