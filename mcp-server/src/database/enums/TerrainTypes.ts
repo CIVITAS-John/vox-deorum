@@ -3,10 +3,13 @@
  */
 export const TerrainTypes: Record<number, string> = {
   '-1': 'None',
-  0: 'Plains',
-  1: 'Desert',
-  2: 'Tundra',
-  3: 'Snow',
-  4: 'Coast',
-  5: 'Ocean'
+  0: 'Grass',
+  1: 'Plains',
+  2: 'Desert',
+  3: 'Tundra',
+  4: 'Snow',
+  5: 'Coast',
+  6: 'Ocean',
+  7: 'Mountain',
+  8: 'Hill'
 };

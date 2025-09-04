@@ -6,6 +6,7 @@ export const LeaderheadAnimationTypes: Record<number, string> = {
   1: 'Intro',
   2: 'NeutralHello',
   3: 'Peaceful',
+  4: 'OpeningGloat',
   5: 'DeclareWar',
   6: 'Attacked',
   7: 'HateHello',

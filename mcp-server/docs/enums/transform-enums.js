@@ -19,11 +19,17 @@ function parseEnum(content, fileName) {
     const values = {};
     const lines = enumBody.split('\n');
     let currentValue = -1;
-    let hasExplicitValues = false;
     
     for (const line of lines) {
-      // Remove comments and trim
-      const cleanLine = line.replace(/\/\/.*$/, '').replace(/\/\*.*?\*\//g, '').trim();
+      // Skip lines that start with // (comment-only lines)
+      if (line.trim().startsWith('//')) continue;
+      
+      // Remove comments and trim - handle inline comments with //
+      const cleanLine = line
+        .replace(/\r/g, '')          // Remove carriage returns
+        .replace(/\/\/.*$/, '')      // Remove // comments
+        .replace(/\/\*.*?\*\//g, '') // Remove /* */ comments
+        .trim();
       
       if (!cleanLine || cleanLine === '') continue;
       
@@ -31,7 +37,7 @@ function parseEnum(content, fileName) {
       if (cleanLine.includes('ENUM_META_VALUE')) continue;
       if (cleanLine.match(/^NUM_\w+_TYPES/)) continue;
       
-      // Parse enum entry
+      // Parse enum entry - handle optional comma at the end
       const entryMatch = cleanLine.match(/^(\w+)(?:\s*=\s*(-?\d+))?\s*,?\s*$/);
       if (entryMatch) {
         const name = entryMatch[1];
@@ -40,19 +46,19 @@ function parseEnum(content, fileName) {
         if (name.match(/^NUM_\w+_TYPES$/)) continue;
         
         if (entryMatch[2] !== undefined) {
+          // Explicit value provided
           currentValue = parseInt(entryMatch[2]);
-          hasExplicitValues = true;
         } else {
-          // If this is the first entry and no explicit value
+          // No explicit value
           if (Object.keys(values).length === 0) {
+            // First entry - check if it starts with NO_ for -1
             if (name.startsWith('NO_')) {
               currentValue = -1;
-              hasExplicitValues = false;
             } else {
               currentValue = 0;
-              hasExplicitValues = false;
             }
           } else {
+            // Increment from previous value
             currentValue++;
           }
         }
