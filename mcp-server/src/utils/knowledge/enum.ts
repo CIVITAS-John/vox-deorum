@@ -4,7 +4,7 @@ import { TerrainTypes } from "../../database/enums/TerrainTypes.js";
 import { UnitAITypes } from "../../database/enums/UnitAITypes.js";
 
 // Mappings between object keys and mappings.
-export const enumMappings = {
+export const enumMappings: Record<string, Record<number, string>> = {
   "TerrainType": TerrainTypes,
   "FeatureType": FeatureTypes,
   "PlotType": PlotTypes,
@@ -22,10 +22,10 @@ export function explainEnums<T extends Record<string, any>>(obj: T): T {
   for (const [key, value] of entries) {
     // Check if this key has an enum mapping
     if (key in enumMappings) {
-      const enumMapping = enumMappings[key as keyof typeof enumMappings];
+      const enumMapping = enumMappings[key];
       // Try to replace the value with the enum mapping
       if (typeof value === 'number' && value in enumMapping) {
-        (obj as any)[key] = enumMapping[value as keyof typeof enumMapping];
+        (obj as any)[key] = enumMapping[value];
       } else {
         // Keep original value if not found in mapping
         (obj as any)[key] = value;

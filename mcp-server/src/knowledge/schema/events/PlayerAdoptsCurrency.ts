@@ -10,5 +10,5 @@ export const PlayerAdoptsCurrency = z.object({
   /** The ID of the currency being adopted */
   NewCurrency: z.number(),
   /** The ID of the previous currency (-1 if no previous currency existed) */
-  PreviousCurrency: z.number()
+  OldCurrency: z.number()
 });

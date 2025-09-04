@@ -9,7 +9,7 @@ export const ReligionEnhanced = z.object({
   PlayerID: z.number(),
   
   /** The specific religion being enhanced */
-  ReligionType: z.number(),
+  ReligionID: z.number(),
   
   /** The first enhancer belief being added */
   FirstEnhancerBelief: z.number(),

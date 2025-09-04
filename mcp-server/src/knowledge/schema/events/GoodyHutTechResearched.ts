@@ -8,5 +8,5 @@ export const GoodyHutTechResearched = z.object({
   /** The ID of the player who received the technology */
   PlayerID: z.number(),
   /** The type/ID of the technology that was discovered */
-  TechType: z.number()
+  TechID: z.number()
 });

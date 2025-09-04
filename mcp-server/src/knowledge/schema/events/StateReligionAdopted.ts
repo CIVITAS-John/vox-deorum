@@ -9,8 +9,8 @@ export const StateReligionAdopted = z.object({
   PlayerID: z.number(),
   
   /** The religion being adopted as the official state faith */
-  NewStateReligion: z.number(),
+  NewReligionID: z.number(),
   
   /** The previous state religion (should be NO_RELIGION for this event) */
-  PreviousStateReligion: z.number()
+  OldReligionID: z.number()
 });

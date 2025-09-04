@@ -13,7 +13,7 @@ export const ReligionFounded = z.object({
   HolyCityID: z.number(),
   
   /** The specific religion being founded */
-  ReligionType: z.number(),
+  ReligionID: z.number(),
   
   /** The pantheon belief carried over from the player's pantheon */
   PantheonBelief: z.number(),

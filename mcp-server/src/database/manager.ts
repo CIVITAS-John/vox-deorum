@@ -11,6 +11,8 @@ import fs from 'fs/promises';
 import { config, getDocumentsPath } from '../utils/config.js';
 import type { DB as MainDB } from './database.js';
 import type { DB as LocalizationDB } from './localization.js';
+import { enumMappings } from '../utils/knowledge/enum.js';
+import * as changeCase from "change-case";
 
 const logger = createLogger('DatabaseManager');
 
@@ -74,6 +76,9 @@ export class DatabaseManager {
         }),
       });
       logger.info('Connected to localization database');
+
+      // More initialization
+      this.initializeMappings();
 
       this.initialized = true;
     } catch (error) {
@@ -220,5 +225,53 @@ export class DatabaseManager {
    */
   public isInitialized(): boolean {
     return this.initialized;
+  }
+
+  /**
+   * Initialize enum-like mappings
+   */
+  async initializeMappings() {
+    this.addEnumMappings("Improvements", "ImprovementID");
+    this.addEnumMappings("Technologies", "TechID");
+    this.addEnumMappings("Resources", "ResourceID");
+    this.addEnumMappings("Religions", "ReligionID");
+  }
+
+  /**
+   * Read a named table and add int-number mappings to enumMappings
+   */
+  async addEnumMappings(tableName: string, mappedName: string): Promise<void> {
+    if (!this.mainDb) {
+      throw new Error('Database not initialized. Call initialize() first.');
+    }
+
+    try {
+      // Query the specified table
+      const results = await this.mainDb
+        .selectFrom(tableName as any).selectAll()
+        .execute();
+
+      const tableMap: Record<number, string> = {};
+
+      // Process each row in the results
+      for (const row of results) {
+        if ('ID' in row && 'Type' in row) {
+          const id = Number(row.ID);
+          var type = String(row.Type);
+          if (!isNaN(id)) {
+            type = type.includes('_') ? type.split('_').slice(1).join('_') : type;
+            tableMap[id] = changeCase.pascalCase(type);
+          }
+        }
+      }
+
+      enumMappings[mappedName] = tableMap;
+
+      console.log(tableMap);
+      logger.info(`Added ${Object.keys(tableMap).length} enum mappings from table ${tableName}`);
+    } catch (error) {
+      logger.error(`Failed to read enum mappings from table ${tableName}:`, error);
+      throw new Error(`Failed to read enum mappings from table ${tableName}: ${error}`);
+    }
   }
 }

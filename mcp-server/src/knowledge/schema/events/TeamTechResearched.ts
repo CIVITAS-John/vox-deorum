@@ -8,7 +8,7 @@ export const TeamTechResearched = z.object({
   /** The team that completed the technology research */
   TeamID: z.number(),
   /** The technology type identifier that was researched */
-  TechnologyType: z.number(),
+  TechID: z.number(),
   /** The amount of change (typically 1 for research completion, could be negative for tech loss) */
   ChangeAmount: z.number()
 });

@@ -8,8 +8,8 @@ export const TeamSetHasTech = z.object({
   TeamID: z.number(),
   
   /** The technology type identifier that was gained or lost */
-  TechnologyType: z.number(),
+  TechID: z.number(),
   
   /** Boolean indicating whether the team now has the technology (true = gained, false = lost) */
-  HasTechnology: z.boolean()
+  HasTech: z.boolean()
 });

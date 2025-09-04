@@ -12,5 +12,5 @@ export const PlayerEndOfMayaLongCount = z.object({
   CurrentBaktun: z.number(),
   
   /** The previous baktun number */
-  PreviousBaktun: z.number()
+  OldBaktun: z.number()
 });

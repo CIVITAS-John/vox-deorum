@@ -21,7 +21,7 @@ export const EspionageNotificationData = z.object({
   SpyResult: z.number(),
   
   /** The identifier of the technology that was stolen (if applicable) */
-  StolenTechID: z.number(),
+  TechID: z.number(),
   
   /** The quantity or value of resources/information stolen during the operation */
   AmountStolen: z.number()
