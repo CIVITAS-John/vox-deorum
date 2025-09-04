@@ -255,6 +255,7 @@ export class DatabaseManager {
     await this.addEnumMappings("Policies", "PolicyID");
     await this.addEnumMappings("Resources", "ResourceType");
     await this.addEnumMappings("Religions", "ReligionID");
+    await this.addEnumMappings("Features", "FeatureType");
   }
 
   /**

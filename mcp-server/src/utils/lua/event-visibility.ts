@@ -175,6 +175,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
       metadata["AIType"] = unit:GetUnitAIType()
       metadata["Hp"] = unit:GetCurrHitPoints()
       metadata["MaxHp"] = unit:GetMaxHitPoints()
+      metadata["Level"] = unit:GetLevel()
       addPayload(key, metadata)
     end
     

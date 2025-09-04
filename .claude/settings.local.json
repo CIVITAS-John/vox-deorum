@@ -1,10 +1,10 @@
 {
   "permissions": {
     "allow": [
+      "Read",
       "WebFetch(domain:github.com)",
       "WebSearch",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Read(f:\\Minor Solutions\\vox-deorum\\mcp-server\\docs/**)",
       "Bash(npm install)",
       "Bash(npm run type-check:*)",
       "Bash(npm ls:*)",
@@ -15,9 +15,9 @@
       "Bash(dir:*)",
       "WebFetch(domain:modiki.civfanatics.com)",
       "Bash(node:*)",
-      "Read(f:\\Minor Solutions\\vox-deorum\\mcp-server\\docs\\events/**)",
       "Bash(python:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
