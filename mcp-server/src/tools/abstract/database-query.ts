@@ -60,7 +60,7 @@ export abstract class DatabaseQueryTool<
    */
   protected getSearchKeys(item: TSummary): string[] {
     // Default implementation searches common fields
-    const searchableFields = ['Type', 'Name', 'Strategy', 'Help', this.getIdentifierField()];
+    const searchableFields = ['Type', 'Name', 'Strategy', 'Era', 'Help', this.getIdentifierField()];
     return searchableFields
       .map(field => item[field])
       .filter(Boolean);
@@ -119,7 +119,7 @@ export abstract class DatabaseQueryTool<
           threshold: this.getSearchThreshold(),
           returnMatchData: true
         });
-        if (matches.length > 0 && matches[0].score == 1) {
+        if (matches.length > 0 && (matches[0].key != "era" && matches[0].score == 1)) {
           results = [matches[0].item];
         } else {
           results = matches.map(r => r.item);
