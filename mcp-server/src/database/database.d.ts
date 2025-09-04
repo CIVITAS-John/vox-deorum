@@ -8729,7 +8729,7 @@ export interface DB {
   // PolicyMusicYieldChanges: PolicyMusicYieldChange;
   // PolicyPlotYieldChanges: PolicyPlotYieldChange;
   // PolicyPrereqORPolicies: PolicyPrereqOrPolicy;
-  // PolicyPrereqPolicies: PolicyPrereqPolicy;
+  Policy_PrereqPolicies: PolicyPrereqPolicy;
   // PolicyRelicYieldChanges: PolicyRelicYieldChange;
   // PolicyReligionBuildingYieldMod: PolicyReligionBuildingYieldMod;
   // PolicyReligionYieldMod: PolicyReligionYieldMod;

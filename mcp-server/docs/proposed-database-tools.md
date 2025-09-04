@@ -2,6 +2,8 @@
 
 This document outlines important database query tools that would enable LLMs to make informed strategic decisions in Civilization V. Each tool follows the pattern established by `get-technology.ts` with summary and full report schemas.
 
+If the database has the relevant tables comment out, you can activate them. For tests, follow the `get-technology.test.ts` example.
+
 ## 1. get-unit Tool
 
 Query unit capabilities, strengths, maintenance costs, and requirements. Essential for military planning and unit production decisions.
@@ -23,6 +25,7 @@ Query unit capabilities, strengths, maintenance costs, and requirements. Essenti
 ```typescript
 {
   // All summary fields plus:
+  AIType: string,                        // AI behavior type
   Strategy: string,                      // Strategic usage guidance
   PrereqTech: string,                    // Required technology
   ObsoleteTech: string,                  // Technology that makes unit obsolete
@@ -32,10 +35,7 @@ Query unit capabilities, strengths, maintenance costs, and requirements. Essenti
     Quantity: number
   }[],
   FreePromotions: string[],              // Promotions unit starts with
-  Maintenance: number,                   // Gold per turn maintenance
-  AIType: string,                        // AI behavior type
-  DomainType: string,                    // DOMAIN_LAND, DOMAIN_SEA, DOMAIN_AIR
-  SpecialAbilities: string[]             // Special abilities/traits
+  Maintenance: number                   // Gold per turn maintenance
 }
 ```
 
@@ -59,13 +59,13 @@ Retrieve building benefits, costs, prerequisites, and yield changes. Critical fo
 {
   // All summary fields plus:
   Strategy: string,                       // Strategic usage guidance
-  BuildingClass: string,                 // Building class type
+  Class: string,                 // Building class type
   PrereqBuildings: string[],             // Required buildings in city
   IsNationalWonder: boolean,              // National wonder flag
   IsWorldWonder: boolean,                 // World wonder flag
   Happiness: number,                     // Local happiness
   Defense: number,                       // Defense bonus
-  HitPoints: number,                     // City HP bonus
+  HP: number,                     // City HP bonus
   Maintenance: number,                   // Gold per turn maintenance
   SpecialAbilities: string[]             // Special effects text
 }
@@ -83,7 +83,7 @@ Access policy tree information, benefits, and requirements. Vital for cultural/s
   Help: string,           // Short description
   Era: string,                     // Minimum era required
   Cost: number     // Base culture cost
-  PolicyBranch: string,   // Parent branch
+  Branch: string,   // Parent branch
 }
 ```
 
@@ -96,6 +96,7 @@ Access policy tree information, benefits, and requirements. Vital for cultural/s
   PrereqPolicies: string[],              // Required policies
 }
 ```
+
 ## 5. get-resource Tool
 
 Access resource types, yields, and strategic value. Critical for trade and strategic planning.
