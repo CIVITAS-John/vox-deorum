@@ -128,10 +128,12 @@ export class DatabaseManager {
     // Collect all unique TXT_KEY_* values
     const txtKeys = new Set<string>();
     for (const row of results) {
-      for (const value of Object.values(row)) {
-        if (typeof value === 'string' && value.startsWith('TXT_KEY_')) {
+      for (const [key, value] of Object.entries(row)) {
+        if (typeof value !== 'string') continue;
+        if (value.startsWith('TXT_KEY_'))
           txtKeys.add(value);
-        }
+        if (key.indexOf("Type") == -1 && value.match(/[A-Z_]*/))
+          txtKeys.add(value);
       }
     }
 
@@ -146,7 +148,9 @@ export class DatabaseManager {
         .selectFrom('LocalizedText')
         .select(['Tag', 'Text'])
         .where('Language', '=', this.language)
-        .where('Tag', 'in', Array.from(txtKeys))
+        .where('Tag', 'in', Array.from(txtKeys).map(
+          k => k.startsWith("TXT_KEY_") ? k : "TXT_KEY_" + k
+        ))
         .execute();
       
       // Build map of key -> localized text
@@ -172,7 +176,7 @@ export class DatabaseManager {
       const convertedRow: Record<any, any> = {};
       
       for (const [key, value] of Object.entries(row)) {
-        if (typeof value === 'string' && value.startsWith('TXT_KEY_')) {
+        if (typeof value === 'string' && localizationMap.has(value)) {
           convertedRow[key] = localizationMap.get(value) || value;
         } else {
           convertedRow[key] = value;

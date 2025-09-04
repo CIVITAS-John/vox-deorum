@@ -84,7 +84,7 @@ export class MCPServer {
         title: tool.name,
         description: tool.description,
         inputSchema: tool.inputSchema.shape,
-        outputSchema: (tool.outputSchema as any).shape,
+        outputSchema: (tool.getOutputSchema() as any).shape,
         annotations: tool.annotations,
       },
       (async (args: z.infer<typeof tool.inputSchema>) => {

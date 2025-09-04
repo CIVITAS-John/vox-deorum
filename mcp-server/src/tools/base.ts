@@ -27,6 +27,13 @@ export abstract class ToolBase {
   abstract readonly outputSchema: z.ZodObject<any> | z.ZodTypeAny;
 
   /**
+   * Get the actual output schema.
+   */
+  getOutputSchema() {
+    return this.outputSchema;
+  }
+
+  /**
    * Optional annotations for the tool
    */
   abstract readonly annotations?: ToolAnnotations;

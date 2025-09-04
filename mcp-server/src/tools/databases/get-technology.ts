@@ -1,7 +1,6 @@
 import { gameDatabase } from "../../server.js";
-import { ToolBase } from "../base.js";
+import { DatabaseQueryTool } from "../abstract/database-query.js";
 import * as z from "zod";
-import { search } from "fast-fuzzy";
 
 /**
  * Schema for technology summary information
@@ -32,7 +31,7 @@ type TechnologyReport = z.infer<typeof TechnologyReportSchema>;
 /**
  * Tool for querying technology information from the game database
  */
-class GetTechnologyTool extends ToolBase {
+class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyReport> {
   /**
    * Unique identifier for the get technology tool
    */
@@ -44,21 +43,14 @@ class GetTechnologyTool extends ToolBase {
   readonly description = "Retrieves technology information from the Civilization V game database with listing and fuzzy search capabilities";
 
   /**
-   * Input schema defining search parameters
+   * Schema for technology summary
    */
-  readonly inputSchema = z.object({
-    search: z.string().optional().describe("Optional search term to filter technologies using fuzzy matching on name, era, or description"),
-    maxResults: z.number().optional().default(20).describe("Maximum number of results to return (default: 20)")
-  });
+  protected readonly summarySchema = TechnologySummarySchema;
 
   /**
-   * Output schema for technology query results
+   * Schema for full technology information
    */
-  readonly outputSchema = z.object({
-    count: z.number(),
-    technologies: z.array(z.union([TechnologySummarySchema, TechnologyReportSchema])),
-    error: z.string().optional(),
-  });
+  protected readonly fullSchema = TechnologyReportSchema;
 
   /**
    * Optional annotations for the get technology tool
@@ -66,32 +58,19 @@ class GetTechnologyTool extends ToolBase {
   readonly annotations = undefined;
 
   /**
-   * Cached technology summaries
+   * Fetch technology summaries from database
    */
-  private cachedSummaries: TechnologySummary[] | null = null;
-
-  /**
-   * Get cached technology summaries or fetch new ones
-   */
-  private async getTechnologySummaries(): Promise<TechnologySummary[]> {
-    if (this.cachedSummaries) return this.cachedSummaries;
-    
-    // Fetch technology summaries from database using Kysely
-    const technologies = await gameDatabase.getDatabase()
+  protected async fetchSummaries(): Promise<TechnologySummary[]> {
+    return await gameDatabase.getDatabase()
       .selectFrom("Technologies")
-      .select(['Type', 'Type as Name', 'Help', 'Cost', 'Era'])
-      .execute();
-    
-    // Localize the descriptions
-    const localizedTechnologies = await gameDatabase.localizeObjects(technologies);
-    this.cachedSummaries = localizedTechnologies as any;
-    return this.cachedSummaries!;
+      .select(['Type', 'Description as Name', 'Help', 'Cost', 'Era'])
+      .execute() as TechnologySummary[];
   }
 
   /**
-   * Get full technology information for a specific technology
+   * Fetch full technology information for a specific technology
    */
-  private async getTechnologyReport(techType: string): Promise<TechnologyReport> {
+  protected async fetchFullInfo(techType: string): Promise<TechnologyReport> {
     // Fetch base technology info
     const db = gameDatabase.getDatabase();
     const tech = await db
@@ -148,59 +127,7 @@ class GetTechnologyTool extends ToolBase {
       ImprovementsUnlocked: improvementsUnlocked.map(i => i.ImprovementType!),
     };
     
-    // Localize all text fields
-    const localizedTech = await gameDatabase.localizeObject(fullTech);
-    
-    return localizedTech;
-  }
-
-  /**
-   * Execute the technology query
-   */
-  async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    try {
-      const summaries = await this.getTechnologySummaries();
-      
-      let results = summaries;
-      
-      // Apply fuzzy search if search term provided
-      if (args.search) {
-        const searchOptions = {
-          keySelector: (tech: TechnologySummary) => tech.Name + " " + tech.Help! + " " + tech.Era!,
-          threshold: 0.6
-        };
-        
-        results = search(args.search, summaries, searchOptions);
-      }
-      
-      // Limit results
-      results = results.slice(0, args.maxResults);
-      
-      // If only one result, fetch full information
-      if (results.length === 1) {
-        try {
-          const fullInfo = await this.getTechnologyReport(results[0].Type);
-          if (fullInfo) {
-            results = [fullInfo];
-          }
-        } catch (error) {
-          // Fall back to summary if full info fetch fails
-          console.error("Failed to fetch full technology info:", error);
-        }
-      }
-      
-      return {
-        count: results.length,
-        technologies: results,
-      };
-      
-    } catch (error) {
-      return {
-        count: 0,
-        technologies: [],
-        error: (error as any).message ?? "Unknown query error."
-      };
-    }
+    return fullTech;
   }
 }
 
