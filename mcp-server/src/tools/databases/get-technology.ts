@@ -87,6 +87,8 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
     const prereqTechs = await db
       .selectFrom('Technology_PrereqTechs')
       .select('PrereqTech')
+      .innerJoin('Technologies as t', 't.Type', 'PrereqTech')
+      .select(['t.Description'])
       .where('TechType', '=', techType)
       .execute();
     
@@ -121,7 +123,7 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
       Help: tech.Help!,
       Cost: tech.Cost!,
       Era: tech.Era!,
-      PrereqTechs: prereqTechs.map(p => p.PrereqTech!),
+      PrereqTechs: prereqTechs.map(p => p.Description!),
       UnitsUnlocked: unitsUnlocked.map(u => u.Description!),
       BuildingsUnlocked: buildingsUnlocked.filter(b => b.MaxGlobalInstances == 0 && b.MaxPlayerInstances == 0).map(b => b.Description!),
       NationalWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),
