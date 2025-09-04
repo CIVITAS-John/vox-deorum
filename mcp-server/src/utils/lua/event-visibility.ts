@@ -129,6 +129,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
         local city = owner:GetCityByID(plot:GetPlotCity())
         metadata["city"] = city:GetName()
         metadata["population"] = city:GetPopulation()
+        metadata["religionType"] = city:GetReligiousMajority()
       end
 
       -- Terrain
@@ -191,7 +192,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     if string.match(key, "X$") then
       local plotY = payload[string.sub(key, 1, -2) .. "Y"]
       if plotY then
-        addPlotVisibility(value, plotY, 2, key)
+        addPlotVisibility(value, plotY, 2, key .. "$")
       end
     end
   end
@@ -200,7 +201,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   for key, value in pairs(payload) do
     -- Check for unit-related fields in payload
     if key == "UnitID" or string.match(key, "UnitID$") then
-      addUnit(value, 2, key .. "$")
+      addUnit(value, 2, key)
     end
   end
 
