@@ -55,13 +55,18 @@ export abstract class DatabaseQueryTool<
   });
 
   /**
+   * Default implementation searches common fields
+   */
+  protected getSearchFields(): string[] {
+    return ['Name', 'Strategy', 'Era', 'Help', this.getIdentifierField() as string];
+  }
+
+  /**
    * Get the key selector function for fuzzy search
    * Override this to customize search fields
    */
   protected getSearchKeys(item: TSummary): string[] {
-    // Default implementation searches common fields
-    const searchableFields = ['Type', 'Name', 'Strategy', 'Era', 'Help', this.getIdentifierField()];
-    return searchableFields
+    return this.getSearchFields()
       .map(field => item[field])
       .filter(Boolean);
   }
@@ -119,7 +124,8 @@ export abstract class DatabaseQueryTool<
           threshold: this.getSearchThreshold(),
           returnMatchData: true
         });
-        if (matches.length > 0 && matches[0].score == 1 && (matches[0].key == "Name" || matches[0].key == "Type")) {
+        if (matches.length > 0 && matches[0].score == 1 && 
+          (matches[0].original == matches[0].item.Type || matches[0].original == matches[0].item.Name)) {
           results = [matches[0].item];
         } else {
           results = matches.map(r => r.item);

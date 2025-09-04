@@ -10,7 +10,6 @@ const PolicySummarySchema = z.object({
   Name: z.string(),
   Help: z.string(),
   Era: z.string().nullable(),
-  Cost: z.number(),
   Branch: z.string().nullable()
 });
 
@@ -18,7 +17,6 @@ const PolicySummarySchema = z.object({
  * Schema for full policy information including relations
  */
 const PolicyReportSchema = PolicySummarySchema.extend({
-  Strategy: z.string().nullable(),
   Level: z.number().nullable(),
   PrereqPolicies: z.array(z.string())
 });
@@ -56,20 +54,41 @@ class GetPolicyTool extends DatabaseQueryTool<PolicySummary, PolicyReport> {
   readonly annotations = undefined;
 
   /**
+   * Default implementation searches common fields
+   */
+  protected getSearchFields(): string[] {
+    return [...super.getSearchFields(), "Branch"]
+  }
+
+  /**
    * Fetch policy summaries from database
    */
   protected async fetchSummaries(): Promise<PolicySummary[]> {
-    return await gameDatabase.getDatabase()
+    var Summaries = await gameDatabase.getDatabase()
       .selectFrom("Policies")
+      .where('Policies.Help', '!=', 'NULL')
+      .leftJoin('PolicyBranchTypes as b', 'b.Type', 'PolicyBranchType')
+      .leftJoin('PolicyBranchTypes as c', 'c.FreePolicy', 'Policies.Type')
       .select([
-        'Type', 
-        'Description as Name', 
-        'Help', 
-        'UnlocksPolicyBranchEra as Era',
-        'CultureCost as Cost',
-        'PolicyBranchType as Branch'
+        'Policies.Type', 
+        'Policies.Description as Name', 
+        'Policies.Help', 
+        'b.EraPrereq as Era',
+        'c.EraPrereq as Era2',
+        'b.Description as Branch',
+        'c.Description as Branch2',
+        'c.Help as Help2'
       ])
-      .execute() as PolicySummary[];
+      .execute();
+    Summaries.forEach(p => {
+      p.Era = p.Era ?? p.Era2;
+      p.Branch = p.Branch ?? p.Branch2;
+      p.Help = p.Help2 ?? p.Help;
+      delete (p as any).Era2;
+      delete (p as any).Branch2;
+      delete (p as any).Help2;
+    })
+    return Summaries as PolicySummary[];
   }
   
   protected fetchFullInfo = getPolicy;
@@ -85,8 +104,20 @@ export async function getPolicy(policyType: string) {
   const db = gameDatabase.getDatabase();
   const policy = await db
     .selectFrom('Policies')
-    .selectAll()
-    .where('Type', '=', policyType)
+    .where('Policies.Type', '=', policyType)
+    .leftJoin('PolicyBranchTypes as b', 'b.Type', 'PolicyBranchType')
+    .leftJoin('PolicyBranchTypes as c', 'c.FreePolicy', 'Policies.Type')
+    .select([
+      'Policies.Type', 
+      'Policies.Description as Name', 
+      'Policies.Help', 
+      'Policies.Level',
+      'b.EraPrereq as Era',
+      'c.EraPrereq as Era2',
+      'b.Description as Branch',
+      'c.Description as Branch2',
+      'c.Help as Help2'
+    ])
     .executeTakeFirst();
   
   if (!policy) {
@@ -104,12 +135,10 @@ export async function getPolicy(policyType: string) {
   // Construct the full policy object
   return {
     Type: policy.Type,
-    Name: policy.Description!,
-    Help: policy.Help!,
-    Era: policy.UnlocksPolicyBranchEra,
-    Cost: policy.CultureCost!,
-    Branch: policy.PolicyBranchType,
-    Strategy: policy.Strategy,
+    Name: policy.Name!,
+    Help: policy.Help2 ?? policy.Help!,
+    Era: policy.Era ?? policy.Era2,
+    Branch: policy.Branch ?? policy.Branch2,
     Level: policy.Level,
     PrereqPolicies: prereqPolicies.map(p => p.Description!)
   };
