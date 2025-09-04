@@ -178,8 +178,6 @@ export class DatabaseManager {
       txtKeys.forEach(key => {
         if (!localizationMap.has(key)) localizationMap.set(key, key);
       });
-      
-      console.log(localizationMap);
     } catch (error) {
       logger.error('Batch localization lookup failed:', error);
       return results;

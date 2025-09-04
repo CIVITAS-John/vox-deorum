@@ -66,73 +66,73 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
       .select(['Type', 'Description as Name', 'Help', 'Cost', 'Era'])
       .execute() as TechnologySummary[];
   }
-
-  /**
-   * Fetch full technology information for a specific technology
-   */
-  protected async fetchFullInfo(techType: string): Promise<TechnologyReport> {
-    // Fetch base technology info
-    const db = gameDatabase.getDatabase();
-    const tech = await db
-      .selectFrom('Technologies')
-      .selectAll()
-      .where('Type', '=', techType)
-      .executeTakeFirst();
-    
-    if (!tech) {
-      throw new Error(`Technology ${techType} not found`);
-    }
-    
-    // Get prerequisite technologies
-    const prereqTechs = await db
-      .selectFrom('Technology_PrereqTechs')
-      .select('PrereqTech')
-      .innerJoin('Technologies as t', 't.Type', 'PrereqTech')
-      .select(['t.Description'])
-      .where('TechType', '=', techType)
-      .execute();
-    
-    // Get unlocked units
-    const unitsUnlocked = await db
-      .selectFrom('Units')
-      .select('Description')
-      .where('PrereqTech', '=', techType)
-      .execute();
-    
-    // Get unlocked buildings
-    const buildingsUnlocked = await db
-      .selectFrom('Buildings')
-      .innerJoin('BuildingClasses as c', 'c.Type', 'Buildings.BuildingClass')
-      .where('PrereqTech', '=', techType)
-      .select(['Buildings.Description', 'c.MaxGlobalInstances', 'c.MaxPlayerInstances'])
-      .execute();
-    
-    // Get unlocked improvements
-    const improvementsUnlocked = await db
-      .selectFrom('Builds')
-      .select('ImprovementType')
-      .innerJoin('Improvements as i', 'i.Type', 'Builds.ImprovementType')
-      .select(['i.Description'])
-      .where('PrereqTech', '=', techType)
-      .execute();
-    
-    // Construct the full technology object
-    const fullTech: TechnologyReport = {
-      Type: tech.Type,
-      Name: tech.Description!,
-      Help: tech.Help!,
-      Cost: tech.Cost!,
-      Era: tech.Era!,
-      PrereqTechs: prereqTechs.map(p => p.Description!),
-      UnitsUnlocked: unitsUnlocked.map(u => u.Description!),
-      BuildingsUnlocked: buildingsUnlocked.filter(b => b.MaxGlobalInstances == 0 && b.MaxPlayerInstances == 0).map(b => b.Description!),
-      NationalWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),
-      WorldWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),
-      ImprovementsUnlocked: improvementsUnlocked.map(i => i.Description!),
-    };
-    
-    return fullTech;
-  }
+  
+  protected fetchFullInfo = getTechnology;
 }
 
 export default new GetTechnologyTool();
+
+/**
+ * Fetch full technology information for a specific technology
+ */
+export async function getTechnology(techType: string) {
+  // Fetch base technology info
+  const db = gameDatabase.getDatabase();
+  const tech = await db
+    .selectFrom('Technologies')
+    .selectAll()
+    .where('Type', '=', techType)
+    .executeTakeFirst();
+  
+  if (!tech) {
+    throw new Error(`Technology ${techType} not found`);
+  }
+  
+  // Get prerequisite technologies
+  const prereqTechs = await db
+    .selectFrom('Technology_PrereqTechs')
+    .select('PrereqTech')
+    .innerJoin('Technologies as t', 't.Type', 'PrereqTech')
+    .select(['t.Description'])
+    .where('TechType', '=', techType)
+    .execute();
+  
+  // Get unlocked units
+  const unitsUnlocked = await db
+    .selectFrom('Units')
+    .select('Description')
+    .where('PrereqTech', '=', techType)
+    .execute();
+  
+  // Get unlocked buildings
+  const buildingsUnlocked = await db
+    .selectFrom('Buildings')
+    .innerJoin('BuildingClasses as c', 'c.Type', 'Buildings.BuildingClass')
+    .where('PrereqTech', '=', techType)
+    .select(['Buildings.Description', 'c.MaxGlobalInstances', 'c.MaxPlayerInstances'])
+    .execute();
+  
+  // Get unlocked improvements
+  const improvementsUnlocked = await db
+    .selectFrom('Builds')
+    .select('ImprovementType')
+    .innerJoin('Improvements as i', 'i.Type', 'Builds.ImprovementType')
+    .select(['i.Description'])
+    .where('PrereqTech', '=', techType)
+    .execute();
+  
+  // Construct the full technology object
+  return {
+    Type: tech.Type,
+    Name: tech.Description!,
+    Help: tech.Help!,
+    Cost: tech.Cost!,
+    Era: tech.Era!,
+    PrereqTechs: prereqTechs.map(p => p.Description!),
+    UnitsUnlocked: unitsUnlocked.map(u => u.Description!),
+    BuildingsUnlocked: buildingsUnlocked.filter(b => b.MaxGlobalInstances == 0 && b.MaxPlayerInstances == 0).map(b => b.Description!),
+    NationalWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),
+    WorldWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),
+    ImprovementsUnlocked: improvementsUnlocked.map(i => i.Description!),
+  };
+}

@@ -8501,7 +8501,7 @@ export interface DB {
   // CivilizationFreeUnits: CivilizationFreeUnit;
   // CivilizationLeaders: CivilizationLeader;
   // CivilizationReligions: CivilizationReligion;
-  // Civilizations: Civilization;
+  Civilizations: Civilization;
   // CivilizationSpyNames: CivilizationSpyName;
   // CivilizationStartAlongOcean: CivilizationStartAlongOcean;
   // CivilizationStartAlongRiver: CivilizationStartAlongRiver;

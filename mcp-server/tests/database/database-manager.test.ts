@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { DatabaseManager } from '../../src/database/database-manager.js';
+import { DatabaseManager } from '../../src/database/manager.js';
 
 describe('DatabaseManager', () => {
   let manager: DatabaseManager;
