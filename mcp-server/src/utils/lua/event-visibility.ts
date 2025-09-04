@@ -96,6 +96,52 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     end
   end
 
+  -- Helper function to handle plot-based visibility
+  local function addPlotVisibility(plotX, plotY, value, key)
+    if plotX < 0 or plotY < 0 then return end
+    
+    local plot = Map.GetPlot(plotX, plotY)
+    if not plot then return end
+    
+    -- Check visibility for all players
+    for playerID = 0, maxMajorCivs do
+      local player = Players[playerID]
+      local teamID = player:GetTeam()
+      -- Check if plot is revealed to this team
+      if plot:IsRevealed(teamID) then
+        if plot:IsVisible(teamID) then
+          setVisible(playerID, value)
+        else
+          setVisible(playerID, math.min(value - 1, 1))  -- Reduced visibility if revealed but not visible
+        end
+      end
+    end
+    
+    -- Get the succinct metadata for the player
+    if key ~= nil then
+      local metadata = {}
+
+      -- Try to get its owner
+      local owner = Players[plot:GetOwner()]
+      if owner ~= nil then
+        metadata["owner"] = owner:GetName()
+        -- City
+        local city = owner:GetCityByID(plot:GetPlotCity())
+        metadata["city"] = city:GetName()
+        metadata["population"] = city:GetPopulation()
+      end
+
+      -- Terrain
+      metadata["plotType"] = plot:GetPlotType()
+      metadata["terrainType"] = plot:GetTerrainType()
+      metadata["featureType"] = plot:GetFeatureType()
+      metadata["improvementType"] = plot:GetImprovementType()
+
+      addPayload(key, metadata)
+      table.insert(scannedPlayers, player)
+    end
+  end
+
   -- Helper function to add unit-based visibility
   local function addUnit(unitID, value, key)
     -- Check if the unit exists
@@ -129,30 +175,6 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     invalidations["Unit_" .. unitID] = true
   end
 
-  -- Helper function to handle plot-based visibility
-  local function addPlotVisibility(plotX, plotY, value)
-    if plotX < 0 or plotY < 0 then return end
-    
-    local plot = Map.GetPlot(plotX, plotY)
-    if not plot then return end
-    
-    -- Check visibility for all players
-    for playerID = 0, maxMajorCivs do
-      local player = Players[playerID]
-      if player then
-        local teamID = player:GetTeam()
-        -- Check if plot is revealed to this team
-        if plot:IsRevealed(teamID) then
-          if plot:IsVisible(teamID) then
-            setVisible(playerID, value)
-          else
-            setVisible(playerID, math.min(value - 1, 1))  -- Reduced visibility if revealed but not visible
-          end
-        end
-      end
-    end
-  end
-
   -- Analyze visibility based on event type and payload
   for key, value in pairs(payload) do
     -- Check for player-related fields in payload
@@ -166,10 +188,10 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     end
     
     -- Handle plot coordinates for visibility
-    if key == "PlotX" then
-      local plotY = payload["PlotY"]
+    if string.match(key, "X$") then
+      local plotY = payload[string.sub(key, 1, -2) .. "Y"]
       if plotY then
-        addPlotVisibility(value, plotY, 1)
+        addPlotVisibility(value, plotY, 2, key)
       end
     end
   end
@@ -178,7 +200,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
   for key, value in pairs(payload) do
     -- Check for unit-related fields in payload
     if key == "UnitID" or string.match(key, "UnitID$") then
-      addUnit(value, 2, key)
+      addUnit(value, 2, key .. "$")
     end
   end
 

@@ -190,8 +190,8 @@ export class KnowledgeStore {
       
       // Log which players can see the event (non-zero visibility)
       const visiblePlayers = visibilityFlags!
-        .map((flag, idx) => flag > 0 ? idx : -1)
-        .filter(idx => idx !== -1)
+        .map((flag, value) => flag > 0 ? value : -1)
+        .filter(value => value > 0)
         .join(', ');
 
       // Save the extra payloads
