@@ -2,6 +2,7 @@ import { CaptureTypes } from "../../database/enums/CaptureTypes.js";
 import { TradeConnectionTypes } from "../../database/enums/ConnectionTypes.js";
 import { FeatureTypes } from "../../database/enums/FeatureTypes.js";
 import { PlotTypes } from "../../database/enums/PlotTypes.js";
+import { RouteTypes } from "../../database/enums/RouteTypes.js";
 import { TerrainTypes } from "../../database/enums/TerrainTypes.js";
 import { UnitAITypes } from "../../database/enums/UnitAITypes.js";
 import { YieldTypes } from "../../database/enums/YieldTypes.js";
@@ -10,6 +11,7 @@ import { YieldTypes } from "../../database/enums/YieldTypes.js";
 export const enumMappings: Record<string, Record<number, string>> = {
   "TerrainType": TerrainTypes,
   "FeatureType": FeatureTypes,
+  "RouteType": RouteTypes,
   "PlotType": PlotTypes,
   "AIType": UnitAITypes,
   "YieldType": YieldTypes,

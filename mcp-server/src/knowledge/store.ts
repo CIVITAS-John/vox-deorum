@@ -188,18 +188,12 @@ export class KnowledgeStore {
       if (invalidationKeys.length > 0) {
         logger.info(`Cache invalidations for ${type}: ${invalidationKeys.join(', ')}`);
       }
-      
-      // Log which players can see the event (non-zero visibility)
-      const visiblePlayers = visibilityFlags!
-        .map((flag, value) => flag > 0 ? value : -1)
-        .filter(value => value > 0)
-        .join(', ');
-
+    
       // Save the extra payloads
       Object.assign(payload, visibilityResult.extraPayload);
       // Explain the enums for LLM readability
       explainEnums(payload);
-      logger.info(`Storing game event: ${type} at turn ${knowledgeManager.getTurn()}, visible to players: [${visiblePlayers}]`, payload);
+      logger.info(`Storing game event: ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
     } else {
       logger.info(`Storing game event: ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
     }

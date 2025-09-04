@@ -8,7 +8,7 @@ export const CapitalChanged = z.object({
   /** The player ID whose capital is changing */
   PlayerID: z.number(),
   /** The city ID of the new capital city */
-  NewCapitalID: z.number(),
+  NewCapitalCityID: z.number(),
   /** The city ID of the previous capital city, or -1 if no previous capital existed */
-  OldCapitalID: z.number()
+  OldCapitalCityID: z.number()
 });

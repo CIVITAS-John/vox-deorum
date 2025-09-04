@@ -113,7 +113,14 @@ export class DatabaseManager {
   /**
    * Convert TXT_KEY_* strings in results to localized text
    */
-  public async localizeObject<T extends Record<string, any>[]>(results: T): Promise<T> {
+  public async localizeObject<T extends Record<any, any>>(result: T): Promise<T> {
+    return (await this.localizeObjects([result]))[0];
+  }
+
+  /**
+   * Convert TXT_KEY_* strings in results to localized text
+   */
+  public async localizeObjects<T extends Record<any, any>[]>(results: T): Promise<T> {
     if (!this.localizationDb) {
       throw new Error('Localization database not initialized. Call initialize() first.');
     }
@@ -162,7 +169,7 @@ export class DatabaseManager {
 
     // Convert results using the localization map
     return results.map(row => {
-      const convertedRow: Record<string, any> = {};
+      const convertedRow: Record<any, any> = {};
       
       for (const [key, value] of Object.entries(row)) {
         if (typeof value === 'string' && value.startsWith('TXT_KEY_')) {
@@ -231,29 +238,29 @@ export class DatabaseManager {
    * Initialize enum-like mappings
    */
   async initializeMappings() {
-    this.addEnumMappings("Improvements", "ImprovementType");
-    this.addEnumMappings("Buildings", "BuildingType");
-    this.addEnumMappings("BuildingClasses", "BuildingClass");
-    this.addEnumMappings("Projects", "ProjectType");
-    this.addEnumMappings("Specialists", "SpecialistType");
-    this.addEnumMappings("GreatWorks", "GreatWorkType");
-    this.addEnumMappings("Beliefs", "BeliefType");
-    this.addEnumMappings("GoodyHuts", "GoodyType");
-    this.addEnumMappings("GreatPersons", "GreatPersonType");
-    this.addEnumMappings("PolicyBranchTypes", "BranchType");
-    this.addEnumMappings("Resolutions", "ResolutionType");
-    this.addEnumMappings("Units", "UnitType");
-    this.addEnumMappings("UnitClasses", "UnitClass");
-    this.addEnumMappings("Technologies", "TechID");
-    this.addEnumMappings("Policies", "PolicyID");
-    this.addEnumMappings("Resources", "ResourceID");
-    this.addEnumMappings("Religions", "ReligionID");
+    await this.addEnumMappings("Improvements", "ImprovementType");
+    await this.addEnumMappings("Buildings", "BuildingType");
+    await this.addEnumMappings("BuildingClasses", "BuildingClass");
+    await this.addEnumMappings("Projects", "ProjectType");
+    await this.addEnumMappings("Specialists", "SpecialistType");
+    await this.addEnumMappings("GreatWorks", "GreatWorkType");
+    await this.addEnumMappings("Beliefs", "BeliefType");
+    await this.addEnumMappings("GoodyHuts", "GoodyType");
+    await this.addEnumMappings("GreatPersons", "GreatPersonType", "Great ");
+    await this.addEnumMappings("PolicyBranchTypes", "BranchType");
+    await this.addEnumMappings("Resolutions", "ResolutionType");
+    await this.addEnumMappings("Units", "UnitType");
+    await this.addEnumMappings("UnitClasses", "UnitClass");
+    await this.addEnumMappings("Technologies", "TechID");
+    await this.addEnumMappings("Policies", "PolicyID");
+    await this.addEnumMappings("Resources", "ResourceType");
+    await this.addEnumMappings("Religions", "ReligionID");
   }
 
   /**
    * Read a named table and add int-number mappings to enumMappings
    */
-  async addEnumMappings(tableName: string, mappedName: string): Promise<void> {
+  async addEnumMappings(tableName: string, mappedName: string, prefix: string = ""): Promise<void> {
     if (!this.mainDb) {
       throw new Error('Database not initialized. Call initialize() first.');
     }
@@ -264,23 +271,26 @@ export class DatabaseManager {
         .selectFrom(tableName as any).selectAll()
         .execute();
 
-      const tableMap: Record<number, string> = {};
+      const tableMap: Record<number, string> = { "-1": "None" };
 
       // Process each row in the results
       for (const row of results) {
-        if ('ID' in row && 'Type' in row) {
-          const id = Number(row.ID);
+        if (!('ID' in row)) continue;
+        const id = Number(row.ID);
+        if ('Description' in row) {
+          tableMap[id] = String(row.Description);
+        } else if ('Type' in row) {
           var type = String(row.Type);
           if (!isNaN(id)) {
             type = type.includes('_') ? type.split('_').slice(1).join('_') : type;
-            tableMap[id] = changeCase.pascalCase(type);
+            tableMap[id] = prefix + changeCase.pascalCase(type);
           }
         }
       }
 
-      enumMappings[mappedName] = tableMap;
+      enumMappings[mappedName] = await this.localizeObject(tableMap);
 
-      console.log(tableMap);
+      //console.log(tableMap);
       logger.info(`Added ${Object.keys(tableMap).length} enum mappings from table ${tableName}`);
     } catch (error) {
       logger.error(`Failed to read enum mappings from table ${tableName}:`, error);

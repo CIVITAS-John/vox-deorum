@@ -108,7 +108,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
       local player = Players[playerID]
       local teamID = player:GetTeam()
       -- Check if plot is revealed to this team
-      if plot:IsRevealed(teamID) then
+      if player:IsAlive() and plot:IsRevealed(teamID) then
         if plot:IsVisible(teamID) then
           setVisible(playerID, value)
         else
@@ -127,14 +127,20 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
         metadata["Owner"] = owner:GetName()
         -- City
         local city = owner:GetCityByID(plot:GetPlotCity())
-        metadata["City"] = city:GetName()
-        metadata["Population"] = city:GetPopulation()
-        metadata["ReligionType"] = city:GetReligiousMajority()
+        if city ~= nil then
+          metadata["City"] = city:GetName()
+          metadata["CityID"] = city:GetID()
+          metadata["Population"] = city:GetPopulation()
+          metadata["ReligionType"] = city:GetReligiousMajority()
+        end
       end
 
       -- Terrain
       metadata["PlotType"] = plot:GetPlotType()
-      metadata["TerrainType"] = plot:GetTerrainType()
+      metadata["IsRiver"] = plot:IsRiver()
+      metadata["ResourceType"] = plot:GetResourceType(-1)
+      metadata["RouteType"] = plot:GetRouteType()
+      metadata["FeatureType"] = plot:GetFeatureType()
       metadata["FeatureType"] = plot:GetFeatureType()
       metadata["ImprovementType"] = plot:GetImprovementType()
 
@@ -175,6 +181,40 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     -- Invalidate the unit's cached metadata
     invalidations["Unit_" .. unitID] = true
   end
+  
+  -- Helper function to add city-based visibility
+  local function addCity(cityID, value, key)
+    -- Check if the city exists
+    if cityID < 0 then return end
+
+    -- Find the city's owner
+    local city = nil
+    for _, player in pairs(scannedPlayers) do
+      city = player:GetCityByID(cityID)
+      if city ~= nil then
+        break
+      end
+    end
+    
+    -- Check if city is visible to other players based on plot visibility
+    local plotX = city:GetX()
+    local plotY = city:GetY()
+    addPlotVisibility(plotX, plotY, value)
+
+    -- Get city metadata
+    if key ~= nil then
+      local metadata = {}
+      metadata["Name"] = city:GetName()
+      metadata["Population"] = city:GetPopulation()
+      metadata["ReligionType"] = city:GetReligiousMajority()
+      metadata["Hp"] = city:GetMaxHitPoints() - city:GetDamage()
+      metadata["MaxHp"] = city:GetMaxHitPoints()
+      addPayload(key, metadata)
+    end
+    
+    -- Invalidate the city's cached metadata
+    invalidations["City_" .. cityID] = true
+  end
 
   -- Analyze visibility based on event type and payload
   for key, value in pairs(payload) do
@@ -197,11 +237,16 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     end
   end
 
-  -- A second round for units
+  -- A second round for units/cities
   for key, value in pairs(payload) do
     -- Check for unit-related fields in payload
-    if key == "UnitID" or string.match(key, "UnitID$") then
+    if string.match(key, "UnitID$") then
       addUnit(value, 2, key)
+    end
+    
+    -- Check for city-related fields in payload
+    if string.match(key, "CityID$") then
+      addCity(value, 2, key)
     end
   end
 
