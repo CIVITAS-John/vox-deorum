@@ -48,7 +48,7 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     for otherID = 0, maxMajorCivs do
       local otherPlayer = Players[otherID]
       if otherPlayer and otherPlayer:GetTeam() == teamID then
-        metadata["player_" .. otherID] = otherPlayer:GetName()
+        metadata["Player_" .. otherID] = otherPlayer:GetName()
         setVisible(otherID, value)
       end
     end
@@ -89,8 +89,8 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     -- Get the succinct metadata for the player
     if key ~= nil then
       local metadata = {}
-      metadata["name"] = player:GetName()
-      metadata["civilization"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
+      metadata["Name"] = player:GetName()
+      metadata["Civilization"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
       addPayload(key, metadata)
       table.insert(scannedPlayers, player)
     end
@@ -124,19 +124,19 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
       -- Try to get its owner
       local owner = Players[plot:GetOwner()]
       if owner ~= nil then
-        metadata["owner"] = owner:GetName()
+        metadata["Owner"] = owner:GetName()
         -- City
         local city = owner:GetCityByID(plot:GetPlotCity())
-        metadata["city"] = city:GetName()
-        metadata["population"] = city:GetPopulation()
-        metadata["religionType"] = city:GetReligiousMajority()
+        metadata["City"] = city:GetName()
+        metadata["Population"] = city:GetPopulation()
+        metadata["ReligionType"] = city:GetReligiousMajority()
       end
 
       -- Terrain
-      metadata["plotType"] = plot:GetPlotType()
-      metadata["terrainType"] = plot:GetTerrainType()
-      metadata["featureType"] = plot:GetFeatureType()
-      metadata["improvementType"] = plot:GetImprovementType()
+      metadata["PlotType"] = plot:GetPlotType()
+      metadata["TerrainType"] = plot:GetTerrainType()
+      metadata["FeatureType"] = plot:GetFeatureType()
+      metadata["ImprovementType"] = plot:GetImprovementType()
 
       addPayload(key, metadata)
       table.insert(scannedPlayers, player)
@@ -165,10 +165,10 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
     -- Get unit metadata
     if key ~= nil then
       local metadata = {}
-      metadata["model"] = Locale.ConvertTextKey(unit:GetNameKey())
-      metadata["aiType"] = unit:GetUnitAIType()
-      metadata["hp"] = unit:GetCurrHitPoints()
-      metadata["maxHp"] = unit:GetMaxHitPoints()
+      metadata["Model"] = Locale.ConvertTextKey(unit:GetNameKey())
+      metadata["AIType"] = unit:GetUnitAIType()
+      metadata["Hp"] = unit:GetCurrHitPoints()
+      metadata["MaxHp"] = unit:GetMaxHitPoints()
       addPayload(key, metadata)
     end
     

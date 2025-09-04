@@ -16,6 +16,7 @@ import { knowledgeManager } from '../server.js';
 import { EventName, eventSchemas } from './schema/events/index.js';
 import { analyzeEventVisibility } from '../utils/lua/event-visibility.js';
 import { applyVisibility } from '../utils/knowledge/visibility.js';
+import { explainEnums } from '../utils/knowledge/enum.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -196,6 +197,8 @@ export class KnowledgeStore {
 
       // Save the extra payloads
       Object.assign(payload, visibilityResult.extraPayload);
+      // Explain the enums for LLM readability
+      explainEnums(payload);
       logger.info(`Storing game event: ${type} at turn ${knowledgeManager.getTurn()}, visible to players: [${visiblePlayers}]`, payload);
     } else {
       logger.info(`Storing game event: ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
