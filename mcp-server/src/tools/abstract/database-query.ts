@@ -119,7 +119,7 @@ export abstract class DatabaseQueryTool<
           threshold: this.getSearchThreshold(),
           returnMatchData: true
         });
-        if (matches.length > 0 && (matches[0].key != "era" && matches[0].score == 1)) {
+        if (matches.length > 0 && matches[0].score == 1 && (matches[0].key == "Name" || matches[0].key == "Type")) {
           results = [matches[0].item];
         } else {
           results = matches.map(r => r.item);
