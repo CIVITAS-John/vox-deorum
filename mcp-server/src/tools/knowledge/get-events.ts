@@ -84,6 +84,9 @@ class GetEventsTool extends ToolBase {
     // Apply after filter
     if (args.After)
       query = query.where(isAfter(args.After));
+    // Apply after filter
+    if (args.Type)
+      query = query.where('Type', '=', args.Type);
     // Apply player visibility filter if provided
     if (args.PlayerID)
       query = query.where(isVisible(args.PlayerID));
