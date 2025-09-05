@@ -56,11 +56,6 @@ class GetBuildingTool extends DatabaseQueryTool<BuildingSummary, BuildingReport>
   protected readonly fullSchema = BuildingReportSchema;
 
   /**
-   * Optional annotations for the get building tool
-   */
-  readonly annotations = undefined;
-
-  /**
    * Fetch building summaries from database
    */
   protected async fetchSummaries(): Promise<BuildingSummary[]> {

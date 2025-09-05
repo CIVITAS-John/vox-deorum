@@ -5,38 +5,35 @@
 import { knowledgeManager } from "../../server.js";
 import { ToolBase } from "../base.js";
 import * as z from "zod";
-import { isAtTurn, isVisible } from "../../knowledge/expressions.js";
+import { isAfter, isAtTurn, isVisible } from "../../knowledge/expressions.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Input schema for the GetEvents tool
  */
 const GetEventsInputSchema = z.object({
-  turn: z.number().optional().describe("Optional turn number to filter events. If not provided, returns events from the last turn."),
-  playerID: z.number().min(0).max(21).optional().describe("Optional player ID to filter events visible to that player. If not provided, returns events visible to all players.")
+  Turn: z.number().optional().describe("Optional turn number to filter events."),
+  After: z.number().optional().describe("Optional turn number to filter IDs (after a certain point)."),
+  PlayerID: z.number().min(0).max(21).optional().describe("Optional player ID to filter events visible to that player.")
 });
 
 /**
  * Schema for game event output
  */
 const GameEventOutputSchema = z.object({
-  id: z.number(),
-  turn: z.number(),
-  type: z.string(),
-  payload: z.record(z.unknown()),
-  createdAt: z.number(),
-  visibility: z.record(z.string(), z.number()).optional()
+  ID: z.number(),
+  Turn: z.number(),
+  Type: z.string(),
+  Payload: z.record(z.unknown()),
+  Visibility: z.record(z.string(), z.number()).optional()
 });
 
 /**
  * Output schema for the GetEvents tool
  */
 const GetEventsOutputSchema = z.object({
-  events: z.array(GameEventOutputSchema),
-  count: z.number(),
-  filters: z.object({
-    turn: z.number().optional(),
-    playerID: z.number().optional()
-  })
+  Count: z.number(),
+  Events: z.array(GameEventOutputSchema)
 });
 
 /**
@@ -66,7 +63,9 @@ class GetEventsTool extends ToolBase {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations = undefined;
+  readonly annotations: ToolAnnotations = {
+    audience: ["user", "briefer"]
+  }
 
   /**
    * Execute the tool to retrieve game events
@@ -78,38 +77,34 @@ class GetEventsTool extends ToolBase {
     let query = db.selectFrom("GameEvents")
       .selectAll();
     // Apply turn filter
-    if (args.turn)
-      query = query.where(isAtTurn(args.turn));
+    if (args.Turn)
+      query = query.where(isAtTurn(args.Turn));
+    // Apply after filter
+    if (args.After)
+      query = query.where(isAfter(args.After));
     // Apply player visibility filter if provided
-    if (args.playerID)
-      query = query.where(isVisible(args.playerID));
+    if (args.PlayerID)
+      query = query.where(isVisible(args.PlayerID));
     
     // Order by turn and creation time
-    query = query.orderBy("Turn", "desc").orderBy("CreatedAt", "desc");
+    query = query.orderBy("ID", "desc");
     
     // Execute the query
     const events = await query.execute();
     
     // Format the output
     const formattedEvents = events.map((event: any) => {
-      const output: any = {
-        id: event.ID,
-        turn: event.Turn,
-        type: event.Type,
-        payload: event.Payload,
-        createdAt: event.CreatedAt
+      return {
+        ID: event.ID,
+        Turn: event.Turn,
+        Type: event.Type,
+        Payload: event.Payload
       };
-      
-      return output;
     });
     
     return {
-      events: formattedEvents,
-      count: formattedEvents.length,
-      filters: {
-        turn: args.turn,
-        playerID: args.playerID
-      }
+      Count: formattedEvents.length,
+      Events: formattedEvents
     };
   }
 }

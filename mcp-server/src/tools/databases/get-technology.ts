@@ -53,11 +53,6 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
   protected readonly fullSchema = TechnologyReportSchema;
 
   /**
-   * Optional annotations for the get technology tool
-   */
-  readonly annotations = undefined;
-
-  /**
    * Fetch technology summaries from database
    */
   protected async fetchSummaries(): Promise<TechnologySummary[]> {

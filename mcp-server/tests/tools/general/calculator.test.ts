@@ -17,17 +17,17 @@ describe("Calculator Tool via MCP", () => {
 
   it("should execute basic calculations", async () => {
     const testCases = [
-      { expression: "2 + 3", expected: 5 },
-      { expression: "10 * 5", expected: 50 },
-      { expression: "sqrt(16)", expected: 4 },
-      { expression: "2^8", expected: 256 },
-      { expression: "(10 + 5) * 2", expected: 30 }
+      { Expression: "2 + 3", expected: 5 },
+      { Expression: "10 * 5", expected: 50 },
+      { Expression: "sqrt(16)", expected: 4 },
+      { Expression: "2^8", expected: 256 },
+      { Expression: "(10 + 5) * 2", expected: 30 }
     ];
 
     for (const test of testCases) {
       const result = await mcpClient.callTool({
         name: "calculator",
-        arguments: { expression: test.expression }
+        arguments: { Expression: test.Expression }
       });
 
       expect(result.content).toBeDefined();
@@ -36,7 +36,7 @@ describe("Calculator Tool via MCP", () => {
       const content = (result.content as any);
       if (content.type === "text") {
         const parsed = JSON.parse(content.text);
-        expect(parsed.result).toBe(test.expected);
+        expect(parsed.Result).toBe(test.expected);
       }
     }
   });
@@ -44,35 +44,35 @@ describe("Calculator Tool via MCP", () => {
   it("should handle complex expressions", async () => {
     const result = await mcpClient.callTool({
       name: "calculator",
-      arguments: { expression: "pi * 2" }
+      arguments: { Expression: "pi * 2" }
     });
 
     expect(result.content).toBeDefined();
     const content = (result.content as any);
     if (content.type === "text") {
       const parsed = JSON.parse(content.text);
-      expect(parsed.result).toBeCloseTo(6.283185307);
+      expect(parsed.Result).toBeCloseTo(6.283185307);
     }
   });
 
   it("should handle non-numeric results", async () => {
     const result = await mcpClient.callTool({
       name: "calculator",
-      arguments: { expression: "sqrt(-1)" }
+      arguments: { Expression: "sqrt(-1)" }
     });
 
     expect(result.content).toBeDefined();
     const content = (result.content as any)[0];
     if (content.type === "text") {
       const parsed = JSON.parse(content.text);
-      expect(parsed.result).toBe("i");
+      expect(parsed.Result).toBe("i");
     }
   });
 
   it("should handle errors gracefully", async () => {
     const result = await mcpClient.callTool({
       name: "calculator",
-      arguments: { expression: "invalid expression @#$" }
+      arguments: { Expression: "invalid expression @#$" }
     });
 
     expect(result.content).toBeDefined();

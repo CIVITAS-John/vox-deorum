@@ -1,6 +1,7 @@
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { evaluate } from "mathjs";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Calculator tool that wraps mathjs for mathematical operations
@@ -20,29 +21,31 @@ class CalculatorTool extends ToolBase {
    * Input schema defining the expression to evaluate
    */
   readonly inputSchema = z.object({
-    expression: z.string().describe("Mathematical expression to evaluate (e.g., '2 + 3 * 4', 'sqrt(16)', 'sin(pi/2)')")
+    Expression: z.string().describe("Mathematical expression to evaluate (e.g., '2 + 3 * 4', 'sqrt(16)', 'sin(pi/2)')")
   });
 
   /**
    * Output schema for calculation results
    */
   readonly outputSchema = z.object({
-    result: z.union([z.number(), z.string()])
+    Result: z.union([z.number(), z.string()])
   });
 
   /**
    * Optional annotations for the calculator tool
    */
-  readonly annotations = undefined;
+  readonly annotations: ToolAnnotations = {
+    audience: ["user", "assistant"]
+  }
 
   /**
    * Execute the calculator operation using mathjs
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    const result = evaluate(args.expression);
+    const result = evaluate(args.Expression);
     
     return {
-      result: typeof result === 'number' ? result : String(result)
+      Result: typeof result === 'number' ? result : String(result)
     };
   }
 }

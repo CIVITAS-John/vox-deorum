@@ -11,9 +11,16 @@ export function isVisible(playerID: number, level: number = 1): Expression<SqlBo
 
 /**
  * An expression to check whether the TimedKnowledge is at a given turn.
- * By default, turn = current turn - 1.
  */
 export function isAtTurn(turn: number): Expression<SqlBool> {
   const eb = expressionBuilder<KnowledgeDatabase>();
   return eb(`Turn` as any, '=', turn);
+}
+
+/**
+ * An expression to check whether the TimedKnowledge is after a given ID
+ */
+export function isAfter(ID: number): Expression<SqlBool> {
+  const eb = expressionBuilder<KnowledgeDatabase>();
+  return eb(`ID` as any, '>', ID);
 }

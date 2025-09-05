@@ -49,11 +49,6 @@ class GetPolicyTool extends DatabaseQueryTool<PolicySummary, PolicyReport> {
   protected readonly fullSchema = PolicyReportSchema;
 
   /**
-   * Optional annotations for the get policy tool
-   */
-  readonly annotations = undefined;
-
-  /**
    * Default implementation searches common fields
    */
   protected getSearchFields(): string[] {

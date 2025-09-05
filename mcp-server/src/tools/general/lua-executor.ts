@@ -1,3 +1,4 @@
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { bridgeManager } from "../../server.js";
 import { ToolBase } from "../base.js";
 import * as z from "zod";
@@ -20,38 +21,44 @@ class LuaExecutorTool extends ToolBase {
    * Input schema defining the Lua script to execute
    */
   readonly inputSchema = z.object({
-    script: z.string().describe("Raw Lua script to execute in the game context (e.g., 'return Game.GetActivePlayer()', 'print(\"Hello from Lua\")')"),
-    description: z.string().optional().describe("Optional description of what this script does")
+    Script: z.string().describe("Raw Lua script to execute in the game context (e.g., 'return Game.GetActivePlayer()', 'print(\"Hello from Lua\")')"),
+    Description: z.string().optional().describe("Optional description of what this script does")
   });
 
   /**
    * Output schema for Lua execution results
    */
   readonly outputSchema = z.object({
-    success: z.boolean(),
-    result: z.any().optional(),
-    error: z.object({
-      code: z.string(),
-      message: z.string(),
-      details: z.string().optional()
+    Success: z.boolean(),
+    Result: z.any().optional(),
+    Error: z.object({
+      Code: z.string(),
+      Message: z.string(),
+      Details: z.string().optional()
     }).optional(),
   });
 
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations = undefined;
+  readonly annotations: ToolAnnotations = {
+    audience: ["user"]
+  }
 
   /**
    * Execute the Lua script using BridgeManager
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    const response = await bridgeManager.executeLuaScript(args.script);
+    const response = await bridgeManager.executeLuaScript(args.Script);
     
     return {
-      success: response.success,
-      result: response.result,
-      error: response.error,
+      Success: response.success,
+      Result: response.result,
+      Error: response.error ? {
+        Code: response.error.code,
+        Message: response.error.message,
+        Details: response.error.details
+      } : undefined,
     };
   }
 }

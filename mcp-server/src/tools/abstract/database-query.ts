@@ -2,6 +2,7 @@ import { gameDatabase } from "../../server.js";
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { search } from "fast-fuzzy";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Base class for database query tools that provides common functionality
@@ -27,11 +28,18 @@ export abstract class DatabaseQueryTool<
   protected abstract readonly fullSchema: z.ZodSchema<TFull>;
 
   /**
+   * Optional annotations for the get building tool
+   */
+  readonly annotations: ToolAnnotations = {
+    audience: ["user", "strategist"]
+  }
+
+  /**
    * Input schema with common search parameters
    */
   readonly inputSchema = z.object({
-    search: z.string().optional().describe("Optional search term to filter results using fuzzy matching"),
-    maxResults: z.number().optional().default(20).describe("Maximum number of results to return (default: 20)")
+    Search: z.string().optional().describe("Optional search term to filter results using fuzzy matching"),
+    MaxResults: z.number().optional().default(20).describe("Maximum number of results to return (default: 20)")
   });
 
   /**
@@ -39,9 +47,9 @@ export abstract class DatabaseQueryTool<
    */
   getOutputSchema() {
     return z.object({
-      count: z.number(),
-      items: z.array(z.union([this.summarySchema, this.fullSchema])),
-      error: z.string().optional(),
+      Count: z.number(),
+      Items: z.array(z.union([this.summarySchema, this.fullSchema])),
+      Error: z.string().optional(),
     });
   }
 
@@ -49,9 +57,9 @@ export abstract class DatabaseQueryTool<
    * Output schema for query results
    */
   readonly outputSchema = z.object({
-    count: z.number(),
-    items: z.array(z.any()),
-    error: z.string().optional(),
+    Count: z.number(),
+    Items: z.array(z.any()),
+    Error: z.string().optional(),
   });
 
   /**
@@ -118,8 +126,8 @@ export abstract class DatabaseQueryTool<
       let results = summaries;
       
       // Apply fuzzy search if search term provided
-      if (args.search) {
-        let matches = search(args.search, summaries, {
+      if (args.Search) {
+        let matches = search(args.Search, summaries, {
           keySelector: (item: TSummary) => this.getSearchKeys(item),
           threshold: this.getSearchThreshold(),
           returnMatchData: true
@@ -133,7 +141,7 @@ export abstract class DatabaseQueryTool<
       }
       
       // Limit results
-      results = results.slice(0, args.maxResults);
+      results = results.slice(0, args.MaxResults);
       
       // If only one result, fetch full information
       if (results.length === 1) {
@@ -154,15 +162,15 @@ export abstract class DatabaseQueryTool<
       const localized = await gameDatabase.localizeObjects(results);
       
       return {
-        count: results.length,
-        items: localized,
+        Count: results.length,
+        Items: localized,
       };
       
     } catch (error) {
       return {
-        count: 0,
-        items: [],
-        error: (error as any).message ?? "Unknown query error."
+        Count: 0,
+        Items: [],
+        Error: (error as any).message ?? "Unknown query error."
       };
     }
   }

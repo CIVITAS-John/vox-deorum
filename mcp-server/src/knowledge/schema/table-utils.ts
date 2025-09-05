@@ -72,14 +72,14 @@ export async function createTimedKnowledgeIndexes(
       await db.schema
         .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
         .on(tableName)
-        .columns([`Turn`, typeColumn, `Player${i}`])
+        .columns([`ID`, `Turn`, typeColumn, `Player${i}`])
         .ifNotExists()
         .execute();
     } else {
       await db.schema
         .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
         .on(tableName)
-        .columns([`Turn`, `Player${i}`])
+        .columns([`ID`, `Turn`, `Player${i}`])
         .ifNotExists()
         .execute();
     }
@@ -101,14 +101,14 @@ export async function createMutableKnowledgeIndexes(
       await db.schema
         .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
         .on(tableName)
-        .columns([`Turn`, `Key`, `IsLatest`, typeColumn, `Player${i}`])
+        .columns([`ID`, `Turn`, `Key`, `IsLatest`, typeColumn, `Player${i}`])
         .ifNotExists()
         .execute();
     } else {
       await db.schema
         .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
         .on(tableName)
-        .columns([`Turn`, `Key`, `IsLatest`, `Player${i}`])
+        .columns([`ID`, `Turn`, `Key`, `IsLatest`, `Player${i}`])
         .ifNotExists()
         .execute();
     }

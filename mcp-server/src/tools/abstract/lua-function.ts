@@ -31,12 +31,12 @@ export abstract class LuaFunctionTool extends ToolBase {
    */
   get outputSchema() {
     return z.object({
-      success: z.boolean(),
-      result: this.resultSchema.optional(),
-      error: z.object({
-        code: z.string(),
-        message: z.string(),
-        details: z.string().optional()
+      Success: z.boolean(),
+      Result: this.resultSchema.optional(),
+      Error: z.object({
+        Code: z.string(),
+        Message: z.string(),
+        Details: z.string().optional()
       }).optional(),
     });
   }
@@ -49,9 +49,13 @@ export abstract class LuaFunctionTool extends ToolBase {
     const response = await this.function.execute(args);
     
     return {
-      success: response.success,
-      result: response.result,
-      error: response.error,
+      Success: response.success,
+      Result: response.result,
+      Error: response.error ? {
+        Code: response.error.code,
+        Message: response.error.message,
+        Details: response.error.details
+      } : undefined,
     };
   }
 }
