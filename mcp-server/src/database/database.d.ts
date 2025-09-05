@@ -8359,7 +8359,7 @@ export interface DB {
   // BuildingLockedBuildingClasses: BuildingLockedBuildingClass;
   // BuildingLuxuryYieldChanges: BuildingLuxuryYieldChange;
   // BuildingPlotYieldChanges: BuildingPlotYieldChange;
-  // BuildingPrereqBuildingClasses: BuildingPrereqBuildingClass;
+  Building_PrereqBuildingClasses: BuildingPrereqBuildingClass;
   // BuildingResourceClaim: BuildingResourceClaim;
   // BuildingResourceCultureChanges: BuildingResourceCultureChange;
   // BuildingResourceFaithChanges: BuildingResourceFaithChange;

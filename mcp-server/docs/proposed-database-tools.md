@@ -67,7 +67,6 @@ Retrieve building benefits, costs, prerequisites, and yield changes. Critical fo
   Defense: number,                       // Defense bonus
   HP: number,                     // City HP bonus
   Maintenance: number,                   // Gold per turn maintenance
-  SpecialAbilities: string[]             // Special effects text
 }
 ```
 
