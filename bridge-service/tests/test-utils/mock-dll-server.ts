@@ -119,7 +119,10 @@ export class MockDLLServer extends EventEmitter {
    */
   private setupMessageHandlers(): void {
     ipc.server.on('data', (data: any, socket: any) => {
-      data = JSON.parse(data);
+      // Remove the delimiter if present
+      const dataStr = data.toString();
+      const cleanData = dataStr.replace(/!@#\$%\^!$/, '');
+      data = JSON.parse(cleanData);
       logger.debug('Received message from bridge:', data);
       this.handleMessage(data, socket);
     });

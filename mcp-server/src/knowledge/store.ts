@@ -26,7 +26,6 @@ const blockedEventTypes = new Set<string>([
   "GameCoreTestVictory",
   "TestEvent",
   "UnitPrekill",
-  "PlayerPreAIUnitUpdate",
   "PlayerEndTurnInitiated",
   "PlayerEndTurnCompleted",
 ]);

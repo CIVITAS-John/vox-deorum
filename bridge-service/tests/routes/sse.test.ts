@@ -136,8 +136,9 @@ describe('SSE Service', () => {
         eventPromises.push(waitForSSEEvent(clients[i], 'message'));
       }
       
-      // Emit a game event from DLL connector
+      // Emit a game event from DLL connector with id
       dllConnector.emit('game_event', {
+        id: 1000001,
         event: 'test_event',
         payload: { test: 'data', value: 123 },
         timestamp: new Date().toISOString()
@@ -148,6 +149,7 @@ describe('SSE Service', () => {
       
       expect(receivedEvents).toHaveLength(clientCount);
       receivedEvents.forEach(event => {
+        expect(event.id).toBe(1000001);
         expect(event.type).toBe('test_event');
         expect(event.payload).toEqual({ test: 'data', value: 123 });
         expect(event).toHaveProperty('timestamp');

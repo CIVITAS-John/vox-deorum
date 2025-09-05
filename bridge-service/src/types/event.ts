@@ -8,13 +8,14 @@
 export interface IPCMessage {
   type: string;
   // only for messages that would ask for a return value
-  id?: string;
+  id?: string | number;
 }
 
 /**
  * Game event structure for SSE broadcast
  */
 export interface GameEvent {
+  id?: number;
   type: string;
   payload: any;
   timestamp: string;
@@ -25,9 +26,9 @@ export interface GameEvent {
  */
 export interface GameEventMessage extends IPCMessage {
   type: 'game_event';
+  id?: number;
   event: string;
   payload: any;
-  timestamp: string;
 }
 
 /**

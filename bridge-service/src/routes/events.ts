@@ -110,6 +110,7 @@ function broadcastEvent(gameEvent: GameEvent): void {
         disconnectedClients.push(clientId);
       } else {
         sendSSEMessage(client.response, "message", {
+          id: gameEvent.id,
           type: gameEvent.type,
           payload: gameEvent.payload,
           timestamp: gameEvent.timestamp
@@ -143,6 +144,7 @@ export function getSSEStats(): {
 // Listen for game events from DLL and broadcast to SSE clients
 dllConnector.on('game_event', (eventData: any) => {
   const gameEvent: GameEvent = {
+    id: eventData.id,
     type: eventData.event,
     payload: eventData.payload,
     timestamp: eventData.timestamp || new Date().toISOString()

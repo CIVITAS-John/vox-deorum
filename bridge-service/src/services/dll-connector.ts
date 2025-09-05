@@ -231,7 +231,7 @@ export class DLLConnector extends EventEmitter {
     }
 
     try {
-      ipc.of[config.namedpipe.id].emit(JSON.stringify(message));
+      ipc.of[config.namedpipe.id].emit(JSON.stringify(message) + "!@#$%^!");
       logger.debug('Sent no-wait message to DLL:', message);
       // Emit event for testing
       this.emit('ipc_send', message);
