@@ -173,7 +173,17 @@ export class DatabaseManager {
       
       // Build localization map with fallbacks
       localizations.forEach(({ Tag, Text }) => {
-        if (Tag && Text) localizationMap.set(Tag, Text);
+        if (!Tag || !Text) return;
+        Text = Text.replaceAll("[ICON_BULLET]", "* ");
+        Text = Text.replaceAll("[NEWLINE]", "\n");
+        Text = Text.replaceAll("[SPACE]", " ");
+        Text = Text.replaceAll("[TAB]", " ");
+        Text = Text.replaceAll("[ENDCOLOR]", "");
+        Text = Text.replaceAll(/\[ICON_([A-Z0-9)_]*?)\]/g, "");
+        Text = Text.replaceAll(/\[COLOR_([A-Z_]*?)\]/g, "");
+        Text = Text.replaceAll(/\n+/g, "\n");
+        Text = Text.replaceAll(/[ ]+/g, " ");
+        localizationMap.set(Tag, Text);
       });
       txtKeys.forEach(key => {
         if (!localizationMap.has(key)) localizationMap.set(key, key);

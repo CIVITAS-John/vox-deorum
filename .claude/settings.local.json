@@ -17,7 +17,8 @@
       "Bash(node:*)",
       "Bash(python:*)",
       "Bash(mkdir:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(move:*)"
     ],
     "deny": [],
     "ask": []
