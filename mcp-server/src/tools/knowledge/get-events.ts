@@ -66,7 +66,8 @@ class GetEventsTool extends ToolBase {
    */
   readonly annotations: ToolAnnotations = {
     audience: ["user", "briefer"],
-    autoComplete: ["PlayerID", "After"]
+    autoComplete: ["PlayerID", "After"],
+    readOnlyHint: true
   }
 
   /**
