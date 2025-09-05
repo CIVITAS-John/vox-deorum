@@ -268,17 +268,24 @@ The Bridge Service acts as a communication hub using three primary channels:
 3. **DLL → Bridge (Named Pipe)**
    ```json
    {
+     "id": 1000001,
      "type": "game_event",
      "event": "turnStart",
-     "payload": { "args": [1, 50, 20] },
-     "timestamp": "2024-01-01T12:00:00Z"
+     "payload": { "args": [1, 50, 20] }
    }
    ```
+   
+   **Event ID Format**: Number with structure `(turn * 1000000) + eventSequence`
+   - Turn number (no padding) followed by 6-digit event sequence
+   - Event sequence is zero-padded to 6 digits
+   - Example: `1000001` = Turn 1, Event 1
+   - Example: `123004567` = Turn 123, Event 4567
+   - The event counter resets to 1 at the beginning of each turn
 
 4. **Bridge → All SSE Clients**
    ```
    event: turnStart
-   data: {"type": "turnStart", "payload": ..., "timestamp": "2024-01-01T12:00:00Z"}
+   data: {"id": 1000001, "type": "turnStart", "payload": ...}
    ```
 
 ## HTTP API Responses
