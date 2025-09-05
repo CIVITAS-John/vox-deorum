@@ -4,7 +4,7 @@ import LuaExecutorTool from "./general/lua-executor.js";
 import GetTechnologyTool from "./databases/get-technology.js";
 import GetPolicyTool from "./databases/get-policy.js";
 import GetBuildingTool from "./databases/get-building.js";
-import GetGameEventsTool from "./databases/get-game-events.js";
+import GetEventsTool from "./databases/get-events.js";
 
 /**
  * Function to get all available tools
@@ -15,5 +15,5 @@ export const allTools: ToolBase[] = [
     GetTechnologyTool,
     GetPolicyTool,
     GetBuildingTool,
-    GetGameEventsTool
+    GetEventsTool
 ];

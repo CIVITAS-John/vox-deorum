@@ -1,25 +1,25 @@
 /**
- * Tests for get-game-events tool
+ * Tests for get-events tool
  * Tests game events querying functionality through MCP
  */
 
 import { describe, it, expect } from "vitest";
 import { mcpClient } from "../../setup.js";
 
-describe("Get Game Events Tool via MCP", () => {
+describe("Get Events Tool via MCP", () => {
 
   /**
    * Test that the tool is properly registered
    */
-  it("should list get-game-events tool", async () => {
+  it("should list get-events tool", async () => {
     const tools = await mcpClient.listTools();
     
     expect(tools.tools).toBeDefined();
     expect(tools.tools.length).toBeGreaterThan(0);
     
-    const getGameEventsTool = tools.tools.find(t => t.name === "get-game-events");
-    expect(getGameEventsTool).toBeDefined();
-    expect(getGameEventsTool?.inputSchema).toBeDefined();
+    const getEventsTool = tools.tools.find(t => t.name === "get-events");
+    expect(getEventsTool).toBeDefined();
+    expect(getEventsTool?.inputSchema).toBeDefined();
   });
 
   /**
@@ -27,7 +27,7 @@ describe("Get Game Events Tool via MCP", () => {
    */
   it("should retrieve all events without filters", async () => {
     const result = await mcpClient.callTool({
-      name: "get-game-events",
+      name: "get-events",
       arguments: {}
     });
 
@@ -58,7 +58,7 @@ describe("Get Game Events Tool via MCP", () => {
    */
   it("should filter events by turn", async () => {
     const result = await mcpClient.callTool({
-      name: "get-game-events",
+      name: "get-events",
       arguments: {
         turn: 1
       }
@@ -82,7 +82,7 @@ describe("Get Game Events Tool via MCP", () => {
    */
   it("should filter events by player visibility", async () => {
     const result = await mcpClient.callTool({
-      name: "get-game-events",
+      name: "get-events",
       arguments: {
         playerID: 0
       }
@@ -106,7 +106,7 @@ describe("Get Game Events Tool via MCP", () => {
    */
   it("should filter events by both turn and player", async () => {
     const result = await mcpClient.callTool({
-      name: "get-game-events",
+      name: "get-events",
       arguments: {
         turn: 1,
         playerID: 0
@@ -133,7 +133,7 @@ describe("Get Game Events Tool via MCP", () => {
   it("should handle invalid player ID", async () => {
     try {
       await mcpClient.callTool({
-        name: "get-game-events",
+        name: "get-events",
         arguments: {
           playerID: 25 // Invalid - should be 0-21
         }
@@ -149,7 +149,7 @@ describe("Get Game Events Tool via MCP", () => {
    */
   it("should return empty array when no events match", async () => {
     const result = await mcpClient.callTool({
-      name: "get-game-events",
+      name: "get-events",
       arguments: {
         turn: 999999
       }

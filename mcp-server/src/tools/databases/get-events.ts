@@ -8,9 +8,9 @@ import * as z from "zod";
 import { isAtTurn, isVisible } from "../../knowledge/expressions.js";
 
 /**
- * Input schema for the GetGameEvents tool
+ * Input schema for the GetEvents tool
  */
-const GetGameEventsInputSchema = z.object({
+const GetEventsInputSchema = z.object({
   turn: z.number().optional().describe("Optional turn number to filter events. If not provided, returns events from the last turn."),
   playerID: z.number().min(0).max(21).optional().describe("Optional player ID to filter events visible to that player. If not provided, returns events visible to all players.")
 });
@@ -28,9 +28,9 @@ const GameEventOutputSchema = z.object({
 });
 
 /**
- * Output schema for the GetGameEvents tool
+ * Output schema for the GetEvents tool
  */
-const GetGameEventsOutputSchema = z.object({
+const GetEventsOutputSchema = z.object({
   events: z.array(GameEventOutputSchema),
   count: z.number(),
   filters: z.object({
@@ -42,11 +42,11 @@ const GetGameEventsOutputSchema = z.object({
 /**
  * Tool for retrieving game events with optional filtering
  */
-class GetGameEventsTool extends ToolBase {
+class GetEventsTool extends ToolBase {
   /**
    * Unique identifier for the tool
    */
-  readonly name = "get-game-events";
+  readonly name = "get-events";
 
   /**
    * Human-readable description of the tool
@@ -56,12 +56,12 @@ class GetGameEventsTool extends ToolBase {
   /**
    * Input schema for the tool
    */
-  readonly inputSchema = GetGameEventsInputSchema;
+  readonly inputSchema = GetEventsInputSchema;
 
   /**
    * Output schema for the tool
    */
-  readonly outputSchema = GetGameEventsOutputSchema;
+  readonly outputSchema = GetEventsOutputSchema;
 
   /**
    * Optional annotations for the tool
@@ -114,4 +114,4 @@ class GetGameEventsTool extends ToolBase {
   }
 }
 
-export default new GetGameEventsTool();
+export default new GetEventsTool();
