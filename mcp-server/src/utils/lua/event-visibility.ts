@@ -162,7 +162,8 @@ const analyzeVisibilityFunc = new LuaFunction("analyzeEventVisibility", ["eventT
         break
       end
     end
-    
+    if unit == nil then return end
+
     -- Check if unit is visible to other players based on plot visibility
     local plotX = unit:GetX()
     local plotY = unit:GetY()

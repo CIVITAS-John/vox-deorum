@@ -30,11 +30,13 @@ export class KnowledgeManager {
       this.checkGameContext();
     });
     bridgeManager.on('gameEvent', async (data) => {
-      logger.debug('Game event received: ' + data.type, data);
+      logger.debug(`Game event received: ${data.id} of ${data.type}`, data);
       if (data.type == "dll_status")
-        await this.checkGameContext();
+        if (data.payload.status) {
+          await this.checkGameContext();
+        }
       else if (this.knowledgeStore)
-        this.knowledgeStore.handleGameEvent(data.type, data.payload?.args);
+        this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload?.args);
     });
     this.startAutoSave();
   }

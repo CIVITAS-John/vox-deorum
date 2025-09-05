@@ -74,6 +74,7 @@ export class LuaFunction {
       return true
     `;
 
+    await MCPServer.getInstance().getBridgeManager().addFunction(this);
     const response = await MCPServer.getInstance().getBridgeManager().executeLuaScript(registrationScript);
     
     if (response.success) {

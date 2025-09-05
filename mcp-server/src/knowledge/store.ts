@@ -28,6 +28,8 @@ const blockedEventTypes = new Set<string>([
   "UnitPrekill",
   "PlayerEndTurnInitiated",
   "PlayerEndTurnCompleted",
+  "TerraformingPlot",
+  "GameSave",
 ]);
 
 /**
@@ -111,7 +113,7 @@ export class KnowledgeStore {
   /**
    * Handle incoming game events by validating against schemas
    */
-  handleGameEvent(type: string, payload: unknown): void {
+  handleGameEvent(id: number, type: string, payload: unknown): void {
     try {
       if (blockedEventTypes.has(type)) {
         logger.debug(`Blocked event type: ${type}`);
@@ -146,11 +148,15 @@ export class KnowledgeStore {
         }
       });
 
+      // Other blocking reasons
+      if (eventObject["PlotX"] == -2147483647 || eventObject["PlotY"] == -2147483647) return;
+      if (eventObject["OldPopulation"] && eventObject["OldPopulation"] == eventObject["NewPopulation"]) return;
+
       // Validate the event object against the schema
       const result = schema.safeParse(eventObject);
 
       if (result.success) {
-        this.storeGameEvent(type, result.data);
+        this.storeGameEvent(id, type, result.data);
       } else {
         logger.warn(`Invalid ${type} event:`, {
           errors: result.error.errors,
@@ -166,7 +172,7 @@ export class KnowledgeStore {
   /**
    * Store a game event with automatic visibility determination
    */
-  async storeGameEvent<T extends object>(type: string, payload: T): Promise<void> {
+  async storeGameEvent<T extends object>(id: number, type: string, payload: T): Promise<void> {
     // Determine visibility for this event
     const visibilityResult = await analyzeEventVisibility(type, payload);
     
@@ -176,6 +182,7 @@ export class KnowledgeStore {
     // Create event object with visibility markers
     const eventWithVisibility = applyVisibility(
       {
+        ID: id,
         Turn: knowledgeManager.getTurn(),
         Type: type,
         Payload: JSON.stringify(payload),
@@ -194,9 +201,9 @@ export class KnowledgeStore {
       Object.assign(payload, visibilityResult.extraPayload);
       // Explain the enums for LLM readability
       explainEnums(payload);
-      logger.info(`Storing game event: ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
+      logger.info(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
     } else {
-      logger.info(`Storing game event: ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
+      logger.info(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
     }
     
     await this.getDatabase()

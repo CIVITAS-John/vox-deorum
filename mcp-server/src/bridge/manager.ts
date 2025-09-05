@@ -162,7 +162,6 @@ export class BridgeManager extends EventEmitter {
    */
   public addFunction(func: LuaFunction): void {
     this.luaFunctions.set(func.name, func);
-    logger.debug(`Added function: ${func.name}`);
   }
 
   /**
@@ -204,6 +203,8 @@ export class BridgeManager extends EventEmitter {
         try {
           const data = JSON.parse(event.data) as GameEvent;
           this.emit('gameEvent', data);
+          if (data.type == "dll_status" && !data.payload.status) 
+            this.resetFunctions();
           logger.debug('Received SSE event: ' + data.type, data);
         } catch (error) {
           logger.error('Failed to parse SSE event:', error);
