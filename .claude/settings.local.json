@@ -18,7 +18,8 @@
       "Bash(python:*)",
       "Bash(mkdir:*)",
       "Bash(ls:*)",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "Bash(npm run test:*)"
     ],
     "deny": [],
     "ask": []

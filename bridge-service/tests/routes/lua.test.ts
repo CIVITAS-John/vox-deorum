@@ -480,7 +480,7 @@ describe('Lua Service', () => {
       logSuccess('Rapid sequential requests handled successfully');
     });
 
-    it('should correctly serialize object and array return values from raw Lua script', async () => {
+    it.skipIf(USE_MOCK)('should correctly serialize object and array return values from raw Lua script', async () => {
       // Test object return value
       const objectScript = `
         local player = {

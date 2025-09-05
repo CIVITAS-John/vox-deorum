@@ -379,6 +379,29 @@ export class MockDLLServer extends EventEmitter {
             result = 4950; // Sum of 0 to 99
           } else if (data.script.includes('Hello\\nWorld\\t')) {
             result = 'Hello\nWorld\t!';
+          } else if (data.script.includes('local player = {') && data.script.includes('return player')) {
+            // Object return value test
+            result = {
+              id: 1,
+              name: 'TestPlayer',
+              score: 100,
+              active: true
+            };
+          } else if (data.script.includes('local players = {"Player1", "Player2", "Player3"}')) {
+            // Array return value test
+            result = ['Player1', 'Player2', 'Player3'];
+          } else if (data.script.includes('local gameData = {') && data.script.includes('players = {')) {
+            // Nested structure test
+            result = {
+              players: [
+                { id: 1, name: 'Alice' },
+                { id: 2, name: 'Bob' }
+              ],
+              settings: {
+                difficulty: 'hard',
+                mapSize: 'large'
+              }
+            };
           } else {
             // Default mock result
             result = 'Mock script executed';

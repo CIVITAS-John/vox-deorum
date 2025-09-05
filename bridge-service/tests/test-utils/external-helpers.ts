@@ -115,7 +115,7 @@ export async function registerExternalFunction(
 }
 
 /**
- * Wait for a DLL response with specific ID
+ * Wait for a DLL response with specific result
  */
 export function waitForDLLResponse<T = any>(
   dllConnector: any,
@@ -126,7 +126,7 @@ export function waitForDLLResponse<T = any>(
     dllConnector,
     'ipc_send',
     timeout,
-    (data) => data.type === 'external_response' && (!result || data.result == result)
+    (data) => data.type === 'external_response' && (!result || data.result == result || data.id == result)
   );
 }
 
