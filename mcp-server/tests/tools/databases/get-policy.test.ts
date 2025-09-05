@@ -36,13 +36,13 @@ describe("Get Policy Tool via MCP", () => {
     expect(content.type).toBe("text");
     
     const parsed = JSON.parse(content.text);
-    expect(parsed.count).toBeGreaterThan(0);
-    expect(parsed.items).toBeDefined();
-    expect(Array.isArray(parsed.items)).toBe(true);
+    expect(parsed.Count).toBeGreaterThan(0);
+    expect(parsed.Items).toBeDefined();
+    expect(Array.isArray(parsed.Items)).toBe(true);
     
     // Check first policy has expected fields
-    if (parsed.items.length > 0) {
-      const policy = parsed.items[0];
+    if (parsed.Items.length > 0) {
+      const policy = parsed.Items[0];
       expect(policy.Type).toBeDefined();
       expect(policy.Name).toBeDefined();
       expect(policy.Help).toBeDefined();
@@ -59,7 +59,7 @@ describe("Get Policy Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-policy",
       arguments: { 
-        search: "Liberty"
+        Search: "Liberty"
       }
     });
 
@@ -68,11 +68,11 @@ describe("Get Policy Tool via MCP", () => {
     expect(content.type).toBe("text");
     
     const parsed = JSON.parse(content.text);
-    expect(parsed.count).toBeGreaterThan(0);
-    expect(parsed.items).toBeDefined();
+    expect(parsed.Count).toBeGreaterThan(0);
+    expect(parsed.Items).toBeDefined();
     
     // Should find Liberty-related policies
-    const libertyPolicies = parsed.items.filter((p: any) => 
+    const libertyPolicies = parsed.Items.filter((p: any) => 
       p.Name.toLowerCase().includes("liberty") || 
       p.Branch?.toLowerCase().includes("liberty")
     );
@@ -86,7 +86,7 @@ describe("Get Policy Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-policy",
       arguments: { 
-        search: "traditin" // Intentional typo for "Tradition"
+        Search: "traditin" // Intentional typo for "Tradition"
       }
     });
 
@@ -96,7 +96,7 @@ describe("Get Policy Tool via MCP", () => {
     
     const parsed = JSON.parse(content.text);
     // Should find Tradition despite typo
-    const traditionPolicies = parsed.items.filter((p: any) => 
+    const traditionPolicies = parsed.Items.filter((p: any) => 
       p.Name.toLowerCase().includes("tradition") || 
       p.Branch?.toLowerCase().includes("tradition")
     );
@@ -110,7 +110,7 @@ describe("Get Policy Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-policy",
       arguments: { 
-        search: "POLICY_CULTURAL_REVOLUTION" // Exact Type match
+        Search: "POLICY_CULTURAL_REVOLUTION" // Exact Type match
       }
     });
 
@@ -119,9 +119,9 @@ describe("Get Policy Tool via MCP", () => {
     expect(content.type).toBe("text");
     
     const parsed = JSON.parse(content.text);
-    expect(parsed.count).toBe(1);
+    expect(parsed.Count).toBe(1);
     
-    const policy = parsed.items[0];
+    const policy = parsed.Items[0];
     // Should have full information
     expect(policy.Type).toBe("POLICY_CULTURAL_REVOLUTION");
     expect(policy.Name).toBeDefined();
@@ -140,8 +140,8 @@ describe("Get Policy Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-policy",
       arguments: { 
-        search: "Honor",
-        maxResults: 10
+        Search: "Honor",
+        MaxResults: 10
       }
     });
 
@@ -150,10 +150,10 @@ describe("Get Policy Tool via MCP", () => {
     expect(content.type).toBe("text");
     
     const parsed = JSON.parse(content.text);
-    expect(parsed.count).toBeGreaterThan(0);
+    expect(parsed.Count).toBeGreaterThan(0);
     
     // Should find Honor branch policies
-    const honorPolicies = parsed.items.filter((p: any) => 
+    const honorPolicies = parsed.Items.filter((p: any) => 
       p.Branch?.toLowerCase().includes("honor") || p.Name.toLowerCase().includes("honor")
     );
     expect(honorPolicies.length).toBeGreaterThan(0);
@@ -167,7 +167,7 @@ describe("Get Policy Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-policy",
       arguments: { 
-        search: "POLICY_OLIGARCHY" // A policy in Tradition branch
+        Search: "POLICY_OLIGARCHY" // A policy in Tradition branch
       }
     });
 
@@ -177,8 +177,8 @@ describe("Get Policy Tool via MCP", () => {
     
     const parsed = JSON.parse(content.text);
     
-    if (parsed.count === 1) {
-      const policy = parsed.items[0];
+    if (parsed.Count === 1) {
+      const policy = parsed.Items[0];
       expect(policy.PrereqPolicies).toBeDefined();
       expect(Array.isArray(policy.PrereqPolicies)).toBe(true);
       // Oligarchy typically requires Tradition opener
@@ -197,8 +197,8 @@ describe("Get Policy Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-policy",
       arguments: { 
-        search: "Medieval",
-        maxResults: 10
+        Search: "Medieval",
+        MaxResults: 10
       }
     });
 
@@ -209,8 +209,8 @@ describe("Get Policy Tool via MCP", () => {
     const parsed = JSON.parse(content.text);
     
     // Some policies unlock in specific eras
-    if (parsed.count > 0) {
-      const medievalPolicies = parsed.items.filter((p: any) => 
+    if (parsed.Count > 0) {
+      const medievalPolicies = parsed.Items.filter((p: any) => 
         p.Era?.toLowerCase().includes("medieval")
       );
       // May or may not find policies specific to Medieval era
@@ -225,7 +225,7 @@ describe("Get Policy Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-policy",
       arguments: { 
-        search: "POLICY_TRADITION" // The Tradition opener
+        Search: "POLICY_TRADITION" // The Tradition opener
       }
     });
 
@@ -235,8 +235,8 @@ describe("Get Policy Tool via MCP", () => {
     
     const parsed = JSON.parse(content.text);
     
-    if (parsed.count === 1) {
-      const policy = parsed.items[0];
+    if (parsed.Count === 1) {
+      const policy = parsed.Items[0];
       expect(policy.Type).toBe("POLICY_TRADITION");
       // Branch openers typically don't have a branch set (they ARE the branch)
       // But they have specific characteristics

@@ -12,9 +12,10 @@ import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
  * Input schema for the GetEvents tool
  */
 const GetEventsInputSchema = z.object({
-  Turn: z.number().optional().describe("Optional turn number to filter events."),
-  After: z.number().optional().describe("Optional turn number to filter IDs (after a certain point)."),
-  PlayerID: z.number().min(0).max(21).optional().describe("Optional player ID to filter events visible to that player.")
+  Turn: z.number().optional().describe("Turn number filter"),
+  Type: z.string().optional().describe("Event type string filter"),
+  After: z.number().optional().describe("Event ID filter"),
+  PlayerID: z.number().min(0).max(21).optional().describe("Player ID visibility filter")
 });
 
 /**
@@ -64,7 +65,8 @@ class GetEventsTool extends ToolBase {
    * Optional annotations for the tool
    */
   readonly annotations: ToolAnnotations = {
-    audience: ["user", "briefer"]
+    audience: ["user", "briefer"],
+    autoComplete: ["PlayerID", "After"]
   }
 
   /**
@@ -86,8 +88,8 @@ class GetEventsTool extends ToolBase {
     if (args.PlayerID)
       query = query.where(isVisible(args.PlayerID));
     
-    // Order by turn and creation time
-    query = query.orderBy("ID", "desc");
+    // Order by ID
+    query = query.orderBy("ID");
     
     // Execute the query
     const events = await query.execute();

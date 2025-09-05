@@ -17,17 +17,17 @@ describe("Lua Executor Tool via MCP", () => {
 
   it("should execute basic Lua calculations", async () => {
     const testCases = [
-      { script: "return 2 + 3", expected: 5 },
-      { script: "return 10 * 5", expected: 50 },
-      { script: "return math.sqrt(16)", expected: 4 },
-      { script: "return 2^8", expected: 256 },
-      { script: "return (10 + 5) * 2", expected: 30 }
+      { Script: "return 2 + 3", expected: 5 },
+      { Script: "return 10 * 5", expected: 50 },
+      { Script: "return math.sqrt(16)", expected: 4 },
+      { Script: "return 2^8", expected: 256 },
+      { Script: "return (10 + 5) * 2", expected: 30 }
     ];
 
     for (const test of testCases) {
       const result = await mcpClient.callTool({
         name: "lua-executor",
-        arguments: { script: test.script }
+        arguments: { Script: test.Script }
       });
 
       expect(result.content).toBeDefined();
@@ -36,7 +36,7 @@ describe("Lua Executor Tool via MCP", () => {
       const content = (result.content as any);
       if (content.type === "text") {
         const parsed = JSON.parse(content.text);
-        expect(parsed.result).toBe(test.expected);
+        expect(parsed.Result).toBe(test.expected);
       }
     }
   });
@@ -44,7 +44,7 @@ describe("Lua Executor Tool via MCP", () => {
   it("should handle errors gracefully", async () => {
     const result = await mcpClient.callTool({
       name: "lua-executor",
-      arguments: { script: "invalid lua code @#$" }
+      arguments: { Script: "invalid lua code @#$" }
     });
 
     expect(result.content).toBeDefined();
@@ -53,7 +53,8 @@ describe("Lua Executor Tool via MCP", () => {
     
     if (content.type === "text") {
       // Should contain error message
-      expect(content.text).toContain("error");
+      const parsed = JSON.parse(content.text);
+      expect(parsed.Error || parsed.Success === false).toBeTruthy();
     }
   });
 });

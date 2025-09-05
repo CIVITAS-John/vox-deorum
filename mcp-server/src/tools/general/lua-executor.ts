@@ -22,7 +22,7 @@ class LuaExecutorTool extends ToolBase {
    */
   readonly inputSchema = z.object({
     Script: z.string().describe("Raw Lua script to execute in the game context (e.g., 'return Game.GetActivePlayer()', 'print(\"Hello from Lua\")')"),
-    Description: z.string().optional().describe("Optional description of what this script does")
+    Description: z.string().optional().describe("Description of what this script does")
   });
 
   /**

@@ -21,7 +21,7 @@ class CalculatorTool extends ToolBase {
    * Input schema defining the expression to evaluate
    */
   readonly inputSchema = z.object({
-    Expression: z.string().describe("Mathematical expression to evaluate (e.g., '2 + 3 * 4', 'sqrt(16)', 'sin(pi/2)')")
+    Expression: z.string().describe("Mathematical expression to evaluate")
   });
 
   /**

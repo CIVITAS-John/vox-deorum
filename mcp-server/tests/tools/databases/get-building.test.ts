@@ -36,13 +36,13 @@ describe("Get Building Tool via MCP", () => {
     expect(content.type).toBe("text");
     
     const parsed = JSON.parse(content.text);
-    expect(parsed.count).toBeGreaterThan(0);
-    expect(parsed.items).toBeDefined();
-    expect(Array.isArray(parsed.items)).toBe(true);
+    expect(parsed.Count).toBeGreaterThan(0);
+    expect(parsed.Items).toBeDefined();
+    expect(Array.isArray(parsed.Items)).toBe(true);
     
     // Check first building has expected fields
-    if (parsed.items.length > 0) {
-      const building = parsed.items[0];
+    if (parsed.Items.length > 0) {
+      const building = parsed.Items[0];
       expect(building.Type).toBeDefined();
       expect(building.Name).toBeDefined();
       expect(building.Help).toBeDefined();
@@ -58,7 +58,7 @@ describe("Get Building Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-building",
       arguments: { 
-        search: "baracks" // Intentional typo
+        Search: "baracks" // Intentional typo
       }
     });
 
@@ -69,7 +69,7 @@ describe("Get Building Tool via MCP", () => {
     if (content.type === "text") {
       const parsed = JSON.parse(content.text);
       // Should find Barracks despite typo
-      const barracks = parsed.items.find((b: any) => b.Name === "Barracks");
+      const barracks = parsed.Items.find((b: any) => b.Name === "Barracks");
       expect(barracks).toBeDefined();
     }
   });
@@ -81,7 +81,7 @@ describe("Get Building Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-building",
       arguments: { 
-        search: "BUILDING_LIBRARY" // Exact Type match
+        Search: "BUILDING_LIBRARY" // Exact Type match
       }
     });
 
@@ -91,9 +91,9 @@ describe("Get Building Tool via MCP", () => {
     
     if (content.type === "text") {
       const parsed = JSON.parse(content.text);
-      expect(parsed.count).toBe(1);
+      expect(parsed.Count).toBe(1);
       
-      const building = parsed.items[0];
+      const building = parsed.Items[0];
       // Should have full information
       expect(building.Type).toBe("BUILDING_LIBRARY");
       expect(building.Class).toBeDefined();
@@ -115,7 +115,7 @@ describe("Get Building Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-building",
       arguments: { 
-        search: "BUILDING_UNIVERSITY" // A building with prerequisites
+        Search: "BUILDING_UNIVERSITY" // A building with prerequisites
       }
     });
 
@@ -125,9 +125,9 @@ describe("Get Building Tool via MCP", () => {
     
     if (content.type === "text") {
       const parsed = JSON.parse(content.text);
-      expect(parsed.count).toBe(1);
+      expect(parsed.Count).toBe(1);
       
-      const building = parsed.items[0];
+      const building = parsed.Items[0];
       expect(building.PrereqBuildings).toBeDefined();
       expect(Array.isArray(building.PrereqBuildings)).toBe(true);
       // University typically requires Library

@@ -38,8 +38,8 @@ export abstract class DatabaseQueryTool<
    * Input schema with common search parameters
    */
   readonly inputSchema = z.object({
-    Search: z.string().optional().describe("Optional search term to filter results using fuzzy matching"),
-    MaxResults: z.number().optional().default(20).describe("Maximum number of results to return (default: 20)")
+    Search: z.string().optional().describe("Fuzzy-matching search term"),
+    MaxResults: z.number().optional().default(20).describe("Maximum number to return (default: 20)")
   });
 
   /**

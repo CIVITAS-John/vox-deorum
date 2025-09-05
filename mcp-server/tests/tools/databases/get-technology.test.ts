@@ -36,13 +36,13 @@ describe("Get Technology Tool via MCP", () => {
     expect(content.type).toBe("text");
     
     const parsed = JSON.parse(content.text);
-    expect(parsed.count).toBeGreaterThan(0);
-    expect(parsed.items).toBeDefined();
-    expect(Array.isArray(parsed.items)).toBe(true);
+    expect(parsed.Count).toBeGreaterThan(0);
+    expect(parsed.Items).toBeDefined();
+    expect(Array.isArray(parsed.Items)).toBe(true);
     
     // Check first technology has expected fields
-    if (parsed.items.length > 0) {
-      const tech = parsed.items[0];
+    if (parsed.Items.length > 0) {
+      const tech = parsed.Items[0];
       expect(tech.Type).toBeDefined();
       expect(tech.Name).toBeDefined();
       expect(tech.Help).toBeDefined();
@@ -58,7 +58,7 @@ describe("Get Technology Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-technology",
       arguments: { 
-        search: "Agriculture"
+        Search: "Agriculture"
       }
     });
 
@@ -67,16 +67,16 @@ describe("Get Technology Tool via MCP", () => {
     expect(content.type).toBe("text");
     
     const parsed = JSON.parse(content.text);
-    expect(parsed.count).toBeGreaterThan(0);
-    expect(parsed.items).toBeDefined();
+    expect(parsed.Count).toBeGreaterThan(0);
+    expect(parsed.Items).toBeDefined();
     
     // Should find Agriculture
-    const agriculture = parsed.items.find((t: any) => t.Name === "Agriculture");
+    const agriculture = parsed.Items.find((t: any) => t.Name === "Agriculture");
     expect(agriculture).toBeDefined();
     
     // When only one result, should return full info
-    if (parsed.count === 1) {
-      const tech = parsed.items[0];
+    if (parsed.Count === 1) {
+      const tech = parsed.Items[0];
       expect(tech.PrereqTechs).toBeDefined();
       expect(tech.UnitsUnlocked).toBeDefined();
       expect(tech.BuildingsUnlocked).toBeDefined();
@@ -93,7 +93,7 @@ describe("Get Technology Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-technology",
       arguments: { 
-        search: "writng" // Intentional typo
+        Search: "writng" // Intentional typo
       }
     });
 
@@ -104,7 +104,7 @@ describe("Get Technology Tool via MCP", () => {
     if (content.type === "text") {
       const parsed = JSON.parse(content.text);
       // Should find Writing despite typo
-      const writing = parsed.items.find((t: any) => t.Name === "Writing");
+      const writing = parsed.Items.find((t: any) => t.Name === "Writing");
       expect(writing).toBeDefined();
     }
   });
@@ -116,7 +116,7 @@ describe("Get Technology Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-technology",
       arguments: { 
-        search: "TECH_AGRICULTURE" // Exact Type match
+        Search: "TECH_AGRICULTURE" // Exact Type match
       }
     });
 
@@ -126,9 +126,9 @@ describe("Get Technology Tool via MCP", () => {
     
     if (content.type === "text") {
       const parsed = JSON.parse(content.text);
-      expect(parsed.count).toBe(1);
+      expect(parsed.Count).toBe(1);
       
-      const tech = parsed.items[0];
+      const tech = parsed.Items[0];
       // Should have full information
       expect(tech.Type).toBe("TECH_AGRICULTURE");
       expect(tech.PrereqTechs).toBeDefined();
@@ -150,8 +150,8 @@ describe("Get Technology Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-technology",
       arguments: { 
-        search: "Ancient",
-        maxResults: 10
+        Search: "Ancient",
+        MaxResults: 10
       }
     });
 
@@ -161,10 +161,10 @@ describe("Get Technology Tool via MCP", () => {
     
     if (content.type === "text") {
       const parsed = JSON.parse(content.text);
-      expect(parsed.count).toBeGreaterThan(0);
+      expect(parsed.Count).toBeGreaterThan(0);
       
       // Should find ancient era technologies
-      const ancientTechs = parsed.items.filter((t: any) => 
+      const ancientTechs = parsed.Items.filter((t: any) => 
         t.Era && t.Era.toLowerCase().includes("ancient")
       );
       expect(ancientTechs.length).toBeGreaterThan(0);
@@ -178,7 +178,7 @@ describe("Get Technology Tool via MCP", () => {
     const result = await mcpClient.callTool({
       name: "get-technology",
       arguments: { 
-        search: "TECH_BRONZE_WORKING" // A technology with prerequisites
+        Search: "TECH_BRONZE_WORKING" // A technology with prerequisites
       }
     });
 
@@ -188,9 +188,9 @@ describe("Get Technology Tool via MCP", () => {
     
     if (content.type === "text") {
       const parsed = JSON.parse(content.text);
-      expect(parsed.count).toBe(1);
+      expect(parsed.Count).toBe(1);
       
-      const tech = parsed.items[0];
+      const tech = parsed.Items[0];
       expect(tech.PrereqTechs).toBeDefined();
       expect(Array.isArray(tech.PrereqTechs)).toBe(true);
       // Bronze Working typically requires Mining

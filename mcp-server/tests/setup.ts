@@ -45,6 +45,8 @@ beforeAll(async () => {
       throw new Error(`Unknown transport type: ${process.env.TEST_TRANSPORT}`);
   }
   server = MCPServer.getInstance();
+  // Delay 5s to allow loading database, etc.
+  await new Promise(resolve => setTimeout(resolve, 5000));
 }, 15000); // 15 second timeout for service startup
 
 // Global test teardown - stop bridge service
