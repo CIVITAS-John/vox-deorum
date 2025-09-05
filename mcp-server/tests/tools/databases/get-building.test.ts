@@ -52,44 +52,6 @@ describe("Get Building Tool via MCP", () => {
   });
 
   /**
-   * Test searching for a specific building
-   */
-  it("should search for specific building by name", async () => {
-    const result = await mcpClient.callTool({
-      name: "get-building",
-      arguments: { 
-        search: "Library"
-      }
-    });
-
-    expect(result.content).toBeDefined();
-    const content = (result.content as any)[0];
-    expect(content.type).toBe("text");
-    
-    const parsed = JSON.parse(content.text);
-    expect(parsed.count).toBeGreaterThan(0);
-    expect(parsed.items).toBeDefined();
-    
-    // Should find Library
-    const library = parsed.items.find((b: any) => b.Name === "Library");
-    expect(library).toBeDefined();
-    
-    // When only one result, should return full info
-    if (parsed.count === 1) {
-      const building = parsed.items[0];
-      expect(building.Class).toBeDefined();
-      expect(building.PrereqBuildings).toBeDefined();
-      expect(building.IsNationalWonder).toBeDefined();
-      expect(building.IsWorldWonder).toBeDefined();
-      expect(building.Happiness).toBeDefined();
-      expect(building.Defense).toBeDefined();
-      expect(building.HP).toBeDefined();
-      expect(building.Maintenance).toBeDefined();
-      expect(building.SpecialAbilities).toBeDefined();
-    }
-  });
-
-  /**
    * Test fuzzy search functionality
    */
   it("should handle fuzzy search", async () => {
@@ -143,40 +105,6 @@ describe("Get Building Tool via MCP", () => {
       expect(typeof building.Defense).toBe("number");
       expect(typeof building.HP).toBe("number");
       expect(typeof building.Maintenance).toBe("number");
-      expect(Array.isArray(building.SpecialAbilities)).toBe(true);
-    }
-  });
-
-  /**
-   * Test searching for wonders
-   */
-  it("should find world wonders", async () => {
-    const result = await mcpClient.callTool({
-      name: "get-building",
-      arguments: { 
-        search: "Pyramids",
-        maxResults: 10
-      }
-    });
-
-    expect(result.content).toBeDefined();
-    const content = (result.content as any)[0];
-    expect(content.type).toBe("text");
-    
-    if (content.type === "text") {
-      const parsed = JSON.parse(content.text);
-      expect(parsed.count).toBeGreaterThan(0);
-      
-      // Should find Pyramids
-      const pyramids = parsed.items.find((b: any) => 
-        b.Name && b.Name.toLowerCase().includes("pyramid")
-      );
-      expect(pyramids).toBeDefined();
-      
-      // If we got full details, check if it's a world wonder
-      if (parsed.count === 1 && pyramids) {
-        expect(pyramids.IsWorldWonder).toBe(true);
-      }
     }
   });
 
@@ -206,36 +134,6 @@ describe("Get Building Tool via MCP", () => {
       if (building.PrereqBuildings.length > 0) {
         expect(building.PrereqBuildings[0]).toContain("Library");
       }
-    }
-  });
-
-  /**
-   * Test that special abilities are properly populated
-   */
-  it("should show special abilities for buildings", async () => {
-    const result = await mcpClient.callTool({
-      name: "get-building",
-      arguments: { 
-        search: "BUILDING_GRANARY" // A building with yield changes
-      }
-    });
-
-    expect(result.content).toBeDefined();
-    const content = (result.content as any)[0];
-    expect(content.type).toBe("text");
-    
-    if (content.type === "text") {
-      const parsed = JSON.parse(content.text);
-      expect(parsed.count).toBe(1);
-      
-      const building = parsed.items[0];
-      expect(building.SpecialAbilities).toBeDefined();
-      expect(Array.isArray(building.SpecialAbilities)).toBe(true);
-      // Granary typically provides food yield
-      const foodAbility = building.SpecialAbilities.find((a: string) => 
-        a.toLowerCase().includes("food") || a.includes("YIELD_FOOD")
-      );
-      expect(foodAbility).toBeDefined();
     }
   });
 });

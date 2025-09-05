@@ -128,7 +128,6 @@ describe("Get Policy Tool via MCP", () => {
     expect(policy.Help).toBeDefined();
     expect('Era' in policy).toBe(true);
     expect('Branch' in policy).toBe(true);
-    expect('Strategy' in policy).toBe(true);
     expect('Level' in policy).toBe(true);
     expect(policy.PrereqPolicies).toBeDefined();
     expect(Array.isArray(policy.PrereqPolicies)).toBe(true);

@@ -88,6 +88,7 @@ export class MCPServer {
         annotations: tool.annotations,
       },
       (async (args: z.infer<typeof tool.inputSchema>) => {
+        logger.info(`Handling tool request ${tool.name}`, args);
         try {
           const results = await tool.execute(args);
           // If tool already returns CallToolResult, use it directly

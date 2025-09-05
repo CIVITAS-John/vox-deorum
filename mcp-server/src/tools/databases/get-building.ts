@@ -65,8 +65,15 @@ class GetBuildingTool extends DatabaseQueryTool<BuildingSummary, BuildingReport>
    */
   protected async fetchSummaries(): Promise<BuildingSummary[]> {
     return await gameDatabase.getDatabase()
-      .selectFrom("Buildings")
-      .select(['Type', 'Description as Name', 'Help', 'Cost', 'PrereqTech'])
+      .selectFrom("Buildings as b")
+      .leftJoin("Technologies as t", "b.PrereqTech", "t.Type")
+      .select([
+        'b.Type', 
+        'b.Description as Name', 
+        'b.Help', 
+        'b.Cost', 
+        't.Description as PrereqTech'
+      ])
       .execute() as BuildingSummary[];
   }
   
@@ -79,12 +86,14 @@ export default new GetBuildingTool();
  * Fetch full building information for a specific building
  */
 export async function getBuilding(buildingType: string) {
-  // Fetch base building info
+  // Fetch base building info with technology name
   const db = gameDatabase.getDatabase();
   const building = await db
-    .selectFrom('Buildings')
-    .selectAll()
-    .where('Type', '=', buildingType)
+    .selectFrom('Buildings as b')
+    .leftJoin('Technologies as t', 'b.PrereqTech', 't.Type')
+    .selectAll('b')
+    .select('t.Description as PrereqTechName')
+    .where('b.Type', '=', buildingType)
     .executeTakeFirst();
   
   if (!building) {
@@ -117,7 +126,7 @@ export async function getBuilding(buildingType: string) {
     Name: building.Description || '',
     Help: building.Help || '',
     Cost: building.Cost || 0,
-    PrereqTech: building.PrereqTech,
+    PrereqTech: building.PrereqTechName || null,
     Strategy: building.Strategy,
     Class: building.BuildingClass || '',
     PrereqBuildings: prereqBuildings.map(p => p.Description || ''),
