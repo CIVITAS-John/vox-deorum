@@ -23,6 +23,11 @@ Each component has its own README with specific setup instructions.
 - Always follow the protocol.md when designing or implementing cross-module communications.
 3. **MCP Server** (`mcp-server/`) - Exposes game state as resources, talks to Bridge Service
 4. **Vox Agents** (`vox-agents/`) - Produces strategies with LLM agents, talks to MCP Server
+   - Use Vitest for all testing needs
+   - Repository can start in two modes:
+     - **Standalone Mode**: Autonomous project that connects to MCP server and runs independently, triggered by MCP server notifications
+     - **Component Mode**: Module for a web UI that also connects to the MCP server
+   - Each workflow should have its own entry point for clear separation of concerns
 
 ### Communication Flow
 ```
