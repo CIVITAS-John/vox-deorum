@@ -11,7 +11,7 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
                                                     ↕
                                           MCP Server (game state)
                                                     ↕  
-                                          MCP Client → LLM Agents
+                                          Vox Agents → LLM Agent
 ```
 
 ## Components
@@ -44,12 +44,18 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
   - Provides structured access to game data for LLM consumption
   - Sending active notifications (e.g. turn started, war declared, etc.)
 
-### MCP Client
-- **Location**: `mcp-client/`
-- Produces/revises strategies based on game state with LLM agents
-- Talks to the MCP Server via MCP protocol, e.g.
-  - When the LLM needs access to game state data
-  - When the LLM wants to change the in-game AI preference
+### Vox Agents
+- **Location**: `vox-agents/`
+- Provides multiple agent-based workflows for AI-enhanced gameplay
+- **Agent Workflows**:
+  - **Briefer**: Summarizes turn-based briefings/news for human and AI players
+  - **Strategist**: Dynamically adjusts in-game AI strategies based on game state
+  - Additional specialized agents for various gameplay aspects
+- **Architecture Features**:
+  - Workflows can call each other for complex decision-making
+  - Each module functions independently for modular deployment
+  - Communicates with MCP Server for game state access
+  - Communicates with Bridge Service for strategy execution
 
 ## Installation
 
@@ -75,8 +81,8 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
    cd ../mcp-server
    # Follow component-specific setup instructions
    
-   # MCP Client  
-   cd ../mcp-client
+   # Vox Agents  
+   cd ../vox-agents
    # Follow component-specific setup instructions
    ```
 
@@ -85,7 +91,7 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 Each component contains its own README with specific development instructions:
 - [`bridge-service/README.md`](bridge-service/README.md)
 - [`mcp-server/README.md`](mcp-server/README.md) 
-- [`mcp-client/README.md`](mcp-client/README.md)
+- [`vox-agents/README.md`](vox-agents/README.md)
 
 ## Project Structure
 
@@ -95,7 +101,7 @@ vox-deorum/
 ├── civ5-dll/              # Community Patch DLL submodule
 ├── bridge-service/        # Communication bridge and REST API with SSE
 ├── mcp-server/            # Game state MCP server
-├── mcp-client/            # LLM agent MCP client
+├── vox-agents/            # LLM agent workflows and orchestration
 ├── docs/                  # Documentation
 ├── scripts/               # Utility scripts
 ├── CLAUDE.md              # Claude Code guidance
@@ -117,4 +123,4 @@ Lecturer, University of Arizona, College of Information Science
 Different licenses are used for submodules:
 
 - `civ5-dll` - GPL 3.0 (following the upstream license)
-- `bridge-service`, `mcp-client`, `mcp-server`, `civ5-mod` - CC BY-NC-SA 4.0
+- `bridge-service`, `vox-agents`, `mcp-server`, `civ5-mod` - CC BY-NC-SA 4.0

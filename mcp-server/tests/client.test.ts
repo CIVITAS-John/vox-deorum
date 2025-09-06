@@ -1,11 +1,11 @@
 /**
- * Test file to verify MCP client connectivity
+ * Test file to verify MCP Agents connectivity
  */
 
 import { describe, it, expect } from 'vitest';
 import { mcpClient } from './setup.js';
 
-describe('MCP Client Connection', () => {
+describe('MCP Agents Connection', () => {
   it('should be connected to the server', async () => {
     // Test ping to verify connection
     const pingResult = await mcpClient.ping();

@@ -22,7 +22,7 @@ Each component has its own README with specific setup instructions.
 2. **Bridge Service** (`bridge-service/`) - Communication wrapper between DLL and external services via JSON/REST+SSE API
 - Always follow the protocol.md when designing or implementing cross-module communications.
 3. **MCP Server** (`mcp-server/`) - Exposes game state as resources, talks to Bridge Service
-4. **MCP Client** (`mcp-client/`) - Produces strategies with LLM agents, talks to both Bridge Service and MCP Server
+4. **Vox Agents** (`vox-agents/`) - Produces strategies with LLM agents, talks to MCP Server
 
 ### Communication Flow
 ```
@@ -30,7 +30,7 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
                                                     ↕
                                           MCP Server (game state)
                                                     ↕  
-                                          MCP Client → LLM Agents
+                                          Vox Agents → LLM Agent
 ```
 
 ## Development Guidelines
