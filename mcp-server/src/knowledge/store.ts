@@ -17,6 +17,7 @@ import { EventName, eventSchemas } from './schema/events/index.js';
 import { analyzeEventVisibility } from '../utils/lua/event-visibility.js';
 import { applyVisibility } from '../utils/knowledge/visibility.js';
 import { explainEnums } from '../utils/knowledge/enum.js';
+import { MCPServer } from '../server.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -152,11 +153,14 @@ export class KnowledgeStore {
       if (eventObject["PlotX"] == -2147483647 || eventObject["PlotY"] == -2147483647) return;
       if (eventObject["OldPopulation"] && eventObject["OldPopulation"] == eventObject["NewPopulation"]) return;
 
-      // Validate the event object against the schema
+      // Validate t(he event object against the schema
       const result = schema.safeParse(eventObject);
 
       if (result.success) {
-        this.storeGameEvent(id, type, result.data);
+        const data: any = result.data;
+        if (typeof data.PlayerID === "number")
+          MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn());
+        this.storeGameEvent(id, type, data);
       } else {
         logger.warn(`Invalid ${type} event:`, {
           errors: result.error.errors,

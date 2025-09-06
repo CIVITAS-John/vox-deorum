@@ -20,7 +20,9 @@
       "Bash(ls:*)",
       "Bash(move:*)",
       "Bash(npm run test:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [],
     "ask": []

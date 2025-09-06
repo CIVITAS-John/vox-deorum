@@ -154,6 +154,26 @@ export class MCPServer {
   }
 
   /**
+   * Send a notification to the client through ElicitInput.
+   */
+  public sendNotification(event: string, playerID: number, turn: number, param: Record<string, any> = {}) {
+    const rawServer = this.server.server;
+    rawServer.elicitInput(
+      {
+        message: event,
+        playerID: playerID,
+        turn: turn,
+        ...param,
+        requestedSchema: {
+          type: "object",
+          properties: {}
+        },
+      }
+    );
+    logger.info(`Sending server-side notification to MCP clients with ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
+  }
+
+  /**
    * Initialize the server (can be extended in the future)
    */
   public async initialize(): Promise<void> {
