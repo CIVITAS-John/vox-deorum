@@ -157,6 +157,7 @@ export class MCPServer {
    * Send a notification to the client through ElicitInput.
    */
   public sendNotification(event: string, playerID: number, turn: number, param: Record<string, any> = {}) {
+    logger.info(`Sending server-side notification to MCP clients with ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
     const rawServer = this.server.server;
     rawServer.elicitInput(
       {
@@ -169,8 +170,9 @@ export class MCPServer {
           properties: {}
         },
       }
-    );
-    logger.info(`Sending server-side notification to MCP clients with ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
+    ).catch(_r => {}).then(_r => {
+      logger.info(`MCP clients acknowledged notification; ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
+    });
   }
 
   /**
