@@ -75,7 +75,12 @@ class GetBuildingTool extends DatabaseQueryTool<BuildingSummary, BuildingReport>
   protected fetchFullInfo = getBuilding;
 }
 
-export default new GetBuildingTool();
+/**
+ * Creates a new instance of the get building tool
+ */
+export default function createGetBuildingTool() {
+  return new GetBuildingTool();
+}
 
 /**
  * Fetch full building information for a specific building

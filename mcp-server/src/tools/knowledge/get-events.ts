@@ -115,4 +115,9 @@ class GetEventsTool extends ToolBase {
   }
 }
 
-export default new GetEventsTool();
+/**
+ * Creates a new instance of the get events tool
+ */
+export default function createGetEventsTool() {
+  return new GetEventsTool();
+}

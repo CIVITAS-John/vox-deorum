@@ -1,21 +1,22 @@
 import { ToolBase } from "./base.js";
-import CalculatorTool from "./general/calculator.js";
-import LuaExecutorTool from "./general/lua-executor.js";
-import GetTechnologyTool from "./databases/get-technology.js";
-import GetPolicyTool from "./databases/get-policy.js";
-import GetBuildingTool from "./databases/get-building.js";
-import GetEventsTool from "./knowledge/get-events.js";
-import SetStrategyTool from "./actions/set-strategy.js";
+import createCalculatorTool from "./general/calculator.js";
+import createLuaExecutorTool from "./general/lua-executor.js";
+import createGetTechnologyTool from "./databases/get-technology.js";
+import createGetPolicyTool from "./databases/get-policy.js";
+import createGetBuildingTool from "./databases/get-building.js";
+import createGetEventsTool from "./knowledge/get-events.js";
+import createSetStrategyTool from "./actions/set-strategy.js";
 
 /**
  * Function to get all available tools
+ * @returns Array of functions that create tool instances
  */
-export const allTools: ToolBase[] = [
-    CalculatorTool,
-    LuaExecutorTool,
-    GetTechnologyTool,
-    GetPolicyTool,
-    GetBuildingTool,
-    GetEventsTool,
-    SetStrategyTool
+export const allTools: (() => ToolBase)[] = [
+    createCalculatorTool,
+    createLuaExecutorTool,
+    createGetTechnologyTool,
+    createGetPolicyTool,
+    createGetBuildingTool,
+    createGetEventsTool,
+    createSetStrategyTool
 ];

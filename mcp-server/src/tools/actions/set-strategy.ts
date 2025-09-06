@@ -46,7 +46,7 @@ class SetStrategyTool extends LuaFunctionTool {
    * The Lua script to execute
    */
   protected script = `
-    let activePlayer = Players[Game.GetActivePlayer()]
+    local activePlayer = Players[Game.GetActivePlayer()]
     if strategyId ~= -1 then
       activePlayer:SetGrandStrategy(strategyId)
     end
@@ -65,4 +65,9 @@ class SetStrategyTool extends LuaFunctionTool {
   }
 }
 
-export default new SetStrategyTool();
+/**
+ * Creates a new instance of the set strategy tool
+ */
+export default function createSetStrategyTool() {
+  return new SetStrategyTool();
+}

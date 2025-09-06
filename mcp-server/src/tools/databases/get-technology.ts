@@ -65,7 +65,12 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
   protected fetchFullInfo = getTechnology;
 }
 
-export default new GetTechnologyTool();
+/**
+ * Creates a new instance of the get technology tool
+ */
+export default function createGetTechnologyTool() {
+  return new GetTechnologyTool();
+}
 
 /**
  * Fetch full technology information for a specific technology

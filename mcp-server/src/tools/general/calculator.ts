@@ -50,4 +50,9 @@ class CalculatorTool extends ToolBase {
   }
 }
 
-export default new CalculatorTool();
+/**
+ * Creates a new instance of the calculator tool
+ */
+export default function createCalculatorTool() {
+  return new CalculatorTool();
+}

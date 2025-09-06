@@ -89,7 +89,12 @@ class GetPolicyTool extends DatabaseQueryTool<PolicySummary, PolicyReport> {
   protected fetchFullInfo = getPolicy;
 }
 
-export default new GetPolicyTool();
+/**
+ * Creates a new instance of the get policy tool
+ */
+export default function createGetPolicyTool() {
+  return new GetPolicyTool();
+}
 
 /**
  * Fetch full policy information for a specific policy

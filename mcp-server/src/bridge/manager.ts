@@ -203,7 +203,7 @@ export class BridgeManager extends EventEmitter {
         try {
           const data = JSON.parse(event.data) as GameEvent;
           this.emit('gameEvent', data);
-          if (data.type == "dll_status" && !data.payload.status) 
+          if (data.type == "dll_status" && !data.payload.status && this.dllConnected) 
             this.resetFunctions();
           logger.debug('Received SSE event: ' + data.type, data);
         } catch (error) {

@@ -65,4 +65,9 @@ class LuaExecutorTool extends ToolBase {
   }
 }
 
-export default new LuaExecutorTool();
+/**
+ * Creates a new instance of the Lua executor tool
+ */
+export default function createLuaExecutorTool() {
+  return new LuaExecutorTool();
+}

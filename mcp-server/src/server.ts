@@ -13,6 +13,7 @@ import { BridgeManager } from './bridge/manager.js';
 import { DatabaseManager } from './database/manager.js';
 import { KnowledgeManager } from './knowledge/manager.js';
 import * as z from "zod";
+import { MaxMajorCivs } from './knowledge/schema/base.js';
 
 const logger = createLogger('Server');
 
@@ -153,26 +154,29 @@ export class MCPServer {
     return this.knowledgeManager;
   }
 
+  private eventsForNotification = ["PlayerDoneTurn"];
   /**
    * Send a notification to the client through ElicitInput.
    */
   public sendNotification(event: string, playerID: number, turn: number, param: Record<string, any> = {}) {
-    logger.info(`Sending server-side notification to MCP clients with ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
-    const rawServer = this.server.server;
-    rawServer.elicitInput(
-      {
-        message: event,
-        playerID: playerID,
-        turn: turn,
-        ...param,
-        requestedSchema: {
-          type: "object",
-          properties: {}
-        },
-      }
-    ).catch(_r => {}).then(_r => {
-      logger.info(`MCP clients acknowledged notification; ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
-    });
+    if (this.eventsForNotification.indexOf(event) !== -1 && playerID >= 0 && playerID < MaxMajorCivs) {
+      logger.info(`Sending server-side notification to MCP clients with ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
+      const rawServer = this.server.server;
+      rawServer.elicitInput(
+        {
+          message: event,
+          playerID: playerID,
+          turn: turn,
+          ...param,
+          requestedSchema: {
+            type: "object",
+            properties: {}
+          },
+        }
+      ).catch(_r => {}).then(_r => {
+        logger.info(`MCP clients acknowledged notification bout the ${event} (Player ${playerID}) at turn ${turn}.`)
+      });
+    }
   }
 
   /**
@@ -215,7 +219,7 @@ export class MCPServer {
     }
     
     // Register all tools
-    allTools.forEach(tool => this.registerTool(tool));
+    allTools.forEach(toolFactory => this.registerTool(toolFactory()));
     
     this.initialized = true;
   }
