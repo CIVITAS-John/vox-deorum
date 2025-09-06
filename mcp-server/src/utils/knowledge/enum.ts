@@ -1,6 +1,7 @@
 import { CaptureTypes } from "../../database/enums/CaptureTypes.js";
 import { TradeConnectionTypes } from "../../database/enums/ConnectionTypes.js";
 import { FeatureTypes } from "../../database/enums/FeatureTypes.js";
+import { GuessConfidenceTypes } from "../../database/enums/GuessConfidenceTypes.js";
 import { PlotTypes } from "../../database/enums/PlotTypes.js";
 import { RouteTypes } from "../../database/enums/RouteTypes.js";
 import { TerrainTypes } from "../../database/enums/TerrainTypes.js";
@@ -17,6 +18,7 @@ export const enumMappings: Record<string, Record<number, string>> = {
   "YieldType": YieldTypes,
   "ConnectionType": TradeConnectionTypes,
   "CaptureType": CaptureTypes,
+  "GuessConfidence": GuessConfidenceTypes,
 }
 
 /**
@@ -69,7 +71,9 @@ export function explainEnums<T extends Record<string, any>>(obj: T): T {
  * @param value The string value to look up (e.g., "Food", "Gold")
  * @returns The numeric enum value, or -1 if not found
  */
-export function retrieveEnumValue(type: string, value: string): number {
+export function retrieveEnumValue(type: string, value?: string): number {
+  if (!value) return -1;
+  
   // First try exact match for the type
   let enumMapping: Record<number, string> | undefined;
   

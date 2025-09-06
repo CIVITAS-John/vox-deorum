@@ -19,8 +19,10 @@ class SetStrategyTool extends LuaFunctionTool {
    */
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(21).describe("ID of the player"),
-    GrandStrategy: z.nativeEnum(enumMappings["GrandStrategy"]).describe("The grand strategy name to set"),
-    Rationale: z.string().describe("The reasoning behind choosing this strategy")
+    GrandStrategy: z.nativeEnum(enumMappings["GrandStrategy"]).optional().describe("The grand strategy type to optionally set (and override)"),
+    EconomicStrategies: z.array(z.nativeEnum(enumMappings["EconomicStrategies"])).optional().describe("The economic strategy types to optionally set (and override)"),
+    MilitaryStrategies: z.array(z.nativeEnum(enumMappings["MilitaryStrategies"])).optional().describe("The military strategy types to optionally set (and override)"),
+    Rationale: z.string().describe("The reasoning behind choosing this strategy set")
   });
 
   /**
@@ -31,7 +33,7 @@ class SetStrategyTool extends LuaFunctionTool {
   /**
    * The Lua function arguments
    */
-  protected arguments = ["strategyId"];
+  protected arguments = ["grandId", "economicIds", "militaryIds"];
 
   /**
    * Optional annotations for the Lua executor tool
@@ -47,8 +49,14 @@ class SetStrategyTool extends LuaFunctionTool {
    */
   protected script = `
     local activePlayer = Players[Game.GetActivePlayer()]
-    if strategyId ~= -1 then
-      activePlayer:SetGrandStrategy(strategyId)
+    if grandId ~= -1 then
+      activePlayer:SetGrandStrategy(grandId)
+    end
+    if economicIds ~= nil then
+      activePlayer:SetEconomicStrategies(economicIds)
+    end
+    if militaryIds ~= nil then
+      activePlayer:SetMilitaryStrategies(militaryIds)
     end
     return true
   `;
@@ -59,9 +67,10 @@ class SetStrategyTool extends LuaFunctionTool {
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Find the strategy ID from the string name
     let grandStrategy = retrieveEnumValue("GrandStrategy", args.GrandStrategy)
-
+    let economicStrategies = args.EconomicStrategies?.map(s => retrieveEnumValue("EconomicStrategy", s));
+    let militaryStrategies = args.MilitaryStrategies?.map(s => retrieveEnumValue("MilitaryStrategy", s));
     // Call the parent execute with the strategy ID
-    return super.execute({ grandStrategy });
+    return super.execute({ grandStrategy, economicStrategies, militaryStrategies });
   }
 }
 
