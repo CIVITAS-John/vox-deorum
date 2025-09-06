@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/standalone.ts",
+    "briefer": "tsx src/briefer/index.ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
@@ -23,8 +24,11 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@mastra/core": "^0.16.0",
     "@modelcontextprotocol/sdk": "^1.17.5",
+    "ai": "^5.0.33",
     "dotenv": "^17.2.2",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^3.25.76"
   }
 }

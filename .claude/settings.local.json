@@ -24,7 +24,9 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
       "Bash(npm run typecheck:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "WebFetch(domain:mastra.dev)",
+      "WebFetch(domain:mastra.ai)"
     ],
     "deny": [],
     "ask": []
