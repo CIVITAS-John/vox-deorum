@@ -275,6 +275,9 @@ export class DatabaseManager {
    * Initialize enum-like mappings
    */
   async initializeMappings() {
+    await this.addEnumMappings("AICityStrategies", "CityStrategy");
+    await this.addEnumMappings("AIEconomicStrategies", "EconomicStrategy");
+    await this.addEnumMappings("AIGrandStrategies", "GrandStrategy");
     await this.addEnumMappings("Improvements", "ImprovementType");
     await this.addEnumMappings("Buildings", "BuildingType");
     await this.addEnumMappings("BuildingClasses", "BuildingClass");

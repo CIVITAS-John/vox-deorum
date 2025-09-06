@@ -5,6 +5,7 @@ import GetTechnologyTool from "./databases/get-technology.js";
 import GetPolicyTool from "./databases/get-policy.js";
 import GetBuildingTool from "./databases/get-building.js";
 import GetEventsTool from "./knowledge/get-events.js";
+import SetStrategyTool from "./actions/set-strategy.js";
 
 /**
  * Function to get all available tools
@@ -15,5 +16,6 @@ export const allTools: ToolBase[] = [
     GetTechnologyTool,
     GetPolicyTool,
     GetBuildingTool,
-    GetEventsTool
+    GetEventsTool,
+    SetStrategyTool
 ];

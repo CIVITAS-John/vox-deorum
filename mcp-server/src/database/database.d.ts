@@ -8196,18 +8196,18 @@ export interface Yield {
 export interface DB {
   // Accomplishments: Accomplishment;
   // Achievements: Achievement;
-  // AICityStrategies: AiCityStrategy;
+  AICityStrategies: AiCityStrategy;
   // AICityStrategyFlavors: AiCityStrategyFlavor;
   // AICityStrategyPersonalityFlavorThresholdMods: AiCityStrategyPersonalityFlavorThresholdMod;
-  // AIEconomicStrategies: AiEconomicStrategy;
+  AIEconomicStrategies: AiEconomicStrategy;
   // AIEconomicStrategyCityFlavors: AiEconomicStrategyCityFlavor;
   // AIEconomicStrategyPersonalityFlavorThresholdMods: AiEconomicStrategyPersonalityFlavorThresholdMod;
   // AIEconomicStrategyPlayerFlavors: AiEconomicStrategyPlayerFlavor;
-  // AIGrandStrategies: AiGrandStrategy;
+  AIGrandStrategies: AiGrandStrategy;
   // AIGrandStrategyFlavorMods: AiGrandStrategyFlavorMod;
   // AIGrandStrategyFlavors: AiGrandStrategyFlavor;
   // AIGrandStrategyYields: AiGrandStrategyYield;
-  // AIMilitaryStrategies: AiMilitaryStrategy;
+  AIMilitaryStrategies: AiMilitaryStrategy;
   // AIMilitaryStrategyCityFlavors: AiMilitaryStrategyCityFlavor;
   // AIMilitaryStrategyPersonalityFlavorThresholdMods: AiMilitaryStrategyPersonalityFlavorThresholdMod;
   // AIMilitaryStrategyPlayerFlavors: AiMilitaryStrategyPlayerFlavor;
