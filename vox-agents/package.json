@@ -1,0 +1,30 @@
+{
+  "name": "vox-agents",
+  "version": "1.0.0",
+  "description": "LLM-powered strategic AI agents for Civilization V that provide high-level decision making and strategy planning through the Vox Deorum system.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/standalone.ts",
+    "start": "node dist/standalone.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "@vitest/ui": "^3.2.4",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.5",
+    "dotenv": "^17.2.2"
+  }
+}

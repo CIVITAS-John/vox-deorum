@@ -19,7 +19,8 @@
       "Bash(mkdir:*)",
       "Bash(ls:*)",
       "Bash(move:*)",
-      "Bash(npm run test:*)"
+      "Bash(npm run test:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
