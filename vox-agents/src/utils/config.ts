@@ -24,8 +24,7 @@ export interface VoxAgentsConfig {
   mcpServer: {
     transport: {
       type: TransportType;
-      port?: number;
-      host?: string;
+      endpoint?: string;
       command?: string;
       args?: string[];
     };
@@ -46,8 +45,7 @@ const defaultConfig: VoxAgentsConfig = {
   mcpServer: {
     transport: {
       type: 'http',
-      port: 3000,
-      host: '127.0.0.1'
+      endpoint: 'http://127.0.0.1:3000/mcp'
     }
   },
   logging: {
@@ -87,12 +85,9 @@ export function loadConfig(): VoxAgentsConfig {
     mcpServer: {
       transport: {
         type: transportType,
-        port: parseInt(process.env.MCP_PORT || '') || 
-          fileConfig.mcpServer?.transport?.port || 
-          defaultConfig.mcpServer.transport.port,
-        host: process.env.MCP_HOST || 
-          fileConfig.mcpServer?.transport?.host || 
-          defaultConfig.mcpServer.transport.host,
+        endpoint: process.env.MCP_ENDPOINT || 
+          fileConfig.mcpServer?.transport?.endpoint || 
+          defaultConfig.mcpServer.transport.endpoint,
         command: process.env.MCP_COMMAND || 
           fileConfig.mcpServer?.transport?.command ||
           defaultConfig.mcpServer.transport.command,

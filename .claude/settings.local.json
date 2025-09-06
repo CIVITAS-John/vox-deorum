@@ -23,7 +23,8 @@
       "Bash(npx tsc:*)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
-      "Bash(npm run typecheck:*)"
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

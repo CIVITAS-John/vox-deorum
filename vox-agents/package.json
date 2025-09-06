@@ -7,7 +7,6 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/standalone.ts",
-    "start": "node dist/standalone.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",

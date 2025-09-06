@@ -6,6 +6,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { ElicitRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from './logger.js';
 import { config, VoxAgentsConfig } from './config.js';
 
@@ -36,7 +37,6 @@ export class MCPClient {
       },
       {
         capabilities: {
-          resources: {},
           tools: {},
           elicitation: {}
         }
@@ -58,9 +58,9 @@ export class MCPClient {
         args: transportConfig.args 
       });
     } else if (transportConfig.type === 'http') {
-      const url = new URL(`http://${transportConfig.host}:${transportConfig.port}`);
-      this.transport = new StreamableHTTPClientTransport(url);
-      logger.info('Created HTTP transport', { url: url.toString() });
+      const mcpUrl = new URL(transportConfig.endpoint!);
+      this.transport = new StreamableHTTPClientTransport(mcpUrl);
+      logger.info('Created HTTP transport', { url: mcpUrl.toString() });
     } else {
       throw new Error(`Unsupported transport type: ${transportConfig.type}`);
     }
@@ -74,14 +74,14 @@ export class MCPClient {
    */
   private setupNotificationHandlers(): void {
     // Handle elicitInput notifications from the server
-    this.client.setRequestHandler('notifications/elicitInput' as any, async (request: any) => {
+    this.client.setRequestHandler(ElicitRequestSchema, async (request) => {
       logger.info('Received elicitInput notification', request);
       
       // Check if this is a game state update (PlayerID and Turn)
       const { PlayerID, Turn } = request.params || {};
       
       if (PlayerID !== undefined && Turn !== undefined) {
-        const data: GameStateNotification = { PlayerID, Turn };
+        const data: GameStateNotification = { PlayerID, Turn } as any;
         
         // Trigger game state update handler
         const handler = this.notificationHandlers.get('notification');
@@ -103,24 +103,9 @@ export class MCPClient {
       return {};
     });
 
-    // Handle other notification types
-    this.client.setRequestHandler('notifications/resources/list_changed' as any, async (request: any) => {
-      logger.info('Resources list changed', request);
-      const handler = this.notificationHandlers.get('resourcesChanged');
-      if (handler) {
-        handler(request.params);
-      }
-      return {};
-    });
-
-    this.client.setRequestHandler('notifications/tools/list_changed' as any, async (request: any) => {
-      logger.info('Tools list changed', request);
-      const handler = this.notificationHandlers.get('toolsChanged');
-      if (handler) {
-        handler(request.params);
-      }
-      return {};
-    });
+    // Note: Tool list changed notifications are typically sent from server to client
+    // In MCP SDK, these would be handled differently depending on whether we're a client or server
+    // For now, we'll set up handlers that can be triggered manually if needed
   }
 
   /**
@@ -138,13 +123,8 @@ export class MCPClient {
       this.isConnected = true;
       logger.info('Successfully connected to MCP server');
       
-      // List available resources and tools
-      const [resources, tools] = await Promise.all([
-        this.client.listResources(),
-        this.client.listTools()
-      ]);
-      
-      logger.info('Available resources:', resources);
+      // List available tools
+      const tools = await this.client.listTools();
       logger.info('Available tools:', tools);
     } catch (error) {
       logger.error('Failed to connect to MCP server:', error);
@@ -189,36 +169,11 @@ export class MCPClient {
   }
 
   /**
-   * Register a handler for resource changes
-   */
-  onResourcesChanged(handler: (data: any) => void): void {
-    this.notificationHandlers.set('resourcesChanged', handler);
-    logger.info('Registered resources changed handler');
-  }
-
-  /**
    * Register a handler for tool changes
    */
   onToolsChanged(handler: (data: any) => void): void {
     this.notificationHandlers.set('toolsChanged', handler);
     logger.info('Registered tools changed handler');
-  }
-
-  /**
-   * Get a resource from the MCP server
-   */
-  async getResource(uri: string): Promise<any> {
-    if (!this.isConnected) {
-      throw new Error('Not connected to MCP server');
-    }
-
-    try {
-      const result = await this.client.readResource({ uri });
-      return result;
-    } catch (error) {
-      logger.error(`Failed to get resource ${uri}:`, error);
-      throw error;
-    }
   }
 
   /**
@@ -234,23 +189,6 @@ export class MCPClient {
       return result;
     } catch (error) {
       logger.error(`Failed to call tool ${name}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * List available resources
-   */
-  async listResources(): Promise<any> {
-    if (!this.isConnected) {
-      throw new Error('Not connected to MCP server');
-    }
-
-    try {
-      const resources = await this.client.listResources();
-      return resources;
-    } catch (error) {
-      logger.error('Failed to list resources:', error);
       throw error;
     }
   }
@@ -284,5 +222,4 @@ export class MCPClient {
  * Create and export a singleton instance
  */
 export const mcpClient = new MCPClient(config);
-
 export default MCPClient;
