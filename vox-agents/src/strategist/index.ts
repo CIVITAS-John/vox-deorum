@@ -1,6 +1,6 @@
-import { loadConfig } from "../utils/config";
-import { loadMastra } from "../utils/mastra";
-import { DummyStrategist } from "./dummy";
+import { loadConfig } from "../utils/config.js";
+import { loadMastra } from "../utils/mastra.js";
+import { DummyStrategist } from "./dummy.js";
 
 // Load the config (this also initializes .env)
 loadConfig();

@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/standalone.ts",
-    "briefer": "tsx src/briefer/index.ts",
-    "strategist": "tsx src/strategist/index.ts",
+    "dev": "tsx watch --import ./src/instrumentation.ts src/standalone.ts",
+    "briefer": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/briefer/index.js",
+    "strategist": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
@@ -20,6 +20,7 @@
   "devDependencies": {
     "@types/node": "^24.3.1",
     "@vitest/ui": "^3.2.4",
+    "suppress-experimental-warnings": "^2.0.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"

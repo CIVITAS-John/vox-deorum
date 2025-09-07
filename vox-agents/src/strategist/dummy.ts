@@ -1,5 +1,5 @@
 import { Agent } from "@mastra/core";
-import { getModel } from "../utils/models";
+import { getModel } from "../utils/models.js";
 
 /**
  * A very dumb strategist with a basic prompt and NO information about what's happening in the game.

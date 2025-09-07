@@ -1,22 +1,20 @@
 import { Mastra } from "@mastra/core";
-
+ 
 /**
  * Load a Mastra instance.
  */
 export function loadMastra(): Mastra {
-  return new Mastra({
+  var instance = new Mastra({
     telemetry: {
       serviceName: "vox-agents",
       enabled: true,
       sampling: {
         type: "always_on",
-      },
-      export: {
-        type: "otlp",
-        endpoint: "http://localhost:4318"
       }
     }
-  })
+  });
+
+  return instance;
 }
 
 /**
