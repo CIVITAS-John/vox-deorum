@@ -1,19 +1,28 @@
 import { Mastra } from "@mastra/core";
- 
-(globalThis as any).___MASTRA_TELEMETRY___ = true;
+import { LangfuseExporter } from '@mastra/langfuse';
+import dotenv from 'dotenv'
 
 /**
  * Load a Mastra instance.
  */
-export function loadMastra(): Mastra {
+function loadMastra(): Mastra {
+  dotenv.config();
   var instance = new Mastra({
-    telemetry: {
-      serviceName: "vox-agents",
-      enabled: true,
-      sampling: {
-        type: "always_on",
-      }
-    }
+    observability: {
+      instances: {
+        langfuse: {
+          serviceName: 'my-service',
+          exporters: [
+            new LangfuseExporter({
+              publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+              secretKey: process.env.LANGFUSE_SECRET_KEY,
+              baseUrl: process.env.LANGFUSE_BASE_URL,
+              realtime: true,
+            }),
+          ],
+        },
+      },
+    },
   });
 
   return instance;
