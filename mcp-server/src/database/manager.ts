@@ -277,6 +277,7 @@ export class DatabaseManager {
   async initializeMappings() {
     await this.addEnumMappings("AICityStrategies", "CityStrategy");
     await this.addEnumMappings("AIEconomicStrategies", "EconomicStrategy");
+    await this.addEnumMappings("AIMilitaryStrategies", "MilitaryStrategy");
     await this.addEnumMappings("AIGrandStrategies", "GrandStrategy");
     await this.addEnumMappings("Improvements", "ImprovementType");
     await this.addEnumMappings("Buildings", "BuildingType");

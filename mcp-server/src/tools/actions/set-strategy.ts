@@ -6,6 +6,7 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { enumMappings, retrieveEnumValue } from "../../utils/knowledge/enum.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { knowledgeManager } from "../../server.js";
 
 /**
  * Tool that sets the player's grand strategy using a Lua function
@@ -20,8 +21,8 @@ class SetStrategyTool extends LuaFunctionTool {
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(21).describe("ID of the player"),
     GrandStrategy: z.nativeEnum(enumMappings["GrandStrategy"]).optional().describe("The grand strategy type to optionally set (and override)"),
-    EconomicStrategies: z.array(z.nativeEnum(enumMappings["EconomicStrategies"])).optional().describe("The economic strategy types to optionally set (and override)"),
-    MilitaryStrategies: z.array(z.nativeEnum(enumMappings["MilitaryStrategies"])).optional().describe("The military strategy types to optionally set (and override)"),
+    EconomicStrategies: z.array(z.nativeEnum(enumMappings["EconomicStrategy"])).optional().describe("The economic strategy types to optionally set (and override)"),
+    MilitaryStrategies: z.array(z.nativeEnum(enumMappings["MilitaryStrategy"])).optional().describe("The military strategy types to optionally set (and override)"),
     Rationale: z.string().describe("The reasoning behind choosing this strategy set")
   });
 
@@ -69,8 +70,22 @@ class SetStrategyTool extends LuaFunctionTool {
     let grandStrategy = retrieveEnumValue("GrandStrategy", args.GrandStrategy)
     let economicStrategies = args.EconomicStrategies?.map(s => retrieveEnumValue("EconomicStrategy", s));
     let militaryStrategies = args.MilitaryStrategies?.map(s => retrieveEnumValue("MilitaryStrategy", s));
+    
+    // Store the strategy change in the database
+    const store = knowledgeManager.getStore();
+    await store.storeMutableKnowledge(
+      'StrategyChanges',
+      args.PlayerID,
+      {
+        GrandStrategy: grandStrategy ?? null,
+        EconomicStrategies: economicStrategies ? JSON.stringify(economicStrategies) : null,
+        MilitaryStrategies: militaryStrategies ? JSON.stringify(militaryStrategies) : null,
+        Rationale: args.Rationale
+      }
+    );
+    
     // Call the parent execute with the strategy ID
-    return super.execute({ grandStrategy, economicStrategies, militaryStrategies });
+    return super.call(grandStrategy, economicStrategies, militaryStrategies);
   }
 }
 

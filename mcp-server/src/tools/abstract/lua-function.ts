@@ -44,9 +44,9 @@ export abstract class LuaFunctionTool extends ToolBase {
   /**
    * Execute the Lua script using BridgeManager
    */
-  async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
+  protected async call(...args: any[]): Promise<z.infer<typeof this.outputSchema>> {
     this.function = this.function ?? new LuaFunction("default-func-" + this.name, this.arguments, this.script);
-    const response = await this.function.execute(args);
+    const response = await this.function.execute(...args);
     
     return {
       Success: response.success,

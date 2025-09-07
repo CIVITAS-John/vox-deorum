@@ -255,10 +255,10 @@ export class KnowledgeStore {
    */
   async storeMutableKnowledge<
     TTable extends keyof KnowledgeDatabase,
-    TData extends Omit<Insertable<KnowledgeDatabase[TTable]>, 'ID' | 'Version' | 'IsLatest' | 'Changes' | 'CreatedAt'>
+    TData extends Partial<Insertable<KnowledgeDatabase[TTable]>>
   >(
     tableName: TTable,
-    key: number,
+    key: string | number,
     data: TData,
     visibilityFlags?: number[]
   ): Promise<void> {
@@ -268,6 +268,8 @@ export class KnowledgeStore {
     try {
       // Start a transaction for atomic updates
       await db.transaction().execute(async (trx) => {
+        key = String(key);
+        
         // Find the latest version for this key
         const latestEntry = await (trx
           .selectFrom(tableName)
