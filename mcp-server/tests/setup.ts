@@ -38,7 +38,7 @@ beforeAll(async () => {
       closeTransport = await startHttpServer();
       // Connect MCP client
       await mcpClient.connect(new StreamableHTTPClientTransport(
-        new URL(`http://${config.transport.host || 'localhost'}:${config.transport.port || 3000}/mcp`)
+        new URL(`http://${config.transport.host || 'localhost'}:${config.transport.port || 4000}/mcp`)
       ));
       break;
     default:

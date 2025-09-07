@@ -1,5 +1,7 @@
 import { Mastra } from "@mastra/core";
  
+(globalThis as any).___MASTRA_TELEMETRY___ = true;
+
 /**
  * Load a Mastra instance.
  */

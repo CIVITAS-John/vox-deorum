@@ -155,7 +155,7 @@ Content-Type: application/json
 
 {
   "name": "AnalyzeThreat",
-  "url": "http://localhost:3000/analyze",
+  "url": "http://localhost:4000/analyze",
   "async": true,
   "timeout": 5000,
   "description": "Analyzes military threats using AI"
@@ -189,16 +189,16 @@ Response:
   "functions": [
     {
       "name": "AnalyzeThreat",
-      "url": "http://localhost:3000/analyze",
+      "url": "http://localhost:4000/analyze",
       "async": true,
       "timeout": 5000,
       "description": "Analyzes military threats using AI"
     },
     {
       "name": "PlanCityProduction",
-      "url": "http://localhost:3000/plan-production",
+      "url": "http://localhost:4000/plan-production",
       "async": false,
-      "timeout": 3000,
+      "timeout": 4000,
       "description": "Plans optimal city production queue"
     }
   ]
@@ -264,9 +264,9 @@ await fetch('http://localhost:5000/external/register', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     name: 'GetCityBuildRecommendation',
-    url: 'http://localhost:3000/ai/recommend-build',
+    url: 'http://localhost:4000/ai/recommend-build',
     async: false,
-    timeout: 3000
+    timeout: 4000
   })
 });
 

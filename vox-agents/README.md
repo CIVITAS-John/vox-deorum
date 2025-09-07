@@ -60,7 +60,7 @@ Edit `config.json` for agent settings:
 ```json
 {
   "mcp": {
-    "server": "http://localhost:3000"
+    "server": "http://localhost:4000"
   },
   "telemetry": {
     "enabled": false,

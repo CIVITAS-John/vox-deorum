@@ -53,7 +53,6 @@ describe('Lua Service', () => {
       logSuccess('Simple Lua script execution handled');
     }, TEST_TIMEOUTS.DEFAULT);
 
-    return;
     it('should execute complex Lua script with functions', async () => {
       const script = `
         local function add(a, b)

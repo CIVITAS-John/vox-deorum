@@ -158,7 +158,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    ```json
    {
      "name": "AnalyzeThreat",
-     "url": "http://localhost:3000/analyze",
+     "url": "http://localhost:4000/analyze",
      "async": true,
      "timeout": 5000,
      "description": "Analyzes military threats using AI"
@@ -226,7 +226,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 3. **Bridge → External Service (HTTP POST)**
    ```http
-   URL: http://localhost:3000/analyze
+   URL: http://localhost:4000/analyze
    Headers: Content-Type: application/json
    Body: {"args": {"unitId": 5, "playerId": 1}, "id": "uuid"}
    ```

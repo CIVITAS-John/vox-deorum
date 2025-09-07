@@ -64,7 +64,7 @@ const defaultConfig: MCPServerConfig = {
   },
   transport: {
     type: 'http',
-    port: 3000,
+    port: 4000,
     host: '127.0.0.1',
     cors: {
       origin: true,

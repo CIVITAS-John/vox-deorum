@@ -55,7 +55,7 @@ const defaultConfig: VoxAgentsConfig = {
   mcpServer: {
     transport: {
       type: 'http',
-      endpoint: 'http://127.0.0.1:3000/mcp'
+      endpoint: 'http://127.0.0.1:4000/mcp'
     }
   },
   logging: {
