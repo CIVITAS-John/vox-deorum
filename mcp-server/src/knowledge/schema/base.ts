@@ -96,13 +96,6 @@ export interface MutableKnowledge extends TimedKnowledge {
 }
 
 /**
- * Player-related knowledge
- */
-export interface PlayerKnowledge extends MutableKnowledge {
-  PlayerID: number;
-}
-
-/**
  * Database schema combining all knowledge tables
  */
 export interface KnowledgeDatabase {

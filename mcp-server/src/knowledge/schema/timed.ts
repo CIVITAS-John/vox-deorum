@@ -1,5 +1,5 @@
 import { JSONColumnType } from "kysely";
-import { PlayerKnowledge, TimedKnowledge } from "./base";
+import { MutableKnowledge, TimedKnowledge } from "./base";
 
 /**
  * Game events with typed payloads
@@ -15,7 +15,7 @@ export interface GameEvent extends TimedKnowledge {
  * Visible to the player only, unless espionage (in the future)
  * Unchanged strategies represented as null
  */
-export interface StrategyChange extends PlayerKnowledge {
+export interface StrategyChange extends MutableKnowledge {
   GrandStrategy: number | null;
   EconomicStrategies: JSONColumnType<number[]> | null;
   MilitaryStrategies: JSONColumnType<number[]> | null;
@@ -24,7 +24,7 @@ export interface StrategyChange extends PlayerKnowledge {
 /**
  * Player summary information (visible to met players)
  */
-export interface PlayerSummary extends PlayerKnowledge {
+export interface PlayerSummary extends MutableKnowledge {
   MajorAllyID: number; // -1 = none, Player:GetAlly()
   Cities: number;
   Population: number;
@@ -42,7 +42,7 @@ export interface PlayerSummary extends PlayerKnowledge {
 /**
  * Player AI-related information (visible to self/espionage reasons)
  */
-export interface PlayerStrategy extends PlayerKnowledge {
+export interface PlayerStrategy extends MutableKnowledge {
   GrandStrategy: number;
   EconomicStrategies: JSONColumnType<number[]>;
   MilitaryStrategies: JSONColumnType<number[]>;
@@ -52,29 +52,29 @@ export interface PlayerStrategy extends PlayerKnowledge {
 /**
  * Player economics report (visible to self/espionage reasons)
  */
-export interface PlayerEconomics extends PlayerKnowledge {
+export interface PlayerEconomics extends MutableKnowledge {
 }
 
 /**
  * Player science report (visible to self/espionage reasons)
  */
-export interface PlayerScience extends PlayerKnowledge {
+export interface PlayerScience extends MutableKnowledge {
 }
 
 /**
  * Player culture report (visible to self/espionage reasons)
  */
-export interface PlayerCulture extends PlayerKnowledge {
+export interface PlayerCulture extends MutableKnowledge {
 }
 
 /**
  * Player military report (visible to self/espionage reasons)
  */
-export interface PlayerMilitary extends PlayerKnowledge {
+export interface PlayerMilitary extends MutableKnowledge {
 }
 
 /**
  * Player diplomacy report (visible to self/espionage reasons)
  */
-export interface PlayerDiplomacy extends PlayerKnowledge {
+export interface PlayerDiplomacy extends MutableKnowledge {
 }
