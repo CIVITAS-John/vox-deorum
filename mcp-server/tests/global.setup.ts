@@ -2,7 +2,7 @@ import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 
 let bridgeServiceProcess: ChildProcess | null = null;
-const BRIDGE_SERVICE_URL = 'http://localhost:8080';
+const BRIDGE_SERVICE_URL = 'http://localhost:5000';
 const CONNECTION_TIMEOUT = 10000; // 10 seconds
 const BRIDGE_SERVICE_PATH = path.resolve('../bridge-service');
 

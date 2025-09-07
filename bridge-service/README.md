@@ -47,7 +47,7 @@ The service reads from the `config.json` for its configuration:
 ```json
 {
   "rest": {
-    "port": 8080,
+    "port": 5000,
     "host": "localhost"
   },
   "namedpipe": {
@@ -227,7 +227,7 @@ Subscribe to real-time game events via Server-Sent Events.
 
 ```typescript
 // Get current game state
-const response = await fetch('http://localhost:8080/lua/call', {
+const response = await fetch('http://localhost:5000/lua/call', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -238,7 +238,7 @@ const response = await fetch('http://localhost:8080/lua/call', {
 const gameState = await response.json();
 
 // Execute raw Lua for complex queries
-const query = await fetch('http://localhost:8080/lua/execute', {
+const query = await fetch('http://localhost:5000/lua/execute', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -259,7 +259,7 @@ const query = await fetch('http://localhost:8080/lua/execute', {
 const units = await query.json();
 
 // Register an AI function for Lua to call
-await fetch('http://localhost:8080/external/register', {
+await fetch('http://localhost:5000/external/register', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -271,11 +271,11 @@ await fetch('http://localhost:8080/external/register', {
 });
 
 // List available external functions
-const externalFuncs = await fetch('http://localhost:8080/external/functions');
+const externalFuncs = await fetch('http://localhost:5000/external/functions');
 const { functions } = await externalFuncs.json();
 
 // Listen to game events
-const events = new EventSource('http://localhost:8080/events');
+const events = new EventSource('http://localhost:5000/events');
 events.onmessage = (event) => {
   const data = JSON.parse(event.data);
   console.log('Game event:', data.type, data);

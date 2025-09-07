@@ -72,7 +72,7 @@ Edit `config.json` for server settings:
 ```json
 {
   "server": { "name": "vox-deorum-mcp-server" },
-  "bridgeService": { "endpoint": { "host": "localhost", "port": 8080 } },
+  "bridgeService": { "endpoint": { "host": "localhost", "port": 5000 } },
   "logging": { "level": "info" }
 }
 ```

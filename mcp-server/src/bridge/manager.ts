@@ -58,7 +58,7 @@ export class BridgeManager extends EventEmitter {
    */
   constructor(baseUrl?: string) {
     super();
-    this.baseUrl = baseUrl || config.bridge?.url || 'http://localhost:8080';
+    this.baseUrl = baseUrl || config.bridge?.url || 'http://localhost:5000';
     this.luaFunctions = new Map();
     logger.info(`BridgeManager initialized with URL: ${this.baseUrl}`);
   }

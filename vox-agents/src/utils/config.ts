@@ -4,6 +4,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
 import { createLogger } from './logger.js';
 
 const logger = createLogger('Config');
@@ -12,6 +13,14 @@ const logger = createLogger('Config');
  * Transport types supported by the MCP Client
  */
 export type TransportType = 'stdio' | 'http';
+
+/**
+ * LLM model configuration
+ */
+export interface Model {
+  provider: string;
+  name: string;
+}
 
 /**
  * Vox Agents configuration structure
@@ -32,6 +41,7 @@ export interface VoxAgentsConfig {
   logging: {
     level: string;
   };
+  llms: Record<string, Model>;
 }
 
 /**
@@ -50,6 +60,12 @@ const defaultConfig: VoxAgentsConfig = {
   },
   logging: {
     level: 'info'
+  },
+  llms: {
+    default: {
+      provider: 'openrouter',
+      name: 'google/gemma-3-27b-it:free'
+    }
   }
 };
 
@@ -57,6 +73,16 @@ const defaultConfig: VoxAgentsConfig = {
  * Load configuration from file and environment variables
  */
 export function loadConfig(): VoxAgentsConfig {
+  // Initialize .env file in the module directory
+  const envPath = path.join(process.cwd(), '.env');
+  const envResult = dotenv.config({ path: envPath });
+  
+  if (envResult.error) {
+    logger.warn('Failed to load .env file:', envResult.error.message);
+  } else {
+    logger.info('.env file loaded successfully');
+  }
+
   const configPath = path.join(process.cwd(), 'config.json');
   let fileConfig: Partial<VoxAgentsConfig> = {};
 
@@ -98,7 +124,8 @@ export function loadConfig(): VoxAgentsConfig {
     },
     logging: {
       level: process.env.LOG_LEVEL || fileConfig.logging?.level || defaultConfig.logging.level
-    }
+    },
+    llms: fileConfig.llms || defaultConfig.llms
   };
 
   // Update logger level based on configuration

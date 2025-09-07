@@ -30,7 +30,7 @@ const logger = createLogger('Config');
  */
 const defaultConfig: ServiceConfig = {
   rest: {
-    port: 8080,
+    port: 5000,
     host: 'localhost'
   },
   namedpipe: {

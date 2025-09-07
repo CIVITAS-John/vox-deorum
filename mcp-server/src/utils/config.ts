@@ -76,7 +76,7 @@ const defaultConfig: MCPServerConfig = {
   bridgeService: {
     endpoint: {
       host: 'localhost',
-      port: 8080
+      port: 5000
     }
   },
   database: {

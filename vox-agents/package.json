@@ -8,6 +8,7 @@
     "build": "tsc",
     "dev": "tsx watch src/standalone.ts",
     "briefer": "tsx src/briefer/index.ts",
+    "strategist": "tsx src/strategist/index.ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
@@ -26,6 +27,7 @@
   "dependencies": {
     "@mastra/core": "^0.16.0",
     "@modelcontextprotocol/sdk": "^1.17.5",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
     "ai": "^5.0.33",
     "dotenv": "^17.2.2",
     "winston": "^3.17.0",
