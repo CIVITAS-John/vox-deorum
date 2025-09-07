@@ -3,11 +3,12 @@
  * Provides type-safe CRUD operations using Kysely query builder
  */
 
-import { Kysely, ParseJSONResultsPlugin, SqliteDialect } from 'kysely';
+import { Kysely, ParseJSONResultsPlugin, SqliteDialect, Insertable, Selectable } from 'kysely';
 import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
 import type { 
-  KnowledgeDatabase, 
+  KnowledgeDatabase,
+  MutableKnowledge,
 } from './schema/base.js';
 import { setupKnowledgeDatabase } from './schema/setup.js';
 import fs from 'fs/promises';
@@ -17,6 +18,7 @@ import { EventName, eventSchemas } from './schema/events/index.js';
 import { analyzeEventVisibility } from '../utils/lua/event-visibility.js';
 import { applyVisibility } from '../utils/knowledge/visibility.js';
 import { explainEnums } from '../utils/knowledge/enum.js';
+import { detectChanges } from '../utils/knowledge/changes.js';
 import { MCPServer } from '../server.js';
 
 const logger = createLogger('KnowledgeStore');
@@ -239,5 +241,152 @@ export class KnowledgeStore {
    */
   getGameId(): string | undefined {
     return this.gameId;
+  }
+
+  /**
+   * Generic function to store MutableKnowledge entries
+   * Handles versioning, change tracking, and visibility automatically
+   * 
+   * @param tableName - The table name in the database (must be a key of KnowledgeDatabase)
+   * @param key - The unique identifier for this knowledge item
+   * @param data - The data to store (must extend MutableKnowledge)
+   * @param visibilityFlags - Array of player IDs that can see this knowledge
+   * @returns The stored entry with generated fields
+   */
+  async storeMutableKnowledge<
+    TTable extends keyof KnowledgeDatabase,
+    TData extends Omit<Insertable<KnowledgeDatabase[TTable]>, 'ID' | 'Version' | 'IsLatest' | 'Changes' | 'CreatedAt'>
+  >(
+    tableName: TTable,
+    key: number,
+    data: TData,
+    visibilityFlags?: number[]
+  ): Promise<void> {
+    const db = this.getDatabase();
+    const turn = knowledgeManager.getTurn();
+    
+    try {
+      // Start a transaction for atomic updates
+      await db.transaction().execute(async (trx) => {
+        // Find the latest version for this key
+        const latestEntry = await (trx
+          .selectFrom(tableName)
+          .selectAll() as any)
+          .where('Key' as any, '=', key)
+          .where('IsLatest' as any, '=', 1)
+          .executeTakeFirst() as MutableKnowledge | null;
+        
+        // Calculate version number and detect changes
+        const newVersion = latestEntry ? (latestEntry.Version) + 1 : 1;
+        const changes = detectChanges(latestEntry, data as any);
+        
+        // Skip if no changes detected (for updates)
+        if (latestEntry && changes.length === 0) {
+          logger.debug(`No changes detected for ${tableName} key ${key}, skipping update`);
+          return;
+        }
+        
+        // Mark the previous version as not latest
+        if (latestEntry) {
+          await (trx
+            .updateTable(tableName) as any)
+            .set({ IsLatest: 0 } as any)
+            .where('Key', '=', key)
+            .where('IsLatest', '=', 1)
+            .execute();
+        }
+        
+        // Prepare the new entry with all MutableKnowledge fields
+        const newEntry: any = {
+          ...data,
+          Key: key,
+          Turn: turn,
+          Version: newVersion,
+          IsLatest: 1,
+          Changes: JSON.stringify(changes),
+          Payload: JSON.stringify(data),
+        };
+        
+        // Apply visibility flags if provided
+        if (visibilityFlags) {
+          applyVisibility(newEntry, visibilityFlags);
+        }
+        
+        // Insert the new version
+        await trx
+          .insertInto(tableName)
+          .values(newEntry)
+          .execute();
+        
+        logger.info(
+          `Stored ${tableName} entry - Key: ${key}, Version: ${newVersion}, Turn: ${turn}, Changes: ${changes.join(', ') || 'initial'}`
+        );
+      });
+    } catch (error) {
+      logger.error(`Error storing MutableKnowledge in ${tableName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieve the latest version of a MutableKnowledge entry
+   * 
+   * @param tableName - The table name in the database
+   * @param key - The unique identifier for this knowledge item
+   * @param playerId - Optional player ID for visibility filtering
+   * @returns The latest entry or null if not found/not visible
+   */
+  async getMutableKnowledge<TTable extends keyof KnowledgeDatabase>(
+    tableName: TTable,
+    key: number,
+    playerId?: number
+  ): Promise<Selectable<KnowledgeDatabase[TTable]> | null> {
+    const db = this.getDatabase();
+    
+    let query = (db
+      .selectFrom(tableName)
+      .selectAll() as any)
+      .where('Key', '=', key)
+      .where('IsLatest', '=', 1);
+    
+    // Apply visibility filter if player ID provided
+    if (playerId !== undefined) {
+      const playerColumn = `Player${playerId}` as any;
+      query = query.where(playerColumn, '>', 0);
+    }
+    
+    const result = await query.executeTakeFirst();
+    return result as Selectable<KnowledgeDatabase[TTable]> | undefined || null;
+  }
+
+  /**
+   * Get the history of a MutableKnowledge entry
+   * 
+   * @param tableName - The table name in the database
+   * @param key - The unique identifier for this knowledge item
+   * @param playerId - Optional player ID for visibility filtering
+   * @returns Array of all versions, ordered by version descending
+   */
+  async getMutableKnowledgeHistory<TTable extends keyof KnowledgeDatabase>(
+    tableName: TTable,
+    key: number,
+    playerId?: number
+  ): Promise<Selectable<KnowledgeDatabase[TTable]>[]> {
+    const db = this.getDatabase();
+    
+    let query = (db
+      .selectFrom(tableName)
+      .selectAll() as any)
+      .where('Key', '=', key)
+      .orderBy('Version', 'desc');
+    
+    // Apply visibility filter if player ID provided
+    if (playerId !== undefined) {
+      const playerColumn = `Player${playerId}` as any;
+      query = query.where(playerColumn, '>', 0);
+    }
+    
+    const results = await query.execute();
+    return results as Selectable<KnowledgeDatabase[TTable]>[];
   }
 }

@@ -46,7 +46,7 @@ export function detectChanges<T extends Record<string, any>>(
  * Check if a field is a metadata field that should be excluded from change detection
  */
 function isMetadataField(key: string): boolean {
-  return ['ID', 'Turn', 'Key', 'Version', 'IsLatest', 'CreatedAt', 'Changes', 'Payload'].includes(key);
+  return ['ID', 'Turn', 'Key', 'Version', 'IsLatest', 'CreatedAt', 'Changes'].includes(key);
 }
 
 /**
