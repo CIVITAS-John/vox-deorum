@@ -6,6 +6,8 @@
 import { createLogger } from '../utils/logger.js';
 import { MCPServer } from '../server.js';
 import type { LuaResponse } from './manager.js';
+import { readFileSync } from 'fs';
+import { basename } from 'path';
 
 const logger = createLogger('LuaFunction');
 
@@ -26,6 +28,37 @@ export class LuaFunction {
     this.name = name;
     this.arguments = args;
     this.script = script;
+  }
+
+  /**
+   * Create a LuaFunction instance from a Lua file
+   * @param filepath Path to the Lua script file
+   * @param functionName Name for the function (defaults to filename without extension)
+   * @param args Array of argument names for the function
+   * @param replacements Optional replacements to apply to the script (e.g., template variables)
+   * @returns New LuaFunction instance
+   */
+  public static fromFile(
+    filepath: string,
+    functionName?: string,
+    args: string[] = [],
+    replacements?: Record<string, string>
+  ): LuaFunction {
+    // Read the Lua script from file
+    let script = readFileSync(`lua/${filepath}`, 'utf-8');
+
+    // Apply replacements if provided
+    if (replacements) {
+      for (const [placeholder, value] of Object.entries(replacements)) {
+        const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        script = script.replace(regex, value);
+      }
+    }
+
+    // Use filename without extension as default function name
+    const name = functionName || basename(filepath, '.lua');
+
+    return new LuaFunction(name, args, script);
   }
 
   /**
