@@ -74,16 +74,7 @@ const defaultConfig: VoxAgentsConfig = {
  * Load configuration from file and environment variables
  */
 export function loadConfig(): VoxAgentsConfig {
-  // Initialize .env file in the module directory
-  const envPath = path.join(process.cwd(), '.env');
-  const envResult = dotenv.config({ path: envPath });
-  
-  if (envResult.error) {
-    logger.warn('Failed to load .env file:', envResult.error.message);
-  } else {
-    logger.info('.env file loaded successfully');
-  }
-
+  dotenv.config();
   const configPath = path.join(process.cwd(), 'config.json');
   let fileConfig: Partial<VoxAgentsConfig> = {};
 
