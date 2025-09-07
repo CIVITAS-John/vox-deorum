@@ -12,7 +12,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "type-check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +28,7 @@
   "dependencies": {
     "@mastra/core": "^0.16.0",
     "@mastra/langfuse": "^0.0.6",
+    "@mastra/mcp": "^0.11.4",
     "@modelcontextprotocol/sdk": "^1.17.5",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "ai": "^5.0.33",

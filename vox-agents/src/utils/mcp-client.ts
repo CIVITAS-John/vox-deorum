@@ -1,16 +1,13 @@
 /**
- * MCP Client wrapper for Vox Agents
- * Handles connection to MCP server and notification subscriptions
+ * Vox Client wrapper for Vox Agents
+ * Wraps Mastra's MCPClient to handle MCP server connections and notifications
  */
 
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { ElicitRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { MCPClient, type MastraMCPServerDefinition } from '@mastra/mcp';
 import { createLogger } from './logger.js';
 import { config, VoxAgentsConfig } from './config.js';
 
-const logger = createLogger('MCPClient');
+const logger = createLogger('VoxClient');
 
 /**
  * Notification data for game state changes
@@ -21,133 +18,127 @@ export interface GameStateNotification {
 }
 
 /**
- * MCP Client wrapper with notification support
+ * Vox Client that extends Mastra's MCPClient for game-specific functionality
  */
-export class MCPClient {
-  private client: Client;
-  private transport: StdioClientTransport | StreamableHTTPClientTransport;
-  private isConnected: boolean = false;
+export class VoxClient {
+  private mcpClient: MCPClient;
   private notificationHandlers: Map<string, (data: any) => any> = new Map();
 
-  constructor(clientConfig: VoxAgentsConfig = config) {
-    this.client = new Client(
-      {
-        name: clientConfig.agent.name,
-        version: clientConfig.agent.version
-      },
-      {
-        capabilities: {
-          tools: {},
-          elicitation: {}
-        }
-      }
-    );
+  constructor(private clientConfig: VoxAgentsConfig = config) {
+    const transportConfig = this.clientConfig.mcpServer.transport;
+    const serverConfig: Record<string, MastraMCPServerDefinition> = {};
 
-    // Initialize transport based on config
-    const transportConfig = clientConfig.mcpServer.transport;
     if (transportConfig.type === 'stdio') {
       if (!transportConfig.command) {
         throw new Error('Command is required for stdio transport');
       }
-      this.transport = new StdioClientTransport({
+      // For stdio transport, use command and args
+      serverConfig.mcpServer = {
         command: transportConfig.command,
         args: transportConfig.args || []
-      });
-      logger.info('Created stdio transport', { 
+      };
+      logger.info('Configuring stdio transport', { 
         command: transportConfig.command, 
         args: transportConfig.args 
       });
     } else if (transportConfig.type === 'http') {
-      const mcpUrl = new URL(transportConfig.endpoint!);
-      this.transport = new StreamableHTTPClientTransport(mcpUrl);
-      logger.info('Created HTTP transport', { url: mcpUrl.toString() });
+      // For HTTP transport, use URL
+      serverConfig.mcpServer = {
+        url: new URL(transportConfig.endpoint!)
+      };
+      logger.info('Configuring HTTP transport', { url: transportConfig.endpoint });
     } else {
       throw new Error(`Unsupported transport type: ${transportConfig.type}`);
     }
 
-    // Set up notification handlers
-    this.setupNotificationHandlers();
-  }
-
-  /**
-   * Set up handlers for server-side notifications
-   */
-  private setupNotificationHandlers(): void {
-    // Handle elicitInput notifications from the server
-    this.client.setRequestHandler(ElicitRequestSchema, async (request) => {
-      logger.info('Received elicitInput notification', request);
-      
-      // Check if this is a game state update (PlayerID and Turn)
-      const { PlayerID, Turn } = request.params || {};
-      
-      if (PlayerID !== undefined && Turn !== undefined) {
-        const data: GameStateNotification = { PlayerID, Turn } as any;
-        
-        // Trigger game state update handler
-        const handler = this.notificationHandlers.get('notification');
-        if (handler) handler(data);
-        
-        // Respond with empty response as nothing is actually elicited
-        // The notification is just used as a trigger mechanism
-        return {};
-      }
-      
-      // Handle general elicitInput requests
-      const elicitHandler = this.notificationHandlers.get('elicitInput');
-      if (elicitHandler) {
-        const result = await elicitHandler(request.params);
-        return result || {};
-      }
-      
-      logger.warn('elicitInput notification not handled', request);
-      return {};
+    // Create MCPClient with server configuration
+    this.mcpClient = new MCPClient({
+      servers: serverConfig
     });
 
-    // Note: Tool list changed notifications are typically sent from server to client
-    // In MCP SDK, these would be handled differently depending on whether we're a client or server
-    // For now, we'll set up handlers that can be triggered manually if needed
+    // Set up event handlers immediately
+    this.setupEventHandlers();
   }
 
   /**
-   * Connect to the MCP server
+   * Get the underlying MCPClient instance
    */
-  async connect(): Promise<void> {
-    if (this.isConnected) {
-      logger.warn('Already connected to MCP server');
-      return;
-    }
+  getMCPClient(): MCPClient {
+    return this.mcpClient;
+  }
 
-    try {
-      logger.info('Connecting to MCP server...');
-      await this.client.connect(this.transport);
-      this.isConnected = true;
-      logger.info('Successfully connected to MCP server');
-      
-      // List available tools
-      const tools = await this.client.listTools();
-      logger.info('Available tools:', tools);
-    } catch (error) {
-      logger.error('Failed to connect to MCP server:', error);
-      throw error;
-    }
+  /**
+   * Explicitly connect to the MCP server and request the tool list
+   * This is a simple connect function that doesn't maintain connection status
+   */
+  async connect(): Promise<boolean> {
+    logger.info('Connecting to MCP server and requesting tools...');
+    const tools = await this.mcpClient.getTools();
+    return tools && Object.keys(tools).length > 0;
   }
 
   /**
    * Disconnect from the MCP server
    */
   async disconnect(): Promise<void> {
-    if (!this.isConnected) {
-      logger.warn('Not connected to MCP server');
-      return;
-    }
+    logger.info('Disconnecting from MCP server...');
+    await this.mcpClient.disconnect();
+  }
 
+  /**
+   * Set up event handlers on the MCPClient
+   */
+  private async setupEventHandlers(): Promise<void> {
     try {
-      logger.info('Disconnecting from MCP server...');
-      await this.client.close();
-      this.isConnected = false;
-      logger.info('Disconnected from MCP server');
+      // Set up elicitation handler for input requests from the server
+      await this.mcpClient.elicitation.onRequest('mcpServer', async (request) => {
+        logger.debug('Received elicitation request', request);
+        
+        // Check if this is a game state notification
+        if (request.prompt === 'game-state-update') {
+          const handler = this.notificationHandlers.get('notification');
+          if (handler) {
+            handler(request.params);
+          }
+        } else {
+          // Handle general elicitInput requests
+          const handler = this.notificationHandlers.get('elicitInput');
+          if (handler) {
+            return await handler(request);
+          }
+        }
+        
+        return { content: 'No handler registered' };
+      });
+
+      logger.info('Event handlers set up successfully');
     } catch (error) {
-      logger.error('Error disconnecting from MCP server:', error);
+      logger.error('Failed to set up event handlers', error);
+      // Don't throw here, as this is called in the constructor
+      // The handlers will be set up when methods are called
+    }
+  }
+
+  /**
+   * Get available tools from the MCP server
+   */
+  async getTools(): Promise<Record<string, any>> {
+    try {
+      return await this.mcpClient.getTools();
+    } catch (error) {
+      logger.error('Failed to get tools', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get available resources from the MCP server
+   */
+  async getResources(): Promise<Record<string, any>> {
+    try {
+      return await this.mcpClient.resources.list();
+    } catch (error) {
+      logger.error('Failed to get resources', error);
       throw error;
     }
   }
@@ -167,59 +158,10 @@ export class MCPClient {
     this.notificationHandlers.set('elicitInput', handler);
     logger.info('Registered elicitInput handler');
   }
-
-  /**
-   * Register a handler for tool changes
-   */
-  onToolsChanged(handler: (data: any) => void): void {
-    this.notificationHandlers.set('toolsChanged', handler);
-    logger.info('Registered tools changed handler');
-  }
-
-  /**
-   * Call a tool on the MCP server
-   */
-  async callTool(name: string, args: any = {}): Promise<any> {
-    if (!this.isConnected) {
-      throw new Error('Not connected to MCP server');
-    }
-
-    try {
-      const result = await this.client.callTool({ name, arguments: args });
-      return result;
-    } catch (error) {
-      logger.error(`Failed to call tool ${name}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * List available tools
-   */
-  async listTools(): Promise<any> {
-    if (!this.isConnected) {
-      throw new Error('Not connected to MCP server');
-    }
-
-    try {
-      const tools = await this.client.listTools();
-      return tools;
-    } catch (error) {
-      logger.error('Failed to list tools:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Check if client is connected
-   */
-  get connected(): boolean {
-    return this.isConnected;
-  }
 }
 
 /**
  * Create and export a singleton instance
  */
-export const mcpClient = new MCPClient(config);
-export default MCPClient;
+export const mcpClient = new VoxClient(config);
+export default VoxClient;
