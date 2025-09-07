@@ -43,6 +43,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('GrandStrategy', 'integer')
     .addColumn('EconomicStrategies', 'text') // JSON array
     .addColumn('MilitaryStrategies', 'text') // JSON array
+    .addColumn('Rationale', 'text')
     .execute();
   // Create indexes for StrategyChanges table
   await createMutableKnowledgeIndexes(db, 'StrategyChanges');
@@ -112,7 +113,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('IsHuman', 'integer', (col) => col.notNull())
     .execute();
   // Create indexes for PlayerInformation table
-  await createPublicKnowledgeIndexes(db, 'PlayerInformation', ['PlayerID']);
+  await createPublicKnowledgeIndexes(db, 'PlayerInformations', ['PlayerID']);
 
   return db;
 }

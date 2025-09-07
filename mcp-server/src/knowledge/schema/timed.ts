@@ -19,6 +19,7 @@ export interface StrategyChange extends MutableKnowledge {
   GrandStrategy: number | null;
   EconomicStrategies: JSONColumnType<number[]> | null;
   MilitaryStrategies: JSONColumnType<number[]> | null;
+  Rationale: string;
 }
 
 /**
