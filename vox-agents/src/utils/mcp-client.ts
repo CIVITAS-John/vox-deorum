@@ -6,9 +6,10 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { ElicitRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { ElicitRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from './logger.js';
 import { config, VoxAgentsConfig } from './config.js';
+import { createTool, Tool as MastraTool } from '@mastra/core';
 
 const logger = createLogger('MCPClient');
 
@@ -68,7 +69,6 @@ export class MCPClient {
     // Set up notification handlers
     this.setupNotificationHandlers();
   }
-
   /**
    * Set up handlers for server-side notifications
    */
@@ -108,11 +108,7 @@ export class MCPClient {
    * Connect to the MCP server
    */
   async connect(): Promise<void> {
-    if (this.isConnected) {
-      logger.warn('Already connected to MCP server');
-      return;
-    }
-
+    if (this.isConnected) return;
     try {
       logger.info('Connecting to MCP server...');
       await this.client.connect(this.transport);
@@ -123,16 +119,11 @@ export class MCPClient {
       throw error;
     }
   }
-
   /**
    * Disconnect from the MCP server
    */
   async disconnect(): Promise<void> {
-    if (!this.isConnected) {
-      logger.warn('Not connected to MCP server');
-      return;
-    }
-
+    if (!this.isConnected) return;
     try {
       logger.info('Disconnecting from MCP server...');
       await this.client.close();
@@ -142,6 +133,12 @@ export class MCPClient {
       logger.error('Error disconnecting from MCP server:', error);
       throw error;
     }
+  }
+  /**
+   * Check if client is connected
+   */
+  get connected(): boolean {
+    return this.isConnected;
   }
 
   /**
@@ -177,25 +174,22 @@ export class MCPClient {
     }
   }
 
+  private cachedTools?: Tool[] = undefined;
   /**
    * List available tools
    */
-  async getTools(tag?: string) {
-    if (!this.isConnected) 
-      throw new Error('Not connected to MCP server');
+  async getTools(): Promise<Tool[]> {
     // Get all tools
-    var tools = (await this.client.listTools()).tools;
-    if (tag) 
-      tools = tools.filter(tool => 
-        (tool.annotations?.audience === undefined) || ((tool.annotations?.audience) as string[]).indexOf(tag) !== -1);
-    return tools;
+    if (!this.cachedTools)
+      this.cachedTools = (await this.client.listTools()).tools;
+    return this.cachedTools;
   }
-
   /**
-   * Check if client is connected
+   * List tools for a given role.
    */
-  get connected(): boolean {
-    return this.isConnected;
+  async getToolsFor(role: string): Promise<Tool[]> {
+    return (await this.getTools()).filter(tool => 
+        (tool.annotations?.audience === undefined) || ((tool.annotations?.audience) as string[]).indexOf(role) !== -1);
   }
 }
 
@@ -203,4 +197,19 @@ export class MCPClient {
  * Create and export a singleton instance
  */
 export const mcpClient = new MCPClient(config);
-export default MCPClient;
+/**
+ * Wrap a MCP tool for Mastra.
+ */
+export function wrapTool(tool: Tool): MastraTool {
+  return createTool({
+
+  });
+}
+/**
+ * Wrap a MCP tool for Mastra.
+ */
+export function wrapTools(tools: Tool[]): Record<string, MastraTool> {
+  var results: Record<string, MastraTool> = {};
+  tools.forEach(tool => results[tool.name] = wrapTool(tool));
+  return results;
+}

@@ -9,8 +9,6 @@ loadConfig();
 await mcpClient.connect();
 
 // Create the strategist
-const strategist = DummyStrategist();
-const tools = await mcpClient.getTools("strategist");
-console.log(tools);
+const strategist = await DummyStrategist();
 const output = await strategist.generateVNext([])
 console.log(output.text);
