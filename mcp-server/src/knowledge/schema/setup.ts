@@ -11,7 +11,9 @@ import {
   createTimedKnowledgeIndexes,
   createPublicKnowledgeIndexes,
   createMutableKnowledgeTable,
-  createMutableKnowledgeIndexes
+  createMutableKnowledgeIndexes,
+  createPlayerKnowledgeIndexes,
+  createPlayerKnowledgeTable
 } from './table-utils.js';
 
 /**
@@ -31,12 +33,6 @@ export async function setupKnowledgeDatabase(
     .addColumn('Value', 'text', (col) => col.notNull())
     .execute();
   
-  // Create PlayerStatus table (MutableKnowledge implementation)
-  await createMutableKnowledgeTable(db, 'PlayerStatus')
-    .execute();
-  // Create indexes for MutableKnowledge table
-  await createMutableKnowledgeIndexes(db, 'PlayerStatus');
-  
   // Create GameEvents table (TimedKnowledge implementation)
   await createTimedKnowledgeTable(db, 'GameEvents')
     .addColumn('Type', 'text', (col) => col.notNull())
@@ -44,16 +40,81 @@ export async function setupKnowledgeDatabase(
   // Create indexes for GameEvents table
   await createTimedKnowledgeIndexes(db, 'GameEvents', 'Type');
 
+  // Create StrategyChanges table (PlayerKnowledge implementation)
+  await createPlayerKnowledgeTable(db, 'StrategyChanges')
+    .addColumn('GrandStrategy', 'integer')
+    .addColumn('EconomicStrategies', 'text') // JSON array
+    .addColumn('MilitaryStrategies', 'text') // JSON array
+    .execute();
+  // Create indexes for StrategyChanges table
+  await createPlayerKnowledgeIndexes(db, 'StrategyChanges');
+
+  // Create PlayerSummaries table (PlayerKnowledge implementation)
+  await createPlayerKnowledgeTable(db, 'PlayerSummaries')
+    .addColumn('MajorAllyID', 'integer', (col) => col.notNull())
+    .addColumn('Cities', 'integer', (col) => col.notNull())
+    .addColumn('Population', 'integer', (col) => col.notNull())
+    .addColumn('Gold', 'integer', (col) => col.notNull())
+    .addColumn('GoldPerTurn', 'real', (col) => col.notNull())
+    .addColumn('TourismPerTurn', 'integer', (col) => col.notNull())
+    .addColumn('PolicyBranches', 'text', (col) => col.notNull()) // JSON object
+    .addColumn('Technologies', 'integer', (col) => col.notNull())
+    .addColumn('CreatedReligion', 'text', (col) => col.notNull())
+    .addColumn('MajorityReligion', 'text', (col) => col.notNull())
+    .execute();
+  // Create indexes for PlayerSummaries table
+  await createPlayerKnowledgeIndexes(db, 'PlayerSummaries');
+
+  // Create PlayerStrategies table (PlayerKnowledge implementation)
+  await createPlayerKnowledgeTable(db, 'PlayerStrategies')
+    .addColumn('GrandStrategy', 'integer', (col) => col.notNull())
+    .addColumn('EconomicStrategies', 'text', (col) => col.notNull()) // JSON array
+    .addColumn('MilitaryStrategies', 'text', (col) => col.notNull()) // JSON array
+    .addColumn('DiplomaticFlavors', 'text', (col) => col.notNull()) // JSON object
+    .execute();
+  // Create indexes for PlayerStrategies table
+  await createPlayerKnowledgeIndexes(db, 'PlayerStrategies');
+
+  // Create PlayerEconomics table (PlayerKnowledge implementation)
+  await createPlayerKnowledgeTable(db, 'PlayerEconomics')
+    .execute();
+  // Create indexes for PlayerEconomics table
+  await createPlayerKnowledgeIndexes(db, 'PlayerEconomics');
+
+  // Create PlayerSciences table (PlayerKnowledge implementation)
+  await createPlayerKnowledgeTable(db, 'PlayerSciences')
+    .execute();
+  // Create indexes for PlayerSciences table
+  await createPlayerKnowledgeIndexes(db, 'PlayerSciences');
+
+  // Create PlayerCultures table (PlayerKnowledge implementation)
+  await createPlayerKnowledgeTable(db, 'PlayerCultures')
+    .execute();
+  // Create indexes for PlayerCultures table
+  await createPlayerKnowledgeIndexes(db, 'PlayerCultures');
+
+  // Create PlayerMilitaries table (PlayerKnowledge implementation)
+  await createPlayerKnowledgeTable(db, 'PlayerMilitaries')
+    .execute();
+  // Create indexes for PlayerMilitaries table
+  await createPlayerKnowledgeIndexes(db, 'PlayerMilitaries');
+
+  // Create PlayerDiplomacies table (PlayerKnowledge implementation)
+  await createPlayerKnowledgeTable(db, 'PlayerDiplomacies')
+    .execute();
+  // Create indexes for PlayerDiplomacies table
+  await createPlayerKnowledgeIndexes(db, 'PlayerDiplomacies');
+
   // Create PlayerInformation table (PublicKnowledge implementation)
-  await createPublicKnowledgeTable(db, 'PlayerInformation')
-    .addColumn('PlayerId', 'integer', (col) => col.notNull().unique())
+  await createPublicKnowledgeTable(db, 'PlayerInformations')
+    .addColumn('PlayerID', 'integer', (col) => col.notNull().unique())
     .addColumn('Civilization', 'text', (col) => col.notNull())
     .addColumn('Leader', 'text', (col) => col.notNull())
-    .addColumn('TeamId', 'integer')
+    .addColumn('TeamID', 'integer')
     .addColumn('IsHuman', 'integer', (col) => col.notNull())
     .execute();
   // Create indexes for PlayerInformation table
-  await createPublicKnowledgeIndexes(db, 'PlayerInformation', ['PlayerId']);
+  await createPublicKnowledgeIndexes(db, 'PlayerInformation', ['PlayerID']);
 
   return db;
 }

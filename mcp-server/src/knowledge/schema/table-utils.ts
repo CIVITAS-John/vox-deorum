@@ -58,6 +58,18 @@ export function createMutableKnowledgeTable<T extends string>(
 }
 
 /**
+ * Creates base columns for PlayerKnowledge-derived tables
+ * Includes all TimedKnowledge columns plus Version and Changes
+ */
+export function createPlayerKnowledgeTable<T extends string>(
+  db: Kysely<KnowledgeDatabase>,
+  tableName: T
+): CreateTableBuilder<T, 'ID' | 'PlayerID' | 'Turn' | 'Key' | 'OwnerID' | 'KnownByIDs' | 'Payload' | 'IsLatest' | 'CreatedAt' | 'Version' | 'Changes'> {
+  return createTimedKnowledgeTable(db, tableName)
+    .addColumn('PlayerID', 'integer', (col) => col.notNull())
+}
+
+/**
  * Creates standard indexes for TimedKnowledge tables
  * Includes composite indexes for turn/type queries and key/latest lookups
  */
@@ -109,6 +121,47 @@ export async function createMutableKnowledgeIndexes(
         .createIndex(`idx_${tableName.toLowerCase()}_player${i}`)
         .on(tableName)
         .columns([`ID`, `Turn`, `Key`, `IsLatest`, `Player${i}`])
+        .ifNotExists()
+        .execute();
+    }
+  }
+}
+
+/**
+ * Creates standard indexes for PlayerKnowledge tables
+ * Includes PlayerID in all indexes for efficient per-player queries
+ */
+export async function createPlayerKnowledgeIndexes(
+  db: Kysely<KnowledgeDatabase>,
+  tableName: string,
+  additionalColumns?: string[]
+): Promise<void> {
+  // Create base indexes from MutableKnowledge
+  await createMutableKnowledgeIndexes(db, tableName);
+  
+  // Create PlayerID-specific index for efficient player queries
+  await db.schema
+    .createIndex(`idx_${tableName.toLowerCase()}_playerid`)
+    .on(tableName)
+    .columns(['PlayerID', 'IsLatest', 'Turn'])
+    .ifNotExists()
+    .execute();
+  
+  // Create composite index with PlayerID and Key for efficient lookups
+  await db.schema
+    .createIndex(`idx_${tableName.toLowerCase()}_playerid_key`)
+    .on(tableName)
+    .columns(['PlayerID', 'Key', 'IsLatest'])
+    .ifNotExists()
+    .execute();
+  
+  // Create additional indexes if specified
+  if (additionalColumns && additionalColumns.length > 0) {
+    for (const column of additionalColumns) {
+      await db.schema
+        .createIndex(`idx_${tableName.toLowerCase()}_playerid_${column.toLowerCase()}`)
+        .on(tableName)
+        .columns(['PlayerID', column, 'IsLatest'])
         .ifNotExists()
         .execute();
     }

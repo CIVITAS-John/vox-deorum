@@ -4,6 +4,18 @@
  */
 
 import type { Generated, JSONColumnType } from 'kysely';
+import { 
+  GameEvent, 
+  StrategyChange, 
+  PlayerSummary, 
+  PlayerStrategy, 
+  PlayerEconomics,
+  PlayerScience,
+  PlayerCulture,
+  PlayerMilitary,
+  PlayerDiplomacy
+} from './timed';
+import { PlayerInformation } from './public';
 
 /**
  * The maximum number of major civilizations.
@@ -46,7 +58,6 @@ export interface GameMetadata {
   Value: string;
 }
 
-// #region Knowledge Templates
 /**
  * Base interface for all knowledge entries
  * All knowledge items inherit from this base class
@@ -83,45 +94,30 @@ export interface MutableKnowledge extends TimedKnowledge {
   IsLatest: number; 
   Changes: JSONColumnType<string[]>; // Array of changed field names
 }
-// #endregion
 
-// #region Timed Knowledge
 /**
- * Game events with typed payloads
- * Example implementation of dynamic content with JSONColumnType
+ * Player-related knowledge
  */
-export interface GameEvent extends TimedKnowledge {
-  Type: string;
-  Payload: JSONColumnType<Record<string, unknown>>;
+export interface PlayerKnowledge extends MutableKnowledge {
+  PlayerID: number;
 }
 
 /**
- * Player status updates
- */
-export interface PlayerStatus extends TimedKnowledge {
-}
-// #endregion
-
-// #region Public Knowledge
-/**
- * Immutable information about players
- */
-export interface PlayerInformation extends PublicKnowledge {
-  PlayerId: number;
-  TeamId: number;
-  Civilization: string;
-  Leader: string;
-  IsHuman: number;
-}
-// #endregion
-
-/**
- * Database schema combining all s
+ * Database schema combining all knowledge tables
  */
 export interface KnowledgeDatabase {
   GameMetadata: GameMetadata;
   // Timed Knowledge
   GameEvents: GameEvent;
+  StrategyChanges: StrategyChange;
+  // Mutable Knowledge
+  PlayerSummaries: PlayerSummary;
+  PlayerStrategies: PlayerStrategy;
+  PlayerEconomics: PlayerEconomics;
+  PlayerSciences: PlayerScience;
+  PlayerCultures: PlayerCulture;
+  PlayerMilitaries: PlayerMilitary;
+  PlayerDiplomacies: PlayerDiplomacy;
   // Public Knowledge
-  PlayerInformation: PlayerInformation; 
+  PlayerInformations: PlayerInformation; 
 }
