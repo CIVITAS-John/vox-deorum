@@ -8,7 +8,7 @@ import { createLogger } from './utils/logger.js';
 import { config } from './utils/config.js';
 import { wrapResults } from './utils/mcp.js';
 import { ToolBase } from './tools/base.js';
-import { allTools } from './tools/index.js';
+import { getTools } from './tools/index.js';
 import { BridgeManager } from './bridge/manager.js';
 import { DatabaseManager } from './database/manager.js';
 import { KnowledgeManager } from './knowledge/manager.js';
@@ -205,7 +205,8 @@ export class MCPServer {
     }
     
     // Register all tools
-    allTools.forEach(toolFactory => this.registerTool(toolFactory()));
+    const tools = getTools();
+    Object.values(tools).forEach(tool => this.registerTool(tool));
     
     this.initialized = true;
   }

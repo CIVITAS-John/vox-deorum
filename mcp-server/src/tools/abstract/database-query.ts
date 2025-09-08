@@ -108,7 +108,7 @@ export abstract class DatabaseQueryTool<
   /**
    * Get cached summaries or fetch new ones
    */
-  protected async getSummaries(): Promise<TSummary[]> {
+  public async getSummaries(): Promise<TSummary[]> {
     if (this.cachedSummaries) return this.cachedSummaries;
     
     const results = await this.fetchSummaries();

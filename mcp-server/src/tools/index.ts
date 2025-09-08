@@ -1,4 +1,3 @@
-import { ToolBase } from "./base.js";
 import createCalculatorTool from "./general/calculator.js";
 import createLuaExecutorTool from "./general/lua-executor.js";
 import createGetTechnologyTool from "./databases/get-technology.js";
@@ -8,17 +7,34 @@ import createGetCivilizationTool from "./databases/get-civilization.js";
 import createGetEventsTool from "./knowledge/get-events.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
 
+// Tool factory configuration - one line per tool
+const toolFactories = {
+    calculator: createCalculatorTool,
+    luaExecutor: createLuaExecutorTool,
+    getTechnology: createGetTechnologyTool,
+    getPolicy: createGetPolicyTool,
+    getBuilding: createGetBuildingTool,
+    getCivilization: createGetCivilizationTool,
+    getEvents: createGetEventsTool,
+    setStrategy: createSetStrategyTool,
+} as const;
+
+// Type for the tools object (inferred from factories)
+type Tools = { [K in keyof typeof toolFactories]: ReturnType<typeof toolFactories[K]> };
+
+// Cache for tool instances
+let toolsCache: Tools | null = null;
+
 /**
- * Function to get all available tools
- * @returns Array of functions that create tool instances
+ * Function to get all available tool instances as an object
+ * Creates and caches instances on first call, returns cached instances on subsequent calls
+ * @returns Object containing cached tool instances with preserved type information
  */
-export const allTools: (() => ToolBase)[] = [
-    createCalculatorTool,
-    createLuaExecutorTool,
-    createGetTechnologyTool,
-    createGetPolicyTool,
-    createGetBuildingTool,
-    createGetCivilizationTool,
-    createGetEventsTool,
-    createSetStrategyTool
-];
+export const getTools = (): Tools => {
+    if (!toolsCache) {
+        toolsCache = Object.fromEntries(
+            Object.entries(toolFactories).map(([key, factory]) => [key, factory()])
+        ) as Tools;
+    }
+    return toolsCache;
+};
