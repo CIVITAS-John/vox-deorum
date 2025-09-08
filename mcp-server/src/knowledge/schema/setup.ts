@@ -106,7 +106,6 @@ export async function setupKnowledgeDatabase(
 
   // Create PlayerInformation table (PublicKnowledge implementation)
   await createPublicKnowledgeTable(db, 'PlayerInformations')
-    .addColumn('PlayerID', 'integer', (col) => col.notNull().unique())
     .addColumn('Civilization', 'text', (col) => col.notNull())
     .addColumn('Leader', 'text', (col) => col.notNull())
     .addColumn('TeamID', 'integer')

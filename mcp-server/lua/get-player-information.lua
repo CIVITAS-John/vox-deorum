@@ -10,7 +10,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
   -- Only include players that are alive or have ever been alive (excludes empty slots)
   if player and player:IsEverAlive() then
     local info = {
-      PlayerID = playerID,
+      Key = playerID,
       TeamID = player:GetTeam(),
       Civilization = player:GetCivilizationShortDescription(),
       Leader = player:GetName(),
@@ -30,7 +30,7 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
   -- Only include minor civs that are alive
   if player and player:IsAlive() and player:IsMinorCiv() then
     local info = {
-      PlayerID = playerID,
+      Key = playerID,
       TeamID = player:GetTeam(),
       Civilization = player:GetCivilizationShortDescription(),
       Leader = player:GetName(),
@@ -48,7 +48,7 @@ local barbarianID = GameDefines.MAX_CIV_PLAYERS - 1
 local barbarian = Players[barbarianID]
 if barbarian and barbarian:IsAlive() and barbarian:IsBarbarian() then
   local info = {
-    PlayerID = barbarianID,
+    Key = barbarianID,
     TeamID = barbarian:GetTeam(),
     Civilization = "Barbarians",
     Leader = "Barbarians",

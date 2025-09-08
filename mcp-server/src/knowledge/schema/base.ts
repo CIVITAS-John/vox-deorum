@@ -71,6 +71,7 @@ export interface Knowledge {
  * Example: Basic player information, civilizations, etc.
  */
 export interface PublicKnowledge extends Knowledge {
+  Key: number; // Item identifier
   Data: JSONColumnType<Record<string, unknown>>;
 }
 

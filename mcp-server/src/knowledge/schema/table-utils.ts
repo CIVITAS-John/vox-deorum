@@ -18,6 +18,7 @@ export function createPublicKnowledgeTable<T extends string>(
     .createTable(tableName)
     .ifNotExists()
     .addColumn('ID', 'integer', (col) => col.primaryKey().autoIncrement())
+    .addColumn('Key', 'integer', (col) => col.notNull())
     .addColumn('Data', 'text', (col) => col.notNull().defaultTo('{}'));
 }
 
@@ -124,6 +125,13 @@ export async function createPublicKnowledgeIndexes(
   tableName: string,
   uniqueColumns?: string[]
 ): Promise<void> {
+    await db.schema
+      .createIndex(`idx_${tableName.toLowerCase()}_key`)
+      .on(tableName)
+      .columns([`Key`])
+      .unique()
+      .ifNotExists()
+      .execute();
   // Create unique indexes if specified
   if (uniqueColumns && uniqueColumns.length > 0) {
     for (const column of uniqueColumns) {

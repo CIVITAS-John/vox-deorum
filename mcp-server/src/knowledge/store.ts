@@ -20,6 +20,7 @@ import { applyVisibility } from '../utils/knowledge/visibility.js';
 import { explainEnums } from '../utils/knowledge/enum.js';
 import { detectChanges } from '../utils/knowledge/changes.js';
 import { MCPServer } from '../server.js';
+import { getPlayerInformations } from './getters/player-information.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -75,6 +76,22 @@ export class KnowledgeStore {
     // Store game ID in metadata
     await this.setMetadata('gameId', gameId);
     await this.setMetadata('lastSync', Date.now().toString());
+    
+    // Retrieve and store player information as public knowledge
+    try {
+      const players = await getPlayerInformations();
+      logger.info(`Retrieved ${players.length} player(s) from the game`);
+      
+      // Store each player's information in the PlayerInformation table
+      for (const player of players) {
+        await this.storePublicKnowledge('PlayerInformations', player.Key, player);
+      }
+      
+      logger.info(`Stored player information for ${players.length} player(s)`);
+    } catch (error) {
+      logger.error('Failed to retrieve or store player information:', error);
+      // Continue initialization even if player info fails - it can be retrieved later
+    }
     
     logger.info(`KnowledgeStore initialized successfully for game: ${gameId}`);
   }
@@ -258,7 +275,7 @@ export class KnowledgeStore {
     TData extends Partial<Insertable<KnowledgeDatabase[TTable]>>
   >(
     tableName: TTable,
-    key: string | number,
+    key: string,
     data: TData,
     visibilityFlags?: number[]
   ): Promise<void> {
@@ -268,8 +285,6 @@ export class KnowledgeStore {
     try {
       // Start a transaction for atomic updates
       await db.transaction().execute(async (trx) => {
-        key = String(key);
-        
         // Find the latest version for this key
         const latestEntry = await (trx
           .selectFrom(tableName)
@@ -389,6 +404,99 @@ export class KnowledgeStore {
     }
     
     const results = await query.execute();
+    return results as Selectable<KnowledgeDatabase[TTable]>[];
+  }
+
+  /**
+   * Generic function to store PublicKnowledge entries
+   * Handles insert or update operations for public knowledge tables
+   * Public knowledge is visible to all players by default
+   * 
+   * @param tableName - The table name in the database (must be a key of KnowledgeDatabase)
+   * @param key - The unique identifier for this knowledge item
+   * @param data - The data to store
+   * @returns Promise that resolves when the operation is complete
+   */
+  async storePublicKnowledge<
+    TTable extends keyof KnowledgeDatabase,
+    TData extends Omit<Partial<Insertable<KnowledgeDatabase[TTable]>>, "ID" | "Data">
+  >(
+    tableName: TTable,
+    key: number,
+    data: TData
+  ): Promise<void> {
+    const db = this.getDatabase();
+    const turn = knowledgeManager.getTurn();
+    
+    try {
+      // Prepare the entry with standard fields
+      const entry: any = {
+        ...data,
+        Key: key,
+        Turn: turn,
+        Payload: JSON.stringify(data),
+      };
+      
+      // Insert or update the entry
+      await db
+        .insertInto(tableName)
+        .values(entry)
+        .onConflict((oc) => oc
+          .column('Key' as any)
+          .doUpdateSet(entry)
+        )
+        .execute();
+      
+      logger.info(
+        `Stored ${tableName} public knowledge - Key: ${key}, Turn: ${turn}`
+      );
+    } catch (error) {
+      logger.error(`Error storing PublicKnowledge in ${tableName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieve a PublicKnowledge entry
+   * Public knowledge is visible to all players
+   * 
+   * @param tableName - The table name in the database
+   * @param key - The unique identifier for this knowledge item
+   * @returns The entry or null if not found
+   */
+  async getPublicKnowledge<TTable extends keyof KnowledgeDatabase>(
+    tableName: TTable,
+    key: string | number
+  ): Promise<Selectable<KnowledgeDatabase[TTable]> | null> {
+    const db = this.getDatabase();
+    key = String(key);
+    
+    const result = await (db
+      .selectFrom(tableName)
+      .selectAll() as any)
+      .where('Key', '=', key)
+      .executeTakeFirst();
+    
+    return result as Selectable<KnowledgeDatabase[TTable]> | undefined || null;
+  }
+
+  /**
+   * Retrieve all PublicKnowledge entries from a table
+   * Public knowledge is visible to all players
+   * 
+   * @param tableName - The table name in the database
+   * @returns Array of all entries
+   */
+  async getAllPublicKnowledge<TTable extends keyof KnowledgeDatabase>(
+    tableName: TTable
+  ): Promise<Selectable<KnowledgeDatabase[TTable]>[]> {
+    const db = this.getDatabase();
+    
+    const results = await (db
+      .selectFrom(tableName)
+      .selectAll() as any)
+      .execute();
+    
     return results as Selectable<KnowledgeDatabase[TTable]>[];
   }
 }

@@ -19,7 +19,7 @@ const luaFunc = LuaFunction.fromFile(
  * Filters out players not actually in the game (empty slots)
  * @returns Array of PlayerInformation objects for all active players
  */
-export async function getPlayerInformation(): Promise<PlayerInformation[]> {
+export async function getPlayerInformations(): Promise<PlayerInformation[]> {
   const response = await luaFunc.execute();
   if (!response.success) {
     return [];
