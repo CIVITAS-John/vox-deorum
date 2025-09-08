@@ -7,6 +7,7 @@ import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { isAfter, isAtTurn, isVisible } from "../../knowledge/expressions.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 
 /**
  * Input schema for the GetEvents tool
@@ -15,7 +16,7 @@ const GetEventsInputSchema = z.object({
   Turn: z.number().optional().describe("Turn number filter"),
   Type: z.string().optional().describe("Event type string filter"),
   After: z.number().optional().describe("Event ID filter"),
-  PlayerID: z.number().min(0).max(21).optional().describe("Player ID visibility filter")
+  PlayerID: z.number().min(0).max(MaxMajorCivs - 1).optional().describe("Player ID visibility filter")
 });
 
 /**

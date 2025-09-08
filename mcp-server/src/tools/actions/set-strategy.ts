@@ -7,6 +7,7 @@ import * as z from "zod";
 import { enumMappings, retrieveEnumValue } from "../../utils/knowledge/enum.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { knowledgeManager } from "../../server.js";
+import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 
 /**
  * Tool that sets the player's grand strategy using a Lua function
@@ -19,7 +20,7 @@ class SetStrategyTool extends LuaFunctionTool {
    * Input schema for the set-strategy tool
    */
   inputSchema = z.object({
-    PlayerID: z.number().min(0).max(21).describe("ID of the player"),
+    PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
     GrandStrategy: z.nativeEnum(enumMappings["GrandStrategy"]).optional().describe("The grand strategy type to optionally set (and override)"),
     EconomicStrategies: z.array(z.nativeEnum(enumMappings["EconomicStrategy"])).optional().describe("The economic strategy types to optionally set (and override)"),
     MilitaryStrategies: z.array(z.nativeEnum(enumMappings["MilitaryStrategy"])).optional().describe("The military strategy types to optionally set (and override)"),
