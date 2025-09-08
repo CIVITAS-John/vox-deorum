@@ -36,7 +36,7 @@ export abstract class ToolBase {
   /**
    * Optional annotations for the tool
    */
-  abstract readonly annotations?: ToolAnnotations;
+  readonly annotations?: ToolAnnotations;
 
   /**
    * Registered tool instance after registration with MCP server

@@ -1,0 +1,21 @@
+{
+  "agent": {
+    "name": "vox-agents",
+    "version": "1.0.0"
+  },
+  "mcpServer": {
+    "transport": {
+      "type": "http",
+      "endpoint": "http://127.0.0.1:4000/mcp"
+    }
+  },
+  "logging": {
+    "level": "info"
+  },
+  "llms": {
+    "default": {
+      "provider": "openrouter",
+      "name": "meta-llama/llama-4-maverick:free"
+    }
+  }
+}

@@ -31,7 +31,6 @@ export abstract class DatabaseQueryTool<
    * Optional annotations for the get building tool
    */
   readonly annotations: ToolAnnotations = {
-    audience: ["user", "strategist"],
     readOnlyHint: true
   }
 

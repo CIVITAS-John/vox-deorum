@@ -32,13 +32,6 @@ class CalculatorTool extends ToolBase {
   });
 
   /**
-   * Optional annotations for the calculator tool
-   */
-  readonly annotations: ToolAnnotations = {
-    audience: ["user", "assistant"]
-  }
-
-  /**
    * Execute the calculator operation using mathjs
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {

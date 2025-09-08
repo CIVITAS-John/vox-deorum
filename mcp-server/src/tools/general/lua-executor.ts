@@ -42,7 +42,6 @@ class LuaExecutorTool extends ToolBase {
    * Optional annotations for the Lua executor tool
    */
   readonly annotations: ToolAnnotations = {
-    audience: ["user"],
     readOnlyHint: false,
     destructiveHint: true
   }

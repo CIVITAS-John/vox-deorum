@@ -185,13 +185,6 @@ export class MCPClient {
       this.cachedTools = (await this.client.listTools()).tools;
     return this.cachedTools;
   }
-  /**
-   * List tools for a given role.
-   */
-  async getToolsFor(role: string): Promise<Tool[]> {
-    return (await this.getTools()).filter(tool => 
-        (tool.annotations?.audience === undefined) || ((tool.annotations?.audience) as string[]).indexOf(role) !== -1);
-  }
 }
 
 /**
@@ -199,22 +192,23 @@ export class MCPClient {
  */
 export const mcpClient = new MCPClient(config);
 /**
- * Wrap a MCP tool for Mastra.
+ * Wrap a MCP tool for Vercel AI.
  */
 export function wrapTool(tool: Tool): VercelTool {
   return dynamicTool({
     description: tool.description || `MCP tool: ${tool.name}`,
     inputSchema: convertJsonSchemaToZod(tool.inputSchema as any) as any,
-    execute: async (args) => {
+    execute: async (args, options) => {
       logger.info(`Calling tool ${tool.name}...`);
       const result = await mcpClient.callTool(tool.name, args);
+      options.experimental_context
       logger.info(`Tool call completed: ${tool.name}`, result);
       return result;
     }
   });
 }
 /**
- * Wrap a MCP tool for Mastra.
+ * Wrap a MCP tool for Vercel AI.
  */
 export function wrapTools(tools: Tool[]): ToolSet {
   var results: Record<string, VercelTool> = {};
