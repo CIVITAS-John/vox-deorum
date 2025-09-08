@@ -198,20 +198,6 @@ export async function getCivilization(civType: string) {
     .where('o.CivilizationType', '=', civType)
     .where('o.UnitType', 'is not', null)
     .execute();
-  console.log(await db
-    .selectFrom("Civilization_BuildingClassOverrides")
-    .innerJoin("Buildings", "Civilization_BuildingClassOverrides.BuildingType", "Buildings.Type")
-    .innerJoin("BuildingClasses", "Civilization_BuildingClassOverrides.BuildingClassType", "BuildingClasses.Type")
-    .innerJoin("Buildings as DefaultBuilding", "BuildingClasses.DefaultBuilding", "DefaultBuilding.Type")
-    .select([
-      'Buildings.Description as UniqueName',
-      'Buildings.Help as UniqueHelp',
-      'Buildings.Strategy as UniqueStrategy',
-      'DefaultBuilding.Description as ReplacesName'
-    ])
-    .where('Civilization_BuildingClassOverrides.CivilizationType', '=', civType)
-    .where('Civilization_BuildingClassOverrides.BuildingType', 'is not', null)
-    .compile().sql);
   
   for (const unit of uniqueUnits) {
     if (unit.UniqueName) {

@@ -66,7 +66,7 @@ class GetPlayersTool extends ToolBase {
   /**
    * Output schema for the tool
    */
-  readonly outputSchema = z.record(z.string(), PlayerDataSchema);
+  readonly outputSchema = z.record(z.string(), z.union([PlayerDataSchema, z.string()]));
 
   /**
    * Optional annotations for the tool
@@ -94,11 +94,26 @@ class GetPlayersTool extends ToolBase {
     };
   
     // Combine the data and create dictionary
-    const playersDict: Record<string, z.infer<typeof PlayerDataSchema>> = {};
+    const playersDict: Record<string, z.infer<typeof this.outputSchema>[string]> = {};
     
     for (const info of playerInfos) {
       const playerID = info.Key;
       const summary = playerSummaries.find(s => s.Key === playerID);
+      
+      // If a specific PlayerID is provided, check visibility
+      if (args.PlayerID !== undefined && summary) {
+        // Get the visibility field for the requesting player
+        const visibilityField = `Player${args.PlayerID}` as keyof PlayerSummary;
+        const visibility = (summary as any)[visibilityField];
+        
+        // If not met (visibility = 0), return unmet string
+        if (visibility === 0) {
+          playersDict[playerID.toString()] = info.IsMajor === 1 
+            ? "Unmet Major Civilization" 
+            : "Unmet Minor Civilization";
+          continue;
+        }
+      }
       
       // Strip metadata and rename Key to PlayerID
       const cleanSummary = stripMutableKnowledgeMetadata<PlayerSummary>(summary!);

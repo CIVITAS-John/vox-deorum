@@ -111,6 +111,15 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
       MajorityReligion = ""
     }
     
+    -- Add relative visibility to all other players
+    for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
+      local otherPlayer = Players[otherPlayerID]
+      if otherPlayer and otherPlayer:IsEverAlive() then
+        local fieldName = "Player" .. otherPlayerID
+        summary[fieldName] = getVisibility(playerID, otherPlayerID)
+      end
+    end
+
     -- Get majority religion for city-state
     local capital = player:GetCapitalCity()
     if capital then
@@ -123,6 +132,15 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
       end
     end
     
+    -- Add relative visibility to all other players
+    for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
+      local otherPlayer = Players[otherPlayerID]
+      if otherPlayer and otherPlayer:IsEverAlive() then
+        local fieldName = "Player" .. otherPlayerID
+        summary[fieldName] = getVisibility(playerID, otherPlayerID)
+      end
+    end
+     
     -- Add to results
     table.insert(summaries, summary)
   end
