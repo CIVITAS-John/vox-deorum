@@ -198,10 +198,16 @@ export function wrapTool(tool: Tool): VercelTool {
   return dynamicTool({
     description: tool.description || `MCP tool: ${tool.name}`,
     inputSchema: convertJsonSchemaToZod(tool.inputSchema as any) as any,
-    execute: async (args, options) => {
-      logger.info(`Calling tool ${tool.name}...`);
+    execute: async (args: any, options) => {
+      // Autocomplete support
+      if (tool.annotations?.autoComplete) {
+        (tool.annotations?.autoComplete as string[]).forEach(
+          value => args[value] = (options.experimental_context as any)[value]
+        )
+      }
+      logger.info(`Calling tool ${tool.name}...`, args);
+      // Call the tool
       const result = await mcpClient.callTool(tool.name, args);
-      options.experimental_context
       logger.info(`Tool call completed: ${tool.name}`, result);
       return result;
     }
