@@ -71,21 +71,24 @@ class SetStrategyTool extends LuaFunctionTool {
     let economicStrategies = args.EconomicStrategies?.map(s => retrieveEnumValue("EconomicStrategy", s));
     let militaryStrategies = args.MilitaryStrategies?.map(s => retrieveEnumValue("MilitaryStrategy", s));
     
-    // Store the strategy change in the database
-    const store = knowledgeManager.getStore();
-    await store.storeMutableKnowledge(
-      'StrategyChanges',
-      args.PlayerID,
-      {
-        GrandStrategy: grandStrategy ?? null,
-        EconomicStrategies: economicStrategies ? JSON.stringify(economicStrategies) : null,
-        MilitaryStrategies: militaryStrategies ? JSON.stringify(militaryStrategies) : null,
-        Rationale: args.Rationale
-      }
-    );
-    
     // Call the parent execute with the strategy ID
-    return super.call(grandStrategy, economicStrategies, militaryStrategies);
+    var result = await super.call(grandStrategy, economicStrategies, militaryStrategies);
+    if (result.Success) {
+      // Store the strategy change in the database
+      const store = knowledgeManager.getStore();
+      await store.storeMutableKnowledge(
+        'StrategyChanges',
+        args.PlayerID,
+        {
+          GrandStrategy: grandStrategy ?? null,
+          EconomicStrategies: economicStrategies ? JSON.stringify(economicStrategies) : null,
+          MilitaryStrategies: militaryStrategies ? JSON.stringify(militaryStrategies) : null,
+          Rationale: args.Rationale
+        }
+      );
+    }
+
+    return result;
   }
 }
 

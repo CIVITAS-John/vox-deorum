@@ -41,6 +41,15 @@
 - `npm run type-check` - TypeScript type checking without emit
 - `npm run lint` - ESLint code quality checks
 
+### Lua Script Development
+- Standalone Lua scripts must be placed in the `lua/` directory
+- Follow existing Lua module patterns (e.g., `event-visibility.lua`, `game-identity.lua`)
+- **IMPORTANT**: Always check `civ5-dll/CvGameCoreDLL_Expansion2/Lua/` for existing Civ5 Lua APIs. Never invent non-existent APIs.
+  - Check existing wrapper classes like CvLuaGame, CvLuaPlayer, CvLuaUnit, CvLuaCity, etc.
+  - Use existing patterns like `LuaFunction` for Lua callback implementations instead of creating new ones
+- Lua scripts executed in-game have access to all Civ5's exposed Lua APIs
+- Scripts are executed within the game context via BridgeManager
+
 ### Integration with Bridge Service
 - Follow PROTOCOL.md specifications when implementing Bridge Service communication
 - Always use the BridgeManager class (`src/bridge/bridge-manager.ts`) for all Bridge Service communication
