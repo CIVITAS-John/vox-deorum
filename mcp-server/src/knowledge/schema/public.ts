@@ -6,8 +6,8 @@ import { PublicKnowledge } from "./base";
 export interface PlayerInformation extends PublicKnowledge {
   PlayerID: number;
   TeamID: number;
-  Civilization: string;
-  Leader: string;
+  Civilization: string; // Localized name
+  Leader: string; // Localized name
   IsHuman: number;
   IsMajor: number;
 }
