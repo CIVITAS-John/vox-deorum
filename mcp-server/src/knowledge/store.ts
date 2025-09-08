@@ -275,7 +275,7 @@ export class KnowledgeStore {
     TData extends Partial<Insertable<KnowledgeDatabase[TTable]>>
   >(
     tableName: TTable,
-    key: string,
+    key: number,
     data: TData,
     visibilityFlags?: number[]
   ): Promise<void> {
