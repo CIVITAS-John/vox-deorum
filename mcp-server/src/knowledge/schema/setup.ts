@@ -108,11 +108,12 @@ export async function setupKnowledgeDatabase(
   await createPublicKnowledgeTable(db, 'PlayerInformations')
     .addColumn('Civilization', 'text', (col) => col.notNull())
     .addColumn('Leader', 'text', (col) => col.notNull())
-    .addColumn('TeamID', 'integer')
+    .addColumn('TeamID', 'integer', (col) => col.notNull())
     .addColumn('IsHuman', 'integer', (col) => col.notNull())
+    .addColumn('IsMajor', 'integer', (col) => col.notNull())
     .execute();
   // Create indexes for PlayerInformation table
-  await createPublicKnowledgeIndexes(db, 'PlayerInformations', ['PlayerID']);
+  await createPublicKnowledgeIndexes(db, 'PlayerInformations');
 
   return db;
 }
