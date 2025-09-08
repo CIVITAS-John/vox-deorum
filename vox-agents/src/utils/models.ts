@@ -2,7 +2,7 @@
  * LLM model instance management utilities
  */
 
-import { MastraLanguageModel } from '@mastra/core';
+import { LanguageModel } from 'ai';
 import { config, type Model } from './config.js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
@@ -20,7 +20,7 @@ export function getModelConfig(name: string = 'default'): Model {
 /**
  * Get a LLM model instance by name
  */
-export function getModel(name: string): MastraLanguageModel {
+export function getModel(name: string): LanguageModel {
   const model = getModelConfig(name);
   switch (model.provider) {
     case "openrouter":

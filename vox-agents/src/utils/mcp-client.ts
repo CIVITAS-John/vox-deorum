@@ -9,7 +9,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { ElicitRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from './logger.js';
 import { config, VoxAgentsConfig } from './config.js';
-import { createTool, Tool as MastraTool } from '@mastra/core';
+import { Tool as VercelTool, dynamicTool, ToolSet } from 'ai';
 
 const logger = createLogger('MCPClient');
 
@@ -200,16 +200,23 @@ export const mcpClient = new MCPClient(config);
 /**
  * Wrap a MCP tool for Mastra.
  */
-export function wrapTool(tool: Tool): MastraTool {
-  return createTool({
-
+export function wrapTool(tool: Tool): VercelTool {
+  return dynamicTool({
+    description: tool.description || `MCP tool: ${tool.name}`,
+    inputSchema: tool.inputSchema as any,
+    execute: async (args, options) => {
+      logger.info(`Calling tool ${tool.name}...`);
+      const result = await mcpClient.callTool(tool.name, args);
+      logger.info(`Tool call completed: ${tool.name}`, result);
+      return result;
+    }
   });
 }
 /**
  * Wrap a MCP tool for Mastra.
  */
-export function wrapTools(tools: Tool[]): Record<string, MastraTool> {
-  var results: Record<string, MastraTool> = {};
+export function wrapTools(tools: Tool[]): ToolSet {
+  var results: Record<string, VercelTool> = {};
   tools.forEach(tool => results[tool.name] = wrapTool(tool));
   return results;
 }

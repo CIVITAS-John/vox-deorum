@@ -1,11 +1,20 @@
-/*instrumentation.ts*/
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { LangfuseSpanProcessor, ShouldExportSpan } from "@langfuse/otel";
+import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
+import dotenv from 'dotenv';
 
-const sdk = new NodeSDK({
-  traceExporter: new OTLPTraceExporter(),
-  instrumentations: [getNodeAutoInstrumentations()],
+dotenv.config();
+
+// Optional: filter our NextJS infra spans
+const shouldExportSpan: ShouldExportSpan = (span) => {
+  return span.otelSpan.instrumentationScope.name !== "next.js";
+};
+ 
+const langfuseSpanProcessor = new LangfuseSpanProcessor({
+  shouldExportSpan,
 });
-
-sdk.start();
+ 
+const tracerProvider = new NodeTracerProvider({
+  spanProcessors: [langfuseSpanProcessor],
+});
+ 
+tracerProvider.register();

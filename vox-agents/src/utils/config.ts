@@ -6,7 +6,6 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createLogger } from './logger.js';
-import { mastra } from './mastra.js';
 
 const logger = createLogger('Config');
 
@@ -65,7 +64,7 @@ const defaultConfig: VoxAgentsConfig = {
   llms: {
     default: {
       provider: 'openrouter',
-      name: 'google/gemma-3-27b-it:free'
+      name: 'meta-llama/llama-4-scout:free'
     }
   }
 };
@@ -128,8 +127,6 @@ export function loadConfig(): VoxAgentsConfig {
     mcpServer: config.mcpServer,
     logging: { level: config.logging.level }
   });
-
-  mastra.toString();
 
   return config;
 }

@@ -26,14 +26,16 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@mastra/core": "^0.16.0",
-    "@mastra/langfuse": "^0.0.6",
-    "@mastra/mcp": "^0.11.4",
+    "@langfuse/otel": "^4.0.0",
     "@modelcontextprotocol/sdk": "^1.17.5",
     "@openrouter/ai-sdk-provider": "^1.2.0",
+    "@opentelemetry/instrumentation": "^0.204.0",
+    "@opentelemetry/sdk-trace-node": "^2.1.0",
     "ai": "^5.0.33",
     "dotenv": "^17.2.2",
+    "langfuse-vercel": "^3.38.5",
     "winston": "^3.17.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zod-from-json-schema": "^0.5.0"
   }
 }
