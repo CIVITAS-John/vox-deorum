@@ -131,7 +131,7 @@ Query civilization unique abilities, units, and buildings. Essential for underst
 {
   Type: string,           // e.g., "CIVILIZATION_ROME"
   Name: string,           // e.g., "Rome"
-  Help: string,           // Short description
+  Abilities: string[],    // Unique abilities of both leader and civilization
   Leader: string,         // Default leader name
 }
 ```
@@ -140,15 +140,14 @@ Query civilization unique abilities, units, and buildings. Essential for underst
 ```typescript
 {
   // All summary fields plus:
-  Strategy: string,                       // Strategic usage guidance
-  StartBias: string[],                   // Terrain/feature start biases
-  UniqueAbility: string,
-  UniqueUnits: [],
-  UniqueBuildings: [],
-  UniqueImprovements: [],
-  PersonalityTraits: {},               // key-value
-  PreferredVictory: string,              // AI victory preference
-  PreferredReligion: string,             // Preferred religion name
+  Abilities: {
+    Type: string, // Building, Ability, etc
+    Name: string,  // Localized name of the unique thingy
+    Help: string  // maybe help/strategy/longer description of the unique thingy
+  }
+  Archetype: string // Leader info "Personality"
+  Traits: string[] // the sub-table
+  PreferredVictory: string              // AI victory preference
 }
 ```
 
