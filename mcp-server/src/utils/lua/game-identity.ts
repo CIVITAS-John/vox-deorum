@@ -31,5 +31,6 @@ const luaFunc = LuaFunction.fromFile(
 export async function syncGameIdentity(): Promise<GameIdentity | undefined> {
   const response = await luaFunc.execute(Date.now(), crypto.randomUUID());
   if (!response.success) return undefined;
+  if (!response.result) throw new Error("Lua serialization malfunctions!");
   return response.result as GameIdentity;
 }
