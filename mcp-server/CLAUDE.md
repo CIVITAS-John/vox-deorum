@@ -37,6 +37,9 @@
 - Before implementing a database-related tool, always check the schema
 - When you need a database table that's commented, uncomment it
 
+### SQLite Queries
+- Always use `is` and `is not` for SQLite null checking.
+
 ### Build & Development
 - `npm run dev` - Development with hot reload using tsx
 - `npm run build` - TypeScript compilation to dist/

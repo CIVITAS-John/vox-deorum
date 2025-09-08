@@ -133,7 +133,7 @@ Query civilization unique abilities, units, and buildings. Essential for underst
 {
   Type: string,           // e.g., "CIVILIZATION_ROME"
   Name: string,           // e.g., "Rome"
-  Abilities: string[],    // Unique abilities of both leader and civilization - in a short form, e.g. "Building: "
+  Abilities: string[],    // Unique abilities of both leader and civilization - in a short form, e.g. "Building: Marae, Replacing Library"
   Leader: string,         // Default leader name
 }
 ```

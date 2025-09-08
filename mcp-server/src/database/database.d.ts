@@ -8499,7 +8499,7 @@ export interface DB {
   // CivilizationFreeBuildingClasses: CivilizationFreeBuildingClass;
   // CivilizationFreeTechs: CivilizationFreeTech;
   // CivilizationFreeUnits: CivilizationFreeUnit;
-  // CivilizationLeaders: CivilizationLeader;
+  Civilization_Leaders: CivilizationLeader;
   // CivilizationReligions: CivilizationReligion;
   Civilizations: Civilization;
   // CivilizationSpyNames: CivilizationSpyName;
@@ -8510,7 +8510,7 @@ export interface DB {
   // CivilizationStartPreferSnow: CivilizationStartPreferSnow;
   // CivilizationStartRegionAvoid: CivilizationStartRegionAvoid;
   // CivilizationStartRegionPriority: CivilizationStartRegionPriority;
-  // CivilizationUnitClassOverrides: CivilizationUnitClassOverride;
+  Civilization_UnitClassOverrides: CivilizationUnitClassOverride;
   // Climates: Climate;
   // Colors: Color;
   // Commands: Command;
@@ -8647,8 +8647,8 @@ export interface DB {
   // LeaderFlavors: LeaderFlavor;
   // LeaderMajorCivApproachBiases: LeaderMajorCivApproachBiase;
   // LeaderMinorCivApproachBiases: LeaderMinorCivApproachBiase;
-  // Leaders: Leader;
-  // LeaderTraits: LeaderTrait;
+  Leaders: Leader;
+  Leader_Traits: LeaderTrait;
   // LeagueNames: LeagueName;
   // LeagueProjectRewards: LeagueProjectReward;
   // LeagueProjects: LeagueProject;
@@ -8888,7 +8888,7 @@ export interface DB {
   // TraitResourceQuantityModifiers: TraitResourceQuantityModifier;
   // TraitResourceYieldChanges: TraitResourceYieldChange;
   // TraitResourceYieldChangesFromGoldenAge: TraitResourceYieldChangesFromGoldenAge;
-  // Traits: Trait;
+  Traits: Trait;
   // TraitSeaPlotYieldChanges: TraitSeaPlotYieldChange;
   // TraitSpecialistYieldChanges: TraitSpecialistYieldChange;
   // TraitTerrainClaimBoost: TraitTerrainClaimBoost;

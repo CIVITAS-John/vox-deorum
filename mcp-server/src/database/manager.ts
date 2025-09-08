@@ -125,6 +125,9 @@ export class DatabaseManager {
       throw new Error('Localization database not initialized. Call initialize() first.');
     }
 
+    // Pattern to match TXT_KEY_* references, including those within strings
+    const TXT_KEY_PATTERN = /TXT_KEY_[A-Z_]+/g;
+
     // Recursively collect TXT_KEY_* values
     const collectTxtKeys = (obj: any, keys: Set<string>): void => {
       if (obj == null) return;
@@ -132,20 +135,19 @@ export class DatabaseManager {
       if (Array.isArray(obj)) {
         obj.forEach(item => {
           if (typeof item === 'string') {
-            if (item.startsWith('TXT_KEY_') || /^[A-Z_]+$/.test(item)) {
-              keys.add(item);
-            }
+            const matches = item.match(TXT_KEY_PATTERN);
+            if (matches)
+              matches.forEach(match => keys.add(match));
           } else {
             collectTxtKeys(item, keys);
           }
         });
       } else if (typeof obj === 'object') {
-        Object.entries(obj).forEach(([key, value]) => {
+        Object.entries(obj).forEach(([_key, value]) => {
           if (typeof value === 'string') {
-            if (value.startsWith('TXT_KEY_') || 
-                (!key.includes("Type") && /^[A-Z_]+$/.test(value))) {
-              keys.add(value);
-            }
+            const matches = value.match(TXT_KEY_PATTERN);
+            if (matches)
+              matches.forEach(match => keys.add(match));
           } else if (typeof value === 'object') {
             collectTxtKeys(value, keys);
           }
@@ -185,9 +187,6 @@ export class DatabaseManager {
         Text = Text.replaceAll(/[ ]+/g, " ");
         localizationMap.set(Tag, Text);
       });
-      txtKeys.forEach(key => {
-        if (!localizationMap.has(key)) localizationMap.set(key, key);
-      });
     } catch (error) {
       logger.error('Batch localization lookup failed:', error);
       return results;
@@ -196,25 +195,32 @@ export class DatabaseManager {
     // Recursively localize values
     const localizeValue = (obj: any): any => {
       if (obj == null) return obj;
-      if (Array.isArray(obj)) {
-        // Handle array of strings directly
-        return obj.map(item => {
-          if (typeof item === 'string' && localizationMap.has(item)) {
-            return localizationMap.get(item);
-          }
-          return localizeValue(item);
+      
+      // Handle string values - both exact matches and embedded TXT_KEY patterns
+      if (typeof obj === 'string') {
+        // First check for exact match
+        if (localizationMap.has(obj)) {
+          return localizationMap.get(obj);
+        }
+        // Then check for embedded TXT_KEY patterns and replace them
+        return obj.replaceAll(TXT_KEY_PATTERN, (match) => {
+          return localizationMap.get(match) || match;
         });
       }
+      
+      if (Array.isArray(obj)) {
+        // Handle array of items
+        return obj.map(item => localizeValue(item));
+      }
+      
       if (typeof obj === 'object') {
         return Object.entries(obj).reduce((acc, [key, value]) => {
-          acc[key] = typeof value === 'string' && localizationMap.has(value) 
-            ? localizationMap.get(value) 
-            : typeof value === 'object' ? localizeValue(value) : value;
+          acc[key] = localizeValue(value);
           return acc;
         }, {} as Record<any, any>);
       }
-      return typeof obj === 'string' && localizationMap.has(obj) 
-        ? localizationMap.get(obj) : obj;
+      
+      return obj;
     };
 
     return results.map(localizeValue) as T;
