@@ -82,8 +82,8 @@ class SetStrategyTool extends LuaFunctionTool {
         args.PlayerID,
         {
           GrandStrategy: grandStrategy ?? null,
-          EconomicStrategies: economicStrategies ? JSON.stringify(economicStrategies) : null,
-          MilitaryStrategies: militaryStrategies ? JSON.stringify(militaryStrategies) : null,
+          EconomicStrategies: economicStrategies,
+          MilitaryStrategies: militaryStrategies,
           Rationale: args.Rationale
         }
       );

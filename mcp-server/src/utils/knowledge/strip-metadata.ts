@@ -2,18 +2,8 @@
  * Utility functions for stripping database metadata from knowledge objects
  */
 
-import { MutableKnowledge, TimedKnowledge, Knowledge, MaxMajorCivs } from '../schema/base.js';
-
-/**
- * Strip database metadata fields from a Knowledge object
- * Removes auto-generated fields like ID
- * @param obj Knowledge object with metadata
- * @returns Knowledge object without metadata
- */
-export function stripKnowledgeMetadata<T extends Knowledge>(obj: T): Omit<T, 'ID'> {
-  const { ID, ...rest } = obj;
-  return rest;
-}
+import { Selectable } from 'kysely';
+import { MutableKnowledge, TimedKnowledge, MaxMajorCivs } from '../../knowledge/schema/base.js';
 
 /**
  * Strip database metadata fields from a TimedKnowledge object
@@ -21,7 +11,7 @@ export function stripKnowledgeMetadata<T extends Knowledge>(obj: T): Omit<T, 'ID
  * @param obj TimedKnowledge object with metadata
  * @returns TimedKnowledge object without metadata
  */
-export function stripTimedKnowledgeMetadata<T extends TimedKnowledge>(obj: T): Omit<T, 'ID' | 'CreatedAt' | keyof TimedKnowledge> {
+export function stripTimedKnowledgeMetadata<T extends TimedKnowledge>(obj: Partial<Selectable<T>>): Omit<Selectable<T>, 'ID' | 'CreatedAt' | keyof TimedKnowledge> {
   const result: any = {};
   
   for (const key in obj) {
@@ -51,9 +41,9 @@ export function stripTimedKnowledgeMetadata<T extends TimedKnowledge>(obj: T): O
  * @returns Clean object without database metadata
  */
 export function stripMutableKnowledgeMetadata<T extends MutableKnowledge>(
-  obj: T, 
+  obj: Partial<Selectable<T>>, 
   keyFieldName?: string
-): Omit<T, keyof MutableKnowledge | 'ID' | 'CreatedAt' | 'Key'> {
+): Omit<Selectable<T>, keyof MutableKnowledge | 'ID' | 'CreatedAt' | 'Key'> {
   // First strip TimedKnowledge metadata
   const stripped = stripTimedKnowledgeMetadata(obj);
   

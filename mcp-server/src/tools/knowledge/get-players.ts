@@ -8,10 +8,10 @@ import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
-import { stripMutableKnowledgeMetadata } from "../../knowledge/utils/strip-metadata.js";
 import { PlayerSummary } from "../../knowledge/schema/timed.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -76,31 +76,6 @@ class GetPlayersTool extends ToolBase {
   }
 
   /**
-   * Save PlayerSummaries to the database using KnowledgeStore
-   */
-  private async savePlayerSummaries(summaries: Partial<PlayerSummary>[]): Promise<void> {
-    const store = knowledgeManager.getStore();
-    
-    // For each summary, save using the store's mutable knowledge method
-    for (const summary of summaries) {
-      if (!('Key' in summary) || summary.Key === undefined) continue;
-      
-      const playerID = summary.Key;
-      
-      // Set visibility - player can see their own data
-      const visibilityFlags = [playerID];
-      
-      // Save using the store's method which handles versioning and change detection
-      await store.storeMutableKnowledge(
-        'PlayerSummaries',
-        playerID,
-        summary as any,
-        visibilityFlags
-      );
-    }
-  }
-
-  /**
    * Execute the tool to retrieve player data
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
@@ -108,12 +83,15 @@ class GetPlayersTool extends ToolBase {
     const playerInfos = await getPlayerInformations();
     
     // Get current player summaries
+    const store = knowledgeManager.getStore();
     const playerSummaries = await getPlayerSummaries();
-    try {
-      await this.savePlayerSummaries(playerSummaries);
-    } catch (error) {
-      console.error("Failed to save player summaries to database:", error);
-    }
+    for (var summary of playerSummaries) {
+      await store.storeMutableKnowledge(
+        'PlayerSummaries',
+        summary.Key!,
+        summary
+      );
+    };
   
     // Combine the data and create dictionary
     const playersDict: Record<string, z.infer<typeof PlayerDataSchema>> = {};
@@ -123,7 +101,7 @@ class GetPlayersTool extends ToolBase {
       const summary = playerSummaries.find(s => s.Key === playerID);
       
       // Strip metadata and rename Key to PlayerID
-      const cleanSummary = stripMutableKnowledgeMetadata(summary as PlayerSummary);
+      const cleanSummary = stripMutableKnowledgeMetadata<PlayerSummary>(summary!);
       
       const playerData: z.infer<typeof PlayerDataSchema> = {
         // Static information
@@ -135,7 +113,6 @@ class GetPlayersTool extends ToolBase {
         IsMajor: info.IsMajor,
         // Dynamic summary (if available)
         ...cleanSummary,
-        PolicyBranches: cleanSummary.PolicyBranches.__select__
       };
       
       // Add to dictionary if not filtered or matches filter

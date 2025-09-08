@@ -3,9 +3,10 @@
  * Provides type-safe CRUD operations using Kysely query builder
  */
 
-import { Kysely, ParseJSONResultsPlugin, SqliteDialect, Insertable, Selectable } from 'kysely';
+import { Kysely, ParseJSONResultsPlugin, SqliteDialect, Selectable } from 'kysely';
 import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
+import { JsonSerializePlugin } from '../utils/json-serialize-plugin.js';
 import type { 
   KnowledgeDatabase,
   MutableKnowledge,
@@ -67,7 +68,7 @@ export class KnowledgeStore {
       dialect: new SqliteDialect({
         database: sqliteDb,
       }),
-      plugins: [new ParseJSONResultsPlugin()],
+      plugins: [new JsonSerializePlugin(), new ParseJSONResultsPlugin()],
     });
 
     // Setup database schema if needed
@@ -208,7 +209,7 @@ export class KnowledgeStore {
         ID: id,
         Turn: knowledgeManager.getTurn(),
         Type: type,
-        Payload: JSON.stringify(payload),
+        Payload: payload,
       } as any,
       visibilityFlags
     );
@@ -272,7 +273,7 @@ export class KnowledgeStore {
    */
   async storeMutableKnowledge<
     TTable extends keyof KnowledgeDatabase,
-    TData extends Partial<Insertable<KnowledgeDatabase[TTable]>>
+    TData extends Partial<Selectable<KnowledgeDatabase[TTable]>>
   >(
     tableName: TTable,
     key: number,
@@ -320,10 +321,10 @@ export class KnowledgeStore {
           Turn: turn,
           Version: newVersion,
           IsLatest: 1,
-          Changes: JSON.stringify(changes),
-          Payload: JSON.stringify(data),
+          Changes: changes,
+          Payload: data,
         };
-        
+
         // Apply visibility flags if provided
         if (visibilityFlags) {
           applyVisibility(newEntry, visibilityFlags);
@@ -419,7 +420,7 @@ export class KnowledgeStore {
    */
   async storePublicKnowledge<
     TTable extends keyof KnowledgeDatabase,
-    TData extends Omit<Partial<Insertable<KnowledgeDatabase[TTable]>>, "ID" | "Data">
+    TData extends Omit<Partial<Selectable<KnowledgeDatabase[TTable]>>, "ID" | "Data">
   >(
     tableName: TTable,
     key: number,

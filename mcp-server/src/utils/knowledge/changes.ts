@@ -25,10 +25,6 @@ export function detectChanges<T extends Record<string, any>>(
     if (isMetadataField(key)) {
       continue;
     }
-    // Skip player visibility fields  
-    if (isVisibilityField(key)) {
-      continue;
-    }
     
     // Compare values (handle JSON fields properly)
     const oldValue = oldData[key];

@@ -1,7 +1,32 @@
 -- Extract player summary information from the game
--- Returns summary data visible to met players
+-- Returns summary data with relative visibility between all players
 
 local summaries = {}
+
+-- Helper function to calculate visibility between two players
+local function getVisibility(fromPlayerID, toPlayerID)
+  if fromPlayerID == toPlayerID then
+    return 2  -- Self
+  end
+  
+  local fromPlayer = Players[fromPlayerID]
+  local toPlayer = Players[toPlayerID]
+  
+  if not fromPlayer or not toPlayer then
+    return 0
+  end
+  
+  local fromTeamID = fromPlayer:GetTeam()
+  local toTeamID = toPlayer:GetTeam()
+  
+  if fromTeamID == toTeamID then
+    return 2  -- Team member
+  elseif Teams[fromTeamID]:IsHasMet(toTeamID) then
+    return 1  -- Met
+  else
+    return 0  -- Not met
+  end
+end
 
 -- Iterate through all possible players
 for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
@@ -22,6 +47,15 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       CreatedReligion = "",
       MajorityReligion = player:GetStateReligionName()
     }
+    
+    -- Add relative visibility to all other players
+    for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
+      local otherPlayer = Players[otherPlayerID]
+      if otherPlayer and otherPlayer:IsEverAlive() then
+        local fieldName = "Player" .. otherPlayerID
+        summary[fieldName] = getVisibility(playerID, otherPlayerID)
+      end
+    end
     
     -- Get ally for minor civs (major ally of city-state)
     if player:IsMinorCiv() then
