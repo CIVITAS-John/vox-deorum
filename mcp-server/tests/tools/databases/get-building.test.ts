@@ -105,6 +105,8 @@ describe("Get Building Tool via MCP", () => {
       expect(typeof building.Defense).toBe("number");
       expect(typeof building.HP).toBe("number");
       expect(typeof building.Maintenance).toBe("number");
+      expect(building.UniqueOf).toBeDefined();
+      expect(Array.isArray(building.UniqueOf)).toBe(true);
     }
   });
 
@@ -133,6 +135,63 @@ describe("Get Building Tool via MCP", () => {
       // University typically requires Library
       if (building.PrereqBuildings.length > 0) {
         expect(building.PrereqBuildings[0]).toContain("Library");
+      }
+    }
+  });
+
+  /**
+   * Test that UniqueOf field shows civilizations with unique versions
+   */
+  it("should include UniqueOf field for buildings with unique versions", async () => {
+    const result = await mcpClient.callTool({
+      name: "get-building",
+      arguments: { 
+        Search: "BUILDING_LIBRARY" // Test with Library which may have unique versions
+      }
+    });
+
+    expect(result.content).toBeDefined();
+    const content = (result.content as any)[0];
+    expect(content.type).toBe("text");
+    
+    if (content.type === "text") {
+      const parsed = JSON.parse(content.text);
+      expect(parsed.Count).toBe(1);
+      
+      const building = parsed.Items[0];
+      // Check that UniqueOf field exists and is an array
+      expect(building.UniqueOf).toBeDefined();
+      expect(Array.isArray(building.UniqueOf)).toBe(true);
+    }
+  });
+
+  /**
+   * Test a known unique building
+   */
+  it("should properly show UniqueOf for unique buildings", async () => {
+    const result = await mcpClient.callTool({
+      name: "get-building",
+      arguments: { 
+        Search: "BUILDING_PAPER_MAKER" // Chinese unique Library
+      }
+    });
+
+    expect(result.content).toBeDefined();
+    const content = (result.content as any)[0];
+    expect(content.type).toBe("text");
+    
+    if (content.type === "text") {
+      const parsed = JSON.parse(content.text);
+      
+      // If Paper Maker exists in the database
+      if (parsed.Count > 0) {
+        const building = parsed.Items[0];
+        expect(building.UniqueOf).toBeDefined();
+        expect(Array.isArray(building.UniqueOf)).toBe(true);
+        // Paper Maker is Chinese unique
+        if (building.UniqueOf.length > 0) {
+          expect(building.UniqueOf).toContain("Chinese");
+        }
       }
     }
   });

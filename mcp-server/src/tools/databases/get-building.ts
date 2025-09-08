@@ -10,7 +10,8 @@ const BuildingSummarySchema = z.object({
   Name: z.string(),
   Help: z.string(),
   Cost: z.number(),
-  PrereqTech: z.string().nullable()
+  PrereqTech: z.string().nullable(),
+  UniqueOf: z.string().nullable()
 });
 
 /**
@@ -25,7 +26,8 @@ const BuildingReportSchema = BuildingSummarySchema.extend({
   Happiness: z.number(),
   Defense: z.number(),
   HP: z.number(),
-  Maintenance: z.number()
+  Maintenance: z.number(),
+  UniqueOf: z.string().nullable()
 });
 
 type BuildingSummary = z.infer<typeof BuildingSummarySchema>;
@@ -62,12 +64,15 @@ class GetBuildingTool extends DatabaseQueryTool<BuildingSummary, BuildingReport>
     return await gameDatabase.getDatabase()
       .selectFrom("Buildings as b")
       .leftJoin("Technologies as t", "b.PrereqTech", "t.Type")
+      .leftJoin("Civilization_BuildingClassOverrides as cbo", "cbo.BuildingType", "b.Type")
+      .leftJoin("Civilizations as c", "c.Type", "cbo.CivilizationType")
       .select([
         'b.Type', 
         'b.Description as Name', 
         'b.Help', 
         'b.Cost', 
-        't.Description as PrereqTech'
+        't.Description as PrereqTech',
+        'c.ShortDescription as UniqueOf'
       ])
       .execute() as BuildingSummary[];
   }
@@ -86,13 +91,15 @@ export default function createGetBuildingTool() {
  * Fetch full building information for a specific building
  */
 export async function getBuilding(buildingType: string) {
-  // Fetch base building info with technology name
+  // Fetch base building info with technology name and unique civilization
   const db = gameDatabase.getDatabase();
   const building = await db
     .selectFrom('Buildings as b')
     .leftJoin('Technologies as t', 'b.PrereqTech', 't.Type')
+    .leftJoin('Civilization_BuildingClassOverrides as cbo', 'cbo.BuildingType', 'b.Type')
+    .leftJoin('Civilizations as c', 'c.Type', 'cbo.CivilizationType')
     .selectAll('b')
-    .select('t.Description as PrereqTechName')
+    .select(['t.Description as PrereqTechName', 'c.ShortDescription as UniqueCivName'])
     .where('b.Type', '=', buildingType)
     .executeTakeFirst();
   
@@ -109,7 +116,7 @@ export async function getBuilding(buildingType: string) {
   
   // Get prerequisite buildings
   const prereqBuildings = await db
-    .selectFrom('Building_PrereqBuildingClasses')
+    .selectFrom('Building_ClassesNeededInCity')
     .select('BuildingClassType')
     .innerJoin('BuildingClasses as bc', 'bc.Type', 'BuildingClassType')
     .select('bc.Description')
@@ -135,6 +142,7 @@ export async function getBuilding(buildingType: string) {
     Happiness: building.Happiness || 0,
     Defense: building.Defense || 0,
     HP: building.ExtraCityHitPoints || 0,
-    Maintenance: building.GoldMaintenance || 0
+    Maintenance: building.GoldMaintenance || 0,
+    UniqueOf: building.UniqueCivName || null
   };
 }

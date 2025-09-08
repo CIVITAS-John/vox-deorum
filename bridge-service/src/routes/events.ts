@@ -100,7 +100,7 @@ function sendSSEMessage(res: Response, event: string, data: any): void {
  * Broadcast event to all connected SSE clients
  */
 function broadcastEvent(gameEvent: GameEvent): void {
-  logger.debug(`Broadcasting event to ${sseClients.size} clients: ${gameEvent.type}`);
+  logger.info(`Broadcasting event to ${sseClients.size} clients: ${gameEvent.type}`);
   
   const disconnectedClients: string[] = [];
   

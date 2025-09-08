@@ -200,20 +200,6 @@ export class MCPServer {
       
       // Connect to SSE stream for game events
       this.bridgeManager.connectSSE();
-      
-      // Set up event listeners
-      this.bridgeManager.on('connected', () => {
-        logger.info('Connected to Bridge Service SSE stream');
-      });
-      
-      this.bridgeManager.on('disconnected', () => {
-        logger.warn('Disconnected from Bridge Service SSE stream');
-      });
-      
-      this.bridgeManager.on('gameEvent', (event) => {
-        logger.debug('Received game event:', event);
-        // Game events are now processed by KnowledgeManager
-      });
     } catch (error: any) {
       throw new Error('Failed to connect to Bridge Service: ' + (error.message ?? "unknown error"), error);
     }

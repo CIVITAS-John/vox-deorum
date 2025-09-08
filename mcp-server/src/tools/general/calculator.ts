@@ -1,7 +1,6 @@
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { evaluate } from "mathjs";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Calculator tool that wraps mathjs for mathematical operations

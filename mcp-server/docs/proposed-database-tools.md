@@ -35,7 +35,8 @@ Query unit capabilities, strengths, maintenance costs, and requirements. Essenti
     Quantity: number
   }[],
   FreePromotions: string[],              // Promotions unit starts with
-  Maintenance: number                   // Gold per turn maintenance
+  Maintenance: number,                   // Gold per turn maintenance
+  UniqueOf?: string                   // If a unique building of a civilization
 }
 ```
 
@@ -67,6 +68,7 @@ Retrieve building benefits, costs, prerequisites, and yield changes. Critical fo
   Defense: number,                       // Defense bonus
   HP: number,                     // City HP bonus
   Maintenance: number,                   // Gold per turn maintenance
+  UniqueOf?: string                   // If a unique building of a civilization
 }
 ```
 
@@ -131,7 +133,7 @@ Query civilization unique abilities, units, and buildings. Essential for underst
 {
   Type: string,           // e.g., "CIVILIZATION_ROME"
   Name: string,           // e.g., "Rome"
-  Abilities: string[],    // Unique abilities of both leader and civilization
+  Abilities: string[],    // Unique abilities of both leader and civilization - in a short form, e.g. "Building: "
   Leader: string,         // Default leader name
 }
 ```
@@ -144,6 +146,7 @@ Query civilization unique abilities, units, and buildings. Essential for underst
     Type: string, // Building, Ability, etc
     Name: string,  // Localized name of the unique thingy
     Help: string  // maybe help/strategy/longer description of the unique thingy
+    Replacing?: string // only for building/unit, the localized name of thingy replaced
   }
   Archetype: string // Leader info "Personality"
   Traits: string[] // the sub-table

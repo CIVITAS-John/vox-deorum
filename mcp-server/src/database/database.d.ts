@@ -8322,7 +8322,7 @@ export interface DB {
   // BuildingBuildingClassYieldChanges: BuildingBuildingClassYieldChange;
   // BuildingBuildingClassYieldModifiers: BuildingBuildingClassYieldModifier;
   BuildingClasses: BuildingClass;
-  // BuildingClassesNeededInCity: BuildingClassesNeededInCity;
+  Building_ClassesNeededInCity: BuildingClassesNeededInCity;
   // BuildingClassNeededAnywhere: BuildingClassNeededAnywhere;
   // BuildingClassNeededNowhere: BuildingClassNeededNowhere;
   // BuildingClassVictoryThresholds: BuildingClassVictoryThreshold;
@@ -8359,7 +8359,7 @@ export interface DB {
   // BuildingLockedBuildingClasses: BuildingLockedBuildingClass;
   // BuildingLuxuryYieldChanges: BuildingLuxuryYieldChange;
   // BuildingPlotYieldChanges: BuildingPlotYieldChange;
-  Building_PrereqBuildingClasses: BuildingPrereqBuildingClass;
+  // Building_PrereqBuildingClasses: BuildingPrereqBuildingClass;
   // BuildingResourceClaim: BuildingResourceClaim;
   // BuildingResourceCultureChanges: BuildingResourceCultureChange;
   // BuildingResourceFaithChanges: BuildingResourceFaithChange;
@@ -8493,7 +8493,7 @@ export interface DB {
   // CitySpecializations: CitySpecialization;
   // CitySpecializationTargetYields: CitySpecializationTargetYield;
   // CivilianAttackPriorities: CivilianAttackPriority;
-  // CivilizationBuildingClassOverrides: CivilizationBuildingClassOverride;
+  Civilization_BuildingClassOverrides: CivilizationBuildingClassOverride;
   // CivilizationCityNames: CivilizationCityName;
   // CivilizationDisableTechs: CivilizationDisableTech;
   // CivilizationFreeBuildingClasses: CivilizationFreeBuildingClass;
