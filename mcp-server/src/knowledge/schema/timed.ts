@@ -33,9 +33,9 @@ export interface PlayerSummary extends MutableKnowledge {
   GoldPerTurn: number; // Player:CalculateGoldRateTimes100() / 100
   TourismPerTurn: number;
   Technologies: number;
-  PolicyBranches: JSONColumnType<Record<string, boolean>>;
-  CreatedReligion: string;
-  MajorityReligion: string;
+  PolicyBranches: JSONColumnType<Record<string, number>>;
+  CreatedReligion: string | null;
+  MajorityReligion: string | null;
   
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)
 }

@@ -87,7 +87,7 @@ export class KnowledgeStore {
         await this.storePublicKnowledge('PlayerInformations', player.Key, player);
       }
       
-      logger.info(`Stored player information for ${players.length} player(s)`);
+      logger.info(`Stored player information for ${players.length} players`);
     } catch (error) {
       logger.error('Failed to retrieve or store player information:', error);
       // Continue initialization even if player info fails - it can be retrieved later
@@ -444,7 +444,7 @@ export class KnowledgeStore {
         )
         .execute();
       
-      logger.info(
+      logger.debug(
         `Stored ${tableName} public knowledge - Key: ${key}`
       );
     } catch (error) {

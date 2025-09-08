@@ -58,8 +58,8 @@ export async function setupKnowledgeDatabase(
     .addColumn('TourismPerTurn', 'integer', (col) => col.notNull())
     .addColumn('PolicyBranches', 'text', (col) => col.notNull()) // JSON object
     .addColumn('Technologies', 'integer', (col) => col.notNull())
-    .addColumn('CreatedReligion', 'text', (col) => col.notNull())
-    .addColumn('MajorityReligion', 'text', (col) => col.notNull())
+    .addColumn('CreatedReligion', 'text')
+    .addColumn('MajorityReligion', 'text')
     .execute();
   // Create indexes for PlayerSummaries table
   await createMutableKnowledgeIndexes(db, 'PlayerSummaries');
