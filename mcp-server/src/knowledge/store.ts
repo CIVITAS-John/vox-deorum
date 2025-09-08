@@ -426,15 +426,12 @@ export class KnowledgeStore {
     data: TData
   ): Promise<void> {
     const db = this.getDatabase();
-    const turn = knowledgeManager.getTurn();
     
     try {
       // Prepare the entry with standard fields
       const entry: any = {
         ...data,
-        Key: key,
-        Turn: turn,
-        Payload: JSON.stringify(data),
+        Key: key
       };
       
       // Insert or update the entry
@@ -448,7 +445,7 @@ export class KnowledgeStore {
         .execute();
       
       logger.info(
-        `Stored ${tableName} public knowledge - Key: ${key}, Turn: ${turn}`
+        `Stored ${tableName} public knowledge - Key: ${key}`
       );
     } catch (error) {
       logger.error(`Error storing PublicKnowledge in ${tableName}:`, error);

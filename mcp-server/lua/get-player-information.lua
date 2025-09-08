@@ -14,8 +14,8 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       TeamID = player:GetTeam(),
       Civilization = player:GetCivilizationShortDescription(),
       Leader = player:GetName(),
-      IsHuman = player:IsHuman(),
-      IsMajor = player:IsMajorCiv()
+      IsHuman = player:IsHuman() and 1 or 0,
+      IsMajor = player:IsMajorCiv() and 1 or 0
     }
     
     -- Add to results
