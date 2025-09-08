@@ -10,6 +10,7 @@ import { ElicitRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from './logger.js';
 import { config, VoxAgentsConfig } from './config.js';
 import { Tool as VercelTool, dynamicTool, ToolSet } from 'ai';
+import { convertJsonSchemaToZod } from 'zod-from-json-schema';
 
 const logger = createLogger('MCPClient');
 
@@ -203,8 +204,8 @@ export const mcpClient = new MCPClient(config);
 export function wrapTool(tool: Tool): VercelTool {
   return dynamicTool({
     description: tool.description || `MCP tool: ${tool.name}`,
-    inputSchema: tool.inputSchema as any,
-    execute: async (args, options) => {
+    inputSchema: convertJsonSchemaToZod(tool.inputSchema as any) as any,
+    execute: async (args) => {
       logger.info(`Calling tool ${tool.name}...`);
       const result = await mcpClient.callTool(tool.name, args);
       logger.info(`Tool call completed: ${tool.name}`, result);
