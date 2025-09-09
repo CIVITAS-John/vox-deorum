@@ -26,6 +26,9 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@ai-sdk-tool/eval": "^0.1.8",
+    "@ai-sdk-tool/parser": "^2.1.7",
+    "@ai-sdk/openai": "^2.0.27",
     "@langfuse/otel": "^4.0.0",
     "@langfuse/tracing": "^4.0.0",
     "@modelcontextprotocol/sdk": "^1.17.5",

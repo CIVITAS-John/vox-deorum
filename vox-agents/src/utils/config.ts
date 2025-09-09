@@ -63,8 +63,8 @@ const defaultConfig: VoxAgentsConfig = {
   },
   llms: {
     default: {
-      provider: 'openrouter',
-      name: 'meta-llama/llama-4-scout:free'
+      provider: 'openai',
+      name: 'gpt-5-mini'
     }
   }
 };

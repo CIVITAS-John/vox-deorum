@@ -14,8 +14,8 @@
   },
   "llms": {
     "default": {
-      "provider": "openrouter",
-      "name": "meta-llama/llama-4-maverick:free"
+      "provider": "openai",
+      "name": "gpt-5-mini"
     }
   }
 }
