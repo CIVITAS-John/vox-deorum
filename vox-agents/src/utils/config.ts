@@ -20,6 +20,7 @@ export type TransportType = 'stdio' | 'http';
 export interface Model {
   provider: string;
   name: string;
+  options?: Record<string, any>;
 }
 
 /**

@@ -1,14 +1,14 @@
 import { VoxContext } from "../infra/vox-context.js";
 import { langfuseSpanProcessor } from "../instrumentation.js";
 import { mcpClient } from "../utils/mcp-client.js";
-import { getModel } from "../utils/models.js";
+import { getModelConfig } from "../utils/models.js";
 import { SimpleStrategist } from "./simple-strategist.js";
 
 // Connect to the server
 await mcpClient.connect();
 
 // Create the context
-const context = new VoxContext(getModel("default"));
+const context = new VoxContext(getModelConfig("default"));
 await context.registerMCP();
 
 // Register agents

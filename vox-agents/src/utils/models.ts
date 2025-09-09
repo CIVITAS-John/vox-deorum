@@ -23,25 +23,24 @@ export function getModelConfig(name: string = 'default'): Model {
 /**
  * Get a LLM model instance by name
  */
-export function getModel(name: string): LanguageModel {
-  const model = getModelConfig(name);
+export function getModel(config: Model): LanguageModel {
   var result: LanguageModel;
   // Find providers
-  switch (model.provider) {
+  switch (config.provider) {
     case "openrouter":
-      result = createOpenRouter()(model.name);
+      result = createOpenRouter()(config.name);
       break;
     case "openai":
-      result = createOpenAI()(model.name);
+      result = createOpenAI()(config.name);
       break;
     case "google":
-      result = createGoogleGenerativeAI()(model.name);
+      result = createGoogleGenerativeAI()(config.name);
       break;
     default:
-      throw new Error(`Unsupported provider: ${model.provider}`);
+      throw new Error(`Unsupported provider: ${config.provider}`);
   }
   // Wrap it for tool calling
-  if (model.name.indexOf("gemma3") !== -1) {
+  if (config.name.indexOf("gemma3") !== -1) {
     result = wrapLanguageModel({
       model: result,
       middleware: gemmaToolMiddleware

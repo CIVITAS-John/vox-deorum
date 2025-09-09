@@ -15,11 +15,14 @@
   "llms": {
     "default": {
       "provider": "openai",
-      "name": "gpt-5-mini"
+      "name": "gpt-5-mini",
+      "options": {
+        "reasoningEffort": "minimal"
+      }
     },
     "gemma3": {
-      "provider": "openai",
-      "name": "gpt-5-mini"
+      "provider": "google",
+      "name": "gemma-3-27b-it"
     }
   }
 } 

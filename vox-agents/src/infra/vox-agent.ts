@@ -1,6 +1,7 @@
 import { LanguageModel, Tool, StepResult, ModelMessage } from "ai";
 import { createLogger } from "../utils/logger.js";
 import { z } from "zod";
+import { Model } from "../utils/config.js";
 
 /**
  * Parameters for the basic agent
@@ -47,7 +48,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters<T>, TInput
    * @param parameters - The execution parameters
    * @returns The language model to use, or undefined for default
    */
-  public getModel(_parameters: TParameters): LanguageModel | undefined {
+  public getModel(_parameters: TParameters): Model | undefined {
     return undefined;
   }
   

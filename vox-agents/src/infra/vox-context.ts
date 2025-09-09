@@ -1,10 +1,12 @@
-import { generateText, LanguageModel, Output, Tool } from "ai";
+import { generateText, Output, Tool } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tool-wrappers.js";
 import { mcpClient } from "../utils/mcp-client.js";
 import { startActiveObservation } from "@langfuse/tracing";
 import { ZodObject } from "zod/v4/index.js";
+import { Model } from "../utils/config.js";
+import { getModel } from "../utils/models.js";
 
 /**
  * Runtime context for executing Vox Agents.
@@ -28,13 +30,13 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
   /**
    * Default language model to use when agents don't specify one
    */
-  public defaultModel: LanguageModel;
+  public defaultModel: Model;
   
   /**
    * Constructor for VoxContext
    * @param defaultModel - The default language model to use
    */
-  constructor(defaultModel: LanguageModel) {
+  constructor(defaultModel: Model) {
     this.defaultModel = defaultModel;
     this.logger.info('VoxContext initialized');
   }
@@ -110,8 +112,12 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
         }
         
         // Execute the agent using generateText
+        var model = agent.getModel(parameters) ?? this.defaultModel;
         const response = await generateText({
-          model: agent.getModel(parameters) ?? this.defaultModel,
+          model: getModel(model),
+          providerOptions: {
+            [model.provider]: model.options
+          } as any,
           messages: [{
             role: "system",
             content: agent.getSystem(parameters)
