@@ -64,6 +64,7 @@ export class VoxContext<TParameters> {
     for (var tool of Object.keys(mcpTools)) {
       this.tools[tool] = mcpTools[tool];
     }
+    this.logger.info(`MCP tools registered: ${Object.keys(mcpTools).length}`)
   }
   
   /**
