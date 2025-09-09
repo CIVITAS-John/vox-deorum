@@ -7,6 +7,7 @@ import { config, type Model } from './config.js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createOpenAI } from '@ai-sdk/openai';
 import { gemmaToolMiddleware } from '@ai-sdk-tool/parser';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
 /**
  * Get a LLM model config by name
@@ -32,6 +33,9 @@ export function getModel(name: string): LanguageModel {
       break;
     case "openai":
       result = createOpenAI()(model.name);
+      break;
+    case "google":
+      result = createGoogleGenerativeAI()(model.name);
       break;
     default:
       throw new Error(`Unsupported provider: ${model.provider}`);

@@ -72,12 +72,34 @@ export function createAgentTool<T, TParameters extends AgentParameters<T>, TInpu
  */
 export function wrapMCPTool(tool: Tool): VercelTool {
   const logger = createLogger(`MCPTool-${tool.name}`);
+  
+  // Remove autoComplete fields from input schema
+  const filteredSchema = { ...tool.inputSchema };
+  if (filteredSchema.properties && tool.annotations?.autoComplete) {
+    const autoCompleteFields = tool.annotations.autoComplete as string[];
+    const filteredProperties = { ...filteredSchema.properties };
+    
+    // Remove autoComplete fields from properties
+    autoCompleteFields.forEach(field => {
+      delete filteredProperties[field];
+    });
+    
+    // Remove autoComplete fields from required array if present
+    if (filteredSchema.required) {
+      filteredSchema.required = filteredSchema.required.filter(
+        (field: string) => !autoCompleteFields.includes(field)
+      );
+    }
+    
+    filteredSchema.properties = filteredProperties;
+  }
+  
   return dynamicTool({
     description: tool.description || `MCP tool: ${tool.name}`,
-    inputSchema: jsonSchema(tool.inputSchema),
+    inputSchema: jsonSchema(filteredSchema),
     execute: async (args: any, options) => {
       return await startActiveObservation("mcp-tool: " + tool.name, async(observation) => {
-        // Autocomplete support
+        // Autocomplete support - add the fields back for execution
         if (tool.annotations?.autoComplete) {
           (tool.annotations?.autoComplete as string[]).forEach(
             value => args[value] = (options.experimental_context as any)[value]

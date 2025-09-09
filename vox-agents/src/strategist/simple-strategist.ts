@@ -68,7 +68,7 @@ Current context:
     // Stop if we've executed set-strategy tool
     if (lastStep?.toolCalls) {
       for (const toolCall of lastStep.toolCalls) {
-        if (toolCall.toolName === "set-strategy" && !toolCall.invalid) {
+        if (toolCall.toolName === "set-strategy" && !toolCall.invalid && !toolCall.error) {
           this.logger.info("Set-strategy tool executed, stopping agent");
           return true;
         }

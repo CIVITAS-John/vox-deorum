@@ -16,6 +16,10 @@
     "default": {
       "provider": "openai",
       "name": "gpt-5-mini"
+    },
+    "gemma3": {
+      "provider": "openai",
+      "name": "gpt-5-mini"
     }
   }
-}
+} 

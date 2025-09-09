@@ -1,9 +1,10 @@
-import { generateText, LanguageModel, Tool } from "ai";
+import { generateText, LanguageModel, Output, Tool } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tool-wrappers.js";
 import { mcpClient } from "../utils/mcp-client.js";
 import { startActiveObservation } from "@langfuse/tracing";
+import { ZodObject } from "zod/v4/index.js";
 
 /**
  * Runtime context for executing Vox Agents.
@@ -78,7 +79,8 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
    */
   public async execute(
     agentName: string, 
-    parameters: TParameters
+    parameters: TParameters,
+    outputSchema?: ZodObject
   ): Promise<string> {
     const agent = this.agents[agentName];
     if (!agent) {
@@ -122,6 +124,9 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
             functionId: agentName
           },
           experimental_context: parameters,
+          experimental_output: outputSchema ? Output.object({
+              schema: outputSchema
+            }) : undefined,
           stopWhen: (context) => {
             const lastStep = context.steps[context.steps.length - 1];
             const shouldStop = agent.stopCheck(parameters, lastStep, context.steps);
