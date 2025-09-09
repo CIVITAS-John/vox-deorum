@@ -1,13 +1,16 @@
 import { LanguageModel, Tool, StepResult, ModelMessage } from "ai";
 import { createLogger } from "../utils/logger.js";
+import { z } from "zod";
 
 /**
  * Abstract base class for all Vox Agents.
  * Provides a framework for implementing AI agents that can be executed within the Vox context.
  * 
  * @template TParameters - The type of parameters that will be passed to this agent
+ * @template TInput - The type of input this agent accepts when called as a tool
+ * @template TOutput - The type of output this agent produces when called as a tool
  */
-export abstract class VoxAgent<TParameters> {
+export abstract class VoxAgent<TParameters, TInput = unknown, TOutput = unknown> {
   protected logger = createLogger(this.constructor.name);
   
   /**
@@ -16,13 +19,30 @@ export abstract class VoxAgent<TParameters> {
   abstract readonly name: string;
   
   /**
+   * Optional description for when this agent is exposed as a tool
+   */
+  public toolDescription?: string;
+  
+  /**
+   * Optional input schema for when this agent is exposed as a tool
+   */
+  public inputSchema?: z.ZodSchema<TInput>;
+  
+  /**
+   * Optional output schema for when this agent is exposed as a tool
+   */
+  public outputSchema?: z.ZodSchema<TOutput>;
+  
+  /**
    * Gets the language model to use for this agent execution.
    * Can return undefined to use the default model from VoxContext.
    * 
    * @param parameters - The execution parameters
    * @returns The language model to use, or undefined for default
    */
-  abstract getModel(parameters: TParameters): LanguageModel | undefined;
+  public getModel(_parameters: TParameters): LanguageModel | undefined {
+    return undefined;
+  }
   
   /**
    * Gets the system prompt for this agent.
@@ -31,7 +51,7 @@ export abstract class VoxAgent<TParameters> {
    * @param parameters - The execution parameters
    * @returns The system prompt string
    */
-  abstract getSystem(parameters: TParameters): string;
+  public abstract getSystem(parameters: TParameters): string;
   
   /**
    * Gets the list of active tools for this agent execution.
@@ -40,7 +60,7 @@ export abstract class VoxAgent<TParameters> {
    * @param parameters - The execution parameters
    * @returns Array of tool names that should be active, or undefined for all tools
    */
-  abstract getActiveTools(parameters: TParameters): string[] | undefined;
+  public abstract getActiveTools(parameters: TParameters): string[] | undefined;
   
   /**
    * Determines whether the agent should stop execution.
@@ -51,11 +71,24 @@ export abstract class VoxAgent<TParameters> {
    * @param allSteps - All steps executed so far
    * @returns True if the agent should stop, false to continue
    */
-  abstract stopCheck(
-    parameters: TParameters,
-    lastStep: StepResult<Record<string, Tool>>,
-    allSteps: StepResult<Record<string, Tool>>[]
-  ): boolean;
+  public stopCheck(
+    _parameters: TParameters,
+    _lastStep: StepResult<Record<string, Tool>>,
+    _allSteps: StepResult<Record<string, Tool>>[]
+  ): boolean {
+    return _allSteps.length >= 10;
+  }
+  
+  /**
+   * Gets the initial messages to include in the conversation.
+   * These messages will be added after the system prompt.
+   * 
+   * @param parameters - The execution parameters
+   * @returns Array of initial messages, or empty array if none
+   */
+  public getInitialMessages(_parameters: TParameters): ModelMessage[] {
+    return [];
+  }
   
   /**
    * Prepares the next step in the agent execution.
@@ -67,15 +100,17 @@ export abstract class VoxAgent<TParameters> {
    * @param messages - The current message history
    * @returns Configuration for the next step, or empty object for defaults
    */
-  abstract prepareStep(
-    parameters: TParameters,
-    lastStep: StepResult<Record<string, Tool>>,
-    allSteps: StepResult<Record<string, Tool>>[],
-    messages: ModelMessage[]
+  public prepareStep(
+    _parameters: TParameters,
+    _lastStep: StepResult<Record<string, Tool>>,
+    _allSteps: StepResult<Record<string, Tool>>[],
+    _messages: ModelMessage[]
   ): {
     model?: LanguageModel;
     toolChoice?: any;
     activeTools?: string[];
     messages?: ModelMessage[];
-  };
+  } {
+    return {};
+  }
 }

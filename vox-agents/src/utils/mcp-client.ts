@@ -9,8 +9,6 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { ElicitRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from './logger.js';
 import { config, VoxAgentsConfig } from './config.js';
-import { Tool as VercelTool, dynamicTool, ToolSet } from 'ai';
-import { convertJsonSchemaToZod } from 'zod-from-json-schema';
 
 const logger = createLogger('MCPClient');
 
@@ -191,33 +189,3 @@ export class MCPClient {
  * Create and export a singleton instance
  */
 export const mcpClient = new MCPClient(config);
-/**
- * Wrap a MCP tool for Vercel AI.
- */
-export function wrapTool(tool: Tool): VercelTool {
-  return dynamicTool({
-    description: tool.description || `MCP tool: ${tool.name}`,
-    inputSchema: convertJsonSchemaToZod(tool.inputSchema as any) as any,
-    execute: async (args: any, options) => {
-      // Autocomplete support
-      if (tool.annotations?.autoComplete) {
-        (tool.annotations?.autoComplete as string[]).forEach(
-          value => args[value] = (options.experimental_context as any)[value]
-        )
-      }
-      logger.info(`Calling tool ${tool.name}...`, args);
-      // Call the tool
-      const result = await mcpClient.callTool(tool.name, args);
-      logger.info(`Tool call completed: ${tool.name}`, result);
-      return result;
-    }
-  });
-}
-/**
- * Wrap a MCP tool for Vercel AI.
- */
-export function wrapTools(tools: Tool[]): ToolSet {
-  var results: Record<string, VercelTool> = {};
-  tools.forEach(tool => results[tool.name] = wrapTool(tool));
-  return results;
-}
