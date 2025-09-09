@@ -8,8 +8,9 @@ import { VoxAgent } from "../infra/vox-agent.js";
  * Parameters for the strategist agent
  */
 export interface StrategistParameters {
-  playerID?: number;
-  turnNumber?: number;
+  PlayerID: number;
+  Turn: number;
+  After: number;
 }
 
 /**
