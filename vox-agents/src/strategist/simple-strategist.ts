@@ -67,10 +67,10 @@ Game context:
     allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {
     // Stop if we've executed set-strategy tool
-    if (lastStep?.toolCalls) {
-      for (const toolCall of lastStep.toolCalls) {
-        console.log(toolCall);
-        if (toolCall.toolName === "set-strategy" && !toolCall.invalid && !toolCall.error) {
+    if (lastStep?.toolResults) {
+      for (const result of lastStep.toolResults) {
+        console.log(result);
+        if (result.toolName === "set-strategy" && result.output) {
           this.logger.info("Set-strategy tool executed, stopping agent");
           return true;
         }

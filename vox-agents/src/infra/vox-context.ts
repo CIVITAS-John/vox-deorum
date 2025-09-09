@@ -114,25 +114,31 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
         // Execute the agent using generateText
         var model = agent.getModel(parameters) ?? this.defaultModel;
         const response = await generateText({
+          // Model settings
           model: getModel(model),
           providerOptions: {
             [model.provider]: model.options
           } as any,
+          // Initial messages
           messages: [{
             role: "system",
             content: agent.getSystem(parameters)
           }, ...agent.getInitialMessages(parameters)],
+          // Initial tools
           tools: allTools,
           activeTools: agent.getActiveTools(parameters),
           toolChoice: "required",
+          // Telemetry support
           experimental_telemetry: { 
             isEnabled: true,
             functionId: agentName
           },
           experimental_context: parameters,
+          // Output schema for tool as agent
           experimental_output: outputSchema ? Output.object({
               schema: outputSchema
             }) : undefined,
+          // Checks each step's result and deciding to stop or not
           stopWhen: (context) => {
             const lastStep = context.steps[context.steps.length - 1];
             const shouldStop = agent.stopCheck(parameters, lastStep, context.steps);
@@ -141,6 +147,7 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
             });
             return shouldStop;
           },
+          // Preparing for the next step
           prepareStep: (context) => {
             const lastStep = context.steps[context.steps.length - 1];
             this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
@@ -152,7 +159,7 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
         
         // Log the conclusion
         observation.update({
-          output: response.text,
+          output: response.steps[response.steps.length - 1]?.toolResults ?? response.text,
           metadata: {
             agentSteps: response.steps.length,
             agentTools: response.steps.reduce((list, current) => list.concat(current.toolCalls.map(call => call.toolName)), [] as string[])
