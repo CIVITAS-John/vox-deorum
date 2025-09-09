@@ -1,4 +1,4 @@
-import { StepResult, Tool } from "ai";
+import { ModelMessage, StepResult, Tool } from "ai";
 import { Strategist, StrategistParameters } from "./strategist.js";
 
 /**
@@ -13,10 +13,9 @@ export class SimpleStrategist extends Strategist {
   /**
    * Gets the system prompt for the strategist
    */
-  public getSystem(parameters: StrategistParameters): string {
+  public getSystem(_parameters: StrategistParameters): string {
     return `
-    
-You are a strategic advisor for Civilization V.
+You are a strategist playing Civilization V.
 Your task is to analyze the current game state and set an appropriate strategy for the player.
 You have access to various tools to gather information about the game state.
 
@@ -26,18 +25,20 @@ Your goal is to:
 3. Decide on an appropriate grand strategy and supporting economic/military strategies
 4. Execute the set-strategy tool with your chosen strategy and rationale
 
-Be decisive and execute the set-strategy tool to complete your task.
-
-Current context:
-- Your PlayerID: ${parameters.PlayerID ?? 0}
-- Turn: ${parameters.Turn ?? "Unknown"}`;
+Be decisive and execute the set-strategy tool to complete your task.`
   }
   
   /**
    * Gets the initial messages for the conversation
    */
-  public getInitialMessages(_parameters: StrategistParameters): any[] {
-    return [];
+  public getInitialMessages(parameters: StrategistParameters): ModelMessage[] {
+    return [{
+      role: "user",
+      content: `
+Game context:
+- Your PlayerID: ${parameters.PlayerID ?? 0}
+- Turn: ${parameters.Turn ?? "Unknown"}`
+    }];
   }
   
   /**
@@ -68,6 +69,7 @@ Current context:
     // Stop if we've executed set-strategy tool
     if (lastStep?.toolCalls) {
       for (const toolCall of lastStep.toolCalls) {
+        console.log(toolCall);
         if (toolCall.toolName === "set-strategy" && !toolCall.invalid && !toolCall.error) {
           this.logger.info("Set-strategy tool executed, stopping agent");
           return true;

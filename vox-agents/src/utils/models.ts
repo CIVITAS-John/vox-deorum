@@ -17,7 +17,9 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 export function getModelConfig(name: string = 'default'): Model {
   const model = config.llms[name];
   if (!model) return getModelConfig("default");
-  return model;
+  if (typeof(model) === "string")
+    return getModelConfig(model);
+  else return model;
 }
 
 /**
@@ -40,7 +42,7 @@ export function getModel(config: Model): LanguageModel {
       throw new Error(`Unsupported provider: ${config.provider}`);
   }
   // Wrap it for tool calling
-  if (config.name.indexOf("gemma3") !== -1) {
+  if (config.name.indexOf("gemma-3") !== -1) {
     result = wrapLanguageModel({
       model: result,
       middleware: gemmaToolMiddleware

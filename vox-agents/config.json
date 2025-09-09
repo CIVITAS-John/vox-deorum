@@ -13,16 +13,17 @@
     "level": "info"
   },
   "llms": {
-    "default": {
+    "default": "gemma3",
+    "gemma3": {
+      "provider": "openrouter",
+      "name": "google/gemma-3-27b-it"
+    },
+    "gpt-5-mini-minimal": {
       "provider": "openai",
       "name": "gpt-5-mini",
       "options": {
         "reasoningEffort": "minimal"
       }
-    },
-    "gemma3": {
-      "provider": "google",
-      "name": "gemma-3-27b-it"
     }
   }
 } 

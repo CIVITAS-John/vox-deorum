@@ -42,7 +42,7 @@ export interface VoxAgentsConfig {
   logging: {
     level: string;
   };
-  llms: Record<string, Model>;
+  llms: Record<string, Model | string>;
 }
 
 /**
