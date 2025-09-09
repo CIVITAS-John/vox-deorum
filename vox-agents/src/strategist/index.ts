@@ -1,14 +1,10 @@
 import { VoxContext } from "../infra/vox-context.js";
 import { langfuseSpanProcessor } from "../instrumentation.js";
-import { loadConfig } from "../utils/config.js";
 import { mcpClient } from "../utils/mcp-client.js";
 import { getModel } from "../utils/models.js";
 import { SimpleStrategist } from "./simple-strategist.js";
 import { updateActiveObservation, updateActiveTrace } from "@langfuse/tracing";
 import { trace } from "@opentelemetry/api";
-
-// Load the config
-loadConfig();
 
 // Connect to the server
 await mcpClient.connect();

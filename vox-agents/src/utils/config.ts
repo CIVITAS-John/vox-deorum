@@ -72,7 +72,7 @@ const defaultConfig: VoxAgentsConfig = {
 /**
  * Load configuration from file and environment variables
  */
-export function loadConfig(): VoxAgentsConfig {
+function loadConfig(): VoxAgentsConfig {
   dotenv.config();
   const configPath = path.join(process.cwd(), 'config.json');
   let fileConfig: Partial<VoxAgentsConfig> = {};
