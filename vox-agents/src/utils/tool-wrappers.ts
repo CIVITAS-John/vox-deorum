@@ -88,7 +88,7 @@ export function wrapMCPTool(tool: Tool): VercelTool {
       logger.info(`Calling tool ${tool.name}...`, args);
       // Call the tool
       const result = await mcpClient.callTool(tool.name, args);
-      logger.info(`Tool call completed: ${tool.name}`, result);
+      logger.info(`Tool call completed: ${tool.name}`);
       return result;
     }
   });

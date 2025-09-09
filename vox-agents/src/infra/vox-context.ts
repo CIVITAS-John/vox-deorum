@@ -134,8 +134,8 @@ export class VoxContext<TParameters> {
       });
       
       return response.text;
-    } catch (error) {
-      this.logger.error(`Error executing agent ${agentName}:`, error);
+    } catch (error: any) {
+      this.logger.error(`Error executing agent ${agentName}: ` + error.message);
       throw error;
     }
   }

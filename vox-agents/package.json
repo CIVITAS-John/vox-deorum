@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@langfuse/otel": "^4.0.0",
+    "@langfuse/tracing": "^4.0.0",
     "@modelcontextprotocol/sdk": "^1.17.5",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "@opentelemetry/instrumentation": "^0.204.0",
