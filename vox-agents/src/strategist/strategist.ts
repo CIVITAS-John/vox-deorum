@@ -2,12 +2,12 @@
  * Simple strategist agent that executes the set-strategy tool
  */
 
-import { VoxAgent } from "../infra/vox-agent.js";
+import { AgentParameters, VoxAgent } from "../infra/vox-agent.js";
 
 /**
  * Parameters for the strategist agent
  */
-export interface StrategistParameters {
+export interface StrategistParameters<T = unknown> extends AgentParameters<T> {
   PlayerID: number;
   Turn: number;
   After: number;
@@ -16,5 +16,5 @@ export interface StrategistParameters {
 /**
  * A simple strategist agent that analyzes the game state and sets an appropriate strategy
  */
-export abstract class Strategist extends VoxAgent<StrategistParameters> {
+export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistParameters<T>> {
 }

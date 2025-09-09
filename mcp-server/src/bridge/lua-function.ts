@@ -136,6 +136,7 @@ export class LuaFunction {
       logger.info(`Function ${this.name} not registered, attempting registration`);
       
       // Try to register
+      this._registered = false;
       const registered = await this.register();
       
       if (registered) {

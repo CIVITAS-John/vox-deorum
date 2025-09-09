@@ -3,6 +3,13 @@ import { createLogger } from "../utils/logger.js";
 import { z } from "zod";
 
 /**
+ * Parameters for the basic agent
+ */
+export interface AgentParameters<T = unknown> {
+  Extra?: T;
+}
+
+/**
  * Abstract base class for all Vox Agents.
  * Provides a framework for implementing AI agents that can be executed within the Vox context.
  * 
@@ -10,7 +17,7 @@ import { z } from "zod";
  * @template TInput - The type of input this agent accepts when called as a tool
  * @template TOutput - The type of output this agent produces when called as a tool
  */
-export abstract class VoxAgent<TParameters, TInput = unknown, TOutput = unknown> {
+export abstract class VoxAgent<T, TParameters extends AgentParameters<T>, TInput = unknown, TOutput = unknown> {
   protected logger = createLogger(this.constructor.name);
   
   /**

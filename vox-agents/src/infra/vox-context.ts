@@ -1,8 +1,9 @@
 import { generateText, LanguageModel, Tool } from "ai";
-import { VoxAgent } from "./vox-agent.js";
+import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tool-wrappers.js";
 import { mcpClient } from "../utils/mcp-client.js";
+import { startActiveObservation } from "@langfuse/tracing";
 
 /**
  * Runtime context for executing Vox Agents.
@@ -10,13 +11,13 @@ import { mcpClient } from "../utils/mcp-client.js";
  * 
  * @template TParameters - The type of parameters that agents will receive
  */
-export class VoxContext<TParameters> {
+export class VoxContext<TParameters extends AgentParameters<unknown>> {
   private logger = createLogger('VoxContext');
   
   /**
    * Registry of available agents indexed by name
    */
-  public agents: Record<string, VoxAgent<TParameters>> = {};
+  public agents: Record<string, VoxAgent<unknown, TParameters>> = {};
   
   /**
    * Registry of available tools indexed by name
@@ -41,7 +42,7 @@ export class VoxContext<TParameters> {
    * Register an agent in the context
    * @param agent - The agent to register
    */
-  public registerAgent(agent: VoxAgent<TParameters>): void {
+  public registerAgent(agent: VoxAgent<unknown, TParameters>): void {
     this.agents[agent.name] = agent;
     this.logger.info(`Agent registered: ${agent.name}`);
   }
@@ -77,7 +78,7 @@ export class VoxContext<TParameters> {
    */
   public async execute(
     agentName: string, 
-    parameters: TParameters,
+    parameters: TParameters
   ): Promise<string> {
     const agent = this.agents[agentName];
     if (!agent) {
@@ -87,56 +88,72 @@ export class VoxContext<TParameters> {
     
     this.logger.info(`Executing agent: ${agentName}`);
     
-    try {
-      // Dynamically create agent tools for handoff capability
-      let allTools = { ...this.tools };
-      
-      // Add other agents as tools (excluding the current agent to prevent recursion)
-      for (const [otherAgentName, otherAgent] of Object.entries(this.agents)) {
-        if (otherAgentName !== agentName) {
-          allTools[`call_${otherAgentName}`] = createAgentTool(
-            otherAgent,
-            this,
-            parameters
-          );
+    return await startActiveObservation(agentName, async(observation) => {
+      observation.update({
+        input: parameters
+      });
+      try {
+        // Dynamically create agent tools for handoff capability
+        let allTools = { ...this.tools };
+        
+        // Add other agents as tools (excluding the current agent to prevent recursion)
+        for (const [otherAgentName, otherAgent] of Object.entries(this.agents)) {
+          if (otherAgentName !== agentName) {
+            allTools[`call_${otherAgentName}`] = createAgentTool(
+              otherAgent,
+              this,
+              parameters
+            );
+          }
         }
+        
+        // Execute the agent using generateText
+        const response = await generateText({
+          model: agent.getModel(parameters) ?? this.defaultModel,
+          messages: [{
+            role: "system",
+            content: agent.getSystem(parameters)
+          }, ...agent.getInitialMessages(parameters)],
+          tools: allTools,
+          activeTools: agent.getActiveTools(parameters),
+          toolChoice: "required",
+          experimental_telemetry: { 
+            isEnabled: true,
+            functionId: agentName
+          },
+          experimental_context: parameters,
+          stopWhen: (context) => {
+            const lastStep = context.steps[context.steps.length - 1];
+            const shouldStop = agent.stopCheck(parameters, lastStep, context.steps);
+            this.logger.debug(`Stop check for ${agentName}: ${shouldStop}`, {
+              stepCount: context.steps.length
+            });
+            return shouldStop;
+          },
+          prepareStep: (context) => {
+            const lastStep = context.steps[context.steps.length - 1];
+            this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
+            return agent.prepareStep(parameters, lastStep, context.steps, context.messages);
+          },
+        });
+        
+        this.logger.info(`Agent execution completed: ${agentName}`);
+        
+        // Log the conclusion
+        observation.update({
+          output: response.text,
+          metadata: {
+            agentSteps: response.steps.length,
+            agentTools: response.steps.reduce((list, current) => list.concat(current.toolCalls.map(call => call.toolName)), [] as string[])
+          }
+        });
+        return response.text;
+      } catch (error: any) {
+        this.logger.error(`Error executing agent ${agentName}: ` + error.message);
+        throw error;
       }
-      
-      // Execute the agent using generateText
-      const response = await generateText({
-        model: agent.getModel(parameters) ?? this.defaultModel,
-        messages: [{
-          role: "system",
-          content: agent.getSystem(parameters)
-        }, ...agent.getInitialMessages(parameters)],
-        tools: allTools,
-        activeTools: agent.getActiveTools(parameters),
-        experimental_telemetry: { isEnabled: true },
-        experimental_context: parameters,
-        stopWhen: (context) => {
-          const lastStep = context.steps[context.steps.length - 1];
-          const shouldStop = agent.stopCheck(parameters, lastStep, context.steps);
-          this.logger.debug(`Stop check for ${agentName}: ${shouldStop}`, {
-            stepCount: context.steps.length
-          });
-          return shouldStop;
-        },
-        prepareStep: (context) => {
-          const lastStep = context.steps[context.steps.length - 1];
-          this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
-          return agent.prepareStep(parameters, lastStep, context.steps, context.messages);
-        },
-      });
-      
-      this.logger.info(`Agent execution completed: ${agentName}`, {
-        responseLength: response.text.length,
-        totalSteps: response.steps.length
-      });
-      
-      return response.text;
-    } catch (error: any) {
-      this.logger.error(`Error executing agent ${agentName}: ` + error.message);
-      throw error;
-    }
+    }, {
+      asType: "agent"
+    });
   }
 }
