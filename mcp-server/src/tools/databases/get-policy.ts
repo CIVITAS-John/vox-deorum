@@ -1,5 +1,6 @@
 import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
+import * as changeCase from "change-case";
 import * as z from "zod";
 
 /**
@@ -76,7 +77,7 @@ class GetPolicyTool extends DatabaseQueryTool<PolicySummary, PolicyReport> {
       ])
       .execute();
     Summaries.forEach(p => {
-      p.Era = p.Era ?? p.Era2;
+      p.Era = changeCase.pascalCase((p.Era ?? p.Era2 ?? "").substring(4)),
       p.Branch = p.Branch ?? p.Branch2;
       p.Help = p.Help2 ?? p.Help;
       delete (p as any).Era2;
@@ -137,7 +138,7 @@ export async function getPolicy(policyType: string) {
     Type: policy.Type,
     Name: policy.Name!,
     Help: policy.Help2 ?? policy.Help!,
-    Era: policy.Era ?? policy.Era2,
+    Era: changeCase.pascalCase((policy.Era ?? policy.Era2 ?? "").substring(4)),
     Branch: policy.Branch ?? policy.Branch2,
     Level: policy.Level,
     PrereqPolicies: prereqPolicies.map(p => p.Description!)

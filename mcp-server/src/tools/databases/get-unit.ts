@@ -92,7 +92,7 @@ class GetUnitTool extends DatabaseQueryTool<UnitSummary, UnitReport> {
    * Fetch unit summaries from database
    */
   protected async fetchSummaries(): Promise<UnitSummary[]> {
-    return await gameDatabase.getDatabase()
+    var summaries = await gameDatabase.getDatabase()
       .selectFrom("Units as u")
       .leftJoin("Technologies as t", "u.PrereqTech", "t.Type")
       .leftJoin("Civilization_UnitClassOverrides as cuo", "cuo.UnitType", "u.Type")
@@ -112,6 +112,10 @@ class GetUnitTool extends DatabaseQueryTool<UnitSummary, UnitReport> {
       ])
       .where('u.ShowInPedia', '=', 1)
       .execute() as UnitSummary[];
+    summaries.forEach(p => {
+      p.Era = changeCase.pascalCase(p?.Era?.substring(4) ?? "") || null;
+    });
+    return summaries;
   }
   
   protected fetchFullInfo = getUnit;
@@ -212,7 +216,7 @@ export async function getUnit(unitType: string) {
     Cost: unit.Cost || 0,
     PrereqTech: unit.PrereqTechName || null,
     UniqueOf: unit.UniqueCivName || null,
-    Era: era?.Era || null,
+    Era: changeCase.pascalCase(era?.Era?.substring(4) ?? "") || null,
     Strategy: unit.Strategy,
     Class: unit.ClassName || unit.Class || '',
     AIType: changeCase.pascalCase(unit.DefaultUnitAI?.substring(7) ?? ""),
