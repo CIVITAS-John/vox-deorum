@@ -92,13 +92,16 @@ export class DLLConnector extends EventEmitter {
           }
         }).on('data', (data: Buffer) => {
           // Parse into JSON
-          try {
-            const jsonData = JSON.parse(data.toString());
-            logger.debug('Received data: ' + JSON.stringify(jsonData));
-            this.handleMessage(jsonData);
-          } catch (error) {
-            logger.error('Failed to parse JSON data:', error);
-          }
+          logger.debug('Received data: ' + data.toString());
+          const datas = data.toString().split("!@#$%^!");
+          datas.forEach(data => {
+            try {
+                const jsonData = JSON.parse(data);
+                this.handleMessage(jsonData);
+            } catch (error) {
+              logger.error('Failed to process JSON data:', error);
+            }
+          })
         });
       });
     });

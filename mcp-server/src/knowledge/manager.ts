@@ -4,7 +4,7 @@
  */
 
 import { createLogger } from '../utils/logger.js';
-import { bridgeManager } from '../server.js';
+import { bridgeManager, MCPServer } from '../server.js';
 import { GameIdentity, syncGameIdentity } from '../utils/lua/game-identity.js';
 import { KnowledgeStore } from './store.js';
 import path from 'path';
@@ -69,6 +69,9 @@ export class KnowledgeManager {
     
     this.gameIdentity = identity;
     await this.loadKnowledge(identity.gameId);
+
+    // Notify our clients
+    MCPServer.getInstance().sendNotification("GameSwitched", -1, -1, { GameID: identity.gameId });
   }
 
   /**
