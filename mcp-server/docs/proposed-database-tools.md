@@ -29,11 +29,11 @@ Query unit capabilities, strengths, maintenance costs, and requirements. Essenti
   Strategy: string,                      // Strategic usage guidance
   PrereqTech: string,                    // Required technology
   ObsoleteTech: string,                  // Technology that makes unit obsolete
-  UpgradesTo: string[],                  // Units this can upgrade to
-  ResourcesRequired: {                   // Strategic resources needed
-    ResourceType: string,
-    Quantity: number
-  }[],
+  UpgradesTo: string,                  // Unit this can upgrade to
+  UpgradedFrom: string[],                // Units that can upgrade to this
+  ResourcesRequired: {                   // Strategic resources needed, Type:number
+    string: number
+  },
   FreePromotions: string[],              // Promotions unit starts with
   Maintenance: number,                   // Gold per turn maintenance
   UniqueOf?: string                   // If a unique building of a civilization

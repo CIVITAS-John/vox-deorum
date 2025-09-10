@@ -22,7 +22,8 @@ const TechnologyReportSchema = TechnologySummarySchema.extend({
   BuildingsUnlocked: z.array(z.string()),
   ImprovementsUnlocked: z.array(z.string()),
   WorldWondersUnlocked: z.array(z.string()),
-  NationalWondersUnlocked: z.array(z.string())
+  NationalWondersUnlocked: z.array(z.string()),
+  ResourcesRevealed: z.array(z.string())
 });
 
 type TechnologySummary = z.infer<typeof TechnologySummarySchema>;
@@ -121,6 +122,13 @@ export async function getTechnology(techType: string) {
     .where('PrereqTech', '=', techType)
     .execute();
   
+  // Get resources revealed by this technology
+  const resourcesRevealed = await db
+    .selectFrom('Resources')
+    .select('Description')
+    .where('TechReveal', '=', techType)
+    .execute();
+  
   // Construct the full technology object
   return {
     Type: tech.Type,
@@ -134,5 +142,6 @@ export async function getTechnology(techType: string) {
     NationalWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),
     WorldWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),
     ImprovementsUnlocked: improvementsUnlocked.map(i => i.Description!),
+    ResourcesRevealed: resourcesRevealed.map(r => r.Description!),
   };
 }
