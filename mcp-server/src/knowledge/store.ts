@@ -153,6 +153,9 @@ export class KnowledgeStore {
         return;
       }
 
+      // Update the turn
+      knowledgeManager.updateTurn(Math.floor(id / 1000000));
+
       // Get the corresponding schema
       const schema = eventSchemas[type as EventName];
 
@@ -166,7 +169,6 @@ export class KnowledgeStore {
       fieldNames.forEach((fieldName, index) => {
         if (index < payload.length) {
           eventObject[fieldName] = payload[index];
-          if (fieldName == "Turn") knowledgeManager.updateTurn(payload[index]);
         }
       });
 
