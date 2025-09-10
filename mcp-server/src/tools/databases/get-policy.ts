@@ -1,6 +1,6 @@
 import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
-import * as changeCase from "change-case";
+import { getEraName } from "../../utils/database/enums.js";
 import * as z from "zod";
 
 /**
@@ -77,7 +77,7 @@ class GetPolicyTool extends DatabaseQueryTool<PolicySummary, PolicyReport> {
       ])
       .execute();
     Summaries.forEach(p => {
-      p.Era = changeCase.pascalCase((p.Era ?? p.Era2 ?? "").substring(4)),
+      p.Era = getEraName(p.Era ?? p.Era2 ?? "ERA_ANCIENT"),
       p.Branch = p.Branch ?? p.Branch2;
       p.Help = p.Help2 ?? p.Help;
       delete (p as any).Era2;
@@ -138,7 +138,7 @@ export async function getPolicy(policyType: string) {
     Type: policy.Type,
     Name: policy.Name!,
     Help: policy.Help2 ?? policy.Help!,
-    Era: changeCase.pascalCase((policy.Era ?? policy.Era2 ?? "").substring(4)),
+    Era: getEraName(policy.Era ?? policy.Era2 ?? "ERA_ANCIENT"),
     Branch: policy.Branch ?? policy.Branch2,
     Level: policy.Level,
     PrereqPolicies: prereqPolicies.map(p => p.Description!)

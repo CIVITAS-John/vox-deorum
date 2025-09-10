@@ -26,6 +26,7 @@ export interface StrategyChange extends MutableKnowledge {
  * Player summary information (visible to met players)
  */
 export interface PlayerSummary extends MutableKnowledge {
+  Era: string; // Localized era name (e.g., "Ancient Era", "Classical Era")
   MajorAllyID: number; // -1 = none, Player:GetAlly()
   Cities: number;
   Population: number;

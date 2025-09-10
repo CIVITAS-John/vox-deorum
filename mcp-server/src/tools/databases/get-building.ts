@@ -1,7 +1,7 @@
 import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
 import * as z from "zod";
-import * as changeCase from "change-case";
+import { getEraName } from "../../utils/database/enums.js";
 
 /**
  * Schema for building summary information
@@ -79,7 +79,7 @@ class GetBuildingTool extends DatabaseQueryTool<BuildingSummary, BuildingReport>
       ])
       .execute() as BuildingSummary[];
     summaries.forEach(p => {
-      p.Era = changeCase.pascalCase(p?.Era?.substring(4) ?? "") || null;
+      p.Era = p.Era ? getEraName(p.Era) : null;
     });
     return summaries;
   }
@@ -142,7 +142,7 @@ export async function getBuilding(buildingType: string) {
     Help: building.Help || '',
     Cost: building.Cost || 0,
     PrereqTech: building.PrereqTechName || null,
-    Era: changeCase.pascalCase(building?.EraType?.substring(4) ?? "") || null,
+    Era: getEraName(building?.EraType) || null,
     Strategy: building.Strategy,
     Class: building.BuildingClass || '',
     PrereqBuildings: prereqBuildings.map(p => p.Description || ''),

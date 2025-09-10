@@ -34,15 +34,28 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
   
   -- Only include players that are alive or have ever been alive
   if player and player:IsEverAlive() then
+    -- Get current era information
+    local currentEra = ""
+    local currentTech = 0
+    local teamID = player:GetTeam()
+    if Teams[teamID] then
+      local eraID = Teams[teamID]:GetCurrentEra()
+      if eraID and GameInfo.Eras[eraID] then
+        currentEra = GameInfo.Eras[eraID].Type
+      end
+      currentTech = Teams[teamID]:GetTeamTechs():GetNumTechsKnown() or 0
+    end
+    
     local summary = {
       Key = playerID,
+      Era = currentEra,
       MajorAllyID = -1,  -- Default to none
       Cities = player:GetNumCities(),
       Population = player:GetTotalPopulation(),
       Gold = player:GetGold(),
       GoldPerTurn = player:CalculateGoldRate(),
       TourismPerTurn = player:GetTourism() or 0,
-      Technologies = Teams[player:GetTeam()]:GetTeamTechs():GetNumTechsKnown() or 0,
+      Technologies = currentTech,
       PolicyBranches = {},
       CreatedReligion = "",
       MajorityReligion = player:GetStateReligionName()
@@ -97,15 +110,29 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
   
   -- Only include minor civs that are alive
   if player and player:IsAlive() and player:IsMinorCiv() then
+    -- Get current era and tech information
+    local currentEra = ""
+    local currentTech = 0
+    local teamID = player:GetTeam()
+    if Teams[teamID] then
+      local eraID = Teams[teamID]:GetCurrentEra()
+      if eraID and GameInfo.Eras[eraID] then
+        currentEra = Locale.ConvertTextKey(GameInfo.Eras[eraID].Description)
+      end
+      -- Minor civs do have technologies through their team
+      currentTech = Teams[teamID]:GetTeamTechs():GetNumTechsKnown() or 0
+    end
+    
     local summary = {
       Key = playerID,
+      Era = currentEra,
       MajorAllyID = player:GetAlly() or -1,
       Cities = player:GetNumCities(),
       Population = player:GetTotalPopulation(),
       Gold = player:GetGold(),
       GoldPerTurn = math.floor(player:CalculateGoldRateTimes100() / 100),
       TourismPerTurn = 0,  -- Minor civs don't generate tourism
-      Technologies = 0,  -- Minor civs don't research techs
+      Technologies = currentTech,  -- Get actual tech count for minor civs
       PolicyBranches = {},  -- Minor civs don't have policies
       CreatedReligion = "",  -- Minor civs don't found religions
       MajorityReligion = ""

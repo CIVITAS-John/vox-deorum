@@ -1,7 +1,7 @@
 import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
 import * as z from "zod";
-import * as changeCase from "change-case";
+import { getEraName } from "../../utils/database/enums.js";
 
 /**
  * Schema for technology summary information
@@ -64,7 +64,7 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
       .select(['t.Type', 't.Description as Name', 't.Help', 't.Cost', 'e.Type as Era'])
       .execute() as TechnologySummary[];
     summaries.forEach(p => {
-      p.Era = changeCase.pascalCase(p?.Era?.substring(4) ?? "") || null;
+      p.Era = p.Era ? getEraName(p.Era) : null;
     });
     return summaries;
   }
@@ -143,7 +143,7 @@ export async function getTechnology(techType: string) {
     Name: tech.Description!,
     Help: tech.Help!,
     Cost: tech.Cost!,
-    Era: changeCase.pascalCase(tech?.EraType?.substring(4) ?? "") || null,
+    Era: getEraName(tech?.EraType) || null,
     PrereqTechs: prereqTechs.map(p => p.Description!),
     UnitsUnlocked: unitsUnlocked.map(u => u.Description!),
     BuildingsUnlocked: buildingsUnlocked.filter(b => b.MaxGlobalInstances == 0 && b.MaxPlayerInstances == 0).map(b => b.Description!),
