@@ -203,6 +203,7 @@ export class DLLConnector extends EventEmitter {
         timestamp: new Date(),
         timeout: setTimeout(() => {
           this.pendingRequests.delete(messageWithId.id);
+          logger.error('Message timeout:', messageWithId);
           resolve(respondError(ErrorCode.CALL_TIMEOUT));
         }, timeout)
       };
