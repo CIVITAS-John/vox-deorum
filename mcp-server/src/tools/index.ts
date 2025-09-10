@@ -4,6 +4,7 @@ import createGetTechnologyTool from "./databases/get-technology.js";
 import createGetPolicyTool from "./databases/get-policy.js";
 import createGetBuildingTool from "./databases/get-building.js";
 import createGetCivilizationTool from "./databases/get-civilization.js";
+import createGetUnitTool from "./databases/get-unit.js";
 import createGetEventsTool from "./knowledge/get-events.js";
 import createGetPlayersTool from "./knowledge/get-players.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
@@ -16,6 +17,7 @@ const toolFactories = {
     getPolicy: createGetPolicyTool,
     getBuilding: createGetBuildingTool,
     getCivilization: createGetCivilizationTool,
+    getUnit: createGetUnitTool,
     getEvents: createGetEventsTool,
     getPlayers: createGetPlayersTool,
     setStrategy: createSetStrategyTool,
