@@ -42,8 +42,9 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
     });
   });
 
-  // Map to store transports by session ID
+  // Map to store transports and server IDs by session ID
   const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
+  const serverIds: { [sessionId: string]: string } = {};
 
   // Handle POST requests for client-to-server communication
   app.post('/mcp', async (req, res) => {
@@ -56,11 +57,17 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
       transport = transports[sessionId];
     } else if (!sessionId && isInitializeRequest(req.body)) {
       // New initialization request
+      const newSessionId = randomUUID();
       transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => randomUUID(),
-        onsessioninitialized: (sessionId) => {
-          // Store the transport by session ID
+        sessionIdGenerator: () => newSessionId,
+        onsessioninitialized: async (sessionId) => {
+          // Store the transport and use sessionId as serverId
           transports[sessionId] = transport;
+          serverIds[sessionId] = sessionId;
+          
+          // Create and connect server using sessionId
+          mcpServer.createServer(sessionId);
+          await mcpServer.connect(sessionId, transport);
         },
         // DNS rebinding protection is disabled by default for backwards compatibility. If you are running this server
         // locally, make sure to set:
@@ -68,15 +75,17 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
         // allowedHosts: ['127.0.0.1'],
       });
 
-      // Clean up transport when closed
+      // Clean up transport and server when closed
       transport.onclose = () => {
         if (transport.sessionId) {
+          const serverId = serverIds[transport.sessionId];
+          if (serverId) {
+            mcpServer.removeServer(serverId);
+            delete serverIds[transport.sessionId];
+          }
           delete transports[transport.sessionId];
         }
       };
-
-      // Connect to the MCP server
-      await mcpServer.connect(transport);
     } else {
       // Invalid request
       res.status(400).json({

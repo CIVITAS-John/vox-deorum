@@ -15,13 +15,15 @@ const logger = createLogger('stdio');
  * @returns The transport instance for testing purposes
  */
 export async function startStdioServer(setupSignalHandlers = true): Promise<() => Promise<void>> {
-  const server = MCPServer.getInstance();
+  const mcpServer = MCPServer.getInstance();
   const transport = new StdioServerTransport();
+  const serverId = 'stdio-server';
 
   // Set up graceful shutdown
   const shutdown = async () => {
     logger.info('Shutting down stdio server gracefully');
-    await server.close();
+    mcpServer.removeServer(serverId);
+    await mcpServer.close();
     await transport.close();
   };
 
@@ -31,9 +33,11 @@ export async function startStdioServer(setupSignalHandlers = true): Promise<() =
   }
 
   try {
-    await server.initialize();
-    // Connect the server to the transport using the underlying McpServer
-    await server.connect(transport);
+    await mcpServer.initialize();
+    // Create a new McpServer instance for stdio
+    mcpServer.createServer(serverId);
+    // Connect the server to the transport
+    await mcpServer.connect(serverId, transport);
     
     logger.info('MCP server connected via stdio transport');
     return shutdown;

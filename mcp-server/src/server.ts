@@ -22,7 +22,7 @@ const logger = createLogger('Server');
  */
 export class MCPServer {
   private static instance: MCPServer;
-  private server: McpServer;
+  private servers: Map<string, McpServer> = new Map();
   private initialized = false;
   private tools = new Map<string, ToolBase>();
   private bridgeManager: BridgeManager;
@@ -33,15 +33,6 @@ export class MCPServer {
    * Private constructor for MCPServer
    */
   private constructor() {
-    this.server = new McpServer({
-      name: config.server.name,
-      version: config.server.version,
-    }, {
-      capabilities: {
-        
-      }
-    });
-    
     // Initialize BridgeManager
     this.bridgeManager = new BridgeManager(config.bridge?.url);
     
@@ -63,23 +54,54 @@ export class MCPServer {
   }
 
   /**
-   * Get the underlying McpServer instance
+   * Get all underlying McpServer instances
    */
-  public getServer(): McpServer {
-    return this.server;
+  public getServers(): Map<string, McpServer> {
+    return this.servers;
   }
-
+  
   /**
-   * Register a tool with the server
+   * Create a new McpServer instance with a unique ID
    */
-  public registerTool(tool: ToolBase) {
-    if (this.tools.has(tool.name)) {
-      logger.warn(`Tool ${tool.name} already registered, replacing`);
+  public createServer(id: string): McpServer {
+    if (this.servers.has(id)) {
+      logger.warn(`Server ${id} already exists, returning existing instance`);
+      return this.servers.get(id)!;
     }
-
-    // Register tool with McpServer using a generic handler
-    // Since we can't directly pass ZodTypeAny as ZodRawShape, we'll use a generic approach
-    tool.registered = this.server.registerTool(
+    
+    const server = new McpServer({
+      name: config.server.name,
+      version: config.server.version,
+    }, {
+      capabilities: {
+        
+      }
+    });
+    
+    // Register all existing tools with the new server
+    this.tools.forEach(tool => {
+      this.registerToolOnServer(server, tool);
+    });
+    
+    this.servers.set(id, server);
+    logger.info(`Created new McpServer instance: ${id}`);
+    return server;
+  }
+  
+  /**
+   * Remove a McpServer instance
+   */
+  public removeServer(id: string): void {
+    if (this.servers.delete(id)) {
+      logger.info(`Removed McpServer instance: ${id}`);
+    }
+  }
+  
+  /**
+   * Register a tool on a specific server
+   */
+  private registerToolOnServer(server: McpServer, tool: ToolBase): void {
+    server.registerTool(
       tool.name,
       {
         title: tool.name,
@@ -113,10 +135,23 @@ export class MCPServer {
         }
       }) as any
     );
+  }
+
+  /**
+   * Register a tool with all servers
+   */
+  public registerTool(tool: ToolBase) {
+    if (this.tools.has(tool.name)) {
+      logger.warn(`Tool ${tool.name} already registered, replacing`);
+    }
+
+    // Register tool with all existing McpServers
+    this.servers.forEach(server => {
+      this.registerToolOnServer(server, tool);
+    });
 
     this.tools.set(tool.name, tool);
     logger.info(`Registered tool: ${tool.name}`);
-    return tool.registered;
   }
 
   /**
@@ -156,25 +191,30 @@ export class MCPServer {
 
   private eventsForNotification = ["PlayerDoneTurn"];
   /**
-   * Send a notification to the client through ElicitInput.
+   * Send a notification to all clients through ElicitInput.
    */
   public sendNotification(event: string, playerID: number, turn: number, param: Record<string, any> = {}) {
     if (this.eventsForNotification.indexOf(event) !== -1 && playerID >= 0 && playerID < MaxMajorCivs) {
       logger.info(`Sending server-side notification to MCP clients with ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
-      const rawServer = this.server.server;
-      rawServer.elicitInput(
-        {
-          message: event,
-          playerID: playerID,
-          turn: turn,
-          ...param,
-          requestedSchema: {
-            type: "object",
-            properties: {}
-          },
-        }
-      ).catch(_r => {}).then(_r => {
-        logger.info(`MCP clients acknowledged notification bout the ${event} (Player ${playerID}) at turn ${turn}.`)
+      // Send notification to all connected servers
+      this.servers.forEach((server, id) => {
+        const rawServer = (server as any).server;
+        rawServer.elicitInput(
+          {
+            message: event,
+            playerID: playerID,
+            turn: turn,
+            ...param,
+            requestedSchema: {
+              type: "object",
+              properties: {}
+            },
+          }
+        ).catch((_r: any) => {
+          logger.warn(`Failed to send notification to server ${id}`);
+        }).then((_r: any) => {
+          logger.info(`Server ${id} acknowledged notification about the ${event} (Player ${playerID}) at turn ${turn}.`)
+        });
       });
     }
   }
@@ -212,10 +252,14 @@ export class MCPServer {
   }
 
   /**
-   * Connect the server to a transport
+   * Connect a specific server to a transport
    */
-  public async connect(transport: any): Promise<void> {
-    await this.server.connect(transport);
+  public async connect(serverId: string, transport: any): Promise<void> {
+    const server = this.servers.get(serverId);
+    if (!server) {
+      throw new Error(`Server ${serverId} not found`);
+    }
+    await server.connect(transport);
   }
 
   /**
