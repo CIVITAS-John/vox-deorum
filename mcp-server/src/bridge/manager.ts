@@ -205,7 +205,7 @@ export class BridgeManager extends EventEmitter {
           this.emit('gameEvent', data);
           if (data.type == "dll_status" && !data.payload.status && this.dllConnected) 
             this.resetFunctions();
-          logger.debug('Received SSE event: ' + data.type, data);
+          // logger.debug('Received SSE event: ' + data.type, data);
         } catch (error) {
           logger.error('Failed to parse SSE event:', error);
         }

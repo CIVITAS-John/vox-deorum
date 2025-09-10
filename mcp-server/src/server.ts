@@ -211,9 +211,9 @@ export class MCPServer {
             },
           }
         ).catch((_r: any) => {
-          logger.warn(`Failed to send notification to server ${id}`);
+          logger.warn(`Failed to send notification to server ${id}`, _r);
         }).then((_r: any) => {
-          logger.info(`Server ${id} acknowledged notification about the ${event} (Player ${playerID}) at turn ${turn}.`)
+          // logger.info(`Server ${id} acknowledged notification about the ${event} (Player ${playerID}) at turn ${turn}.`)
         });
       });
     }

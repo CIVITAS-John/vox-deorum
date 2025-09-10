@@ -137,7 +137,7 @@ export class KnowledgeStore {
   handleGameEvent(id: number, type: string, payload: unknown): void {
     try {
       if (blockedEventTypes.has(type)) {
-        logger.debug(`Blocked event type: ${type}`);
+        // logger.debug(`Blocked event type: ${type}`);
         return;
       }
 
@@ -221,7 +221,7 @@ export class KnowledgeStore {
       // Log invalidations if any exist
       const invalidationKeys = Object.keys(visibilityResult.invalidations);
       if (invalidationKeys.length > 0) {
-        logger.info(`Cache invalidations for ${type}: ${invalidationKeys.join(', ')}`);
+        logger.debug(`Cache invalidations for ${type}: ${invalidationKeys.join(', ')}`);
       }
     
       // Save the extra payloads
@@ -230,7 +230,7 @@ export class KnowledgeStore {
       explainEnums(payload);
       logger.info(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
     } else {
-      logger.info(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
+      logger.warn(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
     }
     
     await this.getDatabase()
