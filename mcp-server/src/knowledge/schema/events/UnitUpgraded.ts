@@ -11,5 +11,5 @@ export const UnitUpgraded = z.object({
   /** The ID of the new unit after the upgrade */
   NewUnitID: z.number(),
   /** Whether this upgrade came from a goody hut (true) or standard upgrade mechanics (false) */
-  IsGoodyHut: z.boolean(),
+  IsGoodyHut: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
 });

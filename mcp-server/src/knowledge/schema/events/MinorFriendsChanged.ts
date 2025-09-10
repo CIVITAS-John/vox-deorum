@@ -12,7 +12,7 @@ export const MinorFriendsChanged = z.object({
   MajorPlayerID: z.number(),
   
   /** Whether the major civ is now a friend */
-  IsNowFriend: z.boolean(),
+  IsNowFriend: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** The previous friendship level (before change) */
   OldFriendship: z.number(),

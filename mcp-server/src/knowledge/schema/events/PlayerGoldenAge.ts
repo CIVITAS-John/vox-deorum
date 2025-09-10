@@ -9,7 +9,7 @@ export const PlayerGoldenAge = z.object({
   PlayerID: z.number(),
   
   /** Whether the Golden Age is starting (true) or ending (false) */
-  IsStarting: z.boolean(),
+  IsStarting: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** The number of turns being added/subtracted (0 when ending) */
   TurnChange: z.number()

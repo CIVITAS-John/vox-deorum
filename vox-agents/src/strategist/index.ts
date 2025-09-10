@@ -14,19 +14,23 @@ await context.registerMCP();
 // Register agents
 context.registerAgent(new SimpleStrategist());
 
-var Parameter = {
-  PlayerID: 0,
-  Turn: 0,
-  After: 0,
-  Extra: undefined
-};
+// Register callback
+mcpClient.onElicitInput(async (params) => {
+  console.log(params);
+  return;
 
-// Execute the simple strategist
-try {
-  await context.execute("simple-strategist", Parameter);
+  var Parameter = {
+    PlayerID: 0,
+    Turn: 0,
+    After: 0,
+    Extra: undefined
+  };
 
-} finally {
-  await langfuseSpanProcessor.forceFlush()
-  // Disconnect from MCP server
-  await mcpClient.disconnect();
-}
+  // Execute the simple strategist
+  try {
+    await context.execute("simple-strategist", Parameter);
+
+  } finally {
+    await langfuseSpanProcessor.forceFlush()
+  }
+});

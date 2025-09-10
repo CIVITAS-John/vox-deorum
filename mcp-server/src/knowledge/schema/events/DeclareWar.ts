@@ -10,5 +10,5 @@ export const DeclareWar = z.object({
   /** The target team that war is being declared against */
   TeamID: z.number(),
   /** Whether the declaring team is considered the aggressor */
-  IsAggressor: z.boolean()
+  IsAggressor: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

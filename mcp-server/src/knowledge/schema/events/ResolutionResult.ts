@@ -11,7 +11,7 @@ export const ResolutionResult = z.object({
   /** The specific choice or target of the resolution */
   Decision: z.number(),
   /** True for enact proposals, false for repeal proposals */
-  IsEnact: z.boolean(),
+  IsEnact: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   /** Whether the resolution passed or failed */
-  Passed: z.boolean(),
+  Passed: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
 });

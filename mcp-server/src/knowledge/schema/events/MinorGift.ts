@@ -21,10 +21,10 @@ export const MinorGift = z.object({
   Reserved1: z.number(),
   
   /** Whether this is the first major civ to meet this city-state */
-  IsFirstDiscovery: z.boolean(),
+  IsFirstDiscovery: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** Currently unused boolean parameter (always false) */
-  Reserved2: z.boolean(),
+  Reserved2: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** String identifier for the gift type/notification text */
   GiftType: z.string(),

@@ -166,6 +166,7 @@ export class KnowledgeStore {
       fieldNames.forEach((fieldName, index) => {
         if (index < payload.length) {
           eventObject[fieldName] = payload[index];
+          if (fieldName == "Turn") knowledgeManager.updateTurn(payload[index]);
         }
       });
 

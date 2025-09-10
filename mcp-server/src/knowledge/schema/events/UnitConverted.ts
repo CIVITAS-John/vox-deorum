@@ -13,5 +13,5 @@ export const UnitConverted = z.object({
   /** The ID of the unit performing the conversion or the new unit ID */
   ConvertingUnitID: z.number(),
   /** Whether this conversion is part of an upgrade process (true) or a direct conversion (false) */
-  IsUpgrade: z.boolean(),
+  IsUpgrade: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
 });

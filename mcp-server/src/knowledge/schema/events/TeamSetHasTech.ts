@@ -11,5 +11,5 @@ export const TeamSetHasTech = z.object({
   TechID: z.number(),
   
   /** Boolean indicating whether the team now has the technology (true = gained, false = lost) */
-  HasTech: z.boolean()
+  HasTech: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

@@ -15,8 +15,8 @@ export const CityConstructed = z.object({
   BuildingType: z.number(),
   
   /** Whether the building was purchased with gold (true) or produced normally/with faith (false) */
-  IsGoldPurchase: z.boolean(),
+  IsGoldPurchase: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** Whether the building was purchased with faith (true) or produced normally/with gold (false) */
-  IsFaithPurchase: z.boolean()
+  IsFaithPurchase: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

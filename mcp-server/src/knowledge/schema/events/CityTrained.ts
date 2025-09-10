@@ -15,8 +15,8 @@ export const CityTrained = z.object({
   UnitID: z.number(),
   
   /** Whether the unit was purchased with gold rather than produced */
-  PurchasedWithGold: z.boolean(),
+  PurchasedWithGold: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** Whether the unit was recruited with faith points */
-  PurchasedWithFaith: z.boolean()
+  PurchasedWithFaith: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

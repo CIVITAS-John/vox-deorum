@@ -12,7 +12,7 @@ export const MinorAlliesChanged = z.object({
   MajorPlayerID: z.number(),
   
   /** Boolean indicating whether the major civ is now an ally */
-  IsNowAlly: z.boolean(),
+  IsNowAlly: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** The previous friendship level (before change) */
   OldFriendship: z.number(),

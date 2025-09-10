@@ -164,4 +164,14 @@ export class KnowledgeManager {
   getTurn(): number {
     return this.gameIdentity?.turn ?? -1;
   }
+
+  /**
+   * Update current game turn
+   */
+  updateTurn(turn: number) {
+    if (this.gameIdentity && turn > this.gameIdentity.turn) {
+      this.gameIdentity.turn = turn;
+      logger.log("info", `Game turn progressed to ${turn}`)
+    }
+  }
 }

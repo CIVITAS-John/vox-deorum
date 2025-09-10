@@ -14,7 +14,7 @@ export const UnitCaptured = z.object({
   /** The unique identifier of the unit that was captured/converted */
   CapturedUnitID: z.number(),
   /** Whether the unit was killed instead of captured (true = killed, false = captured) */
-  WasKilled: z.boolean(),
+  WasKilled: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   /** An integer indicating the type/context of capture (0=combat, 1=capture definition, 2=trait conversion, 3=trait barbarian conversion, 4=religious conversion) */
   CaptureType: z.number()
 });

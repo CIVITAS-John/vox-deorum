@@ -10,5 +10,5 @@ export const MakePeace = z.object({
   /** The unique identifier of the team that peace is being made with */
   TargetTeamID: z.number(),
   /** Boolean indicating if this is a "pacifier" peace (specific diplomatic context) */
-  PacifierFlag: z.boolean()
+  PacifierFlag: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

@@ -10,5 +10,5 @@ export const PlayerRevoked = z.object({
   /** The player ID of the minor civilization losing protection */
   MinorPlayerID: z.number(),
   /** Whether this action breaks an existing protection pledge */
-  PledgeNowBroken: z.boolean()
+  PledgeNowBroken: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

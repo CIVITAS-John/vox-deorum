@@ -15,5 +15,5 @@ export const CityInvestedUnit = z.object({
   UnitClass: z.number(),
   
   /** Whether the investment is being activated (true) or deactivated (false) */
-  Invested: z.boolean()
+  Invested: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

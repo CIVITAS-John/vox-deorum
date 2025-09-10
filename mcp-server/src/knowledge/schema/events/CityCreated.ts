@@ -11,7 +11,7 @@ export const CityCreated = z.object({
   /** The type of project that was created */
   ProjectType: z.number(),
   /** Whether the project was purchased with gold (true) or produced normally (false) */
-  IsGoldPurchase: z.boolean(),
+  IsGoldPurchase: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   /** Whether the project was purchased with faith/culture - always false for projects */
-  IsFaithPurchase: z.boolean()
+  IsFaithPurchase: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

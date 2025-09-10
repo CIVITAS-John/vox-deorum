@@ -15,5 +15,5 @@ export const TileImprovementChanged = z.object({
   /** The type/ID of the new improvement (NO_IMPROVEMENT if removed) */
   NewImprovementType: z.number(),
   /** Whether the improvement is currently in a pillaged state */
-  IsPillaged: z.boolean(),
+  IsPillaged: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
 });

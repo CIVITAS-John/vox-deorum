@@ -9,7 +9,7 @@ export const CityCaptureComplete = z.object({
   OldOwnerID: z.number(),
   
   /** True if the captured city was a capital city */
-  IsCapital: z.boolean(),
+  IsCapital: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** The X coordinate of the captured city */
   CityX: z.number(),
@@ -24,7 +24,7 @@ export const CityCaptureComplete = z.object({
   Population: z.number(),
   
   /** True if the city was taken through military conquest */
-  IsConquest: z.boolean(),
+  IsConquest: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** Total number of Great Works that were in the city */
   TotalGreatWorks: z.number(),

@@ -20,5 +20,5 @@ export const PlayerBuilding = z.object({
   BuildType: z.number(),
   
   /** Whether this is the first time work has begun on this project */
-  IsFirstTime: z.boolean()
+  IsFirstTime: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

@@ -15,5 +15,5 @@ export const TileRouteChanged = z.object({
   /** The type/ID of the new route (NO_ROUTE if removed) */
   NewRoute: z.number(),
   /** Whether the route is currently in a pillaged state */
-  IsPillaged: z.boolean(),
+  IsPillaged: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
 });

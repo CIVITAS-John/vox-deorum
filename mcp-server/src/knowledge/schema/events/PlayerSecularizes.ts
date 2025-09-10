@@ -12,5 +12,5 @@ export const PlayerSecularizes = z.object({
   StateReligion: z.number(),
   
   /** The new secularization status (true = secularizing, false = ending secularization) */
-  IsSecularizing: z.boolean()
+  IsSecularizing: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

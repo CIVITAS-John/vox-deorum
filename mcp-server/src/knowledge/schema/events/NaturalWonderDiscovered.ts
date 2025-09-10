@@ -18,5 +18,5 @@ export const NaturalWonderDiscovered = z.object({
   PlotY: z.number(),
   
   /** Whether this team is the first major civilization to discover this wonder */
-  IsFirst: z.boolean()
+  IsFirst: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

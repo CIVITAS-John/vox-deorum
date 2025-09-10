@@ -13,7 +13,7 @@ export const TileRevealed = z.object({
   /** The team ID responsible for the revelation (if applicable) */
   RevealedByTeamID: z.number(),
   /** Whether this is the first major civilization to discover this tile */
-  IsFirstDiscovery: z.boolean(),
+  IsFirstDiscovery: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   /** The player ID of the unit owner causing the revelation (NO_PLAYER if not unit-based) */
   PlayerID: z.number(),
   /** The ID of the specific unit revealing the tile (-1 if not unit-based) */
