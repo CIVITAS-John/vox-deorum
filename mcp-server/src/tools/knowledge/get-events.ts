@@ -50,7 +50,7 @@ class GetEventsTool extends ToolBase {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Retrieves recent game events from the knowledge database with optional filtering by turn and player visibility";
+  readonly description = "Retrieves a detailed list of recent game events";
 
   /**
    * Input schema for the tool
