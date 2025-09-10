@@ -7,9 +7,10 @@ import { Kysely, ParseJSONResultsPlugin, SqliteDialect, Selectable } from 'kysel
 import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
 import { JsonSerializePlugin } from '../utils/json-serialize-plugin.js';
-import type { 
-  KnowledgeDatabase,
-  MutableKnowledge,
+import { 
+  MaxMajorCivs,
+  type KnowledgeDatabase,
+  type MutableKnowledge,
 } from './schema/base.js';
 import { setupKnowledgeDatabase } from './schema/setup.js';
 import fs from 'fs/promises';
@@ -146,6 +147,10 @@ export class KnowledgeStore {
         logger.warn(`Invalid ${type} event payload: not an array`);
         return;
       }
+
+      // Special block: TileRevealed for minor civs
+      if (type == "TileRevealed" && payload[5] >= MaxMajorCivs)
+        return;
 
       // Check if we have a schema for this event type
       if (!(type in eventSchemas)) {

@@ -92,15 +92,18 @@ local function addPlotVisibility(plotX, plotY, value, key)
   if not plot then return end
   
   -- Check visibility for all players
-  for playerID = 0, maxMajorCivs do
-    local player = Players[playerID]
-    local teamID = player:GetTeam()
-    -- Check if plot is revealed to this team
-    if player:IsAlive() and plot:IsRevealed(teamID) then
-      if plot:IsVisible(teamID) then
-        setVisible(playerID, value)
-      else
-        setVisible(playerID, math.min(value - 1, 1))  -- Reduced visibility if revealed but not visible
+  -- Except for TileRevealed, which doesn't make sense
+  if eventType ~= "TileRevealed" then
+    for playerID = 0, maxMajorCivs do
+      local player = Players[playerID]
+      local teamID = player:GetTeam()
+      -- Check if plot is revealed to this team
+      if player:IsAlive() and plot:IsRevealed(teamID) then
+        if plot:IsVisible(teamID) then
+          setVisible(playerID, value)
+        else
+          setVisible(playerID, math.min(value - 1, 1))  -- Reduced visibility if revealed but not visible
+        end
       end
     end
   end
