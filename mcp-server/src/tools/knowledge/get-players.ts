@@ -56,7 +56,7 @@ class GetPlayersTool extends ToolBase {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Retrieves player information and summaries, combining static data with current game state";
+  readonly description = "Retrieves a list of in-game players and their summary information";
 
   /**
    * Input schema for the tool
