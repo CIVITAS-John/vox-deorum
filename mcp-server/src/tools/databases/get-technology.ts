@@ -1,6 +1,7 @@
 import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
 import * as z from "zod";
+import * as changeCase from "change-case";
 
 /**
  * Schema for technology summary information
@@ -10,7 +11,7 @@ const TechnologySummarySchema = z.object({
   Name: z.string(),
   Help: z.string(),
   Cost: z.number(),
-  Era: z.string()
+  Era: z.string().nullable()
 });
 
 /**
@@ -57,10 +58,15 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
    * Fetch technology summaries from database
    */
   protected async fetchSummaries(): Promise<TechnologySummary[]> {
-    return await gameDatabase.getDatabase()
-      .selectFrom("Technologies")
-      .select(['Type', 'Description as Name', 'Help', 'Cost', 'Era'])
+    var summaries = await gameDatabase.getDatabase()
+      .selectFrom("Technologies as t")
+      .leftJoin("Eras as e", "t.Era", "e.Type")
+      .select(['t.Type', 't.Description as Name', 't.Help', 't.Cost', 'e.Type as Era'])
       .execute() as TechnologySummary[];
+    summaries.forEach(p => {
+      p.Era = changeCase.pascalCase(p?.Era?.substring(4) ?? "") || null;
+    });
+    return summaries;
   }
   
   protected fetchFullInfo = getTechnology;
@@ -77,12 +83,14 @@ export default function createGetTechnologyTool() {
  * Fetch full technology information for a specific technology
  */
 export async function getTechnology(techType: string) {
-  // Fetch base technology info
+  // Fetch base technology info with Era
   const db = gameDatabase.getDatabase();
   const tech = await db
-    .selectFrom('Technologies')
-    .selectAll()
-    .where('Type', '=', techType)
+    .selectFrom('Technologies as t')
+    .leftJoin('Eras as e', 't.Era', 'e.Type')
+    .selectAll('t')
+    .select('e.Type as EraType')
+    .where('t.Type', '=', techType)
     .executeTakeFirst();
   
   if (!tech) {
@@ -135,7 +143,7 @@ export async function getTechnology(techType: string) {
     Name: tech.Description!,
     Help: tech.Help!,
     Cost: tech.Cost!,
-    Era: tech.Era!,
+    Era: changeCase.pascalCase(tech?.EraType?.substring(4) ?? "") || null,
     PrereqTechs: prereqTechs.map(p => p.Description!),
     UnitsUnlocked: unitsUnlocked.map(u => u.Description!),
     BuildingsUnlocked: buildingsUnlocked.filter(b => b.MaxGlobalInstances == 0 && b.MaxPlayerInstances == 0).map(b => b.Description!),

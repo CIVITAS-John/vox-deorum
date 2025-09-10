@@ -1,6 +1,7 @@
 import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
 import * as z from "zod";
+import * as changeCase from "change-case";
 
 /**
  * Schema for building summary information
@@ -11,6 +12,7 @@ const BuildingSummarySchema = z.object({
   Help: z.string(),
   Cost: z.number(),
   PrereqTech: z.string().nullable(),
+  Era: z.string().nullable(),
   UniqueOf: z.string().nullable()
 });
 
@@ -26,8 +28,7 @@ const BuildingReportSchema = BuildingSummarySchema.extend({
   Happiness: z.number(),
   Defense: z.number(),
   HP: z.number(),
-  Maintenance: z.number(),
-  UniqueOf: z.string().nullable()
+  Maintenance: z.number()
 });
 
 type BuildingSummary = z.infer<typeof BuildingSummarySchema>;
@@ -61,20 +62,26 @@ class GetBuildingTool extends DatabaseQueryTool<BuildingSummary, BuildingReport>
    * Fetch building summaries from database
    */
   protected async fetchSummaries(): Promise<BuildingSummary[]> {
-    return await gameDatabase.getDatabase()
+    var summaries = await gameDatabase.getDatabase()
       .selectFrom("Buildings as b")
       .leftJoin("Technologies as t", "b.PrereqTech", "t.Type")
       .leftJoin("Civilization_BuildingClassOverrides as cbo", "cbo.BuildingType", "b.Type")
       .leftJoin("Civilizations as c", "c.Type", "cbo.CivilizationType")
+      .leftJoin("Eras as e", "t.Era", "e.Type")
       .select([
         'b.Type', 
         'b.Description as Name', 
         'b.Help', 
         'b.Cost', 
         't.Description as PrereqTech',
-        'c.ShortDescription as UniqueOf'
+        'c.ShortDescription as UniqueOf',
+        'e.Type as Era'
       ])
       .execute() as BuildingSummary[];
+    summaries.forEach(p => {
+      p.Era = changeCase.pascalCase(p?.Era?.substring(4) ?? "") || null;
+    });
+    return summaries;
   }
   
   protected fetchFullInfo = getBuilding;
@@ -91,15 +98,16 @@ export default function createGetBuildingTool() {
  * Fetch full building information for a specific building
  */
 export async function getBuilding(buildingType: string) {
-  // Fetch base building info with technology name and unique civilization
+  // Fetch base building info with technology name, era, and unique civilization
   const db = gameDatabase.getDatabase();
   const building = await db
     .selectFrom('Buildings as b')
     .leftJoin('Technologies as t', 'b.PrereqTech', 't.Type')
+    .leftJoin('Eras as e', 't.Era', 'e.Type')
     .leftJoin('Civilization_BuildingClassOverrides as cbo', 'cbo.BuildingType', 'b.Type')
     .leftJoin('Civilizations as c', 'c.Type', 'cbo.CivilizationType')
     .selectAll('b')
-    .select(['t.Description as PrereqTechName', 'c.ShortDescription as UniqueCivName'])
+    .select(['t.Description as PrereqTechName', 'c.ShortDescription as UniqueCivName', 'e.Type as EraType'])
     .where('b.Type', '=', buildingType)
     .executeTakeFirst();
   
@@ -134,6 +142,7 @@ export async function getBuilding(buildingType: string) {
     Help: building.Help || '',
     Cost: building.Cost || 0,
     PrereqTech: building.PrereqTechName || null,
+    Era: changeCase.pascalCase(building?.EraType?.substring(4) ?? "") || null,
     Strategy: building.Strategy,
     Class: building.BuildingClass || '',
     PrereqBuildings: prereqBuildings.map(p => p.Description || ''),
