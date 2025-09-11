@@ -159,7 +159,7 @@ const consolidationConfig: Record<string, string[]> = {
 
 const blockedKeys: string[] = [ 
   "RevealedToTeam", "RevealedToTeamID", "RevealedByTeam", "RevealedByTeamID", "IsFirstDiscovery", 
-  "DefenderMaxHp", "DefenderPredictedDamage", "AttackerMaxHp", "AttackerPredictedDamage" ];
+  "DefenderMaxHp", "AttackerMaxHp" ];
 
 /**
  * Consolidates events by turn, stripping turn and ID from individual events

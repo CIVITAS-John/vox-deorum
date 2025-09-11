@@ -12,8 +12,8 @@ export const CombatEnded = z.object({
   /** Unit ID of the attacking unit */
   AttackingUnitID: z.number(),
   
-  /** Initial damage value for the attacker */
-  AttackerPredictedDamage: z.number(),
+  /** Remaining HP value for the attacker */
+  AttackerRemainingHP: z.number(),
   
   /** Final damage state of the attacker */
   AttackerDamage: z.number(),
@@ -27,8 +27,8 @@ export const CombatEnded = z.object({
   /** Unit ID of the defending unit */
   DefendingUnitID: z.number(),
   
-  /** Initial damage value for the defender */
-  DefenderPredictedDamage: z.number(),
+  /** Remaining HP value for the defender */
+  DefenderRemainingHP: z.number(),
   
   /** Final damage state of the defender */
   DefenderDamage: z.number(),
