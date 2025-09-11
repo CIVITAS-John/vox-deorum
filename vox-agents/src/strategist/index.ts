@@ -16,12 +16,11 @@ context.registerAgent(new SimpleStrategist());
 
 // Register callback
 mcpClient.onElicitInput(async (params) => {
-  console.log(params);
   return;
 
   var Parameter = {
-    PlayerID: 0,
-    Turn: 0,
+    PlayerID: params.playerID,
+    Turn: params.turn,
     After: 0,
     Extra: undefined
   };
