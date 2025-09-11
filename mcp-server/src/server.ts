@@ -189,7 +189,7 @@ export class MCPServer {
     return this.knowledgeManager;
   }
 
-  private eventsForNotification = ["PlayerDoneTurn"];
+  private eventsForNotification = ["PlayerDoneTurn", "PlayerVictory"];
   /**
    * Send a notification to all clients through ElicitInput.
    */
@@ -197,7 +197,7 @@ export class MCPServer {
     if (this.eventsForNotification.indexOf(event) !== -1 && playerID >= 0 && playerID < MaxMajorCivs) {
       logger.info(`Sending server-side notification to MCP clients with ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
       // Send notification to all connected servers
-      this.servers.forEach((server, id) => {
+      this.servers.forEach((server, _id) => {
         const rawServer = (server as any).server;
         rawServer.elicitInput(
           {

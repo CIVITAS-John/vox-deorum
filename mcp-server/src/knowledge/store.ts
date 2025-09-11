@@ -186,8 +186,14 @@ export class KnowledgeStore {
 
       if (result.success) {
         const data: any = result.data;
-        if (typeof data.PlayerID === "number")
+        if (typeof data.PlayerID === "number") {
+          // Special: Victory
+          if (type == "PlayerVictory") {
+            this.setMetadata("VictoryPlayerID", data.PlayerID);
+            this.setMetadata("VictoryType", data.VictoryType);
+          }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn());
+        }
         this.storeGameEvent(id, type, data);
       } else {
         logger.warn(`Invalid ${type} event:`, {

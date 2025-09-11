@@ -94,6 +94,7 @@ import { PlayerProtected } from './PlayerProtected.js';
 import { PlayerRevoked } from './PlayerRevoked.js';
 import { PlayerSecularizes } from './PlayerSecularizes.js';
 import { PlayerTradeRouteCompleted } from './PlayerTradeRouteCompleted.js';
+import { PlayerVictory } from './PlayerVictory.js';
 import { ProvinceLevelChanged } from './ProvinceLevelChanged.js';
 import { PushingMissionTo } from './PushingMissionTo.js';
 import { RebaseTo } from './RebaseTo.js';
@@ -226,6 +227,7 @@ export const eventSchemas = {
   'PlayerRevoked': PlayerRevoked,
   'PlayerSecularizes': PlayerSecularizes,
   'PlayerTradeRouteCompleted': PlayerTradeRouteCompleted,
+  'PlayerVictory': PlayerVictory,
   'ProvinceLevelChanged': ProvinceLevelChanged,
   'PushingMissionTo': PushingMissionTo,
   'RebaseTo': RebaseTo,
