@@ -20,7 +20,8 @@ const GetEventsInputSchema = z.object({
   Turn: z.number().optional().describe("Turn number filter"),
   Type: z.string().optional().describe("Event type string filter"),
   After: z.number().optional().describe("Event ID filter"),
-  PlayerID: z.number().min(0).max(MaxMajorCivs - 1).optional().describe("Player ID visibility filter")
+  PlayerID: z.number().min(0).max(MaxMajorCivs - 1).optional().describe("Player ID visibility filter"),
+  Consolidated: z.boolean().optional().describe("Send out consolidated events for fewer token usage")
 });
 
 /**
@@ -38,7 +39,7 @@ const GameEventOutputSchema = z.object({
  */
 const GetEventsOutputSchema = z.object({
   Count: z.number(),
-  Events: z.array(GameEventOutputSchema),
+  Events: (z.union([z.array(GameEventOutputSchema), z.object({}).passthrough()])),
   LastID: z.number()
 });
 
@@ -70,7 +71,7 @@ class GetEventsTool extends ToolBase {
    * Optional annotations for the tool
    */
   readonly annotations: ToolAnnotations = {
-    autoComplete: ["PlayerID", "After"]
+    autoComplete: ["PlayerID", "After", "Consolidated"]
   }
 
   /**
@@ -120,12 +121,22 @@ class GetEventsTool extends ToolBase {
     const lastID = formattedEvents.length > 0 
       ? Math.max(...formattedEvents.map(e => e.ID))
       : 0;
-    
-    return {
-      Count: formattedEvents.length,
-      Events: formattedEvents,
-      LastID: lastID
-    };
+
+    // If consolidation is requested, group events by turn
+    if (args.Consolidated) {
+      const consolidatedEvents = consolidateEventsByTurn(formattedEvents);
+      return {
+        Count: formattedEvents.length,
+        Events: consolidatedEvents,
+        LastID: lastID
+      };
+    } else {
+      return {
+        Count: formattedEvents.length,
+        Events: formattedEvents,
+        LastID: lastID
+      };
+    }
   }
 }
 
@@ -136,6 +147,30 @@ export default function createGetEventsTool() {
   return new GetEventsTool();
 }
 
+
+/**
+ * Consolidates events by turn, stripping turn and ID from individual events
+ * @param events - Array of formatted events
+ * @returns Object with turn keys containing arrays of events
+ */
+function consolidateEventsByTurn(events: Array<any>): Record<string, any[]> {
+  const consolidated: Record<string, any[]> = {};
+  
+  for (const event of events) {
+    const turnKey = `turn-${event.Turn}`;
+    
+    // Create a copy of the event without Turn and ID
+    const { Turn, ID, ...eventWithoutTurnAndId } = event;
+    
+    if (!consolidated[turnKey]) {
+      consolidated[turnKey] = [];
+    }
+    
+    consolidated[turnKey].push(eventWithoutTurnAndId);
+  }
+  
+  return consolidated;
+}
 
 /**
  * Postprocess event payload to redact unknown resources
