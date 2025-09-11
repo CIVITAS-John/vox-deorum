@@ -79,16 +79,16 @@ class GetEventsTool extends ToolBase {
     let query = db.selectFrom("GameEvents")
       .selectAll();
     // Apply turn filter
-    if (args.Turn)
+    if (args.Turn !== undefined)
       query = query.where(isAtTurn(args.Turn));
     // Apply after filter
-    if (args.After)
+    if (args.After !== undefined)
       query = query.where(isAfter(args.After));
     // Apply after filter
-    if (args.Type)
+    if (args.Type !== undefined)
       query = query.where('Type', '=', args.Type);
     // Apply player visibility filter if provided
-    if (args.PlayerID)
+    if (args.PlayerID !== undefined)
       query = query.where(isVisible(args.PlayerID));
     
     // Order by ID
