@@ -122,7 +122,7 @@ local function addPlotVisibility(plotX, plotY, value, key)
         metadata["City"] = city:GetName()
         metadata["CityID"] = city:GetID()
         metadata["Population"] = city:GetPopulation()
-        metadata["ReligionType"] = city:GetReligiousMajority()
+        metadata["ReligionID"] = city:GetReligiousMajority()
       end
     end
 
@@ -199,7 +199,7 @@ local function addCity(cityID, value, key)
     local metadata = {}
     metadata["Name"] = city:GetName()
     metadata["Population"] = city:GetPopulation()
-    metadata["ReligionType"] = city:GetReligiousMajority()
+    metadata["ReligionID"] = city:GetReligiousMajority()
     metadata["Hp"] = city:GetMaxHitPoints() - city:GetDamage()
     metadata["MaxHp"] = city:GetMaxHitPoints()
     addPayload(key, metadata)

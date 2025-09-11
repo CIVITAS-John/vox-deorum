@@ -41,6 +41,7 @@ const blockedEventTypes = new Set<string>([
   "PlayerCityFounded",
   "TeamSetHasTech",
   "CombatEnded",
+  "BarbariansSpawnedUnit",
 ]);
 
 // List of event types renamed for better understanding

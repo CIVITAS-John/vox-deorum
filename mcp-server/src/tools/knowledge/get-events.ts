@@ -157,7 +157,9 @@ const consolidationConfig: Record<string, string[]> = {
   "UnitPromoted": ["Unit", "Player"]
 };
 
-const blockedKeys: string[] = [ "RevealedToTeam", "RevealedToTeamID", "RevealedByTeam", "RevealedByTeamID", "IsFirstDiscovery" ];
+const blockedKeys: string[] = [ 
+  "RevealedToTeam", "RevealedToTeamID", "RevealedByTeam", "RevealedByTeamID", "IsFirstDiscovery", 
+  "DefenderMaxHp", "DefenderPredictedDamage", "AttackerMaxHp", "AttackerPredictedDamage" ];
 
 /**
  * Consolidates events by turn, stripping turn and ID from individual events
@@ -254,7 +256,12 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
   }
 
   result.forEach(item => {
+    if (!item.Events) return;
     if (item.Events.length === 0) delete item["Events"];
+    if (item.Events.length === 1) {
+      Object.assign(item, item.Events[0]);
+      delete item["Events"];
+    }
   });
   
   return result;
