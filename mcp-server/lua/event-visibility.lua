@@ -136,7 +136,7 @@ local function addPlotVisibility(plotX, plotY, value, key)
     metadata["ImprovementType"] = plot:GetImprovementType()
 
     addPayload(key, metadata)
-    table.insert(scannedPlayers, player)
+    table.insert(scannedPlayers, owner)
   end
 end
 
