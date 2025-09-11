@@ -37,6 +37,7 @@ export interface PlayerSummary extends MutableKnowledge {
   PolicyBranches: JSONColumnType<Record<string, number>>;
   CreatedReligion: string | null;
   MajorityReligion: string | null;
+  ResourcesAvailable: JSONColumnType<Record<string, number>>;
   
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)
 }

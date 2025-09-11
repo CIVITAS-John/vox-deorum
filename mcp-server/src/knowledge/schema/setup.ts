@@ -59,6 +59,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('TourismPerTurn', 'integer', (col) => col.notNull())
     .addColumn('PolicyBranches', 'text', (col) => col.notNull()) // JSON object
     .addColumn('Technologies', 'integer', (col) => col.notNull())
+    .addColumn('ResourcesAvailable', 'text')
     .addColumn('CreatedReligion', 'text')
     .addColumn('MajorityReligion', 'text')
     .execute();

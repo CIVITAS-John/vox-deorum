@@ -27,7 +27,8 @@
       "Bash(npm run dev:*)",
       "WebFetch(domain:mastra.dev)",
       "WebFetch(domain:mastra.ai)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(cmd /c \"dir *\")"
     ],
     "deny": [],
     "ask": []

@@ -58,7 +58,8 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       Technologies = currentTech,
       PolicyBranches = {},
       CreatedReligion = "",
-      MajorityReligion = player:GetStateReligionName()
+      MajorityReligion = player:GetStateReligionName(),
+      ResourcesAvailable = {}  -- Will be populated differently for major/minor civs
     }
     
     -- Add relative visibility to all other players
@@ -99,6 +100,17 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       end
     end
     
+    -- Get resources for major civs (revealed resources in format {"Iron": 0})
+    local availableResources = {}
+    for resource in GameInfo.Resources() do
+      if player:IsResourceRevealed(resource.ID) then
+        local resourceName = Locale.ConvertTextKey(resource.Description)
+        local resourceCount = player:GetNumResourceAvailable(resource.ID, true)
+        availableResources[resourceName] = resourceCount
+      end
+    end
+    summary.ResourcesAvailable = availableResources
+  
     -- Add to results
     table.insert(summaries, summary)
   end
@@ -135,7 +147,8 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
       Technologies = currentTech,  -- Get actual tech count for minor civs
       PolicyBranches = {},  -- Minor civs don't have policies
       CreatedReligion = "",  -- Minor civs don't found religions
-      MajorityReligion = ""
+      MajorityReligion = "",
+      ResourcesAvailable = {}  -- Will be populated with actual available resources
     }
     
     -- Add relative visibility to all other players
@@ -158,6 +171,18 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
         end
       end
     end
+    
+    -- Get actual available resources for minor civs (skip 0s)
+    local availableResources = {}
+    for resource in GameInfo.Resources() do
+      local resourceCount = player:GetNumResourceAvailable(resource.ID, true)
+      if resourceCount > 0 then
+        -- Use localized name
+        local resourceName = Locale.ConvertTextKey(resource.Description)
+        availableResources[resourceName] = resourceCount
+      end
+    end
+    summary.ResourcesAvailable = availableResources
     
     -- Add relative visibility to all other players
     for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do

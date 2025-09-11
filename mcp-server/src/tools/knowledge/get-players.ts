@@ -40,6 +40,7 @@ const PlayerDataSchema = z.object({
   TourismPerTurn: z.number().optional(),
   Technologies: z.number().optional(),
   PolicyBranches: z.record(z.string(), z.number()).optional(),
+  ResourcesAvailable: z.record(z.string(), z.number()).optional(),
   CreatedReligion: z.string().nullable().optional(),
   MajorityReligion: z.string().nullable().optional()
 });
@@ -136,7 +137,7 @@ class GetPlayersTool extends ToolBase {
       }
     }
     
-    return playersDict;
+    return this.outputSchema.safeParse(playersDict).data!;
   }
 }
 
