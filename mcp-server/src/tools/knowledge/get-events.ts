@@ -147,6 +147,155 @@ export default function createGetEventsTool() {
   return new GetEventsTool();
 }
 
+/**
+ * Configuration for event consolidation
+ * Maps event types to their matching field paths (uses ID sub-field for matching)
+ */
+const consolidationConfig: Record<string, string[]> = {
+  "TileRevealed": ["Unit", "Player"],
+  "UnitMoved": ["Unit", "Player"],
+  "UnitPromoted": ["Unit", "Player"]
+};
+
+const blockedKeys: string[] = [ "RevealedToTeam", "RevealedToTeamID", "RevealedByTeam", "RevealedByTeamID", "IsFirstDiscovery" ];
+
+/**
+ * Consolidates events by turn, stripping turn and ID from individual events
+ * @param events - Array of formatted events
+ * @returns Object with turn keys containing arrays of events
+ */
+function consolidateEventsByTurn(events: Array<any>): Record<string, any[]> {
+  const consolidated: Record<string, any[]> = {};
+  
+  for (const event of events) {
+    const turnKey = `turn-${event.Turn}`;
+    
+    // Create a copy of the event without Turn
+    const { Turn, ID, ...eventWithoutTurn } = event;
+    
+    if (!consolidated[turnKey]) {
+      consolidated[turnKey] = [];
+    }
+    consolidated[turnKey].push(cleanEventData(eventWithoutTurn));
+  }
+
+  for (const key of Object.keys(consolidated)) {
+    consolidated[key] = consolidateConsecutiveEvents(consolidated[key]);
+  }
+  
+  return consolidated;
+}
+
+/**
+ * Consolidates consecutive events of the same type with matching fields
+ */
+function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
+  if (events.length === 0) return [];
+  
+  const result: Array<any> = [];
+  let currentGroup: any = null;
+  
+  for (const event of events) {
+    const eventType = event.Type;
+    const matchFields = consolidationConfig[eventType];
+    
+    // If this event type isn't configured for consolidation, add as-is
+    if (!matchFields) {
+      // Flush current group if exists
+      if (currentGroup) {
+        result.push(currentGroup);
+        currentGroup = null;
+      }
+      result.push(event);
+      continue;
+    }
+    
+    // Check if we can add to current group
+    if (currentGroup && 
+        currentGroup.Type === eventType &&
+        eventsMatch(currentGroup, event, matchFields)) {
+    } else {
+      // Flush current group if exists
+      if (currentGroup) result.push(currentGroup);
+      
+      // Start new group
+      const matchingFields: Record<string, any> = {};
+      for (const field of matchFields) {
+        if (event[field] !== undefined) {
+          matchingFields[field] = event[field];
+        }
+      }
+      
+      currentGroup = {
+        Type: eventType,
+        ...matchingFields,
+        Events: []
+      };
+    }
+
+    // Add non-matching fields to the Events array
+    const eventCopy = { ...event };
+    
+    // Remove matching fields and metadata from the event copy
+    for (const field of matchFields) {
+      delete eventCopy[field];
+    }
+    delete eventCopy.Type;
+    
+    // Only add if there are remaining fields
+    if (eventCopy && Object.keys(eventCopy).length > 0) {
+      currentGroup.Events.push(eventCopy);
+    }
+  }
+  
+  // Flush final group
+  if (currentGroup) {
+    result.push(currentGroup);
+  }
+
+  result.forEach(item => {
+    if (item.Events.length === 0) delete item["Events"];
+  });
+  
+  return result;
+}
+
+/**
+ * Extracts the ID value from a nested field path
+ */
+function getFieldID(obj: any, fieldPath: string): any {
+  const parts = fieldPath.split('.');
+  let current = obj;
+  
+  for (const part of parts) {
+    if (!current || typeof current !== 'object') return undefined;
+    current = current[part];
+  }
+  
+  // If the field is an object with an ID property, return the ID
+  if (current && typeof current === 'object' && 'ID' in current) {
+    return current.ID;
+  }
+  
+  return current;
+}
+
+/**
+ * Checks if two events match on specified fields
+ */
+function eventsMatch(event1: any, event2: any, matchFields: string[]): boolean {
+  for (const field of matchFields) {
+    const id1 = getFieldID(event1, field);
+    const id2 = getFieldID(event2, field);
+    
+    // If either ID is undefined or they don't match, events don't match
+    if (id1 === undefined || id2 === undefined || id1 !== id2) {
+      return false;
+    }
+  }
+  
+  return true;
+}
 
 /**
  * Recursively cleans an object by removing -1, "None", "", and empty objects
@@ -177,9 +326,31 @@ function cleanEventData(obj: any): any {
     const cleaned: Record<string, any> = {};
     
     for (const [key, value] of Object.entries(obj)) {
-      const cleanedValue = cleanEventData(value);
-      if (cleanedValue !== undefined) {
-        cleaned[key] = cleanedValue;
+      if (blockedKeys.includes(key)) continue;
+      cleaned[key] = cleanEventData(value);
+    }
+
+    for (const key of Object.keys(cleaned)) {
+      if (key.endsWith("ID")) {
+        const nested = cleaned[key.substring(0, key.length - 2)];
+        if (nested && typeof(nested) === "object") {
+          nested.ID = cleaned[key];
+          delete cleaned[key];
+        }
+      }
+      if (key.endsWith("X")) {
+        const nested = cleaned[key.substring(0, key.length - 1)];
+        if (nested && typeof(nested) === "object") {
+          nested.X = cleaned[key];
+          delete cleaned[key];
+        }
+      }
+      if (key.endsWith("Y")) {
+        const nested = cleaned[key.substring(0, key.length - 1)];
+        if (nested && typeof(nested) === "object") {
+          nested.Y = cleaned[key];
+          delete cleaned[key];
+        }
       }
     }
     
@@ -189,29 +360,6 @@ function cleanEventData(obj: any): any {
   
   // Return other values as-is
   return obj;
-}
-
-/**
- * Consolidates events by turn, stripping turn and ID from individual events
- * @param events - Array of formatted events
- * @returns Object with turn keys containing arrays of events
- */
-function consolidateEventsByTurn(events: Array<any>): Record<string, any[]> {
-  const consolidated: Record<string, any[]> = {};
-  
-  for (const event of events) {
-    const turnKey = `turn-${event.Turn}`;
-    
-    // Create a copy of the event without Turn and ID
-    const { Turn, ID, ...eventWithoutTurnAndId } = event;
-    
-    if (!consolidated[turnKey]) {
-      consolidated[turnKey] = [];
-    }
-    consolidated[turnKey].push(cleanEventData(eventWithoutTurnAndId));
-  }
-  
-  return consolidated;
 }
 
 /**
