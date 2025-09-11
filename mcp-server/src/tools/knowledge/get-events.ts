@@ -375,7 +375,7 @@ function cleanEventData(obj: any): any {
       if (key.endsWith("Player") || key.endsWith("Owner")) {
         const nested = cleaned[key];
         if (nested && nested.Civilization)
-          cleaned[key] = `${nested.ID}: ${nested.Civilization}`;
+          cleaned[key] = `${nested.ID}: ${nested.Civilization == "City State" ? nested.Name : nested.Civilization}`;
       }
     }
     

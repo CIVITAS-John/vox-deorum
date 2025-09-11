@@ -115,7 +115,12 @@ local function addPlotVisibility(plotX, plotY, value, key)
     -- Try to get its owner
     local owner = Players[plot:GetOwner()]
     if owner ~= nil then
-      metadata["Owner"] = owner:GetName()
+      -- Use Civilization name for major civs, Player name for minor civs
+      if owner:IsMinorCiv() then
+        metadata["Owner"] = owner:GetName()
+      else
+        metadata["Owner"] = Locale.ConvertTextKey(GameInfo.Civilizations[owner:GetCivilizationType()].ShortDescription)
+      end
       -- City
       local city = owner:GetCityByID(plot:GetPlotCity())
       if city ~= nil then
