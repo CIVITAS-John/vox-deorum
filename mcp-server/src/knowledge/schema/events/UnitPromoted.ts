@@ -10,5 +10,5 @@ export const UnitPromoted = z.object({
   /** The unique identifier of the unit that received the promotion */
   UnitID: z.number(),
   /** The identifier of the promotion that was granted to the unit */
-  PromotionID: z.number(),
+  PromotionType: z.number(),
 });

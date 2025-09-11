@@ -18,8 +18,8 @@ export const CityBoughtPlot = z.object({
   PlotY: z.number(),
   
   /** True if the plot was purchased with gold, false otherwise */
-  BGold: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
+  WithGold: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** True if the plot was acquired via cultural expansion, false if via gold purchase */
-  BFaithCulture: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
+  WithFaithCulture: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });

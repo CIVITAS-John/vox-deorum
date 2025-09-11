@@ -311,7 +311,7 @@ function eventsMatch(event1: any, event2: any, matchFields: string[]): boolean {
  */
 function cleanEventData(obj: any): any {
   // Handle primitives
-  if (obj === -1 || obj === "None" || obj === "") {
+  if (obj === -1 || obj === "None" || obj === "" || obj === false) {
     return undefined;
   }
   
@@ -338,10 +338,20 @@ function cleanEventData(obj: any): any {
     }
 
     for (const key of Object.keys(cleaned)) {
-      if (key.endsWith("ID")) {
+      if (key.endsWith("ID") && key !== "ID") {
         const nested = cleaned[key.substring(0, key.length - 2)];
         if (nested && typeof(nested) === "object") {
           nested.ID = cleaned[key];
+          delete cleaned[key];
+        } else if (!nested) {
+          cleaned[key.substring(0, key.length - 2)] = cleaned[key];
+          delete cleaned[key];
+        }
+      }
+      if (key.endsWith("Type") && key !== "Type") {
+        const nested = cleaned[key.substring(0, key.length - 4)];
+        if (!nested) {
+          cleaned[key.substring(0, key.length - 4)] = cleaned[key];
           delete cleaned[key];
         }
       }
@@ -358,6 +368,14 @@ function cleanEventData(obj: any): any {
           nested.Y = cleaned[key];
           delete cleaned[key];
         }
+      }
+    }
+
+    for (const key of Object.keys(cleaned)) {
+      if (key.endsWith("Player") || key.endsWith("Owner")) {
+        const nested = cleaned[key];
+        if (nested && nested.Civilization)
+          cleaned[key] = `${nested.ID}: ${nested.Civilization}`;
       }
     }
     

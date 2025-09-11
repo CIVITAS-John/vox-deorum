@@ -13,10 +13,10 @@ export const CombatResult = z.object({
   AttackingUnitID: z.number(),
   
   /** Predicted initial damage for the attacker */
-  AttackerDamage: z.number(),
+  AttackerRemainingHP: z.number(),
   
   /** Predicted final damage state of the attacker */
-  AttackerFinalDamage: z.number(),
+  AttackerDamage: z.number(),
   
   /** Maximum hit points of the attacking unit */
   AttackerMaxHp: z.number(),
@@ -28,10 +28,10 @@ export const CombatResult = z.object({
   DefendingUnitID: z.number(),
   
   /** Predicted initial damage for the defender */
-  DefenderDamage: z.number(),
+  DefenderRemainingHP: z.number(),
   
   /** Predicted final damage state of the defender */
-  DefenderFinalDamage: z.number(),
+  DefenderDamage: z.number(),
   
   /** Maximum hit points of the defending unit */
   DefenderMaxHp: z.number(),
