@@ -384,7 +384,8 @@ export class KnowledgeStore {
   async getMutableKnowledge<TTable extends keyof KnowledgeDatabase>(
     tableName: TTable,
     key: number,
-    playerId?: number
+    playerId?: number,
+    failedCallback?: () => Promise<any>,
   ): Promise<Selectable<KnowledgeDatabase[TTable]> | null> {
     const db = this.getDatabase();
     
@@ -401,7 +402,12 @@ export class KnowledgeStore {
     }
     
     const result = await query.executeTakeFirst();
-    return result as Selectable<KnowledgeDatabase[TTable]> | undefined || null;
+    if (!result && failedCallback) {
+      await failedCallback();
+      return this.getMutableKnowledge(tableName, key, playerId);
+    } else {
+      return result as Selectable<KnowledgeDatabase[TTable]> | undefined || null;
+    }
   }
 
   /**

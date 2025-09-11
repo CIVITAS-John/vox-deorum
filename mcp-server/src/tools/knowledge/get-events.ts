@@ -8,6 +8,10 @@ import * as z from "zod";
 import { isAfter, isAtTurn, isVisible } from "../../knowledge/expressions.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
+import { parseVisibility } from "../../utils/knowledge/visibility.js";
+import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
+import { PlayerSummary } from "../../knowledge/schema/timed.js";
+import { Selectable } from "kysely";
 
 /**
  * Input schema for the GetEvents tool
@@ -26,9 +30,8 @@ const GameEventOutputSchema = z.object({
   ID: z.number(),
   Turn: z.number(),
   Type: z.string(),
-  Payload: z.record(z.unknown()),
-  Visibility: z.record(z.string(), z.number()).optional()
-});
+  Visibility: z.array(z.number()).optional()
+}).passthrough();
 
 /**
  * Output schema for the GetEvents tool
@@ -97,6 +100,10 @@ class GetEventsTool extends ToolBase {
     
     // Execute the query
     const events = await query.execute();
+
+    // Get the player
+    const player = args.PlayerID === undefined ? null :
+      await knowledgeManager.getStore().getMutableKnowledge("PlayerSummaries", args.PlayerID, undefined, async () => await getPlayerSummaries());
     
     // Format the output
     const formattedEvents = events.map((event: any) => {
@@ -104,7 +111,8 @@ class GetEventsTool extends ToolBase {
         ID: event.ID,
         Turn: event.Turn,
         Type: event.Type,
-        Payload: event.Payload
+        Visibility: args.PlayerID === undefined ? parseVisibility(event) : undefined,
+        ...postprocessPayload(event.Payload as any, player)
       };
     });
     
@@ -126,4 +134,29 @@ class GetEventsTool extends ToolBase {
  */
 export default function createGetEventsTool() {
   return new GetEventsTool();
+}
+
+
+/**
+ * Postprocess event payload to redact unknown resources
+ * @param payload - The event payload to process
+ * @param player - The player context for resource visibility
+ * @returns Processed payload with redacted resources
+ */
+function postprocessPayload(value: Record<string, unknown>, player: Selectable<PlayerSummary> | null): Record<string, unknown> {
+  if (!player) return value;
+
+  for (const key of Object.keys(value)) {
+    const val = value[key];
+    if (!val) continue;
+    if (key == "ResourceType") {
+      if (player.ResourcesAvailable && Object.keys(player.ResourcesAvailable).indexOf(val as any) === -1) {
+        value[key] = "None";
+      }
+    } else if (typeof(val) === "object") {
+      value[key] = postprocessPayload(val as Record<string, unknown>, player);
+    }
+  }
+  
+  return value;
 }

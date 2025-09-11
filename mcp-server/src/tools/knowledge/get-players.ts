@@ -3,7 +3,6 @@
  * Combines PlayerSummaries with static PlayerInformation
  */
 
-import { knowledgeManager } from "../../server.js";
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
@@ -12,6 +11,7 @@ import { PlayerSummary } from "../../knowledge/schema/timed.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
+import { Selectable } from "kysely";
 
 /**
  * Input schema for the GetPlayers tool
@@ -84,15 +84,7 @@ class GetPlayersTool extends ToolBase {
     const playerInfos = await getPlayerInformations();
     
     // Get current player summaries
-    const store = knowledgeManager.getStore();
     const playerSummaries = await getPlayerSummaries();
-    for (var summary of playerSummaries) {
-      await store.storeMutableKnowledge(
-        'PlayerSummaries',
-        summary.Key!,
-        summary
-      );
-    };
   
     // Combine the data and create dictionary
     const playersDict: Record<string, z.infer<typeof this.outputSchema>[string]> = {};
@@ -128,7 +120,7 @@ class GetPlayersTool extends ToolBase {
         IsHuman: info.IsHuman,
         IsMajor: info.IsMajor,
         // Dynamic summary (if available)
-        ...cleanSummary,
+        ...postProcessSummary(cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID),
       };
       
       // Add to dictionary if not filtered or matches filter
@@ -146,4 +138,18 @@ class GetPlayersTool extends ToolBase {
  */
 export default function createGetPlayersTool() {
   return new GetPlayersTool();
+}
+
+/**
+ * Post process from a player's perspective.
+ */
+function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>(summary: T, isSelf: boolean): T {
+  if (isSelf) return summary;
+  if (summary.ResourcesAvailable) {
+    // Remove resources with value 0 from other players' data
+    summary.ResourcesAvailable = Object.fromEntries(
+      Object.entries(summary.ResourcesAvailable).filter(([_, value]) => value !== 0)
+    );
+  }
+  return summary;
 }

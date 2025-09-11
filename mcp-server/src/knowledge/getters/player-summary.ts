@@ -6,6 +6,7 @@ import { Selectable } from 'kysely';
 import { LuaFunction } from '../../bridge/lua-function.js';
 import { PlayerSummary } from '../schema/timed.js';
 import { getEraName } from '../../utils/database/enums.js';
+import { knowledgeManager } from '../../server.js';
 
 /**
  * Lua function that extracts player summary information from the game
@@ -21,12 +22,18 @@ const luaFunc = LuaFunction.fromFile(
  * Returns summary data for all active players (major civs, minor civs)
  * @returns Array of PlayerSummary objects for all active players
  */
-export async function getPlayerSummaries(): Promise<Partial<Selectable<PlayerSummary>>[]> {
+export async function getPlayerSummaries(saving: boolean = true): Promise<Partial<Selectable<PlayerSummary>>[]> {
   const response = await luaFunc.execute();
   if (!response.success)
     return [];
-  response.result.forEach((element: PlayerSummary) => {
-    element.Era = getEraName(element.Era);
-  });
+  const store = knowledgeManager.getStore();
+  for (var summary of response.result) {
+    summary.Era = getEraName(summary.Era);
+    if (saving) await store.storeMutableKnowledge(
+      'PlayerSummaries',
+      summary.Key!,
+      summary
+    );
+  };
   return response.result;
 }
