@@ -8,5 +8,5 @@ export const PlayerVictory = z.object({
   /** The ID of the player who won */
   PlayerID: z.number(),
   /** The type of victory it achieves */
-  VictoryType: z.string()
+  VictoryType: z.number()
 });

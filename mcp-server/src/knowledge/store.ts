@@ -36,7 +36,19 @@ const blockedEventTypes = new Set<string>([
   "PlayerEndTurnCompleted",
   "TerraformingPlot",
   "GameSave",
+  "CityPrepared",
+  "UnitGetSpecialExploreTarget",
+  "PlayerCityFounded",
+  "TeamSetHasTech",
+  "CombatEnded",
 ]);
+
+// List of event types renamed for better understanding
+const renamedEventTypes: Record<string, string> = {
+  "PlayerBuilt": "UnitBuildStart",
+  "PlayerBuilding": "UnitBuildCompleted",
+  "UnitSetXY": "UnitMoved",
+}
 
 /**
  * Foundation for storing and managing AI player knowledge with SQLite persistence
@@ -194,7 +206,8 @@ export class KnowledgeStore {
           }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn());
         }
-        this.storeGameEvent(id, type, data);
+        const mappedType = renamedEventTypes[type] ?? type;
+        this.storeGameEvent(id, mappedType, data);
       } else {
         logger.warn(`Invalid ${type} event:`, {
           errors: result.error.errors,

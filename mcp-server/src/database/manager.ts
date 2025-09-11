@@ -286,6 +286,7 @@ export class DatabaseManager {
     await this.addEnumMappings("AIMilitaryStrategies", "MilitaryStrategy");
     await this.addEnumMappings("AIGrandStrategies", "GrandStrategy");
     await this.addEnumMappings("Improvements", "ImprovementType");
+    await this.addEnumMappings("Builds", "BuildType");
     await this.addEnumMappings("Buildings", "BuildingType");
     await this.addEnumMappings("BuildingClasses", "BuildingClass");
     await this.addEnumMappings("Projects", "ProjectType");
@@ -303,6 +304,7 @@ export class DatabaseManager {
     await this.addEnumMappings("Resources", "ResourceType");
     await this.addEnumMappings("Religions", "ReligionID");
     await this.addEnumMappings("Features", "FeatureType");
+    await this.addEnumMappings("Victories", "VictoryType");
   }
 
   /**

@@ -189,7 +189,7 @@ export class MCPServer {
     return this.knowledgeManager;
   }
 
-  private eventsForNotification = ["PlayerDoneTurn", "PlayerVictory"];
+  private eventsForNotification = ["GameSwitched", "PlayerDoneTurn", "PlayerVictory"];
   /**
    * Send a notification to all clients through ElicitInput.
    */
