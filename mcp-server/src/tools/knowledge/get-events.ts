@@ -35,7 +35,8 @@ const GameEventOutputSchema = z.object({
  */
 const GetEventsOutputSchema = z.object({
   Count: z.number(),
-  Events: z.array(GameEventOutputSchema)
+  Events: z.array(GameEventOutputSchema),
+  LastID: z.number()
 });
 
 /**
@@ -107,9 +108,15 @@ class GetEventsTool extends ToolBase {
       };
     });
     
+    // Find the largest event ID
+    const lastID = formattedEvents.length > 0 
+      ? Math.max(...formattedEvents.map(e => e.ID))
+      : 0;
+    
     return {
       Count: formattedEvents.length,
-      Events: formattedEvents
+      Events: formattedEvents,
+      LastID: lastID
     };
   }
 }
