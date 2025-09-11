@@ -149,6 +149,49 @@ export default function createGetEventsTool() {
 
 
 /**
+ * Recursively cleans an object by removing -1, "None", "", and empty objects
+ * @param obj - Object to clean
+ * @returns Cleaned object or undefined if empty
+ */
+function cleanEventData(obj: any): any {
+  // Handle primitives
+  if (obj === -1 || obj === "None" || obj === "") {
+    return undefined;
+  }
+  
+  // Handle null/undefined
+  if (obj == null) {
+    return undefined;
+  }
+  
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    const cleaned = obj
+      .map(item => cleanEventData(item))
+      .filter(item => item !== undefined);
+    return cleaned.length > 0 ? cleaned : undefined;
+  }
+  
+  // Handle objects
+  if (typeof obj === 'object') {
+    const cleaned: Record<string, any> = {};
+    
+    for (const [key, value] of Object.entries(obj)) {
+      const cleanedValue = cleanEventData(value);
+      if (cleanedValue !== undefined) {
+        cleaned[key] = cleanedValue;
+      }
+    }
+    
+    // Return undefined if the object is empty after cleaning
+    return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+  }
+  
+  // Return other values as-is
+  return obj;
+}
+
+/**
  * Consolidates events by turn, stripping turn and ID from individual events
  * @param events - Array of formatted events
  * @returns Object with turn keys containing arrays of events
@@ -165,8 +208,7 @@ function consolidateEventsByTurn(events: Array<any>): Record<string, any[]> {
     if (!consolidated[turnKey]) {
       consolidated[turnKey] = [];
     }
-    
-    consolidated[turnKey].push(eventWithoutTurnAndId);
+    consolidated[turnKey].push(cleanEventData(eventWithoutTurnAndId));
   }
   
   return consolidated;
