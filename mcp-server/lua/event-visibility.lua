@@ -4,6 +4,15 @@ local extraPayloads = {}
 local scannedPlayers = {}
 local maxMajorCivs = ${MaxMajorCivs} - 1
 
+-- Whitelist of player events that should be propagated to met players with reduced visibility
+local playerEventsToMetPlayers = {"CircumnavigatedGlobe", "CapitalChanged", "DeclareWar", "MakePeace",
+  "NuclearDetonation", "PantheonFounded", "IdeologyAdopted", "IdeologySwitched", "PlayerAnarchy", "PlayerGoldenAge", "PlayerLiberated",
+  "ReligionFounded", "ReligionReformed", "ReligionEnhanced", "StateReligionAdopted", "StateReligionChanged"}
+
+-- Whitelist of tile events that should be propagated to players who have revealed but not visible tiles
+local tileEventsToRevealedPlayers = {"CityCreated", "CityConvertsReligion", "CityPuppeted", "CityRazed", "CityCaptureComplete", 
+  "NuclearDetonation"}
+
 -- Initialize visibility flags for all players
 for i = 0, maxMajorCivs do
   table.insert(visibilityFlags, 0)
@@ -11,7 +20,7 @@ end
 
 -- Helper function to add an extra payload
 local function addPayload(key, value)
-  if key ~= nil then
+  if key ~= nil then 
     extraPayloads[string.sub(key, 1, -3)] = value
   end
 end
@@ -74,6 +83,20 @@ local function addPlayer(playerID, value, key)
   -- Team members can see each other's events
   addTeam(player:GetTeam(), value)
 
+  -- Check if this event type should be propagated to met players
+  local propagateToMet = false
+  for _, eventPattern in ipairs(playerEventsToMetPlayers) do
+    if eventType == eventPattern then
+      propagateToMet = true
+      break
+    end
+  end
+  
+  -- If whitelisted, propagate to met players with reduced visibility
+  if propagateToMet then
+    addMetPlayer(playerID, math.max(1, value - 1))
+  end
+
   -- Get the succinct metadata for the player
   if key ~= nil then
     local metadata = {}
@@ -91,6 +114,15 @@ local function addPlotVisibility(plotX, plotY, value, key)
   local plot = Map.GetPlot(plotX, plotY)
   if not plot then return end
   
+  -- Check if this event type should be propagated to players with revealed tiles
+  local propagateToRevealed = false
+  for _, eventPattern in ipairs(tileEventsToRevealedPlayers) do
+    if eventType == eventPattern then
+      propagateToRevealed = true
+      break
+    end
+  end
+  
   -- Check visibility for all players
   -- Except for TileRevealed, which doesn't make sense
   if eventType ~= "TileRevealed" then
@@ -101,8 +133,8 @@ local function addPlotVisibility(plotX, plotY, value, key)
       if player:IsAlive() and plot:IsRevealed(teamID) then
         if plot:IsVisible(teamID) then
           setVisible(playerID, value)
-        else
-          setVisible(playerID, math.min(value - 1, 1))  -- Reduced visibility if revealed but not visible
+        elseif propagateToRevealed then
+          setVisible(playerID, math.min(1, value - 1))  -- Reduced visibility if revealed but not visible
         end
       end
     end
@@ -190,6 +222,15 @@ local function addCity(cityID, value, key)
   for _, player in pairs(scannedPlayers) do
     city = player:GetCityByID(cityID)
     if city ~= nil then
+      break
+    end
+  end
+  
+  -- Check if this event type should be propagated to players with revealed cities
+  local propagateCityToRevealed = false
+  for _, eventPattern in ipairs(cityEventsToRevealedPlayers) do
+    if eventType == eventPattern then
+      propagateCityToRevealed = true
       break
     end
   end
