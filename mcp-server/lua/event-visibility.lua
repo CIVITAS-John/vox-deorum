@@ -7,7 +7,7 @@ local maxMajorCivs = ${MaxMajorCivs} - 1
 -- Whitelist of player events that should be propagated to met players with reduced visibility
 local playerEventsToMetPlayers = {"CircumnavigatedGlobe", "CapitalChanged", "DeclareWar", "MakePeace",
   "NuclearDetonation", "PantheonFounded", "IdeologyAdopted", "IdeologySwitched", "PlayerAnarchy", "PlayerGoldenAge", "PlayerLiberated",
-  "ReligionFounded", "ReligionReformed", "ReligionEnhanced", "StateReligionAdopted", "StateReligionChanged"}
+  "ReligionFounded", "ReligionReformed", "ReligionEnhanced", "StateReligionAdopted", "StateReligionChanged", "DealMade"}
 
 -- Whitelist of tile events that should be propagated to players who have revealed but not visible tiles
 local tileEventsToRevealedPlayers = {"CityCreated", "CityConvertsReligion", "CityPuppeted", "CityRazed", "CityCaptureComplete", 

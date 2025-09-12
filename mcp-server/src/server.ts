@@ -193,7 +193,7 @@ export class MCPServer {
   /**
    * Send a notification to all clients through ElicitInput.
    */
-  public sendNotification(event: string, playerID: number, turn: number, param: Record<string, any> = {}) {
+  public sendNotification(event: string, playerID: number, turn: number, latestID: number, param: Record<string, any> = {}) {
     if (this.eventsForNotification.indexOf(event) !== -1 && playerID >= 0 && playerID < MaxMajorCivs) {
       logger.info(`Sending server-side notification to MCP clients with ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
       // Send notification to all connected servers
@@ -204,6 +204,7 @@ export class MCPServer {
             message: event,
             playerID: playerID,
             turn: turn,
+            latestID: latestID,
             ...param,
             requestedSchema: {
               type: "object",

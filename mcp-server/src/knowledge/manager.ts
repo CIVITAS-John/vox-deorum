@@ -71,7 +71,8 @@ export class KnowledgeManager {
     await this.loadKnowledge(identity.gameId);
 
     // Notify our clients
-    MCPServer.getInstance().sendNotification("GameSwitched", -1, -1, { GameID: identity.gameId });
+    MCPServer.getInstance().sendNotification("GameSwitched", -1, -1, 
+        parseInt(await this.getStore().getMetadata("lastID") ?? "-1"), { GameID: identity.gameId });
   }
 
   /**

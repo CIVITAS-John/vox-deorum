@@ -179,16 +179,50 @@ export class KnowledgeStore {
 
       // Get the schema shape to map payload array to object
       // We need to get the field names from the schema
-      const schemaShape = schema._def.shape();
+      const schemaShape = schema._def.shape() as Record<string, any>;
       const fieldNames = Object.keys(schemaShape);
 
       // Create an object from the payload array
       const eventObject: Record<string, unknown> = {};
-      fieldNames.forEach((fieldName, index) => {
-        if (index < payload.length) {
-          eventObject[fieldName] = payload[index];
+      let payloadIndex = 0;
+      
+      // Process each field in the schema
+      for (const fieldName of fieldNames) {
+        const fieldSchema = schemaShape[fieldName];
+        
+        // Check if this field is an array of objects
+        if (fieldSchema._def.typeName === 'ZodArray' && 
+            fieldSchema._def.type._def.typeName === 'ZodObject') {
+          // The current payload index should contain the count
+          const itemCount = payload[payloadIndex] as number;
+          payloadIndex++;
+          
+          // Get the nested object's field names
+          const nestedShape = fieldSchema._def.type._def.shape();
+          const nestedFieldNames = Object.keys(nestedShape);
+          
+          // Parse each item in the array
+          const items: Array<Record<string, unknown>> = [];
+          for (let i = 0; i < itemCount; i++) {
+            const item: Record<string, unknown> = {};
+            for (const nestedFieldName of nestedFieldNames) {
+              if (payloadIndex < payload.length) {
+                item[nestedFieldName] = payload[payloadIndex];
+                payloadIndex++;
+              }
+            }
+            items.push(item);
+          }
+          
+          eventObject[fieldName] = items;
+        } else {
+          // Simple field mapping
+          if (payloadIndex < payload.length) {
+            eventObject[fieldName] = payload[payloadIndex];
+            payloadIndex++;
+          }
         }
-      });
+      }
 
       // Other blocking reasons
       if (eventObject["PlotX"] == -2147483647 || eventObject["PlotY"] == -2147483647) return;
@@ -205,7 +239,8 @@ export class KnowledgeStore {
             this.setMetadata("VictoryPlayerID", data.PlayerID);
             this.setMetadata("VictoryType", data.VictoryType);
           }
-          MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn());
+          MCPServer.getInstance().sendNotification(type, data.PlayerID, id, knowledgeManager.getTurn());
+          this.setMetadata("lastID", id.toString());
         }
         const mappedType = renamedEventTypes[type] ?? type;
         this.storeGameEvent(id, mappedType, data);
@@ -217,7 +252,7 @@ export class KnowledgeStore {
         });
       }
     } catch (error) {
-      logger.error('Error handling game event:', error);
+      logger.error('Error handling game event: ' + String(error), payload);
     }
   }
 
