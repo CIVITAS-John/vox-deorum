@@ -5,7 +5,7 @@
 import { knowledgeManager } from "../../server.js";
 import { ToolBase } from "../base.js";
 import * as z from "zod";
-import { isAfter, isAtTurn, isVisible } from "../../knowledge/expressions.js";
+import { isAfter, isAtTurn, isBeforeOrAt, isVisible } from "../../knowledge/expressions.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { parseVisibility } from "../../utils/knowledge/visibility.js";
@@ -19,7 +19,8 @@ import { Selectable } from "kysely";
 const GetEventsInputSchema = z.object({
   Turn: z.number().optional().describe("Turn number filter"),
   Type: z.string().optional().describe("Event type string filter"),
-  After: z.number().optional().describe("Event ID filter"),
+  After: z.number().optional().describe("Only filter events after the ID"),
+  Before: z.number().optional().describe("Only filter events before or at the ID"),
   PlayerID: z.number().min(0).max(MaxMajorCivs - 1).optional().describe("Player ID visibility filter"),
   Consolidated: z.boolean().optional().describe("Send out consolidated events for fewer token usage")
 });
@@ -89,6 +90,9 @@ class GetEventsTool extends ToolBase {
     // Apply after filter
     if (args.After !== undefined)
       query = query.where(isAfter(args.After));
+    // Apply before filter
+    if (args.Before !== undefined)
+      query = query.where(isBeforeOrAt(args.Before));
     // Apply after filter
     if (args.Type !== undefined)
       query = query.where('Type', '=', args.Type);

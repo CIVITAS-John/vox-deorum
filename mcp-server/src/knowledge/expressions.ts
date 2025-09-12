@@ -24,3 +24,11 @@ export function isAfter(ID: number): Expression<SqlBool> {
   const eb = expressionBuilder<KnowledgeDatabase>();
   return eb(`ID` as any, '>', ID);
 }
+
+/**
+ * An expression to check whether the TimedKnowledge is before or at a given ID
+ */
+export function isBeforeOrAt(ID: number): Expression<SqlBool> {
+  const eb = expressionBuilder<KnowledgeDatabase>();
+  return eb(`ID` as any, '<=', ID);
+}
