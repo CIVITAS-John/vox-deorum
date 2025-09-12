@@ -6,6 +6,7 @@ import { Tool as VercelTool, dynamicTool, ToolSet, jsonSchema } from 'ai';
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { mcpClient } from "./mcp-client.js";
 import { startActiveObservation } from "@langfuse/tracing";
+import { camelCase } from "change-case";
 
 /**
  * Creates a dynamic tool wrapper for an agent using Vercel AI SDK's dynamicTool
@@ -39,7 +40,7 @@ export function createAgentTool<T, TParameters extends AgentParameters<T>, TInpu
         
         try {
           let parameters = baseParameters;
-          parameters.Extra = input as any;
+          parameters.extra = input as any;
           
           // Execute the agent through the context
           const result = await context.execute(agent.name, parameters);
@@ -102,7 +103,7 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         // Autocomplete support - add the fields back for execution
         if (tool.annotations?.autoComplete) {
           (tool.annotations?.autoComplete as string[]).forEach(
-            value => args[value] = (options.experimental_context as any)[value]
+            key => args[key] = (options.experimental_context as any)[camelCase(key)]
           )
         }
 
@@ -110,7 +111,7 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         observation.update({
           input: args
         });
-        logger.info(`Calling tool ${tool.name}...`);
+        logger.info(`Calling tool ${tool.name}...`, args);
 
         // Call the tool
         const result = (await mcpClient.callTool(tool.name, args)).structuredContent;

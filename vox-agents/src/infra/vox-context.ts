@@ -91,6 +91,7 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
     }
     
     this.logger.info(`Executing agent: ${agentName}`);
+    parameters.running = agentName;
     
     return await startActiveObservation(agentName, async(observation) => {
       observation.update({

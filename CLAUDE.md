@@ -51,6 +51,7 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
 - Implement proper error handling and validation
   - Proper does not mean always or excessive - avoid having unnecessary layers of error handling
 - Follow DRY (Don't Repeat Yourself) principles
+- Keep your code straightforward and concentrate on the goal
 
 ### Comment Convention
 - Always add/sync top-level comments to each code file

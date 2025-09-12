@@ -8,9 +8,9 @@ import { AgentParameters, VoxAgent } from "../infra/vox-agent.js";
  * Parameters for the strategist agent
  */
 export interface StrategistParameters<T = unknown> extends AgentParameters<T> {
-  PlayerID: number;
-  Turn: number;
-  After: number;
+  playerID: number;
+  turn: number;
+  after: number;
 }
 
 /**

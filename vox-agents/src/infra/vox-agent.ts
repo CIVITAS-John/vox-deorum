@@ -4,10 +4,24 @@ import { z } from "zod";
 import { Model } from "../utils/config.js";
 
 /**
- * Parameters for the basic agent
+ * Parameters for configuring agent execution.
+ * Provides context about the game state and timing for agent decision-making.
+ * 
+ * @template T - Additional custom parameters specific to each agent implementation
  */
 export interface AgentParameters<T = unknown> {
-  Extra?: T;
+  /** Additional custom parameters specific to the agent implementation */
+  extra?: T;
+  /** ID of the player for whom the agent is serving */
+  playerID?: number;
+  /** Current game turn number */
+  turn?: number;
+  /** Fetch events after this ID */
+  after?: number;
+  /** Fetch events equals to or before this ID */
+  before?: number;
+  /** Identifier for the currently running agent or process */
+  running?: string;
 }
 
 /**
