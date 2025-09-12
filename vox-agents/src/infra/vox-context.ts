@@ -170,6 +170,8 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
       } catch (error: any) {
         this.logger.error(`Error executing agent ${agentName}!`);
         throw error;
+      } finally {
+        parameters.running = undefined;
       }
     }, {
       asType: "agent"

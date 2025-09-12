@@ -40,10 +40,12 @@ export function createAgentTool<T, TParameters extends AgentParameters<T>, TInpu
         
         try {
           let parameters = baseParameters;
+          let currentAgent = parameters.running;
           parameters.extra = input as any;
           
           // Execute the agent through the context
           const result = await context.execute(agent.name, parameters);
+          parameters.running = currentAgent;
           
           logger.info(`Agent-tool execution completed: ${agent.name}`);
           
