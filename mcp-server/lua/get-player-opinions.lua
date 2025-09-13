@@ -107,7 +107,7 @@ function getPlayerOpinionsWithAll(firstPlayer)
 				result[tostring(iPlayerLoop)] = getPlayerOpinions(firstPlayer, iPlayerLoop);
 			end
 		else
-			result[tostring(iPlayerLoop)] = [pFirstPlayer:GetDiplomacyEvaluation(), ""]
+			result[tostring(iPlayerLoop)] = { pFirstPlayer:GetDiplomacyEvaluation(), nil }
 		end
 	end
 	

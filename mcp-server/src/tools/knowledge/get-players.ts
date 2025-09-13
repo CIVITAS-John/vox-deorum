@@ -129,8 +129,8 @@ class GetPlayersTool extends ToolBase {
       };
 
       if (playerOpinions) {
-        playerData.OpinionFromMe = stripTags((playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
-        playerData.OpinionToMe = stripTags((playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
+        playerData.OpinionFromMe = stripTags((playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string) ?? "")?.split("\n");
+        playerData.OpinionToMe = stripTags((playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string) ?? "")?.split("\n");
       }
       
       const checkedData = PlayerDataSchema.safeParse(playerData).data;

@@ -92,10 +92,8 @@ class GetOpinionsTool extends ToolBase {
     for (const info of playerInfos) {
       const targetPlayerID = info.Key;
       
-      // Skip self, non-major civs, and non-alive players
-      if (targetPlayerID === PlayerID || info.IsMajor !== 1) {
-        continue;
-      }
+      // Skip non-major civs and non-alive players
+      if (info.IsMajor !== 1) continue;
       
       // Check if the player has been met (unless RevealAll is true)
       if (!RevealAll) {

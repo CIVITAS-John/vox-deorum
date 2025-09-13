@@ -39,8 +39,8 @@ export async function getPlayerOpinions(firstPlayer?: number, saving: boolean = 
   // Process opinions and populate fields
   for (const [targetId, opinionList] of Object.entries(response.result)) {
     if (Array.isArray(opinionList)) {
-      const opinionFrom = opinionList[0].join('\n');
-      const opinionTo = opinionList[1].join('\n');
+      const opinionFrom = opinionList[0]?.join('\n');
+      const opinionTo = opinionList[1]?.join('\n');
       (playerOpinion as any)[`OpinionFrom${targetId}`] = opinionFrom;
       (playerOpinion as any)[`OpinionTo${targetId}`] = opinionTo;
     }
