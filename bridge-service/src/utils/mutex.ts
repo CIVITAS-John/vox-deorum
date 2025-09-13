@@ -1,7 +1,16 @@
-import { Mutex } from '@vscode/windows-mutex'
 import { createLogger } from './logger.js';
 
 const logger = createLogger('GameMutex');
+
+// Optional import - handle gracefully if package doesn't exist
+let Mutex: any = null;
+try {
+  const mutexModule = await import('@vscode/windows-mutex');
+  Mutex = mutexModule.Mutex;
+} catch {
+  // Package doesn't exist - mutex operations will return false
+  logger.warn('@vscode/windows-mutex not available, cannot pause game');
+}
 
 /**
  * Global mutex for managing Civilization V game pause state
@@ -16,6 +25,8 @@ class GameMutexManager {
    * Handles repetitive calls gracefully
    */
   pauseGame(): boolean {
+    if (!Mutex) return false;
+
     if (this.isPaused) {
       logger.debug('Game already paused, ignoring pauseGame() call');
       return true;
@@ -37,6 +48,8 @@ class GameMutexManager {
    * Handles repetitive calls gracefully
    */
   resumeGame(): boolean {
+    if (!Mutex) return false;
+
     if (!this.isPaused || !this.mutex) {
       logger.debug('Game not paused, ignoring resumeGame() call');
       return true;

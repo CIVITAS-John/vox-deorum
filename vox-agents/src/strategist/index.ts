@@ -19,24 +19,29 @@ await context.registerMCP();
 const strategist = "simple-strategist";
 context.registerAgent(new SimpleStrategist());
 
-// Run strategist
-const Parameter: StrategistParameters<unknown> = {
-  playerID: 0,
-  turn: -1,
-  after: -1,
-  before: 0
+// Initialize parameters.
+const initParameters = () => {
+  return {
+    playerID: 0,
+    turn: -1,
+    after: -1,
+    before: 0
+  }
 }
+
+// Run strategist
+var parameters: StrategistParameters<unknown> = initParameters();
 const runStrategist = async (params: any) => {
   // Check relevant
-  if (Parameter.playerID != params.playerID) return;
-  if (Parameter.running) {
-    logger.warn(`The ${strategist} is still working on turn ${Parameter.turn}. Skipping this one...`)
+  if (parameters.playerID != params.playerID) return;
+  if (parameters.running) {
+    logger.warn(`The ${strategist} is still working on turn ${parameters.turn}. Skipping this one...`)
   }
   // Set the parameters
-  Parameter.turn = params.turn;
-  Parameter.before = params.latestID;
-  Parameter.playerID = params.playerID;
-  logger.info(`Running the ${strategist} on ${Parameter.turn}, with events ${Parameter.after}~${Parameter.before}`)
+  parameters.turn = params.turn;
+  parameters.before = params.latestID;
+  parameters.playerID = params.playerID;
+  logger.info(`Running the ${strategist} on ${parameters.turn}, with events ${parameters.after}~${parameters.before}`)
   // Execute the simple strategist
   try {
     // await context.execute("simple-strategist", Parameter);
@@ -45,7 +50,7 @@ const runStrategist = async (params: any) => {
     await langfuseSpanProcessor.forceFlush()
   }
   // Update the after parameter
-  Parameter.after = params.latestID;
+  parameters.after = params.latestID;
 }
 
 // Test run
@@ -62,7 +67,9 @@ mcpClient.onElicitInput(async (params) => {
       await runStrategist(params);
       break;
     case "GameSwitched":
-      logger.info(`Received elicitInput notification: ${params.message}`, params);
+      logger.warn(`Game context switching - aborting pending calls`);
+      context.abort();
+      parameters = initParameters();
       break;
     default:
       logger.info(`Received elicitInput notification: ${params.message}`, params);

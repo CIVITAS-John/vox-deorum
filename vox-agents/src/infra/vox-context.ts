@@ -33,11 +33,17 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
   public defaultModel: Model;
   
   /**
+   * AbortController for managing generation cancellation
+   */
+  private abortController: AbortController;
+  
+  /**
    * Constructor for VoxContext
    * @param defaultModel - The default language model to use
    */
   constructor(defaultModel: Model) {
     this.defaultModel = defaultModel;
+    this.abortController = new AbortController();
     this.logger.info('VoxContext initialized');
   }
   
@@ -72,12 +78,23 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
   }
   
   /**
+   * Abort the current generation if one is in progress
+   * Creates a new AbortController after aborting for future operations
+   */
+  public abort(): void {
+    this.logger.info('Aborting current generation');
+    this.abortController.abort();
+    // Create a new AbortController for future executions
+    this.abortController = new AbortController();
+  }
+  
+  /**
    * Execute an agent with the given parameters
    * @param agentName - The name of the agent to execute
    * @param parameters - The parameters to pass to the agent
-   * @param includeAgentTools - Whether to include other agents as tools (default: true)
+   * @param outputSchema - Optional output schema for structured generation
    * @returns The generated text response
-   * @throws Error if the agent is not found
+   * @throws Error if the agent is not found or if aborted
    */
   public async execute(
     agentName: string, 
@@ -120,6 +137,8 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
           providerOptions: {
             [model.provider]: model.options
           } as any,
+          // Abort signal for cancellation
+          abortSignal: this.abortController.signal,
           // Initial messages
           messages: [{
             role: "system",
