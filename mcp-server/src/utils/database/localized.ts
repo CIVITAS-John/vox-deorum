@@ -1,7 +1,9 @@
 /**
  * Strip tags from Civ 5 localization strings.
  */
-export function stripTags(Text: string) {
+export function stripTags(Text: string): string
+export function stripTags(Text?: string) {
+    if (!Text) return undefined;
     Text = Text.replaceAll("[ICON_BULLET]", "* ");
     Text = Text.replaceAll("[NEWLINE]", "\n");
     Text = Text.replaceAll("[SPACE]", " ");

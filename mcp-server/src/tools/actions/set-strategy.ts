@@ -31,13 +31,10 @@ class SetStrategyTool extends LuaFunctionTool {
    * Result schema - returns success status and previous strategy
    */
   protected resultSchema = z.object({
-    Success: z.boolean(),
-    PreviousStrategy: z.object({
-      GrandStrategy: z.string().optional(),
-      EconomicStrategies: z.array(z.string()).optional(),
-      MilitaryStrategies: z.array(z.string()).optional()
-    }).optional()
-  });
+    GrandStrategy: z.string().optional(),
+    EconomicStrategies: z.array(z.string()).optional(),
+    MilitaryStrategies: z.array(z.string()).optional()
+  }).optional();
 
   /**
    * The Lua function arguments
@@ -96,43 +93,50 @@ class SetStrategyTool extends LuaFunctionTool {
     if (result.Success) {
       const store = knowledgeManager.getStore();
 
-      // Store the previous strategy with reason "In-Game AI" if it exists
-      if (result.Result) {
-        await store.storeMutableKnowledge(
-          'StrategyChanges',
-          args.PlayerID,
-          {
-            GrandStrategy: result.Result.GrandStrategy ?? null,
-            EconomicStrategies: result.Result.EconomicStrategies,
-            MilitaryStrategies: result.Result.MilitaryStrategies,
-            Rationale: "In-Game AI"
-          },
-          undefined,
-          ["Rationale"] // Only ignore Rationale when checking for changes
-        );
+      // Store the previous strategy with reason "In-Game AI"
+      const strategies = result.Result;
+      // Postprocessing
+      if (Object.keys(strategies.EconomicStrategies).length === 0)
+        strategies.EconomicStrategies = [];
+      if (Object.keys(strategies.MilitaryStrategies).length === 0)
+        strategies.MilitaryStrategies = [];
+      // Store the strategy
+      await store.storeMutableKnowledge(
+        'StrategyChanges',
+        args.PlayerID,
+        {
+          GrandStrategy: strategies.GrandStrategy,
+          EconomicStrategies: strategies.EconomicStrategies,
+          MilitaryStrategies: strategies.MilitaryStrategies,
+          Rationale: "In-Game AI"
+        },
+        undefined,
+        ["Rationale"] // Only ignore Rationale when checking for changes
+      );
 
-        // Convert the numeric values back to string names for the response
-        result.Result = {
-          GrandStrategy: retrieveEnumName("GrandStrategy", result.Result.GrandStrategy),
-          EconomicStrategies: result.Result.EconomicStrategies?.map((id: number) =>
-            retrieveEnumName("EconomicStrategy", id)
-          ).filter((name: string | undefined) => name !== undefined),
-          MilitaryStrategies: result.Result.MilitaryStrategies?.map((id: number) =>
-            retrieveEnumName("MilitaryStrategy", id)
-          ).filter((name: string | undefined) => name !== undefined)
-        };
-      }
+      // Convert the numeric values back to string names for the response
+      result.Result = {
+        GrandStrategy: retrieveEnumName("GrandStrategy", result.Result.GrandStrategy),
+        EconomicStrategies: result.Result.EconomicStrategies.map((id: number) =>
+          retrieveEnumName("EconomicStrategy", id)
+        ).filter((name: string | undefined) => name !== undefined),
+        MilitaryStrategies: result.Result.MilitaryStrategies.map((id: number) =>
+          retrieveEnumName("MilitaryStrategy", id)
+        ).filter((name: string | undefined) => name !== undefined)
+      };
 
       // Store the new strategy change in the database
       await store.storeMutableKnowledge(
         'StrategyChanges',
         args.PlayerID,
         {
-          GrandStrategy: grandStrategy ?? null,
-          EconomicStrategies: economicStrategies,
-          MilitaryStrategies: militaryStrategies,
+          GrandStrategy: grandStrategy === -1 ? strategies.GrandStrategy : grandStrategy,
+          EconomicStrategies: economicStrategies ?? strategies.economicStrategies,
+          MilitaryStrategies: militaryStrategies ?? strategies.militaryStrategies,
           Rationale: args.Rationale
-        }
+        },
+        undefined,
+        ["Rationale"] // Only ignore Rationale when checking for changes
       );
     }
 
