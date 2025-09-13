@@ -313,7 +313,7 @@ function eventsMatch(event1: any, event2: any, matchFields: string[]): boolean {
  * @param obj - Object to clean
  * @returns Cleaned object or undefined if empty
  */
-export function cleanEventData<T>(obj: T): T {
+export function cleanEventData<T>(obj: T, embedID: boolean = true): T {
   // Handle primitives
   if (obj === -1 || obj === "None" || obj === "" || obj === false) {
     return undefined as any;
@@ -340,6 +340,8 @@ export function cleanEventData<T>(obj: T): T {
       if (blockedKeys.includes(key)) continue;
       cleaned[key] = cleanEventData(value);
     }
+
+    if (!embedID) return cleaned as T;
 
     for (const key of Object.keys(cleaned)) {
       if (key.endsWith("ID") && key !== "ID") {

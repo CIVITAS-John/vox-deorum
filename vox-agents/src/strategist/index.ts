@@ -45,7 +45,7 @@ const runStrategist = async (params: any) => {
     await langfuseSpanProcessor.forceFlush()
   }
   // Update the after parameter
-  Parameter.after = params.latest;
+  Parameter.after = params.latestID;
 }
 
 // Test run

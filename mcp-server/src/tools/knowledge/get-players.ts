@@ -26,12 +26,11 @@ const GetPlayersInputSchema = z.object({
  */
 const PlayerDataSchema = z.object({
   // PlayerInformation fields
-  PlayerID: z.number(),
   TeamID: z.number(),
   Civilization: z.string(),
   Leader: z.string(),
-  IsHuman: z.number(),
-  IsMajor: z.number(),
+  IsHuman: z.boolean(),
+  IsMajor: z.boolean(),
   // PlayerSummary fields
   MajorAllyID: z.number().optional(),
   Cities: z.number().optional(),
@@ -114,20 +113,20 @@ class GetPlayersTool extends ToolBase {
       
       const playerData: z.infer<typeof PlayerDataSchema> = {
         // Static information
-        PlayerID: playerID,
         TeamID: info.TeamID,
         Civilization: info.Civilization,
-        Leader: info.Leader,
-        IsHuman: info.IsHuman,
-        IsMajor: info.IsMajor,
+        Leader: info.IsMajor ? info.Leader : "City State",
+        IsHuman: info.IsHuman == 1,
+        IsMajor: info.IsMajor == 1,
         // Dynamic summary (if available)
         ...postProcessSummary(cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID),
       };
       
-      playersDict[playerID.toString()] = cleanEventData(playerData);
+      const checkedData = PlayerDataSchema.safeParse(playerData).data;
+      playersDict[playerID.toString()] = cleanEventData(checkedData, false)!;
     }
     
-    return this.outputSchema.safeParse(playersDict).data!;
+    return playersDict;
   }
 }
 

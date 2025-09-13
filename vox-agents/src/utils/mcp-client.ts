@@ -74,7 +74,7 @@ export class MCPClient {
   private setupNotificationHandlers(): void {
     // Handle elicitInput notifications from the server
     this.client.setRequestHandler(ElicitRequestSchema, async (request) => {
-      logger.info('Received elicitInput notification', request);
+      logger.debug('Received elicitInput notification', request);
       
       // Check if this is a game state update (PlayerID and Turn)
       const { PlayerID, Turn } = request.params || {};
