@@ -205,6 +205,32 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 4. **DLL removes Lua binding**
 
+#### Game Pause/Resume
+
+##### Pause Game
+
+1. **External service → POST /external/pause**
+   ```json
+   {}
+   ```
+
+2. **Bridge → External Service**
+   ```json
+   {"success": true}
+   ```
+
+##### Resume Game
+
+1. **External service → POST /external/resume**
+   ```json
+   {}
+   ```
+
+2. **Bridge → External Service**
+   ```json
+   {"success": true}
+   ```
+
 #### Function Invocation
 
 1. **Lua Environment → DLL**

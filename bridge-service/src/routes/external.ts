@@ -7,6 +7,7 @@ import { createLogger } from '../utils/logger.js';
 import { handleAPIError } from '../utils/api.js';
 import { externalManager } from '../services/external-manager.js';
 import { ExternalFunctionRegistration } from '../types/external.js';
+import { gameMutexManager } from '../utils/mutex.js';
 
 const logger = createLogger('ExternalRoutes');
 const router = Router();
@@ -47,6 +48,30 @@ router.get('/functions', async (_req: Request, res: Response) => {
     logger.info('Fetching registered external functions');
     const result = externalManager.getFunctions();
     return result;
+  });
+});
+
+/**
+ * POST /external/pause - Pause the game
+ */
+router.get('/pause', async (_req: Request, res: Response) => {
+  await handleAPIError(res, '/external/pause', async () => {
+    const result = await gameMutexManager.pauseGame();
+    return {
+      success: result
+    };
+  });
+});
+
+/**
+ * POST /external/resume - Resume the game
+ */
+router.get('/resume', async (_req: Request, res: Response) => {
+  await handleAPIError(res, '/external/resume', async () => {
+    const result = await gameMutexManager.resumeGame();
+    return {
+      success: result
+    };
   });
 });
 

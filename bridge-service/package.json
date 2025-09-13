@@ -38,6 +38,9 @@
     "uuid": "^9.0.1",
     "winston": "^3.11.0"
   },
+  "optionalDependencies": {
+    "@vscode/windows-mutex": "^0.5.0"
+  },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/eventsource": "^1.1.15",
