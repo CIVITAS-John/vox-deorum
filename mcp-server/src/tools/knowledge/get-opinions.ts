@@ -1,5 +1,5 @@
 /**
- * Tool for retrieving diplomatic opinions between players
+ * Tool for retrieving diplomatic opinions between players with static player information
  * Gets opinions both TO and FROM a specific player with all other alive major civilizations
  */
 
@@ -11,6 +11,7 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { PlayerOpinions } from "../../knowledge/schema/timed.js";
 import { stripTags } from "../../utils/database/localized.js";
+import { cleanEventData } from "./get-events.js";
 
 /**
  * Input schema for the GetOpinions tool
@@ -20,11 +21,18 @@ const GetOpinionsInputSchema = z.object({
 });
 
 /**
- * Schema for opinion data between two players
+ * Schema for opinion data with player information
  */
 const OpinionDataSchema = z.object({
-  opinionFromMe: z.array(z.string()).describe("Opinion from the requesting player TO the target player"),
-  opinionToMe: z.array(z.string()).describe("Opinion FROM the target player to the requesting player")
+  // Static player information fields
+  TeamID: z.number(),
+  Civilization: z.string(),
+  Leader: z.string(),
+  IsHuman: z.boolean(),
+  IsMajor: z.boolean(),
+  // Opinion fields
+  OpinionFromMe: z.array(z.string()).describe("Opinion from the requesting player TO the target player"),
+  OpinionToMe: z.array(z.string()).describe("Opinion FROM the target player to the requesting player")
 });
 
 /**
@@ -39,7 +47,7 @@ class GetOpinionsTool extends ToolBase {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Retrieves diplomatic opinions TO and FROM a player with all other alive major civilizations";
+  readonly description = "Retrieves diplomatic opinions TO and FROM a player with all other alive major civilizations along with their static player information";
 
   /**
    * Input schema for the tool
@@ -59,7 +67,7 @@ class GetOpinionsTool extends ToolBase {
   }
 
   /**
-   * Execute the tool to retrieve opinion data
+   * Execute the tool to retrieve opinion data with player information
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     const { PlayerID } = args;
@@ -92,14 +100,24 @@ class GetOpinionsTool extends ToolBase {
       
       // Only add if we have valid opinions
       if (toOpinion || fromOpinion) {
-        opinionsDict[targetPlayerID.toString()] = {
-          opinionFromMe: stripTags(toOpinion || "Unknown").split("\n"),
-          opinionToMe: stripTags(fromOpinion || "Unknown").split("\n")
+        const playerData: z.infer<typeof OpinionDataSchema> = {
+          // Include static player information
+          TeamID: info.TeamID,
+          Civilization: info.Civilization,
+          Leader: info.Leader,
+          IsHuman: info.IsHuman === 1,
+          IsMajor: info.IsMajor === 1,
+          // Opinion data
+          OpinionFromMe: stripTags(toOpinion || "Unknown").split("\n"),
+          OpinionToMe: stripTags(fromOpinion || "Unknown").split("\n")
         };
+        
+        const checkedData = OpinionDataSchema.safeParse(playerData).data;
+        opinionsDict[targetPlayerID.toString()] = cleanEventData(checkedData, false)!;
       }
     }
     
-    return this.outputSchema.safeParse(opinionsDict).data!;
+    return opinionsDict;
   }
 }
 

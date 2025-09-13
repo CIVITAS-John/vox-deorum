@@ -7,12 +7,13 @@ import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
-import { PlayerSummary } from "../../knowledge/schema/timed.js";
+import { PlayerOpinions, PlayerSummary } from "../../knowledge/schema/timed.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
 import { Selectable } from "kysely";
 import { cleanEventData } from "./get-events.js";
+import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -31,6 +32,9 @@ const PlayerDataSchema = z.object({
   Leader: z.string(),
   IsHuman: z.boolean(),
   IsMajor: z.boolean(),
+  // Opinion fields
+  OpinionFromMe: z.array(z.string()).optional(),
+  OpinionToMe: z.array(z.string()).optional(),
   // PlayerSummary fields
   MajorAllyID: z.number().optional(),
   Cities: z.number().optional(),
@@ -80,11 +84,12 @@ class GetPlayersTool extends ToolBase {
    * Execute the tool to retrieve player data
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Get static player information
-    const playerInfos = await getPlayerInformations();
-    
-    // Get current player summaries
-    const playerSummaries = await getPlayerSummaries();
+    // Get static player information and current player summaries in parallel
+    const [playerInfos, playerSummaries, playerOpinions] = await Promise.all([
+      getPlayerInformations(),
+      getPlayerSummaries(),
+      getPlayerOpinions(args.PlayerID)
+    ]);
   
     // Combine the data and create dictionary
     const playersDict: Record<string, z.infer<typeof this.outputSchema>[string]> = {};
@@ -121,6 +126,11 @@ class GetPlayersTool extends ToolBase {
         // Dynamic summary (if available)
         ...postProcessSummary(cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID),
       };
+
+      if (playerOpinions) {
+        playerData.OpinionFromMe = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
+        playerData.OpinionToMe = (playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
+      }
       
       const checkedData = PlayerDataSchema.safeParse(playerData).data;
       playersDict[playerID.toString()] = cleanEventData(checkedData, false)!;

@@ -24,7 +24,8 @@ const getPlayerOpinionsFunc = LuaFunction.fromFile(
  * @param saving Whether to save the opinions to the database (default: true)
  * @returns PlayerOpinions object with opinions populated, or undefined on error
  */
-export async function getPlayerOpinions(firstPlayer: number, saving: boolean = true): Promise<Partial<Selectable<PlayerOpinions>> | undefined> {
+export async function getPlayerOpinions(firstPlayer?: number, saving: boolean = true): Promise<Partial<Selectable<PlayerOpinions>> | undefined> {
+  if (firstPlayer === undefined) return undefined;
   const response = await getPlayerOpinionsFunc.execute(firstPlayer);
   if (!response.success || typeof response.result !== 'object') {
     return undefined;
