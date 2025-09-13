@@ -11,6 +11,7 @@ import { LuaFunction } from '../../bridge/lua-function.js';
 export interface GameIdentity {
   gameId: string;
   turn: number;
+  activePlayerId?: number;
   timestamp?: number;
 }
 

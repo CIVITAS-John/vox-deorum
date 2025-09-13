@@ -2,6 +2,7 @@
 local saveDB = Modding.OpenSaveData()
 local gameId = nil
 local turn = Game.GetGameTurn()
+local activePlayerId = Game.GetActivePlayer()
 local lastSyncTimestamp = nil
 
 -- Create table if not exists
@@ -38,5 +39,6 @@ end
 return {
   gameId = gameId,
   turn = turn,
+  activePlayerId = activePlayerId,
   timestamp = lastSyncTimestamp
 }

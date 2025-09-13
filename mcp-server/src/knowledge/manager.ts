@@ -15,6 +15,7 @@ export class KnowledgeManager {
   private gameIdentity?: GameIdentity;
   private knowledgeStore?: KnowledgeStore;
   private autoSaveTimer: NodeJS.Timeout | null = null;
+  private activePlayerId?: number;
 
   private config = {
     databasePath: 'data/',
@@ -34,8 +35,18 @@ export class KnowledgeManager {
       if (data.type == "dll_status") {
         if (data.payload.connected)
           await this.checkGameContext();
-      } else if (this.knowledgeStore)
+      } else if (this.knowledgeStore) {
+        // Track active player on turn events
+        if (data.payload?.args?.[0] !== undefined) {
+          if (data.type === "PlayerDoTurn") {
+            this.updateActivePlayer(data.payload.args[0]);
+          } else if (data.type === "PlayerDoneTurn") {
+            if (data.payload.args[0] === this.gameIdentity?.activePlayerId)
+              this.updateActivePlayer(-1);
+          }
+        }
         this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload?.args);
+      }
     });
     this.startAutoSave();
   }
@@ -69,6 +80,7 @@ export class KnowledgeManager {
     
     this.gameIdentity = identity;
     await this.loadKnowledge(identity.gameId);
+    this.updateActivePlayer();
 
     // Notify our clients
     MCPServer.getInstance().sendNotification("GameSwitched", -1, -1, 
@@ -170,12 +182,30 @@ export class KnowledgeManager {
   }
 
   /**
+   * Get current active player ID
+   */
+  getActivePlayerId(): number | undefined {
+    return this.activePlayerId;
+  }
+
+  /**
    * Update current game turn
    */
   updateTurn(turn: number) {
     if (this.gameIdentity && turn > this.gameIdentity.turn) {
       this.gameIdentity.turn = turn;
       logger.log("info", `Game turn progressed to ${turn}`)
+    }
+  }
+
+  /**
+   * Update the active player and pause/unpause the game
+   */
+  updateActivePlayer(newID?: number) {
+    if (!this.gameIdentity) return;
+    if (newID) {
+      this.gameIdentity.activePlayerId = newID;
+      logger.info(`Active player changed to: ${this.activePlayerId}`);
     }
   }
 }
