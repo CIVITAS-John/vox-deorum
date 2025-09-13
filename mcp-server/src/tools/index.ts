@@ -7,6 +7,7 @@ import createGetCivilizationTool from "./databases/get-civilization.js";
 import createGetUnitTool from "./databases/get-unit.js";
 import createGetEventsTool from "./knowledge/get-events.js";
 import createGetPlayersTool from "./knowledge/get-players.js";
+import createGetOpinionsTool from "./knowledge/get-opinions.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
 
 // Tool factory configuration - one line per tool
@@ -20,6 +21,7 @@ const toolFactories = {
     getUnit: createGetUnitTool,
     getEvents: createGetEventsTool,
     getPlayers: createGetPlayersTool,
+    getOpinions: createGetOpinionsTool,
     setStrategy: createSetStrategyTool,
 } as const;
 

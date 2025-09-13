@@ -85,4 +85,38 @@ function GetOpinions(eFirstPlayer, eOtherPlayer)
 	return opinions;
 end
 
-return {GetOpinions(firstPlayer, secondPlayer), GetOpinions(secondPlayer, firstPlayer)}
+-- Get opinions from first player with all other major civs
+function getPlayerOpinionsWithAll(firstPlayer)
+	local result = {};
+	local pFirstPlayer = Players[firstPlayer];
+	
+	-- Check if first player is valid
+	if not pFirstPlayer or not pFirstPlayer:IsAlive() then
+		return result;
+	end
+	
+	-- Iterate through all players
+	for iPlayerLoop = 0, GameDefines.MAX_MAJOR_CIVS - 1, 1 do
+		local pOtherPlayer = Players[iPlayerLoop];
+		
+		-- Skip if it's the same player or not a major civ
+		if iPlayerLoop ~= firstPlayer and pOtherPlayer and pOtherPlayer:IsAlive() and not pOtherPlayer:IsMinorCiv() and not pOtherPlayer:IsBarbarian() then
+			-- Get opinions from first player to this player
+			result[tostring(iPlayerLoop)] = getPlayerOpinions(firstPlayer, iPlayerLoop);
+		end
+	end
+	
+	return result;
+end
+
+-- Legacy function for backwards compatibility (gets mutual opinions between two players)
+function getPlayerOpinions(firstPlayer, secondPlayer)
+	return {GetOpinions(firstPlayer, secondPlayer), GetOpinions(secondPlayer, firstPlayer)};
+end
+
+-- Determine which function to call based on arguments
+if secondPlayer then
+	return getPlayerOpinions(firstPlayer, secondPlayer);
+else
+	return getPlayerOpinionsWithAll(firstPlayer);
+end

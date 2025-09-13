@@ -4,7 +4,7 @@
  */
 
 import { Kysely } from 'kysely';
-import type { KnowledgeDatabase } from './base.js';
+import { MaxMajorCivs, type KnowledgeDatabase } from './base.js';
 import { 
   createPublicKnowledgeTable, 
   createTimedKnowledgeTable,
@@ -105,6 +105,17 @@ export async function setupKnowledgeDatabase(
     .execute();
   // Create indexes for PlayerDiplomacies table
   await createMutableKnowledgeIndexes(db, 'PlayerDiplomacies');
+
+  // Create PlayerOpinions table (MutableKnowledge implementation)
+  var opinions = createMutableKnowledgeTable(db, 'PlayerOpinions');
+  for (var I = 0; I < MaxMajorCivs; I++) {
+    opinions = opinions.addColumn('OpinionFrom' + I, 'text')
+    opinions = opinions.addColumn('OpinionTo' + I, 'text')
+  }
+  await opinions.execute();
+  
+  // Create indexes for PlayerOpinions table
+  await createMutableKnowledgeIndexes(db, 'PlayerOpinions');
 
   // Create PlayerInformation table (PublicKnowledge implementation)
   await createPublicKnowledgeTable(db, 'PlayerInformations')

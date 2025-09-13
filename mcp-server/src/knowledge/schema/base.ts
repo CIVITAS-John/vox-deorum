@@ -13,7 +13,8 @@ import {
   PlayerScience,
   PlayerCulture,
   PlayerMilitary,
-  PlayerDiplomacy
+  PlayerDiplomacy,
+  PlayerOpinions
 } from './timed';
 import { PlayerInformation } from './public';
 
@@ -112,6 +113,7 @@ export interface KnowledgeDatabase {
   PlayerCultures: PlayerCulture;
   PlayerMilitaries: PlayerMilitary;
   PlayerDiplomacies: PlayerDiplomacy;
+  PlayerOpinions: PlayerOpinions;
   // Public Knowledge
   PlayerInformations: PlayerInformation; 
 }
