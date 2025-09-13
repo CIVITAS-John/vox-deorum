@@ -60,8 +60,8 @@ export async function setupKnowledgeDatabase(
     .addColumn('PolicyBranches', 'text', (col) => col.notNull()) // JSON object
     .addColumn('Technologies', 'integer', (col) => col.notNull())
     .addColumn('ResourcesAvailable', 'text')
-    .addColumn('CreatedReligion', 'text')
-    .addColumn('MajorityReligion', 'text')
+    .addColumn('FoundedReligionID', 'text')
+    .addColumn('MajorityReligionID', 'text')
     .execute();
   // Create indexes for PlayerSummaries table
   await createMutableKnowledgeIndexes(db, 'PlayerSummaries');

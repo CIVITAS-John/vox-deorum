@@ -47,8 +47,8 @@ const PlayerDataSchema = z.object({
   Technologies: z.number().optional(),
   PolicyBranches: z.record(z.string(), z.number()).optional(),
   ResourcesAvailable: z.record(z.string(), z.number()).optional(),
-  CreatedReligion: z.string().nullable().optional(),
-  MajorityReligion: z.string().nullable().optional()
+  FoundedReligionID: z.string().nullable().optional(),
+  MajorityReligionID: z.string().nullable().optional()
 });
 
 /**
