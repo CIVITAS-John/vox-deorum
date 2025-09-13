@@ -14,6 +14,7 @@ import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metad
 import { Selectable } from "kysely";
 import { cleanEventData } from "./get-events.js";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
+import { stripTags } from "../../utils/database/localized.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -128,8 +129,8 @@ class GetPlayersTool extends ToolBase {
       };
 
       if (playerOpinions) {
-        playerData.OpinionFromMe = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
-        playerData.OpinionToMe = (playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
+        playerData.OpinionFromMe = stripTags((playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
+        playerData.OpinionToMe = stripTags((playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
       }
       
       const checkedData = PlayerDataSchema.safeParse(playerData).data;
