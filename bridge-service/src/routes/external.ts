@@ -54,7 +54,7 @@ router.get('/functions', async (_req: Request, res: Response) => {
 /**
  * POST /external/pause - Pause the game
  */
-router.get('/pause', async (_req: Request, res: Response) => {
+router.post('/pause', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/external/pause', async () => {
     const result = await gameMutexManager.pauseGame();
     return {
@@ -66,7 +66,7 @@ router.get('/pause', async (_req: Request, res: Response) => {
 /**
  * POST /external/resume - Resume the game
  */
-router.get('/resume', async (_req: Request, res: Response) => {
+router.post('/resume', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/external/resume', async () => {
     const result = await gameMutexManager.resumeGame();
     return {

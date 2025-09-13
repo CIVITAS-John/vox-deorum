@@ -264,6 +264,48 @@ export class BridgeManager extends EventEmitter {
   }
 
   /**
+   * Pause the game through Bridge Service
+   */
+  public async pauseGame(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/external/pause`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      logger.info('Game pause requested: ' + (data as any).success);
+      return (data as any).success === true;
+    } catch (error: any) {
+      logger.error('Failed to pause game:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Resume the game through Bridge Service
+   */
+  public async resumeGame(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/external/resume`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      logger.info('Game resume requested: ' + (data as any).success);
+      return (data as any).success === true;
+    } catch (error: any) {
+      logger.error('Failed to resume game:', error);
+      return false;
+    }
+  }
+
+  /**
    * Shutdown the manager
    */
   public shutdown(): void {
