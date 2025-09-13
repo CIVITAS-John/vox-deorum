@@ -226,15 +226,6 @@ local function addCity(cityID, value, key)
     end
   end
   
-  -- Check if this event type should be propagated to players with revealed cities
-  local propagateCityToRevealed = false
-  for _, eventPattern in ipairs(cityEventsToRevealedPlayers) do
-    if eventType == eventPattern then
-      propagateCityToRevealed = true
-      break
-    end
-  end
-  
   -- Check if city is visible to other players based on plot visibility
   local plotX = city:GetX()
   local plotY = city:GetY()
