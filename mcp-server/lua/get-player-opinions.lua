@@ -101,9 +101,13 @@ function getPlayerOpinionsWithAll(firstPlayer)
 		local pOtherPlayer = Players[iPlayerLoop];
 		
 		-- Skip if it's the same player or not a major civ
-		if iPlayerLoop ~= firstPlayer and pOtherPlayer and pOtherPlayer:IsAlive() and not pOtherPlayer:IsMinorCiv() and not pOtherPlayer:IsBarbarian() then
-			-- Get opinions from first player to this player
-			result[tostring(iPlayerLoop)] = getPlayerOpinions(firstPlayer, iPlayerLoop);
+		if iPlayerLoop ~= firstPlayer then
+			if pOtherPlayer and pOtherPlayer:IsAlive() and not pOtherPlayer:IsMinorCiv() and not pOtherPlayer:IsBarbarian() then
+				-- Get opinions from first player to this player
+				result[tostring(iPlayerLoop)] = getPlayerOpinions(firstPlayer, iPlayerLoop);
+			end
+		else
+			result[tostring(iPlayerLoop)] = [pFirstPlayer:GetDiplomacyEvaluation(), ""]
 		end
 	end
 	
@@ -117,10 +121,10 @@ end
 function getPlayerOpinions(firstPlayer, secondPlayer)
 	return { 
 	-- Second player's opinion of first player
-		GetOpinions(firstPlayer, secondPlayer)
+		GetOpinions(firstPlayer, secondPlayer),
 	-- First player's opinion of second player
 		GetOpinions(secondPlayer, firstPlayer, true)
-	};
+	}
 end
 
 -- Determine which function to call based on arguments
