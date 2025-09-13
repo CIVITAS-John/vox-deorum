@@ -16,6 +16,7 @@ export class KnowledgeManager {
   private knowledgeStore?: KnowledgeStore;
   private autoSaveTimer: NodeJS.Timeout | null = null;
   private activePlayerId?: number;
+  private pausedPlayerIds: Set<number> = new Set();
 
   private config = {
     databasePath: 'data/',
@@ -39,10 +40,10 @@ export class KnowledgeManager {
         // Track active player on turn events
         if (data.payload?.args?.[0] !== undefined) {
           if (data.type === "PlayerDoTurn") {
-            this.updateActivePlayer(data.payload.args[0]);
+            await this.updateActivePlayer(data.payload.args[0]);
           } else if (data.type === "PlayerDoneTurn") {
             if (data.payload.args[0] === this.gameIdentity?.activePlayerId)
-              this.updateActivePlayer(-1);
+              await this.updateActivePlayer(-1);
           }
         }
         this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload?.args);
@@ -80,7 +81,7 @@ export class KnowledgeManager {
     
     this.gameIdentity = identity;
     await this.loadKnowledge(identity.gameId);
-    this.updateActivePlayer();
+    await this.updateActivePlayer();
 
     // Notify our clients
     MCPServer.getInstance().sendNotification("GameSwitched", -1, -1, 
@@ -201,11 +202,41 @@ export class KnowledgeManager {
   /**
    * Update the active player and pause/unpause the game
    */
-  updateActivePlayer(newID?: number) {
+  async updateActivePlayer(newID?: number) {
     if (!this.gameIdentity) return;
-    if (newID) {
+    if (newID !== undefined) {
       this.gameIdentity.activePlayerId = newID;
+      this.activePlayerId = newID;
       logger.info(`Active player changed to: ${this.activePlayerId}`);
+
+      // Check if active player is in paused list
+      if (this.pausedPlayerIds.has(newID)) {
+        // Pause the game
+        if (await bridgeManager.pauseGame())
+          logger.info(`Game paused for player ${newID}`);
+      } else {
+        // Resume the game
+        if (await bridgeManager.resumeGame())
+          logger.info(`Game resumed for player ${newID}`);
+      }
     }
+  }
+
+  /**
+   * Add a player to the paused players list
+   */
+  async addPausedPlayer(playerId: number) {
+    this.pausedPlayerIds.add(playerId);
+    logger.info(`Player ${playerId} added to paused players list`);
+    await this.updateActivePlayer();
+  }
+
+  /**
+   * Remove a player from the paused players list
+   */
+  async removePausedPlayer(playerId: number) {
+    this.pausedPlayerIds.delete(playerId);
+    logger.info(`Player ${playerId} removed from paused players list`);
+    await this.updateActivePlayer();
   }
 }

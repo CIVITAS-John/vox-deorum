@@ -9,6 +9,8 @@ import createGetEventsTool from "./knowledge/get-events.js";
 import createGetPlayersTool from "./knowledge/get-players.js";
 import createGetOpinionsTool from "./knowledge/get-opinions.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
+import createPauseGameTool from "./actions/pause-game.js";
+import createResumeGameTool from "./actions/resume-game.js";
 
 // Tool factory configuration - one line per tool
 const toolFactories = {
@@ -23,6 +25,8 @@ const toolFactories = {
     getPlayers: createGetPlayersTool,
     getOpinions: createGetOpinionsTool,
     setStrategy: createSetStrategyTool,
+    pauseGame: createPauseGameTool,
+    resumeGame: createResumeGameTool,
 } as const;
 
 // Type for the tools object (inferred from factories)
