@@ -1,7 +1,7 @@
 local L = Locale.Lookup;
 
 -- Returns a table of opinion strings without any formatting
-function GetOpinions(eFirstPlayer, eOtherPlayer)
+function GetOpinions(eFirstPlayer, eOtherPlayer, forceAll)
 	local pFirstPlayer = Players[eFirstPlayer];
 	local eFirstTeam = pFirstPlayer:GetTeam();
 	local pFirstTeam = Teams[eFirstTeam];
@@ -20,7 +20,8 @@ function GetOpinions(eFirstPlayer, eOtherPlayer)
 	end
 
 	-- Get the opinion modifier table from the DLL
-	local tOpinion = pOtherPlayer:GetOpinionTable(eFirstPlayer);
+	-- Other player's opinion of first player
+	local tOpinion = pOtherPlayer:GetOpinionTable(eFirstPlayer, forceAll);
 	if next(tOpinion) then
 		return tOpinion;
 	end
@@ -110,8 +111,16 @@ function getPlayerOpinionsWithAll(firstPlayer)
 end
 
 -- Legacy function for backwards compatibility (gets mutual opinions between two players)
+-- firstPlayer: Me
+-- secondPlayer: Others
+-- returns: others' opinion to me; my opinion to others
 function getPlayerOpinions(firstPlayer, secondPlayer)
-	return {GetOpinions(firstPlayer, secondPlayer), GetOpinions(secondPlayer, firstPlayer)};
+	return { 
+	-- Second player's opinion of first player
+		GetOpinions(firstPlayer, secondPlayer)
+	-- First player's opinion of second player
+		GetOpinions(secondPlayer, firstPlayer, true)
+	};
 end
 
 -- Determine which function to call based on arguments

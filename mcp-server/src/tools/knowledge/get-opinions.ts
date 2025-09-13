@@ -114,8 +114,8 @@ class GetOpinionsTool extends ToolBase {
       }
       
       // Extract opinions from the PlayerOpinions object
-      const toOpinion = playerOpinions[`OpinionTo${targetPlayerID}` as keyof(PlayerOpinions)] as string;
       const fromOpinion = playerOpinions[`OpinionFrom${targetPlayerID}` as keyof(PlayerOpinions)] as string;
+      const toOpinion = playerOpinions[`OpinionTo${targetPlayerID}` as keyof(PlayerOpinions)] as string;
       
       // Only add if we have valid opinions
       if (toOpinion || fromOpinion) {
