@@ -23,8 +23,8 @@ const GetOpinionsInputSchema = z.object({
  * Schema for opinion data between two players
  */
 const OpinionDataSchema = z.object({
-  myOpinion: z.array(z.string()).describe("Opinion from the requesting player TO the target player"),
-  theirOpinion: z.array(z.string()).describe("Opinion FROM the target player to the requesting player")
+  opinionFromMe: z.array(z.string()).describe("Opinion from the requesting player TO the target player"),
+  opinionToMe: z.array(z.string()).describe("Opinion FROM the target player to the requesting player")
 });
 
 /**
@@ -93,8 +93,8 @@ class GetOpinionsTool extends ToolBase {
       // Only add if we have valid opinions
       if (toOpinion || fromOpinion) {
         opinionsDict[targetPlayerID.toString()] = {
-          myOpinion: stripTags(toOpinion || "Unknown").split("\n"),
-          theirOpinion: stripTags(fromOpinion || "Unknown").split("\n")
+          opinionFromMe: stripTags(toOpinion || "Unknown").split("\n"),
+          opinionToMe: stripTags(fromOpinion || "Unknown").split("\n")
         };
       }
     }
