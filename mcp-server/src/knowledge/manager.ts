@@ -15,7 +15,6 @@ export class KnowledgeManager {
   private gameIdentity?: GameIdentity;
   private knowledgeStore?: KnowledgeStore;
   private autoSaveTimer: NodeJS.Timeout | null = null;
-  private activePlayerId?: number;
   private pausedPlayerIds: Set<number> = new Set();
 
   private config = {
@@ -37,16 +36,7 @@ export class KnowledgeManager {
         if (data.payload.connected)
           await this.checkGameContext();
       } else if (this.knowledgeStore) {
-        // Track active player on turn events
-        if (data.payload?.args?.[0] !== undefined) {
-          if (data.type === "PlayerDoTurn") {
-            await this.updateActivePlayer(data.payload.args[0]);
-          } else if (data.type === "PlayerDoneTurn") {
-            if (data.payload.args[0] === this.gameIdentity?.activePlayerId)
-              await this.updateActivePlayer(-1);
-          }
-        }
-        this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload?.args);
+        await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload?.args);
       }
     });
     this.startAutoSave();
@@ -185,8 +175,8 @@ export class KnowledgeManager {
   /**
    * Get current active player ID
    */
-  getActivePlayerId(): number | undefined {
-    return this.activePlayerId;
+  getActivePlayerId(): number {
+    return this.gameIdentity?.activePlayerId ?? -1;
   }
 
   /**
@@ -206,19 +196,17 @@ export class KnowledgeManager {
     if (!this.gameIdentity) return;
     if (newID !== undefined) {
       this.gameIdentity.activePlayerId = newID;
-      this.activePlayerId = newID;
-      logger.info(`Active player changed to: ${this.activePlayerId}`);
-
-      // Check if active player is in paused list
-      if (this.pausedPlayerIds.has(newID)) {
-        // Pause the game
-        if (await bridgeManager.pauseGame())
-          logger.info(`Game paused for player ${newID}`);
-      } else {
-        // Resume the game
-        if (await bridgeManager.resumeGame())
-          logger.info(`Game resumed for player ${newID}`);
-      }
+      logger.info(`Active player changed to: ${this.getActivePlayerId()}`);
+    }
+    // Check if active player is in paused list
+    if (this.pausedPlayerIds.has(this.getActivePlayerId())) {
+      // Pause the game
+      if (await bridgeManager.pauseGame())
+        logger.info(`Game paused for player ${newID}`);
+    } else {
+      // Resume the game
+      if (await bridgeManager.resumeGame())
+        logger.info(`Game resumed for player ${newID}`);
     }
   }
 

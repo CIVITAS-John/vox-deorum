@@ -148,7 +148,7 @@ export class KnowledgeStore {
   /**
    * Handle incoming game events by validating against schemas
    */
-  handleGameEvent(id: number, type: string, payload: unknown): void {
+  async handleGameEvent(id: number, type: string, payload: unknown): Promise<void> {
     try {
       if (blockedEventTypes.has(type)) {
         // logger.debug(`Blocked event type: ${type}`);
@@ -239,11 +239,20 @@ export class KnowledgeStore {
             this.setMetadata("VictoryPlayerID", data.PlayerID);
             this.setMetadata("VictoryType", data.VictoryType);
           }
+          // Track active player on turn events
+          if (type === "PlayerDoTurn") {
+            await knowledgeManager.updateActivePlayer(data.PlayerID);
+          } else if (type === "PlayerDoneTurn") {
+            const activePlayer = knowledgeManager.getActivePlayerId();
+            if (activePlayer === data.PlayerID) {
+              await knowledgeManager.updateActivePlayer(-1);
+            }
+          }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);
           this.setMetadata("lastID", id.toString());
         }
         const mappedType = renamedEventTypes[type] ?? type;
-        this.storeGameEvent(id, mappedType, data);
+        await this.storeGameEvent(id, mappedType, data);
       } else {
         logger.warn(`Invalid ${type} event:`, {
           errors: result.error.errors,
