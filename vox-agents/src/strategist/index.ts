@@ -43,12 +43,15 @@ const runStrategist = async (params: any) => {
     parameters.turn = params.turn;
     parameters.before = params.latestID;
     parameters.playerID = params.playerID;
-    logger.info(`Running the ${strategist} on ${parameters.turn}, with events ${parameters.after}~${parameters.before}`);
+    logger.warn(`Running the ${strategist} on ${parameters.turn}, with events ${parameters.after}~${parameters.before}`);
     // Pause the player beyond 1 turn from now
     await context.callTool("pause-game", { PlayerID: parameters.playerID });
-    // Execute the simple strategist
-    // await context.execute("simple-strategist", Parameter);
-    await setTimeout(10000);
+    // Execute the strategist
+    // await context.execute(strategist, Parameter);
+    // Fake running
+    parameters.running = strategist;
+    await setTimeout(5000);
+    parameters.running = undefined;
     // Update the after parameter
   } catch (Error) {
     logger.error(`${strategist} error: `, Error);

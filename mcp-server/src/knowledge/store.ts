@@ -243,10 +243,7 @@ export class KnowledgeStore {
           if (type === "PlayerDoTurn") {
             await knowledgeManager.updateActivePlayer(data.PlayerID);
           } else if (type === "PlayerDoneTurn") {
-            const activePlayer = knowledgeManager.getActivePlayerId();
-            if (activePlayer === data.PlayerID) {
-              await knowledgeManager.updateActivePlayer(-1);
-            }
+            await knowledgeManager.updateActivePlayer(data.NextPlayerID);
           }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);
           this.setMetadata("lastID", id.toString());

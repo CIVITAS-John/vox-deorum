@@ -6,5 +6,7 @@ import { z } from 'zod';
  */
 export const PlayerDoneTurn = z.object({
   /** The ID of the player whose turn is ending */
-  PlayerID: z.number()
+  PlayerID: z.number(),
+  /** The ID of the player whose turn is coming next */
+  NextPlayerID: z.number()
 });
