@@ -36,8 +36,8 @@ Be decisive and execute the set-strategy tool to complete your task.`
       role: "user",
       content: `
 Game context:
-- Your PlayerID: ${parameters.PlayerID ?? 0}
-- Turn: ${parameters.Turn ?? "Unknown"}`
+- Your PlayerID: ${parameters.playerID ?? 0}
+- Turn: ${parameters.turn ?? "Unknown"}`
     }];
   }
   

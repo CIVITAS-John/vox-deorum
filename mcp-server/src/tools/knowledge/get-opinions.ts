@@ -10,6 +10,7 @@ import { getPlayerInformations } from "../../knowledge/getters/player-informatio
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { PlayerOpinions } from "../../knowledge/schema/timed.js";
+import { stripTags } from "../../utils/database/localized.js";
 
 /**
  * Input schema for the GetOpinions tool
@@ -22,8 +23,8 @@ const GetOpinionsInputSchema = z.object({
  * Schema for opinion data between two players
  */
 const OpinionDataSchema = z.object({
-  myOpinion: z.string().describe("Opinion from the requesting player TO the target player"),
-  theirOpinion: z.string().describe("Opinion FROM the target player to the requesting player")
+  myOpinion: z.array(z.string()).describe("Opinion from the requesting player TO the target player"),
+  theirOpinion: z.array(z.string()).describe("Opinion FROM the target player to the requesting player")
 });
 
 /**
@@ -92,8 +93,8 @@ class GetOpinionsTool extends ToolBase {
       // Only add if we have valid opinions
       if (toOpinion || fromOpinion) {
         opinionsDict[targetPlayerID.toString()] = {
-          myOpinion: toOpinion || "Unknown",
-          theirOpinion: fromOpinion || "Unknown"
+          myOpinion: stripTags(toOpinion || "Unknown").split("\n"),
+          theirOpinion: stripTags(fromOpinion || "Unknown").split("\n")
         };
       }
     }

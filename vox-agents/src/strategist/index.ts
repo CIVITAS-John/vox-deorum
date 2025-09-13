@@ -34,14 +34,12 @@ const runStrategist = async (params: any) => {
   }
   // Set the parameters
   Parameter.turn = params.turn;
-  Parameter.before = params.latest;
+  Parameter.before = params.latestID;
   Parameter.playerID = params.playerID;
-  if (Parameter.running) {
-    logger.info(`Running the ${strategist} on ${Parameter.turn}, with events ${Parameter.after}~${Parameter.before}`)
-  }
+  logger.info(`Running the ${strategist} on ${Parameter.turn}, with events ${Parameter.after}~${Parameter.before}`)
   // Execute the simple strategist
   try {
-    await context.execute("simple-strategist", Parameter);
+    // await context.execute("simple-strategist", Parameter);
 
   } finally {
     await langfuseSpanProcessor.forceFlush()
@@ -59,12 +57,15 @@ runStrategist({
 
 // Register callback
 mcpClient.onElicitInput((params) => {
-   logger.info(`Received elicitInput notification: ${params.message}`, params);
   switch (params.message) {
     case "PlayerDoneTurn":
       runStrategist(params);
       break;
     case "GameSwitched":
+      logger.info(`Received elicitInput notification: ${params.message}`, params);
+      break;
+    default:
+      logger.info(`Received elicitInput notification: ${params.message}`, params);
       break;
   }
 });

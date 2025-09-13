@@ -12,6 +12,7 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
 import { Selectable } from "kysely";
+import { cleanEventData } from "./get-events.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -123,10 +124,7 @@ class GetPlayersTool extends ToolBase {
         ...postProcessSummary(cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID),
       };
       
-      // Add to dictionary if not filtered or matches filter
-      if (args.PlayerID === undefined || playerID === args.PlayerID) {
-        playersDict[playerID.toString()] = playerData;
-      }
+      playersDict[playerID.toString()] = cleanEventData(playerData);
     }
     
     return this.outputSchema.safeParse(playersDict).data!;

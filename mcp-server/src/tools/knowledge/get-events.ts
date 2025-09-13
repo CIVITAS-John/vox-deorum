@@ -313,15 +313,15 @@ function eventsMatch(event1: any, event2: any, matchFields: string[]): boolean {
  * @param obj - Object to clean
  * @returns Cleaned object or undefined if empty
  */
-function cleanEventData(obj: any): any {
+export function cleanEventData<T>(obj: T): T {
   // Handle primitives
   if (obj === -1 || obj === "None" || obj === "" || obj === false) {
-    return undefined;
+    return undefined as any;
   }
   
   // Handle null/undefined
   if (obj == null) {
-    return undefined;
+    return undefined as any;
   }
   
   // Handle arrays
@@ -329,7 +329,7 @@ function cleanEventData(obj: any): any {
     const cleaned = obj
       .map(item => cleanEventData(item))
       .filter(item => item !== undefined);
-    return cleaned.length > 0 ? cleaned : undefined;
+    return cleaned.length > 0 ? cleaned as any : undefined as any;
   }
   
   // Handle objects
@@ -384,7 +384,7 @@ function cleanEventData(obj: any): any {
     }
     
     // Return undefined if the object is empty after cleaning
-    return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+    return Object.keys(cleaned).length > 0 ? cleaned as any : undefined as any;
   }
   
   // Return other values as-is

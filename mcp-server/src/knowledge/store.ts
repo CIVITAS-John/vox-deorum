@@ -239,7 +239,7 @@ export class KnowledgeStore {
             this.setMetadata("VictoryPlayerID", data.PlayerID);
             this.setMetadata("VictoryType", data.VictoryType);
           }
-          MCPServer.getInstance().sendNotification(type, data.PlayerID, id, knowledgeManager.getTurn());
+          MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);
           this.setMetadata("lastID", id.toString());
         }
         const mappedType = renamedEventTypes[type] ?? type;
