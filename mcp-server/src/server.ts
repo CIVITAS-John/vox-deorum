@@ -13,6 +13,7 @@ import { BridgeManager } from './bridge/manager.js';
 import { DatabaseManager } from './database/manager.js';
 import { KnowledgeManager } from './knowledge/manager.js';
 import * as z from "zod";
+import { MaxMajorCivs } from './knowledge/schema/base.js';
 
 const logger = createLogger('Server');
 
@@ -193,7 +194,7 @@ export class MCPServer {
    * Send a notification to all clients through ElicitInput.
    */
   public sendNotification(event: string, playerID: number, turn: number, latestID: number, param: Record<string, any> = {}) {
-    if (this.eventsForNotification.indexOf(event) !== -1) {
+    if (this.eventsForNotification.indexOf(event) !== -1 && playerID < MaxMajorCivs) {
       logger.info(`Sending server-side notification to MCP clients about the ${event} (Player ${playerID}) at turn ${turn}.`)
       // Send notification to all connected servers
       this.servers.forEach((server, _id) => {

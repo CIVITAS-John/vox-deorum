@@ -74,16 +74,16 @@ export function explainEnums<T extends Record<string, any>>(obj: T): T {
  */
 export function retrieveEnumValue(type: string, value?: string): number {
   if (!value) return -1;
-  
+
   // First try exact match for the type
   let enumMapping: Record<number, string> | undefined;
-  
+
   if (type in enumMappings) {
     enumMapping = enumMappings[type];
   } else {
     throw new Error(`Enum type not found: ${type}`);
   }
-  
+
   // If we found a matching enum mapping, search for the value
   for (const [numKey, strValue] of Object.entries(enumMapping)) {
     if (strValue === value) return Number(numKey);
@@ -91,4 +91,26 @@ export function retrieveEnumValue(type: string, value?: string): number {
 
   // Return -1 if not found (following Civ5 convention for "None")
   return -1;
+}
+
+/**
+ * Convert a numeric enum value back to its string representation
+ * @param type The enum type key (e.g., "YieldType", "TerrainType")
+ * @param value The numeric value to look up
+ * @returns The string representation, or undefined if not found
+ */
+export function retrieveEnumName(type: string, value?: number | null): string | undefined {
+  if (value === undefined || value === null) return undefined;
+
+  // First try exact match for the type
+  let enumMapping: Record<number, string> | undefined;
+
+  if (type in enumMappings) {
+    enumMapping = enumMappings[type];
+  } else {
+    throw new Error(`Enum type not found: ${type}`);
+  }
+
+  // Return the string value if found
+  return enumMapping[value];
 }

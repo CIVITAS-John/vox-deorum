@@ -4,7 +4,7 @@
 
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
-import { enumMappings, retrieveEnumValue } from "../../utils/knowledge/enum.js";
+import { enumMappings, retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
@@ -28,9 +28,16 @@ class SetStrategyTool extends LuaFunctionTool {
   });
 
   /**
-   * Result schema - returns success status
+   * Result schema - returns success status and previous strategy
    */
-  protected resultSchema = z.boolean();
+  protected resultSchema = z.object({
+    Success: z.boolean(),
+    PreviousStrategy: z.object({
+      GrandStrategy: z.string().optional(),
+      EconomicStrategies: z.array(z.string()).optional(),
+      MilitaryStrategies: z.array(z.string()).optional()
+    }).optional()
+  });
 
   /**
    * The Lua function arguments
@@ -50,6 +57,13 @@ class SetStrategyTool extends LuaFunctionTool {
    */
   protected script = `
     local activePlayer = Players[Game.GetActivePlayer()]
+
+    -- Capture previous strategies before setting new ones
+    local previousGrand = activePlayer:GetGrandStrategy()
+    local previousEconomic = activePlayer:GetEconomicStrategies()
+    local previousMilitary = activePlayer:GetMilitaryStrategies()
+
+    -- Set new strategies
     if grandId ~= -1 then
       activePlayer:SetGrandStrategy(grandId)
     end
@@ -59,7 +73,13 @@ class SetStrategyTool extends LuaFunctionTool {
     if militaryIds ~= nil then
       activePlayer:SetMilitaryStrategies(militaryIds)
     end
-    return true
+
+    -- Return success and previous strategies
+    return {
+      GrandStrategy = previousGrand,
+      EconomicStrategies = previousEconomic,
+      MilitaryStrategies = previousMilitary
+    }
   `;
 
   /**
@@ -70,12 +90,40 @@ class SetStrategyTool extends LuaFunctionTool {
     let grandStrategy = retrieveEnumValue("GrandStrategy", args.GrandStrategy)
     let economicStrategies = args.EconomicStrategies?.map(s => retrieveEnumValue("EconomicStrategy", s));
     let militaryStrategies = args.MilitaryStrategies?.map(s => retrieveEnumValue("MilitaryStrategy", s));
-    
+
     // Call the parent execute with the strategy ID
     var result = await super.call(grandStrategy, economicStrategies, militaryStrategies);
     if (result.Success) {
-      // Store the strategy change in the database
       const store = knowledgeManager.getStore();
+
+      // Store the previous strategy with reason "In-Game AI" if it exists
+      if (result.Result) {
+        await store.storeMutableKnowledge(
+          'StrategyChanges',
+          args.PlayerID,
+          {
+            GrandStrategy: result.Result.GrandStrategy ?? null,
+            EconomicStrategies: result.Result.EconomicStrategies,
+            MilitaryStrategies: result.Result.MilitaryStrategies,
+            Rationale: "In-Game AI"
+          },
+          undefined,
+          ["Rationale"] // Only ignore Rationale when checking for changes
+        );
+
+        // Convert the numeric values back to string names for the response
+        result.Result = {
+          GrandStrategy: retrieveEnumName("GrandStrategy", result.Result.GrandStrategy),
+          EconomicStrategies: result.Result.EconomicStrategies?.map((id: number) =>
+            retrieveEnumName("EconomicStrategy", id)
+          ).filter((name: string | undefined) => name !== undefined),
+          MilitaryStrategies: result.Result.MilitaryStrategies?.map((id: number) =>
+            retrieveEnumName("MilitaryStrategy", id)
+          ).filter((name: string | undefined) => name !== undefined)
+        };
+      }
+
+      // Store the new strategy change in the database
       await store.storeMutableKnowledge(
         'StrategyChanges',
         args.PlayerID,

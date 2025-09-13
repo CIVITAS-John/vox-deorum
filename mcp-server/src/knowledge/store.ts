@@ -333,11 +333,12 @@ export class KnowledgeStore {
   /**
    * Generic function to store MutableKnowledge entries
    * Handles versioning, change tracking, and visibility automatically
-   * 
+   *
    * @param tableName - The table name in the database (must be a key of KnowledgeDatabase)
    * @param key - The unique identifier for this knowledge item
    * @param data - The data to store (must extend MutableKnowledge)
    * @param visibilityFlags - Array of player IDs that can see this knowledge
+   * @param ignoreFields - Array of field names to ignore when detecting changes
    * @returns The stored entry with generated fields
    */
   async storeMutableKnowledge<
@@ -347,7 +348,8 @@ export class KnowledgeStore {
     tableName: TTable,
     key: number,
     data: TData,
-    visibilityFlags?: number[]
+    visibilityFlags?: number[],
+    ignoreFields?: string[]
   ): Promise<void> {
     const db = this.getDatabase();
     const turn = knowledgeManager.getTurn();
@@ -365,8 +367,8 @@ export class KnowledgeStore {
         
         // Calculate version number and detect changes
         const newVersion = latestEntry ? (latestEntry.Version) + 1 : 1;
-        const changes = detectChanges(latestEntry, data as any);
-        
+        const changes = detectChanges(latestEntry, data as any, ignoreFields);
+
         // Skip if no changes detected (for updates)
         if (latestEntry && changes.length === 0) {
           logger.debug(`No changes detected for ${tableName} key ${key}, skipping update`);
