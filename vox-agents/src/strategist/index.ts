@@ -5,6 +5,7 @@ import { mcpClient } from "../utils/mcp-client.js";
 import { getModelConfig } from "../utils/models.js";
 import { SimpleStrategist } from "./simple-strategist.js";
 import { StrategistParameters } from "./strategist.js";
+import delay from 'delay';
 
 const logger = createLogger('Strategists');
 
@@ -32,25 +33,31 @@ const initParameters = () => {
 // Run strategist
 var parameters: StrategistParameters<unknown> = initParameters();
 const runStrategist = async (params: any) => {
-  // Check relevant
-  if (parameters.playerID != params.playerID) return;
-  if (parameters.running) {
-    logger.warn(`The ${strategist} is still working on turn ${parameters.turn}. Skipping this one...`)
-  }
-  // Set the parameters
-  parameters.turn = params.turn;
-  parameters.before = params.latestID;
-  parameters.playerID = params.playerID;
-  logger.info(`Running the ${strategist} on ${parameters.turn}, with events ${parameters.after}~${parameters.before}`)
-  // Execute the simple strategist
   try {
-    // await context.execute("simple-strategist", Parameter);
-
+    // Check relevant
+    if (parameters.playerID != params.playerID) return;
+    if (parameters.running) {
+      logger.warn(`The ${strategist} is still working on turn ${parameters.turn}. Skipping this one...`)
+    }
+    // Pause the player beyond 1 turn from now
+    context.callTool("pause-game", parameters.playerID);
+    // Set the parameters
+    parameters.turn = params.turn;
+    parameters.before = params.latestID;
+    parameters.playerID = params.playerID;
+    logger.info(`Running the ${strategist} on ${parameters.turn}, with events ${parameters.after}~${parameters.before}`)
+    // Execute the simple strategist
+    try {
+      // await context.execute("simple-strategist", Parameter);
+      delay(5000);
+    } finally {
+      await langfuseSpanProcessor.forceFlush()
+    }
+    // Update the after parameter
+    parameters.after = params.latestID;
   } finally {
-    await langfuseSpanProcessor.forceFlush()
+    context.callTool("resume-game", parameters.playerID);
   }
-  // Update the after parameter
-  parameters.after = params.latestID;
 }
 
 // Test run

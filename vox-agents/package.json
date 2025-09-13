@@ -38,6 +38,7 @@
     "@opentelemetry/sdk-trace-node": "^2.1.0",
     "ai": "^5.0.33",
     "change-case": "^5.4.4",
+    "delay": "^6.0.0",
     "dotenv": "^17.2.2",
     "langfuse-vercel": "^3.38.5",
     "winston": "^3.17.0",

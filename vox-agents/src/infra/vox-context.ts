@@ -87,6 +87,34 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
     // Create a new AbortController for future executions
     this.abortController = new AbortController();
   }
+
+  /**
+   * Call a tool by name with the given arguments
+   * @param name - The name of the tool to call
+   * @param args - The arguments to pass to the tool
+   * @returns The result of the tool execution
+   * @throws Error if the tool is not found
+   */
+  public async callTool<T = any>(name: string, args: any): Promise<T | undefined> {
+    const tool = this.tools[name];
+    if (!tool) {
+      this.logger.error(`Tool not found: ${name}`);
+      return undefined;
+    }
+
+    this.logger.info(`Calling tool: ${name}`, { args });
+    try {
+      const result = await tool.execute?.(args, {
+        toolCallId: "manual",
+        messages: []
+      });
+      this.logger.info(`Tool execution completed: ${name}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Error calling tool ${name}:`, error);
+      return undefined;
+    }
+  }
   
   /**
    * Execute an agent with the given parameters
