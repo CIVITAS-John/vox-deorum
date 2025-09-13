@@ -13,7 +13,6 @@ import { BridgeManager } from './bridge/manager.js';
 import { DatabaseManager } from './database/manager.js';
 import { KnowledgeManager } from './knowledge/manager.js';
 import * as z from "zod";
-import { MaxMajorCivs } from './knowledge/schema/base.js';
 
 const logger = createLogger('Server');
 

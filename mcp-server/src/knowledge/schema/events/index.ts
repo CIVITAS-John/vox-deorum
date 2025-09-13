@@ -34,6 +34,7 @@ import { CombatResult } from './CombatResult.js';
 import { ContractEnded } from './ContractEnded.js';
 import { ContractStarted } from './ContractStarted.js';
 import { ContractsRefreshed } from './ContractsRefreshed.js';
+import { DealMade } from './DealMade.js';
 import { DeclareWar } from './DeclareWar.js';
 import { ElectionResultFailure } from './ElectionResultFailure.js';
 import { ElectionResultSuccess } from './ElectionResultSuccess.js';
@@ -168,6 +169,7 @@ export const eventSchemas = {
   'ContractStarted': ContractStarted,
   'ContractsRefreshed': ContractsRefreshed,
   'DeclareWar': DeclareWar,
+  'DealMade': DealMade,
   'ElectionResultFailure': ElectionResultFailure,
   'ElectionResultSuccess': ElectionResultSuccess,
   'EspionageNotificationData': EspionageNotificationData,
