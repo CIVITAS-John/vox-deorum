@@ -63,7 +63,7 @@ local function addMetPlayer(playerID, value)
   local teamID = player:GetTeam()
   for otherID = 0, maxMajorCivs do
     local otherPlayer = Players[otherID]
-    if otherPlayer then
+    if otherPlayer and otherPlayer.isAlive() then
       local otherTeam = Teams[otherPlayer:GetTeam()]
       if otherTeam and otherTeam:IsHasMet(teamID) then
         setVisible(otherID, value)
@@ -95,7 +95,7 @@ local function addPlayer(playerID, value, key)
   
   -- If whitelisted, propagate to met players with reduced visibility
   if propagateToMet then
-    addMetPlayer(playerID, math.max(1, value - 1))
+    addMetPlayer(playerID, math.min(1, value - 1))
   end
 
   -- Get the succinct metadata for the player

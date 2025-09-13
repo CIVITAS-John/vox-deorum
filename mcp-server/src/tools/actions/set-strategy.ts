@@ -41,7 +41,6 @@ class SetStrategyTool extends LuaFunctionTool {
    * Optional annotations for the Lua executor tool
    */
   readonly annotations: ToolAnnotations = {
-    audience: ["user", "strategist"],
     autoComplete: ["PlayerID"],
     readOnlyHint: false
   }
