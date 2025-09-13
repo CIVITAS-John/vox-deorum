@@ -36,6 +36,7 @@ const PlayerDataSchema = z.object({
   // Opinion fields
   OpinionFromMe: z.array(z.string()).optional(),
   OpinionToMe: z.array(z.string()).optional(),
+  MyEvaluations: z.array(z.string()).optional(),
   // PlayerSummary fields
   MajorAllyID: z.number().optional(),
   Cities: z.number().optional(),
@@ -129,8 +130,12 @@ class GetPlayersTool extends ToolBase {
       };
 
       if (playerOpinions) {
-        playerData.OpinionFromMe = stripTags((playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string) ?? "")?.split("\n");
-        playerData.OpinionToMe = stripTags((playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string) ?? "")?.split("\n");
+        if (info.Key === args.PlayerID) {
+          playerData.MyEvaluations = stripTags((playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
+        } else {
+          playerData.OpinionFromMe = stripTags((playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
+          playerData.OpinionToMe = stripTags((playerOpinions[`OpinionForm${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
+        }
       }
       
       const checkedData = PlayerDataSchema.safeParse(playerData).data;
