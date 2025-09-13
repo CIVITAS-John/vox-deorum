@@ -84,7 +84,7 @@ export class MCPClient {
         
         // Trigger game state update handler
         const handler = this.notificationHandlers.get('notification');
-        if (handler) handler(data);
+        if (handler) await handler(data);
         
         // Respond with empty response as nothing is actually elicited
         // The notification is just used as a trigger mechanism

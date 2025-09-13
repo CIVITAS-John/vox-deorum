@@ -7,9 +7,10 @@ import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
+import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { PlayerOpinions } from "../../knowledge/schema/timed.js";
+import { PlayerOpinions, PlayerSummary } from "../../knowledge/schema/timed.js";
 import { stripTags } from "../../utils/database/localized.js";
 import { cleanEventData } from "./get-events.js";
 
@@ -17,7 +18,8 @@ import { cleanEventData } from "./get-events.js";
  * Input schema for the GetOpinions tool
  */
 const GetOpinionsInputSchema = z.object({
-  PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("Player ID whose opinions to retrieve")
+  PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("Player ID whose opinions to retrieve"),
+  RevealAll: z.boolean().optional().describe("Optional flag to reveal all players regardless of met status (default: false)")
 });
 
 /**
@@ -57,33 +59,34 @@ class GetOpinionsTool extends ToolBase {
   /**
    * Output schema for the tool
    */
-  readonly outputSchema = z.record(z.string(), OpinionDataSchema);
+  readonly outputSchema = z.record(z.string(), z.union([OpinionDataSchema, z.string()]));
 
   /**
    * Optional annotations for the tool
    */
   readonly annotations: ToolAnnotations = {
-    autoComplete: ["PlayerID"]
+    autoComplete: ["PlayerID", "RevealAll"]
   }
 
   /**
    * Execute the tool to retrieve opinion data with player information
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    const { PlayerID } = args;
+    const { PlayerID, RevealAll = false } = args;
     
-    // Get all player information to check who is alive
-    const playerInfos = await getPlayerInformations();
-    
-    // Get all opinions for the requesting player (both TO and FROM all others)
-    const playerOpinions = await getPlayerOpinions(PlayerID, false);
+    // Get all player information, summaries, and opinions in parallel
+    const [playerInfos, playerSummaries, playerOpinions] = await Promise.all([
+      getPlayerInformations(),
+      getPlayerSummaries(),
+      getPlayerOpinions(PlayerID, false)
+    ]);
     
     if (!playerOpinions) {
       return {};
     }
     
     // Build the result dictionary
-    const opinionsDict: Record<string, z.infer<typeof OpinionDataSchema>> = {};
+    const opinionsDict: Record<string, z.infer<typeof this.outputSchema>[string]> = {};
     
     // Iterate through all players to extract opinions
     for (const info of playerInfos) {
@@ -92,6 +95,22 @@ class GetOpinionsTool extends ToolBase {
       // Skip self, non-major civs, and non-alive players
       if (targetPlayerID === PlayerID || info.IsMajor !== 1) {
         continue;
+      }
+      
+      // Check if the player has been met (unless RevealAll is true)
+      if (!RevealAll) {
+        const summary = playerSummaries.find(s => s.Key === targetPlayerID);
+        if (summary) {
+          // Get the visibility field for the requesting player
+          const visibilityField = `Player${PlayerID}` as keyof PlayerSummary;
+          const visibility = (summary as any)[visibilityField];
+          
+          // If not met (visibility = 0), return unmet string
+          if (visibility === 0) {
+            opinionsDict[targetPlayerID.toString()] = "Unmet Major Civilization";
+            continue;
+          }
+        }
       }
       
       // Extract opinions from the PlayerOpinions object

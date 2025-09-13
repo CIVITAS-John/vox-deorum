@@ -195,7 +195,7 @@ export class MCPServer {
    */
   public sendNotification(event: string, playerID: number, turn: number, latestID: number, param: Record<string, any> = {}) {
     if (this.eventsForNotification.indexOf(event) !== -1 && playerID >= 0 && playerID < MaxMajorCivs) {
-      logger.info(`Sending server-side notification to MCP clients with ${playerID} about the ${event} (Player ${playerID}) at turn ${turn}.`)
+      logger.info(`Sending server-side notification to MCP clients about the ${event} (Player ${playerID}) at turn ${turn}.`)
       // Send notification to all connected servers
       this.servers.forEach((server, _id) => {
         const rawServer = (server as any).server;

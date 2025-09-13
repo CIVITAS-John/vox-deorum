@@ -49,17 +49,17 @@ const runStrategist = async (params: any) => {
 }
 
 // Test run
-runStrategist({
+/*runStrategist({
   playerID: 0,
   turn: 0,
-  latest: 100
-});
+  latestID: 100
+});*/
 
 // Register callback
-mcpClient.onElicitInput((params) => {
+mcpClient.onElicitInput(async (params) => {
   switch (params.message) {
     case "PlayerDoneTurn":
-      runStrategist(params);
+      await runStrategist(params);
       break;
     case "GameSwitched":
       logger.info(`Received elicitInput notification: ${params.message}`, params);
