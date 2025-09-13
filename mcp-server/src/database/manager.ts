@@ -13,6 +13,7 @@ import type { DB as MainDB } from './database.js';
 import type { DB as LocalizationDB } from './localization.js';
 import { enumMappings } from '../utils/knowledge/enum.js';
 import * as changeCase from "change-case";
+import { stripTags } from '../utils/database/localized.js';
 
 const logger = createLogger('DatabaseManager');
 
@@ -176,7 +177,7 @@ export class DatabaseManager {
       // Build localization map with fallbacks
       localizations.forEach(({ Tag, Text }) => {
         if (!Tag || !Text) return;
-        localizationMap.set(Tag, Text);
+        localizationMap.set(Tag, stripTags(Text));
       });
     } catch (error) {
       logger.error('Batch localization lookup failed:', error);

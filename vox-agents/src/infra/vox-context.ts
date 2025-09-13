@@ -102,13 +102,11 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
       return undefined;
     }
 
-    this.logger.info(`Calling tool: ${name}`, { args });
     try {
       const result = await tool.execute?.(args, {
         toolCallId: "manual",
         messages: []
       });
-      this.logger.info(`Tool execution completed: ${name}`);
       return result;
     } catch (error) {
       this.logger.error(`Error calling tool ${name}:`, error);

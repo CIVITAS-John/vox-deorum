@@ -5,7 +5,7 @@ import { mcpClient } from "../utils/mcp-client.js";
 import { getModelConfig } from "../utils/models.js";
 import { SimpleStrategist } from "./simple-strategist.js";
 import { StrategistParameters } from "./strategist.js";
-import delay from 'delay';
+import { setTimeout } from 'node:timers/promises';
 
 const logger = createLogger('Strategists');
 
@@ -37,27 +37,25 @@ const runStrategist = async (params: any) => {
     // Check relevant
     if (parameters.playerID != params.playerID) return;
     if (parameters.running) {
-      logger.warn(`The ${strategist} is still working on turn ${parameters.turn}. Skipping this one...`)
+      logger.warn(`The ${strategist} is still working on turn ${parameters.turn}. Skipping this one...`);
     }
-    // Pause the player beyond 1 turn from now
-    context.callTool("pause-game", parameters.playerID);
     // Set the parameters
     parameters.turn = params.turn;
     parameters.before = params.latestID;
     parameters.playerID = params.playerID;
-    logger.info(`Running the ${strategist} on ${parameters.turn}, with events ${parameters.after}~${parameters.before}`)
+    logger.info(`Running the ${strategist} on ${parameters.turn}, with events ${parameters.after}~${parameters.before}`);
+    // Pause the player beyond 1 turn from now
+    await context.callTool("pause-game", { PlayerID: parameters.playerID });
     // Execute the simple strategist
-    try {
-      // await context.execute("simple-strategist", Parameter);
-      delay(5000);
-    } finally {
-      await langfuseSpanProcessor.forceFlush()
-    }
+    // await context.execute("simple-strategist", Parameter);
+    await setTimeout(10000);
     // Update the after parameter
-    parameters.after = params.latestID;
-  } finally {
-    context.callTool("resume-game", parameters.playerID);
+  } catch (Error) {
+    logger.error(`${strategist} error: `, Error);
   }
+  parameters.after = params.latestID;
+  await context.callTool("resume-game", { PlayerID: parameters.playerID });
+  await langfuseSpanProcessor.forceFlush()
 }
 
 // Test run
