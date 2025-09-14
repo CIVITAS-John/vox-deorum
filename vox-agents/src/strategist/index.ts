@@ -41,7 +41,7 @@ const runStrategist = async (params: any) => {
     // Check relevant
     if (parameters.playerID != params.playerID) return;
     if (parameters.running) {
-      logger.warn(`The ${strategist} is still working on turn ${parameters.turn}. Skipping this one...`);
+      logger.warn(`The ${strategist} is still working on turn ${parameters.turn}. Skipping turn ${params.turn}...`);
       return;
     }
     // Set the parameters
@@ -51,9 +51,9 @@ const runStrategist = async (params: any) => {
     logger.warn(`Running the ${strategist} on ${parameters.turn}, with events ${parameters.after}~${parameters.before}`);
     // Pause the player beyond 1 turn from now
     await context.callTool("pause-game", { PlayerID: parameters.playerID }, parameters);
-    parameters.running = strategist;
     // Execute the strategist
     // await context.execute(strategist, Parameter);
+    // parameters.running = strategist;
     // Fake running
     parameters.running = strategist;
     await setTimeout(5000);
@@ -63,8 +63,8 @@ const runStrategist = async (params: any) => {
   }
   parameters.after = params.latestID;
   await context.callTool("resume-game", { PlayerID: parameters.playerID }, parameters);
-  await langfuseSpanProcessor.forceFlush()
   parameters.running = undefined;
+  await langfuseSpanProcessor.forceFlush()
 }
 
 // Test run
