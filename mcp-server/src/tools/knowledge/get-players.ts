@@ -15,6 +15,7 @@ import { Selectable } from "kysely";
 import { cleanEventData } from "./get-events.js";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
 import { stripTags } from "../../utils/database/localized.js";
+import { readAndStorePlayerStrategy } from "../../utils/lua/read-and-store-strategy.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -48,7 +49,11 @@ const PlayerDataSchema = z.object({
   PolicyBranches: z.record(z.string(), z.number()).optional(),
   ResourcesAvailable: z.record(z.string(), z.number()).optional(),
   FoundedReligionID: z.string().nullable().optional(),
-  MajorityReligionID: z.string().nullable().optional()
+  MajorityReligionID: z.string().nullable().optional(),
+  // Strategy fields (only for active player when requested)
+  GrandStrategy: z.string().optional(),
+  EconomicStrategies: z.array(z.string()).optional(),
+  MilitaryStrategies: z.array(z.string()).optional()
 });
 
 /**
@@ -86,11 +91,12 @@ class GetPlayersTool extends ToolBase {
    * Execute the tool to retrieve player data
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Get static player information and current player summaries in parallel
-    const [playerInfos, playerSummaries, playerOpinions] = await Promise.all([
+    // Get static player information, current player summaries, opinions, and strategies in parallel
+    const [playerInfos, playerSummaries, playerOpinions, strategies] = await Promise.all([
       getPlayerInformations(),
       getPlayerSummaries(),
-      getPlayerOpinions(args.PlayerID)
+      getPlayerOpinions(args.PlayerID),
+      args.PlayerID ? readAndStorePlayerStrategy(args.PlayerID) : Promise.resolve(null)
     ]);
   
     // Combine the data and create dictionary
@@ -136,6 +142,13 @@ class GetPlayersTool extends ToolBase {
           playerData.OpinionFromMe = stripTags((playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
           playerData.OpinionToMe = stripTags((playerOpinions[`OpinionForm${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
         }
+      }
+
+      // Add strategy information if this is the active player and strategies were fetched
+      if (strategies && playerID === args.PlayerID) {
+        playerData.GrandStrategy = strategies.GrandStrategy;
+        playerData.EconomicStrategies = strategies.EconomicStrategies;
+        playerData.MilitaryStrategies = strategies.MilitaryStrategies;
       }
       
       const checkedData = PlayerDataSchema.safeParse(playerData).data;

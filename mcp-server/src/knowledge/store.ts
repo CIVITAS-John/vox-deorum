@@ -23,6 +23,7 @@ import { explainEnums } from '../utils/knowledge/enum.js';
 import { detectChanges } from '../utils/knowledge/changes.js';
 import { MCPServer } from '../server.js';
 import { getPlayerInformations } from './getters/player-information.js';
+import { readAndStorePlayerStrategy } from '../utils/lua/read-and-store-strategy.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -243,6 +244,8 @@ export class KnowledgeStore {
           if (type === "PlayerDoTurn") {
             await knowledgeManager.updateActivePlayer(data.PlayerID);
           } else if (type === "PlayerDoneTurn") {
+            if (data.PlayerID < MaxMajorCivs)
+              readAndStorePlayerStrategy(data.PlayerID);
             await knowledgeManager.updateActivePlayer(data.NextPlayerID);
           }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);
