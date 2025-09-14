@@ -261,6 +261,14 @@ export class MCPServer {
       throw new Error(`Server ${serverId} not found`);
     }
     await server.connect(transport);
+
+    // Send GameSwitched notification to the newly connected client
+    const gameId = this.knowledgeManager.getGameId();
+    if (gameId !== "") {
+      const lastId = parseInt(await this.knowledgeManager.getStore().getMetadata("lastID") ?? "-1");
+      this.sendNotification("GameSwitched", -1, this.knowledgeManager.getTurn(), lastId, { GameID: gameId });
+      logger.info(`Sent GameSwitched notification to newly connected client for game ${gameId}`);
+    }
   }
 
   /**

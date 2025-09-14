@@ -1,3 +1,4 @@
+import { LangfuseSpan, startObservation } from "@langfuse/tracing";
 import { VoxContext } from "../infra/vox-context.js";
 import { langfuseSpanProcessor } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
@@ -20,7 +21,7 @@ await context.registerMCP();
 const strategist = "simple-strategist";
 context.registerAgent(new SimpleStrategist());
 
-// Initialize parameters.
+// Initialize parameters
 const initParameters = () => {
   return {
     playerID: 0,
@@ -28,7 +29,10 @@ const initParameters = () => {
     after: -1,
     before: 0
   }
-}
+};
+
+// Start obversation
+var observation: LangfuseSpan;
 
 // Run strategist
 var parameters: StrategistParameters<unknown> = initParameters();
@@ -78,8 +82,18 @@ mcpClient.onElicitInput(async (params) => {
       break;
     case "GameSwitched":
       logger.warn(`Game context switching - aborting pending calls`);
+      // Abort existing operations
       context.abort();
+      if (observation) observation.end();
+      // Initialize parameters
       parameters = initParameters();
+      parameters.after = params.turn * 1000000;
+      // Start observation
+      observation = startObservation("strategist", {
+        input: `Game: ${params.gameID}, Turn: ${params.turn}, Player: ${parameters.playerID}`,
+      }, { asType: "span" });
+      // Resume the game - in case we are resuming something
+      await context.callTool("resume-game", { PlayerID: parameters.playerID });
       break;
     default:
       logger.info(`Received elicitInput notification: ${params.message}`, params);

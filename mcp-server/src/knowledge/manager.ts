@@ -74,8 +74,8 @@ export class KnowledgeManager {
     await this.updateActivePlayer();
 
     // Notify our clients
-    MCPServer.getInstance().sendNotification("GameSwitched", -1, -1, 
-        parseInt(await this.getStore().getMetadata("lastID") ?? "-1"), { GameID: identity.gameId });
+    MCPServer.getInstance().sendNotification("GameSwitched", -1, this.getTurn(), 
+        parseInt(await this.getStore().getMetadata("lastID") ?? "-1"), { gameID: identity.gameId });
   }
 
   /**
@@ -177,6 +177,13 @@ export class KnowledgeManager {
    */
   getActivePlayerId(): number {
     return this.gameIdentity?.activePlayerId ?? -1;
+  }
+
+  /**
+   * Get current game ID
+   */
+  getGameId(): string {
+    return this.gameIdentity?.gameId ?? "";
   }
 
   /**
