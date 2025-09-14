@@ -16,7 +16,6 @@ export class VoxPlayer {
   private parameters: StrategistParameters;
   private logger;
   private pendingTurn?: { turn: number; latestID: number };
-  private turnSignal?: () => void;
   private aborted = false;
 
   constructor(
@@ -49,30 +48,6 @@ export class VoxPlayer {
     }
 
     this.pendingTurn = { turn, latestID };
-    if (this.turnSignal) {
-      this.turnSignal();
-    }
-  }
-
-  /**
-   * Wait for the next turn notification
-   */
-  private async waitForTurn(): Promise<{ turn: number; latestID: number } | null> {
-    if (this.pendingTurn) {
-      const turn = this.pendingTurn;
-      this.pendingTurn = undefined;
-      return turn;
-    }
-
-    if (this.aborted) return null;
-
-    return new Promise((resolve) => {
-      this.turnSignal = () => {
-        this.turnSignal = undefined;
-        resolve(this.pendingTurn || null);
-        this.pendingTurn = undefined;
-      };
-    });
   }
 
   /**
@@ -87,6 +62,10 @@ export class VoxPlayer {
             playerID: this.playerID,
             gameID: this.parameters.gameID,
             strategist: this.strategistType
+          },
+          output: {
+            completed: false,
+            turns: this.parameters.turn,
           }
         });
         observation.updateTrace({
@@ -100,24 +79,33 @@ export class VoxPlayer {
           await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
 
           while (!this.aborted) {
-            const turnData = await this.waitForTurn();
-            if (!turnData || this.aborted) break;
+            const turnData = this.pendingTurn;
+            if (!turnData) {
+              await setTimeout(10);
+              continue;
+            }
 
+            // Initializing
+            this.pendingTurn = undefined;
             this.parameters.turn = turnData.turn;
             this.parameters.before = turnData.latestID;
+            this.parameters.running = this.strategistType;
 
             this.logger.warn(`Running the ${this.strategistType} on ${this.parameters.turn}, with events ${this.parameters.after}~${this.parameters.before}`);
 
             try {
               await this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
 
-              this.parameters.running = this.strategistType;
               // TODO: Uncomment when ready to run actual strategist
               // await this.context.execute(this.strategistType, this.parameters);
               // Fake running for now
               await setTimeout(5000);
 
+              // Finalizing
+              this.parameters.running = undefined;
               this.parameters.after = turnData.latestID;
+
+              // Resume the game
               await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
 
               observation.update({
@@ -128,14 +116,13 @@ export class VoxPlayer {
               });
             } catch (error) {
               this.logger.error(`${this.strategistType} error:`, error);
-            } finally {
-              this.parameters.running = undefined;
             }
           }
         } catch (error) {
           this.logger.error(`Player ${this.playerID} execution error:`, error);
           observation.update({ output: { error: error instanceof Error ? error.message : String(error) } });
         } finally {
+          this.logger.info(`Player ${this.playerID} completion: ${this.aborted}`);
           observation.update({
             output: {
               completed: true,
@@ -156,8 +143,5 @@ export class VoxPlayer {
     this.logger.info(`Aborting player ${this.playerID}`);
     this.aborted = true;
     this.context.abort();
-    if (this.turnSignal) {
-      this.turnSignal();
-    }
   }
 }

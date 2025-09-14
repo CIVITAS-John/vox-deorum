@@ -79,6 +79,14 @@ mcpClient.onElicitInput(async (params) => {
         player.execute();
       }
       break;
+    case "PlayerVictory":
+      logger.info(`Player ${params.playerID} has won the game on turn ${params.turn}!`);
+      // Abort all existing players
+      for (const player of activePlayers.values()) {
+        player.abort();
+      }
+      activePlayers.clear();
+      break;
     default:
       logger.info(`Received elicitInput notification: ${params.message}`, params);
       break;
