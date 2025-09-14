@@ -79,8 +79,8 @@ export class VoxPlayer {
    * Main execution loop with observation span
    */
   async execute(): Promise<void> {
-    return startActiveObservation(
-      `player-${this.playerID}-game`,
+    return await startActiveObservation(
+      `${this.parameters.gameID}-${this.playerID}`,
       async (observation) => {
         observation.update({
           input: {
@@ -92,6 +92,7 @@ export class VoxPlayer {
         updateActiveTrace({
           sessionId: this.parameters.gameID ?? "Unknown",
         });
+        await langfuseSpanProcessor.forceFlush();
 
         try {
           await this.context.registerMCP();
@@ -126,6 +127,7 @@ export class VoxPlayer {
                   turns: this.parameters.turn,
                 }
               });
+              langfuseSpanProcessor.forceFlush();
             } catch (error) {
               this.logger.error(`${this.strategistType} error:`, error);
             } finally {
@@ -144,8 +146,9 @@ export class VoxPlayer {
           });
           await langfuseSpanProcessor.forceFlush();
         }
-      }
-    );
+      }, {
+      asType: "agent"
+    });
   }
 
   /**
