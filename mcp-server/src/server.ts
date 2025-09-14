@@ -266,8 +266,10 @@ export class MCPServer {
     const gameId = this.knowledgeManager.getGameId();
     if (gameId !== "") {
       const lastId = parseInt(await this.knowledgeManager.getStore().getMetadata("lastID") ?? "-1");
-      this.sendNotification("GameSwitched", -1, this.knowledgeManager.getTurn(), lastId, { GameID: gameId });
-      logger.info(`Sent GameSwitched notification to newly connected client for game ${gameId}`);
+      setTimeout(() => {
+        this.sendNotification("GameSwitched", -1, this.knowledgeManager.getTurn(), lastId, { gameID: gameId });
+        logger.info(`Sent GameSwitched notification to newly connected client for game ${gameId}`);
+      }, 50);
     }
   }
 

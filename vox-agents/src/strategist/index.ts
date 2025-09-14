@@ -50,7 +50,7 @@ const runStrategist = async (params: any) => {
     parameters.playerID = params.playerID;
     logger.warn(`Running the ${strategist} on ${parameters.turn}, with events ${parameters.after}~${parameters.before}`);
     // Pause the player beyond 1 turn from now
-    await context.callTool("pause-game", { PlayerID: parameters.playerID });
+    await context.callTool("pause-game", { PlayerID: parameters.playerID }, parameters);
     parameters.running = strategist;
     // Execute the strategist
     // await context.execute(strategist, Parameter);
@@ -62,7 +62,7 @@ const runStrategist = async (params: any) => {
     logger.error(`${strategist} error: `, Error);
   }
   parameters.after = params.latestID;
-  await context.callTool("resume-game", { PlayerID: parameters.playerID });
+  await context.callTool("resume-game", { PlayerID: parameters.playerID }, parameters);
   await langfuseSpanProcessor.forceFlush()
   parameters.running = undefined;
 }
@@ -81,7 +81,7 @@ mcpClient.onElicitInput(async (params) => {
       await runStrategist(params);
       break;
     case "GameSwitched":
-      logger.warn(`Game context switching - aborting pending calls`);
+      logger.warn(`Game context switching - aborting pending calls`, params);
       // Abort existing operations
       context.abort();
       if (observation) observation.end();
@@ -94,7 +94,7 @@ mcpClient.onElicitInput(async (params) => {
         input: `Game: ${params.gameID}, Turn: ${params.turn}, Player: ${parameters.playerID}`,
       }, { asType: "span" });
       // Resume the game - in case we are resuming something
-      await context.callTool("resume-game", { PlayerID: parameters.playerID });
+      await context.callTool("resume-game", { PlayerID: parameters.playerID }, parameters);
       break;
     default:
       logger.info(`Received elicitInput notification: ${params.message}`, params);

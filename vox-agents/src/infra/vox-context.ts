@@ -95,7 +95,10 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
    * @returns The result of the tool execution
    * @throws Error if the tool is not found
    */
-  public async callTool<T = any>(name: string, args: any): Promise<T | undefined> {
+  public async callTool<T = any>(
+    name: string, 
+    args: any,
+    parameters: TParameters): Promise<T | undefined> {
     const tool = this.tools[name];
     if (!tool) {
       this.logger.error(`Tool not found: ${name}`);
@@ -105,7 +108,8 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
     try {
       const result = await tool.execute?.(args, {
         toolCallId: "manual",
-        messages: []
+        messages: [], 
+        experimental_context: parameters
       });
       return result;
     } catch (error) {
