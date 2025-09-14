@@ -237,8 +237,8 @@ export class KnowledgeStore {
         if (typeof data.PlayerID === "number") {
           // Special: Victory
           if (type == "PlayerVictory") {
-            this.setMetadata("VictoryPlayerID", data.PlayerID);
-            this.setMetadata("VictoryType", data.VictoryType);
+            this.setMetadata("victoryPlayerID", data.PlayerID);
+            this.setMetadata("victoryType", data.VictoryType);
           }
           // Track active player on turn events
           if (type === "PlayerDoTurn") {
