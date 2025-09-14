@@ -2,110 +2,107 @@
 
 LLM-enhanced AI system for Civilization V using the Community Patch framework.
 
+## Overview
+
+Vox Deorum integrates modern AI capabilities into Civ V gameplay through a modular architecture that connects the game to LLM agents for strategic decision-making.
+
 ## Architecture
 
-This project creates an intelligent AI assistant for Civ V gameplay through a multi-component architecture:
-
 ```
-Civ 5 Mod ↔ Community Patch DLL ↔ Bridge/JSON Service (REST API + SSE)
-                                                    ↕
-                                          MCP Server (game state)
-                                                    ↕  
-                                          Vox Agents → LLM Agent
+Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents → LLM
+         (Named Pipe)         (HTTP/SSE)       (MCP)        (API calls)
 ```
 
 ## Components
 
-### Community Patch DLL
-- A modified version of [Community-Patch-DLL](https://github.com/LoneGazebo/Community-Patch-DLL) as a submodule: `civ5-dll/`
-- Talks to the Bridge Service
-- Exposes functions for Lua script integration within the game through `Game.CallExternal("method", args, callback)` pattern
-- To build the DLL, use `python build_vp_clang_sdk.py` (but only in Windows environment).
-- To build the DLL AND copy to the mod folder, use `build-and-copy.bat`.
-- To debug the building process, the log exists in `clang-output/Debug/build.log`.
+### [Community Patch DLL](civ5-dll/)
+Modified Community-Patch-DLL enabling external communication
+- Windows-only 32-bit build requirement
+- Build: `python build_vp_clang_sdk.py` (Windows)
+- Deploy: `build-and-copy.bat`
 
-### Bridge Service
-- **Location**: `bridge-service/`
-- A thin layer of communication wrapper between DLL and external services
-- Exposes JSON/REST+SSE API endpoints for both synchronous and asynchronous calls
+### [Bridge Service](bridge-service/)
+HTTP/REST+SSE communication layer
+- Bidirectional Lua ↔ External function calls
+- Real-time game event streaming
+- Mock DLL for development without Civ V
 
-### Civ 5 Mod
-- **Location**: `civ5-mod/`
-- Contains mod options and interface scripts
-- Provides Lua scripts for in-game UI and AI integration
-- Configures game settings and mod parameters
+### [MCP Server](mcp-server/)
+Model Context Protocol server for game state
+- Exposes game data as MCP tools/resources
+- Direct database access with localization
+- Persistent knowledge management
 
-### MCP Server
-- **Location**: `mcp-server/`
-- Exposes game's internal state as resources, tools, etc.
-- Talks to the Bridge Service via JSON, e.g.
-  - Call a Lua function to gather game state data
-- Talks to the MCP Client via MCP protocol, e.g. 
-  - Provides structured access to game data for LLM consumption
-  - Sending active notifications (e.g. turn started, war declared, etc.)
+### [Vox Agents](vox-agents/)
+LLM-powered strategic workflows
+- Strategist: Dynamic AI strategy adjustment
+- Extensible agent framework
+- Flexible deployment modes
 
-### Vox Agents
-- **Location**: `vox-agents/`
-- Provides multiple agent-based workflows for AI-enhanced gameplay
-- **Agent Workflows**:
-  - **Briefer**: Summarizes turn-based briefings/news for human and AI players
-  - **Strategist**: Dynamically adjusts in-game AI strategies based on game state
-  - Additional specialized agents for various gameplay aspects
-- **Architecture Features**:
-  - Workflows can call each other for complex decision-making
-  - Each module functions independently for modular deployment
-  - Communicates with MCP Server for game state access
-  - Communicates with Bridge Service for strategy execution
+### [Civ 5 Mod](civ5-mod/)
+Game integration and UI scripts
+- Lua hooks for external communication
+- Custom interface elements
+- Mod configuration
 
-## Installation
+## Quick Start
 
-1. Clone the repository:
+1. **Clone and initialize**:
    ```bash
    git clone <repository-url>
-   cd vox-populi-ai
-   ```
-
-2. Initialize the Community Patch submodule:
-   ```bash
-   git submodule add https://github.com/LoneGazebo/Community-Patch-DLL.git community-patch-dll
+   cd vox-deorum
    git submodule update --init --recursive
    ```
 
-3. Set up each component:
+2. **Install dependencies** (each component):
    ```bash
-   # Bridge Service
-   cd ../bridge-service
-   # Follow component-specific setup instructions
-   
-   # MCP Server
-   cd ../mcp-server
-   # Follow component-specific setup instructions
-   
-   # Vox Agents  
-   cd ../vox-agents
-   # Follow component-specific setup instructions
+   cd <component-dir>
+   npm install
    ```
+
+3. **Start services** (in order):
+   ```bash
+   # Terminal 1: Bridge Service
+   cd bridge-service && npm run dev
+
+   # Terminal 2: MCP Server
+   cd mcp-server && npm run dev
+
+   # Terminal 3: Vox Agents
+   cd vox-agents && npm run strategist
+   ```
+
+4. **Launch Civ V** with the Vox Deorum mod enabled
 
 ## Development
 
-Each component contains its own README with specific development instructions:
-- [`bridge-service/README.md`](bridge-service/README.md)
-- [`mcp-server/README.md`](mcp-server/README.md) 
-- [`vox-agents/README.md`](vox-agents/README.md)
+Each component has detailed setup instructions:
+- [Bridge Service README](bridge-service/README.md)
+- [MCP Server README](mcp-server/README.md)
+- [Vox Agents README](vox-agents/README.md)
+
+### Requirements
+- Node.js ≥20.0.0
+- Windows (for DLL compilation)
+- Civilization V with Community Patch
+- LLM API access (OpenAI/Anthropic)
+
+### Testing
+```bash
+npm test  # In each component directory
+```
 
 ## Project Structure
 
 ```
 vox-deorum/
-├── civ5-mod/              # Mod options and interface scripts
-├── civ5-dll/              # Community Patch DLL submodule
-├── bridge-service/        # Communication bridge and REST API with SSE
-├── mcp-server/            # Game state MCP server
-├── vox-agents/            # LLM agent workflows and orchestration
-├── docs/                  # Documentation
-├── scripts/               # Utility scripts
-├── CLAUDE.md              # Claude Code guidance
-└── README.md              # This file
+├── civ5-dll/          # Community Patch DLL (submodule)
+├── civ5-mod/          # Game mod files
+├── bridge-service/    # Communication layer
+├── mcp-server/        # MCP game state server
+├── vox-agents/        # LLM agent workflows
+├── CLAUDE.md          # AI assistant instructions
+└── README.md          # This file
 ```
 
 ## Contributing
