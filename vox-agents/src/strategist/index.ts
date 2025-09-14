@@ -8,6 +8,11 @@ const logger = createLogger('Strategists');
 
 // Players to monitor - can be configured
 const llmPlayers = [0];
+// Auto-play?
+const autoPlay = true;
+// Strategist to use
+// const strategist = "simple-strategist"
+const strategist = "none"
 
 // Active player instances
 const activePlayers = new Map<number, VoxPlayer>();
@@ -74,9 +79,14 @@ mcpClient.onElicitInput(async (params) => {
 
       // Create new players for this game
       for (const playerID of llmPlayers) {
-        const player = new VoxPlayer(playerID, "simple-strategist", params.gameID, params.turn);
+        const player = new VoxPlayer(playerID, strategist, params.gameID, params.turn);
         activePlayers.set(playerID, player);
         player.execute();
+      }
+
+      // Autoplay
+      if (autoPlay) {
+        await mcpClient.callTool("lua-execute", { Script: "Game.SetAIAutoPlay(-1, -1); Events.LoadScreenClose();" });
       }
       break;
     case "PlayerVictory":

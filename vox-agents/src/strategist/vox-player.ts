@@ -96,10 +96,12 @@ export class VoxPlayer {
             try {
               await this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
 
-              // TODO: Uncomment when ready to run actual strategist
-              // await this.context.execute(this.strategistType, this.parameters);
-              // Fake running for now
-              await setTimeout(5000);
+              // Without strategists, we just fake one
+              if (this.strategistType == "none") {
+                await setTimeout(2000);
+              } else {
+                await this.context.execute(this.strategistType, this.parameters);
+              }
 
               // Finalizing
               this.parameters.running = undefined;
