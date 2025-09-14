@@ -87,6 +87,7 @@ mcpClient.onElicitInput(async (params) => {
       if (observation) observation.end();
       // Initialize parameters
       parameters = initParameters();
+      parameters.gameID = params.gameID;
       parameters.after = params.turn * 1000000;
       // Start observation
       observation = startObservation("strategist", {

@@ -14,6 +14,8 @@ export interface AgentParameters<T = unknown> {
   extra?: T;
   /** ID of the player for whom the agent is serving */
   playerID?: number;
+  /** ID of the game for whom the agent is serving */
+  gameID?: string;
   /** Current game turn number */
   turn?: number;
   /** Fetch events after this ID */

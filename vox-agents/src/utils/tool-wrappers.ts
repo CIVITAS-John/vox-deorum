@@ -5,7 +5,7 @@ import { createLogger } from "./logger.js";
 import { Tool as VercelTool, dynamicTool, ToolSet, jsonSchema } from 'ai';
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { mcpClient } from "./mcp-client.js";
-import { startActiveObservation } from "@langfuse/tracing";
+import { startActiveObservation, updateActiveTrace } from "@langfuse/tracing";
 import { camelCase } from "change-case";
 
 /**
@@ -37,7 +37,9 @@ export function createAgentTool<T, TParameters extends AgentParameters<T>, TInpu
         observation.update({
           input: input
         });
-        
+        updateActiveTrace({
+          sessionId: baseParameters.gameID ?? "Unknown",
+        });
         try {
           let parameters = baseParameters;
           let currentAgent = parameters.running;
@@ -112,6 +114,9 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         // Log inputs
         observation.update({
           input: args
+        });
+        updateActiveTrace({
+          sessionId: (options.experimental_context as any).gameID ?? "Unknown",
         });
         logger.info(`Calling tool ${tool.name}...`, args);
 
