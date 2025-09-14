@@ -1,6 +1,8 @@
+import { langfuseSpanProcessor } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
 import { mcpClient } from "../utils/mcp-client.js";
 import { VoxPlayer } from "./vox-player.js";
+import { setTimeout } from 'node:timers/promises';
 
 const logger = createLogger('Strategists');
 
@@ -9,6 +11,45 @@ const llmPlayers = [0];
 
 // Active player instances
 const activePlayers = new Map<number, VoxPlayer>();
+
+// Graceful shutdown handler
+async function shutdown(signal: string) {
+  logger.info(`Received ${signal}, shutting down gracefully...`);
+
+  // Abort all active players
+  for (const [playerID, player] of activePlayers.entries()) {
+    player.abort();
+  }
+  activePlayers.clear();
+
+  // Disconnect from MCP server
+  try {
+    await mcpClient.disconnect();
+    logger.info('Disconnected from MCP server');
+  } catch (error) {
+    logger.error('Error disconnecting from MCP server:', error);
+  }
+
+  await langfuseSpanProcessor.forceFlush();
+  await setTimeout(1000);
+
+  process.exit(0);
+}
+
+// Register signal handlers
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught exception:', error);
+  shutdown('uncaughtException');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled rejection at:', promise, 'reason:', reason);
+  shutdown('unhandledRejection');
+});
 
 // Connect to the server
 await mcpClient.connect();

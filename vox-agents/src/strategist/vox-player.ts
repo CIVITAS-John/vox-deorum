@@ -1,5 +1,5 @@
 import { VoxContext } from "../infra/vox-context.js";
-import { startActiveObservation, updateActiveTrace } from "@langfuse/tracing";
+import { startActiveObservation } from "@langfuse/tracing";
 import { StrategistParameters } from "./strategist.js";
 import { createLogger } from "../utils/logger.js";
 import { getModelConfig } from "../utils/models.js";
@@ -89,10 +89,9 @@ export class VoxPlayer {
             strategist: this.strategistType
           }
         });
-        updateActiveTrace({
+        observation.updateTrace({
           sessionId: this.parameters.gameID ?? "Unknown",
         });
-        await langfuseSpanProcessor.forceFlush();
 
         try {
           await this.context.registerMCP();
@@ -102,7 +101,7 @@ export class VoxPlayer {
 
           while (!this.aborted) {
             const turnData = await this.waitForTurn();
-            if (!turnData) break;
+            if (!turnData || this.aborted) break;
 
             this.parameters.turn = turnData.turn;
             this.parameters.before = turnData.latestID;
@@ -127,7 +126,6 @@ export class VoxPlayer {
                   turns: this.parameters.turn,
                 }
               });
-              langfuseSpanProcessor.forceFlush();
             } catch (error) {
               this.logger.error(`${this.strategistType} error:`, error);
             } finally {
