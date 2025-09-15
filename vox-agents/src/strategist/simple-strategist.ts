@@ -1,5 +1,6 @@
 import { ModelMessage, StepResult, Tool } from "ai";
 import { Strategist, StrategistParameters } from "./strategist.js";
+import { VoxContext } from "../infra/vox-context.js";
 
 /**
  * A simple strategist agent that analyzes the game state and sets an appropriate strategy
@@ -13,7 +14,7 @@ export class SimpleStrategist extends Strategist {
   /**
    * Gets the system prompt for the strategist
    */
-  public getSystem(_parameters: StrategistParameters): string {
+  public getSystem(_parameters: StrategistParameters, context: VoxContext<StrategistParameters>): string {
     return `
 You are a strategist playing Civilization V.
 Your task is to analyze the current game state and set an appropriate strategy for the player.
@@ -31,7 +32,7 @@ Be decisive and execute the set-strategy tool to complete your task.`
   /**
    * Gets the initial messages for the conversation
    */
-  public getInitialMessages(parameters: StrategistParameters): ModelMessage[] {
+  public getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): ModelMessage[] {
     return [{
       role: "user",
       content: `
@@ -47,8 +48,6 @@ Game context:
   public getActiveTools(_parameters: StrategistParameters): string[] | undefined {
     // Return specific tools the strategist needs
     return [
-      "get-players",
-      "get-events", 
       "get-technology",
       "get-policy",
       "get-building",

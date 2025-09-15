@@ -7,7 +7,7 @@ import { AgentParameters, VoxAgent } from "../infra/vox-agent.js";
 /**
  * Parameters for the strategist agent
  */
-export interface StrategistParameters<T = unknown> extends AgentParameters<T> {
+export interface StrategistParameters extends AgentParameters {
   playerID: number;
   turn: number;
   after: number;
@@ -16,5 +16,5 @@ export interface StrategistParameters<T = unknown> extends AgentParameters<T> {
 /**
  * A simple strategist agent that analyzes the game state and sets an appropriate strategy
  */
-export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistParameters<T>> {
+export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistParameters> {
 }

@@ -14,7 +14,7 @@ import { getModel } from "../utils/models.js";
  * 
  * @template TParameters - The type of parameters that agents will receive
  */
-export class VoxContext<TParameters extends AgentParameters<unknown>> {
+export class VoxContext<TParameters extends AgentParameters> {
   private logger = createLogger('VoxContext');
   
   /**
@@ -138,6 +138,7 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
     }
     
     this.logger.info(`Executing agent: ${agentName}`);
+    parameters.store = parameters.store ?? {};
     parameters.running = agentName;
     
     return await startActiveObservation(agentName, async (observation) => {
@@ -175,8 +176,8 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
           // Initial messages
           messages: [{
             role: "system",
-            content: agent.getSystem(parameters)
-          }, ...agent.getInitialMessages(parameters)],
+            content: agent.getSystem(parameters, this)
+          }, ...agent.getInitialMessages(parameters, this)],
           // Initial tools
           tools: allTools,
           activeTools: agent.getActiveTools(parameters),
@@ -204,7 +205,7 @@ export class VoxContext<TParameters extends AgentParameters<unknown>> {
           prepareStep: (context) => {
             const lastStep = context.steps[context.steps.length - 1];
             this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
-            return agent.prepareStep(parameters, lastStep, context.steps, context.messages);
+            return agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
           },
         });
         

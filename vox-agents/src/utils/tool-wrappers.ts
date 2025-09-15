@@ -15,7 +15,7 @@ import { camelCase } from "change-case";
  * @param baseParameters - Base parameters to merge with tool invocation parameters
  * @returns A CoreTool that can be used with AI SDK
  */
-export function createAgentTool<T, TParameters extends AgentParameters<T>, TInput = unknown, TOutput = unknown>(
+export function createAgentTool<T, TParameters extends AgentParameters, TInput = unknown, TOutput = unknown>(
   agent: VoxAgent<T, TParameters, TInput, TOutput>,
   context: VoxContext<TParameters>,
   baseParameters: TParameters
@@ -43,7 +43,7 @@ export function createAgentTool<T, TParameters extends AgentParameters<T>, TInpu
         try {
           let parameters = baseParameters;
           let currentAgent = parameters.running;
-          parameters.extra = input as any;
+          parameters.store!.input = input as any;
           
           // Execute the agent through the context
           const result = await context.execute(agent.name, parameters);

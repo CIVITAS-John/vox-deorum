@@ -2,6 +2,7 @@ import { LanguageModel, Tool, StepResult, ModelMessage } from "ai";
 import { createLogger } from "../utils/logger.js";
 import { z } from "zod";
 import { Model } from "../utils/config.js";
+import { VoxContext } from "./vox-context.js";
 
 /**
  * Parameters for configuring agent execution.
@@ -9,9 +10,9 @@ import { Model } from "../utils/config.js";
  * 
  * @template T - Additional custom parameters specific to each agent implementation
  */
-export interface AgentParameters<T = unknown> {
-  /** Additional custom parameters specific to the agent implementation */
-  extra?: T;
+export interface AgentParameters {
+  /** Additional custom stores specific to the agent implementation */
+  store?: Record<string, unknown>;
   /** ID of the player for whom the agent is serving */
   playerID?: number;
   /** ID of the game for whom the agent is serving */
@@ -34,7 +35,7 @@ export interface AgentParameters<T = unknown> {
  * @template TInput - The type of input this agent accepts when called as a tool
  * @template TOutput - The type of output this agent produces when called as a tool
  */
-export abstract class VoxAgent<T, TParameters extends AgentParameters<T>, TInput = unknown, TOutput = unknown> {
+export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = unknown, TOutput = unknown> {
   protected logger = createLogger(this.constructor.name);
   
   /**
@@ -75,7 +76,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters<T>, TInput
    * @param parameters - The execution parameters
    * @returns The system prompt string
    */
-  public abstract getSystem(parameters: TParameters): string;
+  public abstract getSystem(parameters: TParameters, _context: VoxContext<TParameters>): string;
   
   /**
    * Gets the list of active tools for this agent execution.
@@ -110,7 +111,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters<T>, TInput
    * @param parameters - The execution parameters
    * @returns Array of initial messages, or empty array if none
    */
-  public getInitialMessages(_parameters: TParameters): ModelMessage[] {
+  public getInitialMessages(_parameters: TParameters, _context: VoxContext<TParameters>): ModelMessage[] {
     return [];
   }
   
@@ -128,7 +129,8 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters<T>, TInput
     _parameters: TParameters,
     _lastStep: StepResult<Record<string, Tool>>,
     _allSteps: StepResult<Record<string, Tool>>[],
-    _messages: ModelMessage[]
+    _messages: ModelMessage[], 
+    _context: VoxContext<TParameters>
   ): {
     model?: LanguageModel;
     toolChoice?: any;
