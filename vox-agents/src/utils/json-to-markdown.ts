@@ -45,7 +45,7 @@ export function jsonToMarkdown(
     indentString: options.indentString ?? "  "
   };
 
-  return transformValue(jsonObject, 0, config, "");
+  return transformValue(jsonObject, 0, config, "").trim();
 }
 
 /**
@@ -128,7 +128,7 @@ function transformObject(
     } else if (headingConfig && currentLevel <= config.maxLevel) {
       // Use heading format
       const formatString = headingConfig.format ?? "{key}";
-      const heading = "#".repeat(currentLevel) + " " +
+      const heading = "\n#".repeat(currentLevel) + " " +
         formatString.replace(/\{(key|0)\}/g, key);
       results.push(heading);
       results.push(transformValue(
@@ -155,5 +155,5 @@ function transformObject(
     }
   }
 
-  return results.filter(r => r !== "").join("\n\n");
+  return results.filter(r => r !== "").join("\n");
 }
