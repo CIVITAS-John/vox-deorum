@@ -85,11 +85,13 @@ mcpClient.onElicitInput(async (params) => {
       }
 
       // Autoplay
-      if (autoPlay) {
+      if (autoPlay && params.turn === 0) {
         await setTimeout(1000);
-        await mcpClient.callTool("lua-executor", { Script: "Events.LoadScreenClose();" });
-        await setTimeout(1000);
-        await mcpClient.callTool("lua-executor", { Script: "Game.SetAIAutoPlay(1000);" });
+        await mcpClient.callTool("lua-executor", { Script: `
+Events.LoadScreenClose();
+Game.SetPausePlayer(-1);
+Game.SetAIAutoPlay(1, -1);
+SetGameViewRenderType(GameViewTypes.GAMEVIEW_NONE);` });
       }
       break;
     case "PlayerVictory":
