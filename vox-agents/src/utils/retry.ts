@@ -2,9 +2,12 @@
  * Utility function for exponential retry logic
  */
 
+import { Logger } from "winston";
+
 /**
  * Executes an async function with exponential backoff retry logic
  * @param fn - The async function to execute
+ * @param logger - Winston logger instance for logging retry attempts
  * @param maxRetries - Maximum number of retry attempts (default: 3)
  * @param initialDelay - Initial delay in milliseconds (default: 1000)
  * @param maxDelay - Maximum delay in milliseconds (default: 30000)
@@ -14,6 +17,7 @@
  */
 export async function exponentialRetry<T>(
   fn: () => Promise<T>,
+  logger: Logger,
   maxRetries: number = 3,
   initialDelay: number = 100,
   maxDelay: number = 10000,
@@ -31,6 +35,13 @@ export async function exponentialRetry<T>(
       if (attempt === maxRetries) {
         throw lastError;
       }
+
+      // Log retry attempt
+      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error: ${lastError.message}`, {
+        attempt: attempt + 1,
+        maxRetries,
+        error: lastError.message
+      });
 
       // Calculate next delay with exponential backoff
       const currentDelay = Math.min(delay, maxDelay);

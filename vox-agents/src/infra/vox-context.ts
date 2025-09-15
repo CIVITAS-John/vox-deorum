@@ -166,7 +166,8 @@ export class VoxContext<TParameters extends AgentParameters> {
         
         // Execute the agent using generateText
         var model = agent.getModel(parameters) ?? this.defaultModel;
-        const response = await exponentialRetry(async () => {
+        const response = await exponentialRetry(
+          async () => {
           return await generateText({
             // Model settings
             model: getModel(model),
@@ -210,7 +211,7 @@ export class VoxContext<TParameters extends AgentParameters> {
               return await agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
             },
           });
-        });
+        }, this.logger);
         
         this.logger.info(`Agent execution completed: ${agentName}`);
         

@@ -10,7 +10,7 @@ function onEndFrame()
   if modActivated > 0 and os.time() > modActivated + 2 then
     -- Game settings
     local t = {};
-    t.worldSize = 0; -- Tiny
+    t.worldSize = 1; -- Tiny
     t.climate = 0; -- Temperate
     t.seaLevel = 0; -- Medium
     t.era = 0; -- Ancient
@@ -18,7 +18,7 @@ function onEndFrame()
     -- 0 = empty
     -- 1 = human
     -- 2 = computer
-    t.slot = { 2, 2, 2 };
+    t.slot = { 2, 2, 2, 2 }; -- 4 Players for tiny
     -- Set how many turns we want to play
     -- t.autorunTurnLimit = 10;
     -- Set the delay between AI turns, in seconds.  Can be 0.
