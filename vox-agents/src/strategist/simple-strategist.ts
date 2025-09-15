@@ -18,17 +18,17 @@ export class SimpleStrategist extends Strategist {
     return `
 You are a expert player playing Civilization V with the latest Vox Populi mod.
 
-## Expectation
+# Expectation
 There is no user and you will always interact with a tool to play the game.
 Due to the complexity of the game, you delegate the execution level to an in-game AI.
 The in-game AI calculates best tactical decisions based on the strategy you set.
 
-## Goals
+# Goals
 Your goal is to set an appropriate grand strategy and supporting economic/military strategies for the in-game AI.
 - End your decision-making loop by calling the \`set-strategy\` tool.
 - The in-game AI can only execute the tool's provided options. Double check if your choices match.
 
-## Resources
+# Resources
 You will receive the following reports:
 - Players: summary reports about visible players in the world. Also:
   - You will receive in-game AI's diplomatic evaluations.
@@ -44,26 +44,27 @@ You have tool access to the game's database to learn more about game rules.
   public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     // Get the information
     const [players, events] = [
-      await context.callTool("get-players", {}, parameters),
-      await context.callTool("get-events", {}, parameters)
+      await context.callTool("get-players", { }, parameters),
+      await context.callTool("get-events", { }, parameters)
     ];
-    parameters.store!.players = players;
-    parameters.store!.events = events;
+    parameters.store!.players = players.Markdown;
+    parameters.store!.events = events.Markdown;
     // Return the messages
     return [{
       role: "system",
       content: `
-## Situation
-You are playing as Player ${parameters.playerID ?? 0}.
-You are making strategic decisions after turn ${parameters.turn}.`.trim()
+# Situation
+You are playing as Player ${parameters.playerID ?? 0}.`.trim()
     }, {
       role: "user",
       content: `
-## Players
-${JSON.stringify(parameters.store!.players)}
+You are making strategic decisions after turn ${parameters.turn} has been executed.
 
-## Events
-${JSON.stringify(parameters.store!.events)}
+# Players
+${parameters.store!.player}
+
+# Events
+${parameters.store!.events}
 `.trim()
     }];
   }
@@ -94,7 +95,6 @@ ${JSON.stringify(parameters.store!.events)}
     // Stop if we've executed set-strategy tool
     if (lastStep?.toolResults) {
       for (const result of lastStep.toolResults) {
-        console.log(result);
         if (result.toolName === "set-strategy" && result.output) {
           this.logger.info("Set-strategy tool executed, stopping agent");
           return true;

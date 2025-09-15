@@ -31,7 +31,10 @@ export abstract class DatabaseQueryTool<
    * Optional annotations for the get building tool
    */
   readonly annotations: ToolAnnotations = {
-    readOnlyHint: true
+    readOnlyHint: true,
+    markdownConfig: [
+      { format: "{key}" }
+    ]
   }
 
   /**

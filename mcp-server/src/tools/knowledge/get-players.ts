@@ -34,6 +34,10 @@ const PlayerDataSchema = z.object({
   Leader: z.string(),
   IsHuman: z.boolean(),
   IsMajor: z.boolean(),
+  // Strategy fields (only for active player when requested)
+  GrandStrategy: z.string().optional(),
+  EconomicStrategies: z.array(z.string()).optional(),
+  MilitaryStrategies: z.array(z.string()).optional(),
   // Opinion fields
   OpinionFromMe: z.array(z.string()).optional(),
   OpinionToMe: z.array(z.string()).optional(),
@@ -50,11 +54,7 @@ const PlayerDataSchema = z.object({
   PolicyBranches: z.record(z.string(), z.number()).optional(),
   ResourcesAvailable: z.record(z.string(), z.number()).optional(),
   FoundedReligionID: z.string().nullable().optional(),
-  MajorityReligionID: z.string().nullable().optional(),
-  // Strategy fields (only for active player when requested)
-  GrandStrategy: z.string().optional(),
-  EconomicStrategies: z.array(z.string()).optional(),
-  MilitaryStrategies: z.array(z.string()).optional()
+  MajorityReligionID: z.string().nullable().optional()
 });
 
 /**
@@ -85,7 +85,10 @@ class GetPlayersTool extends ToolBase {
    * Optional annotations for the tool
    */
   readonly annotations: ToolAnnotations = {
-    autoComplete: ["PlayerID"]
+    autoComplete: ["PlayerID"],
+    markdownConfig: [
+      { format: "Player {key}" }
+    ]
   }
 
   /**

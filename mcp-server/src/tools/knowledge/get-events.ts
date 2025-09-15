@@ -72,7 +72,11 @@ class GetEventsTool extends ToolBase {
    * Optional annotations for the tool
    */
   readonly annotations: ToolAnnotations = {
-    autoComplete: ["PlayerID", "Before", "After", "Original"]
+    autoComplete: ["PlayerID", "Before", "After", "Original"],
+    markdownConfig: [
+      { format: "Turn {key}" },
+      { format: "{key}" }
+    ]
   }
 
   /**
@@ -174,7 +178,7 @@ function consolidateEventsByTurn(events: Array<any>): Record<string, any[]> {
   const consolidated: Record<string, any[]> = {};
   
   for (const event of events) {
-    const turnKey = `turn-${event.Turn}`;
+    const turnKey = `${event.Turn}`;
     
     // Create a copy of the event without Turn
     const { Turn, ID, ...eventWithoutTurn } = event;

@@ -7,6 +7,7 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { mcpClient } from "../models/mcp-client.js";
 import { startActiveObservation } from "@langfuse/tracing";
 import { camelCase } from "change-case";
+import { jsonToMarkdown } from "../json-to-markdown.js";
 
 /**
  * Creates a dynamic tool wrapper for an agent using Vercel AI SDK's dynamicTool
@@ -115,6 +116,10 @@ export function wrapMCPTool(tool: Tool): VercelTool {
           )
         }
 
+        // Local arg: formatting
+        const convertMarkdown = args["Formatting"] !== false;
+        delete args["Formatting"];
+
         // Log inputs
         observation.update({
           input: args
@@ -126,13 +131,25 @@ export function wrapMCPTool(tool: Tool): VercelTool {
 
         // Call the tool
         const result = (await mcpClient.callTool(tool.name, args)).structuredContent;
-
-        // Log outputs
-        observation.update({
-          output: result
-        });
         logger.info(`Tool call completed: ${tool.name}`);
-        return result;
+
+        // Return results
+        if (convertMarkdown) {
+          const markdown = jsonToMarkdown(result, {
+            configs: tool.annotations?.markdownConfigs as any,
+            startingLevel: 2,
+          });
+          observation.update({
+            output: result,
+            metadata: { markdown: markdown }
+          });
+          return markdown;
+        } else {
+          observation.update({
+            output: result,
+          });
+          return result;
+        }
       }, {
         asType: "tool"
       });
