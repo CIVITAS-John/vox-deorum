@@ -57,8 +57,8 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       TourismPerTurn = player:GetTourismPerTurnIncludingInstantTimes100() / 100,
       Technologies = currentTech,
       PolicyBranches = {},
-      FoundedReligionID = "",
-      MajorityReligionID = player:GetStateReligionName(),
+      FoundedReligion = "",
+      MajorityReligion = player:GetStateReligionName(),
       ResourcesAvailable = {}  -- Will be populated differently for major/minor civs
     }
     
@@ -96,7 +96,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
     if createdReligion and createdReligion > 0 then
       local religionInfo = GameInfo.Religions[createdReligion]
       if religionInfo then
-        summary.FoundedReligionID = religionInfo.Type or nil
+        summary.FoundedReligion = Locale.ConvertTextKey(religionInfo.Description) or ""
       end
     end
     
@@ -146,8 +146,8 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
       TourismPerTurn = 0,  -- Minor civs don't generate tourism
       Technologies = currentTech,  -- Get actual tech count for minor civs
       PolicyBranches = {},  -- Minor civs don't have policies
-      FoundedReligionID = "",  -- Minor civs don't found religions
-      MajorityReligionID = "",
+      FoundedReligion = "",  -- Minor civs don't found religions
+      MajorityReligion = "",
       ResourcesAvailable = {}  -- Will be populated with actual available resources
     }
     
@@ -167,7 +167,7 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
       if majorityReligion and majorityReligion > 0 then
         local religionInfo = GameInfo.Religions[majorityReligion]
         if religionInfo then
-          summary.MajorityReligionID = religionInfo.Type or ""
+          summary.MajorityReligion = Locale.ConvertTextKey(religionInfo.Description) or ""
         end
       end
     end

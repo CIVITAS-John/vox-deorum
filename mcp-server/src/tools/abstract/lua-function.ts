@@ -12,14 +12,19 @@ export abstract class LuaFunctionTool extends ToolBase {
   protected abstract readonly resultSchema: z.ZodTypeAny;
 
   /**
-   * The Lua function script to be executed
-   */
-  protected abstract readonly script: string;
-
-  /**
    * The Lua function arguments in the signature
    */
   protected abstract readonly arguments: string[];
+
+  /**
+   * The Lua function script to be executed (optional if scriptFile is provided)
+   */
+  protected readonly script?: string;
+
+  /**
+   * Path to the Lua script file relative to the lua/ directory (optional if script is provided)
+   */
+  protected readonly scriptFile?: string;
 
   /**
    * The LuaFunction instance used to execute the script
@@ -45,9 +50,25 @@ export abstract class LuaFunctionTool extends ToolBase {
    * Execute the Lua script using BridgeManager
    */
   protected async call(...args: any[]): Promise<z.infer<typeof this.outputSchema>> {
-    this.function = this.function ?? new LuaFunction("default-func-" + this.name, this.arguments, this.script);
+    // Initialize function if not already done
+    if (!this.function) {
+      if (this.scriptFile) {
+        // Use LuaFunction.fromFile for file-based scripts
+        this.function = LuaFunction.fromFile(
+          this.scriptFile,
+          "default-func-" + this.name,
+          this.arguments
+        );
+      } else if (this.script) {
+        // Use direct constructor for inline scripts
+        this.function = new LuaFunction("default-func-" + this.name, this.arguments, this.script);
+      } else {
+        throw new Error(`${this.name}: Either 'script' or 'scriptFile' must be provided`);
+      }
+    }
+
     const response = await this.function.execute(...args);
-    
+
     return {
       Success: response.success,
       Result: response.result,

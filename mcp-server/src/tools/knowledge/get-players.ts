@@ -53,8 +53,8 @@ const PlayerDataSchema = z.object({
   TourismPerTurn: z.number().optional(),
   PolicyBranches: z.record(z.string(), z.number()).optional(),
   ResourcesAvailable: z.record(z.string(), z.number()).optional(),
-  FoundedReligionID: z.string().nullable().optional(),
-  MajorityReligionID: z.string().nullable().optional()
+  FoundedReligion: z.string().nullable().optional(),
+  MajorityReligion: z.string().nullable().optional()
 });
 
 /**

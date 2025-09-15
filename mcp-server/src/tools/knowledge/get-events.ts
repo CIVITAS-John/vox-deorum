@@ -38,11 +38,7 @@ const GameEventOutputSchema = z.object({
 /**
  * Output schema for the GetEvents tool
  */
-const GetEventsOutputSchema = z.object({
-  Count: z.number(),
-  Events: (z.union([z.array(GameEventOutputSchema), z.object({}).passthrough()])),
-  LastID: z.number()
-});
+const GetEventsOutputSchema = z.union([z.array(GameEventOutputSchema), z.object({}).passthrough()]);
 
 /**
  * Tool for retrieving game events with optional filtering
@@ -125,25 +121,12 @@ class GetEventsTool extends ToolBase {
       };
     });
     
-    // Find the largest event ID
-    const lastID = formattedEvents.length > 0 
-      ? Math.max(...formattedEvents.map(e => e.ID))
-      : 0;
-
     // If consolidation is requested, group events by turn
     if (!args.Original) {
       const consolidatedEvents = consolidateEventsByTurn(formattedEvents);
-      return {
-        Count: formattedEvents.length,
-        Events: consolidatedEvents,
-        LastID: lastID
-      };
+      return consolidatedEvents;
     } else {
-      return {
-        Count: formattedEvents.length,
-        Events: formattedEvents,
-        LastID: lastID
-      };
+      return formattedEvents;
     }
   }
 }
