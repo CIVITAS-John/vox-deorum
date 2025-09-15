@@ -4,17 +4,18 @@
  */
 
 import type { Generated, JSONColumnType } from 'kysely';
-import { 
-  GameEvent, 
-  StrategyChange, 
-  PlayerSummary, 
-  PlayerStrategy, 
+import {
+  GameEvent,
+  StrategyChange,
+  PlayerSummary,
+  PlayerStrategy,
   PlayerEconomics,
   PlayerScience,
   PlayerCulture,
   PlayerMilitary,
   PlayerDiplomacy,
-  PlayerOpinions
+  PlayerOpinions,
+  CityInformation
 } from './timed';
 import { PlayerInformation } from './public';
 
@@ -114,6 +115,7 @@ export interface KnowledgeDatabase {
   PlayerMilitaries: PlayerMilitary;
   PlayerDiplomacies: PlayerDiplomacy;
   PlayerOpinions: PlayerOpinions;
+  CityInformations: CityInformation;
   // Public Knowledge
-  PlayerInformations: PlayerInformation; 
+  PlayerInformations: PlayerInformation;
 }

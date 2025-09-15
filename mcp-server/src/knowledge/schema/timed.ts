@@ -83,6 +83,55 @@ export interface PlayerDiplomacy extends MutableKnowledge {
 }
 
 /**
+ * Basic city information (visibility level 1 - revealed)
+ * Contains fundamental city data visible to players who have revealed the city
+ * This does not inherit from any knowledge base as it's not persisted directly
+ */
+export interface CityInformationBasic {
+  Key: number; // City ID (unique identifier)
+  OwnerID: number; // Owner player ID
+  Name: string; // Localized city name
+  X: number; // X coordinate
+  Y: number; // Y coordinate
+  Population: number; // City population
+  MajorityReligion: string | null; // Majority religion (localized)
+  DefenseStrength: number; // Defense strength value
+  HitPoints: number; // Current hit points (MaxHP - Damage)
+  MaxHitPoints: number; // Maximum hit points
+  IsPuppet: number; // Is puppet city (0/1)
+  IsOccupied: number; // Is occupied (0/1)
+  IsRazing: number; // Is being razed (0/1)
+  IsCoastal: number; // Is coastal city (0/1)
+}
+
+/**
+ * City information with visibility-based access control
+ * Full city data updated per turn
+ * Key field contains the City ID
+ */
+export interface CityInformation extends MutableKnowledge, CityInformationBasic {
+  // Visibility level 2 fields (visible to owner/team/spy)
+  FoodStored: number; // Current food stored
+  FoodPerTurn: number; // Food difference per turn
+  ProductionStored: number; // Current production stored
+  ProductionPerTurn: number; // Production per turn
+  GoldPerTurn: number; // Gold generated per turn
+  SciencePerTurn: number; // Science generated per turn
+  CulturePerTurn: number; // Culture generated per turn
+  FaithPerTurn: number; // Faith generated per turn
+  TourismPerTurn: number; // Tourism generated
+  LocalHappiness: number; // Local happiness
+  RazingTurns: number; // Turns until razed (0 if not razing)
+  ResistanceTurns: number; // Resistance turns remaining
+  BuildingCount: number; // Total number of buildings
+  WonderCount: number; // Number of wonders
+  GreatWorkCount: number; // Number of great works
+  TradeRouteCount: number; // Number of trade routes
+  CurrentProduction: string | null; // What is being produced (localized)
+  ProductionTurnsLeft: number; // Turns to complete production
+}
+
+/**
  * Player opinion data (visible to self/espionage reasons)
  * Each player has their own opinion fields following the visibility pattern
  */
