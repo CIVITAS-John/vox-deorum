@@ -136,7 +136,7 @@ class GetPlayersTool extends ToolBase {
         IsMajor: info.IsMajor == 1,
         // Dynamic summary (if available)
         ...postProcessSummary(cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID),
-      };
+      } as any;
 
       if (playerOpinions) {
         if (playerID === args.PlayerID) {

@@ -123,31 +123,20 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
   -- Only include minor civs that are alive
   if player and player:IsAlive() and player:IsMinorCiv() then
     -- Get current era and tech information
-    local currentEra = ""
     local currentTech = 0
     local teamID = player:GetTeam()
     if Teams[teamID] then
-      local eraID = Teams[teamID]:GetCurrentEra()
-      if eraID and GameInfo.Eras[eraID] then
-        currentEra = Locale.ConvertTextKey(GameInfo.Eras[eraID].Description)
-      end
-      -- Minor civs do have technologies through their team
       currentTech = Teams[teamID]:GetTeamTechs():GetNumTechsKnown() or 0
     end
     
     local summary = {
       Key = playerID,
-      Era = currentEra,
       MajorAllyID = player:GetAlly() or -1,
       Cities = player:GetNumCities(),
       Population = player:GetTotalPopulation(),
       Gold = player:GetGold(),
       GoldPerTurn = math.floor(player:CalculateGoldRateTimes100() / 100),
-      TourismPerTurn = 0,  -- Minor civs don't generate tourism
       Technologies = currentTech,  -- Get actual tech count for minor civs
-      PolicyBranches = {},  -- Minor civs don't have policies
-      FoundedReligion = "",  -- Minor civs don't found religions
-      MajorityReligion = "",
       ResourcesAvailable = {}  -- Will be populated with actual available resources
     }
     

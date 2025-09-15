@@ -113,9 +113,47 @@ export async function setupKnowledgeDatabase(
     opinions = opinions.addColumn('OpinionTo' + I, 'text')
   }
   await opinions.execute();
-  
+
   // Create indexes for PlayerOpinions table
   await createMutableKnowledgeIndexes(db, 'PlayerOpinions');
+
+  // Create CityInformations table (MutableKnowledge implementation)
+  await createMutableKnowledgeTable(db, 'CityInformations')
+    // Basic fields (visibility level 1)
+    .addColumn('OwnerID', 'integer', (col) => col.notNull())
+    .addColumn('Name', 'text', (col) => col.notNull())
+    .addColumn('X', 'integer', (col) => col.notNull())
+    .addColumn('Y', 'integer', (col) => col.notNull())
+    .addColumn('Population', 'integer', (col) => col.notNull())
+    .addColumn('MajorityReligion', 'text')
+    .addColumn('DefenseStrength', 'integer', (col) => col.notNull())
+    .addColumn('HitPoints', 'integer', (col) => col.notNull())
+    .addColumn('MaxHitPoints', 'integer', (col) => col.notNull())
+    .addColumn('IsPuppet', 'integer', (col) => col.notNull())
+    .addColumn('IsOccupied', 'integer', (col) => col.notNull())
+    .addColumn('IsCoastal', 'integer', (col) => col.notNull())
+    // Full fields (visibility level 2)
+    .addColumn('FoodStored', 'integer', (col) => col.notNull())
+    .addColumn('FoodPerTurn', 'integer', (col) => col.notNull())
+    .addColumn('ProductionStored', 'integer', (col) => col.notNull())
+    .addColumn('ProductionPerTurn', 'integer', (col) => col.notNull())
+    .addColumn('GoldPerTurn', 'integer', (col) => col.notNull())
+    .addColumn('SciencePerTurn', 'integer', (col) => col.notNull())
+    .addColumn('CulturePerTurn', 'integer', (col) => col.notNull())
+    .addColumn('FaithPerTurn', 'integer', (col) => col.notNull())
+    .addColumn('TourismPerTurn', 'integer', (col) => col.notNull())
+    .addColumn('LocalHappiness', 'integer', (col) => col.notNull())
+    .addColumn('RazingTurns', 'integer', (col) => col.notNull())
+    .addColumn('ResistanceTurns', 'integer', (col) => col.notNull())
+    .addColumn('BuildingCount', 'integer', (col) => col.notNull())
+    .addColumn('WonderCount', 'integer', (col) => col.notNull())
+    .addColumn('GreatWorkCount', 'integer', (col) => col.notNull())
+    .addColumn('TradeRouteCount', 'integer', (col) => col.notNull())
+    .addColumn('CurrentProduction', 'text')
+    .addColumn('ProductionTurnsLeft', 'integer', (col) => col.notNull())
+    .execute();
+  // Create indexes for CityInformations table
+  await createMutableKnowledgeIndexes(db, 'CityInformations');
 
   // Create PlayerInformation table (PublicKnowledge implementation)
   await createPublicKnowledgeTable(db, 'PlayerInformations')

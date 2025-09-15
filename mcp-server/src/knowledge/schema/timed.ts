@@ -26,14 +26,14 @@ export interface StrategyChange extends MutableKnowledge {
  * Player summary information (visible to met players)
  */
 export interface PlayerSummary extends MutableKnowledge {
-  Era: string; // Localized era name (e.g., "Ancient Era", "Classical Era")
+  Era: string | null; // Localized era name (e.g., "Ancient Era", "Classical Era")
   MajorAllyID: number; // -1 = none, Player:GetAlly()
-  Cities: number;
+  Cities: number | null;
   Population: number;
-  Gold: number;
-  GoldPerTurn: number; // Player:CalculateGoldRateTimes100() / 100
-  TourismPerTurn: number;
-  Technologies: number;
+  Gold: number | null;
+  GoldPerTurn: number | null; // Player:CalculateGoldRateTimes100() / 100
+  TourismPerTurn: number | null;
+  Technologies: number | null;
   PolicyBranches: JSONColumnType<Record<string, number>>;
   FoundedReligion: string | null;
   MajorityReligion: string | null;
@@ -100,7 +100,6 @@ export interface CityInformationBasic {
   MaxHitPoints: number; // Maximum hit points
   IsPuppet: number; // Is puppet city (0/1)
   IsOccupied: number; // Is occupied (0/1)
-  IsRazing: number; // Is being razed (0/1)
   IsCoastal: number; // Is coastal city (0/1)
 }
 

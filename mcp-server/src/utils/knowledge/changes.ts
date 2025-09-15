@@ -20,7 +20,6 @@ export function detectChanges<T extends Record<string, any>>(
     // If no previous version exists, all fields are considered changes
     return Object.keys(newData).filter(key =>
       !isMetadataField(key) &&
-      !isVisibilityField(key) &&
       !(ignoreFields?.includes(key))
     );
   }
@@ -57,11 +56,4 @@ export function detectChanges<T extends Record<string, any>>(
  */
 function isMetadataField(key: string): boolean {
   return ['ID', 'Turn', 'Key', 'Version', 'IsLatest', 'CreatedAt', 'Changes'].includes(key);
-}
-
-/**
- * Check if a field is a player visibility field
- */
-function isVisibilityField(key: string): boolean {
-  return key.startsWith('Player') && /Player\d+/.test(key);
 }

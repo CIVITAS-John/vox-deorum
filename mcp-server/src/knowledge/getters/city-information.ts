@@ -4,6 +4,10 @@
 
 import { LuaFunction } from '../../bridge/lua-function.js';
 import { CityInformation, CityInformationBasic } from '../schema/timed.js';
+import { knowledgeManager } from '../../server.js';
+import { createLogger } from '../../utils/logger.js';
+
+const logger = createLogger('CityInformation');
 
 /**
  * Lua function that extracts city information from the game
@@ -17,88 +21,58 @@ const luaFunc = LuaFunction.fromFile(
 /**
  * Get all city information from the current game
  * Returns full city data with visibility-based access control
+ * Also stores each city as mutable knowledge in the database
  * @returns Array of CityInformation objects for all cities
  */
 export async function getCityInformations(): Promise<CityInformation[]> {
   const response = await luaFunc.execute();
   if (!response.success) {
+    logger.error('Failed to get city information from Lua', response);
     return [];
   }
-  return response.result as CityInformation[];
-}
 
-/**
- * Filter city information based on visibility level
- * Returns only basic information for cities with visibility level 1
- * @param cities Full city information array
- * @param playerID The player ID to filter visibility for
- * @returns Array of city info filtered by visibility
- */
-export function filterCityInfoByVisibility(
-  cities: CityInformation[],
-  playerID: number
-): Array<CityInformationBasic | CityInformation> {
-  return cities.map(city => {
-    const visibilityField = `Player${playerID}` as keyof CityInformation;
-    const visibility = city[visibilityField] as number;
+  const cities = response.result as CityInformation[];
 
-    if (visibility === 0) {
-      // Not visible - shouldn't be included
-      return null;
-    } else if (visibility === 1) {
-      // Basic visibility - return only basic info
-      const basicInfo: CityInformationBasic = {
-        Key: city.Key,
-        OwnerID: city.OwnerID,
-        Name: city.Name,
-        X: city.X,
-        Y: city.Y,
-        Population: city.Population,
-        MajorityReligion: city.MajorityReligion,
-        DefenseStrength: city.DefenseStrength,
-        HitPoints: city.HitPoints,
-        MaxHitPoints: city.MaxHitPoints,
-        IsCoastal: city.IsCoastal,
-        IsPuppet: city.IsPuppet,
-        IsOccupied: city.IsOccupied,
-        IsRazing: city.IsRazing
-      };
-      return basicInfo;
-    } else {
-      // Full visibility - return all info
-      return city;
+  // Store each city as mutable knowledge
+  try {
+    for (const city of cities) {
+      // Store the city information as mutable knowledge
+      await knowledgeManager.getStore().storeMutableKnowledge(
+        'CityInformations',
+        city.Key,
+        city as any
+      );
     }
-  }).filter(city => city !== null) as Array<CityInformationBasic | CityInformation>;
+
+    logger.info(`Stored ${cities.length} cities as mutable knowledge`);
+  } catch (error) {
+    logger.error('Failed to store city information as mutable knowledge', error);
+    // Don't fail the function if storage fails - still return the cities
+  }
+
+  return cities;
 }
 
 /**
- * Get cities owned by a specific player
- * @param cities Full city information array
- * @param playerID The owner player ID
- * @returns Array of cities owned by the player
+ * Get basic city information from a full city information object
+ * Extracts only the publicly visible fields
+ * @param city Full city information object
+ * @returns Basic city information
  */
-export function getCitiesByOwner(
-  cities: CityInformation[],
-  playerID: number
-): CityInformation[] {
-  return cities.filter(city => city.OwnerID === playerID);
-}
-
-/**
- * Get cities visible to a specific player
- * @param cities Full city information array
- * @param playerID The player ID to check visibility for
- * @param minVisibility Minimum visibility level (1 = revealed, 2 = full)
- * @returns Array of cities visible to the player
- */
-export function getVisibleCities(
-  cities: CityInformation[],
-  playerID: number,
-  minVisibility: number = 1
-): CityInformation[] {
-  const visibilityField = `Player${playerID}` as keyof CityInformation;
-  return cities.filter(city => {
-    const visibility = city[visibilityField] as number;
-    return visibility >= minVisibility;
-  });
+export function getCityBasicInfo(city: CityInformation): CityInformationBasic {
+  return {
+    Key: city.Key,
+    OwnerID: city.OwnerID,
+    Name: city.Name,
+    X: city.X,
+    Y: city.Y,
+    Population: city.Population,
+    MajorityReligion: city.MajorityReligion,
+    DefenseStrength: city.DefenseStrength,
+    HitPoints: city.HitPoints,
+    MaxHitPoints: city.MaxHitPoints,
+    IsCoastal: city.IsCoastal,
+    IsPuppet: city.IsPuppet,
+    IsOccupied: city.IsOccupied,
+  };
 }

@@ -3,7 +3,7 @@
  * Provides type-safe CRUD operations using Kysely query builder
  */
 
-import { Kysely, ParseJSONResultsPlugin, SqliteDialect, Selectable } from 'kysely';
+import { Kysely, ParseJSONResultsPlugin, SqliteDialect, Selectable, Updateable, Insertable } from 'kysely';
 import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
 import { JsonSerializePlugin } from '../utils/json-serialize-plugin.js';
@@ -346,7 +346,7 @@ export class KnowledgeStore {
    */
   async storeMutableKnowledge<
     TTable extends keyof KnowledgeDatabase,
-    TData extends Partial<Selectable<KnowledgeDatabase[TTable]>>
+    TData extends Partial<Selectable<KnowledgeDatabase[TTable]> | Insertable<KnowledgeDatabase[TTable]> | Updateable<KnowledgeDatabase[TTable]>>
   >(
     tableName: TTable,
     key: number,
