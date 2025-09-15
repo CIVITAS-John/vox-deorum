@@ -69,9 +69,7 @@ mcpClient.onElicitInput(async (params) => {
       }
       break;
     case "GameSwitched":
-      // Get the metadata
-      const metadata = await mcpClient.callTool("get-metadata");
-      logger.warn(`Game context switching to ${params.gameID}. Context: `, metadata);
+      logger.warn(`Game context switching to ${params.gameID}`);
 
       // Abort all existing players
       for (const player of activePlayers.values()) {
@@ -81,7 +79,7 @@ mcpClient.onElicitInput(async (params) => {
 
       // Create new players for this game
       for (const playerID of llmPlayers) {
-        const player = new VoxPlayer(playerID, strategist, params.gameID, params.turn, metadata);
+        const player = new VoxPlayer(playerID, strategist, params.gameID, params.turn);
         activePlayers.set(playerID, player);
         player.execute();
       }

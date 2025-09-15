@@ -22,7 +22,7 @@ const GetEventsInputSchema = z.object({
   After: z.number().optional().describe("Only filter events after the ID"),
   Before: z.number().optional().describe("Only filter events before or at the ID"),
   PlayerID: z.number().min(0).max(MaxMajorCivs - 1).optional().describe("Player ID visibility filter"),
-  Original: z.boolean().optional().describe("Send out original events for fewer token usage")
+  Original: z.boolean().optional().describe("Send out original events before consolidation")
 });
 
 /**

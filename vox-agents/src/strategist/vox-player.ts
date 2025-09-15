@@ -22,8 +22,7 @@ export class VoxPlayer {
     public readonly playerID: number,
     private readonly strategistType: string,
     gameID: string,
-    initialTurn: number,
-    metadata: any
+    initialTurn: number
   ) {
     this.logger = createLogger(`VoxPlayer-${playerID}`);
 
@@ -36,9 +35,7 @@ export class VoxPlayer {
       turn: -1,
       after: initialTurn * 1000000,
       before: 0,
-      store: {
-        metadata: metadata
-      }
+      store: {}
     };
   }
 
@@ -58,6 +55,10 @@ export class VoxPlayer {
    * Main execution loop with observation span
    */
   async execute(): Promise<void> {
+    // Get the game metadata as a prerequisite
+    this.parameters.store!.metadata = 
+      this.parameters.store!.metadata ?? this.context.callTool("get-metadata", {}, this.parameters);
+    // Run the agent
     return await startActiveObservation(
       `${this.parameters.gameID}-${this.playerID}`,
       async (observation) => {
