@@ -14,7 +14,7 @@ export class SimpleStrategist extends Strategist {
   /**
    * Gets the system prompt for the strategist
    */
-  public getSystem(_parameters: StrategistParameters, context: VoxContext<StrategistParameters>): string {
+  public async getSystem(_parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<string> {
     return `
 You are a strategist playing Civilization V.
 Your task is to analyze the current game state and set an appropriate strategy for the player.
@@ -32,7 +32,10 @@ Be decisive and execute the set-strategy tool to complete your task.`
   /**
    * Gets the initial messages for the conversation
    */
-  public getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): ModelMessage[] {
+  public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
+    // Get the information
+    parameters.store!.playerInfo = await context.callTool("get-players", {}, parameters);
+    // Return the messages
     return [{
       role: "user",
       content: `

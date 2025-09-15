@@ -76,7 +76,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * @param parameters - The execution parameters
    * @returns The system prompt string
    */
-  public abstract getSystem(parameters: TParameters, _context: VoxContext<TParameters>): string;
+  public abstract getSystem(parameters: TParameters, _context: VoxContext<TParameters>): Promise<string>;
   
   /**
    * Gets the list of active tools for this agent execution.
@@ -111,7 +111,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * @param parameters - The execution parameters
    * @returns Array of initial messages, or empty array if none
    */
-  public getInitialMessages(_parameters: TParameters, _context: VoxContext<TParameters>): ModelMessage[] {
+  public async getInitialMessages(_parameters: TParameters, _context: VoxContext<TParameters>): Promise<ModelMessage[]> {
     return [];
   }
   
@@ -125,18 +125,18 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * @param messages - The current message history
    * @returns Configuration for the next step, or empty object for defaults
    */
-  public prepareStep(
+  public async prepareStep(
     _parameters: TParameters,
     _lastStep: StepResult<Record<string, Tool>>,
     _allSteps: StepResult<Record<string, Tool>>[],
     _messages: ModelMessage[], 
     _context: VoxContext<TParameters>
-  ): {
+  ): Promise<{
     model?: LanguageModel;
     toolChoice?: any;
     activeTools?: string[];
     messages?: ModelMessage[];
-  } {
+  }> {
     return {};
   }
 }

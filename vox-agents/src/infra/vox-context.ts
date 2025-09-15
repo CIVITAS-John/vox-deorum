@@ -176,8 +176,8 @@ export class VoxContext<TParameters extends AgentParameters> {
           // Initial messages
           messages: [{
             role: "system",
-            content: agent.getSystem(parameters, this)
-          }, ...agent.getInitialMessages(parameters, this)],
+            content: await agent.getSystem(parameters, this)
+          }, ...await agent.getInitialMessages(parameters, this)],
           // Initial tools
           tools: allTools,
           activeTools: agent.getActiveTools(parameters),
@@ -202,10 +202,10 @@ export class VoxContext<TParameters extends AgentParameters> {
             return shouldStop;
           },
           // Preparing for the next step
-          prepareStep: (context) => {
+          prepareStep: async (context) => {
             const lastStep = context.steps[context.steps.length - 1];
             this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
-            return agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
+            return await agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
           },
         });
         
