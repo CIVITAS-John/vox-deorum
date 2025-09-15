@@ -121,10 +121,10 @@ export class VoxPlayer {
             }
           }
         } catch (error) {
-          this.logger.error(`Player ${this.playerID} execution error:`, error);
+          this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) execution error:`, error);
           observation.update({ output: { error: error instanceof Error ? error.message : String(error) } });
         } finally {
-          this.logger.info(`Player ${this.playerID} completion: ${this.aborted}`);
+          this.logger.info(`Player ${this.playerID} (${this.parameters.gameID}) completion: ${this.aborted}`);
           observation.update({
             output: {
               completed: true,
