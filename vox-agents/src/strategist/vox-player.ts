@@ -76,10 +76,10 @@ export class VoxPlayer {
 
         try {
           await this.context.registerMCP();
-          
+
           // Get the game metadata as a prerequisite
           this.parameters.store!.metadata = 
-            this.parameters.store!.metadata ?? this.context.callTool("get-metadata", {}, this.parameters);
+            this.parameters.store!.metadata ?? await this.context.callTool("get-metadata", {}, this.parameters);
 
           // Resume the game in case the vox agent was aborted
           await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);

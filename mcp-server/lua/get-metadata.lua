@@ -1,6 +1,5 @@
 -- Get-Metadata Lua Script
 -- Retrieves static game metadata that doesn't change during gameplay
-
 -- Helper function to get localized text from GameInfo
 local function getLocalizedGameInfo(category, id)
     local info = GameInfo[category] and GameInfo[category][id]
@@ -46,8 +45,8 @@ for row in GameInfo.Victories() do
     end
 end
 
--- Build and return metadata
-return {
+-- Build metadata
+local metadata = {
     GameSpeed = gameSpeed,
     MapType = mapType,
     MapSize = mapSize,
@@ -56,3 +55,15 @@ return {
     MaxTurns = maxTurns,
     VictoryTypes = victoryTypes
 }
+
+-- Add player-specific information if PlayerID was provided
+if playerID ~= -1 then
+    local player = Players[playerID]
+    if player and not player:IsBarbarian() and not player:IsMinorCiv() then
+        local leaderName = player:GetName()
+        local civName = player:GetCivilizationShortDescription()
+        metadata.YouAre = leaderName .. " (" .. civName .. ")"
+    end
+end
+
+return metadata

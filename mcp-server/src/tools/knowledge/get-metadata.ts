@@ -17,7 +17,8 @@ const MetadataSchema = z.object({
   Difficulty: z.string(),
   StartEra: z.string(),
   MaxTurns: z.number(),
-  VictoryTypes: z.array(z.string())
+  VictoryTypes: z.array(z.string()),
+  YouAre: z.string().optional()
 });
 
 /**
@@ -37,7 +38,9 @@ class GetMetadataTool extends LuaFunctionTool {
   /**
    * Input schema for the tool (no input required)
    */
-  readonly inputSchema = z.object({});
+  readonly inputSchema = z.object({
+    PlayerID: z.number().optional().describe("Optional player ID to get player-specific information")
+  });
 
   /**
    * Schema for the result data
@@ -45,9 +48,9 @@ class GetMetadataTool extends LuaFunctionTool {
   protected readonly resultSchema = MetadataSchema;
 
   /**
-   * Lua function arguments (none needed)
+   * Lua function arguments
    */
-  protected readonly arguments: string[] = [];
+  protected get arguments() { return ["playerID"]; }
 
   /**
    * Path to the Lua script file relative to the lua/ directory
@@ -65,11 +68,12 @@ class GetMetadataTool extends LuaFunctionTool {
   /**
    * Execute the tool to retrieve metadata and save to knowledge store
    */
-  async execute(_args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    const result = await this.call();
+  async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
+    const result = await this.call(args.PlayerID ?? -1);
     const metadata = result.Result as z.infer<typeof this.resultSchema>;
     const store = knowledgeManager.getStore();
 
+    // Don't save YouAre to knowledge store - it's transient per-request data
     await Promise.all([
       store.setMetadata('gameSpeed', metadata.GameSpeed),
       store.setMetadata('mapType', metadata.MapType),
