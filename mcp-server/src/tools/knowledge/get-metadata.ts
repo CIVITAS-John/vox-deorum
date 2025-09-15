@@ -75,12 +75,12 @@ class GetMetadataTool extends LuaFunctionTool {
     const store = knowledgeManager.getStore();
 
     // Strip MapType to just filename without extension/path using Node.js path module
-    const mapType = path.basename(metadata.MapType, path.extname(metadata.MapType));
+    metadata.MapType = path.win32.basename(metadata.MapType, path.win32.extname(metadata.MapType));
 
     // Don't save YouAre to knowledge store - it's transient per-request data
     await Promise.all([
       store.setMetadata('gameSpeed', metadata.GameSpeed),
-      store.setMetadata('mapType', mapType),
+      store.setMetadata('mapType', metadata.MapType),
       store.setMetadata('mapSize', metadata.MapSize),
       store.setMetadata('difficulty', metadata.Difficulty),
       store.setMetadata('startEra', metadata.StartEra),
