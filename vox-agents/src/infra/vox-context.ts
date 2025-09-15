@@ -207,6 +207,8 @@ export class VoxContext<TParameters extends AgentParameters> {
             this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
             return await agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
           },
+          // Retry for at most 5 times
+          maxRetries: 5
         });
         
         this.logger.info(`Agent execution completed: ${agentName}`);
