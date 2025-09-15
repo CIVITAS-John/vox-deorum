@@ -24,12 +24,7 @@ local mapSizeID = map.GetWorldSize()
 local mapSize = getLocalizedGameInfo("Worlds", mapSizeID)
 
 -- Get map type (from map script name if available)
-local mapType = "Custom"
-if MapScript and MapScript.GetMapScriptName then
-    mapType = MapScript.GetMapScriptName()
-elseif UI and UI.GetMapScriptName then
-    mapType = UI.GetMapScriptName()
-end
+local mapType = Game:GetMapScriptName()
 
 -- Get difficulty
 local difficultyID = Game.GetHandicapType()

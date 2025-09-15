@@ -5,6 +5,7 @@
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
+import { knowledgeManager } from "../../server.js";
 
 /**
  * Schema for static game metadata
@@ -62,10 +63,24 @@ class GetMetadataTool extends LuaFunctionTool {
   };
 
   /**
-   * Execute the tool to retrieve metadata
+   * Execute the tool to retrieve metadata and save to knowledge store
    */
   async execute(_args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    return await this.call();
+    const result = await this.call();
+    const metadata = result.Result as z.infer<typeof this.resultSchema>;
+    const store = knowledgeManager.getStore();
+
+    await Promise.all([
+      store.setMetadata('gameSpeed', metadata.GameSpeed),
+      store.setMetadata('mapType', metadata.MapType),
+      store.setMetadata('mapSize', metadata.MapSize),
+      store.setMetadata('difficulty', metadata.Difficulty),
+      store.setMetadata('startEra', metadata.StartEra),
+      store.setMetadata('maxTurns', metadata.MaxTurns.toString()),
+      store.setMetadata('victoryTypes', metadata.VictoryTypes.join(', '))
+    ]);
+
+    return result;
   }
 }
 
