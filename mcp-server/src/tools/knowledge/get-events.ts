@@ -36,11 +36,6 @@ const GameEventOutputSchema = z.object({
 }).passthrough();
 
 /**
- * Output schema for the GetEvents tool
- */
-const GetEventsOutputSchema = z.union([z.array(GameEventOutputSchema), z.object({}).passthrough()]);
-
-/**
  * Tool for retrieving game events with optional filtering
  */
 class GetEventsTool extends ToolBase {
@@ -62,7 +57,9 @@ class GetEventsTool extends ToolBase {
   /**
    * Output schema for the tool
    */
-  readonly outputSchema = GetEventsOutputSchema;
+  readonly outputSchema = z.union([z.object({
+    events: z.array(GameEventOutputSchema)
+  }), z.object({}).passthrough()]);
 
   /**
    * Optional annotations for the tool
@@ -126,7 +123,9 @@ class GetEventsTool extends ToolBase {
       const consolidatedEvents = consolidateEventsByTurn(formattedEvents);
       return consolidatedEvents;
     } else {
-      return formattedEvents;
+      return {
+        events: formattedEvents
+      }
     }
   }
 }
