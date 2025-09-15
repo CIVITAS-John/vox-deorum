@@ -86,7 +86,7 @@ mcpClient.onElicitInput(async (params) => {
 
       // Autoplay
       if (autoPlay) {
-        await mcpClient.callTool("lua-execute", { Script: "Game.SetAIAutoPlay(-1, -1); Events.LoadScreenClose();" });
+        await mcpClient.callTool("lua-executor", { Script: "Events.LoadScreenClose(); Game.SetAIAutoPlay(1000);" });
       }
       break;
     case "PlayerVictory":

@@ -1,5 +1,13 @@
-Events.AfterModsActivate.Add(function()
-    print("Mods activated!")
+local modActivating = -1
+local modActivated = -1
+
+function onEndFrame()
+  if modActivating > 0 and os.time() > modActivating + 2 then
+    print("Trying to activate the mods...");
+    Events.FrontEndPopup("Activating the mods");
+    modActivating = 0;
+  end
+  if modActivated > 0 and os.time() > modActivated + 2 then
     -- Game settings
     local t = {};
     t.worldSize = 0; -- Tiny
@@ -16,6 +24,22 @@ Events.AfterModsActivate.Add(function()
     -- Set the delay between AI turns, in seconds.  Can be 0.
     t.autorunTurnDelay = 1;
     -- Apply the parameters to the GameCoreInit structure
+    print("Starting the game...");
+    modActivated = -1
     Automation.SetGameCoreInit(t);
-    Events.SerialEventStartGame();
+    Events.SerialEventStartGame(0);
+  end
+end
+  
+Events.AfterModsActivate.Add(function()
+  if (modActivating == -1) then
+    print("Vanilla game activated!");
+    modActivating = os.time();
+    -- Set the 'EndFrame' event handler
+    Automation.SetEventFunction("EndFrame", onEndFrame);
+    return
+  elseif (modActivated == -1) then
+    print("Custom mods activated!");
+    modActivated = os.time();
+  end
 end)

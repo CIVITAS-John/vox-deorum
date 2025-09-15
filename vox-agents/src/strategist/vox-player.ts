@@ -91,7 +91,7 @@ export class VoxPlayer {
             this.parameters.before = turnData.latestID;
             this.parameters.running = this.strategistType;
 
-            this.logger.warn(`Running the ${this.strategistType} on ${this.parameters.turn}, with events ${this.parameters.after}~${this.parameters.before}`);
+            this.logger.warn(`Running ${this.strategistType} on ${this.parameters.turn}, with events ${this.parameters.after}~${this.parameters.before}`);
 
             try {
               await this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);

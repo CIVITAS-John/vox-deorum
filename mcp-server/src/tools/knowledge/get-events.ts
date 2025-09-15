@@ -22,7 +22,7 @@ const GetEventsInputSchema = z.object({
   After: z.number().optional().describe("Only filter events after the ID"),
   Before: z.number().optional().describe("Only filter events before or at the ID"),
   PlayerID: z.number().min(0).max(MaxMajorCivs - 1).optional().describe("Player ID visibility filter"),
-  Consolidated: z.boolean().optional().describe("Send out consolidated events for fewer token usage")
+  Original: z.boolean().optional().describe("Send out original events for fewer token usage")
 });
 
 /**
@@ -72,7 +72,7 @@ class GetEventsTool extends ToolBase {
    * Optional annotations for the tool
    */
   readonly annotations: ToolAnnotations = {
-    autoComplete: ["PlayerID", "After", "Consolidated"]
+    autoComplete: ["PlayerID", "Before", "After", "Original"]
   }
 
   /**
@@ -127,7 +127,7 @@ class GetEventsTool extends ToolBase {
       : 0;
 
     // If consolidation is requested, group events by turn
-    if (args.Consolidated) {
+    if (!args.Original) {
       const consolidatedEvents = consolidateEventsByTurn(formattedEvents);
       return {
         Count: formattedEvents.length,

@@ -168,7 +168,7 @@ export class MCPClient {
       const result = await this.client.callTool({ name, arguments: args });
       return result;
     } catch (error) {
-      logger.error(`Failed to call tool ${name}.`);
+      logger.error(`Failed to call tool ${name}.`, error);
       throw error;
     }
   }

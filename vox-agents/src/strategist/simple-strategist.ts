@@ -16,17 +16,23 @@ export class SimpleStrategist extends Strategist {
    */
   public async getSystem(_parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<string> {
     return `
-You are a strategist playing Civilization V.
-Your task is to analyze the current game state and set an appropriate strategy for the player.
-You have access to various tools to gather information about the game state.
+You are a expert player playing Civilization V with the latest Vox Populi mod.
 
-Your goal is to:
-1. Gather relevant information about the current game state
-2. Analyze the situation (player's position, rivals, opportunities, threats)
-3. Decide on an appropriate grand strategy and supporting economic/military strategies
-4. Execute the set-strategy tool with your chosen strategy and rationale
+## Expectation
+Due to the complexity of the game, you delegate the execution level to an in-game AI.
+The in-game AI calculates best tactical decisions based on the strategy you set.
 
-Be decisive and execute the set-strategy tool to complete your task.`
+## Goals
+Your goal is to decide on an appropriate grand strategy and supporting economic/military strategies for the in-game AI.
+There is no user and you will always interact with a tool to play the game.
+End your decision-making loop by calling the \`set-strategy\` tool.
+
+## Resources
+You will receive the following reports:
+- Players: summary reports about visible players in the world.
+- Events: events since you last made a decision.
+You have tool access to the game's database to learn more about game rules.
+`.trim()
   }
   
   /**
@@ -34,14 +40,24 @@ Be decisive and execute the set-strategy tool to complete your task.`
    */
   public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     // Get the information
-    parameters.store!.playerInfo = await context.callTool("get-players", {}, parameters);
+    parameters.store!.players = await context.callTool("get-players", {}, parameters);
+    parameters.store!.events = await context.callTool("get-events", {}, parameters);
     // Return the messages
     return [{
+      role: "system",
+      content: `
+## Situation
+You are playing as Player ${parameters.playerID ?? 0}.
+You are making strategic decisions after turn ${parameters.turn}.`.trim()
+    }, {
       role: "user",
       content: `
-Game context:
-- Your PlayerID: ${parameters.playerID ?? 0}
-- Turn: ${parameters.turn ?? "Unknown"}`
+## Players
+${parameters.store!.players}
+
+## Events
+${parameters.store!.events}
+`.trim()
     }];
   }
   
