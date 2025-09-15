@@ -11,8 +11,8 @@ const llmPlayers = [0];
 // Auto-play?
 const autoPlay = true;
 // Strategist to use
-// const strategist = "simple-strategist"
-const strategist = "none"
+const strategist = "simple-strategist"
+// const strategist = "none"
 
 // Active player instances
 const activePlayers = new Map<number, VoxPlayer>();

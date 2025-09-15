@@ -26,6 +26,7 @@ The in-game AI calculates best tactical decisions based on the strategy you set.
 Your goal is to decide on an appropriate grand strategy and supporting economic/military strategies for the in-game AI.
 There is no user and you will always interact with a tool to play the game.
 End your decision-making loop by calling the \`set-strategy\` tool.
+The in-game AI can only execute the tool's provided options. Therefore, you must choose from them.
 
 ## Resources
 You will receive the following reports:
