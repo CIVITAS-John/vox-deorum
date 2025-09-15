@@ -15,7 +15,7 @@ import {
 import { setupKnowledgeDatabase } from './schema/setup.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { knowledgeManager } from '../server.js';
+import { gameDatabase, knowledgeManager } from '../server.js';
 import { EventName, eventSchemas } from './schema/events/index.js';
 import { analyzeEventVisibility } from '../utils/lua/event-visibility.js';
 import { applyVisibility } from '../utils/knowledge/visibility.js';
@@ -252,7 +252,7 @@ export class KnowledgeStore {
           this.setMetadata("lastID", id.toString());
         }
         const mappedType = renamedEventTypes[type] ?? type;
-        await this.storeGameEvent(id, mappedType, data);
+        await this.storeGameEvent(id, mappedType, gameDatabase.localizeObject(data));
       } else {
         logger.warn(`Invalid ${type} event:`, {
           errors: result.error.errors,
