@@ -138,8 +138,8 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         });
 
         // Return results
-        if (convertMarkdown) {
-          const markdown = jsonToMarkdown(result.Result ?? result, {
+        if (convertMarkdown && result) {
+          const markdown = jsonToMarkdown(result?.Result ?? result, {
             configs: tool.annotations?.markdownConfig as any,
             startingLevel: 2,
           });
