@@ -107,7 +107,11 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         // Autocomplete support - add the fields back for execution
         if (tool.annotations?.autoComplete) {
           (tool.annotations?.autoComplete as string[]).forEach(
-            key => args[key] = (options.experimental_context as any)[camelCase(key)]
+            key => {
+              var camelKey = camelCase(key);
+              if (camelKey.endsWith("Id")) camelKey = camelKey.substring(0, camelKey.length - 2) + "ID";
+              args[key] = (options.experimental_context as any)[camelKey];
+            }
           )
         }
 

@@ -27,7 +27,7 @@
     },
     "gpt-oss-20b": {
       "provider": "openrouter",
-      "name": "openai/gpt-oss-20b:free",
+      "name": "openai/gpt-oss-20b",
       "options": {
         "reasoningEffort": "minimal"
       }

@@ -31,6 +31,7 @@ The in-game AI can only execute the tool's provided options. Therefore, you must
 ## Resources
 You will receive the following reports:
 - Players: summary reports about visible players in the world.
+  - In addition, you will receive in-game AI's current strategies and diplomatic evaluations.
 - Events: events since you last made a decision.
 You have tool access to the game's database to learn more about game rules.
 `.trim()
@@ -54,10 +55,10 @@ You are making strategic decisions after turn ${parameters.turn}.`.trim()
       role: "user",
       content: `
 ## Players
-${parameters.store!.players}
+${JSON.stringify(parameters.store!.players)}
 
 ## Events
-${parameters.store!.events}
+${JSON.stringify(parameters.store!.events)}
 `.trim()
     }];
   }
