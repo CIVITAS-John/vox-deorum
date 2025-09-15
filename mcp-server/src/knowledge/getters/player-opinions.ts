@@ -7,6 +7,7 @@ import { Selectable } from 'kysely';
 import { LuaFunction } from '../../bridge/lua-function.js';
 import { PlayerOpinions } from '../schema/timed.js';
 import { knowledgeManager } from '../../server.js';
+import { stripTags } from '../../utils/database/localized.js';
 
 /**
  * Lua function that retrieves player opinions to all major civs
@@ -41,8 +42,8 @@ export async function getPlayerOpinions(firstPlayer?: number, saving: boolean = 
     if (Array.isArray(opinionList)) {
       const opinionFrom = opinionList[0]?.join('\n');
       const opinionTo = opinionList[1]?.join('\n');
-      (playerOpinion as any)[`OpinionFrom${targetId}`] = opinionFrom;
-      (playerOpinion as any)[`OpinionTo${targetId}`] = opinionTo;
+      (playerOpinion as any)[`OpinionFrom${targetId}`] = stripTags(opinionFrom);
+      (playerOpinion as any)[`OpinionTo${targetId}`] = stripTags(opinionTo);
     }
   }
   

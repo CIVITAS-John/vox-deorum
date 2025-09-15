@@ -41,6 +41,9 @@ export function detectChanges<T extends Record<string, any>>(
     const oldValue = oldData[key];
     const newValue = newData[key];
 
+    if (oldValue === undefined && newValue === undefined) 
+      continue;
+
     if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
       changes.push(key);
     }
