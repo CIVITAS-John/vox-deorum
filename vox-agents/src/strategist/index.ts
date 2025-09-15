@@ -101,6 +101,8 @@ ToggleStrategicView();` });
         player.abort();
       }
       activePlayers.clear();
+      // Stop autoplay
+      await mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` });
       break;
     default:
       logger.info(`Received elicitInput notification: ${params.message}`, params);
