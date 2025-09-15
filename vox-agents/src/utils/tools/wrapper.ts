@@ -133,21 +133,18 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         const result = (await mcpClient.callTool(tool.name, args)).structuredContent;
         logger.info(`Tool call completed: ${tool.name}`);
 
+        observation.update({
+          output: result
+        });
+
         // Return results
         if (convertMarkdown) {
           const markdown = jsonToMarkdown(result, {
             configs: tool.annotations?.markdownConfig as any,
             startingLevel: 2,
           });
-          observation.update({
-            output: result,
-            metadata: { markdown: markdown }
-          });
           return markdown;
         } else {
-          observation.update({
-            output: result,
-          });
           return result;
         }
       }, {
