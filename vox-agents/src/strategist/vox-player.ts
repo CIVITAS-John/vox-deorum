@@ -2,7 +2,7 @@ import { VoxContext } from "../infra/vox-context.js";
 import { startActiveObservation } from "@langfuse/tracing";
 import { StrategistParameters } from "./strategist.js";
 import { createLogger } from "../utils/logger.js";
-import { getModelConfig } from "../utils/models.js";
+import { getModelConfig } from "../utils/models/models.js";
 import { SimpleStrategist } from "./simple-strategist.js";
 import { setTimeout } from 'node:timers/promises';
 import { langfuseSpanProcessor } from "../instrumentation.js";

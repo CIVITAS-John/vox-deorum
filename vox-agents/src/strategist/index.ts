@@ -1,6 +1,6 @@
 import { langfuseSpanProcessor } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
-import { mcpClient } from "../utils/mcp-client.js";
+import { mcpClient } from "../utils/models/mcp-client.js";
 import { VoxPlayer } from "./vox-player.js";
 import { setTimeout } from 'node:timers/promises';
 

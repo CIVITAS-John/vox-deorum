@@ -3,7 +3,7 @@
  */
 
 import { LanguageModel, wrapLanguageModel } from 'ai';
-import { config, type Model } from './config.js';
+import { config, type Model } from '../config.js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createOpenAI } from '@ai-sdk/openai';
 import { gemmaToolMiddleware } from '@ai-sdk-tool/parser';

@@ -1,12 +1,12 @@
 import { generateText, Output, Tool } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
-import { createAgentTool, wrapMCPTools } from "../utils/tool-wrappers.js";
-import { mcpClient } from "../utils/mcp-client.js";
+import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
+import { mcpClient } from "../utils/models/mcp-client.js";
+import { getModel } from "../utils/models/models.js";
 import { startActiveObservation } from "@langfuse/tracing";
 import { ZodObject } from "zod/v4/index.js";
 import { Model } from "../utils/config.js";
-import { getModel } from "../utils/models.js";
 import { exponentialRetry } from "../utils/retry.js";
 
 /**

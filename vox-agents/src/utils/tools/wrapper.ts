@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { AgentParameters, VoxAgent } from "../infra/vox-agent.js";
-import { VoxContext } from "../infra/vox-context.js";
-import { createLogger } from "./logger.js";
+import { AgentParameters, VoxAgent } from "../../infra/vox-agent.js";
+import { VoxContext } from "../../infra/vox-context.js";
+import { createLogger } from "../logger.js";
 import { Tool as VercelTool, dynamicTool, ToolSet, jsonSchema } from 'ai';
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { mcpClient } from "./mcp-client.js";
+import { mcpClient } from "../models/mcp-client.js";
 import { startActiveObservation } from "@langfuse/tracing";
 import { camelCase } from "change-case";
 
