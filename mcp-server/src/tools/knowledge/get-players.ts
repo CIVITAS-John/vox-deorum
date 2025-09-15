@@ -14,7 +14,6 @@ import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metad
 import { Selectable } from "kysely";
 import { cleanEventData } from "./get-events.js";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
-import { stripTags } from "../../utils/database/localized.js";
 import { readAndStorePlayerStrategy } from "../../utils/lua/read-and-store-strategy.js";
 
 /**
@@ -100,7 +99,7 @@ class GetPlayersTool extends ToolBase {
       getPlayerInformations(),
       getPlayerSummaries(),
       getPlayerOpinions(args.PlayerID),
-      args.PlayerID ? readAndStorePlayerStrategy(args.PlayerID) : Promise.resolve(null)
+      args.PlayerID !== undefined ? readAndStorePlayerStrategy(args.PlayerID) : Promise.resolve(null)
     ]);
   
     // Combine the data and create dictionary
@@ -140,11 +139,11 @@ class GetPlayersTool extends ToolBase {
       };
 
       if (playerOpinions) {
-        if (info.Key === args.PlayerID) {
-          playerData.MyEvaluations = stripTags((playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
+        if (playerID === args.PlayerID) {
+          playerData.MyEvaluations = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
         } else {
-          playerData.OpinionFromMe = stripTags((playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
-          playerData.OpinionToMe = stripTags((playerOpinions[`OpinionForm${info.Key}` as keyof PlayerOpinions] as string))?.split("\n");
+          playerData.OpinionFromMe = (playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
+          playerData.OpinionToMe = (playerOpinions[`OpinionForm${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
         }
       }
 
