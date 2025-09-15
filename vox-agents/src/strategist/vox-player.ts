@@ -21,8 +21,9 @@ export class VoxPlayer {
   constructor(
     public readonly playerID: number,
     private readonly strategistType: string,
-    gameID?: string,
-    initialTurn: number = 0
+    gameID: string,
+    initialTurn: number,
+    metadata: any
   ) {
     this.logger = createLogger(`VoxPlayer-${playerID}`);
 
@@ -34,7 +35,10 @@ export class VoxPlayer {
       gameID,
       turn: -1,
       after: initialTurn * 1000000,
-      before: 0
+      before: 0,
+      store: {
+        metadata: metadata
+      }
     };
   }
 

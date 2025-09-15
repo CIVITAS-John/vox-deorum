@@ -54,7 +54,8 @@ You have tool access to the game's database to learn more about game rules.
       role: "system",
       content: `
 # Situation
-You are playing as Player ${parameters.playerID ?? 0}.`.trim()
+You are playing as Player ${parameters.playerID ?? 0}.
+${parameters.store!.metadata}`.trim()
     }, {
       role: "user",
       content: `

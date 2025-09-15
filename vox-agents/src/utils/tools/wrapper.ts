@@ -117,8 +117,8 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         }
 
         // Local arg: formatting
-        const convertMarkdown = args["Formatting"] !== false;
-        delete args["Formatting"];
+        const convertMarkdown = args["Markdown"] !== false;
+        delete args["Markdown"];
 
         // Log inputs
         observation.update({
