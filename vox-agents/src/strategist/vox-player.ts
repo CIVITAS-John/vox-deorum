@@ -55,9 +55,6 @@ export class VoxPlayer {
    * Main execution loop with observation span
    */
   async execute(): Promise<void> {
-    // Get the game metadata as a prerequisite
-    this.parameters.store!.metadata = 
-      this.parameters.store!.metadata ?? this.context.callTool("get-metadata", {}, this.parameters);
     // Run the agent
     return await startActiveObservation(
       `${this.parameters.gameID}-${this.playerID}`,
@@ -79,6 +76,10 @@ export class VoxPlayer {
 
         try {
           await this.context.registerMCP();
+          
+          // Get the game metadata as a prerequisite
+          this.parameters.store!.metadata = 
+            this.parameters.store!.metadata ?? this.context.callTool("get-metadata", {}, this.parameters);
 
           // Resume the game in case the vox agent was aborted
           await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);

@@ -252,7 +252,7 @@ export class KnowledgeStore {
           this.setMetadata("lastID", id.toString());
         }
         const mappedType = renamedEventTypes[type] ?? type;
-        await this.storeGameEvent(id, mappedType, gameDatabase.localizeObject(data));
+        await this.storeGameEvent(id, mappedType, data);
       } else {
         logger.warn(`Invalid ${type} event:`, {
           errors: result.error.errors,
@@ -296,7 +296,7 @@ export class KnowledgeStore {
       // Save the extra payloads
       Object.assign(payload, visibilityResult.extraPayload);
       // Explain the enums for LLM readability
-      explainEnums(payload);
+      await gameDatabase.localizeObject(explainEnums(payload));
       logger.info(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
     } else {
       logger.warn(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
