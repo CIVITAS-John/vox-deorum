@@ -42,8 +42,12 @@ You have tool access to the game's database to learn more about game rules.
    */
   public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     // Get the information
-    parameters.store!.players = await context.callTool("get-players", {}, parameters);
-    parameters.store!.events = await context.callTool("get-events", {}, parameters);
+    const [players, events] = [
+      await context.callTool("get-players", {}, parameters),
+      await context.callTool("get-events", {}, parameters)
+    ];
+    parameters.store!.players = players;
+    parameters.store!.events = events;
     // Return the messages
     return [{
       role: "system",
