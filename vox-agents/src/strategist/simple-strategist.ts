@@ -47,8 +47,8 @@ You have tool access to the game's database to learn more about game rules.
       await context.callTool("get-players", { }, parameters),
       await context.callTool("get-events", { }, parameters)
     ];
-    parameters.store!.players = players.Markdown;
-    parameters.store!.events = events.Markdown;
+    parameters.store!.players = players;
+    parameters.store!.events = events;
     // Return the messages
     return [{
       role: "system",
@@ -61,7 +61,7 @@ You are playing as Player ${parameters.playerID ?? 0}.`.trim()
 You are making strategic decisions after turn ${parameters.turn} has been executed.
 
 # Players
-${parameters.store!.player}
+${parameters.store!.players}
 
 # Events
 ${parameters.store!.events}
