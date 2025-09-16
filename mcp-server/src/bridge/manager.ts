@@ -276,7 +276,7 @@ export class BridgeManager extends EventEmitter {
       });
 
       const data = await response.json();
-      logger.info('Game pause requested: ' + (data as any).success);
+      logger.debug('Game pause requested: ' + (data as any).success);
       return (data as any).success === true;
     } catch (error: any) {
       logger.error('Failed to pause game:', error);
@@ -297,7 +297,7 @@ export class BridgeManager extends EventEmitter {
       });
 
       const data = await response.json();
-      logger.info('Game resume requested: ' + (data as any).success);
+      logger.debug('Game resume requested: ' + (data as any).success);
       return (data as any).success === true;
     } catch (error: any) {
       logger.error('Failed to resume game:', error);

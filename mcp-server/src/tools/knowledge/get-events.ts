@@ -301,12 +301,7 @@ function eventsMatch(event1: any, event2: any, matchFields: string[]): boolean {
  */
 export function cleanEventData<T>(obj: T, embedID: boolean = true): T {
   // Handle primitives
-  if (obj === -1 || obj === "None" || obj === "" || obj === false) {
-    return undefined as any;
-  }
-  
-  // Handle null/undefined
-  if (obj == null) {
+  if (obj === -1 || obj === "None" || obj === "" || obj === false || obj === null) {
     return undefined as any;
   }
   

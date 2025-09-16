@@ -78,7 +78,7 @@ end
 for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
   local player = Players[playerID]
 
-  if player and player:IsAlive() then
+  if player and player:IsAlive() and player:GetNumCities() > 0 then
     -- Iterate through all cities of this player
     for city in player:Cities() do
       -- Get owner name based on whether it's a major or minor civ

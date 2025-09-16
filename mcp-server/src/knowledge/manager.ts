@@ -97,7 +97,7 @@ export class KnowledgeManager {
   async saveKnowledge(): Promise<void> {
     if (!this.gameIdentity || !this.knowledgeStore) return;
     
-    logger.info(`Saving knowledge for game: ${this.gameIdentity.gameId}`);
+    logger.debug(`Saving knowledge for game: ${this.gameIdentity.gameId}`);
     
     try {
       // Update last save timestamp
@@ -112,7 +112,7 @@ export class KnowledgeManager {
    * Load knowledge for a specific game
    */
   async loadKnowledge(gameId: string): Promise<void> {
-    logger.info(`Loading knowledge for game: ${gameId}`);
+    logger.debug(`Loading knowledge for game: ${gameId}`);
     
     try {
       // Create new KnowledgeStore instance
@@ -209,11 +209,11 @@ export class KnowledgeManager {
     if (this.pausedPlayerIds.has(this.getActivePlayerId())) {
       // Pause the game
       if (await bridgeManager.pauseGame())
-        logger.info(`Game paused for player ${newID}`);
+        logger.info(`Game paused for player ${newID ?? -1}`);
     } else {
       // Resume the game
       if (await bridgeManager.resumeGame())
-        logger.info(`Game resumed for player ${newID}`);
+        logger.info(`Game resumed for player ${newID ?? -1}`);
     }
   }
 

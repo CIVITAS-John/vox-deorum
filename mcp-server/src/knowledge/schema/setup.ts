@@ -50,14 +50,14 @@ export async function setupKnowledgeDatabase(
 
   // Create PlayerSummaries table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'PlayerSummaries')
-    .addColumn('Era', 'text', (col) => col.notNull())
+    .addColumn('Era', 'text')
     .addColumn('MajorAllyID', 'integer', (col) => col.notNull())
     .addColumn('Cities', 'integer', (col) => col.notNull())
     .addColumn('Population', 'integer', (col) => col.notNull())
     .addColumn('Gold', 'integer', (col) => col.notNull())
     .addColumn('GoldPerTurn', 'real', (col) => col.notNull())
-    .addColumn('TourismPerTurn', 'integer', (col) => col.notNull())
-    .addColumn('PolicyBranches', 'text', (col) => col.notNull()) // JSON object
+    .addColumn('TourismPerTurn', 'integer')
+    .addColumn('PolicyBranches', 'text') // JSON object
     .addColumn('Technologies', 'integer', (col) => col.notNull())
     .addColumn('ResourcesAvailable', 'text')
     .addColumn('FoundedReligion', 'text')

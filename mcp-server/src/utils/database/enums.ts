@@ -31,7 +31,7 @@ export type EraType =
  * @param eraType The era type enum value to convert
  * @returns The human-readable era name, defaults to "Ancient" if unknown
  */
-export function getEraName(eraType: string | null | undefined): string {
+export function getEraName(eraType: string | null | undefined): string | undefined {
   if (!eraType) return 'Ancient';
   
   switch (eraType) {
@@ -51,7 +51,5 @@ export function getEraName(eraType: string | null | undefined): string {
       return 'Atomic';
     case 'ERA_FUTURE':
       return 'Information';
-    default:
-      return 'Ancient';
   }
 }

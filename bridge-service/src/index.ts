@@ -52,7 +52,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   
   res.send = function(body) {
     const duration = Date.now() - start;
-    logger.info(`${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
+    if (res.statusCode == 200)
+      logger.debug(`${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
+    else logger.warn(`${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
     return originalSend.call(this, body);
   };
   
