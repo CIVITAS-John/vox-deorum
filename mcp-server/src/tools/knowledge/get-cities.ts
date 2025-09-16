@@ -6,10 +6,10 @@
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { getCityInformations, getCityBasicInfo } from "../../knowledge/getters/city-information.js";
-import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { cleanEventData } from "./get-events.js";
+import { CityInformation } from "../../knowledge/schema/timed.js";
 
 /**
  * Input schema for the GetCities tool
@@ -57,11 +57,6 @@ const CityDataSchema = z.object({
   TradeRouteCount: z.number().optional().describe("Number of trade routes"),
   CurrentProduction: z.string().nullable().optional().describe("What is being produced"),
   ProductionTurnsLeft: z.number().optional().describe("Turns to complete production"),
-
-  // Owner information
-  OwnerCivilization: z.string().describe("Owner's civilization name"),
-  OwnerLeader: z.string().describe("Owner's leader name"),
-  OwnerIsHuman: z.boolean().describe("Whether owner is human player"),
 });
 
 /**
@@ -103,24 +98,7 @@ class GetCitiesTool extends ToolBase {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     const { PlayerID, Owner } = args;
-
-    // Get all city and player information in parallel
-    const [cities, playerInfos] = await Promise.all([
-      getCityInformations(),
-      getPlayerInformations()
-    ]);
-
-    // Build owner info map for quick lookup
-    const ownerInfoMap = new Map(playerInfos.map(p => [p.Key, {
-      Civilization: p.Civilization,
-      Leader: p.Leader,
-      IsHuman: p.IsHuman === 1,
-      TeamID: p.TeamID
-    }]));
-
-    // Get requesting player's team ID
-    const requestingPlayerInfo = ownerInfoMap.get(PlayerID);
-    const requestingTeamID = requestingPlayerInfo?.TeamID;
+    const cities = await getCityInformations();
 
     // Collect cities in an array first for sorting
     const cityList: Array<{ name: string; data: z.infer<typeof CityDataSchema> }> = [];
@@ -131,27 +109,13 @@ class GetCitiesTool extends ToolBase {
         continue;
       }
 
-      // Get owner information by finding the player with matching Owner name
-      let cityOwnerID = -1;
-      for (const [id, info] of ownerInfoMap.entries()) {
-        if (info.Leader === city.Owner || info.Civilization === city.Owner) {
-          cityOwnerID = id;
-          break;
-        }
-      }
-
-      const ownerInfo = ownerInfoMap.get(cityOwnerID);
-      if (!ownerInfo) continue;
-
       // Check visibility level based on ownership and team
-      const isOwner = cityOwnerID === PlayerID;
-      const isTeam = ownerInfo.TeamID === requestingTeamID;
-      const hasFullVisibility = isOwner || isTeam;
+      const visibility = city[`Player${PlayerID}` as keyof CityInformation];
 
       // Build city data object
       let cityData: any;
 
-      if (hasFullVisibility) {
+      if (visibility === 2) {
         // Full visibility - include all fields
         cityData = {
           // Basic information
@@ -188,34 +152,23 @@ class GetCitiesTool extends ToolBase {
           TradeRouteCount: city.TradeRouteCount,
           CurrentProduction: city.CurrentProduction,
           ProductionTurnsLeft: city.ProductionTurnsLeft,
-
-          // Owner information
-          OwnerCivilization: ownerInfo.Civilization,
-          OwnerLeader: ownerInfo.Leader,
-          OwnerIsHuman: ownerInfo.IsHuman
         };
-      } else {
+      } else if (visibility === 1) {
         // Basic visibility only - use getCityBasicInfo
         const basicInfo = getCityBasicInfo(city);
         cityData = {
-          ...basicInfo,
-          // Owner information
-          OwnerCivilization: ownerInfo.Civilization,
-          OwnerLeader: ownerInfo.Leader,
-          OwnerIsHuman: ownerInfo.IsHuman
+          ...basicInfo
         };
-      }
+      } else continue;
 
       // Clean and validate the data
       const validatedData = CityDataSchema.safeParse(cityData).data;
-      if (validatedData) {
-        const cleanedData = cleanEventData(validatedData, false);
-        if (cleanedData) {
-          cityList.push({
-            name: city.Name,
-            data: cleanedData as z.infer<typeof CityDataSchema>
-          });
-        }
+      const cleanedData = cleanEventData(validatedData, false);
+      if (cleanedData) {
+        cityList.push({
+          name: city.Name,
+          data: cleanedData as z.infer<typeof CityDataSchema>
+        });
       }
     }
 

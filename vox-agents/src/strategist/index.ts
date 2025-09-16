@@ -27,6 +27,9 @@ async function shutdown(signal: string) {
   }
   activePlayers.clear();
 
+  // Some time for players to abort
+  await setTimeout(1000);
+
   // Disconnect from MCP server
   try {
     await mcpClient.disconnect();

@@ -89,7 +89,7 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
         Y = city:GetY(),
         Population = city:GetPopulation(),
         MajorityReligion = nil,
-        DefenseStrength = city:GetStrengthValue(),
+        DefenseStrength = city:GetStrengthValue() / 100,
         HitPoints = city:GetMaxHitPoints() - city:GetDamage(),  -- Calculate current HP
         MaxHitPoints = city:GetMaxHitPoints(),
         -- Basic status flags visible at level 1
@@ -100,10 +100,10 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
       }
       
       -- Use Civilization name for major civs, Player name for minor civs
-      if owner:IsMinorCiv() then
-        cityData["Owner"] = player:GetName()
-      else
+      if player:IsMinorCiv() then
         cityData["Owner"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
+      else
+        cityData["Owner"] = player:GetName()
       end
 
       -- Get majority religion

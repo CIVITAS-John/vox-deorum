@@ -6,6 +6,7 @@ import { LuaFunction } from '../../bridge/lua-function.js';
 import { CityInformation, CityInformationBasic } from '../schema/timed.js';
 import { knowledgeManager } from '../../server.js';
 import { createLogger } from '../../utils/logger.js';
+import { Selectable } from 'kysely';
 
 const logger = createLogger('CityInformation');
 
@@ -24,14 +25,14 @@ const luaFunc = LuaFunction.fromFile(
  * Also stores each city as mutable knowledge in the database
  * @returns Array of CityInformation objects for all cities
  */
-export async function getCityInformations(): Promise<CityInformation[]> {
+export async function getCityInformations(): Promise<Selectable<CityInformation>[]> {
   const response = await luaFunc.execute();
   if (!response.success) {
     logger.error('Failed to get city information from Lua', response);
     return [];
   }
 
-  const cities = response.result as CityInformation[];
+  const cities = response.result as Selectable<CityInformation>[];
 
   // Store each city as mutable knowledge
   try {
@@ -59,7 +60,7 @@ export async function getCityInformations(): Promise<CityInformation[]> {
  * @param city Full city information object
  * @returns Basic city information
  */
-export function getCityBasicInfo(city: CityInformation): CityInformationBasic {
+export function getCityBasicInfo(city: CityInformation | Selectable<CityInformation>): CityInformationBasic {
   return {
     Key: city.Key,
     Owner: city.Owner,
