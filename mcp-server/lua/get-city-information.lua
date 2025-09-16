@@ -95,7 +95,13 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
       }
       
       -- Use Civilization names
-      cityData["Owner"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
+      if player:IsMinorCiv() then
+        cityData["Owner"] = "City-States"
+      elseif player:IsBarbarian() then
+        cityData["Owner"] = "Barbarians"
+      else 
+        cityData["Owner"] = player:GetCivilizationShortDescription()
+      end
 
       -- Get majority religion
       local majorityReligion = city:GetReligiousMajority()

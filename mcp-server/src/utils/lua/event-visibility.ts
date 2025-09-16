@@ -34,7 +34,7 @@ export interface EventVisibilityResult {
  */
 export async function analyzeEventVisibility(eventType: string, payload: any): Promise<EventVisibilityResult | undefined> {
   const response = await analyzeVisibilityFunc.execute(eventType, payload);
-  if (!response.success || !Array.isArray(response.result) || response.result.length !== 3) {
+  if (!response.success || !Array.isArray(response.result) || response.result.length !== 2) {
     return undefined;
   }
   return {

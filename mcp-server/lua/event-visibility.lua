@@ -3,6 +3,19 @@ local extraPayloads = {}
 local scannedPlayers = {}
 local maxMajorCivs = ${MaxMajorCivs} - 1
 
+-- Helper function to get player's civilization name
+local function getPlayerCivName(player)
+  if not player then return nil end
+
+  if player:IsMinorCiv() then
+    return "City-States"
+  elseif player:IsBarbarian() then
+    return "Barbarians"
+  else
+    return player:GetCivilizationShortDescription()
+  end
+end
+
 -- Whitelist of player events that should be propagated to met players with reduced visibility
 local playerEventsToMetPlayers = {"CircumnavigatedGlobe", "CapitalChanged", 
   "NuclearDetonation", "PantheonFounded", "IdeologyAdopted", "IdeologySwitched", "PlayerAnarchy", "PlayerGoldenAge", "PlayerLiberated",
@@ -95,7 +108,7 @@ local function addPlayer(playerID, value, key)
   if key ~= nil then
     local metadata = {}
     metadata["Name"] = player:GetName()
-    metadata["Civilization"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
+    metadata["Civilization"] = getPlayerCivName(player)
     addPayload(key, metadata)
     table.insert(scannedPlayers, player)
   end
@@ -141,12 +154,7 @@ local function addPlotVisibility(plotX, plotY, value, key)
     -- Try to get its owner
     local owner = Players[plot:GetOwner()]
     if owner ~= nil then
-      -- Use Civilization name for major civs, Player name for minor civs
-      if owner:IsMinorCiv() then
-        metadata["Owner"] = owner:GetName()
-      else
-        metadata["Owner"] = Locale.ConvertTextKey(GameInfo.Civilizations[owner:GetCivilizationType()].ShortDescription)
-      end
+      metadata["Owner"] = getPlayerCivName(owner)
       -- City
       local city = owner:GetCityByID(plot:GetPlotCity())
       if city ~= nil then
