@@ -51,6 +51,9 @@ export class LuaManager {
       args: request.args
     };
     const result = await dllConnector.send<T>(message);
+    if (!result.success) {
+      logger.warn(`Calling Lua function failed: ${result.error?.message ?? "unknown"}`);
+    }
     return result;
   }
 

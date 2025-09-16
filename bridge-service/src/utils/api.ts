@@ -7,11 +7,7 @@ import { APIResponse, ErrorCode, respondError } from '../types/api.js';
 export async function handleAPIError(res: Response, url: string, action: () => Promise<APIResponse | any>): Promise<void> {
   try {
     const result = await action();
-    if (result.success === false) {
-      res.status(500).json(result);
-    } else {
-      res.status(200).json(result);
-    }
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json(
       respondError(ErrorCode.INTERNAL_ERROR, 
