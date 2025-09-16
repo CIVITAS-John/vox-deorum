@@ -72,7 +72,7 @@ local function addMetPlayer(playerID, value)
   local teamID = player:GetTeam()
   for otherID = 0, maxMajorCivs do
     local otherPlayer = Players[otherID]
-    if otherPlayer and otherPlayer.IsAlive() then
+    if otherPlayer and otherPlayer:IsAlive() then
       local otherTeam = Teams[otherPlayer:GetTeam()]
       if otherTeam and otherTeam:IsHasMet(teamID) then
         setVisible(otherID, value)
