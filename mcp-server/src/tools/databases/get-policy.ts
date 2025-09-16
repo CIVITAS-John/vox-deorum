@@ -10,7 +10,7 @@ const PolicySummarySchema = z.object({
   Type: z.string(),
   Name: z.string(),
   Help: z.string(),
-  Era: z.string().nullable(),
+  Era: z.string().optional(),
   Branch: z.string().nullable()
 });
 
@@ -77,7 +77,7 @@ class GetPolicyTool extends DatabaseQueryTool<PolicySummary, PolicyReport> {
       ])
       .execute();
     Summaries.forEach(p => {
-      p.Era = getEraName(p.Era ?? p.Era2 ?? "ERA_ANCIENT"),
+      p.Era = getEraName(p.Era ?? p.Era2) ?? null,
       p.Branch = p.Branch ?? p.Branch2;
       p.Help = p.Help2 ?? p.Help;
       delete (p as any).Era2;

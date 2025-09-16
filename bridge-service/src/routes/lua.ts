@@ -36,7 +36,6 @@ router.post('/call', async (req: Request, res: Response) => {
       request.args = {};
     }
 
-    logger.info(`Lua function call: ${request.function}`);
     const result = await luaManager.callFunction(request);
     
     return result;

@@ -44,7 +44,7 @@ export class LuaManager {
    * Call a Lua function
    */
   public async callFunction<T>(request: LuaCallRequest): Promise<LuaResponse<T>> {
-    logger.info(`Calling Lua function: ${request.function}`);
+    logger.debug(`Calling Lua function: ${request.function}`);
     const message: LuaCallMessage = {
       type: 'lua_call',
       function: request.function,

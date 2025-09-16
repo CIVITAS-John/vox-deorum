@@ -297,7 +297,7 @@ export class KnowledgeStore {
       Object.assign(payload, visibilityResult.extraPayload);
       // Explain the enums for LLM readability
       await gameDatabase.localizeObject(explainEnums(payload));
-      logger.info(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
+      logger.debug(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
     } else {
       logger.warn(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
     }

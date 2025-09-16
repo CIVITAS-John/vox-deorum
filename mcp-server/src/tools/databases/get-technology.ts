@@ -11,7 +11,7 @@ const TechnologySummarySchema = z.object({
   Name: z.string(),
   Help: z.string(),
   Cost: z.number(),
-  Era: z.string().nullable()
+  Era: z.string().optional()
 });
 
 /**
@@ -64,7 +64,7 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
       .select(['t.Type', 't.Description as Name', 't.Help', 't.Cost', 'e.Type as Era'])
       .execute() as TechnologySummary[];
     summaries.forEach(p => {
-      p.Era = p.Era ? getEraName(p.Era) : null;
+      p.Era = getEraName(p.Era);
     });
     return summaries;
   }
@@ -143,7 +143,7 @@ export async function getTechnology(techType: string) {
     Name: tech.Description!,
     Help: tech.Help!,
     Cost: tech.Cost!,
-    Era: getEraName(tech?.EraType) || null,
+    Era: getEraName(tech?.EraType),
     PrereqTechs: prereqTechs.map(p => p.Description!),
     UnitsUnlocked: unitsUnlocked.map(u => u.Description!),
     BuildingsUnlocked: buildingsUnlocked.filter(b => b.MaxGlobalInstances == 0 && b.MaxPlayerInstances == 0).map(b => b.Description!),
