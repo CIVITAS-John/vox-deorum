@@ -67,8 +67,8 @@ export async function readAndStorePlayerStrategy(playerId: number): Promise<{
       playerId,
       {
         GrandStrategy: strategies.GrandStrategy,
-        EconomicStrategies: strategies.EconomicStrategies,
-        MilitaryStrategies: strategies.MilitaryStrategies,
+        EconomicStrategies: strategies.EconomicStrategies.sort(),
+        MilitaryStrategies: strategies.MilitaryStrategies.sort(),
         Rationale: "In-Game AI"
       },
       undefined,

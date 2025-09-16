@@ -131,8 +131,8 @@ class SetStrategyTool extends LuaFunctionTool {
         args.PlayerID,
         {
           GrandStrategy: grandStrategy === -1 ? strategies.GrandStrategy : grandStrategy,
-          EconomicStrategies: economicStrategies ?? strategies.economicStrategies,
-          MilitaryStrategies: militaryStrategies ?? strategies.militaryStrategies,
+          EconomicStrategies: (economicStrategies ?? strategies.economicStrategies).sort(),
+          MilitaryStrategies: (militaryStrategies ?? strategies.militaryStrategies).sort(),
           Rationale: args.Rationale
         },
         undefined,
