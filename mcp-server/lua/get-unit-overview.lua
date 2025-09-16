@@ -1,5 +1,5 @@
 -- Get an overview of all visible units for a given player
--- Groups units by civilization owner and AI type
+-- Groups units by civilization owner, AI type, and unit type
 local pPlayer = Players[playerID]
 if not pPlayer or not pPlayer:IsAlive() then
     return nil, "Player " .. tostring(playerID) .. " is not valid or not alive"
@@ -24,7 +24,7 @@ for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
                 -- Get civilization name lazily (only when we find a visible unit)
                 if not civName then
                     if pLoopPlayer:IsMinorCiv() then
-                        civName = "City-States"
+                        civName = "City-State " .. pLoopPlayer:GetName()
                     elseif pLoopPlayer:IsBarbarian() then
                         civName = "Barbarians"
                     else
@@ -32,9 +32,17 @@ for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
                     end
                 end
 
-                -- Count this unit
+                -- Get unit details
                 local aiType = pUnit:GetUnitAIType()
-                unitsForThisCiv[aiType] = (unitsForThisCiv[aiType] or 0) + 1
+                local unitType = pUnit:GetUnitType()
+
+                -- Initialize nested structure if needed
+                if not unitsForThisCiv[aiType] then
+                    unitsForThisCiv[aiType] = {}
+                end
+
+                -- Count by unit type within AI type
+                unitsForThisCiv[aiType][unitType] = (unitsForThisCiv[aiType][unitType] or 0) + 1
             end
         end
 

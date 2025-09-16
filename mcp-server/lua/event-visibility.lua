@@ -8,7 +8,7 @@ local function getPlayerCivName(player)
   if not player then return nil end
 
   if player:IsMinorCiv() then
-    return "City-States"
+    return "City-State " .. player:GetName()
   elseif player:IsBarbarian() then
     return "Barbarians"
   else

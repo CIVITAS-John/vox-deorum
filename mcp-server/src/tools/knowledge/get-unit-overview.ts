@@ -7,7 +7,8 @@ import { enumMappings } from "../../utils/knowledge/enum.js";
  */
 const UnitOverviewResultSchema = z.record(
   z.string(), // Civilization name
-  z.record(z.string(), z.number()) // AI type -> count
+  z.record(z.string(), // AI type
+    z.record(z.string(), z.number())) // Unit name
 );
 
 /**
@@ -57,23 +58,34 @@ class GetUnitOverviewTool extends LuaFunctionTool {
       throw new Error(`Failed to get unit overview: ${result.Error?.Message || 'Unknown error'}`);
     }
 
-    // Convert numeric AI type enums to their string representations
+    // Convert numeric AI type enums and unit type keys to their string representations
     if (result.Result) {
       for (const civName in result.Result) {
         const unitsByAIType = result.Result[civName];
-        const convertedUnits: Record<string, number> = {};
+        const convertedAITypes: Record<string, Record<string, number>> = {};
 
-        for (const [aiTypeNum, count] of Object.entries(unitsByAIType)) {
-          // Convert the AI type enum to string using explainEnums
+        for (const [aiTypeNum, units] of Object.entries(unitsByAIType)) {
+          // Convert the AI type enum to string
           const aiType = enumMappings["AIType"][Number(aiTypeNum)] ?? `Unknown_${aiTypeNum}`;
-          convertedUnits[aiType] = count as number;
+
+          // Convert unit type keys to their string representations
+          const convertedUnitTypes: Record<string, number> = {};
+          for (const [unitTypeNum, count] of Object.entries(units as Record<string, number>)) {
+            const unitType = enumMappings["UnitType"][Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
+            convertedUnitTypes[unitType] = count;
+          }
+
+          convertedAITypes[aiType] = convertedUnitTypes;
         }
 
-        result.Result[civName] = convertedUnits;
+        result.Result[civName] = convertedAITypes;
       }
     }
 
-    return result.Result;
+    return {
+      Success: true,
+      Result: result.Result
+    }
   }
 }
 
