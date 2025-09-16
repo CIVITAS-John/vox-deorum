@@ -8,6 +8,7 @@ import createGetUnitTool from "./databases/get-unit.js";
 import createGetEventsTool from "./knowledge/get-events.js";
 import createGetPlayersTool from "./knowledge/get-players.js";
 import createGetOpinionsTool from "./knowledge/get-opinions.js";
+import createGetCitiesTool from "./knowledge/get-cities.js";
 import createGetMetadataTool from "./knowledge/get-metadata.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
 import createPauseGameTool from "./actions/pause-game.js";
@@ -25,6 +26,7 @@ const toolFactories = {
     getEvents: createGetEventsTool,
     getPlayers: createGetPlayersTool,
     getOpinions: createGetOpinionsTool,
+    getCities: createGetCitiesTool,
     getMetadata: createGetMetadataTool,
     setStrategy: createSetStrategyTool,
     pauseGame: createPauseGameTool,

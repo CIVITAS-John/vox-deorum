@@ -120,7 +120,7 @@ export async function setupKnowledgeDatabase(
   // Create CityInformations table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'CityInformations')
     // Basic fields (visibility level 1)
-    .addColumn('OwnerID', 'integer', (col) => col.notNull())
+    .addColumn('Owner', 'text', (col) => col.notNull())
     .addColumn('Name', 'text', (col) => col.notNull())
     .addColumn('X', 'integer', (col) => col.notNull())
     .addColumn('Y', 'integer', (col) => col.notNull())

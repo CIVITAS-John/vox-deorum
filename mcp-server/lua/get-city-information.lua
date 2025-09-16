@@ -81,9 +81,9 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
   if player and player:IsAlive() then
     -- Iterate through all cities of this player
     for city in player:Cities() do
+      -- Get owner name based on whether it's a major or minor civ
       local cityData = {
         Key = city:GetID(),  -- Use city ID as the key for MutableKnowledge
-        OwnerID = playerID,
         Name = city:GetName(),
         X = city:GetX(),
         Y = city:GetY(),
@@ -98,6 +98,13 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
         IsRazing = city:IsRazing() and 1 or 0,
         IsCoastal = city:IsCoastal(10) and 1 or 0  -- Near a water body of 10+ tiles
       }
+      
+      -- Use Civilization name for major civs, Player name for minor civs
+      if owner:IsMinorCiv() then
+        cityData["Owner"] = player:GetName()
+      else
+        cityData["Owner"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
+      end
 
       -- Get majority religion
       local majorityReligion = city:GetReligiousMajority()

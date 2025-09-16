@@ -62,7 +62,7 @@ export async function getCityInformations(): Promise<CityInformation[]> {
 export function getCityBasicInfo(city: CityInformation): CityInformationBasic {
   return {
     Key: city.Key,
-    OwnerID: city.OwnerID,
+    Owner: city.Owner,
     Name: city.Name,
     X: city.X,
     Y: city.Y,

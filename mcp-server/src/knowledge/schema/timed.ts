@@ -89,7 +89,7 @@ export interface PlayerDiplomacy extends MutableKnowledge {
  */
 export interface CityInformationBasic {
   Key: number; // City ID (unique identifier)
-  OwnerID: number; // Owner player ID
+  Owner: string; // Owner name (leader for major civs, civ name for minor civs)
   Name: string; // Localized city name
   X: number; // X coordinate
   Y: number; // Y coordinate
