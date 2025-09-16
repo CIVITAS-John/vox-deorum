@@ -51,5 +51,7 @@ export function getEraName(eraType: string | null | undefined): string | undefin
       return 'Atomic';
     case 'ERA_FUTURE':
       return 'Information';
+    default: 
+      return undefined;
   }
 }
