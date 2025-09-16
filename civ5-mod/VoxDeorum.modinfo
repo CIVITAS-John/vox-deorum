@@ -26,7 +26,6 @@
   <Blocks />
   <Files>
     <File import="0">SQL/VoxDeorum_Options.sql</File>
-    <File import="1">Lua/LoadGame.lua</File>
   </Files>
   <Actions>
     <OnModActivated>

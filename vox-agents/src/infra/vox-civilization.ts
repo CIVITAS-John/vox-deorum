@@ -2,23 +2,114 @@
  * Manages Civilization V game process lifecycle
  */
 
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, exec } from 'child_process';
 import { join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { promisify } from 'util';
+import { setTimeout } from 'node:timers/promises'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
+const execAsync = promisify(exec);
 type ExitCallback = (code: number | null) => void;
 
 /**
  * Controls Civilization V game instance
  */
 export class VoxCivilization {
-  private gameProcess: ChildProcess | null = null;
   private exitCallbacks: Set<ExitCallback> = new Set();
   private monitoring = false;
+  private externalProcessPid: number | null = null;
+  private pollInterval: NodeJS.Timeout | null = null;
+
+  /**
+   * Finds and binds to an existing CivilizationV.exe process
+   */
+  private async bindToExistingProcess(): Promise<boolean> {
+    const pid = await this.findCivilizationProcess();
+    if (pid) {
+      console.log(`Found existing CivilizationV.exe process (PID: ${pid})`);
+      this.externalProcessPid = pid;
+      this.monitoring = true;
+      this.startProcessMonitoring();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Finds CivilizationV.exe process using Windows tasklist
+   * @returns Process ID if found, null otherwise
+   */
+  private async findCivilizationProcess(): Promise<number | null> {
+    try {
+      const { stdout } = await execAsync('tasklist /FI "IMAGENAME eq CivilizationV.exe" /FO CSV');
+      const lines = stdout.trim().split('\n');
+
+      // Skip header line, look for process
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split(',');
+        if (parts[0]?.includes('CivilizationV.exe')) {
+          const pid = parseInt(parts[1].replace(/"/g, ''), 10);
+          if (!isNaN(pid)) {
+            return pid;
+          }
+        }
+      }
+    } catch (error) {
+      // Command failed, no process found
+    }
+    return null;
+  }
+
+  /**
+   * Starts polling to monitor an external process
+   */
+  private startProcessMonitoring(): void {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+    }
+
+    // Poll every 5 seconds to check if process still exists
+    this.pollInterval = setInterval(async () => {
+      if (this.externalProcessPid) {
+        const stillRunning = await this.isProcessRunning(this.externalProcessPid);
+        if (!stillRunning) {
+          console.log(`Process ${this.externalProcessPid} is no longer running`);
+          this.handleGameExit(0);
+          this.stopProcessMonitoring();
+        }
+      }
+    }, 5000);
+  }
+
+  /**
+   * Stops the process monitoring poll
+   */
+  private stopProcessMonitoring(): void {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+  }
+
+  /**
+   * Checks if a process with given PID is running
+   */
+  private async isProcessRunning(pid: number): Promise<boolean> {
+    try {
+      const { stdout } = await execAsync(`tasklist /FI "PID eq ${pid}" /FO CSV`);
+      const lines = stdout.trim().split('\n');
+      // Check if we have more than just the header line and the PID is present
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].includes(`"${pid}"`)) {
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error(`Error checking if process ${pid} is running:`, error);
+      return false;
+    }
+  }
 
   /**
    * Starts a Civilization V game with the specified Lua script
@@ -27,34 +118,45 @@ export class VoxCivilization {
    */
   async startGame(luaName: string = 'LoadMods.lua'): Promise<boolean> {
     // Check if game is already running
-    if (this.isGameRunning()) {
+    if (await this.bindToExistingProcess() || this.isGameRunning()) {
       console.log('Game instance already exists, monitoring it...');
-      return false;
+      return true;
     }
 
-    const scriptPath = join(__dirname, '..', '..', 'scripts', 'launch-civ5.cmd');
+    const scriptPath = join('scripts', 'launch-civ5.cmd');
 
     try {
-      this.gameProcess = spawn('cmd', ['/c', scriptPath, luaName], {
-        detached: false,
-        stdio: 'inherit',
-        shell: false
+      console.log(`Launching Civilization V with script: ${luaName}`);
+
+      // Launch the cmd script and wait for it to complete
+      await new Promise<void>((resolve, reject) => {
+        const cmdProcess = spawn('cmd', ['/c', scriptPath, luaName], {
+          detached: false,
+          stdio: 'inherit',
+          shell: false
+        });
+
+        cmdProcess.on('exit', (code) => {
+          if (code === 0) {
+            console.log('Launch script completed successfully');
+            resolve();
+          } else {
+            reject(new Error(`Launch script exited with code ${code}`));
+          }
+        });
+
+        cmdProcess.on('error', (err) => {
+          reject(err);
+        });
       });
 
-      this.monitoring = true;
+      // Wait an additional 5s after the cmd finishes
+      // Note that Civ5 would start a process, end it, and then start another one
+      console.log('Waiting 5 seconds for game to fully initialize...');
+      await setTimeout(5000);
 
-      // Monitor process exit
-      this.gameProcess.on('exit', (code) => {
-        this.handleGameExit(code);
-      });
-
-      this.gameProcess.on('error', (err) => {
-        console.error('Failed to start game:', err);
-        this.handleGameExit(null);
-      });
-
-      console.log(`Started Civilization V with script: ${luaName}`);
-      return true;
+      // Find and bind to the actual CivilizationV.exe process
+      return await this.bindToExistingProcess();
     } catch (error) {
       console.error('Failed to launch game:', error);
       return false;
@@ -82,7 +184,7 @@ export class VoxCivilization {
    * @returns true if game process exists and hasn't exited
    */
   isGameRunning(): boolean {
-    return this.gameProcess !== null && !this.gameProcess.killed && this.monitoring;
+    return this.monitoring && this.externalProcessPid !== null;
   }
 
   /**
@@ -90,13 +192,14 @@ export class VoxCivilization {
    * @returns Process ID or null if not running
    */
   getProcessId(): number | null {
-    return this.gameProcess?.pid ?? null;
+    return this.externalProcessPid;
   }
 
   private handleGameExit(code: number | null): void {
     console.log(`Game exited with code: ${code}`);
     this.monitoring = false;
-    this.gameProcess = null;
+    this.externalProcessPid = null;
+    this.stopProcessMonitoring();
 
     // Notify all registered callbacks
     this.exitCallbacks.forEach(callback => {
@@ -106,6 +209,39 @@ export class VoxCivilization {
         console.error('Error in exit callback:', error);
       }
     });
+  }
+
+  /**
+   * Forcefully kill the game process
+   */
+  async killGame(): Promise<boolean> {
+    if (!this.externalProcessPid) {
+      console.log('No game process to kill');
+      return false;
+    }
+
+    try {
+      console.log(`Killing game process with PID: ${this.externalProcessPid}`);
+      await execAsync(`taskkill /F /PID ${this.externalProcessPid}`);
+
+      // Wait a bit for the process to terminate
+      await setTimeout(5000);
+
+      // Update internal state
+      this.handleGameExit(-1);
+      return true;
+    } catch (error) {
+      console.error('Failed to kill game process:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Cleanup resources
+   */
+  destroy(): void {
+    this.stopProcessMonitoring();
+    this.exitCallbacks.clear();
   }
 }
 
