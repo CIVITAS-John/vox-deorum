@@ -143,7 +143,7 @@ class GetPlayersTool extends ToolBase {
           playerData.MyEvaluations = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
         } else {
           playerData.OpinionFromMe = (playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
-          playerData.OpinionToMe = (playerOpinions[`OpinionForm${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
+          playerData.OpinionToMe = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
         }
       }
 

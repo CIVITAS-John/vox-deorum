@@ -48,10 +48,10 @@ for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
                 if isMilitaryUnit then
                     -- Military units: store with Strength, RangedStrength, and Count
                     if combatStrength == 0 then
-                        combatStrength = -1
+                        combatStrength = nil
                     end
                     if rangedStrength == 0 then
-                        rangedStrength = -1
+                        rangedStrength = nil
                     end
                     if not unitsForThisCiv[aiType][unitType] then
                         unitsForThisCiv[aiType][unitType] = {
