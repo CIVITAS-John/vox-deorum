@@ -1,40 +1,34 @@
 import { langfuseSpanProcessor } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
-import { mcpClient } from "../utils/models/mcp-client.js";
-import { VoxPlayer } from "./vox-player.js";
+import { StrategistSession, StrategistSessionConfig } from "./strategist-session.js";
 import { setTimeout } from 'node:timers/promises';
 
 const logger = createLogger('Strategists');
 
-// Players to monitor - can be configured
-const llmPlayers = [0];
-// Auto-play?
-const autoPlay = true;
-// Strategist to use
-const strategist = "simple-strategist"
-// const strategist = "none"
+// Configuration
+const config: StrategistSessionConfig = {
+  llmPlayers: [0],
+  autoPlay: true,
+  strategist: "simple-strategist"
+  // strategist: "none"
+};
 
-// Active player instances
-const activePlayers = new Map<number, VoxPlayer>();
+// Session instance
+let session: StrategistSession | null = null;
 
 // Graceful shutdown handler
-var shuttingdown = false;
+let shuttingdown = false;
 async function shutdown(signal: string) {
   if (shuttingdown) return;
   shuttingdown = true;
   logger.info(`Received ${signal}, shutting down gracefully...`);
 
-  // Abort all active players
-  for (const [playerID, player] of activePlayers.entries()) {
-    player.abort();
+  // Shutdown the session if it exists
+  if (session) {
+    await session.shutdown();
   }
-  activePlayers.clear();
 
-  // Some time for players to abort
-  await setTimeout(1000);
-
-  // Disconnect from MCP server
-  await mcpClient.disconnect();
+  // Flush telemetry
   await langfuseSpanProcessor.forceFlush();
   await setTimeout(1000);
 
@@ -56,57 +50,19 @@ process.on('unhandledRejection', (reason, promise) => {
   shutdown('unhandledRejection');
 });
 
-// Connect to the server
-await mcpClient.connect();
-
-// Register callback
-mcpClient.onElicitInput(async (params) => {
-  switch (params.message) {
-    case "PlayerDoneTurn":
-      const player = activePlayers.get(params.playerID);
-      if (player) {
-        player.notifyTurn(params.turn, params.latestID);
-      }
-      break;
-    case "GameSwitched":
-      logger.warn(`Game context switching to ${params.gameID}`);
-
-      // Abort all existing players
-      for (const player of activePlayers.values()) {
-        player.abort();
-      }
-      activePlayers.clear();
-
-      // Create new players for this game
-      for (const playerID of llmPlayers) {
-        const player = new VoxPlayer(playerID, strategist, params.gameID, params.turn);
-        activePlayers.set(playerID, player);
-        player.execute();
-      }
-
-      // Autoplay
-      if (autoPlay && params.turn === 0) {
-        await setTimeout(1000);
-        await mcpClient.callTool("lua-executor", { Script: `
-Events.LoadScreenClose();
-Game.SetPausePlayer(-1);
-Game.SetAIAutoPlay(1, -1);` });
-        await setTimeout(5000);
-        await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
-      }
-      break;
-    case "PlayerVictory":
-      logger.info(`Player ${params.playerID} has won the game on turn ${params.turn}!`);
-      // Abort all existing players
-      for (const player of activePlayers.values()) {
-        player.abort();
-      }
-      activePlayers.clear();
-      // Stop autoplay
-      await mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` });
-      break;
-    default:
-      logger.info(`Received elicitInput notification: ${params.message}`, params);
-      break;
+// Start the session
+async function main() {
+  try {
+    session = new StrategistSession(config);
+    await session.start();
+    logger.info('Session completed successfully');
+  } catch (error) {
+    logger.error('Session failed:', error);
+    process.exit(1);
+  } finally {
+    await shutdown('main-complete');
   }
-});
+}
+
+// Run the main function
+main();
