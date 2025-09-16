@@ -2,7 +2,9 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { enumMappings } from "../../utils/knowledge/enum.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { createLogger } from "../../utils/logger.js";
 
+const logger = createLogger("summarize-units");
 /**
  * Schema for military unit info
  */
@@ -84,6 +86,9 @@ class SummarizeUnitsTool extends LuaFunctionTool {
 
     // Convert numeric AI type enums and unit type keys to their string representations
     if (result.Result) {
+      const unitTypes = enumMappings["UnitType"];
+      if (!unitTypes) logger.warn("UnitType does not exist!");
+
       for (const civName in result.Result) {
         const unitsByAIType = result.Result[civName];
         const convertedAITypes: Record<string, Record<string, number | z.infer<typeof MilitaryUnitSchema>>> = {};
@@ -95,7 +100,7 @@ class SummarizeUnitsTool extends LuaFunctionTool {
           // Convert unit type keys to their string representations
           const convertedUnitTypes: Record<string, number | z.infer<typeof MilitaryUnitSchema>> = {};
           for (const [unitTypeNum, unitData] of Object.entries(units as Record<string, number | z.infer<typeof MilitaryUnitSchema>>)) {
-            const unitType = enumMappings["UnitType"][Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
+            const unitType = unitTypes[Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
             convertedUnitTypes[unitType] = unitData;
           }
 
