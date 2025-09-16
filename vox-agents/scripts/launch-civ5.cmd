@@ -57,6 +57,12 @@ if not exist "%CIV5_PATH%\Assets\Automation" (
     mkdir "%CIV5_PATH%\Assets\Automation"
 )
 
+:: Create UI/FrontEnd directory if it doesn't exist
+if not exist "%CIV5_PATH%\Assets\UI\FrontEnd" (
+    echo Creating UI/FrontEnd directory...
+    mkdir "%CIV5_PATH%\Assets\UI\FrontEnd"
+)
+
 :: Copy Lua script to game directory
 echo Copying %LUA_SCRIPT% to game directory...
 copy /Y "%~dp0%LUA_SCRIPT%" "%CIV5_PATH%\Assets\Automation\%LUA_SCRIPT%" >nul
@@ -65,6 +71,24 @@ if %errorlevel% neq 0 (
     echo Make sure %LUA_SCRIPT% exists in: %~dp0
     pause
     exit /b 1
+)
+
+:: Copy FrontEnd.lua if it exists
+if exist "%~dp0FrontEnd.lua" (
+    echo Copying FrontEnd.lua to UI/FrontEnd directory...
+    copy /Y "%~dp0FrontEnd.lua" "%CIV5_PATH%\Assets\UI\FrontEnd\FrontEnd.lua" >nul
+    if %errorlevel% neq 0 (
+        echo WARNING: Failed to copy FrontEnd.lua
+    )
+)
+
+:: Copy MainMenu.lua if it exists
+if exist "%~dp0MainMenu.lua" (
+    echo Copying MainMenu.lua to UI/FrontEnd directory...
+    copy /Y "%~dp0MainMenu.lua" "%CIV5_PATH%\Assets\UI\FrontEnd\MainMenu.lua" >nul
+    if %errorlevel% neq 0 (
+        echo WARNING: Failed to copy MainMenu.lua
+    )
 )
 
 echo Launching Civilization V with automation script: %LUA_SCRIPT%
