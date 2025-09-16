@@ -1,6 +1,5 @@
 local visibilityFlags = {}
 local extraPayloads = {}
-local scannedPlayers = {}
 local maxMajorCivs = ${MaxMajorCivs} - 1
 
 -- Helper function to get player's civilization name
@@ -110,7 +109,6 @@ local function addPlayer(playerID, value, key)
     metadata["Name"] = player:GetName()
     metadata["Civilization"] = getPlayerCivName(player)
     addPayload(key, metadata)
-    table.insert(scannedPlayers, player)
   end
 end
 
@@ -175,7 +173,6 @@ local function addPlotVisibility(plotX, plotY, value, key)
     metadata["ImprovementType"] = plot:GetImprovementType()
 
     addPayload(key, metadata)
-    table.insert(scannedPlayers, owner)
   end
 end
 
@@ -184,12 +181,15 @@ local function addUnit(unitID, value, key)
   -- Check if the unit exists
   if unitID < 0 then return end
 
-  -- Find the unit's owner
+  -- Find the unit's owner by checking all players
   local unit = nil
-  for _, player in pairs(scannedPlayers) do
-    unit = player:GetUnitByID(unitID)
-    if unit ~= nil then
-      break
+  for playerID = 0, GameDefines.MAX_PLAYERS - 1 do
+    local player = Players[playerID]
+    if player and player:IsAlive() then
+      unit = player:GetUnitByID(unitID)
+      if unit ~= nil then
+        break
+      end
     end
   end
   if unit == nil then return end
@@ -217,16 +217,20 @@ local function addCity(cityID, value, key)
   -- Check if the city exists
   if cityID < 0 then return end
 
-  -- Find the city's owner
+  -- Find the city's owner by checking all players
   local city = nil
-  for _, player in pairs(scannedPlayers) do
-    city = player:GetCityByID(cityID)
-    if city ~= nil then
-      break
+  for playerID = 0, GameDefines.MAX_PLAYERS - 1 do
+    local player = Players[playerID]
+    if player and player:IsAlive() then
+      city = player:GetCityByID(cityID)
+      if city ~= nil then
+        break
+      end
     end
   end
   
   -- Check if city is visible to other players based on plot visibility
+  if city == nil then return end
   local plotX = city:GetX()
   local plotY = city:GetY()
   addPlotVisibility(plotX, plotY, value)

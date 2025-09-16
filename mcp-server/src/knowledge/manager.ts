@@ -33,9 +33,11 @@ export class KnowledgeManager {
     bridgeManager.on('gameEvent', async (data) => {
       logger.debug(`Game event received: ${data.id} of ${data.type}`, data);
       if (data.type == "dll_status") {
-        if (data.payload.connected && !await this.checkGameContext())
+        if (data.payload.connected) {
+          await this.checkGameContext();
           MCPServer.getInstance().sendNotification("DLLConnected", -1, this.getTurn(), 
               parseInt(await this.getStore().getMetadata("lastID") ?? "-1"), { gameID: this.gameIdentity?.gameId });
+        }
       } else if (this.knowledgeStore) {
         await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload?.args);
       }
