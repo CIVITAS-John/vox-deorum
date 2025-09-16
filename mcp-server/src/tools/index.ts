@@ -10,10 +10,10 @@ import createGetPlayersTool from "./knowledge/get-players.js";
 import createGetOpinionsTool from "./knowledge/get-opinions.js";
 import createGetCitiesTool from "./knowledge/get-cities.js";
 import createGetMetadataTool from "./knowledge/get-metadata.js";
-import createGetUnitOverviewTool from "./knowledge/get-unit-overview.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
 import createPauseGameTool from "./actions/pause-game.js";
 import createResumeGameTool from "./actions/resume-game.js";
+import createSummarizeUnitsTool from "./knowledge/summarize-units.js";
 
 // Tool factory configuration - one line per tool
 const toolFactories = {
@@ -29,7 +29,7 @@ const toolFactories = {
     getOpinions: createGetOpinionsTool,
     getCities: createGetCitiesTool,
     getMetadata: createGetMetadataTool,
-    getUnitOverview: createGetUnitOverviewTool,
+    summarizeUnits: createSummarizeUnitsTool,
     setStrategy: createSetStrategyTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,

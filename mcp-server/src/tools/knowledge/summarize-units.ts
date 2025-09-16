@@ -27,11 +27,11 @@ const UnitOverviewResultSchema = z.record(
  * Military units include Strength, RangedStrength, and Count
  * Non-military units have simple counts
  */
-class GetUnitOverviewTool extends LuaFunctionTool {
+class SummarizeUnitsTool extends LuaFunctionTool {
   /**
-   * Unique identifier for the get unit overview tool
+   * Unique identifier for the summarize units tool
    */
-  readonly name = "get-unit-overview";
+  readonly name = "summarize-units";
 
   /**
    * Human-readable description of the tool
@@ -58,7 +58,7 @@ class GetUnitOverviewTool extends LuaFunctionTool {
   /**
    * Path to the Lua script file
    */
-  protected readonly scriptFile = "get-unit-overview.lua";
+  protected readonly scriptFile = "summarize-units.lua";
 
   /**
    * Optional annotations for the tool
@@ -114,8 +114,8 @@ class GetUnitOverviewTool extends LuaFunctionTool {
 }
 
 /**
- * Creates a new instance of the get unit overview tool
+ * Creates a new instance of the summarize units tool.
  */
-export default function createGetUnitOverviewTool() {
-  return new GetUnitOverviewTool();
+export default function createSummarizeUnitsTool() {
+  return new SummarizeUnitsTool();
 }
