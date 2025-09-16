@@ -115,9 +115,6 @@ export class StrategistSession {
   private async handleGameSwitched(params: any): Promise<void> {
     logger.warn(`Game context switching to ${params.gameID}`);
 
-    // Reset crash recovery attempts on successful game load
-    this.lastGameState = 'running';
-
     // Abort all existing players
     for (const player of this.activePlayers.values()) {
       player.abort();
@@ -147,11 +144,15 @@ Game.SetAIAutoPlay(1, -1);`
 
   private async handleDLLConnected(params: any): Promise<void> {
     const recovering = this.lastGameState === 'crashed';
+
     if (recovering) {
       logger.info('Game successfully recovered from crash');
+      this.lastGameState = 'running';
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose();` });
-      await setTimeout(5000);
-      await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
+      if (this.config.autoPlay) {
+        await setTimeout(5000);
+        await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
+      }
     }
   }
 

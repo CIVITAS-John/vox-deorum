@@ -195,9 +195,9 @@ export class MCPServer {
    */
   public sendNotification(event: string, playerID: number, turn: number, latestID: number, param: Record<string, any> = {}) {
     if (this.eventsForNotification.indexOf(event) !== -1 && playerID < MaxMajorCivs) {
-      logger.info(`Sending server-side notification to MCP clients about the ${event} (Player ${playerID}) at turn ${turn}.`)
+      logger.info(`Sending server-side notification to MCP clients about ${event} (Player ${playerID}) at turn ${turn}.`)
       // Send notification to all connected servers
-      this.servers.forEach((server, _id) => {
+      this.servers.forEach((server, id) => {
         const rawServer = (server as any).server;
         rawServer.elicitInput(
           {
@@ -212,7 +212,7 @@ export class MCPServer {
             },
           }
         ).catch((_r: any) => {
-          // logger.warn(`Failed to send notification to server ${id}`, _r);
+          logger.warn(`Failed to send notification to server ${id}`, _r);
         }).then((_r: any) => {
           // logger.info(`Server ${id} acknowledged notification about the ${event} (Player ${playerID}) at turn ${turn}.`)
         });

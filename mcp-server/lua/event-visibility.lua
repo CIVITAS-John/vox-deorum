@@ -192,9 +192,9 @@ local function addUnit(unitID, value, key)
       end
     end
   end
-  if unit == nil then return end
 
   -- Check if unit is visible to other players based on plot visibility
+  if unit == nil then return end
   local plotX = unit:GetX()
   local plotY = unit:GetY()
   addPlotVisibility(plotX, plotY, value)
@@ -241,7 +241,7 @@ local function addCity(cityID, value, key)
     metadata["Name"] = city:GetName()
     metadata["Population"] = city:GetPopulation()
     if city:GetDamage() ~= 0 then
-      metadata["Health"] = 1 - math.ceil(city:GetDamage() / unit:GetMaxHitPoints() * 100) / 100
+      metadata["Health"] = 1 - math.ceil(city:GetDamage() / city:GetMaxHitPoints() * 100) / 100
     end
     addPayload(key, metadata)
   end
