@@ -42,7 +42,7 @@ class SummarizeUnitsTool extends LuaFunctionTool {
    * Schema for validating tool inputs
    */
   readonly inputSchema = z.object({
-    playerID: z.number().describe("The player ID to get unit visibility for")
+    PlayerID: z.number().describe("The player ID to get unit visibility for")
   });
 
   /**
@@ -76,7 +76,7 @@ class SummarizeUnitsTool extends LuaFunctionTool {
    * Execute the tool with the provided arguments
    */
   async execute(args: z.infer<typeof this.inputSchema>) {
-    const result = await this.call(args.playerID);
+    const result = await this.call(args.PlayerID);
 
     if (!result.Success) {
       throw new Error(`Failed to get unit overview: ${result.Error?.Message || 'Unknown error'}`);
