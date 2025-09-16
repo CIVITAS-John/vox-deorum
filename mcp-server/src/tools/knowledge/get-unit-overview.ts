@@ -3,17 +3,28 @@ import * as z from "zod";
 import { enumMappings } from "../../utils/knowledge/enum.js";
 
 /**
+ * Schema for military unit info
+ */
+const MilitaryUnitSchema = z.object({
+  Strength: z.number(),
+  RangedStrength: z.number(),
+  Count: z.number()
+});
+
+/**
  * Schema for unit overview result
  */
 const UnitOverviewResultSchema = z.record(
   z.string(), // Civilization name
   z.record(z.string(), // AI type
-    z.record(z.string(), z.number())) // Unit name
+    z.record(z.string(), z.union([z.number(), MilitaryUnitSchema]))) // Unit name -> count or military unit info
 );
 
 /**
  * Tool for getting an overview of all visible units for a given player
- * Groups units by civilization owner and AI type with counts only
+ * Groups units by civilization owner and AI type
+ * Military units include Strength, RangedStrength, and Count
+ * Non-military units have simple counts
  */
 class GetUnitOverviewTool extends LuaFunctionTool {
   /**
@@ -62,17 +73,17 @@ class GetUnitOverviewTool extends LuaFunctionTool {
     if (result.Result) {
       for (const civName in result.Result) {
         const unitsByAIType = result.Result[civName];
-        const convertedAITypes: Record<string, Record<string, number>> = {};
+        const convertedAITypes: Record<string, Record<string, number | z.infer<typeof MilitaryUnitSchema>>> = {};
 
         for (const [aiTypeNum, units] of Object.entries(unitsByAIType)) {
           // Convert the AI type enum to string
           const aiType = enumMappings["AIType"][Number(aiTypeNum)] ?? `Unknown_${aiTypeNum}`;
 
           // Convert unit type keys to their string representations
-          const convertedUnitTypes: Record<string, number> = {};
-          for (const [unitTypeNum, count] of Object.entries(units as Record<string, number>)) {
+          const convertedUnitTypes: Record<string, number | z.infer<typeof MilitaryUnitSchema>> = {};
+          for (const [unitTypeNum, unitData] of Object.entries(units as Record<string, number | z.infer<typeof MilitaryUnitSchema>>)) {
             const unitType = enumMappings["UnitType"][Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
-            convertedUnitTypes[unitType] = count;
+            convertedUnitTypes[unitType] = unitData;
           }
 
           convertedAITypes[aiType] = convertedUnitTypes;

@@ -36,13 +36,29 @@ for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
                 local aiType = pUnit:GetUnitAIType()
                 local unitType = pUnit:GetUnitType()
 
-                -- Initialize nested structure if needed
-                if not unitsForThisCiv[aiType] then
-                    unitsForThisCiv[aiType] = {}
-                end
+                -- Check if this is a military unit (has combat strength or ranged strength)
+                local combatStrength = pUnit:GetBaseCombatStrength()
+                local rangedStrength = pUnit:GetBaseRangedCombatStrength()
+                local isMilitaryUnit = (combatStrength > 0 or rangedStrength > 0)
 
-                -- Count by unit type within AI type
-                unitsForThisCiv[aiType][unitType] = (unitsForThisCiv[aiType][unitType] or 0) + 1
+                -- Store unit information based on type
+                if isMilitaryUnit then
+                    -- Military units: store with Strength, RangedStrength, and Count
+                    if not unitsForThisCiv[aiType][unitType] then
+                        unitsForThisCiv[aiType][unitType] = {
+                            Strength = combatStrength,
+                            RangedStrength = rangedStrength,
+                            Count = 0
+                        }
+                    end
+                    unitsForThisCiv[aiType][unitType].Count = unitsForThisCiv[aiType][unitType].Count + 1
+                else
+                    if not unitsForThisCiv[aiType] then
+                        unitsForThisCiv[aiType] = {}
+                    end
+                    -- Non-military units: keep simple count
+                    unitsForThisCiv[aiType][unitType] = (unitsForThisCiv[aiType][unitType] or 0) + 1
+                end
             end
         end
 
