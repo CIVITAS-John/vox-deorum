@@ -66,8 +66,8 @@ class SummarizeUnitsTool extends LuaFunctionTool {
   readonly annotations: ToolAnnotations = {
     autoComplete: ["PlayerID"],
     markdownConfig: [
-      { format: "Player {key}" },
       { format: "{key}" },
+      { format: "{key} Units" },
       { format: "{key}" }
     ]
   }

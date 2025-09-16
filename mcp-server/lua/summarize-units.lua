@@ -41,9 +41,18 @@ for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
                 local rangedStrength = pUnit:GetBaseRangedCombatStrength()
                 local isMilitaryUnit = (combatStrength > 0 or rangedStrength > 0)
 
+                if not unitsForThisCiv[aiType] then
+                    unitsForThisCiv[aiType] = {}
+                end
                 -- Store unit information based on type
                 if isMilitaryUnit then
                     -- Military units: store with Strength, RangedStrength, and Count
+                    if combatStrength == 0 then
+                        combatStrength = -1
+                    end
+                    if rangedStrength == 0 then
+                        rangedStrength = -1
+                    end
                     if not unitsForThisCiv[aiType][unitType] then
                         unitsForThisCiv[aiType][unitType] = {
                             Strength = combatStrength,

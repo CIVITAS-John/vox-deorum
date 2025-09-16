@@ -68,7 +68,7 @@ class GetOpinionsTool extends ToolBase {
   readonly annotations: ToolAnnotations = {
     autoComplete: ["PlayerID", "RevealAll"],
     markdownConfig: [
-      { format: "Player {key}" }
+      { format: "{key}" }
     ]
   }
 

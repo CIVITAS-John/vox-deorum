@@ -201,7 +201,7 @@ export class KnowledgeManager {
    */
   async updateActivePlayer(newID?: number) {
     if (!this.gameIdentity) return;
-    if (newID !== undefined) {
+    if (newID !== undefined && newID !== this.gameIdentity.activePlayerId) {
       this.gameIdentity.activePlayerId = newID;
       logger.info(`Active player changed to: ${this.getActivePlayerId()}`);
     }
