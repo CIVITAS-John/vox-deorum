@@ -1,5 +1,12 @@
 @echo off
 :: Launch Civilization V with Vox Deorum automation
+:: Usage: launch-civ5.cmd [lua_script_name]
+:: Example: launch-civ5.cmd StartGame.lua
+:: Default: StartGame.lua
+
+:: Set default Lua script name if not provided
+set "LUA_SCRIPT=%~1"
+if "%LUA_SCRIPT%"=="" set "LUA_SCRIPT=LoadMods.lua"
 
 :: Get Steam installation path from registry
 for /f "tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\WOW6432Node\Valve\Steam" /v InstallPath 2^>nul') do set "STEAM_PATH=%%b"
@@ -50,14 +57,18 @@ if not exist "%CIV5_PATH%\Assets\Automation" (
     mkdir "%CIV5_PATH%\Assets\Automation"
 )
 
-:: Copy VoxDeorum.lua to game directory
-echo Copying StartGame.lua to game directory...
-copy /Y "%~dp0StartGame.lua" "%CIV5_PATH%\Assets\Automation\StartGame.lua" >nul
+:: Copy Lua script to game directory
+echo Copying %LUA_SCRIPT% to game directory...
+copy /Y "%~dp0%LUA_SCRIPT%" "%CIV5_PATH%\Assets\Automation\%LUA_SCRIPT%" >nul
 if %errorlevel% neq 0 (
-    echo ERROR: Failed to copy StartGame.lua
+    echo ERROR: Failed to copy %LUA_SCRIPT%
+    echo Make sure %LUA_SCRIPT% exists in: %~dp0
     pause
     exit /b 1
 )
 
-echo Launching Civilization V with automation...
-start "" "%CIV5_PATH%\CivilizationV.exe" -Automation StartGame.lua
+:: Extract script name without extension for the -Automation parameter
+for %%F in ("%LUA_SCRIPT%") do set "SCRIPT_NAME=%%~nF"
+
+echo Launching Civilization V with automation script: %LUA_SCRIPT%
+start "" "%CIV5_PATH%\CivilizationV.exe" -Automation %SCRIPT_NAME%
