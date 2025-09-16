@@ -90,8 +90,9 @@ mcpClient.onElicitInput(async (params) => {
         await mcpClient.callTool("lua-executor", { Script: `
 Events.LoadScreenClose();
 Game.SetPausePlayer(-1);
-Game.SetAIAutoPlay(1, -1);
-ToggleStrategicView();` });
+Game.SetAIAutoPlay(1, -1);` });
+        await setTimeout(5000);
+        await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
       }
       break;
     case "PlayerVictory":

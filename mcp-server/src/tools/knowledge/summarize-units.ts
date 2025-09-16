@@ -7,8 +7,8 @@ import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
  * Schema for military unit info
  */
 const MilitaryUnitSchema = z.object({
-  Strength: z.number(),
-  RangedStrength: z.number(),
+  Strength: z.number().optional(),
+  RangedStrength: z.number().optional(),
   Count: z.number()
 });
 
