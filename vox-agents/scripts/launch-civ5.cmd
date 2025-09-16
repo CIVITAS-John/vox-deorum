@@ -92,4 +92,4 @@ if exist "%~dp0MainMenu.lua" (
 )
 
 echo Launching Civilization V with automation script: %LUA_SCRIPT%
-start "" "%CIV5_PATH%\CivilizationV.exe" "-Automation %LUA_SCRIPT%"
+"%CIV5_PATH%\CivilizationV.exe" "-Automation %LUA_SCRIPT%"

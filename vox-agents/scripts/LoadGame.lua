@@ -10,7 +10,9 @@ function onEndFrame()
     modActivating = 0;
   end
   if modActivated > 0 and os.time() > modActivated + 2 then
+    print("Trying to load the save...");
     Automation.SetEventFunction("EndFrame", nil);
+    modActivated = -1;
     Events.FrontEndPopup("Loading the last game save");
   end
 end

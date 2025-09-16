@@ -1,6 +1,7 @@
 -- Utility function to get the most recent save file
 function getMostRecentSave()
   local fileList = {}
+  print("Loading recent saves...")
   -- Load single player saves (not autosaves, not cloud saves)
   UI.SaveFileList(fileList, GameTypes.GAME_SINGLE_PLAYER, true, true)
 
@@ -9,6 +10,7 @@ function getMostRecentSave()
     return nil
   end
 
+  print("Loaded recent saves: " .. #fileList)
   -- Find the most recent save by comparing modification times
   local mostRecentFile = fileList[1]
   local mostRecentHigh, mostRecentLow = UI.GetSavedGameModificationTimeRaw(mostRecentFile)
@@ -23,7 +25,7 @@ function getMostRecentSave()
     end
   end
 
-  print("Found most recent save: " .. Path.GetFileNameWithoutExtension(mostRecentFile))
+  print("Found most recent save: " .. mostRecentFile)
   return mostRecentFile
 end
 
