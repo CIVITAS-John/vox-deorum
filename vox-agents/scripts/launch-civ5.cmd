@@ -67,8 +67,5 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Extract script name without extension for the -Automation parameter
-for %%F in ("%LUA_SCRIPT%") do set "SCRIPT_NAME=%%~nF"
-
 echo Launching Civilization V with automation script: %LUA_SCRIPT%
-start "" "%CIV5_PATH%\CivilizationV.exe" -Automation %SCRIPT_NAME%
+start "" "%CIV5_PATH%\CivilizationV.exe" "-Automation %LUA_SCRIPT%"

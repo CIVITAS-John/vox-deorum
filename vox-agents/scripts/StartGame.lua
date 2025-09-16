@@ -1,6 +1,8 @@
 local modActivating = -1
 local modActivated = -1
 
+print("StartGame automation started!")
+
 function onEndFrame()
   if modActivating > 0 and os.time() > modActivating + 2 then
     print("Trying to activate the mods...");
