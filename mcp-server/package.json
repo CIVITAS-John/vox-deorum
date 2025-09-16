@@ -39,6 +39,7 @@
     "fast-fuzzy": "^1.12.0",
     "kysely": "^0.28.5",
     "mathjs": "^14.6.0",
+    "undici": "^7.16.0",
     "winston": "^3.17.0",
     "zod": "^3.22.0",
     "zod-to-json-schema": "3.24.6"

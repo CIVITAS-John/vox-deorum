@@ -14,6 +14,7 @@ import externalRoutes from './routes/external.js';
 import eventsRoutes from './routes/events.js';
 import { respondError, respondSuccess, ErrorCode } from './types/api.js';
 import { handleAPIError } from './utils/api.js';
+import { createServer } from "http";
 
 const logger = createLogger('Index');
 
@@ -161,7 +162,9 @@ async function startServer(): Promise<void> {
     await bridgeService.start();
     
     // Start HTTP server
-    const server = app.listen(config.rest.port, config.rest.host, () => {
+    const server = createServer(app);
+    server.keepAliveTimeout = 60000; // 60 seconds keep-alive timeout
+    server.listen(config.rest.port, config.rest.host, () => {
       logger.info(`Bridge Service HTTP server listening on http://${config.rest.host}:${config.rest.port}`);
       logger.info('Service endpoints:');
       logger.info(`  Health: GET http://${config.rest.host}:${config.rest.port}/health`);

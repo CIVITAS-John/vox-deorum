@@ -8,6 +8,7 @@ import { EventSource } from 'eventsource'
 import { createLogger } from '../utils/logger.js';
 import { config } from '../utils/config.js';
 import { LuaFunction } from './lua-function.js';
+import { fetch, Pool, setGlobalDispatcher, RetryAgent } from 'undici';
 
 const logger = createLogger('BridgeManager');
 
@@ -60,6 +61,11 @@ export class BridgeManager extends EventEmitter {
     super();
     this.baseUrl = baseUrl || config.bridge?.url || 'http://localhost:5000';
     this.luaFunctions = new Map();
+    // Global pooling for HTTP requests
+    const agent = new RetryAgent(
+      new Pool(this.baseUrl), 
+      { minTimeout: 200, timeoutFactor: 2, maxRetries: 3 });
+    setGlobalDispatcher(agent);
     logger.info(`BridgeManager initialized with URL: ${this.baseUrl}`);
   }
 
