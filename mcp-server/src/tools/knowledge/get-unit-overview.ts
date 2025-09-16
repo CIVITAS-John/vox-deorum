@@ -1,6 +1,7 @@
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { enumMappings } from "../../utils/knowledge/enum.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Schema for military unit info
@@ -59,6 +60,18 @@ class GetUnitOverviewTool extends LuaFunctionTool {
    */
   protected readonly scriptFile = "get-unit-overview.lua";
 
+  /**
+   * Optional annotations for the tool
+   */
+  readonly annotations: ToolAnnotations = {
+    autoComplete: ["PlayerID"],
+    markdownConfig: [
+      { format: "Player {key}" },
+      { format: "{key}" },
+      { format: "{key}" }
+    ]
+  }
+  
   /**
    * Execute the tool with the provided arguments
    */

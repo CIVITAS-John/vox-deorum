@@ -125,7 +125,7 @@ function transformObject(
         parentIndent,
         key
       ));
-    } else if (key && headingConfig && currentLevel <= config.maxLevel) {
+    } else if (key && headingConfig && currentLevel <= config.maxLevel && typeof(value) === "object") {
       // Use heading format
       const formatString = headingConfig.format ?? "{key}";
       const heading = "\n" + "#".repeat(currentLevel) + " " +
