@@ -1,5 +1,4 @@
 local visibilityFlags = {}
-local invalidations = {}
 local extraPayloads = {}
 local scannedPlayers = {}
 local maxMajorCivs = ${MaxMajorCivs} - 1
@@ -203,8 +202,9 @@ local function addUnit(unitID, value, key)
     local metadata = {}
     metadata["UnitType"] = unit:GetUnitType()
     metadata["AIType"] = unit:GetUnitAIType()
-    metadata["Hp"] = unit:GetCurrHitPoints()
-    metadata["MaxHp"] = unit:GetMaxHitPoints()
+    if unit:GetMaxHitPoints() ~= unit:GetCurrHitPoints() then
+      metadata["Health"] = math.floor(unit:GetCurrHitPoints() / unit:GetMaxHitPoints() * 100) / 100
+    end
     metadata["Level"] = unit:GetLevel()
     addPayload(key, metadata)
   end
@@ -237,9 +237,9 @@ local function addCity(cityID, value, key)
     local metadata = {}
     metadata["Name"] = city:GetName()
     metadata["Population"] = city:GetPopulation()
-    metadata["ReligionID"] = city:GetReligiousMajority()
-    metadata["Hp"] = city:GetMaxHitPoints() - city:GetDamage()
-    metadata["MaxHp"] = city:GetMaxHitPoints()
+    if city:GetDamage() ~= 0 then
+      metadata["Health"] = 1 - math.ceil(city:GetDamage() / unit:GetMaxHitPoints() * 100) / 100
+    end
     addPayload(key, metadata)
   end
   
@@ -281,4 +281,4 @@ for key, value in pairs(payload) do
   end
 end
 
-return {visibilityFlags, invalidations, extraPayloads}
+return {visibilityFlags, extraPayloads}

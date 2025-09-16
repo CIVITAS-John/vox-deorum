@@ -287,12 +287,6 @@ export class KnowledgeStore {
     );
 
     if (visibilityResult) {
-      // Log invalidations if any exist
-      const invalidationKeys = Object.keys(visibilityResult.invalidations);
-      if (invalidationKeys.length > 0) {
-        logger.debug(`Cache invalidations for ${type}: ${invalidationKeys.join(', ')}`);
-      }
-    
       // Save the extra payloads
       Object.assign(payload, visibilityResult.extraPayload);
       // Explain the enums for LLM readability
@@ -334,15 +328,105 @@ export class KnowledgeStore {
   }
 
   /**
-   * Generic function to store MutableKnowledge entries
-   * Handles versioning, change tracking, and visibility automatically
+   * Batch store multiple MutableKnowledge entries in a single transaction
+   * Handles versioning, change tracking, and visibility automatically for each item
+   *
+   * @param tableName - The table name in the database (must be a key of KnowledgeDatabase)
+   * @param items - Array of items to store, each containing key, data, and optional visibility/ignore fields
+   * @returns Promise that resolves when all items are stored
+   */
+  async storeMutableKnowledgeBatch<
+    TTable extends keyof KnowledgeDatabase,
+    TData extends Partial<Selectable<KnowledgeDatabase[TTable]> | Insertable<KnowledgeDatabase[TTable]> | Updateable<KnowledgeDatabase[TTable]>>
+  >(
+    tableName: TTable,
+    items: Array<{
+      key: number;
+      data: TData;
+      visibilityFlags?: number[];
+      ignoreFields?: string[];
+    }>
+  ): Promise<void> {
+    const db = this.getDatabase();
+    const turn = knowledgeManager.getTurn();
+
+    try {
+      // Process all items in a single transaction for efficiency
+      await db.transaction().execute(async (trx) => {
+        for (const item of items) {
+          const { key, data, visibilityFlags, ignoreFields } = item;
+
+          // Find the latest version for this key
+          const latestEntry = await (trx
+            .selectFrom(tableName)
+            .selectAll() as any)
+            .where('Key' as any, '=', key)
+            .where('IsLatest' as any, '=', 1)
+            .executeTakeFirst() as MutableKnowledge | null;
+
+          // Calculate version number and detect changes
+          const newVersion = latestEntry ? (latestEntry.Version) + 1 : 1;
+          const changes = detectChanges(latestEntry, data as any, ignoreFields);
+
+          // Skip if no changes detected (for updates)
+          if (latestEntry && changes.length === 0) {
+            logger.debug(`No changes detected for ${tableName} key ${key}, skipping update`);
+            continue;
+          }
+
+          // Mark the previous version as not latest
+          if (latestEntry) {
+            await (trx
+              .updateTable(tableName) as any)
+              .set({ IsLatest: 0 } as any)
+              .where('Key', '=', key)
+              .where('IsLatest', '=', 1)
+              .execute();
+          }
+
+          // Prepare the new entry with all MutableKnowledge fields
+          const newEntry: any = {
+            ...data,
+            Key: key,
+            Turn: turn,
+            Version: newVersion,
+            IsLatest: 1,
+            Changes: changes,
+            Payload: data,
+          };
+
+          // Apply visibility flags if provided
+          if (visibilityFlags) {
+            applyVisibility(newEntry, visibilityFlags);
+          }
+
+          // Insert the new version
+          await trx
+            .insertInto(tableName)
+            .values(newEntry)
+            .execute();
+
+          logger.debug(
+            `Stored ${tableName} entry - Key: ${key}, Version: ${newVersion}, Turn: ${turn}, Changes: ${changes.join(', ') || 'initial'}`
+          );
+        }
+      });
+    } catch (error) {
+      logger.error(`Error storing MutableKnowledge batch in ${tableName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Store a single MutableKnowledge entry
+   * Convenience method that wraps storeMutableKnowledgeBatch for single items
    *
    * @param tableName - The table name in the database (must be a key of KnowledgeDatabase)
    * @param key - The unique identifier for this knowledge item
    * @param data - The data to store (must extend MutableKnowledge)
    * @param visibilityFlags - Array of player IDs that can see this knowledge
    * @param ignoreFields - Array of field names to ignore when detecting changes
-   * @returns The stored entry with generated fields
+   * @returns Promise that resolves when the item is stored
    */
   async storeMutableKnowledge<
     TTable extends keyof KnowledgeDatabase,
@@ -354,70 +438,12 @@ export class KnowledgeStore {
     visibilityFlags?: number[],
     ignoreFields?: string[]
   ): Promise<void> {
-    const db = this.getDatabase();
-    const turn = knowledgeManager.getTurn();
-    
-    try {
-      // Start a transaction for atomic updates
-      await db.transaction().execute(async (trx) => {
-        // Find the latest version for this key
-        const latestEntry = await (trx
-          .selectFrom(tableName)
-          .selectAll() as any)
-          .where('Key' as any, '=', key)
-          .where('IsLatest' as any, '=', 1)
-          .executeTakeFirst() as MutableKnowledge | null;
-        
-        // Calculate version number and detect changes
-        const newVersion = latestEntry ? (latestEntry.Version) + 1 : 1;
-        const changes = detectChanges(latestEntry, data as any, ignoreFields);
-
-        // Skip if no changes detected (for updates)
-        if (latestEntry && changes.length === 0) {
-          logger.debug(`No changes detected for ${tableName} key ${key}, skipping update`);
-          return;
-        }
-        
-        // Mark the previous version as not latest
-        if (latestEntry) {
-          await (trx
-            .updateTable(tableName) as any)
-            .set({ IsLatest: 0 } as any)
-            .where('Key', '=', key)
-            .where('IsLatest', '=', 1)
-            .execute();
-        }
-        
-        // Prepare the new entry with all MutableKnowledge fields
-        const newEntry: any = {
-          ...data,
-          Key: key,
-          Turn: turn,
-          Version: newVersion,
-          IsLatest: 1,
-          Changes: changes,
-          Payload: data,
-        };
-
-        // Apply visibility flags if provided
-        if (visibilityFlags) {
-          applyVisibility(newEntry, visibilityFlags);
-        }
-        
-        // Insert the new version
-        await trx
-          .insertInto(tableName)
-          .values(newEntry)
-          .execute();
-        
-        logger.info(
-          `Stored ${tableName} entry - Key: ${key}, Version: ${newVersion}, Turn: ${turn}, Changes: ${changes.join(', ') || 'initial'}`
-        );
-      });
-    } catch (error) {
-      logger.error(`Error storing MutableKnowledge in ${tableName}:`, error);
-      throw error;
-    }
+    await this.storeMutableKnowledgeBatch(tableName, [{
+      key,
+      data,
+      visibilityFlags,
+      ignoreFields
+    }]);
   }
 
   /**

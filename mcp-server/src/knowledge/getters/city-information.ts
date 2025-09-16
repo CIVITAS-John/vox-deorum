@@ -34,16 +34,15 @@ export async function getCityInformations(): Promise<Selectable<CityInformation>
 
   const cities = response.result as Selectable<CityInformation>[];
 
-  // Store each city as mutable knowledge
+  // Store all cities as mutable knowledge in batch
   try {
-    for (const city of cities) {
-      // Store the city information as mutable knowledge
-      await knowledgeManager.getStore().storeMutableKnowledge(
-        'CityInformations',
-        city.Key,
-        city as any
-      );
-    }
+    await knowledgeManager.getStore().storeMutableKnowledgeBatch(
+      'CityInformations',
+      cities.map(city => ({
+        key: city.Key,
+        data: city as any
+      }))
+    );
 
     logger.info(`Stored ${cities.length} cities as mutable knowledge`);
   } catch (error) {

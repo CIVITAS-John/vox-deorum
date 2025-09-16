@@ -94,12 +94,8 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
         IsCoastal = city:IsCoastal(10) and 1 or 0  -- Near a water body of 10+ tiles
       }
       
-      -- Use Civilization name for major civs, Player name for minor civs
-      if player:IsMinorCiv() then
-        cityData["Owner"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
-      else
-        cityData["Owner"] = player:GetName()
-      end
+      -- Use Civilization names
+      cityData["Owner"] = Locale.ConvertTextKey(GameInfo.Civilizations[player:GetCivilizationType()].ShortDescription)
 
       -- Get majority religion
       local majorityReligion = city:GetReligiousMajority()

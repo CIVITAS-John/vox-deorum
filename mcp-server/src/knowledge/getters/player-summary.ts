@@ -27,13 +27,23 @@ export async function getPlayerSummaries(saving: boolean = true): Promise<Partia
   if (!response.success)
     return [];
   const store = knowledgeManager.getStore();
+
+  // Process era names for all summaries
   for (var summary of response.result) {
     summary.Era = getEraName(summary.Era);
-    if (saving) await store.storeMutableKnowledge(
+  }
+
+  // Store all summaries in batch if saving is enabled
+  if (saving) {
+    await store.storeMutableKnowledgeBatch(
       'PlayerSummaries',
-      summary.Key!,
-      summary
+      response.result.map((summary: any) => {
+        return {
+          key: summary.Key!,
+          data: summary
+        }})
     );
-  };
+  }
+
   return response.result;
 }

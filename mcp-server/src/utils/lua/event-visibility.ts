@@ -24,8 +24,6 @@ export interface EventVisibilityResult {
   visibilityFlags: number[];
   /** Summary information about each referenced identity */
   extraPayload: Record<string, any>;
-  /** Map of cache invalidation keys */
-  invalidations: Record<string, boolean>;
 }
 
 /**
@@ -41,7 +39,6 @@ export async function analyzeEventVisibility(eventType: string, payload: any): P
   }
   return {
     visibilityFlags: response.result[0],
-    invalidations: response.result[1],
-    extraPayload: response.result[2]
+    extraPayload: response.result[1]
   };
 }
