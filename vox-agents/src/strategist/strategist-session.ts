@@ -1,6 +1,7 @@
 import { createLogger } from "../utils/logger.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
 import { VoxPlayer } from "./vox-player.js";
+import { voxCivilization } from "../infra/vox-civilization.js";
 import { setTimeout } from 'node:timers/promises';
 
 const logger = createLogger('StrategistSession');
@@ -25,6 +26,9 @@ export class StrategistSession {
   private abortController = new AbortController();
   private victoryPromise: Promise<void>;
   private victoryResolve?: () => void;
+  private lastGameState: 'running' | 'crashed' | 'victory' = 'running';
+  private crashRecoveryAttempts = 0;
+  private readonly MAX_RECOVERY_ATTEMPTS = 3;
 
   constructor(private config: StrategistSessionConfig) {
     this.victoryPromise = new Promise((resolve) => {
@@ -37,6 +41,9 @@ export class StrategistSession {
    */
   async start(): Promise<void> {
     logger.info('Starting strategist session', this.config);
+
+    // Register game exit handler for crash recovery
+    voxCivilization.onGameExit(this.handleGameExit.bind(this));
 
     // Connect to MCP server
     await mcpClient.connect();
@@ -84,6 +91,9 @@ export class StrategistSession {
     // Disconnect from MCP server
     await mcpClient.disconnect();
 
+    // Cleanup VoxCivilization
+    voxCivilization.destroy();
+
     // Resolve victory promise if still pending
     if (this.victoryResolve) {
       this.victoryResolve();
@@ -94,11 +104,17 @@ export class StrategistSession {
     const player = this.activePlayers.get(params.playerID);
     if (player) {
       player.notifyTurn(params.turn, params.latestID);
+      this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 1);
     }
   }
 
   private async handleGameSwitched(params: any): Promise<void> {
     logger.warn(`Game context switching to ${params.gameID}`);
+
+    // Reset crash recovery attempts on successful game load
+    if (this.lastGameState === 'crashed')
+      logger.info('Game successfully recovered from crash');
+    this.lastGameState = 'running';
 
     // Abort all existing players
     for (const player of this.activePlayers.values()) {
@@ -130,6 +146,9 @@ Game.SetAIAutoPlay(1, -1);`
   private async handlePlayerVictory(params: any): Promise<void> {
     logger.info(`Player ${params.playerID} has won the game on turn ${params.turn}!`);
 
+    // Mark game as victory state
+    this.lastGameState = 'victory';
+
     // Abort all existing players
     for (const player of this.activePlayers.values()) {
       player.abort();
@@ -142,6 +161,42 @@ Game.SetAIAutoPlay(1, -1);`
     // Resolve the victory promise to complete the session
     if (this.victoryResolve) {
       this.victoryResolve();
+    }
+  }
+
+  /**
+   * Handles game process exit events (crashes or normal exits)
+   */
+  private async handleGameExit(exitCode: number | null): Promise<void> {
+    // Don't attempt recovery if we're shutting down or victory was achieved
+    if (this.abortController.signal.aborted || this.lastGameState === 'victory') {
+      logger.info('Game exited normally during shutdown or after victory');
+      return;
+    }
+
+    // Game crashed unexpectedly
+    logger.error(`Game process crashed with exit code: ${exitCode}`);
+    this.lastGameState = 'crashed';
+
+    // Check if we've exceeded recovery attempts
+    if (this.crashRecoveryAttempts >= this.MAX_RECOVERY_ATTEMPTS) {
+      logger.error(`Maximum recovery attempts (${this.MAX_RECOVERY_ATTEMPTS}) exceeded. Shutting down session.`);
+      await this.shutdown();
+      return;
+    }
+
+    // Attempt to recover the game
+    this.crashRecoveryAttempts++;
+    logger.info(`Attempting game recovery (attempt ${this.crashRecoveryAttempts}/${this.MAX_RECOVERY_ATTEMPTS})...`);
+
+    // Restart the game using LoadGame.lua to load the last save
+    logger.info('Starting Civilization V with LoadGame.lua to recover from crash...');
+    const started = await voxCivilization.startGame('LoadGame.lua');
+
+    if (!started) {
+      logger.error('Failed to restart the game');
+      await this.shutdown();
+      return;
     }
   }
 }
