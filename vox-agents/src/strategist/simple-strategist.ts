@@ -34,6 +34,7 @@ You will receive the following reports:
 - Players: summary reports about visible players in the world. Also:
   - You will receive in-game AI's diplomatic evaluations.
   - You will receive the strategy you set last time.
+- Cities: summary reports about discovered cities in the world.
 - Events: events since you last made a decision.
 You have tool access to the game's database to learn more about game rules.
 `.trim()
@@ -44,12 +45,14 @@ You have tool access to the game's database to learn more about game rules.
    */
   public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     // Get the information
-    const [players, events] = [
+    const [players, events, cities] = [
       await context.callTool("get-players", { }, parameters),
-      await context.callTool("get-events", { }, parameters)
+      await context.callTool("get-events", { }, parameters),
+      await context.callTool("get-cities", { }, parameters)
     ];
     parameters.store!.players = players;
     parameters.store!.events = events;
+    parameters.store!.cities = cities;
     // Return the messages
     return [{
       role: "system",
@@ -64,6 +67,9 @@ You are making strategic decisions after turn ${parameters.turn} has been execut
 
 # Players
 ${parameters.store!.players}
+
+# Cities
+${parameters.store!.cities}
 
 # Events
 ${parameters.store!.events}

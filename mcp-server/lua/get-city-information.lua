@@ -5,10 +5,6 @@ local cities = {}
 
 -- Helper function to calculate visibility between a player and a city
 local function getCityVisibility(playerID, city)
-  if not city then
-    return 0  -- Not visible
-  end
-
   local cityOwnerID = city:GetOwner()
   local player = Players[playerID]
 
@@ -89,13 +85,12 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
         Y = city:GetY(),
         Population = city:GetPopulation(),
         MajorityReligion = nil,
-        DefenseStrength = city:GetStrengthValue() / 100,
+        DefenseStrength = math.floor(city:GetStrengthValue() / 100),
         HitPoints = city:GetMaxHitPoints() - city:GetDamage(),  -- Calculate current HP
         MaxHitPoints = city:GetMaxHitPoints(),
         -- Basic status flags visible at level 1
         IsPuppet = city:IsPuppet() and 1 or 0,
         IsOccupied = city:IsOccupied() and 1 or 0,
-        IsRazing = city:IsRazing() and 1 or 0,
         IsCoastal = city:IsCoastal(10) and 1 or 0  -- Near a water body of 10+ tiles
       }
       
