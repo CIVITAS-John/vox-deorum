@@ -37,9 +37,6 @@ end
 local function addTeam(teamID, value, key)
   if teamID < 0 then return end
 
-  -- Invalidate the team's cached metadata
-  invalidations["Team_" .. teamID] = true
-
   -- All team players should have the same visibility
   local metadata = {}
   for otherID = 0, maxMajorCivs do
@@ -76,9 +73,6 @@ local function addPlayer(playerID, value, key)
   -- Check if player exists
   local player = Players[playerID]
   if not player then return end
-
-  -- Invalidate the player's cached metadata
-  invalidations["Player_" .. playerID] = true
 
   -- Team members can see each other's events
   addTeam(player:GetTeam(), value)
@@ -208,9 +202,6 @@ local function addUnit(unitID, value, key)
     metadata["Level"] = unit:GetLevel()
     addPayload(key, metadata)
   end
-  
-  -- Invalidate the unit's cached metadata
-  invalidations["Unit_" .. unitID] = true
 end
 
 -- Helper function to add city-based visibility
@@ -242,9 +233,6 @@ local function addCity(cityID, value, key)
     end
     addPayload(key, metadata)
   end
-  
-  -- Invalidate the city's cached metadata
-  invalidations["City_" .. cityID] = true
 end
 
 -- Analyze visibility based on event type and payload
