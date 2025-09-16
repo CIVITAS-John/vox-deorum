@@ -275,6 +275,16 @@ export class KnowledgeStore {
     // Extract visibility flags for storage
     const visibilityFlags = visibilityResult?.visibilityFlags;
     
+    if (visibilityResult) {
+      // Save the extra payloads
+      Object.assign(payload, visibilityResult.extraPayload);
+      // Explain the enums for LLM readability
+      payload = await gameDatabase.localizeObject(explainEnums(payload));
+      logger.debug(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
+    } else {
+      logger.warn(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
+    }
+    
     // Create event object with visibility markers
     const eventWithVisibility = applyVisibility(
       {
@@ -286,16 +296,6 @@ export class KnowledgeStore {
       visibilityFlags
     );
 
-    if (visibilityResult) {
-      // Save the extra payloads
-      Object.assign(payload, visibilityResult.extraPayload);
-      // Explain the enums for LLM readability
-      await gameDatabase.localizeObject(explainEnums(payload));
-      logger.debug(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
-    } else {
-      logger.warn(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility analysis failed`, payload);
-    }
-    
     await this.getDatabase()
       .insertInto('GameEvents')
       .values(eventWithVisibility)

@@ -87,7 +87,9 @@ class SummarizeUnitsTool extends LuaFunctionTool {
     // Convert numeric AI type enums and unit type keys to their string representations
     if (result.Result) {
       const unitTypes = enumMappings["UnitType"];
+      const aiTypes = enumMappings["AIType"];
       if (!unitTypes) logger.warn("UnitType does not exist!");
+      if (!aiTypes) logger.warn("AIType does not exist!");
 
       for (const civName in result.Result) {
         const unitsByAIType = result.Result[civName];
@@ -95,12 +97,12 @@ class SummarizeUnitsTool extends LuaFunctionTool {
 
         for (const [aiTypeNum, units] of Object.entries(unitsByAIType)) {
           // Convert the AI type enum to string
-          const aiType = enumMappings["AIType"][Number(aiTypeNum)] ?? `Unknown_${aiTypeNum}`;
+          const aiType = aiTypes?.[Number(aiTypeNum)] ?? `Unknown_${aiTypeNum}`;
 
           // Convert unit type keys to their string representations
           const convertedUnitTypes: Record<string, number | z.infer<typeof MilitaryUnitSchema>> = {};
           for (const [unitTypeNum, unitData] of Object.entries(units as Record<string, number | z.infer<typeof MilitaryUnitSchema>>)) {
-            const unitType = unitTypes[Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
+            const unitType = unitTypes?.[Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
             convertedUnitTypes[unitType] = unitData;
           }
 

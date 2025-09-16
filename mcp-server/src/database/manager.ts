@@ -332,8 +332,6 @@ export class DatabaseManager {
       }
 
       enumMappings[mappedName] = await this.localizeObject(tableMap);
-
-      //console.log(tableMap);
       logger.info(`Added ${Object.keys(tableMap).length} enum mappings from table ${tableName}`);
     } catch (error) {
       logger.error(`Failed to read enum mappings from table ${tableName}:`, error);
