@@ -18,7 +18,10 @@ const strategist = "simple-strategist"
 const activePlayers = new Map<number, VoxPlayer>();
 
 // Graceful shutdown handler
+var shuttingdown = false;
 async function shutdown(signal: string) {
+  if (shuttingdown) return;
+  shuttingdown = true;
   logger.info(`Received ${signal}, shutting down gracefully...`);
 
   // Abort all active players
@@ -31,13 +34,7 @@ async function shutdown(signal: string) {
   await setTimeout(1000);
 
   // Disconnect from MCP server
-  try {
-    await mcpClient.disconnect();
-    logger.info('Disconnected from MCP server');
-  } catch (error) {
-    logger.error('Error disconnecting from MCP server:', error);
-  }
-
+  await mcpClient.disconnect();
   await langfuseSpanProcessor.forceFlush();
   await setTimeout(1000);
 
