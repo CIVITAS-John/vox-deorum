@@ -9,8 +9,8 @@ const logger = createLogger('Strategists');
 const config: StrategistSessionConfig = {
   llmPlayers: [0],
   autoPlay: true,
-  strategist: "simple-strategist"
-  // strategist: "none"
+  // strategist: "simple-strategist"
+  strategist: "none"
 };
 
 // Session instance

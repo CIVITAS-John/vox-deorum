@@ -101,11 +101,10 @@ export class LuaFunction {
     
     // Create registration script that defines the function
     const registrationScript = `
-      Game.RegisterFunction("${this.name}", function(${this.arguments.join(", ")})
-        ${this.script}
+      Game.RegisterFunction("${this.name}", function(${this.arguments.join(", ")}) ${this.script}
       end)
       return true
-    `;
+    `.trim();
 
     await MCPServer.getInstance().getBridgeManager().addFunction(this);
     const response = await MCPServer.getInstance().getBridgeManager().executeLuaScript(registrationScript);

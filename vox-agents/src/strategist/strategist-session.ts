@@ -44,6 +44,7 @@ export class StrategistSession {
 
     // Register game exit handler for crash recovery
     voxCivilization.onGameExit(this.handleGameExit.bind(this));
+    await voxCivilization.startGame("StartGame.lua");
 
     // Connect to MCP server
     await mcpClient.connect();

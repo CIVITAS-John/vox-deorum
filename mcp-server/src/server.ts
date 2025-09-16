@@ -264,7 +264,7 @@ export class MCPServer {
 
     // Send GameSwitched notification to the newly connected client
     const gameId = this.knowledgeManager.getGameId();
-    if (gameId !== "") {
+    if (this.bridgeManager.dllConnected && gameId !== "") {
       const lastId = parseInt(await this.knowledgeManager.getStore().getMetadata("lastID") ?? "-1");
       setTimeout(() => {
         this.sendNotification("GameSwitched", -1, this.knowledgeManager.getTurn(), lastId, { gameID: gameId });

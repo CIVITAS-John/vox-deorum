@@ -84,7 +84,7 @@ export class DLLConnector extends EventEmitter {
         }).on('error', (error: any) => {
           if (!this.connected) {
             // For initial connection failures, also start reconnection attempts
-            logger.error(`Failed to connect to DLL: ${error.message || error}, reconnecting...`);
+            logger.warn(`Failed to connect to DLL: ${error.message || error}, reconnecting...`);
             this.handleDisconnection();
             resolve(false);
           } else {

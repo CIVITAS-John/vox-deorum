@@ -50,7 +50,7 @@ class GameMutexManager {
   resumeGame(): boolean {
     if (!Mutex) return false;
 
-    if (!this.isPaused || !this.mutex) {
+    if (!this.mutex) {
       logger.debug('Game not paused, ignoring resumeGame() call');
       return true;
     }

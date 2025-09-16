@@ -85,7 +85,7 @@ end
 local function addPlayer(playerID, value, key)
   -- Check if player exists
   local player = Players[playerID]
-  if not player then return end
+  if not player or player:IsMinorCiv() then return end
 
   -- Team members can see each other's events
   addTeam(player:GetTeam(), value)

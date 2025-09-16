@@ -64,7 +64,10 @@ export class BridgeManager extends EventEmitter {
     // Global pooling for HTTP requests
     const agent = new RetryAgent(
       new Pool(this.baseUrl), 
-      { minTimeout: 200, timeoutFactor: 2, maxRetries: 3 });
+      { 
+        minTimeout: 200, timeoutFactor: 2, maxRetries: 3, 
+        statusCodes: [502, 503, 504, 429],
+      });
     setGlobalDispatcher(agent);
     logger.info(`BridgeManager initialized with URL: ${this.baseUrl}`);
   }
