@@ -44,7 +44,7 @@ const PlayerDataSchema = z.object({
   // PlayerSummary fields
   Era: z.string().optional(),
   Technologies: z.number().optional(),
-  MajorAllyID: z.number().optional(),
+  MajorAlly: z.string().nullable().optional(),
   Cities: z.number().optional(),
   Population: z.number().optional(),
   Gold: z.number().optional(),

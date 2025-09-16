@@ -49,7 +49,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
     local summary = {
       Key = playerID,
       Era = currentEra,
-      MajorAllyID = -1,  -- Default to none
+      MajorAlly = nil,  -- Default to no ally
       Cities = player:GetNumCities(),
       Population = player:GetTotalPopulation(),
       Gold = player:GetGold(),
@@ -73,7 +73,13 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
     
     -- Get ally for minor civs (major ally of city-state)
     if player:IsMinorCiv() then
-      summary.MajorAllyID = player:GetAlly()
+      local allyID = player:GetAlly()
+      if allyID and allyID >= 0 then
+        local allyPlayer = Players[allyID]
+        if allyPlayer then
+          summary.MajorAlly = Locale.ConvertTextKey(allyPlayer:GetCivilizationShortDescription())
+        end
+      end
     end
     
     -- Get policy branches
@@ -131,7 +137,7 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
     
     local summary = {
       Key = playerID,
-      MajorAllyID = player:GetAlly() or -1,
+      MajorAlly = nil,  -- Will be populated below
       Cities = player:GetNumCities(),
       Population = player:GetTotalPopulation(),
       Gold = player:GetGold(),
@@ -140,6 +146,15 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
       ResourcesAvailable = {}  -- Will be populated with actual available resources
     }
     
+    -- Get ally name for minor civs
+    local allyID = player:GetAlly()
+    if allyID and allyID >= 0 then
+      local allyPlayer = Players[allyID]
+      if allyPlayer then
+        summary.MajorAlly = Locale.ConvertTextKey(allyPlayer:GetCivilizationShortDescription())
+      end
+    end
+
     -- Add relative visibility to all other players
     for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       local otherPlayer = Players[otherPlayerID]

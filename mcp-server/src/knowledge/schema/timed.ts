@@ -27,7 +27,7 @@ export interface StrategyChange extends MutableKnowledge {
  */
 export interface PlayerSummary extends MutableKnowledge {
   Era: string | null; // Localized era name (e.g., "Ancient Era", "Classical Era")
-  MajorAllyID: number; // -1 = none, Player:GetAlly()
+  MajorAlly: string | null; // Ally civilization's short description (null if no ally)
   Cities: number | null;
   Population: number;
   Gold: number | null;

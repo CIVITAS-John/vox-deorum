@@ -51,7 +51,7 @@ export async function setupKnowledgeDatabase(
   // Create PlayerSummaries table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'PlayerSummaries')
     .addColumn('Era', 'text')
-    .addColumn('MajorAllyID', 'integer', (col) => col.notNull())
+    .addColumn('MajorAlly', 'text')
     .addColumn('Cities', 'integer', (col) => col.notNull())
     .addColumn('Population', 'integer', (col) => col.notNull())
     .addColumn('Gold', 'integer', (col) => col.notNull())
