@@ -211,9 +211,9 @@ export class BridgeManager extends EventEmitter {
       this.sseConnection.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data) as GameEvent;
-          this.emit('gameEvent', data);
           if (data.type == "dll_status" && !data.payload.status && this.dllConnected) 
             this.resetFunctions();
+          this.emit('gameEvent', data);
           // logger.debug('Received SSE event: ' + data.type, data);
         } catch (error) {
           logger.error('Failed to parse SSE event:', error);

@@ -63,6 +63,9 @@ export class StrategistSession {
         case "PlayerVictory":
           await this.handlePlayerVictory(params);
           break;
+        case "DLLConnected":
+          await this.handleDLLConnected(params);
+          break;
         default:
           logger.info(`Received elicitInput notification: ${params.message}`, params);
           break;
@@ -113,8 +116,6 @@ export class StrategistSession {
     logger.warn(`Game context switching to ${params.gameID}`);
 
     // Reset crash recovery attempts on successful game load
-    if (this.lastGameState === 'crashed')
-      logger.info('Game successfully recovered from crash');
     this.lastGameState = 'running';
 
     // Abort all existing players
@@ -130,8 +131,8 @@ export class StrategistSession {
       player.execute();
     }
 
-    // Autoplay
     if (this.config.autoPlay && params.turn === 0) {
+      // Autoplay
       await setTimeout(1000);
       await mcpClient.callTool("lua-executor", {
         Script: `
@@ -139,6 +140,16 @@ Events.LoadScreenClose();
 Game.SetPausePlayer(-1);
 Game.SetAIAutoPlay(1, -1);`
       });
+      await setTimeout(5000);
+      await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
+    }
+  }
+
+  private async handleDLLConnected(params: any): Promise<void> {
+    const recovering = this.lastGameState === 'crashed';
+    if (recovering) {
+      logger.info('Game successfully recovered from crash');
+      await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose();` });
       await setTimeout(5000);
       await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
     }

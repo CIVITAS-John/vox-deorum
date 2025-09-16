@@ -33,8 +33,9 @@ export class KnowledgeManager {
     bridgeManager.on('gameEvent', async (data) => {
       logger.debug(`Game event received: ${data.id} of ${data.type}`, data);
       if (data.type == "dll_status") {
-        if (data.payload.connected)
-          await this.checkGameContext();
+        if (data.payload.connected && !await this.checkGameContext())
+          MCPServer.getInstance().sendNotification("DLLConnected", -1, this.getTurn(), 
+              parseInt(await this.getStore().getMetadata("lastID") ?? "-1"), { gameID: this.gameIdentity?.gameId });
       } else if (this.knowledgeStore) {
         await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload?.args);
       }
@@ -45,15 +46,17 @@ export class KnowledgeManager {
   /**
    * Check game context and detect changes
    */
-  private async checkGameContext(): Promise<void> {
+  private async checkGameContext(): Promise<boolean> {
     try {
       const gameIdentity = await syncGameIdentity();
       if (gameIdentity && gameIdentity.gameId !== this.gameIdentity?.gameId) {
         logger.info(`Game context change detected: ${this.gameIdentity?.gameId ?? "(empty)"} -> ${gameIdentity.gameId}`);
         await this.switchGameContext(gameIdentity);
-      }
+        return true;
+      } else return false;
     } catch (error) {
       logger.error('Error checking game context:', error);
+      return false;
     }
   }
 
