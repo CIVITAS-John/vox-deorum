@@ -132,7 +132,7 @@ export class LuaFunction {
 
     // If failed due to unregistered function, try to register and retry
     if (!response.success && response.error?.code === 'INVALID_FUNCTION') {
-      logger.info(`Function ${this.name} not registered, attempting registration`);
+      logger.debug(`Function ${this.name} not registered, attempting registration`);
       
       // Try to register
       this._registered = false;
@@ -140,7 +140,7 @@ export class LuaFunction {
       
       if (registered) {
         // Retry the execution
-        logger.info(`Retrying execution of ${this.name} after registration`);
+        logger.debug(`Retrying execution of ${this.name} after registration`);
         response = await bridgeManager.callLuaFunction(this.name, args);
       } else {
         return {

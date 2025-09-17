@@ -24,6 +24,7 @@ import { detectChanges } from '../utils/knowledge/changes.js';
 import { MCPServer } from '../server.js';
 import { getPlayerInformations } from './getters/player-information.js';
 import { readAndStorePlayerStrategy } from '../utils/lua/read-and-store-strategy.js';
+import { archiveGameData } from '../utils/archive.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -239,6 +240,7 @@ export class KnowledgeStore {
           if (type == "PlayerVictory") {
             this.setMetadata("victoryPlayerID", data.PlayerID);
             this.setMetadata("victoryType", data.VictoryType);
+            archiveGameData();
           }
           // Track active player on turn events
           if (type === "PlayerDoTurn") {
