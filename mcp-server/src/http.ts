@@ -157,6 +157,7 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
   try {
     await mcpServer.initialize();
     
+    httpServer.keepAliveTimeout = 60000;
     httpServer.listen(port, host, () => {
       logger.info(`MCP HTTP server listening on http://${host}:${port}`);
       logger.info(`Streamable HTTP endpoint: http://${host}:${port}/mcp`);

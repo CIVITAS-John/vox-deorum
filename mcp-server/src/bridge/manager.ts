@@ -63,7 +63,7 @@ export class BridgeManager extends EventEmitter {
     this.luaFunctions = new Map();
     // Global pooling for HTTP requests
     const agent = new RetryAgent(
-      new Pool(this.baseUrl), 
+      new Pool(this.baseUrl, { connections: 10 }), 
       { 
         minTimeout: 200, timeoutFactor: 2, maxRetries: 3, 
         statusCodes: [502, 503, 504, 429],
