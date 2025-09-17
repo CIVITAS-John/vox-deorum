@@ -17,6 +17,7 @@ export class KnowledgeManager {
   private knowledgeStore?: KnowledgeStore;
   private autoSaveTimer: NodeJS.Timeout | null = null;
   private pausedPlayerIds: Set<number> = new Set();
+  private dllConnected: boolean = false;
 
   private config = {
     databasePath: 'data/',
@@ -35,9 +36,13 @@ export class KnowledgeManager {
       logger.debug(`Game event received: ${data.id} of ${data.type}`, data);
       if (data.type == "dll_status") {
         if (data.payload.connected) {
+          this.dllConnected = true;
           await this.checkGameContext();
           MCPServer.getInstance().sendNotification("DLLConnected", -1, this.getTurn(), 
               parseInt(await this.getStore().getMetadata("lastID") ?? "-1"), { gameID: this.gameIdentity?.gameId });
+        } else if (this.dllConnected) {
+          this.dllConnected = false;
+          MCPServer.getInstance().sendNotification("DLLDisconnected", -1, -1, -1);
         }
       } else if (this.knowledgeStore) {
         await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload?.args);
