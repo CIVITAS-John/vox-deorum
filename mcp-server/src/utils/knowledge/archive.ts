@@ -4,9 +4,9 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { getDocumentsPath } from './config.js';
-import { createLogger } from './logger.js';
-import { knowledgeManager } from '../server.js';
+import { getDocumentsPath } from '../config.js';
+import { createLogger } from '../logger.js';
+import { knowledgeManager } from '../../server.js';
 
 const logger = createLogger('Archive');
 

@@ -128,6 +128,7 @@ export class StrategistSession {
       player.execute();
     }
 
+    await mcpClient.callTool("set-metadata", { Key: "experiment", Value: this.config.strategist })
     if (this.config.autoPlay && params.turn === 0) {
       // Autoplay
       await setTimeout(1000);
