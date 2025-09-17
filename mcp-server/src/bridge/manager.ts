@@ -316,6 +316,56 @@ export class BridgeManager extends EventEmitter {
   }
 
   /**
+   * Register a player for auto-pause when it's their turn
+   */
+  public async pausePlayer(playerId: number): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/external/pause-player/${playerId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        dispatcher: this.fastAgent
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed with status ${response.status}`);
+      }
+
+      logger.info(`Player ${playerId} registered for auto-pause`);
+      return true;
+    } catch (error: any) {
+      logger.warn(`Failed to register player ${playerId} for auto-pause:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Unregister a player from auto-pause (resume)
+   */
+  public async resumePlayer(playerId: number): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/external/pause-player/${playerId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        dispatcher: this.fastAgent
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed with status ${response.status}`);
+      }
+
+      logger.info(`Player ${playerId} unregistered from auto-pause`);
+      return true;
+    } catch (error: any) {
+      logger.error(`Failed to unregister player ${playerId} from auto-pause:`, error);
+      return false;
+    }
+  }
+
+  /**
    * Shutdown the manager
    */
   public shutdown(): void {
