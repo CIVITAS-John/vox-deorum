@@ -64,7 +64,6 @@ router.post('/batch', async (req: Request, res: Response) => {
       }
     });
 
-    logger.info(`Lua batch call with ${requests.length} functions`);
     const results = await luaManager.callBatch(requests);
 
     return respondSuccess({ results });

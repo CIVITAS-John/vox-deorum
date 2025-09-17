@@ -70,7 +70,8 @@ export class LuaManager {
       const response = await this.callFunction(request);
       responses.push(response);
     }
-
+    
+    logger.info(`Executed batch of ${requests.length} Lua calls`);
     return responses;
   }
 

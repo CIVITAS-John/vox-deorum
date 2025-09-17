@@ -9,6 +9,7 @@ import { createLogger } from '../utils/logger.js';
 import { config } from '../utils/config.js';
 import { LuaFunction } from './lua-function.js';
 import { HttpClient, HttpError } from './http-client.js';
+import { setTimeout as sleep } from 'node:timers/promises';
 
 const logger = createLogger('BridgeManager');
 
@@ -45,6 +46,17 @@ export interface GameEvent {
 }
 
 /**
+ * Queued Lua function call request
+ */
+interface QueuedLuaCall {
+  functionName: string;
+  args: any[];
+  resolve: (value: LuaResponse) => void;
+  reject: (error: any) => void;
+  timestamp: number;
+}
+
+/**
  * Manager for Bridge Service communication
  */
 export class BridgeManager extends EventEmitter {
@@ -54,6 +66,8 @@ export class BridgeManager extends EventEmitter {
   private connectionRetryTimeout: NodeJS.Timeout | null = null;
   private isDllConnected: boolean = false;
   private httpClient: HttpClient;
+  private luaCallQueue: QueuedLuaCall[] = [];
+  private queueProcessorRunning: boolean = false;
 
   /**
    * Create a new BridgeManager instance
@@ -64,6 +78,9 @@ export class BridgeManager extends EventEmitter {
     this.luaFunctions = new Map();
     this.httpClient = new HttpClient(this.baseUrl);
     logger.info(`BridgeManager initialized with URL: ${this.baseUrl}`);
+
+    // Start the queue processor loop
+    this.startQueueProcessorLoop();
   }
 
   /**
@@ -107,32 +124,143 @@ export class BridgeManager extends EventEmitter {
   }
 
   /**
-   * Call a registered Lua function through Bridge Service
+   * Call a registered Lua function through Bridge Service (queued)
    */
   public async callLuaFunction(functionName: string, args: any[]): Promise<LuaResponse> {
-    try {
-      const data = await this.httpClient.post<LuaResponse>('/lua/call', {
-        function: functionName,
-        args: args,
-      });
-
-      if (!data.success) {
-        logger.error(`Lua function ${functionName} failed: ${JSON.stringify(data)}`, data.error);
-      }
-
-      return data;
-    } catch (error: any) {
-      logger.error(`Failed to call Lua function ${functionName}:`, error);
+    // Immediately reject if DLL is not connected
+    if (!this.isDllConnected) {
       return {
         success: false,
         error: {
-          code: error instanceof HttpError ? error.code : 'NETWORK_ERROR',
-          message: error.message || 'Failed to communicate with Bridge Service',
-        },
+          code: 'DLL_DISCONNECTED',
+          message: 'DLL is not connected'
+        }
       };
+    }
+
+    return new Promise((resolve, reject) => {
+      this.luaCallQueue.push({
+        functionName,
+        args,
+        resolve,
+        reject,
+        timestamp: Date.now()
+      });
+    });
+  }
+
+  /**
+   * Start the async queue processor loop
+   */
+  private async startQueueProcessorLoop(): Promise<void> {
+    if (this.queueProcessorRunning) return;
+    this.queueProcessorRunning = true;
+
+    while (this.queueProcessorRunning) {
+      if (!this.isDllConnected) {
+        // Drop all pending calls when DLL disconnects
+        this.dropAllPendingCalls('DLL disconnected');
+        // Wait before checking again
+        await sleep(200);
+        continue;
+      }
+
+      if (this.luaCallQueue.length === 0) {
+        // No items in queue, wait
+        await sleep(50);
+        continue;
+      }
+
+      // Process a batch
+      await this.processBatch();
     }
   }
 
+  /**
+   * Process a single batch of queued calls
+   */
+  private async processBatch(): Promise<void> {
+    // Extract a batch from the queue
+    const batch = this.luaCallQueue.splice(0, Math.min(20, this.luaCallQueue.length));
+
+    if (batch.length === 0) return;
+
+    try {
+      logger.info(`Batch executing ${batch.length} Lua calls, ${this.luaCallQueue.length} remaining...`);
+      const response = await this.httpClient.post<any>('/lua/batch', batch.map(call => ({
+        function: call.functionName,
+        args: call.args
+      })));
+
+      if (response.success && response.result?.results) {
+        const results = response.result.results;
+
+        // Match results to original calls
+        batch.forEach((call, index) => {
+          if (index < results.length) {
+            call.resolve(results[index]);
+          } else {
+            // Shouldn't happen, but handle missing result
+            call.resolve({
+              success: false,
+              error: {
+                code: 'BATCH_ERROR',
+                message: 'Missing result from batch call'
+              }
+            });
+          }
+        });
+      } else {
+        // Batch failed entirely
+        batch.forEach(call => {
+          call.resolve({
+            success: false,
+            error: {
+              code: 'BATCH_ERROR',
+              message: response.error?.message || 'Batch execution failed'
+            }
+          });
+        });
+      }
+    } catch (error: any) {
+      logger.error('Failed to execute batch Lua calls:', error);
+
+      // Resolve all calls with error
+      batch.forEach(call => {
+        call.resolve({
+          success: false,
+          error: {
+            code: error instanceof HttpError ? error.code : 'NETWORK_ERROR',
+            message: error.message || 'Failed to communicate with Bridge Service',
+          },
+        });
+      });
+    }
+  }
+
+  /**
+   * Drop all pending calls with an error
+   */
+  private dropAllPendingCalls(reason: string): void {
+    if (this.luaCallQueue.length === 0) return;
+
+    logger.warn(`Dropping ${this.luaCallQueue.length} pending Lua calls: ${reason}`);
+
+    const error = {
+      success: false,
+      error: {
+        code: 'QUEUE_DROPPED',
+        message: reason
+      }
+    };
+
+    this.luaCallQueue.forEach(call => {
+      call.resolve(error);
+    });
+
+    this.luaCallQueue = [];
+  }
+  
   /**
    * Add a LuaFunction to the knowledge of the manager
    */
@@ -304,6 +432,13 @@ export class BridgeManager extends EventEmitter {
    */
   public async shutdown(): Promise<void> {
     logger.info('Shutting down BridgeManager');
+
+    // Stop queue processor
+    this.queueProcessorRunning = false;
+
+    // Drop all pending queue items
+    this.dropAllPendingCalls('BridgeManager shutting down');
+
     this.disconnectSSE();
     this.resetFunctions();
     this.removeAllListeners();
