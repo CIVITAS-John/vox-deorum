@@ -98,17 +98,11 @@ export async function performBackupVisibilityAnalysis(
       }
     }
 
-    // If no specific visibility determined, default to conservative approach
-    const hasVisibility = visibilityFlags.some(v => v > 0);
-    if (!hasVisibility) {
-      logger.warn(`No visibility rules matched for event ${eventType}, using conservative default`);
-    }
-
   } catch (error) {
     logger.warn('Error during backup visibility analysis:', error);
     return undefined;
   }
 
-  logger.debug(`Backup visibility analysis complete for ${eventType}. Flags: [${visibilityFlags}]`);
+  logger.warn(`Backup visibility analysis complete for ${eventType}. Flags: [${visibilityFlags}]`);
   return { visibilityFlags, extraPayload };
 }

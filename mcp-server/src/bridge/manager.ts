@@ -174,6 +174,7 @@ export class BridgeManager extends EventEmitter {
       // Process a batch
       await this.processBatch();
     }
+    logger.info(`The queue processor has completed.`);
   }
 
   /**
@@ -310,7 +311,10 @@ export class BridgeManager extends EventEmitter {
           if (data.type == "dll_status") {
             if (!data.payload.status && this.dllConnected)
               this.resetFunctions();
-            this.isDllConnected = data.payload.status;
+            if (this.isDllConnected != data.payload.status) {
+              this.isDllConnected = data.payload.status;
+              logger.warn("DLL connected status changed: " + this.isDllConnected);
+            }
           } 
           this.emit('gameEvent', data);
           // logger.debug('Received SSE event: ' + data.type, data);

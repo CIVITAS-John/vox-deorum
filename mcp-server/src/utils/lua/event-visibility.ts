@@ -49,6 +49,5 @@ export async function analyzeEventVisibility(eventType: string, payload: any): P
   }
 
   // Primary analysis failed, try backup analysis
-  logger.warn(`Lua visibility analysis failed for event: ${eventType}, attempting backup analysis`);
   return await performBackupVisibilityAnalysis(eventType, payload);
 }
