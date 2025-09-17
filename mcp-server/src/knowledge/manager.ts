@@ -77,6 +77,7 @@ export class KnowledgeManager {
       this.knowledgeStore = undefined;
     }
     
+    // Load knowledge store
     this.gameIdentity = identity;
     await this.loadKnowledge(identity.gameId);
     this.updateActivePlayer();

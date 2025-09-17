@@ -6,9 +6,6 @@
 import { LuaFunction } from '../../bridge/lua-function.js';
 import { MaxMajorCivs } from '../../knowledge/schema/base.js';
 import { performBackupVisibilityAnalysis } from '../visibility/backup-analysis.js';
-import { createLogger } from '../logger.js';
-
-const logger = createLogger('EventVisibility');
 
 /**
  * Lua function that analyzes event visibility
