@@ -8,6 +8,7 @@ import { bridgeManager, MCPServer } from '../server.js';
 import { GameIdentity, syncGameIdentity } from '../utils/lua/game-identity.js';
 import { KnowledgeStore } from './store.js';
 import path from 'path';
+import { MaxMajorCivs } from './schema/base.js';
 
 const logger = createLogger('KnowledgeManager');
 
@@ -206,18 +207,19 @@ export class KnowledgeManager {
    */
   async updateActivePlayer(newID?: number) {
     if (!this.gameIdentity) return;
-    if (newID !== undefined && newID !== this.gameIdentity.activePlayerId) {
+    const changed = newID !== undefined && newID !== this.gameIdentity.activePlayerId;
+    if (changed) {
       this.gameIdentity.activePlayerId = newID;
       logger.info(`Active player changed to: ${this.getActivePlayerId()}`);
     }
     // Check if active player is in paused list
     if (this.pausedPlayerIds.has(this.getActivePlayerId())) {
       // Pause the game
-      if (await bridgeManager.pauseGame())
+      if (await bridgeManager.pauseGame() && changed && newID < MaxMajorCivs)
         logger.info(`Game paused for player ${newID ?? -1}`);
     } else {
       // Resume the game
-      if (await bridgeManager.resumeGame())
+      if (await bridgeManager.resumeGame() && changed && newID < MaxMajorCivs)
         logger.info(`Game resumed for player ${newID ?? -1}`);
     }
   }
