@@ -10,6 +10,7 @@ import { ElicitRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from '../logger.js';
 import { config, VoxAgentsConfig } from '../config.js';
 import { fetch, Pool, setGlobalDispatcher } from 'undici';
+import { URL } from 'node:url';
 
 const logger = createLogger('MCPClient');
 
@@ -60,7 +61,7 @@ export class MCPClient {
       });
     } else if (transportConfig.type === 'http') {
       // Global pooling for HTTP requests
-      setGlobalDispatcher(new Pool(transportConfig.endpoint!, { connections: 5 }));
+      setGlobalDispatcher(new Pool(new URL(transportConfig.endpoint!).origin, { connections: 5 }));
       const mcpUrl = new URL(transportConfig.endpoint!);
       this.transport = new StreamableHTTPClientTransport(mcpUrl, {
         reconnectionOptions: {
