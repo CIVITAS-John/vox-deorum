@@ -39,7 +39,7 @@ async function main() {
     // Keep the script running
     logger.info('🎮 Mock DLL server is running. Press Ctrl+C to stop.');
     logger.info('💡 Start the bridge service in another terminal: npm run dev');
-    logger.info('🌐 Bridge service will be available at: http://localhost:5000');
+    logger.info('🌐 Bridge service will be available at: http://127.0.0.1:5000');
 
     // Handle graceful shutdown
     process.on('SIGINT', async () => {

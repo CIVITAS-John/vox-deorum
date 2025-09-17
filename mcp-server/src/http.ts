@@ -152,7 +152,7 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
 
   // Start the server
   const port = config.transport.port || 3000;
-  const host = config.transport.host || 'localhost';
+  const host = config.transport.host || '127.0.0.1';
 
   try {
     await mcpServer.initialize();

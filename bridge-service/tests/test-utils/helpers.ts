@@ -89,7 +89,7 @@ export function delay(ms: number): Promise<void> {
 export class TestServer {
   private server: any = null;
 
-  async start(app: Application, port: number, host: string = 'localhost'): Promise<void> {
+  async start(app: Application, port: number, host: string = '127.0.0.1'): Promise<void> {
     return new Promise(async (resolve) => {
       // Start the bridge service (DLL connection)
       await bridgeService.start();

@@ -42,7 +42,7 @@ class ResumeGameTool extends ToolBase {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     try {
-      const bridgeUrl = config.bridge?.url || 'http://localhost:5000';
+      const bridgeUrl = config.bridge?.url || 'http://127.0.0.1:5000';
       await fetch(`${bridgeUrl}/external/pause-player/${args.PlayerID}`, {
         method: 'DELETE',
         headers: {

@@ -31,7 +31,7 @@ const logger = createLogger('Config');
 const defaultConfig: ServiceConfig = {
   rest: {
     port: 5000,
-    host: 'localhost'
+    host: '127.0.0.1'
   },
   namedpipe: {
     id: 'vox-deorum-bridge',

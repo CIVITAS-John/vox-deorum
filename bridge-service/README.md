@@ -54,7 +54,7 @@ Edit `config.json`:
 {
   "rest": {
     "port": 5000,
-    "host": "localhost"
+    "host": "127.0.0.1"
   },
   "namedpipe": {
     "id": "vox-deorum-bridge",
@@ -71,7 +71,7 @@ Edit `config.json`:
 ### From External Service
 ```javascript
 // Execute Lua function
-const response = await fetch('http://localhost:5000/lua/call', {
+const response = await fetch('http://127.0.0.1:5000/lua/call', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -81,19 +81,19 @@ const response = await fetch('http://localhost:5000/lua/call', {
 });
 
 // Register AI endpoint for Lua
-await fetch('http://localhost:5000/external/register', {
+await fetch('http://127.0.0.1:5000/external/register', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     name: 'AnalyzeThreat',
-    url: 'http://localhost:4000/analyze',
+    url: 'http://127.0.0.1:4000/analyze',
     async: true,
     timeout: 5000
   })
 });
 
 // Listen to game events
-const events = new EventSource('http://localhost:5000/events');
+const events = new EventSource('http://127.0.0.1:5000/events');
 events.onmessage = (event) => {
   const data = JSON.parse(event.data);
   console.log('Game event:', data);

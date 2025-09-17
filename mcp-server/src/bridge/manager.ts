@@ -60,7 +60,7 @@ export class BridgeManager extends EventEmitter {
    */
   constructor(baseUrl?: string) {
     super();
-    this.baseUrl = baseUrl || config.bridge?.url || 'http://localhost:5000';
+    this.baseUrl = baseUrl || config.bridge?.url || 'http://127.0.0.1:5000';
     this.luaFunctions = new Map();
     // Pooling for HTTP requests
     const globalAgent = new Pool(this.baseUrl, { connections: 10 });

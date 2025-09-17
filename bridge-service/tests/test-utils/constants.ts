@@ -15,6 +15,6 @@ export const TEST_TIMEOUTS = {
 };
 
 export const TEST_URLS = {
-  MOCK_SERVICE: `http://localhost:${TEST_PORTS.MOCK_EXTERNAL_SERVICE}/execute`,
-  MOCK_SERVICE_2: `http://localhost:${TEST_PORTS.MOCK_EXTERNAL_SERVICE_2}/execute`,
+  MOCK_SERVICE: `http://127.0.0.1:${TEST_PORTS.MOCK_EXTERNAL_SERVICE}/execute`,
+  MOCK_SERVICE_2: `http://127.0.0.1:${TEST_PORTS.MOCK_EXTERNAL_SERVICE_2}/execute`,
 };

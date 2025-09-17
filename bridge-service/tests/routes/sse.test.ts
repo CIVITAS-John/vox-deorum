@@ -43,7 +43,7 @@ function waitForSSEEvent(
  * Helper to create an SSE client connection
  */
 function createSSEClient(): EventSource {
-  return new EventSource(`http://localhost:${config.rest.port}/events`, {
+  return new EventSource(`http://127.0.0.1:${config.rest.port}/events`, {
     withCredentials: false
   });
 }

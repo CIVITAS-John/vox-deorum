@@ -33,7 +33,7 @@ Edit `config.json`:
 {
   "server": { "name": "vox-deorum-mcp-server" },
   "bridgeService": {
-    "endpoint": { "host": "localhost", "port": 5000 }
+    "endpoint": { "host": "127.0.0.1", "port": 5000 }
   },
   "logging": { "level": "info" }
 }
