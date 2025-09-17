@@ -40,6 +40,7 @@
     "change-case": "^5.4.4",
     "dotenv": "^17.2.2",
     "langfuse-vercel": "^3.38.5",
+    "undici": "^7.16.0",
     "winston": "^3.17.0",
     "zod": "^3.25.76",
     "zod-from-json-schema": "^0.5.0"

@@ -53,9 +53,13 @@ process.on('unhandledRejection', (reason, promise) => {
 // Start the session
 async function main() {
   try {
-    session = new StrategistSession(config);
-    await session.start();
-    logger.info('Session completed successfully');
+    for (var I = 0; I < 10; I++) {
+      if (shuttingdown) break;
+      session = new StrategistSession(config);
+      await session.start();
+      logger.info(`Session ${I} completed successfully`);
+      if (shuttingdown) break;
+    }
   } catch (error) {
     logger.error('Session failed:', error);
     process.exit(1);

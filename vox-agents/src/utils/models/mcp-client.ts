@@ -9,6 +9,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { ElicitRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from '../logger.js';
 import { config, VoxAgentsConfig } from '../config.js';
+import { fetch, Pool, setGlobalDispatcher } from 'undici';
 
 const logger = createLogger('MCPClient');
 
@@ -58,8 +59,18 @@ export class MCPClient {
         args: transportConfig.args 
       });
     } else if (transportConfig.type === 'http') {
+      // Global pooling for HTTP requests
+      setGlobalDispatcher(new Pool(transportConfig.endpoint!, { connections: 5 }));
       const mcpUrl = new URL(transportConfig.endpoint!);
-      this.transport = new StreamableHTTPClientTransport(mcpUrl);
+      this.transport = new StreamableHTTPClientTransport(mcpUrl, {
+        reconnectionOptions: {
+          maxReconnectionDelay: 2000,
+          initialReconnectionDelay: 200,
+          reconnectionDelayGrowFactor: 1.5,
+          maxRetries: 5
+        },
+        fetch: fetch
+      });
       logger.info('Created HTTP transport', { url: mcpUrl.toString() });
     } else {
       throw new Error(`Unsupported transport type: ${transportConfig.type}`);
