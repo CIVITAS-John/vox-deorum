@@ -153,13 +153,13 @@ dllConnector.on('game_event', (eventData: any) => {
 
   // Handle player turn events for auto-pause functionality
   if (eventData.event === 'PlayerDoTurn' && eventData.payload?.args) {
-    const playerId = eventData.payload.args.PlayerID;
+    const playerId = eventData.payload.args[0];
     if (typeof playerId === 'number') {
       gameMutexManager.setActivePlayer(playerId);
       logger.debug(`Active player changed to ${playerId} (PlayerDoTurn event)`);
     }
   } else if (eventData.event === 'PlayerDoneTurn' && eventData.payload?.args) {
-    const nextPlayerId = eventData.payload.args.NextPlayerID;
+    const nextPlayerId = eventData.payload.args[1];
     if (typeof nextPlayerId === 'number') {
       gameMutexManager.setActivePlayer(nextPlayerId);
       logger.debug(`Active player changed to ${nextPlayerId} (PlayerDoneTurn event)`);

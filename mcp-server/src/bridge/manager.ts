@@ -8,7 +8,7 @@ import { EventSource } from 'eventsource'
 import { createLogger } from '../utils/logger.js';
 import { config } from '../utils/config.js';
 import { LuaFunction } from './lua-function.js';
-import { fetch, Pool, setGlobalDispatcher, RetryAgent } from 'undici';
+import { fetch, Pool, setGlobalDispatcher } from 'undici';
 
 const logger = createLogger('BridgeManager');
 
@@ -53,6 +53,7 @@ export class BridgeManager extends EventEmitter {
   private sseConnection: EventSource | null = null;
   private connectionRetryTimeout: NodeJS.Timeout | null = null;
   private isDllConnected: boolean = false;
+  private fastAgent: Pool;
 
   /**
    * Create a new BridgeManager instance
@@ -61,14 +62,11 @@ export class BridgeManager extends EventEmitter {
     super();
     this.baseUrl = baseUrl || config.bridge?.url || 'http://localhost:5000';
     this.luaFunctions = new Map();
-    // Global pooling for HTTP requests
-    const agent = new RetryAgent(
-      new Pool(this.baseUrl, { connections: 10 }), 
-      { 
-        minTimeout: 200, timeoutFactor: 2, maxRetries: 3, 
-        statusCodes: [502, 503, 504, 429],
-      });
-    setGlobalDispatcher(agent);
+    // Pooling for HTTP requests
+    const globalAgent = new Pool(this.baseUrl, { connections: 10 });
+    this.fastAgent = new Pool(this.baseUrl, { connections: 5 });
+    setGlobalDispatcher(globalAgent);
+    // Finishing
     logger.info(`BridgeManager initialized with URL: ${this.baseUrl}`);
   }
 
@@ -102,6 +100,7 @@ export class BridgeManager extends EventEmitter {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ script }),
+        dispatcher: this.fastAgent
       });
 
       const data = await response.json() as LuaResponse;
@@ -282,6 +281,7 @@ export class BridgeManager extends EventEmitter {
         headers: {
           'Content-Type': 'application/json',
         },
+        dispatcher: this.fastAgent
       });
 
       const data = await response.json();
@@ -303,6 +303,7 @@ export class BridgeManager extends EventEmitter {
         headers: {
           'Content-Type': 'application/json',
         },
+        dispatcher: this.fastAgent
       });
 
       const data = await response.json();

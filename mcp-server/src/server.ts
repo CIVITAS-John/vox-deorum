@@ -111,9 +111,10 @@ export class MCPServer {
         annotations: tool.annotations,
       },
       (async (args: z.infer<typeof tool.inputSchema>) => {
-        logger.info(`Handling tool request ${tool.name}`, args);
+        logger.warn(`Handling tool request ${tool.name}`, args);
         try {
           const results = await tool.execute(args);
+          logger.warn(`Finishing tool request ${tool.name}`);
           // If tool already returns CallToolResult, use it directly
           if (results && typeof results === 'object' && 'content' in results) {
             return results;
@@ -195,10 +196,10 @@ export class MCPServer {
    */
   public sendNotification(event: string, playerID: number, turn: number, latestID: number, param: Record<string, any> = {}) {
     if (this.eventsForNotification.indexOf(event) !== -1 && playerID < MaxMajorCivs) {
-      logger.info(`Sending server-side notification to MCP clients about ${event} (Player ${playerID}) at turn ${turn}.`)
+      logger.info(`Sending server-side notification to ${this.servers.size} MCP clients about ${event} (Player ${playerID}) at turn ${turn}.`)
       // Send notification to all connected servers
       this.servers.forEach((server, _id) => {
-        const rawServer = (server as any).server;
+        const rawServer = server.server;
         rawServer.elicitInput(
           {
             message: event,
@@ -210,6 +211,8 @@ export class MCPServer {
               type: "object",
               properties: {}
             },
+          }, {
+            timeout: 100
           }
         ).catch((_r: any) => {
           // logger.warn(`Failed to send notification to server ${id}`, _r);
