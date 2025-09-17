@@ -14,6 +14,7 @@ import createSetStrategyTool from "./actions/set-strategy.js";
 import createPauseGameTool from "./actions/pause-game.js";
 import createResumeGameTool from "./actions/resume-game.js";
 import createSummarizeUnitsTool from "./knowledge/summarize-units.js";
+import createSetMetadataTool from "./actions/set-metadata.js";
 
 // Tool factory configuration - one line per tool
 const toolFactories = {
@@ -29,6 +30,7 @@ const toolFactories = {
     getOpinions: createGetOpinionsTool,
     getCities: createGetCitiesTool,
     getMetadata: createGetMetadataTool,
+    setMetadata: createSetMetadataTool,
     summarizeUnits: createSummarizeUnitsTool,
     setStrategy: createSetStrategyTool,
     pauseGame: createPauseGameTool,
