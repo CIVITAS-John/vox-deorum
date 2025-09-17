@@ -311,8 +311,8 @@ export class BridgeManager extends EventEmitter {
           if (data.type == "dll_status") {
             if (!data.payload.status && this.dllConnected)
               this.resetFunctions();
-            if (this.isDllConnected != data.payload.status) {
-              this.isDllConnected = data.payload.status;
+            if (this.isDllConnected != data.payload.connected) {
+              this.isDllConnected = data.payload.connected;
               logger.warn("DLL connected status changed: " + this.isDllConnected);
             }
           } 
