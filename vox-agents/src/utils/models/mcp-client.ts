@@ -67,8 +67,8 @@ export class MCPClient {
         reconnectionOptions: {
           maxReconnectionDelay: 2000,
           initialReconnectionDelay: 200,
-          reconnectionDelayGrowFactor: 1.5,
-          maxRetries: 5
+          reconnectionDelayGrowFactor: 2,
+          maxRetries: 1000
         },
         fetch: fetch
       });

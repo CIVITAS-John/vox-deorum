@@ -157,6 +157,8 @@ export class BridgeManager extends EventEmitter {
     if (this.queueProcessorRunning) return;
     this.queueProcessorRunning = true;
 
+    // In case we crashed recently
+    await this.resumeGame();
     while (this.queueProcessorRunning) {
       if (!this.isDllConnected) {
         // Drop all pending calls when DLL disconnects
