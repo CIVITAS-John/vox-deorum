@@ -36,8 +36,7 @@ export class KnowledgeManager {
         if (data.payload.connected) {
           this.dllConnected = true;
           await this.checkGameContext();
-          MCPServer.getInstance().sendNotification("DLLConnected", -1, this.getTurn(), 
-              parseInt(await this.getStore().getMetadata("lastID") ?? "-1"), { gameID: this.gameIdentity?.gameId });
+          MCPServer.getInstance().sendNotification("DLLConnected", -1, -1, -1);
         } else if (this.dllConnected) {
           this.dllConnected = false;
           MCPServer.getInstance().sendNotification("DLLDisconnected", -1, -1, -1);

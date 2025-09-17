@@ -63,14 +63,16 @@ export class LuaManager {
   public async callBatch(requests: LuaBatchRequest): Promise<LuaBatchResponse> {
     logger.info(`Executing batch of ${requests.length} Lua calls`);
 
-    const responses: LuaBatchResponse = [];
+    // Prepare all messages for batch sending
+    const messages: LuaCallMessage[] = requests.map(request => ({
+      type: 'lua_call',
+      function: request.function,
+      args: request.args
+    }));
 
-    // Execute calls sequentially to maintain order
-    for (const request of requests) {
-      const response = await this.callFunction(request);
-      responses.push(response);
-    }
-    
+    // Send all messages in a single batch
+    const responses = await dllConnector.sendBatch<any>(messages);
+
     logger.info(`Executed batch of ${requests.length} Lua calls`);
     return responses;
   }

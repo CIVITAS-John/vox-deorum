@@ -189,42 +189,61 @@ export class DLLConnector extends EventEmitter {
   }
 
   /**
+   * Send multiple messages to the DLL in batch
+   */
+  public async sendBatch<T>(messages: IPCMessage[], timeout: number = 30000): Promise<APIResponse<T>[]> {
+    if (!this.connected) {
+      logger.warn('Cannot send messages, DLL is disconnected');
+      return messages.map(() => respondError(ErrorCode.DLL_DISCONNECTED));
+    }
+
+    // Add IDs if not present and prepare batch data
+    const messagesWithIds = messages.map(message => ({
+      ...message,
+      id: (message as any).id || uuidv4()
+    }));
+
+    // Create promises for all messages
+    const promises = messagesWithIds.map(messageWithId => {
+      return new Promise<APIResponse<T>>((resolve) => {
+        const request: PendingRequest<T> = {
+          id: messageWithId.id,
+          resolve,
+          reject: resolve,
+          timestamp: new Date(),
+          timeout: setTimeout(() => {
+            this.pendingRequests.delete(messageWithId.id);
+            logger.error('Message timeout: ' + messageWithId.id);
+            resolve(respondError(ErrorCode.CALL_TIMEOUT));
+          }, timeout)
+        };
+
+        this.pendingRequests.set(messageWithId.id, request);
+      });
+    });
+
+    // Send all messages as a batch
+    try {
+      const batchData = messagesWithIds.map(msg => JSON.stringify(msg)).join("!@#$%^!");
+      ipc.of[config.namedpipe.id].emit(batchData + "!@#$%^!");
+      logger.debug(`Sent batch of ${messagesWithIds.length} messages to DLL`);
+      // Emit event for testing
+      messagesWithIds.forEach(msg => this.emit('ipc_send', msg));
+    } catch (error) {
+      // Clear all pending requests and return error for all
+      messagesWithIds.forEach(msg => this.pendingRequests.delete(msg.id));
+      return messages.map(() => respondError(ErrorCode.NETWORK_ERROR));
+    }
+
+    return Promise.all(promises);
+  }
+
+  /**
    * Send a message to the DLL
    */
   public async send<T>(message: IPCMessage, timeout: number = 30000): Promise<APIResponse<T>> {
-    if (!this.connected) {
-      logger.warn('Cannot send message, DLL is disconnected');
-      return respondError(ErrorCode.DLL_DISCONNECTED);
-    }
-
-    // Add ID if not present
-    const messageWithId = { ...message, id: (message as any).id || uuidv4() };
-    
-    return new Promise((resolve) => {
-      const request: PendingRequest<T> = {
-        id: messageWithId.id,
-        resolve,
-        reject: resolve,
-        timestamp: new Date(),
-        timeout: setTimeout(() => {
-          this.pendingRequests.delete(messageWithId.id);
-          logger.error('Message timeout: ' + messageWithId.id);
-          resolve(respondError(ErrorCode.CALL_TIMEOUT));
-        }, timeout)
-      };
-
-      this.pendingRequests.set(messageWithId.id, request);
-
-      try {
-        ipc.of[config.namedpipe.id].emit(JSON.stringify(messageWithId) + "!@#$%^!");
-        logger.debug('Sent message to DLL:', messageWithId);
-        // Emit event for testing
-        this.emit('ipc_send', messageWithId);
-      } catch (error) {
-        this.pendingRequests.delete(messageWithId.id);
-        resolve(respondError(ErrorCode.NETWORK_ERROR));
-      }
-    });
+    const results = await this.sendBatch<T>([message], timeout);
+    return results[0];
   }
 
   /**

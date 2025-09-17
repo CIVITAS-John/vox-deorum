@@ -181,7 +181,7 @@ export class BridgeManager extends EventEmitter {
    */
   private async processBatch(): Promise<void> {
     // Extract a batch from the queue
-    const batch = this.luaCallQueue.splice(0, Math.min(20, this.luaCallQueue.length));
+    const batch = this.luaCallQueue.splice(0, Math.min(50, this.luaCallQueue.length));
 
     if (batch.length === 0) return;
 
