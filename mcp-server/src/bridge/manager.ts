@@ -151,6 +151,7 @@ export class BridgeManager extends EventEmitter {
    * Reset all registered functions (mark as unregistered)
    */
   public resetFunctions(): void {
+    if (this.luaFunctions.size == 0) return;
     logger.info('Resetting all registered functions');
     this.luaFunctions.forEach(func => {
       func.resetRegistration();
@@ -178,8 +179,11 @@ export class BridgeManager extends EventEmitter {
       this.sseConnection.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data) as GameEvent;
-          if (data.type == "dll_status" && !data.payload.status && this.dllConnected) 
-            this.resetFunctions();
+          if (data.type == "dll_status") {
+            if (!data.payload.status && this.dllConnected)
+              this.resetFunctions();
+            this.isDllConnected = data.payload.status;
+          } 
           this.emit('gameEvent', data);
           // logger.debug('Received SSE event: ' + data.type, data);
         } catch (error) {

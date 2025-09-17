@@ -54,7 +54,7 @@ export class HttpClient {
    */
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    this.standardPool = new Pool(baseUrl, { connections: 10 });
+    this.standardPool = new Pool(baseUrl, { connections: 50 });
     this.fastPool = new Pool(baseUrl, { connections: 5 });
   }
 
