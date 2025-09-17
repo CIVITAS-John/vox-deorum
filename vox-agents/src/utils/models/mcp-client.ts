@@ -77,9 +77,23 @@ export class MCPClient {
       throw new Error(`Unsupported transport type: ${transportConfig.type}`);
     }
 
+    // Set up error handlers for transports
+    this.setupErrorHandlers();
+
     // Set up notification handlers
     this.setupNotificationHandlers();
   }
+
+  /**
+   * Set up error handlers for transport layer
+   */
+  private setupErrorHandlers(): void {
+    this.transport.onerror = (error: Error) => {
+      logger.error('Transport error occurred:', error);
+      console.error('[MCPClient] Transport error:', error);
+    };
+  }
+
   /**
    * Set up handlers for server-side notifications
    */

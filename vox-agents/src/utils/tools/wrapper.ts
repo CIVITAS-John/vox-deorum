@@ -7,7 +7,7 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { mcpClient } from "../models/mcp-client.js";
 import { startActiveObservation } from "@langfuse/tracing";
 import { camelCase } from "change-case";
-import { jsonToMarkdown } from "../json-to-markdown.js";
+import { jsonToMarkdown } from "./json-to-markdown.js";
 
 /**
  * Creates a dynamic tool wrapper for an agent using Vercel AI SDK's dynamicTool
