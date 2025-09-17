@@ -8,7 +8,7 @@ import { EventSource } from 'eventsource'
 import { createLogger } from '../utils/logger.js';
 import { config } from '../utils/config.js';
 import { LuaFunction } from './lua-function.js';
-import { fetch, Pool, setGlobalDispatcher } from 'undici';
+import { HttpClient, HttpError } from './http-client.js';
 
 const logger = createLogger('BridgeManager');
 
@@ -53,7 +53,7 @@ export class BridgeManager extends EventEmitter {
   private sseConnection: EventSource | null = null;
   private connectionRetryTimeout: NodeJS.Timeout | null = null;
   private isDllConnected: boolean = false;
-  private fastAgent: Pool;
+  private httpClient: HttpClient;
 
   /**
    * Create a new BridgeManager instance
@@ -62,11 +62,7 @@ export class BridgeManager extends EventEmitter {
     super();
     this.baseUrl = baseUrl || config.bridge?.url || 'http://127.0.0.1:5000';
     this.luaFunctions = new Map();
-    // Pooling for HTTP requests
-    const globalAgent = new Pool(this.baseUrl, { connections: 10 });
-    this.fastAgent = new Pool(this.baseUrl, { connections: 5 });
-    setGlobalDispatcher(globalAgent);
-    // Finishing
+    this.httpClient = new HttpClient(this.baseUrl);
     logger.info(`BridgeManager initialized with URL: ${this.baseUrl}`);
   }
 
@@ -75,11 +71,8 @@ export class BridgeManager extends EventEmitter {
    */
   public async checkHealth(): Promise<HealthResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/health`);
-      if (!response.ok) {
-        throw new Error(`Health check failed with status ${response.status}`);
-      }
-      const data = (await response.json() as any).result as HealthResponse;
+      const response = await this.httpClient.get<any>('/health');
+      const data = response.result as HealthResponse;
       this.isDllConnected = data.dll_connected;
       return data;
     } catch (error: any) {
@@ -94,32 +87,19 @@ export class BridgeManager extends EventEmitter {
    */
   public async executeLuaScript(script: string): Promise<LuaResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/lua/execute`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ script }),
-        dispatcher: this.fastAgent
-      });
-
-      const data = await response.json() as LuaResponse;
-      
-      if (!data) {
-        throw new Error(`Lua function call failed with status ${response.status}: ${JSON.stringify(data)}`);
-      }
+      const data = await this.httpClient.post<LuaResponse>('/lua/execute', { script }, { fast: true });
 
       if (!data.success) {
         logger.error('Lua script execution failed: ' + (JSON.stringify(data)), data.error);
       }
-      
+
       return data;
     } catch (error: any) {
       logger.error('Failed to execute Lua script:', error);
       return {
         success: false,
         error: {
-          code: 'NETWORK_ERROR',
+          code: error instanceof HttpError ? error.code : 'NETWORK_ERROR',
           message: error.message || 'Failed to communicate with Bridge Service',
         },
       };
@@ -131,34 +111,22 @@ export class BridgeManager extends EventEmitter {
    */
   public async callLuaFunction(functionName: string, args: any[]): Promise<LuaResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/lua/call`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          function: functionName,
-          args: args,
-        }),
+      const data = await this.httpClient.post<LuaResponse>('/lua/call', {
+        function: functionName,
+        args: args,
       });
-
-      const data = await response.json() as LuaResponse;
-      
-      if (!data) {
-        throw new Error(`Lua function call failed with status ${response.status}: ${JSON.stringify(data)}`);
-      }
 
       if (!data.success) {
         logger.error(`Lua function ${functionName} failed: ${JSON.stringify(data)}`, data.error);
       }
-      
+
       return data;
     } catch (error: any) {
       logger.error(`Failed to call Lua function ${functionName}:`, error);
       return {
         success: false,
         error: {
-          code: 'NETWORK_ERROR',
+          code: error instanceof HttpError ? error.code : 'NETWORK_ERROR',
           message: error.message || 'Failed to communicate with Bridge Service',
         },
       };
@@ -276,17 +244,9 @@ export class BridgeManager extends EventEmitter {
    */
   public async pauseGame(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/external/pause`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        dispatcher: this.fastAgent
-      });
-
-      const data = await response.json();
-      logger.debug('Game pause requested: ' + (data as any).success);
-      return (data as any).success === true;
+      const data = await this.httpClient.post<any>('/external/pause', undefined, { fast: true });
+      logger.debug('Game pause requested: ' + data.success);
+      return data.success === true;
     } catch (error: any) {
       logger.error('Failed to pause game:', error);
       return false;
@@ -298,17 +258,9 @@ export class BridgeManager extends EventEmitter {
    */
   public async resumeGame(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/external/resume`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        dispatcher: this.fastAgent
-      });
-
-      const data = await response.json();
-      logger.debug('Game resume requested: ' + (data as any).success);
-      return (data as any).success === true;
+      const data = await this.httpClient.post<any>('/external/resume', undefined, { fast: true });
+      logger.debug('Game resume requested: ' + data.success);
+      return data.success === true;
     } catch (error: any) {
       logger.error('Failed to resume game:', error);
       return false;
@@ -320,18 +272,7 @@ export class BridgeManager extends EventEmitter {
    */
   public async pausePlayer(playerId: number): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/external/pause-player/${playerId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        dispatcher: this.fastAgent
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed with status ${response.status}`);
-      }
-
+      await this.httpClient.post(`/external/pause-player/${playerId}`, undefined, { fast: true });
       logger.info(`Player ${playerId} registered for auto-pause`);
       return true;
     } catch (error: any) {
@@ -345,18 +286,7 @@ export class BridgeManager extends EventEmitter {
    */
   public async resumePlayer(playerId: number): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/external/pause-player/${playerId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        dispatcher: this.fastAgent
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed with status ${response.status}`);
-      }
-
+      await this.httpClient.delete(`/external/pause-player/${playerId}`, { fast: true });
       logger.info(`Player ${playerId} unregistered from auto-pause`);
       return true;
     } catch (error: any) {
@@ -368,10 +298,11 @@ export class BridgeManager extends EventEmitter {
   /**
    * Shutdown the manager
    */
-  public shutdown(): void {
+  public async shutdown(): Promise<void> {
     logger.info('Shutting down BridgeManager');
     this.disconnectSSE();
     this.resetFunctions();
     this.removeAllListeners();
+    await this.httpClient.shutdown();
   }
 }

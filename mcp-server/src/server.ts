@@ -287,7 +287,7 @@ export class MCPServer {
     await this.databaseManager.close();
     
     // Shutdown BridgeManager
-    this.bridgeManager.shutdown();
+    await this.bridgeManager.shutdown();
     
     this.initialized = false;
   }
