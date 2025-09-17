@@ -6,7 +6,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { getDocumentsPath } from './config.js';
 import { createLogger } from './logger.js';
-import type { KnowledgeManager } from '../knowledge/manager.js';
 import { knowledgeManager } from '../server.js';
 
 const logger = createLogger('Archive');
@@ -73,12 +72,12 @@ export async function findLatestSaveFile(): Promise<SaveFileInfo | null> {
  * Archive the latest game save and database to a strategist-specific folder
  */
 export async function archiveGameData(
-  strategistOverride?: string
+  experimentOverride?: string
 ): Promise<{ savePath: string, dbPath: string } | null> {
   try {
     // Get the strategist name from metadata or use override/default
     const store = knowledgeManager.getStore();
-    let strategist = strategistOverride ?? await store.getMetadata('strategist') ?? "none";
+    let experiment = experimentOverride ?? await store.getMetadata('experiment') ?? "none";
 
     // Get the game ID
     const gameId = knowledgeManager.getGameId();
@@ -95,7 +94,7 @@ export async function archiveGameData(
     }
 
     // Create the archive directory
-    const archivePath = path.join('archive', strategist);
+    const archivePath = path.join('archive', experiment);
     await fs.mkdir(archivePath, { recursive: true });
     logger.info(`Created archive directory: ${archivePath}`);
 
@@ -119,7 +118,7 @@ export async function archiveGameData(
       // Continue even if database doesn't exist
     }
 
-    logger.info(`Successfully archived game data for strategist: ${strategist}`);
+    logger.info(`Successfully archived game data for experiment: ${experiment}`);
     return {
       savePath: saveDest,
       dbPath: dbDest
