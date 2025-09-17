@@ -215,11 +215,15 @@ export class KnowledgeStore {
       if (eventObject["PlotX"] == -2147483647 || eventObject["PlotY"] == -2147483647) return;
       if (eventObject["OldPopulation"] && eventObject["OldPopulation"] == eventObject["NewPopulation"]) return;
 
-      // Validate t(he event object against the schema
+      // Validate the event object against the schema
       const result = schema.safeParse(eventObject);
 
       if (result.success) {
         const data: any = result.data;
+        const mappedType = renamedEventTypes[type] ?? type;
+        await this.storeGameEvent(id, mappedType, data);
+        await this.setMetadata("lastID", id.toString());
+        // Handle special events for notification
         if (typeof data.PlayerID === "number") {
           // Special: Victory
           if (type == "PlayerVictory") {
@@ -236,10 +240,7 @@ export class KnowledgeStore {
             knowledgeManager.updateActivePlayer(data.NextPlayerID);
           }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);
-          this.setMetadata("lastID", id.toString());
         }
-        const mappedType = renamedEventTypes[type] ?? type;
-        await this.storeGameEvent(id, mappedType, data);
       } else {
         logger.warn(`Invalid ${type} event:`, {
           errors: result.error.errors,
