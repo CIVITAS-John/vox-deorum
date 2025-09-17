@@ -50,8 +50,6 @@ export async function performBackupVisibilityAnalysis(
   eventType: string,
   payload: any
 ): Promise<EventVisibilityResult | undefined> {
-  logger.info(`Performing backup visibility analysis for event type: ${eventType}`);
-
   // Initialize visibility flags (0=invisible, 1=partial, 2=full)
   const visibilityFlags: number[] = new Array(MaxMajorCivs + 1).fill(0);
   const extraPayload: Record<string, any> = {};
@@ -111,6 +109,6 @@ export async function performBackupVisibilityAnalysis(
     return undefined;
   }
 
-  logger.debug(`Backup visibility analysis complete. Flags: [${visibilityFlags}]`);
+  logger.debug(`Backup visibility analysis complete for ${eventType}. Flags: [${visibilityFlags}]`);
   return { visibilityFlags, extraPayload };
 }

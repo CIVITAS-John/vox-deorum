@@ -35,7 +35,7 @@ class GameMutexManager {
     try {
       this.mutex = new Mutex(this.mutexName);
       this.isPaused = true;
-      logger.info('Game paused successfully');
+      logger.debug('Game paused successfully');
       return true;
     } catch (error) {
       logger.warn('Failed to pause game:', error);
@@ -59,7 +59,7 @@ class GameMutexManager {
       this.mutex.release();
       this.mutex = null;
       this.isPaused = false;
-      logger.info('Game resumed successfully');
+      logger.debug('Game resumed successfully');
       return true;
     } catch (error) {
       logger.warn('Failed to resume game:', error);
