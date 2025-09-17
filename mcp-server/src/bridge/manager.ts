@@ -66,8 +66,6 @@ export class BridgeManager extends EventEmitter {
   private connectionRetryTimeout: NodeJS.Timeout | null = null;
   private isDllConnected: boolean = false;
   private httpClient: HttpClient;
-  private luaCallQueue: QueuedLuaCall[] = [];
-  private queueProcessorRunning: boolean = false;
 
   /**
    * Create a new BridgeManager instance
@@ -149,6 +147,9 @@ export class BridgeManager extends EventEmitter {
     });
   }
 
+  private luaCallQueue: QueuedLuaCall[] = [];
+  private queueProcessorRunning: boolean = false;
+  private queueOverflowing: boolean = false;
   /**
    * Start the async queue processor loop
    */
@@ -164,13 +165,6 @@ export class BridgeManager extends EventEmitter {
         await sleep(200);
         continue;
       }
-
-      if (this.luaCallQueue.length === 0) {
-        // No items in queue, wait
-        await sleep(50);
-        continue;
-      }
-
       // Process a batch
       await this.processBatch();
     }
@@ -184,10 +178,24 @@ export class BridgeManager extends EventEmitter {
     // Extract a batch from the queue
     const batch = this.luaCallQueue.splice(0, Math.min(50, this.luaCallQueue.length));
 
-    if (batch.length === 0) return;
-
     try {
-      logger.info(`Batch executing ${batch.length} Lua calls, ${this.luaCallQueue.length} remaining...`);
+      if (this.luaCallQueue.length >= 50 && !this.queueOverflowing) {
+        this.queueOverflowing = true;
+        logger.warn(`Batch executing ${batch.length} Lua calls, ${this.luaCallQueue.length} remaining. Pausing for now`);
+        await this.pauseGame();
+      } else {
+        if (this.queueOverflowing) {
+          await this.resumeGame();
+          this.queueOverflowing = false;
+        }
+        if (batch.length === 0) {
+          await sleep(50);
+          return;
+        }
+        logger.info(`Batch executing ${batch.length} Lua calls, ${this.luaCallQueue.length} remaining...`);
+      }
+
+      // Send the request
       const response = await this.httpClient.post<any>('/lua/batch', batch.map(call => ({
         function: call.functionName,
         args: call.args
@@ -309,11 +317,11 @@ export class BridgeManager extends EventEmitter {
         try {
           const data = JSON.parse(event.data) as GameEvent;
           if (data.type == "dll_status") {
-            if (!data.payload.status && this.dllConnected)
-              this.resetFunctions();
             if (this.isDllConnected != data.payload.connected) {
               this.isDllConnected = data.payload.connected;
               logger.warn("DLL connected status changed: " + this.isDllConnected);
+              // If disconnected, reset functions
+              if (!this.dllConnected) this.resetFunctions();
             }
           } 
           this.emit('gameEvent', data);
