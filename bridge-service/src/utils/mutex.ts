@@ -91,7 +91,7 @@ class GameMutexManager {
    */
   registerPausedPlayer(playerId: number): boolean {
     this.pausedPlayerIds.add(playerId);
-    logger.info(`Player ${playerId} added to paused players list`);
+    logger.info(`Player ${playerId} added to paused players list, currently ${this.isPaused}`);
 
     // If this player is currently active, pause the game
     if (this.currentActivePlayer === playerId && !this.isPaused) {
@@ -105,10 +105,10 @@ class GameMutexManager {
    */
   unregisterPausedPlayer(playerId: number): boolean {
     this.pausedPlayerIds.delete(playerId);
-    logger.info(`Player ${playerId} removed from paused players list`);
+    logger.info(`Player ${playerId} removed from paused players list, currently ${this.isPaused}`);
 
     // If this player is currently active and game is paused, try to resume
-    if (this.currentActivePlayer === playerId && this.isPaused && !this.externalPause) {
+    if (this.currentActivePlayer === playerId && this.isPaused) {
       return this.resumeGame(false);
     }
     return true;
