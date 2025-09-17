@@ -8,6 +8,7 @@ import { createLogger } from '../utils/logger.js';
 import { dllConnector } from '../services/dll-connector.js';
 import { GameEvent, SSEClient } from '../types/event.js';
 import { respondError } from '../types/api.js';
+import { gameMutexManager } from '../utils/mutex.js';
 
 const logger = createLogger('EventRoutes');
 const router = Router();
@@ -149,7 +150,22 @@ dllConnector.on('game_event', (eventData: any) => {
     payload: eventData.payload,
     timestamp: eventData.timestamp || new Date().toISOString()
   };
-  
+
+  // Handle player turn events for auto-pause functionality
+  if (eventData.event === 'PlayerDoTurn' && eventData.payload?.args) {
+    const playerId = eventData.payload.args.PlayerID;
+    if (typeof playerId === 'number') {
+      gameMutexManager.setActivePlayer(playerId);
+      logger.debug(`Active player changed to ${playerId} (PlayerDoTurn event)`);
+    }
+  } else if (eventData.event === 'PlayerDoneTurn' && eventData.payload?.args) {
+    const nextPlayerId = eventData.payload.args.NextPlayerID;
+    if (typeof nextPlayerId === 'number') {
+      gameMutexManager.setActivePlayer(nextPlayerId);
+      logger.debug(`Active player changed to ${nextPlayerId} (PlayerDoneTurn event)`);
+    }
+  }
+
   broadcastEvent(gameEvent);
 });
 
@@ -170,6 +186,7 @@ dllConnector.on('disconnected', () => {
     timestamp: new Date().toISOString()
   };
   broadcastEvent(statusEvent);
+  gameMutexManager.clearPausedPlayers();
 });
 
 export default router;

@@ -7,7 +7,7 @@ import { createLogger } from '../utils/logger.js';
 import { handleAPIError } from '../utils/api.js';
 import { externalManager } from '../services/external-manager.js';
 import { ExternalFunctionRegistration } from '../types/external.js';
-import { gameMutexManager } from '../utils/mutex.js';
+import { gameMutexManager, MaxCivs } from '../utils/mutex.js';
 
 const logger = createLogger('ExternalRoutes');
 const router = Router();
@@ -52,11 +52,11 @@ router.get('/functions', async (_req: Request, res: Response) => {
 });
 
 /**
- * POST /external/pause - Pause the game
+ * POST /external/pause - Pause the game (manual operation)
  */
 router.post('/pause', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/external/pause', async () => {
-    const result = await gameMutexManager.pauseGame();
+    const result = gameMutexManager.pauseGame(true); // Mark as external/manual pause
     return {
       success: result
     };
@@ -64,13 +64,81 @@ router.post('/pause', async (_req: Request, res: Response) => {
 });
 
 /**
- * POST /external/resume - Resume the game
+ * POST /external/resume - Resume the game (manual operation)
  */
 router.post('/resume', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/external/resume', async () => {
-    const result = await gameMutexManager.resumeGame();
+    const result = gameMutexManager.resumeGame(true); // Mark as external/manual resume
     return {
       success: result
+    };
+  });
+});
+
+/**
+ * POST /external/pause-player/:id - Register a player for auto-pause
+ */
+router.post('/pause-player/:id', async (req: Request, res: Response) => {
+  await handleAPIError(res, '/external/pause-player/:id', async () => {
+    const playerId = parseInt(req.params.id);
+    if (isNaN(playerId) || playerId < 0 || playerId >= MaxCivs) {
+      return {
+        success: false,
+        error: 'Invalid player ID'
+      };
+    }
+
+    const result = gameMutexManager.registerPausedPlayer(playerId);
+    return {
+      success: result,
+      pausedPlayers: gameMutexManager.getPausedPlayers()
+    };
+  });
+});
+
+/**
+ * DELETE /external/pause-player/:id - Unregister a player from auto-pause
+ */
+router.delete('/pause-player/:id', async (req: Request, res: Response) => {
+  await handleAPIError(res, '/external/pause-player/:id', async () => {
+    const playerId = parseInt(req.params.id);
+    if (isNaN(playerId) || playerId < 0 || playerId >= 63) {
+      return {
+        success: false,
+        error: 'Invalid player ID'
+      };
+    }
+
+    const result = gameMutexManager.unregisterPausedPlayer(playerId);
+    return {
+      success: result,
+      pausedPlayers: gameMutexManager.getPausedPlayers()
+    };
+  });
+});
+
+/**
+ * GET /external/paused-players - Get list of paused players
+ */
+router.get('/paused-players', async (_req: Request, res: Response) => {
+  await handleAPIError(res, '/external/paused-players', async () => {
+    return {
+      success: true,
+      pausedPlayers: gameMutexManager.getPausedPlayers(),
+      isGamePaused: gameMutexManager.isGamePaused()
+    };
+  });
+});
+
+/**
+ * DELETE /external/paused-players - Clear all paused players
+ */
+router.delete('/paused-players', async (_req: Request, res: Response) => {
+  await handleAPIError(res, '/external/paused-players', async () => {
+    gameMutexManager.clearPausedPlayers();
+    return {
+      success: true,
+      pausedPlayers: []
     };
   });
 });

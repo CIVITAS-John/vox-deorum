@@ -4,8 +4,12 @@
 
 import { ToolBase } from "../base.js";
 import * as z from "zod";
-import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
+import { createLogger } from "../../utils/logger.js";
+import { fetch } from "undici";
+import { config } from "../../utils/config.js";
+
+const logger = createLogger('PauseGameTool');
 
 /**
  * Tool that pauses the game when it's the specified player's turn
@@ -37,8 +41,21 @@ class PauseGameTool extends ToolBase {
    * Execute the pause-game command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    knowledgeManager.addPausedPlayer(args.PlayerID);
-    return true;
+    try {
+      const bridgeUrl = config.bridge?.url || 'http://localhost:5000';
+      await fetch(`${bridgeUrl}/external/pause-player/${args.PlayerID}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      logger.info(`Player ${args.PlayerID} registered for auto-pause`);
+      return true;
+    } catch (error) {
+      logger.warn(`Failed to register player ${args.PlayerID} for auto-pause:`, error);
+      return false;
+    }
   }
 }
 

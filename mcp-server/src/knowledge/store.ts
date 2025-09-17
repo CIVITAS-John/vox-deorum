@@ -29,22 +29,7 @@ import { archiveGameData } from '../utils/knowledge/archive.js';
 const logger = createLogger('KnowledgeStore');
 
 // List of event types to block from being stored
-const blockedEventTypes = new Set<string>([
-  "GatherPerTurnReplayStats",
-  "GameCoreTestVictory",
-  "TestEvent",
-  "UnitPrekill",
-  "PlayerEndTurnInitiated",
-  "PlayerEndTurnCompleted",
-  "TerraformingPlot",
-  "GameSave",
-  "CityPrepared",
-  "UnitGetSpecialExploreTarget",
-  "PlayerCityFounded",
-  "TeamSetHasTech",
-  "CombatEnded",
-  "BarbariansSpawnedUnit",
-]);
+const blockedEventTypes = new Set<string>([]);
 
 // List of event types renamed for better understanding
 const renamedEventTypes: Record<string, string> = {
@@ -244,11 +229,11 @@ export class KnowledgeStore {
           }
           // Track active player on turn events
           if (type === "PlayerDoTurn") {
-            await knowledgeManager.updateActivePlayer(data.PlayerID);
+            knowledgeManager.updateActivePlayer(data.PlayerID);
           } else if (type === "PlayerDoneTurn") {
             if (data.PlayerID < MaxMajorCivs)
               readAndStorePlayerStrategy(data.PlayerID);
-            await knowledgeManager.updateActivePlayer(data.NextPlayerID);
+            knowledgeManager.updateActivePlayer(data.NextPlayerID);
           }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);
           this.setMetadata("lastID", id.toString());

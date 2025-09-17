@@ -8,7 +8,6 @@ import { bridgeManager, MCPServer } from '../server.js';
 import { GameIdentity, syncGameIdentity } from '../utils/lua/game-identity.js';
 import { KnowledgeStore } from './store.js';
 import path from 'path';
-import { MaxMajorCivs } from './schema/base.js';
 
 const logger = createLogger('KnowledgeManager');
 
@@ -16,7 +15,6 @@ export class KnowledgeManager {
   private gameIdentity?: GameIdentity;
   private knowledgeStore?: KnowledgeStore;
   private autoSaveTimer: NodeJS.Timeout | null = null;
-  private pausedPlayerIds: Set<number> = new Set();
   private dllConnected: boolean = false;
 
   private config = {
@@ -82,7 +80,7 @@ export class KnowledgeManager {
     
     this.gameIdentity = identity;
     await this.loadKnowledge(identity.gameId);
-    await this.updateActivePlayer();
+    this.updateActivePlayer();
 
     // Notify our clients
     MCPServer.getInstance().sendNotification("GameSwitched", -1, this.getTurn(), 
@@ -208,42 +206,14 @@ export class KnowledgeManager {
   }
 
   /**
-   * Update the active player and pause/unpause the game
+   * Update the active player (no longer handles pause/unpause)
    */
-  async updateActivePlayer(newID?: number) {
+  updateActivePlayer(newID?: number) {
     if (!this.gameIdentity) return;
     const changed = newID !== undefined && newID !== this.gameIdentity.activePlayerId;
     if (changed) {
       this.gameIdentity.activePlayerId = newID;
       logger.info(`Active player changed to: ${this.getActivePlayerId()}`);
     }
-    // Check if active player is in paused list
-    if (this.pausedPlayerIds.has(this.getActivePlayerId())) {
-      // Pause the game
-      if (await bridgeManager.pauseGame() && changed && newID < MaxMajorCivs)
-        logger.info(`Game paused for player ${newID ?? -1}`);
-    } else {
-      // Resume the game
-      if (await bridgeManager.resumeGame() && changed && newID < MaxMajorCivs)
-        logger.info(`Game resumed for player ${newID ?? -1}`);
-    }
-  }
-
-  /**
-   * Add a player to the paused players list
-   */
-  async addPausedPlayer(playerId: number) {
-    this.pausedPlayerIds.add(playerId);
-    logger.info(`Player ${playerId} added to paused players list`);
-    await this.updateActivePlayer();
-  }
-
-  /**
-   * Remove a player from the paused players list
-   */
-  async removePausedPlayer(playerId: number) {
-    this.pausedPlayerIds.delete(playerId);
-    logger.info(`Player ${playerId} removed from paused players list`);
-    await this.updateActivePlayer();
   }
 }

@@ -207,7 +207,7 @@ The Bridge Service acts as a communication hub using three primary channels:
 
 #### Game Pause/Resume
 
-##### Pause Game
+##### Manual Pause Game
 
 1. **External service → POST /external/pause**
    ```json
@@ -219,7 +219,7 @@ The Bridge Service acts as a communication hub using three primary channels:
    {"success": true}
    ```
 
-##### Resume Game
+##### Manual Resume Game
 
 1. **External service → POST /external/resume**
    ```json
@@ -229,6 +229,61 @@ The Bridge Service acts as a communication hub using three primary channels:
 2. **Bridge → External Service**
    ```json
    {"success": true}
+   ```
+
+##### Register Player for Auto-Pause
+
+1. **External service → POST /external/pause-player/:id**
+   ```json
+   {}
+   ```
+
+2. **Bridge → External Service**
+   ```json
+   {
+     "success": true,
+     "pausedPlayers": [0, 2, 5]
+   }
+   ```
+
+##### Unregister Player from Auto-Pause
+
+1. **External service → DELETE /external/pause-player/:id**
+   ```json
+   {}
+   ```
+
+2. **Bridge → External Service**
+   ```json
+   {
+     "success": true,
+     "pausedPlayers": [0, 5]
+   }
+   ```
+
+##### Get Paused Players List
+
+1. **External service → GET /external/paused-players**
+
+2. **Bridge → External Service**
+   ```json
+   {
+     "success": true,
+     "pausedPlayers": [0, 2, 5],
+     "isGamePaused": true
+   }
+   ```
+
+##### Clear All Paused Players
+
+1. **External service → DELETE /external/paused-players**
+
+2. **Bridge → External Service**
+   ```json
+   {
+     "success": true,
+     "pausedPlayers": []
+   }
    ```
 
 #### Function Invocation
@@ -300,7 +355,7 @@ The Bridge Service acts as a communication hub using three primary channels:
      "payload": { "args": [1, 50, 20] }
    }
    ```
-   
+
    **Event ID Format**: Number with structure `(turn * 1000000) + eventSequence`
    - Turn number (no padding) followed by 6-digit event sequence
    - Event sequence is zero-padded to 6 digits
@@ -313,6 +368,25 @@ The Bridge Service acts as a communication hub using three primary channels:
    event: turnStart
    data: {"id": 1000001, "type": "turnStart", "payload": ...}
    ```
+
+#### Auto-Pause on Player Turn Events
+
+The Bridge Service automatically handles game pausing based on registered paused players:
+
+1. **PlayerDoTurn Event**
+   - Bridge receives event with `PlayerID` in payload
+   - Calls `gameMutexManager.setActivePlayer(PlayerID)`
+   - If player is in paused list, game auto-pauses
+   - If player is not in paused list and no manual pause, game auto-resumes
+
+2. **PlayerDoneTurn Event**
+   - Bridge receives event with `NextPlayerID` in payload
+   - Calls `gameMutexManager.setActivePlayer(NextPlayerID)`
+   - Same auto-pause/resume logic applies for the next player
+
+3. **DLL Disconnection**
+   - On disconnect, Bridge clears all paused players
+   - Prevents stuck pauses when game restarts
 
 ## HTTP API Responses
 
