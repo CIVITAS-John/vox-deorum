@@ -38,7 +38,7 @@ class ResumeGameTool extends ToolBase {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Remove player from paused players list
-    await knowledgeManager.removePausedPlayer(args.PlayerID);
+    knowledgeManager.removePausedPlayer(args.PlayerID);
     return true;
   }
 }

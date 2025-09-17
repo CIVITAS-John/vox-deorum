@@ -37,7 +37,7 @@ class PauseGameTool extends ToolBase {
    * Execute the pause-game command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    await knowledgeManager.addPausedPlayer(args.PlayerID);
+    knowledgeManager.addPausedPlayer(args.PlayerID);
     return true;
   }
 }
