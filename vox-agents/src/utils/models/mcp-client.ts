@@ -177,7 +177,10 @@ export class MCPClient {
     }
 
     try {
-      const result = await this.client.callTool({ name, arguments: args });
+      const result = await this.client.callTool({ name, arguments: args }, undefined, {
+        timeout: 5000,
+        resetTimeoutOnProgress: true
+      });
       return result;
     } catch (error) {
       logger.error(`Failed to call tool ${name}.`, error);
