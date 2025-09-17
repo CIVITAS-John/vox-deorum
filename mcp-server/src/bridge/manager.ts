@@ -81,7 +81,7 @@ export class BridgeManager extends EventEmitter {
       if (!response.ok) {
         throw new Error(`Health check failed with status ${response.status}`);
       }
-      const data = await response.json() as HealthResponse;
+      const data = (await response.json() as any).result as HealthResponse;
       this.isDllConnected = data.dll_connected;
       return data;
     } catch (error: any) {

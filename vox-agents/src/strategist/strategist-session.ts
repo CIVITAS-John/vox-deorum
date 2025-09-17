@@ -140,6 +140,9 @@ Game.SetAIAutoPlay(1, -1);`
       });
       await setTimeout(5000);
       await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
+    } else {
+      await setTimeout(1000);
+      await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
     }
   }
 
@@ -149,7 +152,7 @@ Game.SetAIAutoPlay(1, -1);`
     if (recovering) {
       logger.info('Game successfully recovered from crash');
       this.lastGameState = 'running';
-      await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose();` });
+      await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
       if (this.config.autoPlay) {
         await setTimeout(5000);
         await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
