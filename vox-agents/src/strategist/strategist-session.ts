@@ -18,6 +18,8 @@ export interface StrategistSessionConfig {
   strategist: string;
   /** Game mode - 'start' for new game, 'load' to load existing (default: 'load') */
   gameMode: 'start' | 'load';
+  /** The number of repeated runs. After the first, all will be new games. */
+  repetition?: number;
 }
 
 /**
