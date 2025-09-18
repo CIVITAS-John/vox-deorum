@@ -23,7 +23,7 @@ export class NoneStrategist extends Strategist {
    */
   public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     // Get the information
-    super.getInitialMessages(parameters, context);
+    await super.getInitialMessages(parameters, context);
     // Return the messages
     return [];
   }

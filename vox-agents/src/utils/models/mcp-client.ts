@@ -32,6 +32,15 @@ export class MCPClient {
   private notificationHandlers: Map<string, (data: any) => any> = new Map();
 
   constructor() {
+    this.client = undefined as any;
+    this.transport = undefined as any;
+    this.initializeClient();
+  }
+
+  /**
+   * Initialize client based on config
+   */
+  private initializeClient() {
     this.client = new Client(
       {
         name: config.agent.name,
@@ -45,21 +54,6 @@ export class MCPClient {
       }
     );
 
-    // Initialize the transport
-    this.transport = undefined as any;
-    this.initializeTransport();
-
-    // Set up error handlers for transports
-    this.setupErrorHandlers();
-
-    // Set up notification handlers
-    this.setupNotificationHandlers();
-  }
-
-  /**
-   * Initialize transport based on config
-   */
-  private initializeTransport() {
     const transportConfig = config.mcpServer.transport;
     if (transportConfig.type === 'stdio') {
       if (!transportConfig.command) {
@@ -90,6 +84,12 @@ export class MCPClient {
     } else {
       throw new Error(`Unsupported transport type: ${transportConfig.type}`);
     }
+    
+    // Set up error handlers for transports
+    this.setupErrorHandlers();
+
+    // Set up notification handlers
+    this.setupNotificationHandlers();
   }
 
   /**
@@ -98,10 +98,12 @@ export class MCPClient {
   private setupErrorHandlers(): void {
     this.transport.onerror = async (error: Error) => {
       if (error.message.indexOf("Bad Request")) {
-        logger.warn('MCP server has restarted. Reconnecting...');
-        await this.disconnect();
-        await this.initializeTransport();
-        await this.connect();
+        if (this.isConnected) {
+          logger.warn('MCP server has restarted. Reconnecting...');
+          await this.disconnect();
+          await this.initializeClient();
+          await this.connect();
+        }
       } else {
         logger.error('Transport error occurred:', error);
       }
@@ -165,8 +167,8 @@ export class MCPClient {
     if (!this.isConnected) return;
     try {
       logger.info('Disconnecting from MCP server...');
-      await this.client.close();
       this.isConnected = false;
+      await this.client.close();
       logger.info('Disconnected from MCP server');
     } catch (error) {
       logger.error('Error disconnecting from MCP server:', error);
