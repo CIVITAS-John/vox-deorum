@@ -6,6 +6,7 @@ import { getModelConfig } from "../utils/models/models.js";
 import { SimpleStrategist } from "./simple-strategist.js";
 import { setTimeout } from 'node:timers/promises';
 import { langfuseSpanProcessor } from "../instrumentation.js";
+import { NoneStrategist } from "./none-strategist.js";
 
 /**
  * Manages a single player's strategist execution within a game session.
@@ -28,6 +29,7 @@ export class VoxPlayer {
 
     this.context = new VoxContext(getModelConfig("default"));
     this.context.registerAgent(new SimpleStrategist());
+    this.context.registerAgent(new NoneStrategist());
 
     this.parameters = {
       playerID,
