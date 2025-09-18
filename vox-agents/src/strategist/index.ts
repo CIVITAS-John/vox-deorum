@@ -5,12 +5,18 @@ import { setTimeout } from 'node:timers/promises';
 
 const logger = createLogger('Strategists');
 
+// Parse command line arguments
+const args = process.argv.slice(2);
+const isLoadMode = args.includes('--load');
+
 // Configuration
 const config: StrategistSessionConfig = {
   llmPlayers: [0],
   autoPlay: true,
   // strategist: "simple-strategist"
-  strategist: "none"
+  strategist: "none",
+  gameMode: isLoadMode ? 'load' : 'start',  // Default to 'start' unless --load flag is present,
+  repetition: 10
 };
 
 // Session instance
@@ -52,11 +58,13 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Start the session
 async function main() {
+  logger.info(`Starting in ${config.gameMode} mode`);
   try {
-    for (var I = 0; I < 10; I++) {
+    for (var I = 0; I < (config.repetition ?? 1); I++) {
       if (shuttingdown) break;
       session = new StrategistSession(config);
       await session.start();
+      config.gameMode = "start";
       logger.info(`Session ${I} completed successfully`);
       if (shuttingdown) break;
     }

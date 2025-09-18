@@ -9,6 +9,7 @@
     "dev": "tsx watch --import ./src/instrumentation.ts src/standalone.ts",
     "briefer": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/briefer/index.js",
     "strategist": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js",
+    "strategist-load": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js --load",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",

@@ -16,6 +16,8 @@ export interface StrategistSessionConfig {
   autoPlay: boolean;
   /** Strategist type to use */
   strategist: string;
+  /** Game mode - 'start' for new game, 'load' to load existing (default: 'load') */
+  gameMode: 'start' | 'load';
 }
 
 /**
@@ -38,13 +40,16 @@ export class StrategistSession {
 
   /**
    * Starts the session and plays until PlayerVictory
+   * @param gameMode - Override the default game mode from config
    */
   async start(): Promise<void> {
-    logger.info('Starting strategist session', this.config);
+    const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' : 'LoadGame.lua';
+
+    logger.info(`Starting strategist session in ${this.config.gameMode} mode`, this.config);
 
     // Register game exit handler for crash recovery
     voxCivilization.onGameExit(this.handleGameExit.bind(this));
-    await voxCivilization.startGame("StartGame.lua");
+    await voxCivilization.startGame(luaScript);
 
     // Connect to MCP server
     await mcpClient.connect();
