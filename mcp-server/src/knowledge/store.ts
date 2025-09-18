@@ -133,6 +133,26 @@ export class KnowledgeStore {
   }
 
   /**
+   * Drop all game events with ID greater than the specified ID
+   * Returns the number of events dropped
+   */
+  async dropEventsAfterId(id: number): Promise<number> {
+    const db = this.getDatabase();
+
+    try {
+      const result = await db
+        .deleteFrom('GameEvents')
+        .where('ID', '>=', id)
+        .executeTakeFirst();
+
+      return Number(result.numDeletedRows) || 0;
+    } catch (error) {
+      logger.error(`Error dropping events after ID ${id}:`, error);
+      return 0;
+    }
+  }
+
+  /**
    * Handle incoming game events by validating against schemas
    */
   async handleGameEvent(id: number, type: string, payload: unknown): Promise<void> {
@@ -160,6 +180,12 @@ export class KnowledgeStore {
 
       // Update the turn
       knowledgeManager.updateTurn(Math.floor(id / 1000000));
+
+      // Drop events after the id
+      const droppedCount = await this.dropEventsAfterId(id);
+      if (droppedCount > 0) {
+        logger.info(`Dropped ${droppedCount} events after ID ${id}`);
+      }
 
       // Get the corresponding schema
       const schema = eventSchemas[type as EventName];

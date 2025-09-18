@@ -4,6 +4,9 @@
  */
 
 import { LuaFunction } from '../../bridge/lua-function.js';
+import { createLogger } from '../logger.js';
+
+const logger = createLogger("GameIdentity");
 
 /**
  * Game identity information
@@ -31,7 +34,10 @@ const luaFunc = LuaFunction.fromFile(
  */
 export async function syncGameIdentity(): Promise<GameIdentity | undefined> {
   const response = await luaFunc.execute(Date.now(), crypto.randomUUID());
-  if (!response.success) return undefined;
+  if (!response.success) {
+    logger.warn("Sync identity failed: ", response.error);
+    return undefined;
+  }
   if (!response.result) throw new Error("Lua serialization malfunctions!");
   return response.result as GameIdentity;
 }

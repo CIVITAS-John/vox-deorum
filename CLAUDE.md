@@ -115,7 +115,7 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 - Top-level comments in each code file
 - Comments on all public/exported definitions
 - Comments within long functions
-- Use `// VOX:` prefix for modifications in C++ code
+- Use `// Vox Deorum:` prefix for modifications in C++ code beyond CvConnectionService
 
 ### Common Pitfalls Across Modules
 1. **Forgetting `.js` extensions** in TypeScript imports

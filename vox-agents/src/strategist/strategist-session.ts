@@ -120,7 +120,7 @@ export class StrategistSession {
   }
 
   private async handleGameSwitched(params: any): Promise<void> {
-    logger.warn(`Game context switching to ${params.gameID}`);
+    logger.warn(`Game context switching to ${params.gameID} at turn ${params.turn}`);
 
     // Abort all existing players
     for (const player of this.activePlayers.values()) {

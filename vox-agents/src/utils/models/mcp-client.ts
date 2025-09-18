@@ -31,11 +31,11 @@ export class MCPClient {
   private isConnected: boolean = false;
   private notificationHandlers: Map<string, (data: any) => any> = new Map();
 
-  constructor(clientConfig: VoxAgentsConfig = config) {
+  constructor() {
     this.client = new Client(
       {
-        name: clientConfig.agent.name,
-        version: clientConfig.agent.version
+        name: config.agent.name,
+        version: config.agent.version
       },
       {
         capabilities: {
@@ -45,8 +45,22 @@ export class MCPClient {
       }
     );
 
-    // Initialize transport based on config
-    const transportConfig = clientConfig.mcpServer.transport;
+    // Initialize the transport
+    this.transport = undefined as any;
+    this.initializeTransport();
+
+    // Set up error handlers for transports
+    this.setupErrorHandlers();
+
+    // Set up notification handlers
+    this.setupNotificationHandlers();
+  }
+
+  /**
+   * Initialize transport based on config
+   */
+  private initializeTransport() {
+    const transportConfig = config.mcpServer.transport;
     if (transportConfig.type === 'stdio') {
       if (!transportConfig.command) {
         throw new Error('Command is required for stdio transport');
@@ -76,21 +90,21 @@ export class MCPClient {
     } else {
       throw new Error(`Unsupported transport type: ${transportConfig.type}`);
     }
-
-    // Set up error handlers for transports
-    this.setupErrorHandlers();
-
-    // Set up notification handlers
-    this.setupNotificationHandlers();
   }
 
   /**
    * Set up error handlers for transport layer
    */
   private setupErrorHandlers(): void {
-    this.transport.onerror = (error: Error) => {
-      logger.error('Transport error occurred:', error);
-      console.error('[MCPClient] Transport error:', error);
+    this.transport.onerror = async (error: Error) => {
+      if (error.message.indexOf("Bad Request")) {
+        logger.warn('MCP server has restarted. Reconnecting...');
+        await this.disconnect();
+        await this.initializeTransport();
+        await this.connect();
+      } else {
+        logger.error('Transport error occurred:', error);
+      }
     };
   }
 
@@ -217,4 +231,4 @@ export class MCPClient {
 /**
  * Create and export a singleton instance
  */
-export const mcpClient = new MCPClient(config);
+export const mcpClient = new MCPClient();

@@ -77,7 +77,8 @@ export class DLLConnector extends EventEmitter {
           if (this.shuttingDown) {
             logger.warn('Disconnected from DLL, shutting down...');
           } else {
-            logger.warn('Disconnected from DLL, reconnecting...');
+            if (this.connected)
+              logger.warn('Disconnected from DLL, reconnecting...');
             this.handleDisconnection();
           }
           this.emit('disconnected');
