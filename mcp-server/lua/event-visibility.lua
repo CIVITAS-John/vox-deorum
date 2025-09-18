@@ -1,6 +1,6 @@
 local visibilityFlags = {}
-local extraPayloads = {}
 local maxMajorCivs = ${MaxMajorCivs} - 1
+local extraPayloads
 
 -- Helper function to get player's civilization name
 local function getPlayerCivName(player)
@@ -24,11 +24,6 @@ local playerEventsToMetPlayers = {"CircumnavigatedGlobe", "CapitalChanged",
 -- Whitelist of tile events that should be propagated to players who have revealed but not visible tiles
 local tileEventsToRevealedPlayers = {"CityCreated", "CityConvertsReligion", "CityPuppeted", "CityRazed", "CityCaptureComplete", 
   "NuclearDetonation"}
-
--- Initialize visibility flags for all players
-for i = 0, maxMajorCivs do
-  table.insert(visibilityFlags, 0)
-end
 
 -- Helper function to add an extra payload
 local function addPayload(key, value)
@@ -247,38 +242,47 @@ local function addCity(cityID, value, key)
   end
 end
 
--- Analyze visibility based on event type and payload
-for key, value in pairs(payload) do
-  -- Check for player-related fields in payload
-  if (string.match(key, "PlayerID$") or string.match(key, "OwnerID$")) then
-    addPlayer(value, 2, key)
+Game.RegisterFunction("${Name}", function(${Arguments})
+  -- Initialize visibility flags for all players
+  for i = 1, maxMajorCivs + 1 do
+    visibilityFlags[i] = 0
   end
-  
-  -- Check for team-related fields in payload
-  if string.match(key, "TeamID$") then
-    addTeam(value, 2, key)
-  end
-  
-  -- Handle plot coordinates for visibility
-  if string.match(key, "X$") then
-    local plotY = payload[string.sub(key, 1, -2) .. "Y"]
-    if plotY then
-      addPlotVisibility(value, plotY, 2, key .. "$")
+  extraPayloads = {}
+
+  -- Analyze visibility based on event type and payload
+  for key, value in pairs(payload) do
+    -- Check for player-related fields in payload
+    if (string.match(key, "PlayerID$") or string.match(key, "OwnerID$")) then
+      addPlayer(value, 2, key)
+    end
+    
+    -- Check for team-related fields in payload
+    if string.match(key, "TeamID$") then
+      addTeam(value, 2, key)
+    end
+    
+    -- Handle plot coordinates for visibility
+    if string.match(key, "X$") then
+      local plotY = payload[string.sub(key, 1, -2) .. "Y"]
+      if plotY then
+        addPlotVisibility(value, plotY, 2, key .. "$")
+      end
     end
   end
-end
 
--- A second round for units/cities
-for key, value in pairs(payload) do
-  -- Check for unit-related fields in payload
-  if string.match(key, "UnitID$") then
-    addUnit(value, 2, key)
+  -- A second round for units/cities
+  for key, value in pairs(payload) do
+    -- Check for unit-related fields in payload
+    if string.match(key, "UnitID$") then
+      addUnit(value, 2, key)
+    end
+    
+    -- Check for city-related fields in payload
+    if string.match(key, "CityID$") then
+      addCity(value, 2, key)
+    end
   end
-  
-  -- Check for city-related fields in payload
-  if string.match(key, "CityID$") then
-    addCity(value, 2, key)
-  end
-end
+  return {visibilityFlags, extraPayloads}
+end)
 
-return {visibilityFlags, extraPayloads}
+return true
