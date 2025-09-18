@@ -40,8 +40,8 @@ export class NoneStrategist extends Strategist {
    */
   public stopCheck(
     _parameters: StrategistParameters,
-    lastStep: StepResult<Record<string, Tool>>,
-    allSteps: StepResult<Record<string, Tool>>[]
+    _lastStep: StepResult<Record<string, Tool>>,
+    _allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {
     return true;
   }

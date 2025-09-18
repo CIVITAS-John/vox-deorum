@@ -327,6 +327,30 @@ if (this.luaCallQueue.length >= 50) {
 6. **Cache appropriately** for performance
 7. **Consider player visibility** for game data
 
+### Adding New Fields to Knowledge Tables
+When adding a new field to an existing knowledge table (e.g., PlayerSummary), follow these steps:
+
+1. **Update TypeScript Schema** (`src/knowledge/schema/timed.ts` or appropriate schema file):
+   - Add the field to the interface with proper type and documentation
+   - Example: `Territory: number | null; // Number of plots owned (major civs only)`
+
+2. **Update Lua Data Collection** (`lua/` directory):
+   - Modify the corresponding Lua script to collect the new field
+   - Example: In `get-player-summary.lua`, add `Territory = player:GetNumPlots()`
+
+3. **Update Database Schema** (`src/knowledge/schema/setup.ts`):
+   - Add the column to the table creation in `setupKnowledgeDatabase()`
+   - Example: `.addColumn('Territory', 'integer')`
+   - **Note: No migration needed** - Tables use `ifNotExists`, and data is ephemeral per game session
+
+4. **Update Related Tools** (`src/tools/knowledge/` directory):
+   - Add the field to any Zod schemas in tools that expose this data
+   - Example: In `get-players.ts`, add `Territory: z.number().optional()` to PlayerDataSchema
+
+5. **Test the Changes**:
+   - Run `npm run type-check` to ensure TypeScript compilation
+   - The changes will take effect when a new game session starts
+
 ### Common Pitfalls
 1. **Forgetting `.js` extensions** in imports
 2. **Direct HTTP calls** instead of using BridgeManager

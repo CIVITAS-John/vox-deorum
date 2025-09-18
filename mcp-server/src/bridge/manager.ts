@@ -267,9 +267,10 @@ export class BridgeManager extends EventEmitter {
       }
     };
 
-    this.luaCallQueue.forEach(call => {
-      call.resolve(error);
-    });
+    if (reason !== "BridgeManager shutting down")
+      this.luaCallQueue.forEach(call => {
+        call.resolve(error);
+      });
 
     this.luaCallQueue = [];
   }

@@ -47,6 +47,7 @@ const PlayerDataSchema = z.object({
   MajorAlly: z.string().nullable().optional(),
   Cities: z.number().optional(),
   Population: z.number().optional(),
+  Territory: z.number().optional(),
   Gold: z.number().optional(),
   GoldPerTurn: z.number().optional(),
   TourismPerTurn: z.number().optional(),

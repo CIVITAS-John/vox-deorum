@@ -167,6 +167,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         // Execute the agent using generateText
         var model = agent.getModel(parameters) ?? this.defaultModel;
         var system = await agent.getSystem(parameters, this);
+        var initialMessages = await agent.getInitialMessages(parameters, this);
         if (system != "") {
           const response = await exponentialRetry(
             async () => {
@@ -182,7 +183,7 @@ export class VoxContext<TParameters extends AgentParameters> {
               messages: [{
                 role: "system",
                 content: system
-              }, ...await agent.getInitialMessages(parameters, this)],
+              }, ...initialMessages],
               // Initial tools
               tools: allTools,
               activeTools: agent.getActiveTools(parameters),

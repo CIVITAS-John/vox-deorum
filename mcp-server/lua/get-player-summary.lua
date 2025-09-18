@@ -52,6 +52,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       MajorAlly = nil,  -- Default to no ally
       Cities = player:GetNumCities(),
       Population = player:GetTotalPopulation(),
+      Territory = player:GetNumPlots(),  -- Number of plots owned (major civs only)
       Gold = player:GetGold(),
       GoldPerTurn = player:CalculateGoldRate(),
       TourismPerTurn = player:GetTourismPerTurnIncludingInstantTimes100() / 100,

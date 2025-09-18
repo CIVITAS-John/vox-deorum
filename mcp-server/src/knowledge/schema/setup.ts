@@ -54,6 +54,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('MajorAlly', 'text')
     .addColumn('Cities', 'integer', (col) => col.notNull())
     .addColumn('Population', 'integer', (col) => col.notNull())
+    .addColumn('Territory', 'integer') // Number of plots owned (major civs only)
     .addColumn('Gold', 'integer', (col) => col.notNull())
     .addColumn('GoldPerTurn', 'real', (col) => col.notNull())
     .addColumn('TourismPerTurn', 'integer')

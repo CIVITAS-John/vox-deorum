@@ -30,6 +30,7 @@ export interface PlayerSummary extends MutableKnowledge {
   MajorAlly: string | null; // Ally civilization's short description (null if no ally)
   Cities: number | null;
   Population: number;
+  Territory: number | null; // Number of plots owned by the player (major civs only)
   Gold: number | null;
   GoldPerTurn: number | null; // Player:CalculateGoldRateTimes100() / 100
   TourismPerTurn: number | null;
@@ -38,7 +39,7 @@ export interface PlayerSummary extends MutableKnowledge {
   FoundedReligion: string | null;
   MajorityReligion: string | null;
   ResourcesAvailable: JSONColumnType<Record<string, number>>;
-  
+
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)
 }
 
