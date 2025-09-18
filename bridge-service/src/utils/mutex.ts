@@ -126,7 +126,8 @@ class GameMutexManager {
    */
   clearPausedPlayers(): void {
     this.pausedPlayerIds.clear();
-    logger.info('Cleared all paused players');
+    if (this.pausedPlayerIds.size > 0)
+      logger.info('Cleared all paused players');
 
     // Try to resume if not externally paused
     if (this.isPaused && !this.externalPause) {

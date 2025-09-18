@@ -16,9 +16,7 @@
     "test:coverage": "vitest run --coverage",
     "test:mock": "cross-env USE_MOCK=true vitest run",
     "test:real": "cross-env USE_MOCK=false vitest run",
-    "test:mock-watch": "cross-env USE_MOCK=true vitest",
-    "mock": "tsx watch scripts/test-with-mock.ts",
-    "dev:with-mock": "npm run mock & sleep 2 && npm run dev"
+    "test:mock-watch": "cross-env USE_MOCK=true vitest"
   },
   "keywords": [
     "civilization",
@@ -28,7 +26,7 @@
     "nodejs"
   ],
   "author": "John Chen",
-  "license": "MIT",
+  "license": "CC-BY-NC-SA-4.0",
   "dependencies": {
     "axios": "^1.6.2",
     "cors": "^2.8.5",

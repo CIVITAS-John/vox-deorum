@@ -166,18 +166,14 @@ export class DLLConnector extends EventEmitter {
     
     // Reject all pending requests
     if (this.shuttingDown) return;
-
     // Prevent parallel reconnection attempts
-    if (this.reconnectTimer) {
-      logger.debug('Reconnection already scheduled, skipping duplicate attempt');
-      return;
-    }
+    if (this.reconnectTimer) return;
 
     // Attempt reconnection (infinite retries)
     this.reconnectAttempts++;
     const delay = Math.min(200 * Math.pow(1.5, this.reconnectAttempts), 5000); // Cap exponential backoff at 10 attempts
     
-    logger.info(`Attempting reconnection ${this.reconnectAttempts} in ${delay}ms`);
+    logger.debug(`Attempting reconnection ${this.reconnectAttempts} in ${delay}ms`);
     
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined; // Clear the timer reference before attempting
