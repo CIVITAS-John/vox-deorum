@@ -10,34 +10,48 @@ Vox Deorum integrates modern AI capabilities into Civ V gameplay through a modul
 
 ```
 Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents → LLM
-         (Named Pipe)         (HTTP/SSE)       (MCP)        (API calls)
+         (Named Pipe)         (REST/SSE)       (MCP/HTTP)   (LLMs)
 ```
 
 ## Components
 
 ### [Community Patch DLL](civ5-dll/)
-Modified Community-Patch-DLL enabling external communication
+Modified Community-Patch-DLL submodule enabling external communication
 - Windows-only 32-bit build requirement
+- Minimal modifications to maintain compatibility
 - Build: `python build_vp_clang_sdk.py` (Windows)
 - Deploy: `build-and-copy.bat`
+- Debug logs: `clang-output/Debug/build.log`
 
 ### [Bridge Service](bridge-service/)
-HTTP/REST+SSE communication layer
-- Bidirectional Lua ↔ External function calls
-- Real-time game event streaming
-- Mock DLL for development without Civ V
+Critical communication layer between Civ V and AI services
+- **Core Features**:
+  - REST API with Server-Sent Events (SSE) for real-time updates
+  - Named pipe IPC with automatic reconnection
+  - Intelligent game pause system with per-player auto-pause
+  - Message batching for 10x performance improvement
+  - External function registration as Lua-callable endpoints
+- **Development**: Mock DLL server for testing without Civ V
 
 ### [MCP Server](mcp-server/)
-Model Context Protocol server for game state
-- Exposes game data as MCP tools/resources
-- Direct database access with localization
-- Persistent knowledge management
+Comprehensive Model Context Protocol server exposing game state
+- **17 MCP Tools** across categories (general, database, knowledge, actions)
+- **Key Features**:
+  - Direct Civ5 SQLite database access with Kysely ORM
+  - Multi-language localization with TXT_KEY resolution
+  - Persistent/transient knowledge management with auto-save
+  - Real-time SSE integration with Bridge Service
+  - Multi-transport support (stdio/HTTP)
 
 ### [Vox Agents](vox-agents/)
-LLM-powered strategic workflows
-- Strategist: Dynamic AI strategy adjustment
-- Extensible agent framework
-- Flexible deployment modes
+LLM-powered strategic AI for autonomous gameplay
+- **Agent Framework**: Flexible base classes (VoxAgent/VoxContext)
+- **Simple Strategist**: Production-ready turn-based decision agent
+- **Features**:
+  - Multi-LLM support (OpenAI, OpenRouter, Google AI)
+  - MCP client with automatic tool discovery
+  - Session management with crash recovery
+  - Langfuse observability for monitoring
 
 ### [Civ 5 Mod](civ5-mod/)
 Game integration and UI scripts
@@ -60,7 +74,17 @@ Game integration and UI scripts
    npm install
    ```
 
-3. **Start services** (in order):
+3. **Configure environment** (for Vox Agents):
+   ```bash
+   # Choose one LLM provider:
+   export OPENAI_API_KEY=sk-...
+   # OR
+   export OPENROUTER_API_KEY=sk-or-...
+   # OR
+   export GOOGLE_GENERATIVE_AI_API_KEY=...
+   ```
+
+4. **Start services** (in order):
    ```bash
    # Terminal 1: Bridge Service
    cd bridge-service && npm run dev
@@ -68,28 +92,51 @@ Game integration and UI scripts
    # Terminal 2: MCP Server
    cd mcp-server && npm run dev
 
-   # Terminal 3: Vox Agents
+   # Terminal 3: Vox Agents (autonomous mode)
    cd vox-agents && npm run strategist
    ```
 
-4. **Launch Civ V** with the Vox Deorum mod enabled
+5. **Launch Civ V** with the Vox Deorum mod enabled
 
 ## Development
 
-Each component has detailed setup instructions:
-- [Bridge Service README](bridge-service/README.md)
-- [MCP Server README](mcp-server/README.md)
-- [Vox Agents README](vox-agents/README.md)
+Each component has detailed documentation:
+- [Bridge Service README](bridge-service/README.md) - REST API, IPC, game control
+- [MCP Server README](mcp-server/README.md) - MCP tools, database access, knowledge
+- [Vox Agents README](vox-agents/README.md) - Agent framework, LLM integration
+
+### Key Features by Component
+
+**Bridge Service**:
+- Named pipe: `\\.\pipe\vox-deorum-bridge`
+- Batch API for 10x performance
+- 30-second timeouts with cleanup
+- Exponential backoff reconnection
+
+**MCP Server**:
+- 17 tools with Zod validation
+- Multi-database support (Gameplay, Localization, Units)
+- 30-second auto-save for knowledge
+- Lazy tool loading for performance
+
+**Vox Agents**:
+- Turn-based event handling
+- Automatic session recovery
+- Dynamic tool discovery from MCP
+- Token usage tracking
 
 ### Requirements
 - Node.js ≥20.0.0
-- Windows (for DLL compilation)
+- Windows (for DLL compilation only)
 - Civilization V with Community Patch
-- LLM API access (OpenAI/Anthropic)
+- LLM API access (OpenAI/OpenRouter/Google AI)
 
 ### Testing
+All components use Vitest for testing:
 ```bash
-npm test  # In each component directory
+npm test              # Run test suite
+npm run test:watch    # Watch mode for development
+npm run test:coverage # Generate coverage report
 ```
 
 ## Project Structure
