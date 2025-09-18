@@ -206,15 +206,18 @@ export class MCPClient {
       throw new Error('Not connected to MCP server');
     }
 
-    try {
-      const result = await this.client.callTool({ name, arguments: args }, undefined, {
-        timeout: 5000,
-        resetTimeoutOnProgress: true
-      });
-      return result;
-    } catch (error) {
-      logger.error(`Failed to call tool ${name}.`, error);
-      throw error;
+    for (var I = 0; I <= 3; I++) {
+      try {
+        const result = await this.client.callTool({ name, arguments: args }, undefined, {
+          timeout: 5000,
+          resetTimeoutOnProgress: true
+        });
+        return result;
+      } catch (error) {
+        if (I == 3)
+          throw error;
+        else logger.error(`Failed to call tool ${name}. Retrying ${I}...`, error);
+      }
     }
   }
 
