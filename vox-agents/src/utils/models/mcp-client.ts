@@ -8,8 +8,8 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { ElicitRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from '../logger.js';
-import { config, VoxAgentsConfig } from '../config.js';
-import { fetch, Pool, setGlobalDispatcher } from 'undici';
+import { config } from '../config.js';
+import { Dispatcher, fetch, Pool, setGlobalDispatcher } from 'undici';
 import { URL } from 'node:url';
 
 const logger = createLogger('MCPClient');
@@ -30,6 +30,7 @@ export class MCPClient {
   private transport: StdioClientTransport | StreamableHTTPClientTransport;
   private isConnected: boolean = false;
   private notificationHandlers: Map<string, (data: any) => any> = new Map();
+  private dispatcher?: Dispatcher;
 
   constructor() {
     this.client = undefined as any;
@@ -68,8 +69,8 @@ export class MCPClient {
         args: transportConfig.args 
       });
     } else if (transportConfig.type === 'http') {
+      this.dispatcher = new Pool(new URL(transportConfig.endpoint!).origin, { connections: 5 });
       // Global pooling for HTTP requests
-      setGlobalDispatcher(new Pool(new URL(transportConfig.endpoint!).origin, { connections: 5 }));
       const mcpUrl = new URL(transportConfig.endpoint!);
       this.transport = new StreamableHTTPClientTransport(mcpUrl, {
         reconnectionOptions: {
@@ -78,7 +79,11 @@ export class MCPClient {
           reconnectionDelayGrowFactor: 2,
           maxRetries: 1000
         },
-        fetch: fetch
+        fetch: (url, init) => {
+          init = init ?? {};
+          init.dispatcher = this.dispatcher;
+          return fetch(url, init);
+        }
       });
       logger.info('Created HTTP transport', { url: mcpUrl.toString() });
     } else {
