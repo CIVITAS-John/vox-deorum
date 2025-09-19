@@ -38,6 +38,7 @@ export class StrategistSession {
     this.victoryPromise = new Promise((resolve) => {
       this.victoryResolve = resolve;
     });
+    voxCivilization.onGameExit(this.handleGameExit.bind(this));
   }
 
   /**
@@ -50,7 +51,6 @@ export class StrategistSession {
     logger.info(`Starting strategist session in ${this.config.gameMode} mode`, this.config);
 
     // Register game exit handler for crash recovery
-    voxCivilization.onGameExit(this.handleGameExit.bind(this));
     await voxCivilization.startGame(luaScript);
 
     // Connect to MCP server
