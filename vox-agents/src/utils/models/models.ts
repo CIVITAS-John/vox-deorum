@@ -8,6 +8,9 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createOpenAI } from '@ai-sdk/openai';
 import { gemmaToolMiddleware } from '@ai-sdk-tool/parser';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 /**
  * Get a LLM model config by name

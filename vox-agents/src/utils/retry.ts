@@ -32,16 +32,12 @@ export async function exponentialRetry<T>(
     } catch (error) {
       lastError = error as Error;
 
-      if (attempt === maxRetries) {
+      if (attempt === maxRetries || (error as any)?.isRetryable) {
         throw lastError;
       }
 
       // Log retry attempt
-      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error: ${lastError.message}`, {
-        attempt: attempt + 1,
-        maxRetries,
-        error: lastError.message
-      });
+      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error: ${lastError.message}`, lastError);
 
       // Calculate next delay with exponential backoff
       const currentDelay = Math.min(delay, maxDelay);
