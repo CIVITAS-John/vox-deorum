@@ -229,8 +229,8 @@ export class VoxContext<TParameters extends AgentParameters> {
           });
           return response.text;
         } else return "[nothing]";
-      } catch (error: any) {
-        this.logger.error(`Error executing agent ${agentName}!`);
+      } catch (error) {
+        this.logger.error(`Error executing agent ${agentName}!`, error);
         return "[nothing]";
       } finally {
         parameters.running = undefined;

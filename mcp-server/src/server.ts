@@ -12,6 +12,7 @@ import { getTools } from './tools/index.js';
 import { BridgeManager } from './bridge/manager.js';
 import { DatabaseManager } from './database/manager.js';
 import { KnowledgeManager } from './knowledge/manager.js';
+import { setTimeout } from 'node:timers/promises';
 import * as z from "zod";
 
 const logger = createLogger('Server');
@@ -267,11 +268,10 @@ export class MCPServer {
     // Send GameSwitched notification to the newly connected client
     const gameId = this.knowledgeManager.getGameId();
     if (this.bridgeManager.dllConnected && gameId !== "") {
-      logger.warn(`Sending GameSwitched notification to newly connected client for game ${gameId}`);
       const lastId = parseInt(await this.knowledgeManager.getStore().getMetadata("lastID") ?? "-1");
-      setTimeout(() => {
-        this.sendNotification("GameSwitched", -1, this.knowledgeManager.getTurn(), lastId, { gameID: gameId });
-      }, 100);
+      await setTimeout(100);
+      logger.warn(`Sending GameSwitched notification to newly connected client for game ${gameId}`);
+      this.sendNotification("GameSwitched", -1, this.knowledgeManager.getTurn(), lastId, { gameID: gameId });
     }
   }
 

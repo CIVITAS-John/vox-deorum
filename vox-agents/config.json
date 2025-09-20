@@ -13,7 +13,7 @@
     "level": "info"
   },
   "llms": {
-    "default": "gpt-5-nano-minimal",
+    "default": "gpt-oss-20b",
     "gemma3": {
       "provider": "openrouter",
       "name": "google/gemma-3-27b-it"
