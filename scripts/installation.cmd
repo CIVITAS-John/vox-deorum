@@ -14,12 +14,21 @@ set "CIV5_APP_ID=8930"
 set "TEMP_DIR=%TEMP%\VoxDeorumInstall"
 set "PREBUILT_DLL=%SCRIPT_DIR%\CvGameCore_Expansion2.dll"
 
-:: Color codes
-set "RED=[91m"
-set "GREEN=[92m"
-set "YELLOW=[93m"
-set "BLUE=[94m"
-set "RESET=[0m"
+:: Enable ANSI color codes in Windows 10+
+for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v CurrentBuild 2^>nul ^| findstr CurrentBuild') do set BUILD=%%a
+if !BUILD! GEQ 10586 (
+    :: Windows 10 TH2 and later support ANSI codes
+    :: Enable virtual terminal processing
+    reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
+)
+
+:: Color codes (ANSI escape sequences)
+set "ESC="
+set "RED=%ESC%[91m"
+set "GREEN=%ESC%[92m"
+set "YELLOW=%ESC%[93m"
+set "BLUE=%ESC%[94m"
+set "RESET=%ESC%[0m"
 
 :: Banner
 echo.
