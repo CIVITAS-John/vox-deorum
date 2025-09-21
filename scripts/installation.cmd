@@ -32,9 +32,14 @@ set "LUA_PDB=%BUILD_DIR%\lua51_win32.pdb"
 
 :: Banner
 echo.
-echo =========================================echo      Vox Deorum Installation Script     echo            Version %SCRIPT_VERSION%              if "%DEBUG_MODE%"=="1" (
-    echo           [DEBUG MODE ENABLED]          )
-echo =========================================echo.
+echo =========================================
+echo      Vox Deorum Installation Script
+echo            Version %SCRIPT_VERSION%
+if "%DEBUG_MODE%"=="1" (
+    echo           [DEBUG MODE ENABLED]
+)
+echo =========================================
+echo.
 
 :: Create temp directory
 if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"

@@ -33,28 +33,27 @@ echo.
 :: Create temp directory
 if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 
-:: Check for Git
-echo [1/4] Checking for Git...
+:: Check for Git and Git LFS
+echo [1/4] Checking for Git and Git LFS...
 where git >nul 2>&1
 if %errorlevel% equ 0 (
-    echo   [OK] Git is already installed
+    echo   Git is installed, checking for LFS support...
     for /f "delims=" %%i in ('git --version') do echo     %%i
-    goto :CloneRepo
-)
 
-echo   Git not found. Installing Git for Windows...
-:: Try winget first
-winget --version >nul 2>&1
-if %errorlevel% equ 0 (
-    echo   Attempting installation via winget...
-    winget install --id Git.Git -e --source winget --accept-package-agreements --accept-source-agreements
-    if !errorlevel! equ 0 (
-        echo   [OK] Git installed via winget
-        goto :RefreshPath
+    :: Check if Git LFS is available
+    git lfs version >nul 2>&1
+    if %errorlevel% equ 0 (
+        echo   [OK] Git and Git LFS are already installed
+        goto :CloneRepo
+    ) else (
+        echo   [WARN] Git is installed but LFS is missing
+        echo   Reinstalling Git for Windows to ensure LFS support...
     )
+) else (
+    echo   Git not found. Installing Git for Windows...
 )
 
-:: Fall back to direct download
+:: Download and install Git for Windows
 echo   Downloading Git for Windows...
 set "GIT_INSTALLER=%TEMP_DIR%\Git-%GIT_VERSION%-64-bit.exe"
 powershell -Command "& { try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://github.com/git-for-windows/git/releases/download/v%GIT_VERSION%.windows.1/Git-%GIT_VERSION%-64-bit.exe' -OutFile '%GIT_INSTALLER%' -UseBasicParsing } catch { exit 1 } }"
@@ -160,27 +159,13 @@ if %errorlevel% neq 0 (
     echo   [WARN] Failed to initialize submodules
 )
 
-:: Check for Git LFS
-echo   Checking for Git LFS support...
-git lfs version >nul 2>&1
+:: Initialize Git LFS (Git for Windows includes LFS)
+echo   Initializing Git LFS...
+git lfs install
 if %errorlevel% neq 0 (
-    echo   [INFO] Git LFS not installed. Installing via winget...
-    winget install -e --id GitHub.GitLFS --accept-package-agreements --accept-source-agreements
-    if %errorlevel% neq 0 (
-        echo   [WARN] Failed to install Git LFS via winget. Trying Git built-in LFS...
-        git lfs install
-        if %errorlevel% neq 0 (
-            echo   [WARN] Failed to install Git LFS. Prebuilt DLLs may not download correctly.
-        ) else (
-            echo   [OK] Git LFS installed via Git
-        )
-    ) else (
-        echo   [OK] Git LFS installed via winget
-        :: Initialize Git LFS after winget installation
-        git lfs install
-    )
+    echo   [WARN] Failed to initialize Git LFS. Prebuilt DLLs may not download correctly.
 ) else (
-    echo   [OK] Git LFS is available
+    echo   [OK] Git LFS initialized
 )
 
 :: Update submodules (also shallow for faster download)
