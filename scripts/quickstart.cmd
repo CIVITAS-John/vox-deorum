@@ -129,10 +129,11 @@ if exist "%INSTALL_DIR%" (
     )
 )
 
-:: Clone the repository
+:: Clone the repository (shallow clone for faster download)
 echo   Cloning from: %REPO_URL%
 echo   Destination: %INSTALL_DIR%
-git clone "%REPO_URL%" "%INSTALL_DIR%"
+echo   Using shallow clone for faster download...
+git clone --depth 1 "%REPO_URL%" "%INSTALL_DIR%"
 
 if %errorlevel% neq 0 (
     echo   [FAIL] Failed to clone repository.
@@ -163,20 +164,28 @@ if %errorlevel% neq 0 (
 echo   Checking for Git LFS support...
 git lfs version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo   [INFO] Git LFS not installed. Installing Git LFS...
-    git lfs install
+    echo   [INFO] Git LFS not installed. Installing via winget...
+    winget install -e --id GitHub.GitLFS --accept-package-agreements --accept-source-agreements
     if %errorlevel% neq 0 (
-        echo   [WARN] Failed to install Git LFS. Prebuilt DLLs may not download correctly.
+        echo   [WARN] Failed to install Git LFS via winget. Trying Git built-in LFS...
+        git lfs install
+        if %errorlevel% neq 0 (
+            echo   [WARN] Failed to install Git LFS. Prebuilt DLLs may not download correctly.
+        ) else (
+            echo   [OK] Git LFS installed via Git
+        )
     ) else (
-        echo   [OK] Git LFS installed
+        echo   [OK] Git LFS installed via winget
+        :: Initialize Git LFS after winget installation
+        git lfs install
     )
 ) else (
     echo   [OK] Git LFS is available
 )
 
-:: Update submodules
+:: Update submodules (also shallow for faster download)
 echo   Downloading submodule content (this may take a few minutes)...
-git submodule update --recursive
+git submodule update --init --recursive --depth 1
 if %errorlevel% neq 0 (
     echo   [WARN] Some submodules may have failed to download
     echo   You can manually update them later with:
