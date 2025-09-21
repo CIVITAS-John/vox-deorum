@@ -57,14 +57,16 @@ if not exist "%LUA_DLL%" (
     echo   Warning: lua51_win32.dll not found in %BUILD_DIR%) else (
     echo   [OK] Lua DLL found)
 
-:: Check for PDB files if in debug mode
-if "%DEBUG_MODE%"=="1" (
-    if exist "%PREBUILT_PDB%" (
-        echo   [OK] Debug symbols (PDB) found for CvGameCore    ) else (
-        echo   Warning: CvGameCore_Expansion2.pdb not found    )
-    if exist "%LUA_PDB%" (
-        echo   [OK] Debug symbols (PDB) found for Lua    ) else (
-        echo   Warning: lua51_win32.pdb not found    )
+:: Check for PDB files (always check for debug symbols)
+if exist "%PREBUILT_PDB%" (
+    echo   [OK] Debug symbols (PDB) found for CvGameCore
+) else (
+    echo   Warning: CvGameCore_Expansion2.pdb not found
+)
+if exist "%LUA_PDB%" (
+    echo   [OK] Debug symbols (PDB) found for Lua
+) else (
+    echo   Warning: lua51_win32.pdb not found
 )
 
 :: Check/Install Steam
@@ -236,17 +238,17 @@ if "%VP_INSTALLED%"=="1" (
             echo   Warning: Could not copy Lua DLL to Civ5 folder        )
     )
 
-    :: Copy PDB files if in debug mode
-    if "%DEBUG_MODE%"=="1" (
-        if exist "%PREBUILT_PDB%" (
-            copy /Y "%PREBUILT_PDB%" "%CP_PATH%\CvGameCore_Expansion2.pdb" >nul 2>&1
-            if !errorlevel! equ 0 (
-                echo   [OK] CvGameCore PDB copied (debug symbols)            )
+    :: Copy PDB files (always copy debug symbols if available)
+    if exist "%PREBUILT_PDB%" (
+        copy /Y "%PREBUILT_PDB%" "%CP_PATH%\CvGameCore_Expansion2.pdb" >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo   [OK] CvGameCore PDB copied (debug symbols)
         )
-        if exist "%LUA_PDB%" (
-            copy /Y "%LUA_PDB%" "%CIV5_PATH%\lua51_win32.pdb" >nul 2>&1
-            if !errorlevel! equ 0 (
-                echo   [OK] Lua PDB copied (debug symbols)            )
+    )
+    if exist "%LUA_PDB%" (
+        copy /Y "%LUA_PDB%" "%CIV5_PATH%\lua51_win32.pdb" >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo   [OK] Lua PDB copied (debug symbols)
         )
     )
 ) else (
@@ -272,16 +274,14 @@ if "%VP_INSTALLED%"=="1" (
             copy /Y "%LUA_DLL%" "%CIV5_PATH%\lua51_win32.dll" >nul 2>&1
         )
 
-        :: Copy PDB files if in debug mode
-        if "%DEBUG_MODE%"=="1" (
-            if exist "%PREBUILT_PDB%" (
-                echo   Copying CvGameCore debug symbols...
-                copy /Y "%PREBUILT_PDB%" "%CP_PATH%\CvGameCore_Expansion2.pdb" >nul 2>&1
-            )
-            if exist "%LUA_PDB%" (
-                echo   Copying Lua debug symbols...
-                copy /Y "%LUA_PDB%" "%CIV5_PATH%\lua51_win32.pdb" >nul 2>&1
-            )
+        :: Copy PDB files (always copy debug symbols if available)
+        if exist "%PREBUILT_PDB%" (
+            echo   Copying CvGameCore debug symbols...
+            copy /Y "%PREBUILT_PDB%" "%CP_PATH%\CvGameCore_Expansion2.pdb" >nul 2>&1
+        )
+        if exist "%LUA_PDB%" (
+            echo   Copying Lua debug symbols...
+            copy /Y "%LUA_PDB%" "%CIV5_PATH%\lua51_win32.pdb" >nul 2>&1
         )
 
         :: Copy Vox Deorum mod
@@ -345,12 +345,12 @@ if exist "%CIV5_PATH%\lua51_win32.dll" (
     echo   [OK] Lua DLL installed) else (
     echo   [WARN] Lua DLL not installed)
 
-:: Check debug symbols if in debug mode
-if "%DEBUG_MODE%"=="1" (
-    if exist "%CP_PATH%\CvGameCore_Expansion2.pdb" (
-        echo   [OK] CvGameCore debug symbols installed    )
-    if exist "%CIV5_PATH%\lua51_win32.pdb" (
-        echo   [OK] Lua debug symbols installed    )
+:: Check debug symbols (always check if installed)
+if exist "%CP_PATH%\CvGameCore_Expansion2.pdb" (
+    echo   [OK] CvGameCore debug symbols installed
+)
+if exist "%CIV5_PATH%\lua51_win32.pdb" (
+    echo   [OK] Lua debug symbols installed
 )
 
 :: Final message
@@ -366,11 +366,8 @@ echo =========================================if "%SUCCESS%"=="1" (
     echo      - (2) Vox Populi (if desired)
     echo   4. Click "Next" and start a new game
     echo.
-    if "%DEBUG_MODE%"=="1" (
-        echo Debug mode: DLL and debug symbols installed.
-    ) else (
-        echo The Vox Deorum DLL has been installed.
-    )
+    echo The Vox Deorum DLL has been installed.
+    echo Debug symbols will be copied if available.
 ) else (
     echo      Installation Partially Complete    echo.
     echo Please resolve any issues above and run again.
