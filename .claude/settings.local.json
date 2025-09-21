@@ -28,7 +28,10 @@
       "WebFetch(domain:mastra.dev)",
       "WebFetch(domain:mastra.ai)",
       "Bash(find:*)",
-      "Bash(cmd /c \"dir *\")"
+      "Bash(cmd /c \"dir *\")",
+      "Bash(git lfs:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

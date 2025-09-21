@@ -7,12 +7,26 @@ setlocal EnableDelayedExpansion
 title Vox Deorum Installation
 
 :: Configuration
-set "SCRIPT_VERSION=2.0.0"
+set "SCRIPT_VERSION=2.1.0"
 set "SCRIPT_DIR=%~dp0"
 set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
 set "CIV5_APP_ID=8930"
 set "TEMP_DIR=%TEMP%\VoxDeorumInstall"
-set "PREBUILT_DLL=%SCRIPT_DIR%\CvGameCore_Expansion2.dll"
+
+:: Check for --debug argument
+set "DEBUG_MODE=0"
+if "%~1"=="--debug" (
+    set "DEBUG_MODE=1"
+    set "BUILD_DIR=%SCRIPT_DIR%\debug"
+) else (
+    set "BUILD_DIR=%SCRIPT_DIR%\release"
+)
+
+:: Set file paths based on build mode
+set "PREBUILT_DLL=%BUILD_DIR%\CvGameCore_Expansion2.dll"
+set "PREBUILT_PDB=%BUILD_DIR%\CvGameCore_Expansion2.pdb"
+set "LUA_DLL=%BUILD_DIR%\lua51_win32.dll"
+set "LUA_PDB=%BUILD_DIR%\lua51_win32.pdb"
 
 :: Enable ANSI color codes in Windows 10+
 for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v CurrentBuild 2^>nul ^| findstr CurrentBuild') do set BUILD=%%a
@@ -35,23 +49,51 @@ echo.
 echo %BLUE%=========================================%RESET%
 echo %BLUE%     Vox Deorum Installation Script     %RESET%
 echo %BLUE%           Version %SCRIPT_VERSION%              %RESET%
+if "%DEBUG_MODE%"=="1" (
+    echo %YELLOW%          [DEBUG MODE ENABLED]          %RESET%
+)
 echo %BLUE%=========================================%RESET%
 echo.
 
 :: Create temp directory
 if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 
-:: Check for pre-built DLL
-echo %YELLOW%[1/7] Checking for pre-built DLL...%RESET%
+:: Check for pre-built files
+echo %YELLOW%[1/7] Checking for pre-built files...%RESET%
 if not exist "%PREBUILT_DLL%" (
     echo %RED%Error: Pre-built DLL not found at:%RESET%
     echo   %PREBUILT_DLL%
     echo.
-    echo Please ensure CvGameCore_Expansion2.dll is in the scripts folder.
+    if "%DEBUG_MODE%"=="1" (
+        echo Please ensure CvGameCore_Expansion2.dll is in the scripts\debug folder.
+    ) else (
+        echo Please ensure CvGameCore_Expansion2.dll is in the scripts\release folder.
+    )
     pause
     exit /b 1
 )
 echo %GREEN%  ✓ Pre-built DLL found%RESET%
+
+:: Check for Lua DLL
+if not exist "%LUA_DLL%" (
+    echo %YELLOW%  Warning: lua51_win32.dll not found in %BUILD_DIR%%RESET%
+) else (
+    echo %GREEN%  ✓ Lua DLL found%RESET%
+)
+
+:: Check for PDB files if in debug mode
+if "%DEBUG_MODE%"=="1" (
+    if exist "%PREBUILT_PDB%" (
+        echo %GREEN%  ✓ Debug symbols (PDB) found for CvGameCore%RESET%
+    ) else (
+        echo %YELLOW%  Warning: CvGameCore_Expansion2.pdb not found%RESET%
+    )
+    if exist "%LUA_PDB%" (
+        echo %GREEN%  ✓ Debug symbols (PDB) found for Lua%RESET%
+    ) else (
+        echo %YELLOW%  Warning: lua51_win32.pdb not found%RESET%
+    )
+)
 
 :: Check/Install Steam
 echo.
@@ -219,13 +261,41 @@ if exist "%CP_PATH%" (
 )
 
 if "%VP_INSTALLED%"=="1" (
-    :: Only copy the DLL
-    echo   Updating DLL only...
+    :: Only copy the DLL and Lua files
+    echo   Updating DLL and Lua files...
+
+    :: Copy main DLL
     copy /Y "%PREBUILT_DLL%" "%CP_PATH%\CvGameCore_Expansion2.dll" >nul 2>&1
     if !errorlevel! equ 0 (
-        echo %GREEN%  ✓ DLL updated successfully%RESET%
+        echo %GREEN%  ✓ CvGameCore DLL updated%RESET%
     ) else (
-        echo %YELLOW%  Warning: Could not update DLL. Manual copy may be required.%RESET%
+        echo %YELLOW%  Warning: Could not update CvGameCore DLL%RESET%
+    )
+
+    :: Copy Lua DLL to Civ5 folder if it exists
+    if exist "%LUA_DLL%" (
+        copy /Y "%LUA_DLL%" "%CIV5_PATH%\lua51_win32.dll" >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo %GREEN%  ✓ Lua DLL copied to Civ5 folder%RESET%
+        ) else (
+            echo %YELLOW%  Warning: Could not copy Lua DLL to Civ5 folder%RESET%
+        )
+    )
+
+    :: Copy PDB files if in debug mode
+    if "%DEBUG_MODE%"=="1" (
+        if exist "%PREBUILT_PDB%" (
+            copy /Y "%PREBUILT_PDB%" "%CP_PATH%\CvGameCore_Expansion2.pdb" >nul 2>&1
+            if !errorlevel! equ 0 (
+                echo %GREEN%  ✓ CvGameCore PDB copied (debug symbols)%RESET%
+            )
+        )
+        if exist "%LUA_PDB%" (
+            copy /Y "%LUA_PDB%" "%CIV5_PATH%\lua51_win32.pdb" >nul 2>&1
+            if !errorlevel! equ 0 (
+                echo %GREEN%  ✓ Lua PDB copied (debug symbols)%RESET%
+            )
+        )
     )
 ) else (
     :: Copy full Community Patch, Vox Deorum, and Vox Populi
@@ -243,6 +313,24 @@ if "%VP_INSTALLED%"=="1" (
         :: Copy the pre-built DLL
         echo   Copying pre-built DLL...
         copy /Y "%PREBUILT_DLL%" "%CP_PATH%\CvGameCore_Expansion2.dll" >nul 2>&1
+
+        :: Copy Lua DLL to Civ5 folder
+        if exist "%LUA_DLL%" (
+            echo   Copying Lua DLL...
+            copy /Y "%LUA_DLL%" "%CIV5_PATH%\lua51_win32.dll" >nul 2>&1
+        )
+
+        :: Copy PDB files if in debug mode
+        if "%DEBUG_MODE%"=="1" (
+            if exist "%PREBUILT_PDB%" (
+                echo   Copying CvGameCore debug symbols...
+                copy /Y "%PREBUILT_PDB%" "%CP_PATH%\CvGameCore_Expansion2.pdb" >nul 2>&1
+            )
+            if exist "%LUA_PDB%" (
+                echo   Copying Lua debug symbols...
+                copy /Y "%LUA_PDB%" "%CIV5_PATH%\lua51_win32.pdb" >nul 2>&1
+            )
+        )
 
         :: Copy Vox Deorum mod
         if exist "%SOURCE_VD%" (
@@ -313,6 +401,23 @@ if exist "%VP_PATH%" (
     echo %YELLOW%  ⚠ Vox Populi not found (optional)%RESET%
 )
 
+:: Check Lua DLL
+if exist "%CIV5_PATH%\lua51_win32.dll" (
+    echo %GREEN%  ✓ Lua DLL installed%RESET%
+) else (
+    echo %YELLOW%  ⚠ Lua DLL not installed%RESET%
+)
+
+:: Check debug symbols if in debug mode
+if "%DEBUG_MODE%"=="1" (
+    if exist "%CP_PATH%\CvGameCore_Expansion2.pdb" (
+        echo %GREEN%  ✓ CvGameCore debug symbols installed%RESET%
+    )
+    if exist "%CIV5_PATH%\lua51_win32.pdb" (
+        echo %GREEN%  ✓ Lua debug symbols installed%RESET%
+    )
+)
+
 :: Final message
 echo.
 echo %BLUE%=========================================%RESET%
@@ -328,7 +433,11 @@ if "%SUCCESS%"=="1" (
     echo      - (2) Vox Populi (if desired)
     echo   4. Click "Next" and start a new game
     echo.
-    echo The Vox Deorum DLL has been installed.
+    if "%DEBUG_MODE%"=="1" (
+        echo Debug mode: DLL and debug symbols installed.
+    ) else (
+        echo The Vox Deorum DLL has been installed.
+    )
 ) else (
     echo %YELLOW%     Installation Partially Complete%RESET%
     echo.

@@ -210,8 +210,8 @@ echo %BLUE%   Starting Vox Deorum Installation...     %RESET%
 echo %BLUE%============================================%RESET%
 echo.
 
-:: Run the installation script
-call "%INSTALL_SCRIPT%"
+:: Run the installation script, passing all arguments
+call "%INSTALL_SCRIPT%" %*
 
 :: Check if installation was successful
 if %errorlevel% equ 0 (
