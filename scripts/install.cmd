@@ -450,7 +450,7 @@ if !errorlevel! equ 0 (
     if exist "!PROJECT_ROOT!\bridge-service\package.json" (
         echo   Installing bridge-service dependencies...
         pushd "!PROJECT_ROOT!\bridge-service"
-        npm install
+        call npm install
         if !errorlevel! equ 0 (
             echo   [OK] bridge-service dependencies installed
         ) else (
@@ -466,7 +466,7 @@ if !errorlevel! equ 0 (
     if exist "!PROJECT_ROOT!\mcp-server\package.json" (
         echo   Installing mcp-server dependencies...
         pushd "!PROJECT_ROOT!\mcp-server"
-        npm install
+        call npm install
         if !errorlevel! equ 0 (
             echo   [OK] mcp-server dependencies installed
         ) else (
@@ -482,7 +482,7 @@ if !errorlevel! equ 0 (
     if exist "!PROJECT_ROOT!\vox-agents\package.json" (
         echo   Installing vox-agents dependencies...
         pushd "!PROJECT_ROOT!\vox-agents"
-        npm install
+        call npm install
         if !errorlevel! equ 0 (
             echo   [OK] vox-agents dependencies installed
         ) else (

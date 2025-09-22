@@ -212,7 +212,7 @@ if %errorlevel% neq 0 (
 :: Run installation script
 echo.
 echo [4/4] Running installation script...
-set "INSTALL_SCRIPT=%INSTALL_DIR%\scripts\installation.cmd"
+set "INSTALL_SCRIPT=%INSTALL_DIR%\scripts\install.cmd"
 if not exist "%INSTALL_SCRIPT%" (
     echo   [FAIL] Installation script not found at:
     echo   %INSTALL_SCRIPT%
