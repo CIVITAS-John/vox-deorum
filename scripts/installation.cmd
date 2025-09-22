@@ -340,6 +340,7 @@ if "%VP_INSTALLED%"=="1" (
 echo.
 echo [7/8] Installing Node.js dependencies...
 set "PROJECT_ROOT=%SCRIPT_DIR%\.."
+echo   Project root: !PROJECT_ROOT!
 
 :: Check if Node.js is installed
 where node >nul 2>&1
@@ -449,39 +450,48 @@ if !errorlevel! equ 0 (
     if exist "!PROJECT_ROOT!\bridge-service\package.json" (
         echo   Installing bridge-service dependencies...
         pushd "!PROJECT_ROOT!\bridge-service"
-        npm install >nul 2>&1
+        npm install
         if !errorlevel! equ 0 (
             echo   [OK] bridge-service dependencies installed
         ) else (
             echo   [WARN] Failed to install bridge-service dependencies
+            echo   Error level: !errorlevel!
         )
         popd
+    ) else (
+        echo   [WARN] bridge-service package.json not found at !PROJECT_ROOT!\bridge-service
     )
 
     :: Install dependencies for mcp-server
     if exist "!PROJECT_ROOT!\mcp-server\package.json" (
         echo   Installing mcp-server dependencies...
         pushd "!PROJECT_ROOT!\mcp-server"
-        npm install >nul 2>&1
+        npm install
         if !errorlevel! equ 0 (
             echo   [OK] mcp-server dependencies installed
         ) else (
             echo   [WARN] Failed to install mcp-server dependencies
+            echo   Error level: !errorlevel!
         )
         popd
+    ) else (
+        echo   [WARN] mcp-server package.json not found at !PROJECT_ROOT!\mcp-server
     )
 
     :: Install dependencies for vox-agents
     if exist "!PROJECT_ROOT!\vox-agents\package.json" (
         echo   Installing vox-agents dependencies...
         pushd "!PROJECT_ROOT!\vox-agents"
-        npm install >nul 2>&1
+        npm install
         if !errorlevel! equ 0 (
             echo   [OK] vox-agents dependencies installed
         ) else (
             echo   [WARN] Failed to install vox-agents dependencies
+            echo   Error level: !errorlevel!
         )
         popd
+    ) else (
+        echo   [WARN] vox-agents package.json not found at !PROJECT_ROOT!\vox-agents
     )
 )
 
