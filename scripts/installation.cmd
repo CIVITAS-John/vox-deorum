@@ -45,8 +45,10 @@ echo.
 if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 
 :: Check for pre-built files
-echo [1/7] Checking for pre-built files...if not exist "%PREBUILT_DLL%" (
-    echo Error: Pre-built DLL not found at:    echo   %PREBUILT_DLL%
+echo [1/7] Checking for pre-built files...
+if not exist "%PREBUILT_DLL%" (
+    echo Error: Pre-built DLL not found at:
+    echo   %PREBUILT_DLL%
     echo.
     if "%DEBUG_MODE%"=="1" (
         echo Please ensure CvGameCore_Expansion2.dll is in the scripts\debug folder.
@@ -59,8 +61,10 @@ echo [1/7] Checking for pre-built files...if not exist "%PREBUILT_DLL%" (
 echo   [OK] Pre-built DLL found
 :: Check for Lua DLL
 if not exist "%LUA_DLL%" (
-    echo   Warning: lua51_win32.dll not found in %BUILD_DIR%) else (
-    echo   [OK] Lua DLL found)
+    echo   Warning: lua51_win32.dll not found in %BUILD_DIR%
+) else (
+    echo   [OK] Lua DLL found
+)
 
 :: Check for PDB files (always check for debug symbols)
 if exist "%PREBUILT_PDB%" (
@@ -76,7 +80,8 @@ if exist "%LUA_PDB%" (
 
 :: Check/Install Steam
 echo.
-echo [2/7] Checking for Steam...set "STEAM_FOUND=0"
+echo [2/7] Checking for Steam...
+set "STEAM_FOUND=0"
 
 :: Check registry for Steam path
 for /f "tokens=2*" %%a in ('reg query "HKEY_CURRENT_USER\Software\Valve\Steam" /v SteamPath 2^>nul ^| findstr SteamPath') do (
@@ -93,7 +98,8 @@ if "%STEAM_FOUND%"=="0" (
 )
 
 if "%STEAM_FOUND%"=="1" (
-    echo   [OK] Steam found at: %STEAM_PATH%) else (
+    echo   [OK] Steam found at: %STEAM_PATH%
+) else (
     echo   Steam not found. Installing...
     :: Try winget first
     winget --version >nul 2>&1
@@ -111,7 +117,8 @@ if "%STEAM_FOUND%"=="1" (
             echo.
             pause
         ) else (
-            echo   Failed to download Steam installer            echo   Please install Steam manually from: https://store.steampowered.com/
+            echo   Failed to download Steam installer
+            echo   Please install Steam manually from: https://store.steampowered.com/
             pause
             exit /b 1
         )
@@ -126,7 +133,8 @@ if "%STEAM_FOUND%"=="1" (
 
 :: Download and setup SteamCMD
 echo.
-echo [3/7] Setting up SteamCMD...set "STEAMCMD_DIR=%TEMP_DIR%\steamcmd"
+echo [3/7] Setting up SteamCMD...
+set "STEAMCMD_DIR=%TEMP_DIR%\steamcmd"
 set "STEAMCMD_EXE=%STEAMCMD_DIR%\steamcmd.exe"
 
 if not exist "%STEAMCMD_EXE%" (
@@ -138,14 +146,16 @@ if not exist "%STEAMCMD_EXE%" (
         echo   Extracting SteamCMD...
         powershell -Command "Expand-Archive -Path '%TEMP_DIR%\steamcmd.zip' -DestinationPath '%STEAMCMD_DIR%' -Force"
     ) else (
-        echo   Failed to download SteamCMD        pause
+        echo   Failed to download SteamCMD
+        pause
         exit /b 1
     )
 )
 echo   [OK] SteamCMD ready
 :: Check for Civ 5 installation using SteamCMD
 echo.
-echo [4/7] Checking for Civilization V installation...echo   Running SteamCMD to check app %CIV5_APP_ID%...
+echo [4/7] Checking for Civilization V installation...
+echo   Running SteamCMD to check app %CIV5_APP_ID%...
 
 :: Create SteamCMD script to check installation
 echo @ShutdownOnFailedCommand 0 > "%TEMP_DIR%\check_civ5.txt"
@@ -185,9 +195,11 @@ if "%CIV5_FOUND%"=="0" (
 )
 
 if "%CIV5_FOUND%"=="1" (
-    echo   [OK] Civilization V found at:    echo     %CIV5_PATH%
+    echo   [OK] Civilization V found at:
+    echo     %CIV5_PATH%
 ) else (
-    echo   Civilization V not found    echo.
+    echo   Civilization V not found
+    echo.
     echo   Please install Civilization V through Steam:
     echo   1. Open Steam and log in
     echo   2. Go to Library or Store
@@ -204,7 +216,8 @@ if "%CIV5_FOUND%"=="1" (
 
 :: Setup MODS directory
 echo.
-echo [5/7] Setting up MODS directory...:: Get the actual Documents folder path using PowerShell (handles OneDrive/redirected folders)
+echo [5/7] Setting up MODS directory...
+:: Get the actual Documents folder path using PowerShell (handles OneDrive/redirected folders)
 for /f "usebackq tokens=*" %%i in (`powershell -Command "[Environment]::GetFolderPath('MyDocuments')"`) do set "DOCUMENTS=%%i"
 set "MODS_DIR=%DOCUMENTS%\My Games\Sid Meier's Civilization 5\MODS"
 if not exist "%MODS_DIR%" (
@@ -214,14 +227,16 @@ if not exist "%MODS_DIR%" (
 echo   [OK] MODS directory: %MODS_DIR%
 :: Check for existing Vox Populi installation
 echo.
-echo [6/7] Installing Vox Populi Community Patch...set "VP_INSTALLED=0"
+echo [6/7] Installing Vox Populi Community Patch...
+set "VP_INSTALLED=0"
 set "CP_PATH=%MODS_DIR%\(1) Community Patch"
 set "VD_PATH=%MODS_DIR%\(1b) Vox Deorum"
 set "VP_PATH=%MODS_DIR%\(2) Vox Populi"
 
 if exist "%CP_PATH%" (
     if exist "%VP_PATH%" (
-        echo   [OK] Vox Populi already installed        set "VP_INSTALLED=1"
+        echo   [OK] Vox Populi already installed
+        set "VP_INSTALLED=1"
     )
 )
 
@@ -232,15 +247,19 @@ if "%VP_INSTALLED%"=="1" (
     :: Copy main DLL
     copy /Y "%PREBUILT_DLL%" "%CP_PATH%\CvGameCore_Expansion2.dll" >nul 2>&1
     if !errorlevel! equ 0 (
-        echo   [OK] CvGameCore DLL updated    ) else (
-        echo   Warning: Could not update CvGameCore DLL    )
+        echo   [OK] CvGameCore DLL updated
+    ) else (
+        echo   Warning: Could not update CvGameCore DLL
+    )
 
     :: Copy Lua DLL to Civ5 folder if it exists
     if exist "%LUA_DLL%" (
         copy /Y "%LUA_DLL%" "%CIV5_PATH%\lua51_win32.dll" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo   [OK] Lua DLL copied to Civ5 folder        ) else (
-            echo   Warning: Could not copy Lua DLL to Civ5 folder        )
+            echo   [OK] Lua DLL copied to Civ5 folder
+        ) else (
+            echo   Warning: Could not copy Lua DLL to Civ5 folder
+        )
     )
 
     :: Copy PDB files (always copy debug symbols if available)
@@ -302,8 +321,10 @@ if "%VP_INSTALLED%"=="1" (
             xcopy /E /I /Y "%SOURCE_VP%" "%VP_PATH%" >nul 2>&1
         )
 
-        echo   [OK] Mods installed successfully    ) else (
-        echo   Warning: Source mod folders not found        echo   Expected at: %SOURCE_CP%
+        echo   [OK] Mods installed successfully
+    ) else (
+        echo   Warning: Source mod folders not found
+        echo   Expected at: %SOURCE_CP%
         echo   Please manually copy:
         echo     - (1) Community Patch folder to %CP_PATH%
         echo     - (1b) Vox Deorum folder to %VD_PATH%
@@ -319,36 +340,48 @@ set "SUCCESS=1"
 
 :: Check Steam
 if exist "%STEAM_PATH%\steam.exe" (
-    echo   [OK] Steam installed) else (
-    echo   [FAIL] Steam not found    set "SUCCESS=0"
+    echo   [OK] Steam installed
+) else (
+    echo   [FAIL] Steam not found
+    set "SUCCESS=0"
 )
 
 :: Check Civ 5
 if "%CIV5_FOUND%"=="1" (
-    echo   [OK] Civilization V installed) else (
-    echo   [FAIL] Civilization V not found    set "SUCCESS=0"
+    echo   [OK] Civilization V installed
+) else (
+    echo   [FAIL] Civilization V not found
+    set "SUCCESS=0"
 )
 
 :: Check Community Patch
 if exist "%CP_PATH%\CvGameCore_Expansion2.dll" (
-    echo   [OK] Community Patch DLL installed) else (
-    echo   [FAIL] Community Patch DLL not found    set "SUCCESS=0"
+    echo   [OK] Community Patch DLL installed
+) else (
+    echo   [FAIL] Community Patch DLL not found
+    set "SUCCESS=0"
 )
 
 :: Check Vox Deorum
 if exist "%VD_PATH%" (
-    echo   [OK] Vox Deorum installed) else (
-    echo   [WARN] Vox Deorum not found)
+    echo   [OK] Vox Deorum installed
+) else (
+    echo   [WARN] Vox Deorum not found
+)
 
 :: Check Vox Populi
 if exist "%VP_PATH%" (
-    echo   [OK] Vox Populi installed) else (
-    echo   [WARN] Vox Populi not found (optional))
+    echo   [OK] Vox Populi installed
+) else (
+    echo   [WARN] Vox Populi not found (optional)
+)
 
 :: Check Lua DLL
 if exist "%CIV5_PATH%\lua51_win32.dll" (
-    echo   [OK] Lua DLL installed) else (
-    echo   [WARN] Lua DLL not installed)
+    echo   [OK] Lua DLL installed
+) else (
+    echo   [WARN] Lua DLL not installed
+)
 
 :: Check debug symbols (always check if installed)
 if exist "%CP_PATH%\CvGameCore_Expansion2.pdb" (
@@ -360,8 +393,10 @@ if exist "%CIV5_PATH%\lua51_win32.pdb" (
 
 :: Final message
 echo.
-echo =========================================if "%SUCCESS%"=="1" (
-    echo        Installation Complete!    echo.
+echo =========================================
+if "%SUCCESS%"=="1" (
+    echo        Installation Complete!
+    echo.
     echo Next steps:
     echo   1. Launch Civilization V from Steam
     echo   2. Go to MODS from the main menu
@@ -374,7 +409,8 @@ echo =========================================if "%SUCCESS%"=="1" (
     echo The Vox Deorum DLL has been installed.
     echo Debug symbols will be copied if available.
 ) else (
-    echo      Installation Partially Complete    echo.
+    echo      Installation Partially Complete
+    echo.
     echo Please resolve any issues above and run again.
 )
 echo =========================================

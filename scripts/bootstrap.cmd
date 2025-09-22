@@ -66,7 +66,18 @@ goto :CloneRepo
 :: Download and install Git for Windows
 echo   Downloading Git for Windows...
 set "GIT_INSTALLER=%TEMP_DIR%\Git-%GIT_VERSION%-64-bit.exe"
-powershell -Command "& { try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://github.com/git-for-windows/git/releases/download/v%GIT_VERSION%.windows.1/Git-%GIT_VERSION%-64-bit.exe' -OutFile '%GIT_INSTALLER%' -UseBasicParsing } catch { exit 1 } }"
+set "GIT_URL=https://github.com/git-for-windows/git/releases/download/v%GIT_VERSION%.windows.1/Git-%GIT_VERSION%-64-bit.exe"
+
+:: Try curl first (usually faster and more reliable)
+where curl >nul 2>&1
+if %errorlevel% equ 0 (
+    echo   Using curl to download Git installer...
+    curl -L -o "%GIT_INSTALLER%" "%GIT_URL%"
+) else (
+    :: Fall back to PowerShell if curl not available
+    echo   Curl not found, using PowerShell to download Git installer...
+    powershell -Command "& { try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%GIT_URL%' -OutFile '%GIT_INSTALLER%' -UseBasicParsing } catch { exit 1 } }"
+)
 
 if not exist "%GIT_INSTALLER%" (
     echo   [FAIL] Failed to download Git installer
@@ -253,10 +264,10 @@ if exist "%TEMP_DIR%" (
 :: Create desktop shortcut to repository
 echo.
 choice /C YN /M "Create desktop shortcut to Vox Deorum folder?"
-if errorlevel 1 (
-    powershell -Command "& { $ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%USERPROFILE%\Desktop\Vox Deorum.lnk'); $s.TargetPath = '%INSTALL_DIR%'; $s.IconLocation = '%SystemRoot%\System32\shell32.dll,3'; $s.Save() }"
-    echo   [OK] Desktop shortcut created
-)
+if errorlevel 2 goto skip_shortcut
+powershell -Command "& { $ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%USERPROFILE%\Desktop\Vox Deorum.lnk'); $s.TargetPath = '%INSTALL_DIR%'; $s.IconLocation = '%SystemRoot%\System32\shell32.dll,3'; $s.Save() }"
+echo   [OK] Desktop shortcut created
+:skip_shortcut
 
 echo.
 pause
