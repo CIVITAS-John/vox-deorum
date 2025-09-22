@@ -48,32 +48,29 @@ if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 echo [1/7] Checking for pre-built files...
 if not exist "%PREBUILT_DLL%" (
     echo Error: Pre-built DLL not found at:
-    echo   %PREBUILT_DLL%
+    echo   !PREBUILT_DLL!
     echo.
-    if "%DEBUG_MODE%"=="1" (
-        echo Please ensure CvGameCore_Expansion2.dll is in the scripts\debug folder.
-    ) else (
-        echo Please ensure CvGameCore_Expansion2.dll is in the scripts\release folder.
-    )
+    echo   Error: CvGameCore_Expansion2.dll not found in !BUILD_DIR!
     pause
     exit /b 1
 )
 echo   [OK] Pre-built DLL found
+
 :: Check for Lua DLL
 if not exist "%LUA_DLL%" (
-    echo   Warning: lua51_win32.dll not found in %BUILD_DIR%
+    echo   Warning: lua51_win32.dll not found in !BUILD_DIR!
 ) else (
     echo   [OK] Lua DLL found
 )
 
 :: Check for PDB files (always check for debug symbols)
 if exist "%PREBUILT_PDB%" (
-    echo   [OK] Debug symbols (PDB) found for CvGameCore
+    echo   [OK] Debug symbols ^(PDB^) found for CvGameCore
 ) else (
     echo   Warning: CvGameCore_Expansion2.pdb not found
 )
 if exist "%LUA_PDB%" (
-    echo   [OK] Debug symbols (PDB) found for Lua
+    echo   [OK] Debug symbols ^(PDB^) found for Lua
 ) else (
     echo   Warning: lua51_win32.pdb not found
 )
@@ -98,7 +95,7 @@ if "%STEAM_FOUND%"=="0" (
 )
 
 if "%STEAM_FOUND%"=="1" (
-    echo   [OK] Steam found at: %STEAM_PATH%
+    echo   [OK] Steam found at: !STEAM_PATH!
 ) else (
     echo   Steam not found. Installing...
     :: Try winget first
@@ -109,13 +106,15 @@ if "%STEAM_FOUND%"=="1" (
     ) else (
         :: Download and run Steam installer
         echo   Downloading Steam installer...
-        powershell -Command "try { Invoke-WebRequest -Uri 'https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe' -OutFile '%TEMP_DIR%\SteamSetup.exe' } catch { exit 1 }"
+        curl -L -o "%TEMP_DIR%\SteamSetup.exe" "https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe" >nul 2>&1
+        if not exist "%TEMP_DIR%\SteamSetup.exe" (
+            echo   curl failed, trying PowerShell...
+            powershell -Command "try { Invoke-WebRequest -Uri 'https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe' -OutFile '%TEMP_DIR%\SteamSetup.exe' } catch { exit 1 }"
+        )
         if exist "%TEMP_DIR%\SteamSetup.exe" (
             echo   Running Steam installer...
-            echo   Please complete the Steam installation and login.
-            "%TEMP_DIR%\SteamSetup.exe"
+            "%TEMP_DIR%\SteamSetup.exe" /S
             echo.
-            pause
         ) else (
             echo   Failed to download Steam installer
             echo   Please install Steam manually from: https://store.steampowered.com/
@@ -140,7 +139,11 @@ set "STEAMCMD_EXE=%STEAMCMD_DIR%\steamcmd.exe"
 if not exist "%STEAMCMD_EXE%" (
     echo   Downloading SteamCMD...
     if not exist "%STEAMCMD_DIR%" mkdir "%STEAMCMD_DIR%"
-    powershell -Command "try { Invoke-WebRequest -Uri 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip' -OutFile '%TEMP_DIR%\steamcmd.zip' } catch { exit 1 }"
+    curl -L -o "%TEMP_DIR%\steamcmd.zip" "https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip" >nul 2>&1
+    if not exist "%TEMP_DIR%\steamcmd.zip" (
+        echo   curl failed, trying PowerShell...
+        powershell -Command "try { Invoke-WebRequest -Uri 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip' -OutFile '%TEMP_DIR%\steamcmd.zip' } catch { exit 1 }"
+    )
 
     if exist "%TEMP_DIR%\steamcmd.zip" (
         echo   Extracting SteamCMD...
@@ -154,7 +157,7 @@ if not exist "%STEAMCMD_EXE%" (
 echo   [OK] SteamCMD ready
 :: Check for Civ 5 installation using SteamCMD
 echo.
-echo [4/7] Checking for Civilization V installation...
+echo [4/8] Checking for Civilization V installation...
 echo   Running SteamCMD to check app %CIV5_APP_ID%...
 
 :: Create SteamCMD script to check installation
@@ -196,18 +199,18 @@ if "%CIV5_FOUND%"=="0" (
 
 if "%CIV5_FOUND%"=="1" (
     echo   [OK] Civilization V found at:
-    echo     %CIV5_PATH%
+    echo     !CIV5_PATH!
 ) else (
     echo   Civilization V not found
     echo.
     echo   Please install Civilization V through Steam:
     echo   1. Open Steam and log in
     echo   2. Go to Library or Store
-    echo   3. Install Civilization V (any edition)
+    echo   3. Install Civilization V ^(any edition^)
     echo   4. Note: Complete Edition recommended for all DLCs
     echo.
     echo   Opening Steam...
-    start steam://install/%CIV5_APP_ID%
+    start steam://install/!CIV5_APP_ID!
     echo.
     echo   After installation, please run this script again.
     pause
@@ -216,7 +219,7 @@ if "%CIV5_FOUND%"=="1" (
 
 :: Setup MODS directory
 echo.
-echo [5/7] Setting up MODS directory...
+echo [5/8] Setting up MODS directory...
 :: Get the actual Documents folder path using PowerShell (handles OneDrive/redirected folders)
 for /f "usebackq tokens=*" %%i in (`powershell -Command "[Environment]::GetFolderPath('MyDocuments')"`) do set "DOCUMENTS=%%i"
 set "MODS_DIR=%DOCUMENTS%\My Games\Sid Meier's Civilization 5\MODS"
@@ -224,10 +227,10 @@ if not exist "%MODS_DIR%" (
     echo   Creating MODS directory...
     mkdir "%MODS_DIR%"
 )
-echo   [OK] MODS directory: %MODS_DIR%
+echo   [OK] MODS directory: !MODS_DIR!
 :: Check for existing Vox Populi installation
 echo.
-echo [6/7] Installing Vox Populi Community Patch...
+echo [6/8] Installing Vox Populi Community Patch...
 set "VP_INSTALLED=0"
 set "CP_PATH=%MODS_DIR%\(1) Community Patch"
 set "VD_PATH=%MODS_DIR%\(1b) Vox Deorum"
@@ -266,13 +269,13 @@ if "%VP_INSTALLED%"=="1" (
     if exist "%PREBUILT_PDB%" (
         copy /Y "%PREBUILT_PDB%" "%CP_PATH%\CvGameCore_Expansion2.pdb" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo   [OK] CvGameCore PDB copied (debug symbols)
+            echo   [OK] CvGameCore PDB copied ^(debug symbols^)
         )
     )
     if exist "%LUA_PDB%" (
         copy /Y "%LUA_PDB%" "%CIV5_PATH%\lua51_win32.pdb" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo   [OK] Lua PDB copied (debug symbols)
+            echo   [OK] Lua PDB copied ^(debug symbols^)
         )
     )
 ) else (
@@ -284,58 +287,207 @@ if "%VP_INSTALLED%"=="1" (
     set "SOURCE_VD=%SCRIPT_DIR%\..\civ5-mod"
     set "SOURCE_VP=%SCRIPT_DIR%\..\civ5-dll\(2) Vox Populi"
 
-    if exist "%SOURCE_CP%" (
-        echo   Copying (1) Community Patch...
-        xcopy /E /I /Y "%SOURCE_CP%" "%CP_PATH%" >nul 2>&1
+    if exist "!SOURCE_CP!" (
+        echo   Copying ^(1^) Community Patch...
+        xcopy /E /I /Y "!SOURCE_CP!" "!CP_PATH!" >nul 2>&1
 
         :: Copy the pre-built DLL
         echo   Copying pre-built DLL...
-        copy /Y "%PREBUILT_DLL%" "%CP_PATH%\CvGameCore_Expansion2.dll" >nul 2>&1
+        copy /Y "!PREBUILT_DLL!" "!CP_PATH!\CvGameCore_Expansion2.dll" >nul 2>&1
 
         :: Copy Lua DLL to Civ5 folder
-        if exist "%LUA_DLL%" (
+        if exist "!LUA_DLL!" (
             echo   Copying Lua DLL...
-            copy /Y "%LUA_DLL%" "%CIV5_PATH%\lua51_win32.dll" >nul 2>&1
+            copy /Y "!LUA_DLL!" "!CIV5_PATH!\lua51_win32.dll" >nul 2>&1
         )
 
         :: Copy PDB files (always copy debug symbols if available)
-        if exist "%PREBUILT_PDB%" (
+        if exist "!PREBUILT_PDB!" (
             echo   Copying CvGameCore debug symbols...
-            copy /Y "%PREBUILT_PDB%" "%CP_PATH%\CvGameCore_Expansion2.pdb" >nul 2>&1
+            copy /Y "!PREBUILT_PDB!" "!CP_PATH!\CvGameCore_Expansion2.pdb" >nul 2>&1
         )
-        if exist "%LUA_PDB%" (
+        if exist "!LUA_PDB!" (
             echo   Copying Lua debug symbols...
-            copy /Y "%LUA_PDB%" "%CIV5_PATH%\lua51_win32.pdb" >nul 2>&1
+            copy /Y "!LUA_PDB!" "!CIV5_PATH!\lua51_win32.pdb" >nul 2>&1
         )
 
         :: Copy Vox Deorum mod
-        if exist "%SOURCE_VD%" (
-            echo   Copying (1b) Vox Deorum...
-            xcopy /E /I /Y "%SOURCE_VD%" "%VD_PATH%" >nul 2>&1
+        if exist "!SOURCE_VD!" (
+            echo   Copying ^(1b^) Vox Deorum...
+            xcopy /E /I /Y "!SOURCE_VD!" "!VD_PATH!" >nul 2>&1
             :: Don't copy .bat files
-            del "%VD_PATH%\*.bat" >nul 2>&1
+            del "!VD_PATH!\*.bat" >nul 2>&1
         )
 
-        if exist "%SOURCE_VP%" (
-            echo   Copying (2) Vox Populi...
-            xcopy /E /I /Y "%SOURCE_VP%" "%VP_PATH%" >nul 2>&1
+        if exist "!SOURCE_VP!" (
+            echo   Copying ^(2^) Vox Populi...
+            xcopy /E /I /Y "!SOURCE_VP!" "!VP_PATH!" >nul 2>&1
         )
 
         echo   [OK] Mods installed successfully
     ) else (
         echo   Warning: Source mod folders not found
-        echo   Expected at: %SOURCE_CP%
+        echo   Expected at: !SOURCE_CP!
         echo   Please manually copy:
-        echo     - (1) Community Patch folder to %CP_PATH%
-        echo     - (1b) Vox Deorum folder to %VD_PATH%
-        echo     - (2) Vox Populi folder to %VP_PATH%
-        echo     - CvGameCore_Expansion2.dll to %CP_PATH%\
+        echo     - ^(1^) Community Patch folder to !CP_PATH!
+        echo     - ^(1b^) Vox Deorum folder to !VD_PATH!
+        echo     - ^(2^) Vox Populi folder to !VP_PATH!
+        echo     - CvGameCore_Expansion2.dll to !CP_PATH!\
+    )
+)
+
+:: Install Node.js dependencies
+echo.
+echo [7/8] Installing Node.js dependencies...
+set "PROJECT_ROOT=%SCRIPT_DIR%\.."
+
+:: Check if Node.js is installed
+where node >nul 2>&1
+if !errorlevel! neq 0 (
+    echo   Node.js not found. Installing Node.js 22...
+
+    :: Try winget first
+    winget --version >nul 2>&1
+    if !errorlevel! equ 0 (
+        echo   Installing Node.js via winget...
+        winget install OpenJS.NodeJS --version 22.19.0 --accept-package-agreements --accept-source-agreements
+        if !errorlevel! equ 0 (
+            echo   [OK] Node.js 22 installed successfully
+            :: Add Node.js to PATH for current session
+            if exist "%ProgramFiles%\nodejs\node.exe" (
+                set "NODE_PATH=%ProgramFiles%\nodejs"
+            ) else if exist "%ProgramFiles(x86)%\nodejs\node.exe" (
+                set "NODE_PATH=%ProgramFiles(x86)%\nodejs"
+            ) else if exist "%LocalAppData%\Programs\nodejs\node.exe" (
+                set "NODE_PATH=%LocalAppData%\Programs\nodejs"
+            )
+            if defined NODE_PATH (
+                set "PATH=!NODE_PATH!;!PATH!"
+                echo   Added Node.js to PATH: !NODE_PATH!
+            )
+            :: Refresh environment variables
+            if exist "%ProgramData%\chocolatey\bin\refreshenv.cmd" (
+                call "%ProgramData%\chocolatey\bin\refreshenv.cmd" >nul 2>&1
+            ) else (
+                :: Try to refresh PATH from registry if refreshenv.cmd not available
+                for /f "tokens=2*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYSTEM_PATH=%%B"
+                for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
+                if defined SYSTEM_PATH if defined USER_PATH (
+                    set "PATH=!SYSTEM_PATH!;!USER_PATH!"
+                )
+            )
+        ) else (
+            echo   [WARN] Failed to install Node.js via winget
+        )
+    ) else (
+        :: Download and install Node.js manually
+        echo   Downloading Node.js 22 installer...
+        set "NODE_INSTALLER=%TEMP_DIR%\node-v22.19.0-x64.msi"
+        curl -L -o "!NODE_INSTALLER!" "https://nodejs.org/dist/v22.19.0/node-v22.19.0-x64.msi" >nul 2>&1
+        if not exist "!NODE_INSTALLER!" (
+            echo   curl failed, trying PowerShell...
+            powershell -Command "try { Invoke-WebRequest -Uri 'https://nodejs.org/dist/v22.19.0/node-v22.19.0-x64.msi' -OutFile '!NODE_INSTALLER!' } catch { exit 1 }"
+        )
+
+        if exist "!NODE_INSTALLER!" (
+            echo   Installing Node.js 22...
+            msiexec /i "!NODE_INSTALLER!" /qn /norestart
+            if !errorlevel! equ 0 (
+                echo   [OK] Node.js 22 installed successfully
+                :: Add Node.js to PATH for current session
+                set "PATH=%ProgramFiles%\nodejs;!PATH!"
+                :: Also try the default install location
+                if exist "%ProgramFiles%\nodejs\node.exe" (
+                    set "NODE_PATH=%ProgramFiles%\nodejs"
+                ) else if exist "%ProgramFiles(x86)%\nodejs\node.exe" (
+                    set "NODE_PATH=%ProgramFiles(x86)%\nodejs"
+                ) else if exist "%LocalAppData%\Programs\nodejs\node.exe" (
+                    set "NODE_PATH=%LocalAppData%\Programs\nodejs"
+                )
+                if defined NODE_PATH (
+                    set "PATH=!NODE_PATH!;!PATH!"
+                    echo   Added Node.js to PATH: !NODE_PATH!
+                )
+                :: Refresh environment variables
+                if exist "%ProgramData%\chocolatey\bin\refreshenv.cmd" (
+                    call "%ProgramData%\chocolatey\bin\refreshenv.cmd" >nul 2>&1
+                ) else (
+                    :: Try to refresh PATH from registry if refreshenv.cmd not available
+                    for /f "tokens=2*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYSTEM_PATH=%%B"
+                    for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
+                    if defined SYSTEM_PATH if defined USER_PATH (
+                        set "PATH=!SYSTEM_PATH!;!USER_PATH!"
+                    )
+                )
+            ) else (
+                echo   [WARN] Failed to install Node.js
+                echo   Please install Node.js manually from https://nodejs.org/
+            )
+        ) else (
+            echo   [WARN] Failed to download Node.js installer
+            echo   Please install Node.js manually from https://nodejs.org/
+        )
+    )
+
+    :: Re-check if Node.js is now available
+    where node >nul 2>&1
+    if !errorlevel! neq 0 (
+        echo   [WARN] Node.js still not found. Skipping dependency installation...
+    ) else (
+        echo   [OK] Node.js is now available
+    )
+) else (
+    :: Node.js found, check version
+    for /f "tokens=*" %%v in ('node --version 2^>nul') do set "NODE_VERSION=%%v"
+    echo   [OK] Node.js found ^(!NODE_VERSION!^)
+)
+
+:: Final check before installing dependencies
+where node >nul 2>&1
+if !errorlevel! equ 0 (
+    :: Install dependencies for bridge-service
+    if exist "!PROJECT_ROOT!\bridge-service\package.json" (
+        echo   Installing bridge-service dependencies...
+        pushd "!PROJECT_ROOT!\bridge-service"
+        npm install >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo   [OK] bridge-service dependencies installed
+        ) else (
+            echo   [WARN] Failed to install bridge-service dependencies
+        )
+        popd
+    )
+
+    :: Install dependencies for mcp-server
+    if exist "!PROJECT_ROOT!\mcp-server\package.json" (
+        echo   Installing mcp-server dependencies...
+        pushd "!PROJECT_ROOT!\mcp-server"
+        npm install >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo   [OK] mcp-server dependencies installed
+        ) else (
+            echo   [WARN] Failed to install mcp-server dependencies
+        )
+        popd
+    )
+
+    :: Install dependencies for vox-agents
+    if exist "!PROJECT_ROOT!\vox-agents\package.json" (
+        echo   Installing vox-agents dependencies...
+        pushd "!PROJECT_ROOT!\vox-agents"
+        npm install >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo   [OK] vox-agents dependencies installed
+        ) else (
+            echo   [WARN] Failed to install vox-agents dependencies
+        )
+        popd
     )
 )
 
 :: Verification
 echo.
-echo [7/7] Verification...
+echo [8/8] Verification...
 set "SUCCESS=1"
 
 :: Check Steam
@@ -373,7 +525,7 @@ if exist "%VD_PATH%" (
 if exist "%VP_PATH%" (
     echo   [OK] Vox Populi installed
 ) else (
-    echo   [WARN] Vox Populi not found (optional)
+    echo   [WARN] Vox Populi not found ^(optional^)
 )
 
 :: Check Lua DLL
@@ -401,9 +553,9 @@ if "%SUCCESS%"=="1" (
     echo   1. Launch Civilization V from Steam
     echo   2. Go to MODS from the main menu
     echo   3. Enable the following mods in order:
-    echo      - (1) Community Patch
-    echo      - (1b) Vox Deorum
-    echo      - (2) Vox Populi (if desired)
+    echo      - ^(1^) Community Patch
+    echo      - ^(1b^) Vox Deorum
+    echo      - ^(2^) Vox Populi ^(if desired^)
     echo   4. Click "Next" and start a new game
     echo.
     echo The Vox Deorum DLL has been installed.
@@ -421,6 +573,7 @@ if exist "%TEMP_DIR%\steamcmd.zip" del "%TEMP_DIR%\steamcmd.zip"
 if exist "%TEMP_DIR%\SteamSetup.exe" del "%TEMP_DIR%\SteamSetup.exe"
 if exist "%TEMP_DIR%\check_civ5.txt" del "%TEMP_DIR%\check_civ5.txt"
 if exist "%TEMP_DIR%\steamcmd_output.txt" del "%TEMP_DIR%\steamcmd_output.txt"
+if exist "%TEMP_DIR%\node-v22.19.0-x64.msi" del "%TEMP_DIR%\node-v22.19.0-x64.msi"
 
 echo.
 pause
