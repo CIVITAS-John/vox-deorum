@@ -35,23 +35,33 @@ if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 
 :: Check for Git and Git LFS
 echo [1/4] Checking for Git and Git LFS...
-where git >nul 2>&1
-if %errorlevel% equ 0 (
-    echo   Git is installed, checking for LFS support...
-    for /f "delims=" %%i in ('git --version') do echo     %%i
+set "NEED_INSTALL=0"
 
-    :: Check if Git LFS is available
-    git lfs version >nul 2>&1
-    if %errorlevel% equ 0 (
-        echo   [OK] Git and Git LFS are already installed
-        goto :CloneRepo
-    ) else (
-        echo   [WARN] Git is installed but LFS is missing
-        echo   Reinstalling Git for Windows to ensure LFS support...
-    )
-) else (
+where git >nul 2>&1
+if %errorlevel% neq 0 (
     echo   Git not found. Installing Git for Windows...
+    set "NEED_INSTALL=1"
+    goto :InstallGit
 )
+
+echo   Git is installed, checking for LFS support...
+for /f "delims=" %%i in ('git --version') do echo     %%i
+
+:: Check if Git LFS is available
+git lfs version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo   [WARN] Git is installed but LFS is missing
+    echo   Reinstalling Git for Windows to ensure LFS support...
+    set "NEED_INSTALL=1"
+    goto :InstallGit
+)
+
+echo   [OK] Git and Git LFS are already installed
+:: Initialize Git LFS if needed
+git lfs install >nul 2>&1
+goto :CloneRepo
+
+:InstallGit
 
 :: Download and install Git for Windows
 echo   Downloading Git for Windows...
@@ -67,8 +77,8 @@ if not exist "%GIT_INSTALLER%" (
     exit /b 1
 )
 
-echo   Running Git installer (please follow the installer prompts)...
-"%GIT_INSTALLER%" /VERYSILENT /NORESTART /NOCANCEL /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /COMPONENTS="icons,ext\reg\shellhere,assoc,assoc_sh"
+echo   Running Git installer...
+"%GIT_INSTALLER%" /VERYSILENT /NORESTART /NOCANCEL /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /COMPONENTS="gitlfs,icons,ext\reg\shellhere,assoc,assoc_sh"
 
 if %errorlevel% neq 0 (
     echo   [WARN] Git installation may have failed
