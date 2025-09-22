@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 :: Launch Civilization V with Vox Deorum automation
 :: Usage: launch-civ5.cmd [lua_script_name]
 :: Example: launch-civ5.cmd StartGame.lua
@@ -29,11 +30,13 @@ if not exist "%CIV5_PATH%\CivilizationV.exe" (
 :: Check other common drives if not found
 if not exist "%CIV5_PATH%\CivilizationV.exe" (
     for %%D in (D E F G) do (
-        if exist "%%D:\Steam\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe" (
+        set "TEST_PATH=%%D:\Steam\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe"
+        if exist "!TEST_PATH!" (
             set "CIV5_PATH=%%D:\Steam\steamapps\common\Sid Meier's Civilization V"
             goto :found
         )
-        if exist "%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe" (
+        set "TEST_PATH=%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe"
+        if exist "!TEST_PATH!" (
             set "CIV5_PATH=%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V"
             goto :found
         )

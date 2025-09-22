@@ -6,11 +6,11 @@ export const MaxCivs = 64; // From base.js schema
 // Optional import - handle gracefully if package doesn't exist
 let Mutex: any = null;
 try {
-  const mutexModule = await import('@vscode/windows-mutex');
+  const mutexModule = await import('windows-mutex-prebuilt');
   Mutex = mutexModule.Mutex;
 } catch {
   // Package doesn't exist - mutex operations will return false
-  logger.warn('@vscode/windows-mutex not available, cannot pause game');
+  logger.warn('windows-mutex-prebuilt not available, cannot pause game');
 }
 
 /**

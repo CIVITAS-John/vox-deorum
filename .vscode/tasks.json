@@ -1,0 +1,72 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open All Service Terminals",
+      "dependsOn": [
+        "Open Bridge Service Terminal",
+        "Open MCP Server Terminal",
+        "Open Vox Agents Terminal",
+        "Open Civ5 DLL Terminal"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "Open Bridge Service Terminal",
+      "type": "shell",
+      "command": "echo 'Bridge Service terminal ready'",
+      "options": {
+        "cwd": "${workspaceFolder}/bridge-service"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "services"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Open MCP Server Terminal",
+      "type": "shell",
+      "command": "echo 'MCP Server terminal ready'",
+      "options": {
+        "cwd": "${workspaceFolder}/mcp-server"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "services"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Open Vox Agents Terminal",
+      "type": "shell",
+      "command": "echo 'Vox Agents terminal ready'",
+      "options": {
+        "cwd": "${workspaceFolder}/vox-agents"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "services"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Open Civ5 DLL Terminal",
+      "type": "shell",
+      "command": "echo 'Civ5 DLL terminal ready'",
+      "options": {
+        "cwd": "${workspaceFolder}/civ5-dll"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "services"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

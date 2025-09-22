@@ -34,10 +34,8 @@
     "helmet": "^7.1.0",
     "node-ipc": "^9.2.1",
     "uuid": "^9.0.1",
+    "windows-mutex-prebuilt": "^0.5.0",
     "winston": "^3.11.0"
-  },
-  "optionalDependencies": {
-    "@vscode/windows-mutex": "^0.5.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
