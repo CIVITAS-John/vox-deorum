@@ -1,11 +1,11 @@
 /**
- * Utility function to read a player's AI persona values and store them in the knowledge database
+ * Getter function to read a player's AI persona values and store them in the knowledge database
  */
 
 import { knowledgeManager } from "../../server.js";
 import { LuaFunction } from "../../bridge/lua-function.js";
-import { createLogger } from "../logger.js";
-import { PersonaChange } from "../../knowledge/schema/timed.js";
+import { createLogger } from "../../utils/logger.js";
+import { PersonaChange } from "../schema/timed.js";
 
 const logger = createLogger("ReadPlayerPersona");
 
@@ -33,7 +33,7 @@ const readPlayerPersonaFunction = new LuaFunction(
  * @param playerId - The ID of the player (0 to MaxMajorCivs - 1)
  * @returns Object containing the persona values or null if failed
  */
-export async function readAndStorePlayerPersona(playerId: number): Promise<Partial<PersonaChange> | null> {
+export async function getPlayerPersona(playerId: number): Promise<Partial<PersonaChange> | null> {
   // Execute the registered Lua function to get persona values
   const result = await readPlayerPersonaFunction.execute(playerId);
 

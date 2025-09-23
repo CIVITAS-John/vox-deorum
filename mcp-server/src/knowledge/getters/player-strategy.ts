@@ -1,11 +1,11 @@
 /**
- * Utility function to read a player's current strategy and store it with "In-Game AI" rationale
+ * Getter function to read a player's current strategy and store it with "In-Game AI" rationale
  */
 
 import { knowledgeManager } from "../../server.js";
-import { retrieveEnumName } from "../knowledge/enum.js";
+import { retrieveEnumName } from "../../utils/knowledge/enum.js";
 import { LuaFunction } from "../../bridge/lua-function.js";
-import { createLogger } from "../logger.js";
+import { createLogger } from "../../utils/logger.js";
 
 const logger = createLogger("ReadPlayerStrategies");
 
@@ -39,7 +39,7 @@ const readPlayerStrategiesFunction = new LuaFunction(
  * @param playerId - The ID of the player (0 to MaxMajorCivs - 1)
  * @returns Object containing the current strategies or null if failed
  */
-export async function readAndStorePlayerStrategy(playerId: number): Promise<{
+export async function getPlayerStrategy(playerId: number): Promise<{
   GrandStrategy: string | undefined;
   EconomicStrategies: string[];
   MilitaryStrategies: string[];

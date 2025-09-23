@@ -14,9 +14,9 @@ import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metad
 import { Selectable } from "kysely";
 import { cleanEventData } from "./get-events.js";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
-import { readAndStorePlayerStrategy } from "../../utils/lua/read-and-store-strategy.js";
+import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
 import { readPlayerKnowledge } from "../../utils/knowledge/cached.js";
-import { readAndStorePlayerPersona } from "../../utils/lua/read-and-store-persona.js";
+import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -104,8 +104,8 @@ class GetPlayersTool extends ToolBase {
       getPlayerInformations(),
       getPlayerSummaries(),
       getPlayerOpinions(args.PlayerID),
-      readPlayerKnowledge(args.PlayerID, "StrategyChanges", readAndStorePlayerStrategy),
-      readPlayerKnowledge(args.PlayerID, "PersonaChanges", readAndStorePlayerPersona)
+      readPlayerKnowledge(args.PlayerID, "StrategyChanges", getPlayerStrategy),
+      readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona)
     ]);
   
     // Combine the data and create dictionary

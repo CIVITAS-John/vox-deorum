@@ -23,9 +23,9 @@ import { explainEnums } from '../utils/knowledge/enum.js';
 import { detectChanges } from '../utils/knowledge/changes.js';
 import { MCPServer } from '../server.js';
 import { getPlayerInformations } from './getters/player-information.js';
-import { readAndStorePlayerStrategy } from '../utils/lua/read-and-store-strategy.js';
+import { getPlayerStrategy } from './getters/player-strategy.js';
 import { archiveGameData } from '../utils/knowledge/archive.js';
-import { readAndStorePlayerPersona } from '../utils/lua/read-and-store-persona.js';
+import { getPlayerPersona } from './getters/player-persona.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -265,8 +265,8 @@ export class KnowledgeStore {
             // Store some data for examination
             if (data.PlayerID < MaxMajorCivs) {
               await Promise.all([
-                readAndStorePlayerStrategy(data.PlayerID),
-                readAndStorePlayerPersona(data.PlayerID)
+                getPlayerStrategy(data.PlayerID),
+                getPlayerPersona(data.PlayerID)
               ]);
             }
             knowledgeManager.updateActivePlayer(data.NextPlayerID);
