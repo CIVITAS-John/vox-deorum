@@ -94,22 +94,22 @@ class SetStrategyTool extends LuaFunctionTool {
       const store = knowledgeManager.getStore();
 
       // Store the previous strategy with reason "In-Game AI"
-      var previous = result.Result;
+      const previous = result.Result;
       // Postprocessing
       if (Object.keys(previous.EconomicStrategies).length === 0)
         previous.EconomicStrategies = [];
       if (Object.keys(previous.MilitaryStrategies).length === 0)
         previous.MilitaryStrategies = [];
-      previous = convertStrategyToNames(previous);
 
       // Store the strategy
+      const before = convertStrategyToNames(previous);
       await store.storeMutableKnowledge(
         'StrategyChanges',
         args.PlayerID,
         {
-          GrandStrategy: previous.GrandStrategy,
-          EconomicStrategies: previous.EconomicStrategies,
-          MilitaryStrategies: previous.MilitaryStrategies,
+          GrandStrategy: before.GrandStrategy,
+          EconomicStrategies: before.EconomicStrategies,
+          MilitaryStrategies: before.MilitaryStrategies,
           Rationale: "In-Game AI"
         },
         undefined,
