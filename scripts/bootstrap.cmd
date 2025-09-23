@@ -239,10 +239,6 @@ if %errorlevel% equ 0 (
     echo ============================================
     echo.
     echo Repository location: %INSTALL_DIR%
-    echo.
-    echo You can now:
-    echo   1. Launch vox-deorum.cmd
-    echo   2. Start watching AI self-play!
 ) else (
     echo.
     echo ============================================

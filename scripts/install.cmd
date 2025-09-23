@@ -597,13 +597,9 @@ if "%SUCCESS%"=="1" (
     echo        Installation Complete!
     echo.
     echo Next steps:
-    echo   1. Launch Civilization V from Steam
-    echo   2. Go to MODS from the main menu
-    echo   3. Enable the following mods in order:
-    echo      - ^(1^) Community Patch
-    echo      - ^(1b^) Vox Deorum
-    echo      - ^(2^) Vox Populi ^(if desired^)
-    echo   4. Click "Next" and start a new game
+    echo   1. Launch vox-deorum.cmd
+    echo   2. Start watching AI self-play without LLMs
+    echo   3. Read the README.md to configure LLMs
     echo.
     echo The Vox Deorum DLL has been installed.
     echo Debug symbols will be copied if available.
@@ -623,4 +619,3 @@ if exist "%TEMP_DIR%\steamcmd_output.txt" del "%TEMP_DIR%\steamcmd_output.txt"
 if exist "%TEMP_DIR%\node-v22.19.0-x64.msi" del "%TEMP_DIR%\node-v22.19.0-x64.msi"
 
 echo.
-pause
