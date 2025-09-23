@@ -11,6 +11,7 @@ import createGetOpinionsTool from "./knowledge/get-opinions.js";
 import createGetCitiesTool from "./knowledge/get-cities.js";
 import createGetMetadataTool from "./knowledge/get-metadata.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
+import createSetPersonaTool from "./actions/set-persona.js";
 import createPauseGameTool from "./actions/pause-game.js";
 import createResumeGameTool from "./actions/resume-game.js";
 import createSummarizeUnitsTool from "./knowledge/summarize-units.js";
@@ -33,6 +34,7 @@ const toolFactories = {
     setMetadata: createSetMetadataTool,
     summarizeUnits: createSummarizeUnitsTool,
     setStrategy: createSetStrategyTool,
+    setPersona: createSetPersonaTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
 } as const;

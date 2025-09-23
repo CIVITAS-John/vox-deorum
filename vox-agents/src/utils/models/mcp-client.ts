@@ -202,14 +202,6 @@ export class MCPClient {
   }
 
   /**
-   * Register a handler for general elicitInput requests
-   */
-  onElicitInput(handler: (params: any) => Promise<any> | any): void {
-    this.notificationHandlers.set('elicitInput', handler);
-    logger.info('Registered elicitInput handler');
-  }
-
-  /**
    * Call a tool on the MCP server
    */
   async callTool(name: string, args: any = {}): Promise<any> {

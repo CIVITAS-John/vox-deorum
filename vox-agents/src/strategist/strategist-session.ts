@@ -58,6 +58,7 @@ export class StrategistSession {
 
     // Register notification handler for game events
     mcpClient.onNotification(async (params: any) => {
+      console.log(params);
       if (this.abortController.signal.aborted) return;
 
       // The notification now has 'event' field instead of 'message'

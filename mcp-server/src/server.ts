@@ -14,6 +14,8 @@ import { DatabaseManager } from './database/manager.js';
 import { KnowledgeManager } from './knowledge/manager.js';
 import { setTimeout } from 'node:timers/promises';
 import * as z from "zod";
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 
 const logger = createLogger('Server');
 
@@ -198,26 +200,29 @@ export class MCPServer {
     if (this.eventsForNotification.indexOf(event) !== -1) {
       logger.info(`Sending server-side notification to ${this.servers.size} MCP clients about ${event} (Player ${playerID}) at turn ${turn}.`)
       // Send notification to all connected servers
-      this.servers.forEach((server, _id) => {
-        const rawServer = server.server;
-
-        // Use the MCP notification protocol instead of elicitInput
-        // We send a custom notification with our game event data
-        rawServer.notification({
-          method: "vox-deorum/game-event",
-          params: {
-            event: event,
-            playerID: playerID,
-            turn: turn,
-            latestID: latestID,
-            ...param
-          }
-        }).catch((error: any) => {
-          // Notifications are fire-and-forget, so we just log errors
-          logger.debug(`Failed to send notification to server ${_id}:`, error);
-        });
+      this.servers.forEach((server) => {
+        this.sendNotificationTo(server, event, playerID, turn, latestID, param);
       });
     }
+  }
+  /**
+   * Send a notification to a client through MCP notification protocol.
+   */
+  public sendNotificationTo(server: McpServer, event: string, playerID: number, turn: number, latestID: number, param: Record<string, any> = {}) {
+    const rawServer = server.server;
+
+    // Use the MCP notification protocol instead of elicitInput
+    // We send a custom notification with our game event data
+    rawServer.notification({
+      method: "vox-deorum/game-event",
+      params: {
+        event: event,
+        playerID: playerID,
+        turn: turn,
+        latestID: latestID,
+        ...param
+      }
+    }).catch((_error: any) => { })
   }
 
   /**
@@ -255,7 +260,7 @@ export class MCPServer {
   /**
    * Connect a specific server to a transport
    */
-  public async connect(serverId: string, transport: any): Promise<void> {
+  public async connect(serverId: string, transport: StreamableHTTPServerTransport | StdioServerTransport): Promise<void> {
     const server = this.servers.get(serverId);
     if (!server) {
       throw new Error(`Server ${serverId} not found`);
@@ -266,9 +271,10 @@ export class MCPServer {
     const gameId = this.knowledgeManager.getGameId();
     if (this.bridgeManager.dllConnected && gameId !== "") {
       const lastId = parseInt(await this.knowledgeManager.getStore().getMetadata("lastID") ?? "-1");
-      await setTimeout(100);
-      logger.info(`Sending GameSwitched notification to newly connected client for game ${gameId}`);
-      this.sendNotification("GameSwitched", -1, this.knowledgeManager.getTurn(), lastId, { gameID: gameId });
+      setTimeout(100).then(() => {
+        logger.info(`Sending GameSwitched notification to newly connected client for game ${gameId}`);
+        this.sendNotificationTo(server, "GameSwitched", -1, this.knowledgeManager.getTurn(), lastId, { gameID: gameId });
+      });
     }
   }
 
