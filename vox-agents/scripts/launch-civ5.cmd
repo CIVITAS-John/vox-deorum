@@ -23,12 +23,9 @@ if "%STEAM_PATH%"=="" (
 
 :: Find Civ 5 in Steam library
 set "CIV5_PATH=%STEAM_PATH%\steamapps\common\Sid Meier's Civilization V"
-if not exist "%CIV5_PATH%\CivilizationV.exe" (
-    set "CIV5_PATH=%STEAM_PATH%\steamapps\common\Civilization V"
-)
 
 :: Check other common drives if not found
-if not exist "%CIV5_PATH%\CivilizationV.exe" (
+if not exist "!CIV5_PATH!\CivilizationV.exe" (
     for %%D in (D E F G) do (
         set "TEST_PATH=%%D:\Steam\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe"
         if exist "!TEST_PATH!" (
@@ -44,7 +41,7 @@ if not exist "%CIV5_PATH%\CivilizationV.exe" (
 )
 
 :found
-if not exist "%CIV5_PATH%\CivilizationV.exe" (
+if not exist "!CIV5_PATH!\CivilizationV.exe" (
     echo ERROR: Could not find CivilizationV.exe
     echo Searched in: %CIV5_PATH%
     echo Please ensure Civilization V is installed

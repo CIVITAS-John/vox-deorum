@@ -37,12 +37,14 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
     -- Get current era information
     local currentEra = ""
     local currentTech = 0
+    -- Use player method for era if available, otherwise fall back to team
+    local eraID = player:GetCurrentEra()
+    if eraID and GameInfo.Eras[eraID] then
+      currentEra = GameInfo.Eras[eraID].Type
+    end
+    -- Tech count still requires team access
     local teamID = player:GetTeam()
     if Teams[teamID] then
-      local eraID = Teams[teamID]:GetCurrentEra()
-      if eraID and GameInfo.Eras[eraID] then
-        currentEra = GameInfo.Eras[eraID].Type
-      end
       currentTech = Teams[teamID]:GetTeamTechs():GetNumTechsKnown() or 0
     end
     
@@ -149,7 +151,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
     -- Get diplomatic relationships with other major civilizations (only if player is major civ)
     local relationships = nil  -- Start with nil, only allocate if needed
     if not player:IsMinorCiv() and player:IsAlive() then
-      local fromTeam = Teams[player:GetTeam()]  -- Cache team reference
+      local fromTeam = Teams[player:GetTeam()]  -- Still need team for some checks
 
       for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
         if otherPlayerID ~= playerID then
@@ -158,17 +160,20 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
             local relationshipList = nil  -- Start with nil to avoid allocation
             local otherTeamID = otherPlayer:GetTeam()
 
-            -- Check for war and pacts
-            if fromTeam then
-              if fromTeam:IsAtWar(otherTeamID) then
-                if not relationshipList then relationshipList = {} end
-                relationshipList[#relationshipList + 1] = "War"
-              elseif fromTeam:IsDefensivePact(otherTeamID) then
-                if not relationshipList then relationshipList = {} end
-                relationshipList[#relationshipList + 1] = "Defensive Pact"
-              end
+            -- Check for war using player method if available
+            if player:IsAtWarWith(otherPlayerID) then
+              if not relationshipList then relationshipList = {} end
+              -- Include war score (positive = winning, negative = losing)
+              local warScore = player:GetWarScore()
+              relationshipList[#relationshipList + 1] = "War (Score: " .. warScore .. ")"
+            elseif fromTeam and fromTeam:IsDefensivePact(otherTeamID) then
+              -- Defensive pacts still need team check
+              if not relationshipList then relationshipList = {} end
+              relationshipList[#relationshipList + 1] = "Defensive Pact"
+            end
 
-              -- Check for other agreements
+            -- Check for other agreements (still need team methods)
+            if fromTeam then
               if fromTeam:IsAllowsOpenBordersToTeam(otherTeamID) then
                 if not relationshipList then relationshipList = {} end
                 relationshipList[#relationshipList + 1] = "Open Borders"
@@ -181,13 +186,13 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
               end
             end
 
-            -- Check for Declaration of Friendship
+            -- Check for Declaration of Friendship (already using player method)
             if player:IsDoF(otherPlayerID) then
               if not relationshipList then relationshipList = {} end
               relationshipList[#relationshipList + 1] = "Declaration of Friendship"
             end
 
-            -- Check for denouncement
+            -- Check for denouncement (already using player method)
             if player:IsDenouncedPlayer(otherPlayerID) then
               if not relationshipList then relationshipList = {} end
               relationshipList[#relationshipList + 1] = "Denounced"
@@ -216,7 +221,7 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
   
   -- Only include minor civs that are alive
   if player and player:IsAlive() and player:IsMinorCiv() then
-    -- Get current era and tech information
+    -- Get current tech information (still requires team access)
     local currentTech = 0
     local teamID = player:GetTeam()
     if Teams[teamID] then
