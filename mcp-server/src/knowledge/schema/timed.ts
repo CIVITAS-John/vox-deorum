@@ -16,9 +16,9 @@ export interface GameEvent extends TimedKnowledge {
  * Unchanged strategies represented as null
  */
 export interface StrategyChange extends MutableKnowledge {
-  GrandStrategy: number | null;
-  EconomicStrategies: JSONColumnType<number[]> | null;
-  MilitaryStrategies: JSONColumnType<number[]> | null;
+  GrandStrategy: string | null;
+  EconomicStrategies: JSONColumnType<string[]> | null;
+  MilitaryStrategies: JSONColumnType<string[]> | null;
   Rationale: string;
 }
 

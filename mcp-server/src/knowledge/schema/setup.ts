@@ -115,7 +115,7 @@ export async function setupKnowledgeDatabase(
 
   // Create PlayerStrategies table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'PlayerStrategies')
-    .addColumn('GrandStrategy', 'integer', (col) => col.notNull())
+    .addColumn('GrandStrategy', 'text', (col) => col.notNull())
     .addColumn('EconomicStrategies', 'text', (col) => col.notNull()) // JSON array
     .addColumn('MilitaryStrategies', 'text', (col) => col.notNull()) // JSON array
     .addColumn('DiplomaticFlavors', 'text', (col) => col.notNull()) // JSON object

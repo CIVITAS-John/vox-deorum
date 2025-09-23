@@ -36,9 +36,7 @@ const PlayerDataSchema = z.object({
   IsHuman: z.boolean(),
   IsMajor: z.boolean(),
   // Strategy fields (only for active player when requested)
-  GrandStrategy: z.string().optional(),
-  EconomicStrategies: z.array(z.string()).optional(),
-  MilitaryStrategies: z.array(z.string()).optional(),
+  Strategy: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional(),
   // Opinion fields
   OpinionFromMe: z.array(z.string()).optional(),
   OpinionToMe: z.array(z.string()).optional(),
@@ -157,7 +155,7 @@ class GetPlayersTool extends ToolBase {
 
       // Add strategy information if this is the active player and strategies were fetched
       if (strategies && playerID === args.PlayerID)
-        Object.assign(playerData, strategies);
+        playerData.Strategy = strategies as Record<string, string | string[]>;
       if (persona && playerID === args.PlayerID)
         playerData.Persona = persona as Record<string, number>;
       

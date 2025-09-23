@@ -62,21 +62,6 @@ export async function getPlayerStrategy(playerId: number): Promise<{
     strategies.MilitaryStrategies = [];
   }
 
-  // Store the strategy in the knowledge database with "In-Game AI" rationale
-  const store = knowledgeManager.getStore();
-  await store.storeMutableKnowledge(
-    'StrategyChanges',
-    playerId,
-    {
-      GrandStrategy: strategies.GrandStrategy,
-      EconomicStrategies: strategies.EconomicStrategies.sort(),
-      MilitaryStrategies: strategies.MilitaryStrategies.sort(),
-      Rationale: "In-Game AI"
-    },
-    undefined,
-    ["Rationale"] // Only ignore Rationale when checking for changes
-  );
-
   // Convert numeric IDs to string names for return value
   const readableStrategies = {
     GrandStrategy: retrieveEnumName("GrandStrategy", strategies.GrandStrategy),
@@ -88,5 +73,20 @@ export async function getPlayerStrategy(playerId: number): Promise<{
       .filter((name: string | undefined) => name !== undefined) as string[]
   };
 
+  // Store the strategy in the knowledge database with "In-Game AI" rationale
+  const store = knowledgeManager.getStore();
+  await store.storeMutableKnowledge(
+    'StrategyChanges',
+    playerId,
+    {
+      GrandStrategy: readableStrategies.GrandStrategy,
+      EconomicStrategies: readableStrategies.EconomicStrategies.sort(),
+      MilitaryStrategies: readableStrategies.MilitaryStrategies.sort(),
+      Rationale: "In-Game AI"
+    },
+    undefined,
+    ["Rationale"] // Only ignore Rationale when checking for changes
+  );
+  
   return readableStrategies;
 }
