@@ -116,6 +116,7 @@ class SetStrategyTool extends LuaFunctionTool {
         undefined,
         ["Rationale"] // Only ignore Rationale when checking for changes
       );
+      result.Result = before;
 
       // Convert the numeric values back to string names for the response
       const after = convertStrategyToNames({
