@@ -47,12 +47,12 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
     end
     
     -- Get current research
-    local currentResearch = "None"
-    if teamID and Teams[teamID] then
-      local techID = Teams[teamID]:GetTeamTechs():GetCurrentResearch()
-      if techID and techID >= 0 and GameInfo.Technologies[techID] then
-        currentResearch = Locale.ConvertTextKey(GameInfo.Technologies[techID].Description)
-      end
+    local currentResearch = nil
+    local techID = player:GetCurrentResearch()
+    if techID and techID >= 0 and GameInfo.Technologies[techID] then
+      currentResearch = Locale.ConvertTextKey(GameInfo.Technologies[techID].Description)
+    else
+      currentResearch = "None"
     end
 
     local summary = {
