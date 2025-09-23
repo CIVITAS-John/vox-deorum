@@ -589,9 +589,10 @@ if "%SUCCESS%"=="1" (
     echo        Installation Complete!
     echo.
     echo Next steps:
-    echo   1. Launch vox-deorum.cmd
-    echo   2. Start watching AI self-play without LLMs
-    echo   3. Read the README.md to configure LLMs
+    echo   1. Launch the game manually once to install dependencies
+    echo   2. Launch vox-deorum.cmd from the vox-agents/scripts folder (or the desktop shortcut)
+    echo   3. Start watching AI self-play without LLMs
+    echo   4. Read the README.md to configure LLM support and interactive modes
     echo.
     echo The Vox Deorum DLL has been installed.
     echo Debug symbols will be copied if available.
