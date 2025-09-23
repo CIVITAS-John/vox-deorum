@@ -58,6 +58,48 @@ LANGFUSE_PUBLIC_KEY=...       # Telemetry
 LANGFUSE_SECRET_KEY=...       # Telemetry
 ```
 
+### Strategist Configuration
+The strategist can be configured via JSON files in the `configs/` directory. The default configuration is in `configs/default.json`, which is tracked in version control. Custom configuration files (gitignored) can override these defaults.
+
+#### Configuration Files
+1. **configs/observe-vanilla.json** - Observe an auto-play vanilla game with all data saved into a SQLite database
+2. **configs/observe-simple.json** - Observe an auto-play game with Simple Strategist as Player 0 with all data saved into a SQLite database
+3. **configs/interactive-simple.json** - Play an interactive game with Simple Strategist as Player 1 with all data saved into a SQLite database
+4. **configs/[custom].json** - Custom configurations (gitignored)
+
+Copy `configs/observe-vanilla.json` to create your own configuration:
+```json
+{
+  "llmPlayers": [0],           // Array of player IDs to control with LLM
+  "autoPlay": true,            // Whether to auto-resume after decisions
+  "strategist": "simple-strategist", // Agent to use ("none", "simple-strategist", etc.)
+  "gameMode": "start",         // Game mode ("start" for new game, "load" for saved game)
+  "repetition": 10             // Number of games to play in sequence
+}
+```
+
+#### Using Custom Configurations
+```bash
+# Use default configuration
+npm run strategist
+
+# Use specific configuration file
+npm run strategist -- --config=myconfig.json
+npm run strategist -- --config production.json
+
+# Combine with other flags
+npm run strategist -- --config=tournament.json --load
+```
+
+#### Command Line Flags
+- `--config=<filename>`: Load configuration from `configs/<filename>` (default: `default.json`)
+- `--load`: Override gameMode to "load" (loads saved game instead of starting new)
+
+#### Configuration Priority
+1. Command line flags (highest priority)
+2. Specified config file
+3. Default config file (lowest priority)
+
 ### Configuration Files
 ```typescript
 // src/utils/models/models.ts

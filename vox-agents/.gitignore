@@ -44,3 +44,8 @@ coverage/
 # Temporary files
 tmp/
 temp/
+
+# Custom configuration files
+configs/*.json
+!configs/observe-*.json
+!configs/play-*.json

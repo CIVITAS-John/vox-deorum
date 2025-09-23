@@ -1,23 +1,112 @@
 import { langfuseSpanProcessor } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
+import { loadConfigFromFile } from "../utils/config.js";
 import { StrategistSession, StrategistSessionConfig } from "./strategist-session.js";
 import { setTimeout } from 'node:timers/promises';
+import { parseArgs } from 'node:util';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 const logger = createLogger('Strategists');
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const isLoadMode = args.includes('--load');
+// Parse command line arguments using parseArgs
+const { values, positionals } = parseArgs({
+  options: {
+    config: {
+      type: 'string',
+      short: 'c',
+      default: 'observe-vanilla.json'
+    },
+    load: {
+      type: 'boolean',
+      short: 'l',
+      default: false
+    },
+    players: {
+      type: 'string',
+      short: 'p',
+      multiple: true
+    },
+    strategist: {
+      type: 'string',
+      short: 's'
+    },
+    autoPlay: {
+      type: 'boolean',
+      short: 'a'
+    },
+    repetition: {
+      type: 'string',
+      short: 'r'
+    }
+  },
+  strict: false,
+  allowPositionals: true
+});
 
-// Configuration
-const config: StrategistSessionConfig = {
+const configFile = values.config as string;
+const isLoadMode = values.load as boolean;
+
+// Default configuration
+const defaultConfig: StrategistSessionConfig = {
   llmPlayers: [0],
   autoPlay: true,
-  // strategist: "simple-strategist"
-  strategist: "none",
-  gameMode: isLoadMode ? 'load' : 'start',  // Default to 'start' unless --load flag is present,
-  repetition: 10
+  strategist: "simple-strategist",
+  gameMode: 'start',
+  repetition: 1
 };
+
+// Write default config if it doesn't exist
+const configPath = path.join(process.cwd(), 'configs', configFile);
+if (!fs.existsSync(configPath)) {
+  // Ensure configs directory exists
+  const configDir = path.dirname(configPath);
+  if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir, { recursive: true });
+  }
+
+  // Write default configuration to file
+  fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
+  logger.info(`Created default configuration file: ${configPath}`);
+}
+
+// Build command line overrides
+const cmdOverrides: Partial<StrategistSessionConfig> = {};
+
+if (isLoadMode) {
+  cmdOverrides.gameMode = 'load';
+}
+
+if (values.players) {
+  const playerList = Array.isArray(values.players) ? values.players : [values.players];
+  cmdOverrides.llmPlayers = playerList.flatMap(p =>
+    (p as string).split(',').map(id => parseInt(id.trim()))
+  ).filter(id => !isNaN(id));
+}
+
+if (values.strategist !== undefined) {
+  cmdOverrides.strategist = values.strategist as string;
+}
+
+if (values.autoPlay !== undefined) {
+  cmdOverrides.autoPlay = values.autoPlay as boolean;
+}
+
+if (values.repetition !== undefined) {
+  const rep = parseInt(values.repetition as string);
+  if (!isNaN(rep)) {
+    cmdOverrides.repetition = rep;
+  }
+}
+
+// Load configuration from file with command line overrides
+const config: StrategistSessionConfig = loadConfigFromFile(
+  configFile,
+  defaultConfig,
+  cmdOverrides
+);
+
+logger.info(`Loading configuration from: configs/${configFile}`);
 
 // Session instance
 let session: StrategistSession | null = null;

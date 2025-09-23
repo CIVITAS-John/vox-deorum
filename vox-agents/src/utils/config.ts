@@ -71,53 +71,69 @@ const defaultConfig: VoxAgentsConfig = {
 };
 
 /**
+ * Load configuration from a JSON file with fallback to defaults
+ * @param filename - Name of the config file to load
+ * @param defaultConfig - Default configuration object
+ * @param overrides - Optional overrides to apply after loading
+ * @returns Merged configuration object
+ */
+export function loadConfigFromFile<T extends object>(
+  filename: string,
+  defaultConfig: T,
+  overrides?: Partial<T>
+): T {
+  const configPath = path.join(process.cwd(), filename);
+
+  let fileConfig: Partial<T> = {};
+
+  if (fs.existsSync(configPath)) {
+    try {
+      const fileContent = fs.readFileSync(configPath, 'utf-8');
+      fileConfig = JSON.parse(fileContent) as Partial<T>;
+      logger.info(`Loaded configuration from ${filename}`);
+    } catch (error) {
+      logger.warn(`Failed to load ${filename}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      logger.info('Using default configuration');
+    }
+  } else {
+    logger.info(`No ${filename} found, using default configuration`);
+  }
+
+  // Merge in order: defaults -> file config -> overrides
+  return { ...defaultConfig, ...fileConfig, ...(overrides || {}) };
+}
+
+/**
  * Load configuration from file and environment variables
  */
 function loadConfig(): VoxAgentsConfig {
   dotenv.config();
-  const configPath = path.join(process.cwd(), 'config.json');
-  let fileConfig: Partial<VoxAgentsConfig> = {};
 
-  // Load from config file if exists
-  if (fs.existsSync(configPath)) {
-    try {
-      const configContent = fs.readFileSync(configPath, 'utf-8');
-      fileConfig = JSON.parse(configContent);
-      logger.info('Configuration loaded from config.json');
-    } catch (error) {
-      logger.error('Failed to load config.json:', error);
-    }
-  }
+  // Load base config from file
+  const fileConfig = loadConfigFromFile('config.json', defaultConfig);
 
   // Parse transport type from environment
-  const transportType = (process.env.MCP_TRANSPORT as TransportType) || 
-    fileConfig.mcpServer?.transport?.type || 
-    defaultConfig.mcpServer.transport.type;
+  const transportType = (process.env.MCP_TRANSPORT as TransportType) ||
+    fileConfig.mcpServer.transport.type;
 
   // Build final configuration with environment variable overrides
   const config: VoxAgentsConfig = {
     agent: {
-      name: process.env.AGENT_NAME || fileConfig.agent?.name || defaultConfig.agent.name,
-      version: process.env.AGENT_VERSION || fileConfig.agent?.version || defaultConfig.agent.version
+      name: process.env.AGENT_NAME || fileConfig.agent.name,
+      version: process.env.AGENT_VERSION || fileConfig.agent.version
     },
     mcpServer: {
       transport: {
         type: transportType,
-        endpoint: process.env.MCP_ENDPOINT || 
-          fileConfig.mcpServer?.transport?.endpoint || 
-          defaultConfig.mcpServer.transport.endpoint,
-        command: process.env.MCP_COMMAND || 
-          fileConfig.mcpServer?.transport?.command ||
-          defaultConfig.mcpServer.transport.command,
-        args: process.env.MCP_ARGS?.split(' ') || 
-          fileConfig.mcpServer?.transport?.args ||
-          defaultConfig.mcpServer.transport.args
+        endpoint: process.env.MCP_ENDPOINT || fileConfig.mcpServer.transport.endpoint,
+        command: process.env.MCP_COMMAND || fileConfig.mcpServer.transport.command,
+        args: process.env.MCP_ARGS?.split(' ') || fileConfig.mcpServer.transport.args
       }
     },
     logging: {
-      level: process.env.LOG_LEVEL || fileConfig.logging?.level || defaultConfig.logging.level
+      level: process.env.LOG_LEVEL || fileConfig.logging.level
     },
-    llms: fileConfig.llms || defaultConfig.llms
+    llms: fileConfig.llms
   };
 
   // Update logger level based on configuration
