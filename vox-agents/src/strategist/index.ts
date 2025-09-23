@@ -4,8 +4,6 @@ import { loadConfigFromFile } from "../utils/config.js";
 import { StrategistSession, StrategistSessionConfig } from "./strategist-session.js";
 import { setTimeout } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 
 const logger = createLogger('Strategists');
 
@@ -56,20 +54,6 @@ const defaultConfig: StrategistSessionConfig = {
   repetition: 1
 };
 
-// Write default config if it doesn't exist
-const configPath = path.join(process.cwd(), 'configs', configFile);
-if (!fs.existsSync(configPath)) {
-  // Ensure configs directory exists
-  const configDir = path.dirname(configPath);
-  if (!fs.existsSync(configDir)) {
-    fs.mkdirSync(configDir, { recursive: true });
-  }
-
-  // Write default configuration to file
-  fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
-  logger.info(`Created default configuration file: ${configPath}`);
-}
-
 // Build command line overrides
 const cmdOverrides: Partial<StrategistSessionConfig> = {};
 
@@ -101,12 +85,10 @@ if (values.repetition !== undefined) {
 
 // Load configuration from file with command line overrides
 const config: StrategistSessionConfig = loadConfigFromFile(
-  configFile,
+  "configs/" + configFile,
   defaultConfig,
   cmdOverrides
 );
-
-logger.info(`Loading configuration from: configs/${configFile}`);
 
 // Session instance
 let session: StrategistSession | null = null;
