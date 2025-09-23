@@ -2,14 +2,24 @@
 setlocal enabledelayedexpansion
 
 :: Vox Deorum Services Manager
-:: Usage: vox-deorum.cmd [vox-agents-mode]
-:: Example: vox-deorum.cmd --strategist
+:: Usage: vox-deorum.cmd [vox-agents-mode] [additional-args...]
+:: Example: vox-deorum.cmd --strategist --verbose --debug
 
 set "VOX_MODE=%~1"
 if "%VOX_MODE%"=="" set "VOX_MODE=strategist"
 
 :: Remove -- prefix if present
 set "VOX_MODE=%VOX_MODE:--=-%"
+
+:: Capture all arguments after the first one
+set "ADDITIONAL_ARGS="
+set "ARG_COUNT=0"
+for %%a in (%*) do (
+    set /a "ARG_COUNT+=1"
+    if !ARG_COUNT! GTR 1 (
+        set "ADDITIONAL_ARGS=!ADDITIONAL_ARGS! %%a"
+    )
+)
 
 echo.
 echo ========================================
@@ -36,8 +46,13 @@ echo        Started with PID: %MCP_PID%
 timeout /t 10 /nobreak >nul
 
 :: Start Vox Agents and get PID
-echo [3/3] Starting Vox Agents (mode: %VOX_MODE%)...
-powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\vox-agents','&&','npm','run','%VOX_MODE%' -PassThru; $p.Id" > "%TEMP%\vox.pid"
+echo [3/3] Starting Vox Agents (mode: %VOX_MODE%!ADDITIONAL_ARGS!)...
+if "!ADDITIONAL_ARGS!"=="" (
+    powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\vox-agents','&&','npm','run','%VOX_MODE%' -PassThru; $p.Id" > "%TEMP%\vox.pid"
+) else (
+    set "NPM_COMMAND=npm run %VOX_MODE% --!ADDITIONAL_ARGS!"
+    powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\vox-agents','&&','!NPM_COMMAND!' -PassThru; $p.Id" > "%TEMP%\vox.pid"
+)
 set /p VOX_PID=<"%TEMP%\vox.pid"
 echo        Started with PID: %VOX_PID%
 

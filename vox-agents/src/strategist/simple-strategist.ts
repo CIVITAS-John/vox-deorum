@@ -26,6 +26,7 @@ There is no user and you will always interact with a tool to play the game.
 
 # Goals
 Your goal is to set an appropriate grand strategy and supporting economic/military strategies for the in-game AI.
+- You can change the in-game AI's diplomatic strategy by calling the \`set-persona\` tool. 
 - End your decision-making loop by calling the \`set-strategy\` tool.
 - The in-game AI can only execute the tool's provided options. Double check if your choices match.
 
@@ -84,7 +85,8 @@ ${parameters.store!.events}
       "get-policy",
       "get-building",
       "get-civilization",
-      "set-strategy"
+      "set-strategy",
+      "set-persona"
     ];
   }
   
