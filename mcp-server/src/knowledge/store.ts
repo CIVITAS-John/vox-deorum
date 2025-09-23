@@ -415,6 +415,8 @@ export class KnowledgeStore {
             Changes: changes
           };
 
+          if (!newEntry.payload) newEntry.payload = {};
+
           // Apply visibility flags if provided
           if (visibilityFlags) {
             applyVisibility(newEntry, visibilityFlags);

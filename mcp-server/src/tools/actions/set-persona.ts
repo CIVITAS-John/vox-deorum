@@ -6,6 +6,7 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Tool that sets a player's AI persona values using a Lua function
@@ -18,7 +19,7 @@ class SetPersonaTool extends LuaFunctionTool {
    * Input schema for the set-persona tool
    */
   inputSchema = z.object({
-    PlayerID: z.number().min(1).max(MaxMajorCivs - 1).describe("ID of the player"),
+    PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
 
     // Core Competitiveness & Ambition
     VictoryCompetitiveness: z.number().min(1).max(10).optional().describe("How competitive the AI is toward victory (0-10)"),
@@ -104,6 +105,14 @@ class SetPersonaTool extends LuaFunctionTool {
    * The Lua function arguments
    */
   protected arguments = ["personaValues"];
+  
+  /**
+   * Optional annotations for the Lua executor tool
+   */
+  readonly annotations: ToolAnnotations = {
+    autoComplete: ["PlayerID"],
+    readOnlyHint: false
+  }
 
   /**
    * The Lua script to execute
