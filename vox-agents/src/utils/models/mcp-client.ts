@@ -6,13 +6,28 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { ElicitRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
+import { ElicitRequestSchema, Tool, NotificationSchema } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from '../logger.js';
 import { config } from '../config.js';
-import { Dispatcher, fetch, Pool, setGlobalDispatcher } from 'undici';
+import { Dispatcher, fetch, Pool } from 'undici';
 import { URL } from 'node:url';
+import { z } from 'zod';
 
 const logger = createLogger('MCPClient');
+
+/**
+ * Schema for Vox Deorum game event notifications
+ */
+const GameEventNotificationSchema = NotificationSchema.extend({
+  method: z.literal("vox-deorum/game-event"),
+  params: z.object({
+    event: z.string(),
+    playerID: z.number(),
+    turn: z.number(),
+    latestID: z.number(),
+    gameID: z.string().optional(),
+  }).passthrough()
+});
 
 /**
  * Notification data for game state changes
@@ -119,34 +134,25 @@ export class MCPClient {
    * Set up handlers for server-side notifications
    */
   private setupNotificationHandlers(): void {
-    // Handle elicitInput notifications from the server
-    this.client.setRequestHandler(ElicitRequestSchema, async (request) => {
-      logger.debug('Received elicitInput notification', request);
-      
-      // Check if this is a game state update (PlayerID and Turn)
-      const { PlayerID, Turn } = request.params || {};
-      
-      if (PlayerID !== undefined && Turn !== undefined) {
-        const data: GameStateNotification = { PlayerID, Turn } as any;
-        
-        // Trigger game state update handler
+    // Handle vox-deorum/game-event notifications from the server
+    this.client.setNotificationHandler(GameEventNotificationSchema, async (notification) => {
+      if (notification.method != "vox-deorum/game-event") return;
+      logger.debug('Received game event notification', notification);
+
+      const params = notification.params;
+      const { event, playerID, turn } = params;
+
+      // Trigger the appropriate handler based on event type
+      if (event && playerID !== undefined && turn !== undefined) {
         const handler = this.notificationHandlers.get('notification');
-        if (handler) await handler(data);
-        
-        // Respond with empty response as nothing is actually elicited
-        // The notification is just used as a trigger mechanism
-        return {};
+        if (handler) {
+          await handler({
+            ...params,
+            PlayerID: playerID,  // Keep backward compatibility with capitalized field name
+            Turn: turn
+          });
+        }
       }
-      
-      // Handle general elicitInput requests
-      const elicitHandler = this.notificationHandlers.get('elicitInput');
-      if (elicitHandler) {
-        const result = await elicitHandler(request.params);
-        return result || {};
-      }
-      
-      logger.warn('elicitInput notification not handled', request);
-      return {};
     });
   }
 

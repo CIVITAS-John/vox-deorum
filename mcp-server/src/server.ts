@@ -192,7 +192,7 @@ export class MCPServer {
 
   private eventsForNotification = ["GameSwitched", "PlayerDoneTurn", "PlayerVictory", "DLLConnected"];
   /**
-   * Send a notification to all clients through ElicitInput.
+   * Send a notification to all clients through MCP notification protocol.
    */
   public sendNotification(event: string, playerID: number, turn: number, latestID: number, param: Record<string, any> = {}) {
     if (this.eventsForNotification.indexOf(event) !== -1) {
@@ -200,24 +200,21 @@ export class MCPServer {
       // Send notification to all connected servers
       this.servers.forEach((server, _id) => {
         const rawServer = server.server;
-        rawServer.elicitInput(
-          {
-            message: event,
+
+        // Use the MCP notification protocol instead of elicitInput
+        // We send a custom notification with our game event data
+        rawServer.notification({
+          method: "vox-deorum/game-event",
+          params: {
+            event: event,
             playerID: playerID,
             turn: turn,
             latestID: latestID,
-            ...param,
-            requestedSchema: {
-              type: "object",
-              properties: {}
-            },
-          }, {
-            timeout: 100
+            ...param
           }
-        ).catch((_r: any) => {
-          // logger.warn(`Failed to send notification to server ${id}`, _r);
-        }).then((_r: any) => {
-          // logger.info(`Server ${id} acknowledged notification about the ${event} (Player ${playerID}) at turn ${turn}.`)
+        }).catch((error: any) => {
+          // Notifications are fire-and-forget, so we just log errors
+          logger.debug(`Failed to send notification to server ${_id}:`, error);
         });
       });
     }
@@ -270,7 +267,7 @@ export class MCPServer {
     if (this.bridgeManager.dllConnected && gameId !== "") {
       const lastId = parseInt(await this.knowledgeManager.getStore().getMetadata("lastID") ?? "-1");
       await setTimeout(100);
-      logger.warn(`Sending GameSwitched notification to newly connected client for game ${gameId}`);
+      logger.info(`Sending GameSwitched notification to newly connected client for game ${gameId}`);
       this.sendNotification("GameSwitched", -1, this.knowledgeManager.getTurn(), lastId, { gameID: gameId });
     }
   }

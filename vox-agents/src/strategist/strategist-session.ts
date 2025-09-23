@@ -56,11 +56,12 @@ export class StrategistSession {
     // Connect to MCP server
     await mcpClient.connect();
 
-    // Register callbacks
-    mcpClient.onElicitInput(async (params) => {
+    // Register notification handler for game events
+    mcpClient.onNotification(async (params: any) => {
       if (this.abortController.signal.aborted) return;
 
-      switch (params.message) {
+      // The notification now has 'event' field instead of 'message'
+      switch (params.event) {
         case "PlayerDoneTurn":
           await this.handlePlayerDoneTurn(params);
           break;
@@ -74,7 +75,7 @@ export class StrategistSession {
           await this.handleDLLConnected(params);
           break;
         default:
-          logger.info(`Received elicitInput notification: ${params.message}`, params);
+          logger.info(`Received game event notification: ${params.event}`, params);
           break;
       }
     });

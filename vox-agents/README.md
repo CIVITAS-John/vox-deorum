@@ -33,6 +33,10 @@ LLM Providers ← Vox Agents → MCP Server → Bridge Service → Civ V
 ## Quick Start
 
 ```bash
+# Setup environment
+cp .env.default .env
+# Edit .env and add your API keys
+
 npm install
 npm run build
 npm start         # Run strategist
@@ -45,18 +49,21 @@ npm test          # Test suite
 ## Configuration
 
 ### Environment Variables
+Copy `.env.default` to `.env` and configure your API keys:
+
 ```bash
-# Required
+# Required (at least one)
 OPENAI_API_KEY=sk-...        # OpenAI API
-# OR
+ANTHROPIC_API_KEY=sk-ant-... # Anthropic API
 OPENROUTER_API_KEY=sk-or-... # OpenRouter API
-# OR
 GOOGLE_GENERATIVE_AI_API_KEY=... # Google AI
 
 # Optional
 LANGFUSE_PUBLIC_KEY=...       # Telemetry
 LANGFUSE_SECRET_KEY=...       # Telemetry
 ```
+
+See `.env.default` for all available options and documentation.
 
 ### Strategist Configuration
 The strategist can be configured via JSON files in the `configs/` directory. The default configuration is in `configs/default.json`, which is tracked in version control. Custom configuration files (gitignored) can override these defaults.
