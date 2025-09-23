@@ -94,22 +94,22 @@ class SetStrategyTool extends LuaFunctionTool {
       const store = knowledgeManager.getStore();
 
       // Store the previous strategy with reason "In-Game AI"
-      var strategies = result.Result;
+      var previous = result.Result;
       // Postprocessing
-      if (Object.keys(strategies.EconomicStrategies).length === 0)
-        strategies.EconomicStrategies = [];
-      if (Object.keys(strategies.MilitaryStrategies).length === 0)
-        strategies.MilitaryStrategies = [];
-      strategies = convertStrategyToNames(strategies);
+      if (Object.keys(previous.EconomicStrategies).length === 0)
+        previous.EconomicStrategies = [];
+      if (Object.keys(previous.MilitaryStrategies).length === 0)
+        previous.MilitaryStrategies = [];
+      previous = convertStrategyToNames(previous);
 
       // Store the strategy
       await store.storeMutableKnowledge(
         'StrategyChanges',
         args.PlayerID,
         {
-          GrandStrategy: strategies.GrandStrategy,
-          EconomicStrategies: strategies.EconomicStrategies,
-          MilitaryStrategies: strategies.MilitaryStrategies,
+          GrandStrategy: previous.GrandStrategy,
+          EconomicStrategies: previous.EconomicStrategies,
+          MilitaryStrategies: previous.MilitaryStrategies,
           Rationale: "In-Game AI"
         },
         undefined,
@@ -117,16 +117,18 @@ class SetStrategyTool extends LuaFunctionTool {
       );
 
       // Convert the numeric values back to string names for the response
-      result.Result = convertStrategyToNames(result.Result);
+      const after = convertStrategyToNames({
+        GrandStrategy: grandStrategy === -1 ? previous.GrandStrategy : grandStrategy,
+        EconomicStrategies: (economicStrategies ?? previous.economicStrategies),
+        MilitaryStrategies: (militaryStrategies ?? previous.militaryStrategies),
+      });
 
       // Store the new strategy change in the database
       await store.storeMutableKnowledge(
         'StrategyChanges',
         args.PlayerID,
         {
-          GrandStrategy: grandStrategy === -1 ? strategies.GrandStrategy : grandStrategy,
-          EconomicStrategies: (economicStrategies ?? strategies.economicStrategies),
-          MilitaryStrategies: (militaryStrategies ?? strategies.militaryStrategies),
+          ...after,
           Rationale: args.Rationale
         },
         undefined,

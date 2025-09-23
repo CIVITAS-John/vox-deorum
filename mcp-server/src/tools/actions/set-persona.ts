@@ -104,7 +104,7 @@ class SetPersonaTool extends LuaFunctionTool {
   /**
    * The Lua function arguments
    */
-  protected arguments = ["personaValues"];
+  protected arguments = ["playerID", "personaValues"];
   
   /**
    * Optional annotations for the Lua executor tool
@@ -118,7 +118,7 @@ class SetPersonaTool extends LuaFunctionTool {
    * The Lua script to execute
    */
   protected script = `
-    local activePlayer = Players[Game.GetActivePlayer()]
+    local activePlayer = Players[playerID]
 
     -- Capture previous persona values before setting new ones
     local previousPersona = activePlayer:GetPersona()
@@ -143,7 +143,7 @@ class SetPersonaTool extends LuaFunctionTool {
     );
 
     // Call the parent execute with the persona values table
-    const result = await super.call(filteredPersona);
+    const result = await super.call(PlayerID, filteredPersona);
 
     if (result.Success) {
       const store = knowledgeManager.getStore();
