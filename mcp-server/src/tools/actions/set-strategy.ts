@@ -39,7 +39,7 @@ class SetStrategyTool extends LuaFunctionTool {
   /**
    * The Lua function arguments
    */
-  protected arguments = ["grandId", "economicIds", "militaryIds"];
+  protected arguments = ["playerID", "grandId", "economicIds", "militaryIds"];
 
   /**
    * Optional annotations for the Lua executor tool
@@ -53,7 +53,7 @@ class SetStrategyTool extends LuaFunctionTool {
    * The Lua script to execute
    */
   protected script = `
-    local activePlayer = Players[Game.GetActivePlayer()]
+    local activePlayer = Players[playerID]
 
     -- Capture previous strategies before setting new ones
     local previousGrand = activePlayer:GetGrandStrategy()
@@ -89,7 +89,7 @@ class SetStrategyTool extends LuaFunctionTool {
     let militaryStrategies = args.MilitaryStrategies?.map(s => retrieveEnumValue("MilitaryStrategy", s));
 
     // Call the parent execute with the strategy ID
-    var result = await super.call(grandStrategy, economicStrategies, militaryStrategies);
+    var result = await super.call(args.PlayerID, grandStrategy, economicStrategies, militaryStrategies);
     if (result.Success) {
       const store = knowledgeManager.getStore();
       const lastRationale = (await store.getMutableKnowledge("StrategyChanges", args.PlayerID))?.Rationale ?? "Unknown";
@@ -111,7 +111,7 @@ class SetStrategyTool extends LuaFunctionTool {
           GrandStrategy: before.GrandStrategy,
           EconomicStrategies: before.EconomicStrategies,
           MilitaryStrategies: before.MilitaryStrategies,
-          Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale})`
+          Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI S(${lastRationale})`
         },
         undefined,
         ["Rationale"] // Only ignore Rationale when checking for changes

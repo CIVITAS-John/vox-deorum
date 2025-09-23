@@ -75,7 +75,7 @@ export async function getPlayerStrategy(playerId: number): Promise<{
       GrandStrategy: readableStrategies.GrandStrategy,
       EconomicStrategies: readableStrategies.EconomicStrategies,
       MilitaryStrategies: readableStrategies.MilitaryStrategies,
-      Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale})`
+      Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI T(${lastRationale})`
     },
     undefined,
     ["Rationale"] // Only ignore Rationale when checking for changes
