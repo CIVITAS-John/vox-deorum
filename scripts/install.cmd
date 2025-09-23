@@ -244,41 +244,20 @@ if exist "%CP_PATH%" (
 )
 
 if "%VP_INSTALLED%"=="1" (
-    :: Only copy the DLL and Lua files
-    echo   Updating DLL and Lua files...
+    :: Ask user if they want to override existing installation
+    echo   Existing Vox Populi installation detected.
+    echo.
+    set /p "OVERRIDE_CHOICE=Do you want to override the existing installation? (Y/N): "
+    if /i "!OVERRIDE_CHOICE!" neq "Y" (
+        echo   Skipping Vox Populi installation.
+        goto :skip_vp_override
+    )
+    :: User chose to override - treat as new installation
+    echo   Overriding existing installation...
+    set "VP_INSTALLED=0"
+)
 
-    :: Copy main DLL
-    copy /Y "%PREBUILT_DLL%" "%CP_PATH%\CvGameCore_Expansion2.dll" >nul 2>&1
-    if !errorlevel! equ 0 (
-        echo   [OK] CvGameCore DLL updated
-    ) else (
-        echo   Warning: Could not update CvGameCore DLL
-    )
-
-    :: Copy Lua DLL to Civ5 folder if it exists
-    if exist "%LUA_DLL%" (
-        copy /Y "%LUA_DLL%" "%CIV5_PATH%\lua51_win32.dll" >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo   [OK] Lua DLL copied to Civ5 folder
-        ) else (
-            echo   Warning: Could not copy Lua DLL to Civ5 folder
-        )
-    )
-
-    :: Copy PDB files (always copy debug symbols if available)
-    if exist "%PREBUILT_PDB%" (
-        copy /Y "%PREBUILT_PDB%" "%CP_PATH%\CvGameCore_Expansion2.pdb" >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo   [OK] CvGameCore PDB copied ^(debug symbols^)
-        )
-    )
-    if exist "%LUA_PDB%" (
-        copy /Y "%LUA_PDB%" "%CIV5_PATH%\lua51_win32.pdb" >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo   [OK] Lua PDB copied ^(debug symbols^)
-        )
-    )
-) else (
+if "%VP_INSTALLED%"=="0" (
     :: Copy full Community Patch, Vox Deorum, and Vox Populi
     echo   Installing Community Patch, Vox Deorum, and Vox Populi...
 
@@ -336,6 +315,7 @@ if "%VP_INSTALLED%"=="1" (
     )
 )
 
+:skip_vp_override
 :: Copy config.ini and UserSettings.ini if not present in game settings folder
 echo.
 echo [7/9] Checking Vox Deorum configuration files...

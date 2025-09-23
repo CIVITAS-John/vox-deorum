@@ -241,7 +241,7 @@ if %errorlevel% equ 0 (
     echo Repository location: %INSTALL_DIR%
     echo.
     echo You can now:
-    echo   1. Launchy vox-deorum.cmd
+    echo   1. Launch vox-deorum.cmd
     echo   2. Start watching AI self-play!
 ) else (
     echo.
@@ -264,7 +264,7 @@ if exist "%TEMP_DIR%" (
 echo.
 choice /C YN /M "Create desktop shortcut to Vox Deorum folder?"
 if errorlevel 2 goto skip_shortcut
-powershell -Command "& { $ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%USERPROFILE%\Desktop\Vox Deorum.lnk'); $s.TargetPath = '%INSTALL_DIR%'; $s.IconLocation = '%SystemRoot%\System32\shell32.dll,3'; $s.Save() }"
+powershell -Command "& { $ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%USERPROFILE%\Desktop\Vox Deorum.lnk'); $s.TargetPath = '%INSTALL_DIR%\scripts\'; $s.IconLocation = '%SystemRoot%\System32\shell32.dll,3'; $s.Save() }"
 echo   [OK] Desktop shortcut created
 :skip_shortcut
 
