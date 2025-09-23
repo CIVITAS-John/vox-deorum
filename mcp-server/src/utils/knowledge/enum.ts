@@ -114,3 +114,38 @@ export function retrieveEnumName(type: string, value?: number | null): string | 
   // Return the string value if found
   return enumMapping[value];
 }
+
+/**
+ * Convert strategy result object with numeric IDs to string names
+ * @param strategies Object containing strategy fields with numeric values
+ * @returns Object with strategy names as strings
+ */
+export function convertStrategyToNames(strategies: {
+  GrandStrategy?: number | null;
+  EconomicStrategies?: number[];
+  MilitaryStrategies?: number[];
+}): {
+  GrandStrategy?: string;
+  EconomicStrategies?: string[];
+  MilitaryStrategies?: string[];
+} {
+  const result: any = {};
+
+  if (strategies.GrandStrategy !== undefined && strategies.GrandStrategy !== null) {
+    result.GrandStrategy = retrieveEnumName("GrandStrategy", strategies.GrandStrategy);
+  }
+
+  if (strategies.EconomicStrategies) {
+    result.EconomicStrategies = strategies.EconomicStrategies
+      .map((id: number) => retrieveEnumName("EconomicStrategy", id))
+      .filter((name: string | undefined) => name !== undefined).sort();
+  }
+
+  if (strategies.MilitaryStrategies) {
+    result.MilitaryStrategies = strategies.MilitaryStrategies
+      .map((id: number) => retrieveEnumName("MilitaryStrategy", id))
+      .filter((name: string | undefined) => name !== undefined).sort();
+  }
+
+  return result;
+}

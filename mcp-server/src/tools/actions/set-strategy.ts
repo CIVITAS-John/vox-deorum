@@ -4,7 +4,7 @@
 
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
-import { enumMappings, retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
+import { enumMappings, retrieveEnumValue, convertStrategyToNames } from "../../utils/knowledge/enum.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
@@ -94,12 +94,14 @@ class SetStrategyTool extends LuaFunctionTool {
       const store = knowledgeManager.getStore();
 
       // Store the previous strategy with reason "In-Game AI"
-      const strategies = result.Result;
+      var strategies = result.Result;
       // Postprocessing
       if (Object.keys(strategies.EconomicStrategies).length === 0)
         strategies.EconomicStrategies = [];
       if (Object.keys(strategies.MilitaryStrategies).length === 0)
         strategies.MilitaryStrategies = [];
+      strategies = convertStrategyToNames(strategies);
+
       // Store the strategy
       await store.storeMutableKnowledge(
         'StrategyChanges',
@@ -115,15 +117,7 @@ class SetStrategyTool extends LuaFunctionTool {
       );
 
       // Convert the numeric values back to string names for the response
-      result.Result = {
-        GrandStrategy: retrieveEnumName("GrandStrategy", result.Result.GrandStrategy),
-        EconomicStrategies: result.Result.EconomicStrategies.map((id: number) =>
-          retrieveEnumName("EconomicStrategy", id)
-        ).filter((name: string | undefined) => name !== undefined),
-        MilitaryStrategies: result.Result.MilitaryStrategies.map((id: number) =>
-          retrieveEnumName("MilitaryStrategy", id)
-        ).filter((name: string | undefined) => name !== undefined)
-      };
+      result.Result = convertStrategyToNames(result.Result);
 
       // Store the new strategy change in the database
       await store.storeMutableKnowledge(
@@ -131,8 +125,8 @@ class SetStrategyTool extends LuaFunctionTool {
         args.PlayerID,
         {
           GrandStrategy: grandStrategy === -1 ? strategies.GrandStrategy : grandStrategy,
-          EconomicStrategies: (economicStrategies ?? strategies.economicStrategies).sort(),
-          MilitaryStrategies: (militaryStrategies ?? strategies.militaryStrategies).sort(),
+          EconomicStrategies: (economicStrategies ?? strategies.economicStrategies),
+          MilitaryStrategies: (militaryStrategies ?? strategies.militaryStrategies),
           Rationale: args.Rationale
         },
         undefined,

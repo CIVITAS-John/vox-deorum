@@ -8,7 +8,6 @@ import {
   GameEvent,
   StrategyChange,
   PlayerSummary,
-  PlayerStrategy,
   PlayerEconomics,
   PlayerScience,
   PlayerCulture,
@@ -106,10 +105,8 @@ export interface KnowledgeDatabase {
   GameMetadata: GameMetadata;
   // Timed Knowledge
   GameEvents: GameEvent;
-  StrategyChanges: StrategyChange;
   // Mutable Knowledge
   PlayerSummaries: PlayerSummary;
-  PlayerStrategies: PlayerStrategy;
   PlayerEconomics: PlayerEconomics;
   PlayerSciences: PlayerScience;
   PlayerCultures: PlayerCulture;
@@ -118,6 +115,7 @@ export interface KnowledgeDatabase {
   PlayerOpinions: PlayerOpinions;
   CityInformations: CityInformation;
   PersonaChanges: PersonaChange;
+  StrategyChanges: StrategyChange;
   // Public Knowledge
   PlayerInformations: PlayerInformation;
 }

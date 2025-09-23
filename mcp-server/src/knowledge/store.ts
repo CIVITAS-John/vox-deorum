@@ -412,8 +412,7 @@ export class KnowledgeStore {
             Turn: turn,
             Version: newVersion,
             IsLatest: 1,
-            Changes: changes,
-            Payload: data,
+            Changes: changes
           };
 
           // Apply visibility flags if provided

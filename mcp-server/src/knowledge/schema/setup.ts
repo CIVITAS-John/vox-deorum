@@ -113,16 +113,6 @@ export async function setupKnowledgeDatabase(
   // Create indexes for PlayerSummaries table
   await createMutableKnowledgeIndexes(db, 'PlayerSummaries');
 
-  // Create PlayerStrategies table (MutableKnowledge implementation)
-  await createMutableKnowledgeTable(db, 'PlayerStrategies')
-    .addColumn('GrandStrategy', 'text', (col) => col.notNull())
-    .addColumn('EconomicStrategies', 'text', (col) => col.notNull()) // JSON array
-    .addColumn('MilitaryStrategies', 'text', (col) => col.notNull()) // JSON array
-    .addColumn('DiplomaticFlavors', 'text', (col) => col.notNull()) // JSON object
-    .execute();
-  // Create indexes for PlayerStrategies table
-  await createMutableKnowledgeIndexes(db, 'PlayerStrategies');
-
   // Create PlayerEconomics table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'PlayerEconomics')
     .execute();

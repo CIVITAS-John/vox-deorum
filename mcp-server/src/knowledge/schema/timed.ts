@@ -45,15 +45,6 @@ export interface PlayerSummary extends MutableKnowledge {
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)
 }
 
-/**
- * Player AI-related information (visible to self/espionage reasons)
- */
-export interface PlayerStrategy extends MutableKnowledge {
-  GrandStrategy: number;
-  EconomicStrategies: JSONColumnType<number[]>;
-  MilitaryStrategies: JSONColumnType<number[]>;
-  DiplomaticFlavors: JSONColumnType<Record<string, number>>;
-}
 
 /**
  * Player economics report (visible to self/espionage reasons)

@@ -3,7 +3,7 @@
  */
 
 import { knowledgeManager } from "../../server.js";
-import { retrieveEnumName } from "../../utils/knowledge/enum.js";
+import { convertStrategyToNames } from "../../utils/knowledge/enum.js";
 import { LuaFunction } from "../../bridge/lua-function.js";
 import { createLogger } from "../../utils/logger.js";
 
@@ -63,14 +63,10 @@ export async function getPlayerStrategy(playerId: number): Promise<{
   }
 
   // Convert numeric IDs to string names for return value
-  const readableStrategies = {
-    GrandStrategy: retrieveEnumName("GrandStrategy", strategies.GrandStrategy),
-    EconomicStrategies: strategies.EconomicStrategies
-      .map((id: number) => retrieveEnumName("EconomicStrategy", id))
-      .filter((name: string | undefined) => name !== undefined) as string[],
-    MilitaryStrategies: strategies.MilitaryStrategies
-      .map((id: number) => retrieveEnumName("MilitaryStrategy", id))
-      .filter((name: string | undefined) => name !== undefined) as string[]
+  const readableStrategies = convertStrategyToNames(strategies) as {
+    GrandStrategy: string | undefined;
+    EconomicStrategies: string[];
+    MilitaryStrategies: string[];
   };
 
   // Store the strategy in the knowledge database with "In-Game AI" rationale
@@ -80,8 +76,8 @@ export async function getPlayerStrategy(playerId: number): Promise<{
     playerId,
     {
       GrandStrategy: readableStrategies.GrandStrategy,
-      EconomicStrategies: readableStrategies.EconomicStrategies.sort(),
-      MilitaryStrategies: readableStrategies.MilitaryStrategies.sort(),
+      EconomicStrategies: readableStrategies.EconomicStrategies,
+      MilitaryStrategies: readableStrategies.MilitaryStrategies,
       Rationale: "In-Game AI"
     },
     undefined,
