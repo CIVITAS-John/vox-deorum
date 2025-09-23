@@ -241,9 +241,8 @@ if %errorlevel% equ 0 (
     echo Repository location: %INSTALL_DIR%
     echo.
     echo You can now:
-    echo   1. Launch Civilization V
-    echo   2. Enable the Vox Deorum mods
-    echo   3. Start playing with AI enhancements!
+    echo   1. Launchy vox-deorum.cmd
+    echo   2. Start watching AI self-play!
 ) else (
     echo.
     echo ============================================

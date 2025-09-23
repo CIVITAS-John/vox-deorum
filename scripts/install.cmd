@@ -340,9 +340,9 @@ if "%VP_INSTALLED%"=="1" (
 echo.
 echo [7/9] Checking Vox Deorum configuration files...
 set "SETTINGS_DIR=%DOCUMENTS%\My Games\Sid Meier's Civilization 5"
-set "CONFIG_SOURCE=%SCRIPT_DIR%\config.ini"
+set "CONFIG_SOURCE=%SCRIPT_DIR%\configs\config.ini"
 set "CONFIG_DEST=%SETTINGS_DIR%\config.ini"
-set "USERSETTINGS_SOURCE=%SCRIPT_DIR%\UserSettings.ini"
+set "USERSETTINGS_SOURCE=%SCRIPT_DIR%\configs\UserSettings.ini"
 set "USERSETTINGS_DEST=%SETTINGS_DIR%\UserSettings.ini"
 
 :: Check and copy config.ini

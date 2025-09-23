@@ -14,7 +14,7 @@ const config: StrategistSessionConfig = {
   llmPlayers: [0],
   autoPlay: true,
   // strategist: "simple-strategist"
-  strategist: "simple-strategist",
+  strategist: "none",
   gameMode: isLoadMode ? 'load' : 'start',  // Default to 'start' unless --load flag is present,
   repetition: 10
 };
