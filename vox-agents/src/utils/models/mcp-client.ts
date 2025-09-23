@@ -6,10 +6,10 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { ElicitRequestSchema, Tool, NotificationSchema } from '@modelcontextprotocol/sdk/types.js';
+import { Tool, NotificationSchema } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from '../logger.js';
 import { config } from '../config.js';
-import { Dispatcher, fetch, Pool } from 'undici';
+import { Dispatcher, fetch, Pool, RetryAgent } from 'undici';
 import { URL } from 'node:url';
 import { z } from 'zod';
 
@@ -84,7 +84,31 @@ export class MCPClient {
         args: transportConfig.args 
       });
     } else if (transportConfig.type === 'http') {
-      this.dispatcher = new Pool(new URL(transportConfig.endpoint!).origin, { connections: 5 });
+      this.dispatcher = new RetryAgent(
+        new Pool(new URL(transportConfig.endpoint!).origin, { connections: 5 }),
+        {
+          // Retry configuration for connection failures
+          maxRetries: 1000,          // More retries for initial connection
+          minTimeout: 200,        // Start with 0.1 second delay
+          maxTimeout: 2000,       // Cap at 1 seconds
+          timeoutFactor: 2,      // Gentler backoff (1s, 1.5s, 2.25s, 3.37s, ...)
+          retryAfter: true,        // Respect Retry-After headers
+          // Include connection errors and server unavailable statuses
+          errorCodes: [
+            'ECONNRESET',
+            'ECONNREFUSED',      // Connection refused - server not yet running
+            'ENOTFOUND',
+            'ENETDOWN',
+            'ENETUNREACH',
+            'EHOSTDOWN',
+            'EHOSTUNREACH',
+            'EPIPE',
+            'ETIMEDOUT'          // Add timeout errors
+          ],
+          statusCodes: [500, 502, 503, 504, 429],  // Standard retry status codes
+          methods: ['GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE']  // Include POST
+        }
+      );
       // Global pooling for HTTP requests
       const mcpUrl = new URL(transportConfig.endpoint!);
       this.transport = new StreamableHTTPClientTransport(mcpUrl, {
