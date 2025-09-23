@@ -44,6 +44,7 @@ const PlayerDataSchema = z.object({
   // PlayerSummary fields
   Era: z.string().optional(),
   Technologies: z.number().optional(),
+  CurrentResearch: z.string().nullable().optional(),
   MajorAlly: z.string().nullable().optional(),
   Cities: z.number().optional(),
   Population: z.number().optional(),
@@ -51,10 +52,11 @@ const PlayerDataSchema = z.object({
   Gold: z.number().optional(),
   GoldPerTurn: z.number().optional(),
   TourismPerTurn: z.number().optional(),
-  PolicyBranches: z.record(z.string(), z.number()).optional(),
+  PolicyBranches: z.union([z.record(z.string(), z.array(z.string())), z.record(z.string(), z.number())]).optional(),
   ResourcesAvailable: z.record(z.string(), z.number()).optional(),
   FoundedReligion: z.string().nullable().optional(),
-  MajorityReligion: z.string().nullable().optional()
+  MajorityReligion: z.string().nullable().optional(),
+  Relationships: z.record(z.string(), z.array(z.string())).optional()
 });
 
 /**
@@ -136,7 +138,7 @@ class GetPlayersTool extends ToolBase {
         IsHuman: info.IsHuman == 1,
         IsMajor: info.IsMajor == 1,
         // Dynamic summary (if available)
-        ...postProcessSummary(cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID),
+        ...postProcessSummary(cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID, args.PlayerID),
       } as any;
 
       if (playerOpinions) {
@@ -171,15 +173,40 @@ export default function createGetPlayersTool() {
 }
 
 /**
- * Post process from a player's perspective.
+ * Post process from a player's perspective based on visibility.
  */
-function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>(summary: T, isSelf: boolean): T {
+function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>(summary: T, isSelf: boolean, requestingPlayerID?: number): T {
+  // If it's the player's own data, return everything
   if (isSelf) return summary;
+
+  // Check visibility level if a requesting player is specified
+  if (requestingPlayerID !== undefined && summary) {
+    const visibilityField = `Player${requestingPlayerID}` as keyof PlayerSummary;
+    const visibility = (summary as any)[visibilityField];
+
+    // If visibility is 1 (met but not team), filter sensitive data
+    if (visibility === 1) {
+      // For met players (visibility 1): only show policy branch counts, not details
+      if (summary.PolicyBranches) {
+        const branches = summary.PolicyBranches as Record<string, string[]>;
+        const counts: Record<string, number> = {};
+        for (const [branch, policies] of Object.entries(branches)) {
+          counts[branch] = Array.isArray(policies) ? policies.length : policies as number;
+        }
+        summary.PolicyBranches = counts as any;
+      }
+
+      // Hide current research from non-team members
+      delete summary.CurrentResearch;
+    }
+  }
+
+  // Remove resources with value 0 from other players' data
   if (summary.ResourcesAvailable) {
-    // Remove resources with value 0 from other players' data
     summary.ResourcesAvailable = Object.fromEntries(
       Object.entries(summary.ResourcesAvailable).filter(([_, value]) => value !== 0)
     );
   }
+
   return summary;
 }

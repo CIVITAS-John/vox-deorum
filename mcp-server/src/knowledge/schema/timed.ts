@@ -35,10 +35,12 @@ export interface PlayerSummary extends MutableKnowledge {
   GoldPerTurn: number | null; // Player:CalculateGoldRateTimes100() / 100
   TourismPerTurn: number | null;
   Technologies: number | null;
-  PolicyBranches: JSONColumnType<Record<string, number>>;
+  CurrentResearch: string | null; // Current technology being researched (visibility 2 only)
+  PolicyBranches: JSONColumnType<Record<string, string[]>>; // Policy branch -> array of policy names (details visibility 2 only)
   FoundedReligion: string | null;
   MajorityReligion: string | null;
   ResourcesAvailable: JSONColumnType<Record<string, number>>;
+  Relationships: JSONColumnType<Record<string, string[]>>; // Civ name -> array of relationship types
 
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)
 }
