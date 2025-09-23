@@ -296,6 +296,28 @@ function OnSystemUpdateUI( type, tag  )
 				function activateMods(text)
 					if (text == "Activating the mods") then
 						print("Activating the mods...")
+
+						-- Check and enable required mods before activation
+						local requiredMods = {
+							["d1b6328c-ff44-4b0d-aad7-c657f83610cd"] = "Community Patch",
+							["8411a7a8-dad3-4622-a18e-fcc18324c799"] = "Vox Populi",
+							["04c67ca5-d408-4b9e-be1b-bbc00e67fd8e"] = "Vox Deorum"
+						}
+
+						-- Check if required mods are enabled
+						local activatedMods = Modding.GetActivatedMods()
+
+						-- Enable missing required mods
+						for modId, modName in pairs(requiredMods) do
+							local modVersion = Modding.GetLatestInstalledModVersion(modId)
+							if modVersion and modVersion ~= -1 then
+								Modding.EnableMod(modId, modVersion)
+								print("Successfully enabled: " .. modName .. " (" .. modId .. ", " .. modVersion .. ")")
+							else
+								print("WARNING: " .. modName .. " not found in installed mods!")
+							end
+						end
+
 						Modding.ActivateEnabledMods()
 					end
 				end
