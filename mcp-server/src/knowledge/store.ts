@@ -25,6 +25,7 @@ import { MCPServer } from '../server.js';
 import { getPlayerInformations } from './getters/player-information.js';
 import { readAndStorePlayerStrategy } from '../utils/lua/read-and-store-strategy.js';
 import { archiveGameData } from '../utils/knowledge/archive.js';
+import { readAndStorePlayerPersona } from '../utils/lua/read-and-store-persona.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -261,8 +262,13 @@ export class KnowledgeStore {
           if (type === "PlayerDoTurn") {
             knowledgeManager.updateActivePlayer(data.PlayerID);
           } else if (type === "PlayerDoneTurn") {
-            if (data.PlayerID < MaxMajorCivs)
-              readAndStorePlayerStrategy(data.PlayerID);
+            // Store some data for examination
+            if (data.PlayerID < MaxMajorCivs) {
+              await Promise.all([
+                readAndStorePlayerStrategy(data.PlayerID),
+                readAndStorePlayerPersona(data.PlayerID)
+              ]);
+            }
             knowledgeManager.updateActivePlayer(data.NextPlayerID);
           }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);

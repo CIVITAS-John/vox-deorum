@@ -86,6 +86,52 @@ export interface PlayerDiplomacy extends MutableKnowledge {
 }
 
 /**
+ * AI Persona/personality values for major civilizations
+ * Visible only to the player themselves (like strategy data)
+ * Tracks changes in AI personality traits over time
+ */
+export interface PersonaChange extends MutableKnowledge {
+  // Core Competitiveness & Ambition
+  VictoryCompetitiveness: number;
+  WonderCompetitiveness: number;
+  MinorCivCompetitiveness: number;
+  Boldness: number;
+
+  // War & Peace Tendencies (including defensive traits)
+  WarBias: number;
+  HostileBias: number;
+  WarmongerHate: number;
+  NeutralBias: number;
+  FriendlyBias: number;
+  GuardedBias: number;
+  AfraidBias: number;
+
+  // Diplomacy & Cooperation
+  DiplomaticBalance: number;
+  Friendliness: number;
+  WorkWithWillingness: number;
+  WorkAgainstWillingness: number;
+  Loyalty: number;
+
+  // Minor Civ Relations
+  MinorCivFriendlyBias: number;
+  MinorCivNeutralBias: number;
+  MinorCivHostileBias: number;
+  MinorCivWarBias: number;
+
+  // Personality Traits
+  DenounceWillingness: number;
+  Forgiveness: number;
+  Meanness: number;
+  Neediness: number;
+  Chattiness: number;
+  DeceptiveBias: number;
+
+  // Metadata
+  Rationale: string;
+}
+
+/**
  * Basic city information (visibility level 1 - revealed)
  * Contains fundamental city data visible to players who have revealed the city
  * This does not inherit from any knowledge base as it's not persisted directly

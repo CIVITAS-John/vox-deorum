@@ -48,6 +48,50 @@ export async function setupKnowledgeDatabase(
   // Create indexes for StrategyChanges table
   await createMutableKnowledgeIndexes(db, 'StrategyChanges');
 
+  // Create PersonaChanges table (MutableKnowledge implementation)
+  await createMutableKnowledgeTable(db, 'PersonaChanges')
+    // Core Competitiveness & Ambition
+    .addColumn('VictoryCompetitiveness', 'integer', (col) => col.notNull())
+    .addColumn('WonderCompetitiveness', 'integer', (col) => col.notNull())
+    .addColumn('MinorCivCompetitiveness', 'integer', (col) => col.notNull())
+    .addColumn('Boldness', 'integer', (col) => col.notNull())
+
+    // War & Peace Tendencies (including defensive traits)
+    .addColumn('WarBias', 'integer', (col) => col.notNull())
+    .addColumn('HostileBias', 'integer', (col) => col.notNull())
+    .addColumn('WarmongerHate', 'integer', (col) => col.notNull())
+    .addColumn('NeutralBias', 'integer', (col) => col.notNull())
+    .addColumn('FriendlyBias', 'integer', (col) => col.notNull())
+    .addColumn('GuardedBias', 'integer', (col) => col.notNull())
+    .addColumn('AfraidBias', 'integer', (col) => col.notNull())
+
+    // Diplomacy & Cooperation
+    .addColumn('DiplomaticBalance', 'integer', (col) => col.notNull())
+    .addColumn('Friendliness', 'integer', (col) => col.notNull())
+    .addColumn('WorkWithWillingness', 'integer', (col) => col.notNull())
+    .addColumn('WorkAgainstWillingness', 'integer', (col) => col.notNull())
+    .addColumn('Loyalty', 'integer', (col) => col.notNull())
+
+    // Minor Civ Relations
+    .addColumn('MinorCivFriendlyBias', 'integer', (col) => col.notNull())
+    .addColumn('MinorCivNeutralBias', 'integer', (col) => col.notNull())
+    .addColumn('MinorCivHostileBias', 'integer', (col) => col.notNull())
+    .addColumn('MinorCivWarBias', 'integer', (col) => col.notNull())
+
+    // Personality Traits
+    .addColumn('DenounceWillingness', 'integer', (col) => col.notNull())
+    .addColumn('Forgiveness', 'integer', (col) => col.notNull())
+    .addColumn('Meanness', 'integer', (col) => col.notNull())
+    .addColumn('Neediness', 'integer', (col) => col.notNull())
+    .addColumn('Chattiness', 'integer', (col) => col.notNull())
+    .addColumn('DeceptiveBias', 'integer', (col) => col.notNull())
+
+    // Metadata
+    .addColumn('Rationale', 'text', (col) => col.notNull())
+    .execute();
+  // Create indexes for PersonaChanges table
+  await createMutableKnowledgeIndexes(db, 'PersonaChanges');
+
   // Create PlayerSummaries table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'PlayerSummaries')
     .addColumn('Era', 'text')
