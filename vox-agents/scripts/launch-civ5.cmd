@@ -27,13 +27,13 @@ set "CIV5_PATH=%STEAM_PATH%\steamapps\common\Sid Meier's Civilization V"
 :: Check other common drives if not found
 if not exist "!CIV5_PATH!\CivilizationV.exe" (
     for %%D in (D E F G) do (
-        set "TEST_PATH=%%D:\Steam\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe"
-        if exist "!TEST_PATH!" (
+        set "TEST_PATH=%%D:\Steam\steamapps\common\Sid Meier's Civilization V"
+        if exist "!TEST_PATH!\CivilizationV.exe" (
             set "CIV5_PATH=%%D:\Steam\steamapps\common\Sid Meier's Civilization V"
             goto :found
         )
-        set "TEST_PATH=%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe"
-        if exist "!TEST_PATH!" (
+        set "TEST_PATH=%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V"
+        if exist "!TEST_PATH!\CivilizationV.exe" (
             set "CIV5_PATH=%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V"
             goto :found
         )
@@ -43,32 +43,32 @@ if not exist "!CIV5_PATH!\CivilizationV.exe" (
 :found
 if not exist "!CIV5_PATH!\CivilizationV.exe" (
     echo ERROR: Could not find CivilizationV.exe
-    echo Searched in: %CIV5_PATH%
+    echo Searched in: !CIV5_PATH!
     echo Please ensure Civilization V is installed
     pause
     exit /b 1
 )
 
-echo Found Civ 5 at: %CIV5_PATH%
+echo Found Civ 5 at: !CIV5_PATH!
 
 :: Create Automation directory if it doesn't exist
-if not exist "%CIV5_PATH%\Assets\Automation" (
+if not exist "!CIV5_PATH!\Assets\Automation" (
     echo Creating Automation directory...
-    mkdir "%CIV5_PATH%\Assets\Automation"
+    mkdir "!CIV5_PATH!\Assets\Automation"
 )
 
 :: Create UI/FrontEnd directory if it doesn't exist
-if not exist "%CIV5_PATH%\Assets\UI\FrontEnd" (
+if not exist "!CIV5_PATH!\Assets\UI\FrontEnd" (
     echo Creating UI/FrontEnd directory...
-    mkdir "%CIV5_PATH%\Assets\UI\FrontEnd"
+    mkdir "!CIV5_PATH!\Assets\UI\FrontEnd"
 )
 
 :: Copy Lua script to game directory
-echo Copying %LUA_SCRIPT% to game directory...
-copy /Y "%~dp0%LUA_SCRIPT%" "%CIV5_PATH%\Assets\Automation\%LUA_SCRIPT%" >nul
+echo Copying !LUA_SCRIPT! to game directory...
+copy /Y "%~dp0!LUA_SCRIPT!" "!CIV5_PATH!\Assets\Automation\!LUA_SCRIPT!" >nul
 if %errorlevel% neq 0 (
-    echo ERROR: Failed to copy %LUA_SCRIPT%
-    echo Make sure %LUA_SCRIPT% exists in: %~dp0
+    echo ERROR: Failed to copy !LUA_SCRIPT!
+    echo Make sure !LUA_SCRIPT! exists in: %~dp0
     pause
     exit /b 1
 )
@@ -76,7 +76,7 @@ if %errorlevel% neq 0 (
 :: Copy FrontEnd.lua if it exists
 if exist "%~dp0FrontEnd.lua" (
     echo Copying FrontEnd.lua to UI/FrontEnd directory...
-    copy /Y "%~dp0FrontEnd.lua" "%CIV5_PATH%\Assets\UI\FrontEnd\FrontEnd.lua" >nul
+    copy /Y "%~dp0FrontEnd.lua" "!CIV5_PATH!\Assets\UI\FrontEnd\FrontEnd.lua" >nul
     if %errorlevel% neq 0 (
         echo WARNING: Failed to copy FrontEnd.lua
     )
@@ -85,11 +85,11 @@ if exist "%~dp0FrontEnd.lua" (
 :: Copy MainMenu.lua if it exists
 if exist "%~dp0MainMenu.lua" (
     echo Copying MainMenu.lua to UI/FrontEnd directory...
-    copy /Y "%~dp0MainMenu.lua" "%CIV5_PATH%\Assets\UI\FrontEnd\MainMenu.lua" >nul
+    copy /Y "%~dp0MainMenu.lua" "!CIV5_PATH!\Assets\UI\FrontEnd\MainMenu.lua" >nul
     if %errorlevel% neq 0 (
         echo WARNING: Failed to copy MainMenu.lua
     )
 )
 
-echo Launching Civilization V with automation script: %LUA_SCRIPT%
-"%CIV5_PATH%\CivilizationV.exe" "-Automation %LUA_SCRIPT%"
+echo Launching Civilization V with automation script: !LUA_SCRIPT!
+"!CIV5_PATH!\CivilizationV.exe" "-Automation !LUA_SCRIPT!"

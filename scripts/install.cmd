@@ -45,7 +45,7 @@ echo.
 if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 
 :: Check for pre-built files
-echo [1/7] Checking for pre-built files...
+echo [1/9] Checking for pre-built files...
 if not exist "%PREBUILT_DLL%" (
     echo Error: Pre-built DLL not found at:
     echo   !PREBUILT_DLL!
@@ -77,7 +77,7 @@ if exist "%LUA_PDB%" (
 
 :: Check/Install Steam
 echo.
-echo [2/7] Checking for Steam...
+echo [2/9] Checking for Steam...
 set "STEAM_FOUND=0"
 
 :: Check registry for Steam path
@@ -132,7 +132,7 @@ if "%STEAM_FOUND%"=="1" (
 
 :: Download and setup SteamCMD
 echo.
-echo [3/7] Setting up SteamCMD...
+echo [3/9] Setting up SteamCMD...
 set "STEAMCMD_DIR=%TEMP_DIR%\steamcmd"
 set "STEAMCMD_EXE=%STEAMCMD_DIR%\steamcmd.exe"
 
@@ -157,7 +157,7 @@ if not exist "%STEAMCMD_EXE%" (
 echo   [OK] SteamCMD ready
 :: Check for Civ 5 installation using SteamCMD
 echo.
-echo [4/8] Checking for Civilization V installation...
+echo [4/9] Checking for Civilization V installation...
 echo   Running SteamCMD to check app %CIV5_APP_ID%...
 
 :: Create SteamCMD script to check installation
@@ -219,7 +219,7 @@ if "%CIV5_FOUND%"=="1" (
 
 :: Setup MODS directory
 echo.
-echo [5/8] Setting up MODS directory...
+echo [5/9] Setting up MODS directory...
 :: Get the actual Documents folder path using PowerShell (handles OneDrive/redirected folders)
 for /f "usebackq tokens=*" %%i in (`powershell -Command "[Environment]::GetFolderPath('MyDocuments')"`) do set "DOCUMENTS=%%i"
 set "MODS_DIR=%DOCUMENTS%\My Games\Sid Meier's Civilization 5\MODS"
@@ -230,7 +230,7 @@ if not exist "%MODS_DIR%" (
 echo   [OK] MODS directory: !MODS_DIR!
 :: Check for existing Vox Populi installation
 echo.
-echo [6/8] Installing Vox Populi Community Patch...
+echo [6/9] Installing Vox Populi Community Patch...
 set "VP_INSTALLED=0"
 set "CP_PATH=%MODS_DIR%\(1) Community Patch"
 set "VD_PATH=%MODS_DIR%\(1b) Vox Deorum"
@@ -336,9 +336,52 @@ if "%VP_INSTALLED%"=="1" (
     )
 )
 
+:: Copy config.ini and UserSettings.ini if not present in game settings folder
+echo.
+echo [7/9] Checking Vox Deorum configuration files...
+set "SETTINGS_DIR=%DOCUMENTS%\My Games\Sid Meier's Civilization 5"
+set "CONFIG_SOURCE=%SCRIPT_DIR%\config.ini"
+set "CONFIG_DEST=%SETTINGS_DIR%\config.ini"
+set "USERSETTINGS_SOURCE=%SCRIPT_DIR%\UserSettings.ini"
+set "USERSETTINGS_DEST=%SETTINGS_DIR%\UserSettings.ini"
+
+:: Check and copy config.ini
+if exist "%CONFIG_SOURCE%" (
+    if not exist "%CONFIG_DEST%" (
+        echo   Copying config.ini to game settings folder...
+        copy /Y "%CONFIG_SOURCE%" "%CONFIG_DEST%" >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo   [OK] config.ini copied to game settings
+        ) else (
+            echo   [WARN] Could not copy config.ini to %SETTINGS_DIR%
+        )
+    ) else (
+        echo   [OK] config.ini already exists in game settings
+    )
+) else (
+    echo   [WARN] config.ini not found in scripts folder
+)
+
+:: Check and copy UserSettings.ini
+if exist "%USERSETTINGS_SOURCE%" (
+    if not exist "%USERSETTINGS_DEST%" (
+        echo   Copying UserSettings.ini to game settings folder...
+        copy /Y "%USERSETTINGS_SOURCE%" "%USERSETTINGS_DEST%" >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo   [OK] UserSettings.ini copied to game settings
+        ) else (
+            echo   [WARN] Could not copy UserSettings.ini to %SETTINGS_DIR%
+        )
+    ) else (
+        echo   [OK] UserSettings.ini already exists in game settings
+    )
+) else (
+    echo   [WARN] UserSettings.ini not found in scripts folder
+)
+
 :: Install Node.js dependencies
 echo.
-echo [7/8] Installing Node.js dependencies...
+echo [8/9] Installing Node.js dependencies...
 set "PROJECT_ROOT=%SCRIPT_DIR%\.."
 echo   Project root: !PROJECT_ROOT!
 
@@ -497,7 +540,7 @@ if !errorlevel! equ 0 (
 
 :: Verification
 echo.
-echo [8/8] Verification...
+echo [9/9] Verification...
 set "SUCCESS=1"
 
 :: Check Steam
@@ -551,6 +594,20 @@ if exist "%CP_PATH%\CvGameCore_Expansion2.pdb" (
 )
 if exist "%CIV5_PATH%\lua51_win32.pdb" (
     echo   [OK] Lua debug symbols installed
+)
+
+:: Check config.ini
+if exist "%CONFIG_DEST%" (
+    echo   [OK] Vox Deorum config.ini installed
+) else (
+    echo   [WARN] config.ini not found in game settings
+)
+
+:: Check UserSettings.ini
+if exist "%USERSETTINGS_DEST%" (
+    echo   [OK] UserSettings.ini installed
+) else (
+    echo   [WARN] UserSettings.ini not found in game settings
 )
 
 :: Final message
