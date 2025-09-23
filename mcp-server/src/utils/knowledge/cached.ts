@@ -1,6 +1,6 @@
 
 import { knowledgeManager } from '../../server.js';
-import { stripMutableKnowledgeMetadata } from './strip-metadata.js';
+import { stripMutableKnowledgeMetadata, stripPublicKnowledgeMetadata } from './strip-metadata.js';
 
 /**
  * Read cached knowledge for a player, with automatic fetching if not found.
@@ -13,7 +13,7 @@ import { stripMutableKnowledgeMetadata } from './strip-metadata.js';
  */
 export async function readPlayerKnowledge<T>
   (playerId: number | undefined, table: string, fetch: (playerId: number) => Promise<T | null>): Promise<T | null | undefined> {
-  if (!playerId) return undefined;
+  if (playerId === undefined) return undefined;
 
   // First attempt to read from the mutable knowledge store
   const store = knowledgeManager.getStore();
@@ -23,7 +23,7 @@ export async function readPlayerKnowledge<T>
   var cached = await store.getMutableKnowledge(
     table as any,
     playerId,
-    playerId, // Pass playerId for visibility check
+    undefined,
     async () => {
       // If not found in cache, fetch the data
       await fetch(playerId);
@@ -34,4 +34,31 @@ export async function readPlayerKnowledge<T>
 
   // Return the cached data if found, otherwise null
   return cached as T | null;
+}
+
+/**
+ * Read cached public knowledge in batch, with automatic fetching if not found.
+ * Attempts to read from mutable knowledge store first, then fetches if needed.
+ *
+ * @param table - The table name in the knowledge database
+ * @param fetch - Callback to fetch the knowledge if not found in cache
+ * @returns The knowledge data array or empty array if not found
+ */
+export async function readPublicKnowledgeBatch<T>
+  (table: string, fetch: () => Promise<T[]>): Promise<T[]> {
+  // First attempt to read from the mutable knowledge store
+  const store = knowledgeManager.getStore();
+
+  // Use getMutableKnowledgeBatch to read all entries from the knowledge database
+  var cached = await store.getAllPublicKnowledge(
+    table as any
+  );
+
+  if (cached.length === 0) return fetch();
+
+  // Strip metadata from each cached entry
+  cached = cached.map(item => stripPublicKnowledgeMetadata(item as any));
+
+  // Return the cached data if found, otherwise empty array
+  return cached as T[];
 }

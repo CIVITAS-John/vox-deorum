@@ -500,7 +500,7 @@ export class KnowledgeStore {
       await failedCallback();
       return this.getMutableKnowledge(tableName, key, playerId);
     } else {
-      return result as Selectable<KnowledgeDatabase[TTable]> | undefined || null;
+      return result as Selectable<KnowledgeDatabase[TTable]> | null;
     }
   }
 

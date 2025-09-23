@@ -15,7 +15,7 @@ import { Selectable } from "kysely";
 import { cleanEventData } from "./get-events.js";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
 import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
-import { readPlayerKnowledge } from "../../utils/knowledge/cached.js";
+import { readPlayerKnowledge, readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
 import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
 
 /**
@@ -58,8 +58,10 @@ const PlayerDataSchema = z.object({
   ResourcesAvailable: z.record(z.string(), z.number()).optional(),
   FoundedReligion: z.string().nullable().optional(),
   MajorityReligion: z.string().nullable().optional(),
-  Relationships: z.record(z.string(), z.array(z.string())).optional()
-});
+  Relationships: z.record(z.string(), z.array(z.string())).optional(),
+  // Persona fields
+  Persona: z.record(z.string(), z.number()).optional()
+}).passthrough();
 
 /**
  * Tool for retrieving player information and summaries
@@ -101,13 +103,13 @@ class GetPlayersTool extends ToolBase {
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Get static player information, current player summaries, opinions, and strategies in parallel
     const [playerInfos, playerSummaries, playerOpinions, strategies, persona] = await Promise.all([
-      getPlayerInformations(),
+      readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations),
       getPlayerSummaries(),
       getPlayerOpinions(args.PlayerID),
       readPlayerKnowledge(args.PlayerID, "StrategyChanges", getPlayerStrategy),
       readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona)
     ]);
-  
+
     // Combine the data and create dictionary
     const playersDict: Record<string, z.infer<typeof this.outputSchema>[string]> = {};
     
@@ -156,11 +158,10 @@ class GetPlayersTool extends ToolBase {
       // Add strategy information if this is the active player and strategies were fetched
       if (strategies && playerID === args.PlayerID)
         Object.assign(playerData, strategies);
-      if (strategies && playerID === args.PlayerID)
-        Object.assign(playerData, persona);
+      if (persona && playerID === args.PlayerID)
+        playerData.Persona = persona as Record<string, number>;
       
-      const checkedData = PlayerDataSchema.safeParse(playerData).data;
-      playersDict[playerID.toString()] = cleanEventData(checkedData, false)!;
+      playersDict[playerID.toString()] = cleanEventData(playerData, false)!;
     }
     
     return playersDict;

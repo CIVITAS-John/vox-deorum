@@ -3,7 +3,24 @@
  */
 
 import { Selectable } from 'kysely';
-import { MutableKnowledge, TimedKnowledge, MaxMajorCivs } from '../../knowledge/schema/base.js';
+import { MutableKnowledge, TimedKnowledge, MaxMajorCivs, PublicKnowledge } from '../../knowledge/schema/base.js';
+
+/**
+ * Strip database metadata fields from a PublicKnowledge object
+ * @param obj PublicKnowledge object with metadata
+ * @returns PublicKnowledge object without metadata
+ */
+export function stripPublicKnowledgeMetadata<T extends PublicKnowledge>(obj: Partial<Selectable<T>>): Omit<Selectable<T>, 'ID' | keyof PublicKnowledge> {
+  const result: any = {};
+
+  for (const key in obj) {
+    // Skip ID field
+    if (key === 'ID') continue;
+    result[key] = obj[key];
+  }
+
+  return result;
+}
 
 /**
  * Strip database metadata fields from a TimedKnowledge object
