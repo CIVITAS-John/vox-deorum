@@ -95,7 +95,7 @@ class SetStrategyTool extends LuaFunctionTool {
       const lastRationale = (await store.getMutableKnowledge("StrategyChanges", args.PlayerID))?.Rationale ?? "Unknown";
 
       // Store the previous strategy with reason "Tweaked by In-Game AI"
-      const previous = result.Result;
+      const previous = result.Result as { GrandStrategy: number, EconomicStrategies: number[], MilitaryStrategies: number[] };
       // Postprocessing
       if (Object.keys(previous.EconomicStrategies).length === 0)
         previous.EconomicStrategies = [];
@@ -120,8 +120,8 @@ class SetStrategyTool extends LuaFunctionTool {
       // Convert the numeric values back to string names for the response
       const after = convertStrategyToNames({
         GrandStrategy: grandStrategy === -1 ? previous.GrandStrategy : grandStrategy,
-        EconomicStrategies: (economicStrategies ?? previous.economicStrategies),
-        MilitaryStrategies: (militaryStrategies ?? previous.militaryStrategies),
+        EconomicStrategies: (economicStrategies ?? previous.EconomicStrategies),
+        MilitaryStrategies: (militaryStrategies ?? previous.MilitaryStrategies),
       });
 
       // Store the new strategy change in the database
