@@ -148,6 +148,7 @@ class SetPersonaTool extends LuaFunctionTool {
     if (result.Success) {
       const store = knowledgeManager.getStore();
       const previousPersona = result.Result;
+      const lastRationale = (await store.getMutableKnowledge("PersonaChanges", PlayerID))?.Rationale ?? "Unknown";
 
       // Store the previous persona with reason "In-Game AI"
       if (previousPersona && Object.keys(previousPersona).length > 0) {
@@ -156,7 +157,7 @@ class SetPersonaTool extends LuaFunctionTool {
           PlayerID,
           {
             ...previousPersona,
-            Rationale: "In-Game AI"
+            Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale})`
           },
           undefined,
           ["Rationale"] // Only ignore Rationale when checking for changes

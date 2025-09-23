@@ -46,6 +46,7 @@ export async function getPlayerPersona(playerId: number): Promise<Partial<Person
 
   // Store the persona values in the knowledge database with "In-Game AI" rationale
   const store = knowledgeManager.getStore();
+  const lastRationale = (await store.getMutableKnowledge("PersonaChanges", playerId))?.Rationale ?? "Unknown";
   await store.storeMutableKnowledge(
     'PersonaChanges',
     playerId,
@@ -87,7 +88,7 @@ export async function getPlayerPersona(playerId: number): Promise<Partial<Person
       DeceptiveBias: persona.DeceptiveBias,
 
       // Metadata
-      Rationale: "In-Game AI"
+      Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale})`
     },
     undefined,
     ["Rationale"] // Only ignore Rationale when checking for changes

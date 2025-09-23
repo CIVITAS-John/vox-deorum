@@ -92,8 +92,9 @@ class SetStrategyTool extends LuaFunctionTool {
     var result = await super.call(grandStrategy, economicStrategies, militaryStrategies);
     if (result.Success) {
       const store = knowledgeManager.getStore();
+      const lastRationale = (await store.getMutableKnowledge("StrategyChanges", args.PlayerID))?.Rationale ?? "Unknown";
 
-      // Store the previous strategy with reason "In-Game AI"
+      // Store the previous strategy with reason "Tweaked by In-Game AI"
       const previous = result.Result;
       // Postprocessing
       if (Object.keys(previous.EconomicStrategies).length === 0)
@@ -110,7 +111,7 @@ class SetStrategyTool extends LuaFunctionTool {
           GrandStrategy: before.GrandStrategy,
           EconomicStrategies: before.EconomicStrategies,
           MilitaryStrategies: before.MilitaryStrategies,
-          Rationale: "In-Game AI"
+          Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale})`
         },
         undefined,
         ["Rationale"] // Only ignore Rationale when checking for changes

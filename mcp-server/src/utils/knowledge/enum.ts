@@ -125,9 +125,9 @@ export function convertStrategyToNames(strategies: {
   EconomicStrategies?: number[];
   MilitaryStrategies?: number[];
 }): {
-  GrandStrategy?: string;
-  EconomicStrategies?: string[];
-  MilitaryStrategies?: string[];
+  GrandStrategy: string | undefined;
+  EconomicStrategies: string[] | undefined;
+  MilitaryStrategies: string[] | undefined;
 } {
   const result: any = {};
 
@@ -145,7 +145,7 @@ export function convertStrategyToNames(strategies: {
     result.MilitaryStrategies = strategies.MilitaryStrategies
       .map((id: number) => retrieveEnumName("MilitaryStrategy", id))
       .filter((name: string | undefined) => name !== undefined).sort();
-  }
+  } 
 
   return result;
 }
