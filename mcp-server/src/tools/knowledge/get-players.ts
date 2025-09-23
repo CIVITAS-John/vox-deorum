@@ -15,6 +15,8 @@ import { Selectable } from "kysely";
 import { cleanEventData } from "./get-events.js";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
 import { readAndStorePlayerStrategy } from "../../utils/lua/read-and-store-strategy.js";
+import { readPlayerKnowledge } from "../../utils/knowledge/cached.js";
+import { readAndStorePlayerPersona } from "../../utils/lua/read-and-store-persona.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -98,11 +100,12 @@ class GetPlayersTool extends ToolBase {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Get static player information, current player summaries, opinions, and strategies in parallel
-    const [playerInfos, playerSummaries, playerOpinions, strategies] = await Promise.all([
+    const [playerInfos, playerSummaries, playerOpinions, strategies, persona] = await Promise.all([
       getPlayerInformations(),
       getPlayerSummaries(),
       getPlayerOpinions(args.PlayerID),
-      args.PlayerID !== undefined ? readAndStorePlayerStrategy(args.PlayerID) : Promise.resolve(null)
+      readPlayerKnowledge(args.PlayerID, "StrategyChanges", readAndStorePlayerStrategy),
+      readPlayerKnowledge(args.PlayerID, "PersonaChanges", readAndStorePlayerPersona)
     ]);
   
     // Combine the data and create dictionary
@@ -151,11 +154,10 @@ class GetPlayersTool extends ToolBase {
       }
 
       // Add strategy information if this is the active player and strategies were fetched
-      if (strategies && playerID === args.PlayerID) {
-        playerData.GrandStrategy = strategies.GrandStrategy;
-        playerData.EconomicStrategies = strategies.EconomicStrategies;
-        playerData.MilitaryStrategies = strategies.MilitaryStrategies;
-      }
+      if (strategies && playerID === args.PlayerID)
+        Object.assign(playerData, strategies);
+      if (strategies && playerID === args.PlayerID)
+        Object.assign(playerData, persona);
       
       const checkedData = PlayerDataSchema.safeParse(playerData).data;
       playersDict[playerID.toString()] = cleanEventData(checkedData, false)!;
