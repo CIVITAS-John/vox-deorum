@@ -120,32 +120,36 @@ echo   [OK] Git installed successfully
 echo.
 echo [2/4] Cloning repository...
 if exist "%INSTALL_DIR%" (
-    echo   [WARN] Installation directory already exists: %INSTALL_DIR%
-    choice /C YN /M "Delete existing directory and reinstall?"
-    if errorlevel 2 (
-        echo   Using existing directory...
-        cd /d "%INSTALL_DIR%"
+    echo   [INFO] Installation directory already exists: %INSTALL_DIR%
+    cd /d "%INSTALL_DIR%"
 
-        :: Check if it's a git repository
-        git rev-parse --git-dir >nul 2>&1
-        if %errorlevel% equ 0 (
-            echo   Updating existing repository...
-            git fetch origin
-            git pull origin main
+    :: Check if it's a git repository
+    git rev-parse --git-dir >nul 2>&1
+    if %errorlevel% equ 0 (
+        echo   Updating existing repository...
+
+        :: Simple force update - user configs are not tracked by git
+        echo   Fetching latest changes...
+        git fetch --depth 1 --force origin main
+
+        echo   Updating to latest version...
+        git reset --hard origin/main
+        if %errorlevel% neq 0 (
+            echo   [WARN] Shallow update failed. Trying full fetch...
+            git fetch --unshallow 2>nul
+            git reset --hard origin/main
             if %errorlevel% neq 0 (
-                echo   [WARN] Failed to update repository. Continuing anyway...
+                echo   [WARN] Update failed. Continuing with existing version...
             )
-        ) else (
-            echo   [FAIL] Directory exists but is not a Git repository
-            echo   Please delete or rename: %INSTALL_DIR%
-            pause
-            exit /b 1
         )
+
+        echo   [OK] Repository updated successfully
         goto :InitSubmodules
     ) else (
-        echo   Removing existing directory...
-        rd /s /q "%INSTALL_DIR%" 2>nul
-        timeout /t 2 /nobreak >nul
+        echo   [FAIL] Directory exists but is not a Git repository
+        echo   Please delete or rename: %INSTALL_DIR%
+        pause
+        exit /b 1
     )
 )
 
@@ -174,6 +178,7 @@ cd /d "%INSTALL_DIR%"
 :: Initialize and update submodules
 echo.
 echo [3/4] Initializing submodules...
+
 :: Initialize submodules
 git submodule init
 if %errorlevel% neq 0 (
@@ -189,13 +194,20 @@ if %errorlevel% neq 0 (
     echo   [OK] Git LFS initialized
 )
 
-:: Update submodules (also shallow for faster download)
+:: Force update submodules with shallow clone for faster download
 echo   Downloading submodule content (this may take a few minutes)...
-git submodule update --init --recursive --depth 1
+:: Use force to ensure we get the latest commits referenced by the main repo
+git submodule update --init --recursive --depth 1 --force
 if %errorlevel% neq 0 (
-    echo   [WARN] Some submodules may have failed to download
-    echo   You can manually update them later with:
-    echo   git submodule update --init --recursive
+    echo   [WARN] Some submodules may have failed with shallow clone
+    echo   Attempting full submodule update...
+    :: Try without depth limitation if shallow fails
+    git submodule update --init --recursive --force
+    if %errorlevel% neq 0 (
+        echo   [WARN] Some submodules may have failed to download
+        echo   You can manually update them later with:
+        echo   git submodule update --init --recursive --force
+    )
 ) else (
     echo   [OK] Submodules initialized
 
