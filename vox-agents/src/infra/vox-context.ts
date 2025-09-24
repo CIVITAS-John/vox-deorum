@@ -222,9 +222,9 @@ export class VoxContext<TParameters extends AgentParameters> {
           observation.update({
             output: response.steps[response.steps.length - 1]?.toolCalls ?? response.text,
             metadata: {
-              reasoning: response.reasoning,
-              agentSteps: response.steps.length,
-              agentTools: response.steps.reduce((list, current) => list.concat(current.toolCalls.map(call => call.toolName)), [] as string[])
+              stepCount: response.steps.length,
+              stepTools: response.steps.reduce((list, current) => list.concat(current.toolCalls.map(call => call.toolName)), [] as string[]),
+              steps: response.steps,
             }
           });
           return response.text;
