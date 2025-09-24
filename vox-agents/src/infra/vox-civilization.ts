@@ -20,12 +20,12 @@ export class VoxCivilization {
   private pollInterval: NodeJS.Timeout | null = null;
 
   /**
-   * Finds and binds to an existing CivilizationV.exe process
+   * Finds and binds to an existing CivilizationV_DX11.exe process
    */
   private async bindToExistingProcess(): Promise<boolean> {
     const pid = await this.findCivilizationProcess();
     if (pid) {
-      console.log(`Found existing CivilizationV.exe process (PID: ${pid})`);
+      console.log(`Found existing CivilizationV_DX11.exe process (PID: ${pid})`);
       this.externalProcessPid = pid;
       this.monitoring = true;
       this.startProcessMonitoring();
@@ -36,18 +36,18 @@ export class VoxCivilization {
   }
 
   /**
-   * Finds CivilizationV.exe process using Windows tasklist
+   * Finds CivilizationV_DX11.exe process using Windows tasklist
    * @returns Process ID if found, null otherwise
    */
   private async findCivilizationProcess(): Promise<number | null> {
     try {
-      const { stdout } = await execAsync('tasklist /FI "IMAGENAME eq CivilizationV.exe" /FO CSV');
+      const { stdout } = await execAsync('tasklist /FI "IMAGENAME eq CivilizationV_DX11.exe" /FO CSV');
       const lines = stdout.trim().split('\n');
 
       // Skip header line, look for process
       for (let i = 1; i < lines.length; i++) {
         const parts = lines[i].split(',');
-        if (parts[0]?.includes('CivilizationV.exe')) {
+        if (parts[0]?.includes('CivilizationV_DX11.exe')) {
           const pid = parseInt(parts[1].replace(/"/g, ''), 10);
           if (!isNaN(pid)) {
             return pid;
@@ -155,7 +155,7 @@ export class VoxCivilization {
       console.log('Waiting 5 seconds for game to fully initialize...');
       await setTimeout(5000);
 
-      // Find and bind to the actual CivilizationV.exe process
+      // Find and bind to the actual CivilizationV_DX11.exe process
       return await this.bindToExistingProcess();
     } catch (error) {
       console.error('Failed to launch game:', error);

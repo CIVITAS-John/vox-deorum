@@ -25,15 +25,15 @@ if "%STEAM_PATH%"=="" (
 set "CIV5_PATH=%STEAM_PATH%\steamapps\common\Sid Meier's Civilization V"
 
 :: Check other common drives if not found
-if not exist "!CIV5_PATH!\CivilizationV.exe" (
+if not exist "!CIV5_PATH!\CivilizationV_DX11.exe" (
     for %%D in (D E F G) do (
         set "TEST_PATH=%%D:\Steam\steamapps\common\Sid Meier's Civilization V"
-        if exist "!TEST_PATH!\CivilizationV.exe" (
+        if exist "!TEST_PATH!\CivilizationV_DX11.exe" (
             set "CIV5_PATH=%%D:\Steam\steamapps\common\Sid Meier's Civilization V"
             goto :found
         )
         set "TEST_PATH=%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V"
-        if exist "!TEST_PATH!\CivilizationV.exe" (
+        if exist "!TEST_PATH!\CivilizationV_DX11.exe" (
             set "CIV5_PATH=%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V"
             goto :found
         )
@@ -41,8 +41,8 @@ if not exist "!CIV5_PATH!\CivilizationV.exe" (
 )
 
 :found
-if not exist "!CIV5_PATH!\CivilizationV.exe" (
-    echo ERROR: Could not find CivilizationV.exe
+if not exist "!CIV5_PATH!\CivilizationV_DX11.exe" (
+    echo ERROR: Could not find CivilizationV_DX11.exe
     echo Searched in: !CIV5_PATH!
     echo Please ensure Civilization V is installed
     pause
@@ -92,4 +92,4 @@ if exist "%~dp0MainMenu.lua" (
 )
 
 echo Launching Civilization V with automation script: !LUA_SCRIPT!
-"!CIV5_PATH!\CivilizationV.exe" "-Automation !LUA_SCRIPT!"
+"!CIV5_PATH!\CivilizationV_DX11.exe" "-Automation !LUA_SCRIPT!"
