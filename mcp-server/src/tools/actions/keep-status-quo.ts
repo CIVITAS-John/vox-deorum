@@ -46,7 +46,7 @@ class KeepStatusQuoTool extends ToolBase {
   /**
    * Execute the keep-status-quo command
    */
-  async execute(args: z.infer<typeof this.inputSchema>): Promise<boolean> {
+  async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     const store = knowledgeManager.getStore();
     const previous = await store.getMutableKnowledge("StrategyChanges", args.PlayerID);
     await store.storeMutableKnowledge(
