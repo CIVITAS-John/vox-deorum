@@ -174,7 +174,7 @@ set "CIV5_FOUND=0"
 set "CIV5_PATH="
 
 :: Check default Steam library
-if exist "%STEAM_PATH%\steamapps\common\Sid Meier's Civilization V\CivilizationV_DX11.exe" (
+if exist "%STEAM_PATH%\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe" (
     set "CIV5_PATH=%STEAM_PATH%\steamapps\common\Sid Meier's Civilization V"
     set "CIV5_FOUND=1"
 )
@@ -182,15 +182,15 @@ if exist "%STEAM_PATH%\steamapps\common\Sid Meier's Civilization V\CivilizationV
 :: Check other common drives
 if "%CIV5_FOUND%"=="0" (
     for %%D in (C D E F G) do (
-        if exist "%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V\CivilizationV_DX11.exe" (
+        if exist "%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe" (
             set "CIV5_PATH=%%D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V"
             set "CIV5_FOUND=1"
         )
-        if exist "%%D:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization V\CivilizationV_DX11.exe" (
+        if exist "%%D:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe" (
             set "CIV5_PATH=%%D:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization V"
             set "CIV5_FOUND=1"
         )
-        if exist "%%D:\Steam\steamapps\common\Sid Meier's Civilization V\CivilizationV_DX11.exe" (
+        if exist "%%D:\Steam\steamapps\common\Sid Meier's Civilization V\CivilizationV.exe" (
             set "CIV5_PATH=%%D:\Steam\steamapps\common\Sid Meier's Civilization V"
             set "CIV5_FOUND=1"
         )

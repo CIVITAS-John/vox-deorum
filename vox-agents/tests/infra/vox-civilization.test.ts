@@ -15,12 +15,12 @@ const execAsync = promisify(exec);
  */
 async function killAllCivilizationProcesses(): Promise<void> {
   try {
-    console.log('Attempting to kill any existing CivilizationV_DX11.exe processes...');
-    await execAsync('taskkill /F /IM CivilizationV_DX11.exe');
+    console.log('Attempting to kill any existing CivilizationV.exe processes...');
+    await execAsync('taskkill /F /IM CivilizationV.exe');
     console.log('Successfully killed existing processes');
   } catch (error) {
     // Process might not exist, which is fine
-    console.log('No existing CivilizationV_DX11.exe process found (or failed to kill)');
+    console.log('No existing CivilizationV.exe process found (or failed to kill)');
   }
   // Wait a bit for process to fully terminate
   await new Promise(resolve => setTimeout(resolve, 3000));
@@ -31,8 +31,8 @@ async function killAllCivilizationProcesses(): Promise<void> {
  */
 async function isCivilizationRunning(): Promise<boolean> {
   try {
-    const { stdout } = await execAsync('tasklist /FI "IMAGENAME eq CivilizationV_DX11.exe" /FO CSV');
-    return stdout.includes('CivilizationV_DX11.exe');
+    const { stdout } = await execAsync('tasklist /FI "IMAGENAME eq CivilizationV.exe" /FO CSV');
+    return stdout.includes('CivilizationV.exe');
   } catch {
     return false;
   }
