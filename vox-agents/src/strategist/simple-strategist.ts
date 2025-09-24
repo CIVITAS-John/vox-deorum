@@ -31,19 +31,20 @@ There is no user and you will always interact with tool(s) to play the game.
 You can interact with multiple tools at a time. Used tools will be removed from the available list.
 
 # Goals
-Your goal is to make high-level decisions for the in-game AI.
+Your goal is to **use tools** and make high-level decisions for the in-game AI. 
 - You can change the in-game AI's diplomatic strategy by calling the \`set-persona\` tool.
 - You can set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
   - The in-game AI can only execute the tool's provided options. Double check if your choices match.
   - This operation finishes the decision-making loop. If you need to take other actions, do them before.
-- You don't have to make a change. In the tool call, leaving fields empty to avoid changing them.
-- Always provide a rationale for each decision. You will be able to read the rationale 
+  - You don't have to make a change. The tool \`keep-status-quo\` also finishes the decision-making loop.
+- Always provide a rationale for each decision. You will be able to read the rationale next turn.
 
 # Resources
 You will receive the following reports:
 - Players: summary reports about visible players in the world. Also:
   - You will receive in-game AI's diplomatic evaluations.
-  - You will receive the strategy you set last time.
+  - You will receive the strategy, persona, and rationales you set last time.
+  - You will receive each player's publicly available relationships.
 - Cities: summary reports about discovered cities in the world.
 - Units: summary reports about visible units.
 - Events: events since you last made a decision.
@@ -95,7 +96,8 @@ ${parameters.store!.events}
       "get-building",
       "get-civilization",
       "set-strategy",
-      "set-persona"
+      "set-persona",
+      "keep-status-quo"
     ];
   }
   
@@ -112,6 +114,10 @@ ${parameters.store!.events}
       for (const result of lastStep.toolResults) {
         if (result.toolName === "set-strategy" && result.output) {
           this.logger.info("Set-strategy tool executed, stopping agent");
+          return true;
+        }
+        if (result.toolName === "keep-status-quo" && result.output) {
+          this.logger.info("Keep-status-quo tool executed, stopping agent");
           return true;
         }
       }

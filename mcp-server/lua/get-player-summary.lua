@@ -28,7 +28,7 @@ local function getVisibility(fromPlayerID, toPlayerID)
   end
 end
 
--- Iterate through all possible players
+-- Iterate through all major players
 for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
   local player = Players[playerID]
   
@@ -82,17 +82,6 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       if otherPlayer and otherPlayer:IsEverAlive() then
         local fieldName = "Player" .. otherPlayerID
         summary[fieldName] = getVisibility(playerID, otherPlayerID)
-      end
-    end
-    
-    -- Get ally for minor civs (major ally of city-state)
-    if player:IsMinorCiv() then
-      local allyID = player:GetAlly()
-      if allyID and allyID >= 0 then
-        local allyPlayer = Players[allyID]
-        if allyPlayer then
-          summary.MajorAlly = Locale.ConvertTextKey(allyPlayer:GetCivilizationShortDescription())
-        end
       end
     end
     
@@ -150,7 +139,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
 
     -- Get diplomatic relationships with other major civilizations (only if player is major civ)
     local relationships = nil  -- Start with nil, only allocate if needed
-    if not player:IsMinorCiv() and player:IsAlive() then
+    if player:IsAlive() then
       local fromTeam = Teams[player:GetTeam()]  -- Still need team for some checks
 
       for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
@@ -172,7 +161,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
               relationshipList[#relationshipList + 1] = "Defensive Pact"
             end
 
-            -- Check for other agreements (still need team methods)
+            -- Check for other agreements
             if fromTeam then
               if fromTeam:IsAllowsOpenBordersToTeam(otherTeamID) then
                 if not relationshipList then relationshipList = {} end
@@ -186,16 +175,21 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
               end
             end
 
-            -- Check for Declaration of Friendship (already using player method)
+            -- Check for Declaration of Friendship
             if player:IsDoF(otherPlayerID) then
               if not relationshipList then relationshipList = {} end
               relationshipList[#relationshipList + 1] = "Declaration of Friendship"
             end
 
-            -- Check for denouncement (already using player method)
+            -- Check for denouncement
             if player:IsDenouncedPlayer(otherPlayerID) then
               if not relationshipList then relationshipList = {} end
-              relationshipList[#relationshipList + 1] = "Denounced"
+              relationshipList[#relationshipList + 1] = "Denounced Them"
+            end
+
+            if player:IsDenouncingPlayer(otherPlayerID) then
+              if not relationshipList then relationshipList = {} end
+              relationshipList[#relationshipList + 1] = "Denounced By Them"
             end
 
             -- Only add if there are relationships

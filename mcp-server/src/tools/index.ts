@@ -16,6 +16,7 @@ import createPauseGameTool from "./actions/pause-game.js";
 import createResumeGameTool from "./actions/resume-game.js";
 import createSummarizeUnitsTool from "./knowledge/summarize-units.js";
 import createSetMetadataTool from "./actions/set-metadata.js";
+import createKeepStatusQuoTool from "./actions/keep-status-quo.js";
 
 // Tool factory configuration - one line per tool
 const toolFactories = {
@@ -37,6 +38,7 @@ const toolFactories = {
     setPersona: createSetPersonaTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
+    keepStatusQuo: createKeepStatusQuoTool,
 } as const;
 
 // Type for the tools object (inferred from factories)
