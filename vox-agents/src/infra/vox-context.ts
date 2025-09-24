@@ -224,7 +224,7 @@ export class VoxContext<TParameters extends AgentParameters> {
             metadata: {
               stepCount: response.steps.length,
               stepTools: response.steps.reduce((list, current) => list.concat(current.toolCalls.map(call => call.toolName)), [] as string[]),
-              steps: response.steps,
+              steps: response.steps.map(step => step.content),
             }
           });
           return response.text;
