@@ -181,7 +181,7 @@ export class BridgeManager extends EventEmitter {
     const batch = this.luaCallQueue.splice(0, Math.min(50, this.luaCallQueue.length));
 
     try {
-      if (this.luaCallQueue.length >= 50) {
+      if (this.luaCallQueue.length >= 25) {
         logger.warn(`Batch executing ${batch.length} Lua calls, ${this.luaCallQueue.length} remaining. Pausing for now`);
         if (!this.queueOverflowing) {
           await this.pauseGame();

@@ -101,6 +101,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('Territory', 'integer') // Number of plots owned (major civs only)
     .addColumn('Gold', 'integer', (col) => col.notNull())
     .addColumn('GoldPerTurn', 'real', (col) => col.notNull())
+    .addColumn('HappinessPercentage', 'integer') // Excess happiness percentage (can be negative)
     .addColumn('TourismPerTurn', 'integer')
     .addColumn('PolicyBranches', 'text') // JSON object
     .addColumn('Technologies', 'integer', (col) => col.notNull())
@@ -179,7 +180,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('CulturePerTurn', 'integer', (col) => col.notNull())
     .addColumn('FaithPerTurn', 'integer', (col) => col.notNull())
     .addColumn('TourismPerTurn', 'integer', (col) => col.notNull())
-    .addColumn('LocalHappiness', 'integer', (col) => col.notNull())
+    .addColumn('HappinessDelta', 'integer', (col) => col.notNull())
     .addColumn('RazingTurns', 'integer', (col) => col.notNull())
     .addColumn('ResistanceTurns', 'integer', (col) => col.notNull())
     .addColumn('BuildingCount', 'integer', (col) => col.notNull())

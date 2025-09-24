@@ -126,7 +126,7 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
       cityData.TourismPerTurn = city:GetBaseTourism()
 
       -- Get happiness
-      cityData.LocalHappiness = city:GetLocalHappiness()
+      cityData.HappinessDelta = city:getHappinessDelta()
 
       -- Additional city status flags (visible at level 2)
       cityData.RazingTurns = city:IsRazing() and city:GetRazingTurns() or 0

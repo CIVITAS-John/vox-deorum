@@ -66,6 +66,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       Territory = player:GetNumPlots(),  -- Number of plots owned (major civs only)
       Gold = player:GetGold(),
       GoldPerTurn = player:CalculateGoldRate(),
+      HappinessPercentage = player:GetExcessHappiness(),  -- Excess happiness (can be negative)
       TourismPerTurn = player:GetTourismPerTurnIncludingInstantTimes100() / 100,
       Technologies = currentTech,
       CurrentResearch = currentResearch,
@@ -154,7 +155,8 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
               if not relationshipList then relationshipList = {} end
               -- Include war score (positive = winning, negative = losing)
               local warScore = player:GetWarScore()
-              relationshipList[#relationshipList + 1] = "War (Score: " .. warScore .. ")"
+              local weariness = player:GetWarWearinessPercent(otherPlayerID)
+              relationshipList[#relationshipList + 1] = "War (Score: " .. warScore .. "%; War Weariness: " .. weariness .. "%)"
             elseif fromTeam and fromTeam:IsDefensivePact(otherTeamID) then
               -- Defensive pacts still need team check
               if not relationshipList then relationshipList = {} end

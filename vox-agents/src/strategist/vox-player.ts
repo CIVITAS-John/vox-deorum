@@ -141,6 +141,7 @@ export class VoxPlayer {
             }
           });
           await langfuseSpanProcessor.forceFlush();
+          await setTimeout(1000);
         }
       }, {
       asType: "agent"

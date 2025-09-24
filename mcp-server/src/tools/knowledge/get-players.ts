@@ -51,6 +51,8 @@ const PlayerDataSchema = z.object({
   Territory: z.number().optional(),
   Gold: z.number().optional(),
   GoldPerTurn: z.number().optional(),
+  HappinessSituation: z.string().optional(),
+  HappinessPercentage: z.number().optional(),
   TourismPerTurn: z.number().optional(),
   PolicyBranches: z.union([z.record(z.string(), z.array(z.string())), z.record(z.string(), z.number())]).optional(),
   ResourcesAvailable: z.record(z.string(), z.number()).optional(),
@@ -144,6 +146,16 @@ class GetPlayersTool extends ToolBase {
         ...postProcessSummary(cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID, args.PlayerID),
       } as any;
 
+      if (playerData.HappinessPercentage !== undefined) {
+        if (playerData.HappinessPercentage <= 20)
+          playerData.HappinessSituation = "Super unhappy - severe combat penalty, rebellion and uprising coming fast"
+        else if (playerData.HappinessPercentage <= 35)
+          playerData.HappinessSituation = "Very unhappy - severe combat penalty, rebellion and uprising coming"
+        else if (playerData.HappinessPercentage <= 50)
+          playerData.HappinessSituation = "Unhappy - combat penalty"
+        else playerData.HappinessSituation = "Happy"
+      }
+
       if (playerOpinions) {
         if (playerID === args.PlayerID) {
           playerData.MyEvaluations = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
@@ -199,6 +211,19 @@ function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>(summar
 
       // Hide current research from non-team members
       delete summary.CurrentResearch;
+
+      // Hide actual happiness number
+      delete summary.HappinessPercentage;
+
+      // Hide war weariness from relationships
+      if (summary.Relationships) 
+        for (var player in summary.Relationships) {
+          summary.Relationships[player] = summary.Relationships[player].map(rel => {
+            // Remove war weariness from war relationships (keep only the score)
+            const warRegex = /; War Weariness: -?[\d\.]+%/;
+            return rel.replace(warRegex, "");
+          });
+        } 
     }
   }
 

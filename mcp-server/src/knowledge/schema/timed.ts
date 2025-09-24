@@ -33,6 +33,7 @@ export interface PlayerSummary extends MutableKnowledge {
   Territory: number | null; // Number of plots owned by the player (major civs only)
   Gold: number | null;
   GoldPerTurn: number | null; // Player:CalculateGoldRateTimes100() / 100
+  HappinessPercentage: number | null; // Excess happiness percentage (can be negative)
   TourismPerTurn: number | null;
   Technologies: number | null;
   CurrentResearch: string | null; // Current technology being researched (visibility 2 only)
@@ -159,7 +160,7 @@ export interface CityInformation extends MutableKnowledge, CityInformationBasic 
   CulturePerTurn: number; // Culture generated per turn
   FaithPerTurn: number; // Faith generated per turn
   TourismPerTurn: number; // Tourism generated
-  LocalHappiness: number; // Local happiness
+  HappinessDelta: number; // Local happiness
   RazingTurns: number; // Turns until razed (0 if not razing)
   ResistanceTurns: number; // Resistance turns remaining
   BuildingCount: number; // Total number of buildings
