@@ -30,7 +30,7 @@ export class StrategistSession {
   private abortController = new AbortController();
   private victoryPromise: Promise<void>;
   private victoryResolve?: () => void;
-  private lastGameState: 'running' | 'crashed' | 'victory' = 'running';
+  private lastGameState: 'running' | 'crashed' | 'victory' | 'initializing' = 'initializing';
   private crashRecoveryAttempts = 0;
   private readonly MAX_RECOVERY_ATTEMPTS = 3;
 
@@ -115,6 +115,7 @@ export class StrategistSession {
   private async handlePlayerDoneTurn(params: any): Promise<void> {
     const player = this.activePlayers.get(params.playerID);
     if (player) {
+      this.lastGameState = 'running';
       player.notifyTurn(params.turn, params.latestID);
       this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 1);
     }
@@ -158,11 +159,11 @@ Game.SetAIAutoPlay(2000, 0);`
     const recovering = this.lastGameState === 'crashed';
 
     if (recovering) {
-      logger.info('Game successfully recovered from crash');
       this.lastGameState = 'running';
+      logger.info('Game successfully recovered from crash');
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
       if (this.config.autoPlay) {
-        await setTimeout(5000);
+        await setTimeout(3000);
         await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
       }
     }
@@ -205,6 +206,9 @@ Game.SetAIAutoPlay(2000, 0);`
       return;
     }
 
+    // If the game wasn't initialized, start it again
+    const luaScript = this.config.gameMode === 'start' && this.lastGameState === 'running' ? 'StartGame.lua' : 'LoadGame.lua';
+
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
     this.lastGameState = 'crashed';
@@ -221,8 +225,8 @@ Game.SetAIAutoPlay(2000, 0);`
     logger.info(`Attempting game recovery (attempt ${this.crashRecoveryAttempts}/${this.MAX_RECOVERY_ATTEMPTS})...`);
 
     // Restart the game using LoadGame.lua to load the last save
-    logger.info('Starting Civilization V with LoadGame.lua to recover from crash...');
-    const started = await voxCivilization.startGame('LoadGame.lua');
+    logger.info(`Starting Civilization V with ${luaScript} to recover from crash...`);
+    const started = await voxCivilization.startGame(luaScript);
 
     if (!started) {
       logger.error('Failed to restart the game');
