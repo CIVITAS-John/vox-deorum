@@ -119,12 +119,12 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught exception:', error);
-  shutdown('uncaughtException');
+  // shutdown('uncaughtException');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled rejection at:', promise, 'reason:', reason);
-  shutdown('unhandledRejection');
+  // shutdown('unhandledRejection');
 });
 
 // Start the session
