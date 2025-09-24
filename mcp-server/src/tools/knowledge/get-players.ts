@@ -103,7 +103,7 @@ class GetPlayersTool extends ToolBase {
     const [playerInfos, playerSummaries, playerOpinions, strategies, persona] = await Promise.all([
       readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations),
       getPlayerSummaries(),
-      getPlayerOpinions(args.PlayerID),
+      readPlayerKnowledge(args.PlayerID, "PlayerOpinions", getPlayerOpinions),
       readPlayerKnowledge(args.PlayerID, "StrategyChanges", getPlayerStrategy),
       readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona)
     ]);
