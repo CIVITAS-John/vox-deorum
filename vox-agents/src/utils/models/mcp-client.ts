@@ -11,6 +11,7 @@ import { createLogger } from '../logger.js';
 import { config } from '../config.js';
 import { Dispatcher, fetch, Pool, RetryAgent } from 'undici';
 import { URL } from 'node:url';
+import { setTimeout } from 'node:timers/promises';
 import { z } from 'zod';
 
 const logger = createLogger('MCPClient');
@@ -236,14 +237,18 @@ export class MCPClient {
     for (var I = 0; I <= 3; I++) {
       try {
         const result = await this.client.callTool({ name, arguments: args }, undefined, {
-          timeout: 5000,
+          timeout: 10000,
           resetTimeoutOnProgress: true
         });
         return result;
       } catch (error) {
-        if (I == 3)
+        if (I === 3)
           throw error;
         else logger.error(`Failed to call tool ${name}. Retrying ${I}...`, error);
+        // Wait until reconnected
+        while (!this.isConnected) {
+          await setTimeout(100);
+        }
       }
     }
   }
