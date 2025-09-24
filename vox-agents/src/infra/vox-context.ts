@@ -171,56 +171,56 @@ export class VoxContext<TParameters extends AgentParameters> {
         if (system != "") {
           const response = await exponentialRetry(
             async () => {
-            return await generateText({
-              // Model settings
-              model: getModel(model),
-              providerOptions: {
-                [model.provider]: model.options
-              } as any,
-              // Abort signal for cancellation
-              abortSignal: this.abortController.signal,
-              // Initial messages
-              messages: [{
-                role: "system",
-                content: system
-              }, ...initialMessages],
-              // Initial tools
-              tools: allTools,
-              activeTools: agent.getActiveTools(parameters),
-              toolChoice: "required",
-              // Telemetry support
-              experimental_telemetry: { 
-                isEnabled: true,
-                functionId: agentName
-              },
-              experimental_context: parameters,
-              // Output schema for tool as agent
-              experimental_output: outputSchema ? Output.object({
-                  schema: outputSchema
-                }) : undefined,
-              // Checks each step's result and deciding to stop or not
-              stopWhen: (context) => {
-                const lastStep = context.steps[context.steps.length - 1];
-                const shouldStop = agent.stopCheck(parameters, lastStep, context.steps);
-                this.logger.debug(`Stop check for ${agentName}: ${shouldStop}`, {
-                  stepCount: context.steps.length
-                });
-                return shouldStop;
-              },
-              // Preparing for the next step
-              prepareStep: async (context) => {
-                const lastStep = context.steps[context.steps.length - 1];
-                this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
-                return await agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
-              },
-            });
-          }, this.logger);
+              return await generateText({
+                // Model settings
+                model: getModel(model),
+                providerOptions: {
+                  [model.provider]: model.options
+                } as any,
+                // Abort signal for cancellation
+                abortSignal: this.abortController.signal,
+                // Initial messages
+                messages: [{
+                  role: "system",
+                  content: system
+                }, ...initialMessages],
+                // Initial tools
+                tools: allTools,
+                activeTools: agent.getActiveTools(parameters),
+                toolChoice: "required",
+                // Telemetry support
+                experimental_telemetry: { 
+                  isEnabled: true,
+                  functionId: agentName
+                },
+                experimental_context: parameters,
+                // Output schema for tool as agent
+                experimental_output: outputSchema ? Output.object({
+                    schema: outputSchema
+                  }) : undefined,
+                // Checks each step's result and deciding to stop or not
+                stopWhen: (context) => {
+                  const lastStep = context.steps[context.steps.length - 1];
+                  const shouldStop = agent.stopCheck(parameters, lastStep, context.steps);
+                  this.logger.debug(`Stop check for ${agentName}: ${shouldStop}`, {
+                    stepCount: context.steps.length
+                  });
+                  return shouldStop;
+                },
+                // Preparing for the next step
+                prepareStep: async (context) => {
+                  const lastStep = context.steps[context.steps.length - 1];
+                  this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
+                  return await agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
+                },
+              });
+            }, this.logger);
         
           this.logger.info(`Agent execution completed: ${agentName}`);
           
           // Log the conclusion
           observation.update({
-            output: response.steps[response.steps.length - 1]?.toolResults ?? response.text,
+            output: response.steps[response.steps.length - 1]?.toolCalls ?? response.text,
             metadata: {
               reasoning: response.reasoning,
               agentSteps: response.steps.length,

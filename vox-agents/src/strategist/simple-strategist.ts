@@ -12,6 +12,11 @@ export class SimpleStrategist extends Strategist {
   readonly name = "simple-strategist";
   
   /**
+   * Whether we will remove used tools from the active list
+   */
+  public removeUsedTools: boolean = true;
+  
+  /**
    * Gets the system prompt for the strategist
    */
   public async getSystem(_parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<string> {
@@ -22,7 +27,8 @@ You are a expert player playing Civilization V with the latest Vox Populi mod.
 Due to the complexity of the game, you delegate the execution level to an in-game AI.
 The in-game AI calculates best tactical decisions based on the strategy you set.
 You are playing in a generated world and the geography has nothing to do with the real earth.
-There is no user and you will always interact with tool(s) to play the game. You can interact with multiple tools at a time.
+There is no user and you will always interact with tool(s) to play the game.
+You can interact with multiple tools at a time. Used tools will be removed from the available list.
 
 # Goals
 Your goal is to make high-level decisions for the in-game AI.

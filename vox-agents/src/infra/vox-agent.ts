@@ -57,6 +57,16 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * Optional output schema for when this agent is exposed as a tool
    */
   public outputSchema?: z.ZodSchema<TOutput>;
+
+  /**
+   * Whether we will remove used tools from the active list
+   */
+  public removeUsedTools: boolean = false;
+
+  /**
+   * Whether we will only keep the last round of agent-tool exchanges (i.e. system + user + last reasoning (if any) + last text (if any) + last tool call + last tool result)
+   */
+  public onlyLastRound: boolean = false;
   
   /**
    * Gets the language model to use for this agent execution.
@@ -118,7 +128,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
   /**
    * Prepares the next step in the agent execution.
    * Allows dynamic modification of the execution context for each step.
-   * 
+   *
    * @param parameters - The execution parameters
    * @param lastStep - The most recent step result
    * @param allSteps - All steps executed so far
@@ -126,10 +136,10 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * @returns Configuration for the next step, or empty object for defaults
    */
   public async prepareStep(
-    _parameters: TParameters,
+    parameters: TParameters,
     _lastStep: StepResult<Record<string, Tool>>,
-    _allSteps: StepResult<Record<string, Tool>>[],
-    _messages: ModelMessage[], 
+    allSteps: StepResult<Record<string, Tool>>[],
+    messages: ModelMessage[],
     _context: VoxContext<TParameters>
   ): Promise<{
     model?: LanguageModel;
@@ -137,6 +147,52 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
     activeTools?: string[];
     messages?: ModelMessage[];
   }> {
-    return {};
+    const config: any = {};
+
+    // Check for removeUsedTools option
+    if (this.removeUsedTools) {
+      // Get all tools that have been used so far
+      const usedToolNames = new Set<string>();
+      for (const step of allSteps) {
+        for (const toolCall of step.toolCalls) {
+          usedToolNames.add(toolCall.toolName);
+        }
+      }
+
+      // Filter out used tools from active tools
+      const currentActiveTools = this.getActiveTools(parameters);
+      if (currentActiveTools && usedToolNames.size > 0) {
+        config.activeTools = currentActiveTools.filter(
+          toolName => !usedToolNames.has(toolName)
+        );
+      }
+    }
+
+    // Check for onlyLastRound option
+    if (this.onlyLastRound) {
+      // Keep all system and user messages, but only the last round of assistant/tool messages
+      const filteredMessages: ModelMessage[] = [];
+      let lastUserIndex = -1;
+
+      // Pass 1: keep all system and user messages
+      for (let i = 0; i < messages.length; i++) {
+        const message = messages[i];
+        filteredMessages.push(message);
+        lastUserIndex = i;
+        if (message.role !== 'system' && message.role !== 'user')
+          break;
+      }
+
+      // Pass 2: add messages up to the last assistant interaction
+      for (let i = messages.length - 1; i > lastUserIndex; i++) {
+        const message = messages[i];
+        filteredMessages.push(message);
+        if (message.role === "assistant") break;
+      }
+
+      config.messages = filteredMessages;
+    }
+
+    return config;
   }
 }
