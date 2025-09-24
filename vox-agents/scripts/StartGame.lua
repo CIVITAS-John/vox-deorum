@@ -26,7 +26,7 @@ function onEndFrame()
     -- t.autorunTurnLimit = 10;
     -- Set the delay between AI turns, in seconds.  Can be 0.
     t.autorunTurnDelay = 1;
-    -- Apply the parameters to the GameCoreInit structure
+    -- Start the game
     print("Starting the game...");
     modActivated = -1
     Automation.SetGameCoreInit(t);

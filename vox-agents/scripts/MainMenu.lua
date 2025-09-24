@@ -330,6 +330,7 @@ function OnSystemUpdateUI( type, tag  )
 			UI:CheckForCommandLineInvitation();    		
 			
 			if (Network.IsDedicatedServer()) then
+      		PreGame.SetGameOption("GAMEOPTION_PITBOSS", true);
 					ResetMultiplayerOptions(); 
 			    UIManager:QueuePopup( ContextPtr:LookUpControl( "DedicatedServerScreen" ), PopupPriority.LobbyScreen );
 			end
