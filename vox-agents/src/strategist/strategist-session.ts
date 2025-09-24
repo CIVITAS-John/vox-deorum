@@ -144,7 +144,7 @@ export class StrategistSession {
         Script: `
 Events.LoadScreenClose();
 Game.SetPausePlayer(-1);
-Game.SetAIAutoPlay(1, -1);`
+Game.SetAIAutoPlay(2000, 0);`
       });
       await setTimeout(5000);
       await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });

@@ -79,7 +79,7 @@ Copy `configs/observe-vanilla.json` to create your own configuration:
 {
   "llmPlayers": [0],           // Array of player IDs to control with LLM
   "autoPlay": true,            // Whether to auto-resume after decisions
-  "strategist": "simple-strategist", // Agent to use ("none", "simple-strategist", etc.)
+  "strategist": "simple-strategist", // Agent to use ("none-strategist", "simple-strategist", etc.)
   "gameMode": "start",         // Game mode ("start" for new game, "load" for saved game)
   "repetition": 10             // Number of games to play in sequence
 }
