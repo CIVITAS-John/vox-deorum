@@ -17,6 +17,7 @@ import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
 import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
 import { readPlayerKnowledge, readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
 import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
+import { PlayerInformation } from "../../knowledge/schema/public.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -116,6 +117,8 @@ class GetPlayersTool extends ToolBase {
     for (const info of playerInfos) {
       const playerID = info.Key;
       const summary = playerSummaries.find(s => s.Key === playerID);
+      // Ignore dead players
+      if (playerSummaries.length > 0 && !summary) continue;
       
       // If a specific PlayerID is provided, check visibility
       if (args.PlayerID !== undefined && summary) {
@@ -143,7 +146,7 @@ class GetPlayersTool extends ToolBase {
         IsHuman: info.IsHuman == 1,
         IsMajor: info.IsMajor == 1,
         // Dynamic summary (if available)
-        ...postProcessSummary(cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID, args.PlayerID),
+        ...postProcessSummary(info, cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID, args.PlayerID),
       } as any;
 
       if (playerData.HappinessPercentage !== undefined) {
@@ -188,7 +191,8 @@ export default function createGetPlayersTool() {
 /**
  * Post process from a player's perspective based on visibility.
  */
-function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>(summary: T, isSelf: boolean, requestingPlayerID?: number): T {
+function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>
+  (info: PlayerInformation, summary: T, isSelf: boolean, requestingPlayerID?: number): T {
   // If it's the player's own data, return everything
   if (isSelf) return summary;
 
@@ -234,5 +238,12 @@ function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>(summar
     );
   }
 
+  // Remove info from minor civs
+  if (!info.IsMajor) {
+    delete summary.Era;
+    delete summary.Cities;
+    delete summary.Gold;
+    delete summary.GoldPerTurn;
+  }
   return summary;
 }

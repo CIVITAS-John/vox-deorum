@@ -47,7 +47,7 @@ const CityDataSchema = z.object({
   CulturePerTurn: z.number().optional().describe("Culture generated per turn"),
   FaithPerTurn: z.number().optional().describe("Faith generated per turn"),
   TourismPerTurn: z.number().optional().describe("Tourism generated"),
-  HappinessDelta: z.number().optional().describe("Local happiness"),
+  HappinessDelta: z.number().optional().describe("Happiness contribution"),
   RazingTurns: z.number().optional().describe("Turns until razed (0 if not razing)"),
   ResistanceTurns: z.number().optional().describe("Resistance turns remaining"),
   BuildingCount: z.number().optional().describe("Total number of buildings"),
@@ -156,15 +156,11 @@ class GetCitiesTool extends ToolBase {
       }
 
       // Clean and validate the data
-      const validatedData = CityDataSchema.safeParse(cityData).data;
-      const cleanedData = cleanEventData(validatedData, false);
-      if (cleanedData) {
-        // Initialize owner object if needed
-        if (!citiesByOwner[city.Owner]) {
-          citiesByOwner[city.Owner] = {};
-        }
-        citiesByOwner[city.Owner][city.Name] = cleanedData as z.infer<typeof CityDataSchema>;
-      }
+      const cleanedData = cleanEventData(cityData, false);
+      // Initialize owner object if needed
+      if (!citiesByOwner[city.Owner])
+        citiesByOwner[city.Owner] = {};
+      citiesByOwner[city.Owner][city.Name] = cleanedData as z.infer<typeof CityDataSchema>;
     }
 
     return citiesByOwner;

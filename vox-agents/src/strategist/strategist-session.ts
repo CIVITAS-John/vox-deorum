@@ -207,7 +207,7 @@ Game.SetAIAutoPlay(2000, 0);`
     }
 
     // If the game wasn't initialized, start it again
-    const luaScript = this.config.gameMode === 'start' && this.lastGameState === 'running' ? 'StartGame.lua' : 'LoadGame.lua';
+    const luaScript = this.config.gameMode === 'start' && this.lastGameState === 'initializing' ? 'StartGame.lua' : 'LoadGame.lua';
 
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
