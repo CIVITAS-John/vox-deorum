@@ -201,7 +201,7 @@ export class KnowledgeManager {
   updateTurn(turn: number) {
     if (this.gameIdentity && turn > this.gameIdentity.turn) {
       this.gameIdentity.turn = turn;
-      logger.log("info", `Game turn progressed to ${turn}`)
+      logger.warn(`Game turn progressed to ${turn}`)
     }
   }
 
