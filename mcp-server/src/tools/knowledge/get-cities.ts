@@ -114,7 +114,7 @@ class GetCitiesTool extends ToolBase {
       let cityData: any;
 
       if (visibility === 0) continue;
-      if (visibility === 1) {
+      if (visibility === 1 || visibility === 2) {
         // Basic visibility only
         cityData = {
           ID: city.Key,
