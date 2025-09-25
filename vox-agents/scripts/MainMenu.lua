@@ -38,9 +38,12 @@ function getMostRecentSave()
     local high, low = UI.GetSavedGameModificationTimeRaw(fileList[i])
     local compareResult = UI.CompareFileTime(high, low, mostRecentHigh, mostRecentLow)
     if compareResult == 1 then
-      mostRecentFile = fileList[i]
-      mostRecentHigh = high
-      mostRecentLow = low
+			local header = UI.GetReplayFileHeader(fileList[i]);
+			if header ~= nil then
+				mostRecentFile = fileList[i]
+				mostRecentHigh = high
+				mostRecentLow = low
+			end
     end
   end
 
