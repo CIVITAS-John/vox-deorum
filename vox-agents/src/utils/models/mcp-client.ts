@@ -243,7 +243,7 @@ export class MCPClient {
         });
         return result;
       } catch (error) {
-        if (I === 3)
+        if (I === 3 || (error as any).message?.indexOf("Invalid arguments"))
           throw error;
         else logger.error(`Failed to call tool ${name}. Retrying ${I}...`, error);
         // Wait until reconnected
