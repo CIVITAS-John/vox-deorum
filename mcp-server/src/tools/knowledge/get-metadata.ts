@@ -7,19 +7,23 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import path from "node:path";
+import { CivilizationSummarySchema } from "../databases/get-civilization.js";
+import { getTool } from "../index.js";
+import { readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
+import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
 
 /**
  * Schema for static game metadata
  */
 const MetadataSchema = z.object({
-  YouAre: z.string().optional(),
+  YouAre: CivilizationSummarySchema.optional(),
   GameSpeed: z.string(),
   MapType: z.string(),
   MapSize: z.string(),
   Difficulty: z.string(),
   StartEra: z.string(),
   MaxTurns: z.number(),
-  VictoryTypes: z.array(z.string()),
+  VictoryTypes: z.array(z.string())
 });
 
 /**
@@ -87,6 +91,13 @@ class GetMetadataTool extends LuaFunctionTool {
       store.setMetadata('maxTurns', metadata.MaxTurns.toString()),
       store.setMetadata('victoryTypes', metadata.VictoryTypes.join(', '))
     ]);
+
+    if (args.PlayerID !== undefined) {
+      const summaries = await readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations);
+      const summary = summaries.find(summary => summary.Key == args.PlayerID);
+      if (summary) metadata.YouAre = 
+        (await getTool("getCivilization")?.getSummaries())?.find(current => current.Type == summary.Civilization);
+    }
 
     return result;
   }

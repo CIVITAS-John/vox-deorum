@@ -60,3 +60,16 @@ export const getTools = (): Tools => {
     }
     return toolsCache;
 };
+
+/**
+ * Function to get a specific tool instance by name
+ * Creates and caches instances on first call, returns cached instance on subsequent calls
+ * @param name The name of the tool to retrieve
+ * @returns The tool instance, or undefined if the tool doesn't exist
+ */
+export const getTool = <K extends keyof typeof toolFactories>(
+    name: K
+): ReturnType<typeof toolFactories[K]> | undefined => {
+    const tools = getTools();
+    return tools[name];
+};

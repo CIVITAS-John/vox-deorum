@@ -6,7 +6,7 @@ import * as changeCase from "change-case";
 /**
  * Schema for civilization summary information
  */
-const CivilizationSummarySchema = z.object({
+export const CivilizationSummarySchema = z.object({
   Type: z.string(),
   Name: z.string(),
   Uniques: z.array(z.string()).optional(),
@@ -16,7 +16,7 @@ const CivilizationSummarySchema = z.object({
 /**
  * Schema for full civilization information including relations
  */
-const CivilizationReportSchema = CivilizationSummarySchema.extend({
+export const CivilizationReportSchema = CivilizationSummarySchema.extend({
   Abilities: z.array(z.object({
     Type: z.string(),
     Name: z.string(),

@@ -5,6 +5,7 @@ import { GuessConfidenceTypes } from "../../database/enums/GuessConfidenceTypes.
 import { PlotTypes } from "../../database/enums/PlotTypes.js";
 import { RouteTypes } from "../../database/enums/RouteTypes.js";
 import { TerrainTypes } from "../../database/enums/TerrainTypes.js";
+import { TradeableItems } from "../../database/enums/TradeableItems.js";
 import { UnitAITypes } from "../../database/enums/UnitAITypes.js";
 import { YieldTypes } from "../../database/enums/YieldTypes.js";
 
@@ -19,6 +20,7 @@ export const enumMappings: Record<string, Record<number, string>> = {
   "ConnectionType": TradeConnectionTypes,
   "CaptureType": CaptureTypes,
   "GuessConfidence": GuessConfidenceTypes,
+  "ItemType": TradeableItems,
 }
 
 /**

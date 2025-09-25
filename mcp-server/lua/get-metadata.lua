@@ -56,14 +56,4 @@ local metadata = {
     VictoryTypes = victoryTypes
 }
 
--- Add player-specific information if PlayerID was provided
-if playerID ~= -1 then
-    local player = Players[playerID]
-    if player and not player:IsBarbarian() and not player:IsMinorCiv() then
-        local leaderName = player:GetName()
-        local civName = player:GetCivilizationShortDescription()
-        metadata.YouAre = leaderName .. " (" .. civName .. ")"
-    end
-end
-
 return metadata
