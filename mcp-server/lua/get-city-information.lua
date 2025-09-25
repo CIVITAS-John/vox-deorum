@@ -123,7 +123,7 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
       cityData.SciencePerTurn = city:GetYieldRate(GameInfoTypes.YIELD_SCIENCE)
       cityData.CulturePerTurn = city:GetJONSCulturePerTurn()
       cityData.FaithPerTurn = city:GetFaithPerTurn()
-      cityData.TourismPerTurn = city:GetBaseTourism()
+      cityData.TourismPerTurn = city:GetBaseTourism() / 100
 
       -- Get happiness
       cityData.HappinessDelta = city:getHappinessDelta()

@@ -30,7 +30,7 @@ const CityDataSchema = z.object({
   Population: z.number().describe("City population"),
   MajorityReligion: z.string().nullable().describe("Majority religion"),
   DefenseStrength: z.number().describe("Defense strength"),
-  Health: z.number().optional().describe("Remaining hit point %"),
+  Health: z.string().optional().describe("Remaining hit point %"),
   IsPuppet: z.boolean().optional().describe("Is puppet city"),
   IsOccupied: z.boolean().optional().describe("Is occupied"),
   IsCoastal: z.boolean().optional().describe("Is coastal city"),
@@ -124,7 +124,7 @@ class GetCitiesTool extends ToolBase {
           MajorityReligion: city.MajorityReligion,
           DefenseStrength: city.DefenseStrength,
           Health: city.HitPoints === city.MaxHitPoints ? undefined : 
-            Math.round(city.HitPoints / city.MaxHitPoints * 100) / 100,
+            Math.round(city.HitPoints / city.MaxHitPoints * 100) + "%",
           IsPuppet: city.IsPuppet === 1,
           IsOccupied: city.IsOccupied === 1,
           IsCoastal: city.IsCoastal === 1,
