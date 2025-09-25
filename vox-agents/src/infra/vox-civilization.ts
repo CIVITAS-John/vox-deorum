@@ -196,6 +196,8 @@ export class VoxCivilization {
   }
 
   private handleGameExit(code: number | null): void {
+    if (!this.monitoring) return;
+    
     console.log(`Game exited with code: ${code}`);
     this.monitoring = false;
     this.externalProcessPid = null;
@@ -227,7 +229,7 @@ export class VoxCivilization {
       // Wait a bit for the process to terminate
       await setTimeout(5000);
 
-      // Update internal state
+      // Update internal state if haven't
       this.handleGameExit(-1);
       return true;
     } catch (error) {

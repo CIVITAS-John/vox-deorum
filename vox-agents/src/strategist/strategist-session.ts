@@ -74,6 +74,10 @@ export class StrategistSession {
         case "DLLConnected":
           await this.handleDLLConnected(params);
           break;
+        case "DLLDisconnected":
+          // Kill the game when the game hangs
+          await voxCivilization.killGame();
+          break;
         default:
           logger.info(`Received game event notification: ${params.event}`, params);
           break;
