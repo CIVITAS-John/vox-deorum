@@ -185,7 +185,7 @@ Game.SetAIAutoPlay(2000, 0);`
     await mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` });
     if (this.config.autoPlay) {
       await setTimeout(5000);
-      await mcpClient.callTool("lua-executor", { Script: `UI.ExitGame()` });
+      await mcpClient.callTool("lua-executor", { Script: `Events.UserRequestClose();` });
       await setTimeout(5000);
       await voxCivilization.killGame();
     }
