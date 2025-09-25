@@ -140,14 +140,14 @@ export class StrategistSession {
     await mcpClient.callTool("set-metadata", { Key: "experiment", Value: this.config.strategist })
     if (this.config.autoPlay && params.turn === 0) {
       // Autoplay
-      await setTimeout(1000);
+      await setTimeout(3000);
       await mcpClient.callTool("lua-executor", {
         Script: `
 Events.LoadScreenClose();
 Game.SetPausePlayer(-1);
 Game.SetAIAutoPlay(2000, 0);`
       });
-      await setTimeout(5000);
+      await setTimeout(3000);
       await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
     } else {
       await setTimeout(1000);
