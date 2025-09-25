@@ -38,6 +38,13 @@
       "options": {
         "reasoningEffort": "minimal"
       }
+    },
+    "jetstream2/gpt-oss-120b": {
+      "provider": "jetstream2",
+      "name": "gpt-oss-120b",
+      "options": {
+        "reasoningEffort": "minimal"
+      }
     }
   }
 } 

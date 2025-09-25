@@ -9,6 +9,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { gemmaToolMiddleware } from '@ai-sdk-tool/parser';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import dotenv from 'dotenv';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 
 dotenv.config();
 
@@ -34,6 +35,13 @@ export function getModel(config: Model): LanguageModel {
   switch (config.provider) {
     case "openrouter":
       result = createOpenRouter()(config.name);
+      break;
+    case "jetstream2":
+      result = createOpenAICompatible({
+        baseURL: "https://llm.jetstream-cloud.org/api/",
+        name: "Jetstream2",
+        apiKey: process.env.JETSTREAM2_API_KEY
+      }).chatModel(config.name);
       break;
     case "openai":
       result = createOpenAI()(config.name);
