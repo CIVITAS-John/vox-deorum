@@ -1,15 +1,17 @@
 # Vox Deorum
 
-LLM-enhanced AI system for Civilization V using the Community Patch framework.
+LLM-enhanced AI system for Civilization V upon the [Community Patch + Vox Populi](https://github.com/LoneGazebo/Community-Patch-DLL).
+
+**Version 0.1.0 - Alpha (Last Updated: 9/26/25)**
 
 ## For Players
 
-Vox Deorum brings modern AI capabilities to your Civilization V games, allowing you to play alongside or against AI opponents powered by large language models (LLMs) like GPT-4.
+Vox Deorum brings modern AI capabilities to your Civilization V games, allowing you to play alongside or against AI opponents powered by large language models (LLMs) like GPT-5.
 
 ### What You Need
 
-- Windows 10/11 (64-bit)
-- Civilization V with Community Patch installed
+- Windows 10/11
+- Civilization V (only tested on the Complete Edition)
 - An API key from one of these AI providers:
   - [OpenRouter](https://openrouter.ai/) - Recommended, supports many models
   - [OpenAI](https://platform.openai.com/) - For GPT models
@@ -72,12 +74,12 @@ The LLM-based AI directs the in-game AI's behaviors through:
 ### Customization
 
 Edit `vox-agents/config.json` to:
-- Change AI models (GPT-4, Claude, Gemini, etc.)
+- Change AI models (GPT-5, Claude, Gemini, etc.)
 - The default model is GPT-OSS-20B ($0.04/0.15), costs ~$0.5 for an entire tiny map + 4 players game
+- We are still evaluating the performance of different models
 
 ### Troubleshooting
 
-- **AI not connecting**: Make sure Civ V is running with Community Patch
 - **Slow responses**: Consider using a faster/cheaper model
 - **Installation issues**: See [INSTALLATION.md](INSTALLATION.md)
 
