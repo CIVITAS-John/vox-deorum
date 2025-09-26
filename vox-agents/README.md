@@ -92,82 +92,109 @@ Popular alternatives:
 - Google: `gemini-1.5-pro`, `gemini-1.5-flash`
 
 ### Strategist Configuration
-The strategist can be configured via JSON files in the `configs/` directory. The default configuration is in `configs/default.json`, which is tracked in version control. Custom configuration files (gitignored) can override these defaults.
+The strategist can be configured via JSON files in the `configs/` directory or through command-line arguments.
+
+#### Default Behavior
+By default, the strategist runs in **interactive mode**:
+- Uses `play-simple.json` configuration if no config specified
+- Game pauses on human turns
+- AI controls specified players (default: Player 1)
+- Human controls Player 0
 
 #### Configuration Files
-1. **configs/observe-vanilla.json** - Observe an auto-play vanilla game with all data saved into a SQLite database
-2. **configs/observe-simple.json** - Observe an auto-play game with Simple Strategist as Player 0 with all data saved into a SQLite database
-3. **configs/interactive-simple.json** - Play an interactive game with Simple Strategist as Player 1 with all data saved into a SQLite database
+1. **configs/play-simple.json** - Interactive game with Simple Strategist as Player 1
+2. **configs/observe-vanilla.json** - Observe mode: auto-play vanilla game
+3. **configs/observe-simple.json** - Observe mode: auto-play with Simple Strategist as Player 0
 4. **configs/[custom].json** - Custom configurations (gitignored)
 
-Copy `configs/observe-vanilla.json` to create your own configuration:
+Example configuration:
 ```json
 {
-  "llmPlayers": [0],           // Array of player IDs to control with LLM
-  "autoPlay": true,            // Whether to auto-resume after decisions
+  "llmPlayers": [1],           // Array of player IDs to control with LLM
+  "autoPlay": false,           // false = interactive (pauses), true = observe (auto)
   "strategist": "simple-strategist", // Agent to use ("none-strategist", "simple-strategist", etc.)
   "gameMode": "start",         // Game mode ("start" for new game, "load" for saved game)
-  "repetition": 10             // Number of games to play in sequence
+  "repetition": 1              // Number of games to play in sequence
 }
 ```
 
-#### Using Custom Configurations
+#### Command-Line Usage
 ```bash
-# Use default configuration
+# Default: Interactive mode with play-simple.json
 npm run strategist
 
 # Use specific configuration file
-npm run strategist -- --config=myconfig.json
-npm run strategist -- --config production.json
+npm run strategist -- --config=observe-vanilla.json
+npm run strategist -- --config=custom.json
 
-# Combine with other flags
-npm run strategist -- --config=tournament.json --load
+# Override configuration with command-line options
+npm run strategist -- --autoPlay              # Enable observe mode
+npm run strategist -- --players 0,1,2         # AI controls players 0, 1, 2
+npm run strategist -- --strategist none       # No AI, just observe
+npm run strategist -- --load                  # Load saved game
+
+# Combine options
+npm run strategist -- --config observe-simple.json --repetition 5
 ```
 
 ## Usage Modes
 
-### Interactive Mode
-Interactive mode allows you to play alongside the AI agents, where you control certain players while AI controls others:
+### Interactive Mode (Default)
+Play alongside AI agents - you control your civilization while AI controls others:
 
 ```bash
-# Use interactive configuration
-npm run strategist -- --config=interactive-simple.json
+# Default: Human as Player 0, AI as Player 1
+npm run strategist
 
-# Or create your own interactive config:
-# configs/my-interactive.json:
+# Custom player assignment
+npm run strategist -- --players 2,3,4  # AI controls players 2, 3, 4
+
+# Or use configuration file:
+# configs/my-game.json:
 {
-  "llmPlayers": [1, 2],  # AI controls players 1 and 2
-  "autoPlay": false,     # Game pauses for human input
+  "llmPlayers": [1, 2],       # AI controls players 1 and 2
+  "autoPlay": false,          # Game pauses for human turns
   "strategist": "simple-strategist",
   "gameMode": "start"
 }
 
-npm run strategist -- --config=my-interactive.json
+npm run strategist -- --config=my-game.json
 ```
 
 In interactive mode:
-- Human players take their turns normally in Civilization V
-- AI agents auto-pause when it's their turn
-- AI analyzes and makes decisions for their civilizations
-- Game continues after AI completes its turn
-- Perfect for co-op play or learning from AI strategies
+- Game pauses when it's a human player's turn
+- AI automatically plays its assigned civilizations
+- Perfect for playing with AI assistance or against AI opponents
+- No auto-resume between turns
 
-### Standalone Mode
-Autonomous agent that connects to MCP server and plays independently:
+### Observe Mode
+Watch AI play autonomously without human intervention:
 
 ```bash
-npm run strategist   # Start autonomous strategist
+# Enable observe mode via command line
+npm run strategist -- --autoPlay
+
+# Watch AI play all civilizations
+npm run strategist -- --autoPlay --players 0,1,2,3,4,5,6,7
+
+# Or use observe configuration files
+npm run strategist -- --config=observe-simple.json    # AI as Player 0
+npm run strategist -- --config=observe-vanilla.json   # Watch vanilla AI
 ```
 
-The agent will:
-1. Connect to MCP server via HTTP
-2. Subscribe to game events via SSE
-3. Auto-pause on its turn
-4. Analyze game state
-5. Make strategic decisions
-6. Resume game if crashes
+In observe mode:
+- Game runs continuously without pausing
+- AI makes all decisions automatically
+- Great for testing strategies or watching AI performance
+- Can run multiple games in sequence with `--repetition`
 
-Similarly, you can create new configuration and load it through similar commands.
+The agent workflow:
+1. Connects to MCP server via HTTP
+2. Subscribes to game events via SSE
+3. Auto-pauses on AI turns
+4. Analyzes game state and makes decisions
+5. Resumes game automatically
+6. Handles crashes with automatic recovery
 
 ## Key Implementation Details
 

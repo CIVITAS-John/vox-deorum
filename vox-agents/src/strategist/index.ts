@@ -13,7 +13,7 @@ const { values, positionals } = parseArgs({
     config: {
       type: 'string',
       short: 'c',
-      default: 'observe-vanilla.json'
+      default: 'play-simple.json'
     },
     load: {
       type: 'boolean',
@@ -45,10 +45,10 @@ const { values, positionals } = parseArgs({
 const configFile = values.config as string;
 const isLoadMode = values.load as boolean;
 
-// Default configuration
+// Default configuration (interactive mode)
 const defaultConfig: StrategistSessionConfig = {
-  llmPlayers: [0],
-  autoPlay: true,
+  llmPlayers: [1],
+  autoPlay: false,
   strategist: "simple-strategist",
   gameMode: 'start',
   repetition: 1

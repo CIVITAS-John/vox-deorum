@@ -2,163 +2,233 @@
 
 LLM-enhanced AI system for Civilization V using the Community Patch framework.
 
-## Overview
+## For Players
 
-Vox Deorum integrates modern AI capabilities into Civ V gameplay through a modular architecture that connects the game to LLM agents for strategic decision-making.
+Vox Deorum brings modern AI capabilities to your Civilization V games, allowing you to play alongside or against AI opponents powered by large language models (LLMs) like GPT-4.
 
-## Architecture
+### What You Need
+
+- Windows 10/11 (64-bit)
+- Civilization V with Community Patch installed
+- An API key from one of these AI providers:
+  - [OpenRouter](https://openrouter.ai/) - Recommended, supports many models
+  - [OpenAI](https://platform.openai.com/) - For GPT models
+  - [Google AI](https://ai.google.dev/) - For Gemini models
+
+### Installation
+
+#### Easy Setup (Recommended)
+
+1. **Download and run the installer**:
+   - Get `bootstrap.cmd` from the [releases page](https://github.com/CIVITAS-John/vox-deorum/releases)
+   - Double-click to run - it will install everything automatically
+
+2. **Add your AI API key**:
+   - The installer opens a `.env` file
+   - Add your API key (get one from the providers above):
+   ```env
+   OPENROUTER_API_KEY=sk-or-v1-...  # Default option
+   # OR
+   OPENAI_API_KEY=sk-...
+   # OR
+   GOOGLE_GENERATIVE_AI_API_KEY=...
+   ```
+
+3. **Start playing**:
+   ```cmd
+   scripts\vox-deorum.cmd
+   ```
+   - This launches the AI in interactive mode (default)
+   - Start Civilization V normally
+   - The AI will connect automatically
+   - The game will pause for human turns
+
+### How It Works
+
+When you start a game with Vox Deorum:
+1. The AI observes the game state in real-time
+2. On attached AI players' turn, it analyzes the situation
+3. It makes strategic decisions using the chosen LLM
+4. Actions are executed automatically in-game
+5. You play the game normally (interactive mode) or watch AI play against each other (observe mod)
+
+The LLM-based AI directs the in-game AI's behaviors through:
+1. Changing its grand, military, and economic strategies
+2. Changing its diplomatic inclinations
+3. More is planned and coming soon!
+
+### Game Modes
+
+- **Interactive Mode** (default): Play alongside AI, game pauses for human turns
+  ```cmd
+  scripts\vox-deorum.cmd
+  ```
+
+- **Observe Mode**: Watch AI play autonomously
+  ```cmd
+  scripts\vox-deorum.cmd --autoPlay
+  ```
+
+### Customization
+
+Edit `vox-agents/config.json` to:
+- Change AI models (GPT-4, Claude, Gemini, etc.)
+- The default model is GPT-OSS-20B ($0.04/0.15), costs ~$0.5 for an entire tiny map + 4 players game
+
+### Troubleshooting
+
+- **AI not connecting**: Make sure Civ V is running with Community Patch
+- **Slow responses**: Consider using a faster/cheaper model
+- **Installation issues**: See [INSTALLATION.md](INSTALLATION.md)
+
+## For Developers
+
+### Architecture Overview
 
 ```
 Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents → LLM
          (Named Pipe)         (REST/SSE)       (MCP/HTTP)   (LLMs)
 ```
 
-## Components
+### Quick Start
 
-### [Community Patch DLL](civ5-dll/)
-Modified Community-Patch-DLL submodule enabling external communication
-- Windows-only 32-bit build requirement
-- Minimal modifications to maintain compatibility
-- Build: `python build_vp_clang_sdk.py` (Windows)
-- Deploy: `build-and-copy.bat`
-- Debug logs: `clang-output/Debug/build.log`
-
-### [Bridge Service](bridge-service/)
-Critical communication layer between Civ V and AI services
-- **Core Features**:
-  - REST API with Server-Sent Events (SSE) for real-time updates
-  - Named pipe IPC with automatic reconnection
-  - Intelligent game pause system with per-player auto-pause
-  - Message batching for 10x performance improvement
-  - External function registration as Lua-callable endpoints
-- **Development**: Mock DLL server for testing without Civ V
-
-### [MCP Server](mcp-server/)
-Comprehensive Model Context Protocol server exposing game state
-- **17 MCP Tools** across categories (general, database, knowledge, actions)
-- **Key Features**:
-  - Direct Civ5 SQLite database access with Kysely ORM
-  - Multi-language localization with TXT_KEY resolution
-  - Persistent/transient knowledge management with auto-save
-  - Real-time SSE integration with Bridge Service
-  - Multi-transport support (stdio/HTTP)
-
-### [Vox Agents](vox-agents/)
-LLM-powered strategic AI for autonomous gameplay
-- **Agent Framework**: Flexible base classes (VoxAgent/VoxContext)
-- **Simple Strategist**: Production-ready turn-based decision agent
-- **Features**:
-  - Multi-LLM support (OpenAI, OpenRouter, Google AI)
-  - MCP client with automatic tool discovery
-  - Session management with crash recovery
-  - Langfuse observability for monitoring
-
-### [Civ 5 Mod](civ5-mod/)
-Game integration and UI scripts
-- Lua hooks for external communication
-- Custom interface elements
-- Mod configuration
-
-## Quick Start
-
-### Prerequisites
-- Windows 10/11 (64-bit)
-- Civilization V with Community Patch installed
-- LLM API key (OpenAI, OpenRouter, or Google AI)
-
-### Recommended Installation (Bootstrap)
-
-For new users, the easiest way to get started:
-
-1. **Download and run the bootstrap script**:
-   ```cmd
-   :: Download bootstrap.cmd from releases page
-   :: https://github.com/CIVITAS-John/vox-deorum/releases
-   bootstrap.cmd
-   ```
-   This automatically installs Git, Node.js, clones the repository, and sets up everything.
-
-2. **Configure LLM API**:
-   The installation will automatically create a `.env` file and open it for you.
-   The default model is `openai/gpt-oss-20b` (OpenRouter), but you can use any provider:
-   ```env
-   OPENROUTER_API_KEY=sk-or-v1-...  # For default model
-   # OR
-   OPENAI_API_KEY=sk-...
-   # OR
-   GOOGLE_GENERATIVE_AI_API_KEY=...
-   ```
-   To change models, edit `vox-agents/config.json`.
-
-3. **Start playing with AI**:
-   ```cmd
-   scripts\vox-deorum.cmd
-   ```
-   This launches all services and starts the AI in interactive mode.
-
-### Manual Installation
-
-If you prefer manual setup:
-
-1. **Clone and setup**:
+1. **Clone the repository**:
    ```cmd
    git clone https://github.com/CIVITAS-John/vox-deorum.git
    cd vox-deorum
+   ```
+
+2. **Install dependencies**:
+   ```cmd
    scripts\install.cmd
    ```
 
-2. **Configure LLM**: The .env file will be created automatically from .env.default
+3. **Build the DLL** (optional, prebuilt binaries included):
+   ```cmd
+   scripts\update-dlls.cmd
+   ```
 
-3. **Start services**: `scripts\vox-deorum.cmd`
+4. **Configure and run**: See player instructions above
 
-### Update DLLs (when needed)
-```cmd
-scripts\update-dlls.cmd
-```
-Builds and deploys the latest DLL changes to your Civ V installation.
+### Components
 
-For detailed installation instructions and troubleshooting, see [INSTALLATION.md](INSTALLATION.md).
+#### [Community Patch DLL](civ5-dll/)
+Modified Community-Patch-DLL submodule for external communication
+- Windows-only 32-bit build
+- Named pipe IPC implementation
+- Minimal modifications for compatibility
+- Build: `python build_vp_clang_sdk.py`
+- Deploy: `build-and-copy.bat`
 
-## Development
+#### [Bridge Service](bridge-service/)
+Communication layer between Civ V and AI services
+- REST API with Server-Sent Events (SSE)
+- Named pipe client with auto-reconnection
+- Message batching (10x performance boost)
+- Game pause control system
+- Mock DLL server for testing
 
-Each component has detailed documentation:
-- [Bridge Service README](bridge-service/README.md) - REST API, IPC, game control
-- [MCP Server README](mcp-server/README.md) - MCP tools, database access, knowledge
-- [Vox Agents README](vox-agents/README.md) - Agent framework, LLM integration
+#### [MCP Server](mcp-server/)
+Model Context Protocol server exposing game state
+- 17 MCP tools for game interaction
+- Direct SQLite database access (Kysely ORM)
+- Localization with TXT_KEY resolution
+- Knowledge persistence with auto-save
+- Multi-transport support (stdio/HTTP)
 
-### Key Features by Component
+#### [Vox Agents](vox-agents/)
+LLM-powered strategic AI framework
+- Extensible agent base classes
+- Turn-based decision engine
+- Multi-LLM provider support
+- Session management with recovery
+- Langfuse observability integration
 
-**Bridge Service**:
-- Named pipe: `\\.\pipe\vox-deorum-bridge`
-- Batch API for 10x performance
-- 30-second timeouts with cleanup
-- Exponential backoff reconnection
+#### [Civ 5 Mod](civ5-mod/)
+Game integration scripts
+- Lua hooks for external communication
+- Custom UI elements
+- Mod configuration files
 
-**MCP Server**:
-- 17 tools with Zod validation
-- Multi-database support (Gameplay, Localization, Units)
-- 30-second auto-save for knowledge
-- Lazy tool loading for performance
+### Development Setup
 
-**Vox Agents**:
-- Turn-based event handling
-- Automatic session recovery
-- Dynamic tool discovery from MCP
-- Token usage tracking
-
-### Requirements
+#### Prerequisites
 - Node.js ≥20.0.0
-- Windows (for DLL compilation only)
-- Civilization V with Community Patch
-- LLM API access (OpenAI/OpenRouter/Google AI)
+- Windows (for DLL compilation)
+- Visual Studio Build Tools or SDK
+- Git with submodules support
+
+#### Building from Source
+
+```bash
+# Clone with submodules
+git clone --recursive https://github.com/CIVITAS-John/vox-deorum.git
+
+# Install all dependencies
+cd vox-deorum
+npm install --workspaces
+
+# Build the DLL
+cd civ5-dll
+python build_vp_clang_sdk.py
+
+# Run tests
+npm test --workspaces
+```
 
 ### Testing
-All components use Vitest for testing:
+
+All components use Vitest:
 ```bash
-npm test              # Run test suite
-npm run test:watch    # Watch mode for development
-npm run test:coverage # Generate coverage report
+npm test              # Run all tests
+npm run test:watch    # Watch mode
+npm run test:coverage # Coverage report
 ```
+
+Component-specific testing:
+```bash
+cd bridge-service && npm test  # IPC and API tests
+cd mcp-server && npm test      # MCP tool tests
+cd vox-agents && npm test      # Agent workflow tests
+```
+
+### Architecture Details
+
+#### Communication Flow
+1. **Game → DLL**: Lua callbacks trigger C++ functions
+2. **DLL → Bridge**: Named pipe messages (JSON protocol)
+3. **Bridge → MCP**: REST API calls and SSE events
+4. **MCP → Agents**: MCP protocol (tools and resources)
+5. **Agents → LLM**: Provider-specific API calls
+
+#### Key Design Patterns
+- **Singleton Services**: Export instances, not classes
+- **Factory Pattern**: Lazy loading for performance
+- **Event-Driven**: SSE for real-time updates
+- **Retry Logic**: Exponential backoff with jitter
+- **Batch Operations**: Reduce IPC overhead
+
+#### Performance Optimizations
+- Message batching (50 Lua calls per batch)
+- Connection pooling (standard vs fast)
+- Multi-level caching (tool, manager, knowledge)
+- Lazy tool loading in MCP server
+- AbortController for request cancellation
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Follow existing patterns (see CLAUDE.md)
+4. Write tests for new functionality
+5. Submit a pull request
+
+### Documentation
+
+- [CLAUDE.md](CLAUDE.md) - AI development guidelines
+- [protocol.md](protocol.md) - Communication protocol spec
+- Component READMEs in each subdirectory
+- API documentation in source files
 
 ## Project Structure
 
