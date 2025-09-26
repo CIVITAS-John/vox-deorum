@@ -2,9 +2,8 @@ name: Update Prebuilt Binaries
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'  # Daily at midnight UTC
   push:
+    branches: [ master ]
     paths:
       - 'civ5-dll'  # Trigger when submodule is updated
 
