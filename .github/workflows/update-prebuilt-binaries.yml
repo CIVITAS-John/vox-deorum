@@ -25,7 +25,7 @@ jobs:
       - name: Download Debug artifact
         uses: dawidd6/action-download-artifact@v3
         with:
-          repo: CIVITAS-John/vox-deorum
+          repo: CIVITAS-John/vox-populi
           workflow: build.yml
           workflow_conclusion: success
           commit: ${{ steps.submodule.outputs.commit }}
@@ -35,7 +35,7 @@ jobs:
       - name: Download Release artifact
         uses: dawidd6/action-download-artifact@v3
         with:
-          repo: CIVITAS-John/vox-deorum
+          repo: CIVITAS-John/vox-populi
           workflow: build.yml
           workflow_conclusion: success
           commit: ${{ steps.submodule.outputs.commit }}
