@@ -47,8 +47,8 @@ for /f "usebackq tokens=*" %%i in (`powershell -Command "[Environment]::GetFolde
 
 REM Set paths
 set "DEST_DIR=!DOCUMENTS!\My Games\Sid Meier's Civilization 5\MODS\(1) Community Patch"
-set "SOURCE_DLL=scripts\release\CvGameCore_Expansion2.dll"
-set "SOURCE_PDB=scripts\release\CvGameCore_Expansion2.pdb"
+set "SOURCE_DLL=release\CvGameCore_Expansion2.dll"
+set "SOURCE_PDB=release\CvGameCore_Expansion2.pdb"
 
 REM Check if source DLL exists
 if not exist "!SOURCE_DLL!" (
