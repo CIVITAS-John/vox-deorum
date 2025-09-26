@@ -6,7 +6,7 @@ import { mcpClient } from "../utils/models/mcp-client.js";
 import { getModel } from "../utils/models/models.js";
 import { startActiveObservation } from "@langfuse/tracing";
 import { ZodObject } from "zod/v4/index.js";
-import { Model } from "../utils/config.js";
+import { Model, config } from "../utils/config.js";
 import { exponentialRetry } from "../utils/retry.js";
 
 /**
@@ -144,7 +144,10 @@ export class VoxContext<TParameters extends AgentParameters> {
     
     return await startActiveObservation(agentName, async (observation) => {
       observation.update({
-        input: parameters
+        input: parameters,
+        metadata: {
+          version: config.versionInfo?.version || "unknown"
+        }
       });
       observation.updateTrace({
         sessionId: parameters.gameID ?? "Unknown",

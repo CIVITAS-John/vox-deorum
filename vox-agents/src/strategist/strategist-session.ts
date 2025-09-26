@@ -121,8 +121,8 @@ export class StrategistSession {
     const player = this.activePlayers.get(params.playerID);
     if (player) {
       this.lastGameState = 'running';
-      player.notifyTurn(params.turn, params.latestID);
-      this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 1);
+      if (player.notifyTurn(params.turn, params.latestID))
+        this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 1);
     }
   }
 

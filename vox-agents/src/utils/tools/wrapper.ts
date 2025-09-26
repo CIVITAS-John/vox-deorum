@@ -8,6 +8,7 @@ import { mcpClient } from "../models/mcp-client.js";
 import { startActiveObservation } from "@langfuse/tracing";
 import { camelCase } from "change-case";
 import { jsonToMarkdown } from "./json-to-markdown.js";
+import { config } from "../config.js";
 
 /**
  * Creates a dynamic tool wrapper for an agent using Vercel AI SDK's dynamicTool
@@ -36,7 +37,10 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
       return await startActiveObservation("agent-tool: " + agent.name, async(observation) => {
         logger.info(`Executing agent-tool: ${agent.name}`);
         observation.update({
-          input: input
+          input: input,
+          metadata: {
+            version: config.versionInfo?.version || "unknown"
+          }
         });
         observation.updateTrace({
           sessionId: baseParameters.gameID ?? "Unknown",
@@ -122,7 +126,10 @@ export function wrapMCPTool(tool: Tool): VercelTool {
 
         // Log inputs
         observation.update({
-          input: args
+          input: args,
+          metadata: {
+            version: config.versionInfo?.version || "unknown"
+          }
         });
         observation.updateTrace({
           sessionId: (options.experimental_context as any).gameID ?? "Unknown",

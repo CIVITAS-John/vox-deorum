@@ -7,6 +7,7 @@ import { SimpleStrategist } from "./simple-strategist.js";
 import { setTimeout } from 'node:timers/promises';
 import { langfuseSpanProcessor } from "../instrumentation.js";
 import { NoneStrategist } from "./none-strategist.js";
+import { config } from "../utils/config.js";
 
 /**
  * Manages a single player's strategist execution within a game session.
@@ -67,6 +68,9 @@ export class VoxPlayer {
             playerID: this.playerID,
             gameID: this.parameters.gameID,
             strategist: this.strategistType
+          },
+          metadata: {
+            version: config.versionInfo?.version || "unknown"
           },
           output: {
             completed: false,

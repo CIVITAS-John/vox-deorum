@@ -5,6 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import { execSync } from 'child_process';
 import { createLogger } from './logger.js';
 
 const logger = createLogger('Config');
@@ -24,6 +25,17 @@ export interface Model {
 }
 
 /**
+ * Version information structure
+ */
+export interface VersionInfo {
+  version: string;  // Full version string like "0.1.0 (b559c18)"
+  major: number;
+  minor: number;
+  revision: number;
+  commit?: string;  // Git commit hash
+}
+
+/**
  * Vox Agents configuration structure
  */
 export interface VoxAgentsConfig {
@@ -31,6 +43,7 @@ export interface VoxAgentsConfig {
     name: string;
     version: string;
   };
+  versionInfo?: VersionInfo;
   mcpServer: {
     transport: {
       type: TransportType;
@@ -104,6 +117,50 @@ export function loadConfigFromFile<T extends object>(
 }
 
 /**
+ * Load version information from version.json and git
+ */
+function loadVersionInfo(): VersionInfo | undefined {
+  try {
+    // Load version.json from project root
+    const versionPath = path.join(process.cwd(), '..', 'version.json');
+    if (!fs.existsSync(versionPath)) {
+      logger.warn('version.json not found');
+      return undefined;
+    }
+
+    const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf-8'));
+    const { major = 0, minor = 0, revision = 0 } = versionData;
+
+    // Try to get git commit hash
+    let commit: string | undefined;
+    try {
+      commit = execSync('git rev-parse --short HEAD', {
+        encoding: 'utf-8',
+        cwd: path.join(process.cwd(), '..')
+      }).trim();
+    } catch (error) {
+      logger.debug('Failed to get git commit hash:', error);
+    }
+
+    // Build version string
+    const versionString = commit
+      ? `${major}.${minor}.${revision} (${commit})`
+      : `${major}.${minor}.${revision}`;
+
+    return {
+      version: versionString,
+      major,
+      minor,
+      revision,
+      commit
+    };
+  } catch (error) {
+    logger.warn('Failed to load version info:', error instanceof Error ? error.message : 'Unknown error');
+    return undefined;
+  }
+}
+
+/**
  * Load configuration from file and environment variables
  */
 function loadConfig(): VoxAgentsConfig {
@@ -116,12 +173,16 @@ function loadConfig(): VoxAgentsConfig {
   const transportType = (process.env.MCP_TRANSPORT as TransportType) ||
     fileConfig.mcpServer.transport.type;
 
+  // Load version info
+  const versionInfo = loadVersionInfo();
+
   // Build final configuration with environment variable overrides
   const config: VoxAgentsConfig = {
     agent: {
       name: process.env.AGENT_NAME || fileConfig.agent.name,
       version: process.env.AGENT_VERSION || fileConfig.agent.version
     },
+    versionInfo,
     mcpServer: {
       transport: {
         type: transportType,
@@ -141,6 +202,7 @@ function loadConfig(): VoxAgentsConfig {
 
   logger.info('Configuration loaded:', {
     agent: config.agent,
+    version: versionInfo?.version || 'unknown',
     mcpServer: config.mcpServer,
     logging: { level: config.logging.level }
   });
