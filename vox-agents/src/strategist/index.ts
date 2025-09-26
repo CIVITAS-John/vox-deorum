@@ -133,10 +133,13 @@ async function main() {
   try {
     for (var I = 0; I < (config.repetition ?? 1); I++) {
       if (shuttingdown) break;
+      // Start a new session
       session = new StrategistSession(config);
       await session.start();
       config.gameMode = "start";
       logger.info(`Session ${I} completed successfully`);
+      // Shut down the session
+      await session.shutdown();
       if (shuttingdown) break;
     }
   } catch (error) {

@@ -28,14 +28,14 @@ export interface StrategistSessionConfig {
 export class StrategistSession {
   private activePlayers = new Map<number, VoxPlayer>();
   private abortController = new AbortController();
-  private victoryPromise: Promise<void>;
+  private finishPromise: Promise<void>;
   private victoryResolve?: () => void;
   private lastGameState: 'running' | 'crashed' | 'victory' | 'initializing' = 'initializing';
   private crashRecoveryAttempts = 0;
   private readonly MAX_RECOVERY_ATTEMPTS = 3;
 
   constructor(private config: StrategistSessionConfig) {
-    this.victoryPromise = new Promise((resolve) => {
+    this.finishPromise = new Promise((resolve) => {
       this.victoryResolve = resolve;
     });
     voxCivilization.onGameExit(this.handleGameExit.bind(this));
@@ -85,14 +85,14 @@ export class StrategistSession {
     });
 
     // Wait for victory or shutdown
-    await this.victoryPromise;
+    await this.finishPromise;
   }
 
   /**
    * Shuts down the session gracefully
    */
   async shutdown(): Promise<void> {
-    logger.info('Shutting down strategist session');
+    logger.info('Shutting down strategist session...');
 
     // Signal abort to stop processing new events
     this.abortController.abort();
@@ -174,7 +174,7 @@ Game.SetAIAutoPlay(2000, 0);`
   }
 
   private async handlePlayerVictory(params: any): Promise<void> {
-    logger.info(`Player ${params.playerID} has won the game on turn ${params.turn}!`);
+    logger.warn(`Player ${params.playerID} has won the game on turn ${params.turn}!`);
 
     // Mark game as victory state
     this.lastGameState = 'victory';
@@ -189,13 +189,16 @@ Game.SetAIAutoPlay(2000, 0);`
     await mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` });
     if (this.config.autoPlay) {
       await setTimeout(5000);
+      logger.info(`Requesting voluntary shutdown of the game...`);
       await mcpClient.callTool("lua-executor", { Script: `Events.UserRequestClose();` });
       await setTimeout(5000);
-      await voxCivilization.killGame();
+      const killed = await voxCivilization.killGame();
+      logger.info(`Sent killing signals to the game: ${killed}`);
     }
 
     // Resolve the victory promise to complete the session
     if (this.victoryResolve) {
+      logger.info(`Finishing the run...`);
       this.victoryResolve();
     }
   }
