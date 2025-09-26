@@ -44,13 +44,14 @@ export class VoxPlayer {
   /**
    * Queue a turn notification for processing
    */
-  notifyTurn(turn: number, latestID: number) {
+  notifyTurn(turn: number, latestID: number): boolean {
     if (this.parameters.running) {
       this.logger.warn(`The ${this.strategistType} is still working on turn ${this.parameters.turn}. Skipping turn ${turn}...`);
-      return;
+      return this.pendingTurn?.turn !== turn;
     }
 
     this.pendingTurn = { turn, latestID };
+    return this.pendingTurn?.turn !== turn;
   }
 
   /**
