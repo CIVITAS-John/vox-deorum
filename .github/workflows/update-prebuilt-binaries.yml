@@ -8,7 +8,6 @@ on:
 jobs:
   update-binaries:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -44,18 +43,20 @@ jobs:
 
       - name: Update prebuilt binaries
         run: |
-          # Update debug binaries
+          # Update debug binaries (only .dll and .pdb files)
           if [ -d "./debug-artifact" ]; then
             echo "Updating debug binaries..."
-            rm -rf scripts/debug/*
-            cp -r ./debug-artifact/* scripts/debug/
+            find ./debug-artifact -name "*.dll" -o -name "*.pdb" | while read file; do
+              cp "$file" scripts/debug/
+            done
           fi
 
-          # Update release binaries
+          # Update release binaries (only .dll and .pdb files)
           if [ -d "./release-artifact" ]; then
             echo "Updating release binaries..."
-            rm -rf scripts/release/*
-            cp -r ./release-artifact/* scripts/release/
+            find ./release-artifact -name "*.dll" -o -name "*.pdb" | while read file; do
+              cp "$file" scripts/release/
+            done
           fi
 
       - name: Check for changes
