@@ -26,7 +26,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v3
         with:
           repo: CIVITAS-John/vox-populi
-          workflow: build.yml
+          workflow: build_vp.yml
           workflow_conclusion: success
           commit: ${{ steps.submodule.outputs.commit }}
           name: VP_MSVC_Debug
@@ -36,7 +36,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v3
         with:
           repo: CIVITAS-John/vox-populi
-          workflow: build.yml
+          workflow: build_vp.yml
           workflow_conclusion: success
           commit: ${{ steps.submodule.outputs.commit }}
           name: VP_MSVC_Release
