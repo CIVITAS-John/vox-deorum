@@ -76,6 +76,7 @@ export class StrategistSession {
           break;
         case "DLLDisconnected":
           // Kill the game when the game hangs
+          logger.warn(`The DLL is no longer connected. Trying to restart the game...`);
           await voxCivilization.killGame();
           break;
         default:
