@@ -500,6 +500,22 @@ if !errorlevel! equ 0 (
         call npm install
         if !errorlevel! equ 0 (
             echo   [OK] vox-agents dependencies installed
+
+            :: Setup .env file if it doesn't exist
+            if exist ".env.default" (
+                if not exist ".env" (
+                    echo   Creating .env file from .env.default...
+                    copy /Y ".env.default" ".env" >nul 2>&1
+                    if !errorlevel! equ 0 (
+                        echo   [OK] .env file created - Please configure your API keys
+                        set "ENV_CREATED=1"
+                    ) else (
+                        echo   [WARN] Failed to create .env file
+                    )
+                ) else (
+                    echo   [OK] .env file already exists
+                )
+            )
         ) else (
             echo   [WARN] Failed to install vox-agents dependencies
             echo   Error level: !errorlevel!
@@ -589,13 +605,20 @@ if "%SUCCESS%"=="1" (
     echo        Installation Complete!
     echo.
     echo Next steps:
-    echo   1. Launch the game manually once to install dependencies
-    echo   2. Launch vox-deorum.cmd from the vox-agents/scripts folder (or the desktop shortcut)
-    echo   3. Start watching AI self-play without LLMs
-    echo   4. Read the README.md to configure LLM support and interactive modes
+    echo   1. Configure your LLM API keys in the .env file
+    echo   2. Launch the game manually once to install dependencies
+    echo   3. Run scripts\vox-deorum.cmd to start all services
+    echo   4. Start playing with AI assistance!
     echo.
     echo The Vox Deorum DLL has been installed.
     echo Debug symbols will be copied if available.
+
+    :: Open .env file if it was just created
+    if "%ENV_CREATED%"=="1" (
+        echo.
+        echo Opening .env file for API key configuration...
+        start notepad "!PROJECT_ROOT!\vox-agents\.env"
+    )
 ) else (
     echo      Installation Partially Complete
     echo.

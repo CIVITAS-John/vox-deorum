@@ -55,7 +55,7 @@ Copy `.env.default` to `.env` and configure your API keys:
 # Required (at least one)
 OPENAI_API_KEY=sk-...        # OpenAI API
 ANTHROPIC_API_KEY=sk-ant-... # Anthropic API
-OPENROUTER_API_KEY=sk-or-... # OpenRouter API
+OPENROUTER_API_KEY=sk-or-... # OpenRouter API (default model uses this)
 GOOGLE_GENERATIVE_AI_API_KEY=... # Google AI
 
 # Optional
@@ -64,6 +64,32 @@ LANGFUSE_SECRET_KEY=...       # Telemetry
 ```
 
 See `.env.default` for all available options and documentation.
+
+### Model Configuration
+**Default Model**: The system uses `openai/gpt-oss-20b` from OpenRouter by default. This is a cost-effective open-source model.
+
+To change the default model or add custom models, edit `vox-agents/config.json`:
+```json
+{
+  "llms": {
+    "default": "gpt-oss-20b",  // Change this to use a different default
+    "gpt-oss-20b": {
+      "provider": "openrouter",
+      "name": "openai/gpt-oss-20b"
+    },
+    // Add your custom models here
+    "gpt-4-turbo": {
+      "provider": "openai",
+      "name": "gpt-4-turbo"
+    }
+  }
+}
+```
+
+Popular alternatives:
+- OpenAI: `gpt-4-turbo`, `gpt-4o`, `gpt-3.5-turbo`
+- OpenRouter: `anthropic/claude-3-5-sonnet`, `google/gemini-pro`
+- Google: `gemini-1.5-pro`, `gemini-1.5-flash`
 
 ### Strategist Configuration
 The strategist can be configured via JSON files in the `configs/` directory. The default configuration is in `configs/default.json`, which is tracked in version control. Custom configuration files (gitignored) can override these defaults.
@@ -98,26 +124,33 @@ npm run strategist -- --config production.json
 npm run strategist -- --config=tournament.json --load
 ```
 
-#### Command Line Flags
-- `--config=<filename>`: Load configuration from `configs/<filename>` (default: `default.json`)
-- `--load`: Override gameMode to "load" (loads saved game instead of starting new)
+## Usage Modes
 
-#### Configuration Priority
-1. Command line flags (highest priority)
-2. Specified config file
-3. Default config file (lowest priority)
+### Interactive Mode
+Interactive mode allows you to play alongside the AI agents, where you control certain players while AI controls others:
 
-### Configuration Files
-```typescript
-// src/utils/models/models.ts
-export const MODELS = {
-  default: "claude-3-5-sonnet",  // Primary model
-  vision: "gpt-4-vision",         // Screenshot analysis
-  fast: "gpt-3.5-turbo"          // Quick decisions
-};
+```bash
+# Use interactive configuration
+npm run strategist -- --config=interactive-simple.json
+
+# Or create your own interactive config:
+# configs/my-interactive.json:
+{
+  "llmPlayers": [1, 2],  # AI controls players 1 and 2
+  "autoPlay": false,     # Game pauses for human input
+  "strategist": "simple-strategist",
+  "gameMode": "start"
+}
+
+npm run strategist -- --config=my-interactive.json
 ```
 
-## Usage Modes
+In interactive mode:
+- Human players take their turns normally in Civilization V
+- AI agents auto-pause when it's their turn
+- AI analyzes and makes decisions for their civilizations
+- Game continues after AI completes its turn
+- Perfect for co-op play or learning from AI strategies
 
 ### Standalone Mode
 Autonomous agent that connects to MCP server and plays independently:
@@ -133,6 +166,8 @@ The agent will:
 4. Analyze game state
 5. Make strategic decisions
 6. Resume game if crashes
+
+Similarly, you can create new configuration and load it through similar commands.
 
 ## Key Implementation Details
 
@@ -175,10 +210,73 @@ Test categories:
 - Session management tests
 - Tool wrapping validation
 
+## Creating New Agent Modes
+
+### Step-by-Step Guide
+
+1. **Create Your Agent Class** (`src/agents/my-agent.ts`)
+```typescript
+import { VoxAgent } from "../infra/vox-agent.js";
+import { AgentParameters } from "../infra/agent-parameters.js";
+import { VoxContext } from "../infra/vox-context.js";
+
+export class MyAgent extends VoxAgent<any, AgentParameters> {
+  readonly name = "my-agent";
+
+  async getSystem(parameters: AgentParameters, context: VoxContext<AgentParameters>): Promise<string> {
+    return `
+# Expectation
+You are a specialized Civilization V AI agent focused on [your strategy].
+
+# Goals
+- Primary: [main objective]
+- Secondary: [supporting objectives]
+
+# Resources
+You will receive game state information including:
+- Current turn and player information
+- City reports and unit positions
+- Diplomatic relationships
+`.trim();
+  }
+
+  getActiveTools(parameters: AgentParameters): string[] | undefined {
+    // Return the MCP tools this agent needs
+    return ["get-game-state", "move-unit", "build-city", "end-turn"];
+  }
+
+  // Optional: Custom stop condition
+  stopCheck(parameters: AgentParameters, lastStep: any, allSteps: any[]): boolean {
+    // Return true when the agent should stop
+    return lastStep.content?.includes("Turn complete");
+  }
+}
+```
+
+2. **Register Your Agent** (`src/infra/vox-context.ts`)
+```typescript
+// Add to the agent registry
+import { MyAgent } from "../agents/my-agent.js";
+
+// In VoxContext constructor or initialization
+this.agentRegistry.set("my-agent", new MyAgent());
+```
+
+3. **Create Configuration** (`configs/my-agent.json`)
+```json
+{
+  "llmPlayers": [0],
+  "autoPlay": true,
+  "strategist": "my-agent",
+  "gameMode": "start",
+  "repetition": 1,
+  "model": "gpt-4-turbo"
+}
+```
+
 ## Development Tips
 
 ### Debugging
-- Enable debug logging: `DEBUG=vox:* npm run dev`
 - Check Langfuse dashboard for traces
 - Monitor MCP server logs
 - Use breakpoints in VS Code
@@ -229,6 +327,7 @@ vox-agents/
 │   │   ├── vox-agent.ts
 │   │   └── vox-context.ts
 │   ├── strategist/      # Strategy agents
+│   │   ├── none-strategist.ts
 │   │   └── simple-strategist.ts
 │   ├── utils/           # Utilities
 │   │   ├── models/      # LLM clients

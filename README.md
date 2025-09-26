@@ -61,42 +61,63 @@ Game integration and UI scripts
 
 ## Quick Start
 
-1. **Clone and initialize**:
-   ```bash
-   git clone <repository-url>
+### Prerequisites
+- Windows 10/11 (64-bit)
+- Civilization V with Community Patch installed
+- LLM API key (OpenAI, OpenRouter, or Google AI)
+
+### Recommended Installation (Bootstrap)
+
+For new users, the easiest way to get started:
+
+1. **Download and run the bootstrap script**:
+   ```cmd
+   :: Download bootstrap.cmd from releases page
+   :: https://github.com/CIVITAS-John/vox-deorum/releases
+   bootstrap.cmd
+   ```
+   This automatically installs Git, Node.js, clones the repository, and sets up everything.
+
+2. **Configure LLM API**:
+   The installation will automatically create a `.env` file and open it for you.
+   The default model is `openai/gpt-oss-20b` (OpenRouter), but you can use any provider:
+   ```env
+   OPENROUTER_API_KEY=sk-or-v1-...  # For default model
+   # OR
+   OPENAI_API_KEY=sk-...
+   # OR
+   GOOGLE_GENERATIVE_AI_API_KEY=...
+   ```
+   To change models, edit `vox-agents/config.json`.
+
+3. **Start playing with AI**:
+   ```cmd
+   scripts\vox-deorum.cmd
+   ```
+   This launches all services and starts the AI in interactive mode.
+
+### Manual Installation
+
+If you prefer manual setup:
+
+1. **Clone and setup**:
+   ```cmd
+   git clone https://github.com/CIVITAS-John/vox-deorum.git
    cd vox-deorum
-   git submodule update --init --recursive
+   scripts\install.cmd
    ```
 
-2. **Install dependencies** (each component):
-   ```bash
-   cd <component-dir>
-   npm install
-   ```
+2. **Configure LLM**: The .env file will be created automatically from .env.default
 
-3. **Configure environment** (for Vox Agents):
-   ```bash
-   # Choose one LLM provider:
-   export OPENAI_API_KEY=sk-...
-   # OR
-   export OPENROUTER_API_KEY=sk-or-...
-   # OR
-   export GOOGLE_GENERATIVE_AI_API_KEY=...
-   ```
+3. **Start services**: `scripts\vox-deorum.cmd`
 
-4. **Start services** (in order):
-   ```bash
-   # Terminal 1: Bridge Service
-   cd bridge-service && npm run dev
+### Update DLLs (when needed)
+```cmd
+scripts\update-dlls.cmd
+```
+Builds and deploys the latest DLL changes to your Civ V installation.
 
-   # Terminal 2: MCP Server
-   cd mcp-server && npm run dev
-
-   # Terminal 3: Vox Agents (autonomous mode)
-   cd vox-agents && npm run strategist
-   ```
-
-5. **Launch Civ V** with the Vox Deorum mod enabled
+For detailed installation instructions and troubleshooting, see [INSTALLATION.md](INSTALLATION.md).
 
 ## Development
 
@@ -167,4 +188,4 @@ Lecturer, University of Arizona, College of Information Science
 Different licenses are used for submodules:
 
 - `civ5-dll` - GPL 3.0 (following the upstream license)
-- `bridge-service`, `vox-agents`, `mcp-server`, `civ5-mod` - CC BY-NC-SA 4.0
+- `bridge-service`, `vox-agents`, `mcp-server`, `civ5-mod` - [CC BY-NC-SA 4.0](LICENSE.md)
