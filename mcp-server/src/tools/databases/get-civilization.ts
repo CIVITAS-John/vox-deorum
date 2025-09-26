@@ -7,7 +7,7 @@ import * as changeCase from "change-case";
  * Schema for civilization summary information
  */
 export const CivilizationSummarySchema = z.object({
-  Type: z.string(),
+  Type: z.string().optional(),
   Name: z.string(),
   Uniques: z.array(z.string()).optional(),
   Leader: z.string()

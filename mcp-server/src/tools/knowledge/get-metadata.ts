@@ -16,7 +16,9 @@ import { getPlayerInformations } from "../../knowledge/getters/player-informatio
  * Schema for static game metadata
  */
 const MetadataSchema = z.object({
-  YouAre: CivilizationSummarySchema.optional(),
+  YouAre: CivilizationSummarySchema.extend({
+    PlayerID: z.number()
+  }).optional(),
   GameSpeed: z.string(),
   MapType: z.string(),
   MapSize: z.string(),
@@ -95,8 +97,14 @@ class GetMetadataTool extends LuaFunctionTool {
     if (args.PlayerID !== undefined) {
       const summaries = await readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations);
       const summary = summaries.find(summary => summary.Key == args.PlayerID);
-      if (summary) metadata.YouAre = 
-        (await getTool("getCivilization")?.getSummaries())?.find(current => current.Type == summary.Civilization);
+      if (summary) {
+        var civilization = (await getTool("getCivilization")?.getSummaries())?.find(current => current.Name == summary.Civilization);
+        if (civilization) {
+          metadata.YouAre = JSON.parse(JSON.stringify(civilization));
+          metadata.YouAre!.PlayerID = args.PlayerID;
+          delete metadata.YouAre!.Type;
+        }
+      }
     }
 
     return result;
