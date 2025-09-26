@@ -146,7 +146,6 @@ export class MCPClient {
         if (this.isConnected) {
           logger.warn('MCP server has restarted. Reconnecting...');
           await this.disconnect();
-          await this.initializeClient();
           await this.connect();
         }
       } else {
@@ -205,6 +204,7 @@ export class MCPClient {
       logger.info('Disconnecting from MCP server...');
       this.isConnected = false;
       await this.client.close();
+      await this.initializeClient();
       logger.info('Disconnected from MCP server');
     } catch (error) {
       logger.error('Error disconnecting from MCP server:', error);
