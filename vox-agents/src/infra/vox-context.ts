@@ -150,7 +150,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         }
       });
       observation.updateTrace({
-        sessionId: parameters.gameID ?? "Unknown",
+        sessionId: parameters.gameID ?? "unknown",
       });
       try {
         // Dynamically create agent tools for handoff capability

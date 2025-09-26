@@ -43,7 +43,7 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
           }
         });
         observation.updateTrace({
-          sessionId: baseParameters.gameID ?? "Unknown",
+          sessionId: baseParameters.gameID ?? "unknown",
         });
         try {
           let parameters = baseParameters;
@@ -132,7 +132,7 @@ export function wrapMCPTool(tool: Tool): VercelTool {
           }
         });
         observation.updateTrace({
-          sessionId: (options.experimental_context as any).gameID ?? "Unknown",
+          sessionId: (options.experimental_context as any).gameID ?? "unknown",
         });
         logger.info(`Calling tool ${tool.name}...`, args);
 
