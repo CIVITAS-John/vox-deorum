@@ -39,17 +39,6 @@ await handleAPIError(res, url, async () => {
 });
 ```
 
-### Request Timeout Management
-```typescript
-// Every IPC request needs timeout handling
-const request = {
-  timeout: setTimeout(() => {
-    this.pendingRequests.delete(id);
-    resolve(respondError(ErrorCode.CALL_TIMEOUT));
-  }, 30000) // 30s for Lua, 5s for external
-};
-```
-
 ## SSE Implementation
 
 ### Client Management Pattern

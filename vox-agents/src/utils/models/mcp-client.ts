@@ -238,7 +238,7 @@ export class MCPClient {
       try {
         // Out potato servers can be *really* slow
         const result = await this.client.callTool({ name, arguments: args }, undefined, {
-          timeout: 30000,
+          timeout: 60000,
           resetTimeoutOnProgress: true
         });
         return result;
