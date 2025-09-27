@@ -517,8 +517,7 @@ export class MockDLLServer extends EventEmitter {
     const message: GameEventMessage = {
       type: 'game_event',
       event: eventType,
-      payload,
-      timestamp: new Date().toISOString()
+      payload
     };
 
     logger.info(`Simulating game event: ${eventType}`);

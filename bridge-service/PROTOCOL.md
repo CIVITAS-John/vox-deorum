@@ -9,6 +9,13 @@ The Bridge Service acts as a communication hub using three primary channels:
 - **HTTP REST API**: Endpoints for external services to call Lua functions and manage registrations
 - **Server-Sent Events (SSE)**: Real-time event streaming to external clients
 
+### Named Pipe Communication Details
+
+- **Pipe Name**: `\\.\pipe\tmp-app.vox-deorum-bridge` (configurable via `VOX_DEORUM_PIPE_NAME` environment variable)
+- **Message Format**: JSON messages delimited by `!@#$%^!`
+- **Batching**: Multiple messages can be sent in a single pipe write, separated by the delimiter
+- **Queue Management**: Outgoing messages are queued if the pipe is busy, with throttling at 5+ queued messages
+
 ## Protocol Flows
 
 ### 1. External Service → Lua Function Call
@@ -327,8 +334,21 @@ The Bridge Service acts as a communication hub using three primary channels:
    }
    ```
 
+   Note: For error responses, the format is:
+   ```json
+   {
+     "type": "external_response",
+     "id": "uuid",
+     "success": false,
+     "error": {
+       "code": "ERROR_CODE"
+     }
+   }
+   ```
+
 6. **DLL → Lua Environment**
-   Game.CallExternal() callback receives the result object
+   - For sync calls: Game.CallExternal() returns (result, error)
+   - For async calls: Callback receives (result, error)
 
 ### 3. Game Events Streaming
 
@@ -352,16 +372,46 @@ The Bridge Service acts as a communication hub using three primary channels:
      "id": 1000001,
      "type": "game_event",
      "event": "turnStart",
-     "payload": { "args": [1, 50, 20] }
+     "payload": {
+       "playerID": 1,
+       "turn": 50,
+       "// other properties": "based on event schema"
+     }
    }
    ```
 
    **Event ID Format**: Number with structure `(turn * 1000000) + eventSequence`
    - Turn number (no padding) followed by 6-digit event sequence
-   - Event sequence is zero-padded to 6 digits
+   - Event sequence is NOT zero-padded - just the actual sequence number
    - Example: `1000001` = Turn 1, Event 1
    - Example: `123004567` = Turn 123, Event 4567
    - The event counter resets to 1 at the beginning of each turn
+   - The event counter is persisted between game saves/loads
+
+   **Event Payload Structure**:
+   - Events have property schemas defined in C++
+   - The payload contains named properties based on the event's schema
+   - Arrays in events are sent as: count property followed by array items
+   - Boolean properties marked with `!` prefix in schema are converted from int to boolean
+   - Events without schemas or arguments are skipped
+
+   **Blacklisted Events**:
+   The following high-frequency or less useful events are NOT forwarded:
+   - GameCoreUpdateBegin, GameCoreUpdateEnd
+   - GameCoreTestVictory
+   - PlayerPreAIUnitUpdate
+   - BattleStarted, BattleJoined, BattleFinished, CombatEnded
+   - PlayerEndTurnInitiated, PlayerEndTurnCompleted
+   - UnitPrekill
+   - GatherPerTurnReplayStats
+   - TerraformingPlot
+   - GameSave
+   - CityPrepared
+   - UnitGetSpecialExploreTarget
+   - PlayerCityFounded
+   - TeamSetHasTech
+   - BarbariansSpawnedUnit
+   - TileRevealed (from non-major civs only)
 
 4. **Bridge → All SSE Clients**
    ```
