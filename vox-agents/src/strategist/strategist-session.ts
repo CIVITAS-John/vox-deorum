@@ -187,11 +187,11 @@ Game.SetAIAutoPlay(2000, 0);`
     this.activePlayers.clear();
 
     // Stop autoplay
-    await mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` });
+    mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` });
     if (this.config.autoPlay) {
       await setTimeout(5000);
       logger.info(`Requesting voluntary shutdown of the game...`);
-      await mcpClient.callTool("lua-executor", { Script: `Events.UserRequestClose();` });
+      mcpClient.callTool("lua-executor", { Script: `Events.UserRequestClose();` });
       await setTimeout(5000);
       const killed = await voxCivilization.killGame();
       logger.info(`Sent killing signals to the game: ${killed}`);
