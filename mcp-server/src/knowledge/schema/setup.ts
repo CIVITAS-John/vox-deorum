@@ -48,6 +48,18 @@ export async function setupKnowledgeDatabase(
   // Create indexes for StrategyChanges table
   await createMutableKnowledgeIndexes(db, 'StrategyChanges');
 
+  // Create PlayerOptions table (TimedKnowledge implementation)
+  await createTimedKnowledgeTable(db, 'PlayerOptions')
+    .addColumn('Key', 'integer', (col) => col.notNull()) // Player ID
+    .addColumn('EconomicStrategies', 'text') // JSON array
+    .addColumn('MilitaryStrategies', 'text') // JSON array
+    .addColumn('Technologies', 'text') // JSON array
+    .addColumn('Policies', 'text') // JSON array
+    .addColumn('PolicyBranches', 'text') // JSON array
+    .execute();
+  // Create indexes for PlayerOptions table
+  await createTimedKnowledgeIndexes(db, 'PlayerOptions', 'Key');
+
   // Create PersonaChanges table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'PersonaChanges')
     // Core Competitiveness & Ambition

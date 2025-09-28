@@ -78,6 +78,20 @@ export interface PlayerDiplomacy extends MutableKnowledge {
 }
 
 /**
+ * Player strategic options (technologies, policies, and strategies)
+ * Visible only to the player themselves (self-knowledge)
+ * Saved as snapshots when player acquires new options or strategies change
+ */
+export interface PlayerOptions extends TimedKnowledge {
+  Key: number; // Player ID
+  EconomicStrategies: JSONColumnType<string[]>; // Available economic strategy names
+  MilitaryStrategies: JSONColumnType<string[]>; // Available military strategy names
+  Technologies: JSONColumnType<string[]>; // Possible technology names
+  Policies: JSONColumnType<string[]>; // Possible policy names
+  PolicyBranches: JSONColumnType<string[]>; // Possible policy branch names
+}
+
+/**
  * AI Persona/personality values for major civilizations
  * Visible only to the player themselves (like strategy data)
  * Tracks changes in AI personality traits over time

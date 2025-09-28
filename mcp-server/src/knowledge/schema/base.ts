@@ -15,7 +15,8 @@ import {
   PlayerDiplomacy,
   PlayerOpinions,
   CityInformation,
-  PersonaChange
+  PersonaChange,
+  PlayerOptions
 } from './timed';
 import { PlayerInformation } from './public';
 
@@ -105,6 +106,7 @@ export interface KnowledgeDatabase {
   GameMetadata: GameMetadata;
   // Timed Knowledge
   GameEvents: GameEvent;
+  PlayerOptions: PlayerOptions;
   // Mutable Knowledge
   PlayerSummaries: PlayerSummary;
   PlayerEconomics: PlayerEconomics;

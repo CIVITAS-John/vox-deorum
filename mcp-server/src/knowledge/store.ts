@@ -160,6 +160,31 @@ export class KnowledgeStore {
   }
 
   /**
+   * Close database connection
+   */
+  async close(): Promise<void> {
+    if (this.db) {
+      await this.db.destroy();
+      this.db = undefined;
+      logger.info('KnowledgeStore closed');
+    }
+  }
+
+  /**
+   * Check if store is initialized
+   */
+  isInitialized(): boolean {
+    return !!this.db;
+  }
+
+  /**
+   * Get current game ID
+   */
+  getGameId(): string | undefined {
+    return this.gameId;
+  }
+
+  /**
    * Handle incoming game events by validating against schemas
    */
   async handleGameEvent(id: number, type: string, payload: Record<string, any>, visibilityFlags?: number[], extraPayload?: Record<string, any>): Promise<void> {
@@ -274,28 +299,61 @@ export class KnowledgeStore {
   }
 
   /**
-   * Close database connection
+   * Batch store multiple TimedKnowledge entries in a single transaction
+   * Used for events and other time-based knowledge that doesn't track versions
+   *
+   * @param tableName - The table name in the database (must be a key of KnowledgeDatabase)
+   * @param items - Array of items to store, each containing key, data, and optional visibility flags
+   * @returns Promise that resolves when all items are stored
    */
-  async close(): Promise<void> {
-    if (this.db) {
-      await this.db.destroy();
-      this.db = undefined;
-      logger.info('KnowledgeStore closed');
+  async storeTimedKnowledgeBatch<
+    TTable extends keyof KnowledgeDatabase,
+    TData extends Partial<Selectable<KnowledgeDatabase[TTable]> | Insertable<KnowledgeDatabase[TTable]>>
+  >(
+    tableName: TTable,
+    items: Array<{
+      key: number;
+      data: TData;
+      visibilityFlags?: number[];
+    }>
+  ): Promise<void> {
+    const db = this.getDatabase();
+    const turn = knowledgeManager.getTurn();
+
+    try {
+      // Process all items in a single transaction for efficiency
+      await db.transaction().execute(async (trx) => {
+        for (const item of items) {
+          const { key, data, visibilityFlags } = item;
+
+          // Prepare the new entry with TimedKnowledge fields
+          const newEntry: any = {
+            ...data,
+            Key: key,
+            Turn: turn
+          };
+          if (!newEntry.payload)
+            newEntry.payload = {};
+
+          // Apply visibility flags if provided
+          if (visibilityFlags !== undefined)
+            applyVisibility(newEntry, visibilityFlags);
+
+          // Insert the entry
+          await trx
+            .insertInto(tableName)
+            .values(newEntry)
+            .execute();
+
+          logger.debug(
+            `Stored ${tableName} entry - Key: ${key}, Turn: ${turn}`
+          );
+        }
+      });
+    } catch (error) {
+      logger.error(`Error storing TimedKnowledge batch in ${tableName}:`, error);
+      throw error;
     }
-  }
-
-  /**
-   * Check if store is initialized
-   */
-  isInitialized(): boolean {
-    return !!this.db;
-  }
-
-  /**
-   * Get current game ID
-   */
-  getGameId(): string | undefined {
-    return this.gameId;
   }
 
   /**
@@ -535,7 +593,7 @@ export class KnowledgeStore {
   /**
    * Retrieve a PublicKnowledge entry
    * Public knowledge is visible to all players
-   * 
+   *
    * @param tableName - The table name in the database
    * @param key - The unique identifier for this knowledge item
    * @returns The entry or null if not found
