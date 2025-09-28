@@ -29,7 +29,7 @@ export interface StrategyChange extends MutableKnowledge {
  */
 export interface PolicyChange extends MutableKnowledge {
   Policy: string; // The policy branch or policy name that was set
-  IsBranch: boolean; // Whether this is a policy branch (true) or individual policy (false)
+  IsBranch: number; // Whether this is a policy branch (true) or individual policy (false)
   Rationale: string; // Explanation for why this policy was chosen
 }
 
@@ -108,8 +108,11 @@ export interface PlayerOptions extends TimedKnowledge {
   EconomicStrategies: JSONColumnType<string[]>; // Available economic strategy names
   MilitaryStrategies: JSONColumnType<string[]>; // Available military strategy names
   Technologies: JSONColumnType<string[]>; // Possible technology names
+  NextResearch: string | null; // Next technology to be researched (LLM forced)
   Policies: JSONColumnType<string[]>; // Possible policy names
   PolicyBranches: JSONColumnType<string[]>; // Possible policy branch names
+  NextPolicy: string | null; // Next policy to be selected (LLM forced)
+  NextBranch: string | null; // Next policy branch to be selected (LLM forced)
 }
 
 /**

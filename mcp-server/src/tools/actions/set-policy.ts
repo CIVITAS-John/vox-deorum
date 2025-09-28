@@ -73,7 +73,7 @@ class SetPolicyTool extends LuaFunctionTool {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Extract the arguments
-    const { PlayerID, Policy, Rationale } = args;
+    var { PlayerID, Policy, Rationale } = args;
 
     // Convert policy name to ID - first try as a branch, then as a policy
     let policyID = -1;
@@ -92,9 +92,10 @@ class SetPolicyTool extends LuaFunctionTool {
       } else {
         // Try as an individual policy
         policyID = retrieveEnumValue("PolicyID", Policy);
-        // if (policyID === -1) {
-        //   throw new Error(`Policy or branch "${Policy}" not found. Please use a valid policy/branch name or 'None' to clear.`);
-        // }
+        if (policyID === -1) {
+          Policy = "None"
+        // throw new Error(`Policy or branch "${Policy}" not found. Please use a valid policy/branch name or 'None' to clear.`);
+        }
       }
     }
 
@@ -128,7 +129,7 @@ class SetPolicyTool extends LuaFunctionTool {
         PlayerID,
         {
           Policy: Policy,
-          IsBranch: isBranch,
+          IsBranch: isBranch ? 1 : 0,
           Rationale: Rationale
         }
       );

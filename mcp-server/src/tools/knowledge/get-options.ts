@@ -10,6 +10,10 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { stripTimedKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
 import { PlayerOptions } from "../../knowledge/schema/timed.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { readPlayerKnowledge } from "../../utils/knowledge/cached.js";
+import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
+import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
+import { enumMappings } from "../../utils/knowledge/enum.js";
 
 /**
  * Input schema for the GetOptions tool
@@ -22,12 +26,35 @@ const GetOptionsInputSchema = z.object({
  * Output schema for the GetOptions tool
  */
 const GetOptionsOutputSchema = z.object({
-  PlayerID: z.number(),
-  EconomicStrategies: z.array(z.string()),
-  MilitaryStrategies: z.array(z.string()),
-  Technologies: z.array(z.string()),
-  Policies: z.array(z.string()),
-  PolicyBranches: z.array(z.string())
+  // Persona fields
+  Persona: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+  // Strategy fields (only for active player when requested)
+  Strategy: z.object({
+    Rationale: z.string().optional(),
+    GrandStrategy: z.object({
+      Current: z.string().optional(),
+      Options: z.array(z.string()),
+    }),
+    EconomicStrategies: z.object({
+      Current: z.array(z.string()).optional(),
+      Options: z.array(z.string()),
+    }),
+    MilitaryStrategies: z.object({
+      Current: z.array(z.string()).optional(),
+      Options: z.array(z.string()),
+    })
+  }),
+  // Technology and Policies
+  Research: z.object({
+    Next: z.string(),
+    Rationale: z.string().optional(),
+    Options: z.array(z.string())
+  }),
+  Policies: z.object({
+    Next: z.string(),
+    Rationale: z.string().optional(),
+    Options: z.array(z.string())
+  })
 }).passthrough();
 
 /**
@@ -58,7 +85,11 @@ class GetOptionsTool extends ToolBase {
    * Optional annotations for the tool
    */
   readonly annotations: ToolAnnotations = {
-    autoComplete: ["PlayerID"]
+    autoComplete: ["PlayerID"],
+    markdownConfig: [
+      { format: "{key}" },
+      { format: "{key}" }
+    ]
   }
 
   /**
@@ -66,25 +97,73 @@ class GetOptionsTool extends ToolBase {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Get all player options
-    const allOptions = await getPlayerOptions(true);
+    const [allOptions, strategies, persona] = await Promise.all([
+      getPlayerOptions(true),
+      readPlayerKnowledge(args.PlayerID, "StrategyChanges", getPlayerStrategy),
+      readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona)
+    ]);
 
     // Find options for the requested player
     const playerOptions = allOptions.find(options => options.Key === args.PlayerID);
-
-    if (!playerOptions) {
+    if (!playerOptions)
       throw new Error(`No options found for player ${args.PlayerID}. Player may not be alive or does not exist.`);
+
+    // Read last research/policy changes
+    const [research, policy] = await Promise.all([
+      readPlayerKnowledge(args.PlayerID, "ResearchChanges", async () => {
+        return { Technology: "None", Rationale: undefined }
+      }),
+      readPlayerKnowledge(args.PlayerID, "PolicyChanges", async () => {
+        return { Policy: "None", IsBranch: 0, Rationale: undefined }
+      })
+    ]);
+
+    // If the research has been done, remove the rationale
+    if (research) {
+      if (!playerOptions.NextResearch || research.Technology == "None") {
+        delete research.Rationale;
+        research.Technology = "None";
+      }
+    }
+    if (policy) {
+      if (!playerOptions.NextPolicy || policy.Policy == "None") {
+        delete policy.Rationale;
+        policy.Policy = "None";
+      }
     }
 
-    // Strip metadata and return the options
+    // Strip metadata from the options
     const cleanOptions = stripTimedKnowledgeMetadata<PlayerOptions>(playerOptions as any);
 
+    // Chime in more data
     return {
-      PlayerID: args.PlayerID,
-      EconomicStrategies: cleanOptions.EconomicStrategies,
-      MilitaryStrategies: cleanOptions.MilitaryStrategies,
-      Technologies: cleanOptions.Technologies,
-      Policies: cleanOptions.Policies,
-      PolicyBranches: cleanOptions.PolicyBranches
+      Strategy: {
+        Rationale: (strategies as any)?.Rationale,
+        GrandStrategy: {
+          Current: strategies?.GrandStrategy,
+          Options: Object.values(enumMappings["GrandStrategy"])
+        },
+        EconomicStrategies: {
+          Current: strategies?.EconomicStrategies,
+          Options: cleanOptions.EconomicStrategies
+        },
+        MilitaryStrategies: {
+          Current: strategies?.MilitaryStrategies,
+          Options: cleanOptions.MilitaryStrategies
+        }
+      },
+      Persona: persona as Record<string, string | number>,
+      Research: {
+        Next: research?.Technology ?? "None",
+        Rationale: research?.Rationale,
+        Options: cleanOptions.Technologies,
+      },
+      Policies: {
+        Next: policy?.Policy ? `${policy.Policy} (${policy.IsBranch ? "New Branch" : "Policy"})` : "None",
+        Rationale: policy?.Rationale,
+        Options: cleanOptions.Policies.map(p => p + " (Policy)")
+          .concat(cleanOptions.PolicyBranches.map(p => p + " (New Branch)"))
+      }
     };
   }
 }

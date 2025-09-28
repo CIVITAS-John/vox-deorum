@@ -14,9 +14,7 @@ import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metad
 import { Selectable } from "kysely";
 import { cleanEventData } from "./get-events.js";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
-import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
 import { readPlayerKnowledge, readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
-import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
 import { PlayerInformation } from "../../knowledge/schema/public.js";
 
 /**
@@ -36,8 +34,6 @@ const PlayerDataSchema = z.object({
   Leader: z.string(),
   IsHuman: z.boolean(),
   IsMajor: z.boolean(),
-  // Strategy fields (only for active player when requested)
-  Strategy: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional(),
   // Opinion fields
   OpinionFromMe: z.array(z.string()).optional(),
   OpinionToMe: z.array(z.string()).optional(),
@@ -60,8 +56,6 @@ const PlayerDataSchema = z.object({
   FoundedReligion: z.string().nullable().optional(),
   MajorityReligion: z.string().nullable().optional(),
   Relationships: z.record(z.string(), z.array(z.string())).optional(),
-  // Persona fields
-  Persona: z.record(z.string(), z.number()).optional()
 }).passthrough();
 
 /**
@@ -103,12 +97,10 @@ class GetPlayersTool extends ToolBase {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Get static player information, current player summaries, opinions, and strategies in parallel
-    const [playerInfos, playerSummaries, playerOpinions, strategies, persona] = await Promise.all([
+    const [playerInfos, playerSummaries, playerOpinions] = await Promise.all([
       readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations),
       getPlayerSummaries(),
-      readPlayerKnowledge(args.PlayerID, "PlayerOpinions", getPlayerOpinions),
-      readPlayerKnowledge(args.PlayerID, "StrategyChanges", getPlayerStrategy),
-      readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona)
+      readPlayerKnowledge(args.PlayerID, "PlayerOpinions", getPlayerOpinions)
     ]);
 
     // Combine the data and create dictionary
@@ -149,6 +141,7 @@ class GetPlayersTool extends ToolBase {
         ...postProcessSummary(info, cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID, args.PlayerID),
       } as any;
 
+      // Text format for happiness
       if (playerData.HappinessPercentage !== undefined) {
         if (playerData.HappinessPercentage <= 20)
           playerData.HappinessSituation = "Super unhappy - severe combat penalty, rebellion and uprising coming fast"
@@ -159,6 +152,7 @@ class GetPlayersTool extends ToolBase {
         else playerData.HappinessSituation = "Happy"
       }
 
+      // Load player options
       if (playerOpinions) {
         if (playerID === args.PlayerID) {
           playerData.MyEvaluations = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
@@ -168,12 +162,6 @@ class GetPlayersTool extends ToolBase {
         }
       }
 
-      // Add strategy information if this is the active player and strategies were fetched
-      if (strategies && playerID === args.PlayerID)
-        playerData.Strategy = strategies as Record<string, string | string[]>;
-      if (persona && playerID === args.PlayerID)
-        playerData.Persona = persona as Record<string, number>;
-      
       playersDict[playerID.toString()] = cleanEventData(playerData, false)!;
     }
     

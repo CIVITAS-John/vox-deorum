@@ -14,13 +14,18 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
       Key = playerID,
       EconomicStrategies = player:GetPossibleEconomicStrategies(),
       MilitaryStrategies = player:GetPossibleMilitaryStrategies(),
-      Technologies = player:GetPossibleTechs(true)
+      Technologies = player:GetPossibleTechs(true),
+      NextResearch = player:GetNextResearch()
     }
 
     -- Get possible policies and policy branches
     local possiblePolicies, possibleBranches = player:GetPossiblePolicies(true)
     playerOptions.Policies = possiblePolicies
     playerOptions.PolicyBranches = possibleBranches
+
+    local nextPolicy, nextBranch = player:GetNextPolicy()
+    playerOptions.NextPolicy = nextPolicy
+    playerOptions.NextBranch = nextBranch
 
     -- Add to results
     table.insert(options, playerOptions)

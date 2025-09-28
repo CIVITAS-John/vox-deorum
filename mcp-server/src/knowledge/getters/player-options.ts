@@ -19,43 +19,24 @@ const luaFunc = LuaFunction.fromFile(
 );
 
 /**
- * Convert numeric strategy IDs to localized names
+ * Convert array of IDs to localized names using the appropriate enum
  */
-function convertStrategiesToNames(strategies: number[]): string[] {
-  if (!Array.isArray(strategies)) return [];
-  return strategies
-    .map(id => retrieveEnumName("EconomicStrategy", id) || retrieveEnumName("MilitaryStrategy", id))
+function convertToNames(ids: number[] | undefined, enumType: string, alternateEnumType?: string): string[] {
+  if (!Array.isArray(ids)) return [];
+  return ids
+    .map(id => {
+      const name = retrieveEnumName(enumType, id);
+      return name || (alternateEnumType ? retrieveEnumName(alternateEnumType, id) : undefined);
+    })
     .filter(name => name !== undefined) as string[];
 }
 
 /**
- * Convert numeric technology IDs to localized names
+ * Convert a single ID to localized name
  */
-function convertTechnologiesToNames(technologies: number[]): string[] {
-  if (!Array.isArray(technologies)) return [];
-  return technologies
-    .map(id => retrieveEnumName("TechID", id))
-    .filter(name => name !== undefined) as string[];
-}
-
-/**
- * Convert numeric policy IDs to localized names
- */
-function convertPoliciesToNames(policies: number[]): string[] {
-  if (!Array.isArray(policies)) return [];
-  return policies
-    .map(id => retrieveEnumName("PolicyID", id))
-    .filter(name => name !== undefined) as string[];
-}
-
-/**
- * Convert numeric policy branch IDs to localized names
- */
-function convertPolicyBranchesToNames(branches: number[]): string[] {
-  if (!Array.isArray(branches)) return [];
-  return branches
-    .map(id => retrieveEnumName("BranchType", id))
-    .filter(name => name !== undefined) as string[];
+function convertToName(id: number | null | undefined, enumType: string): string | null {
+  if (id === null || id === undefined) return null;
+  return retrieveEnumName(enumType, id) || null;
 }
 
 /**
@@ -74,11 +55,14 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
   const processedResults = response.result.map((options: any) => {
     return {
       Key: options.Key,
-      EconomicStrategies: convertStrategiesToNames(options.EconomicStrategies),
-      MilitaryStrategies: convertStrategiesToNames(options.MilitaryStrategies),
-      Technologies: convertTechnologiesToNames(options.Technologies),
-      Policies: convertPoliciesToNames(options.Policies),
-      PolicyBranches: convertPolicyBranchesToNames(options.PolicyBranches)
+      EconomicStrategies: convertToNames(options.EconomicStrategies, "EconomicStrategy", "MilitaryStrategy"),
+      MilitaryStrategies: convertToNames(options.MilitaryStrategies, "MilitaryStrategy", "EconomicStrategy"),
+      Technologies: convertToNames(options.Technologies, "TechID"),
+      NextResearch: convertToName(options.NextResearch, "TechID"),
+      Policies: convertToNames(options.Policies, "PolicyID"),
+      PolicyBranches: convertToNames(options.PolicyBranches, "BranchType"),
+      NextPolicy: convertToName(options.NextPolicy, "PolicyID"),
+      NextBranch: convertToName(options.NextBranch, "BranchType")
     };
   });
 

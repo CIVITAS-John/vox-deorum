@@ -71,8 +71,11 @@ export async function setupKnowledgeDatabase(
     .addColumn('EconomicStrategies', 'text') // JSON array
     .addColumn('MilitaryStrategies', 'text') // JSON array
     .addColumn('Technologies', 'text') // JSON array
+    .addColumn('NextResearch', 'text') // Next technology to research (nullable)
     .addColumn('Policies', 'text') // JSON array
     .addColumn('PolicyBranches', 'text') // JSON array
+    .addColumn('NextPolicy', 'text') // Next policy to select (nullable)
+    .addColumn('NextBranch', 'text') // Next policy branch to select (nullable)
     .execute();
   // Create indexes for PlayerOptions table
   await createTimedKnowledgeIndexes(db, 'PlayerOptions', 'Key');
