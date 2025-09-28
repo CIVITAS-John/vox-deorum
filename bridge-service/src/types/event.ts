@@ -17,8 +17,9 @@ export interface IPCMessage {
 export interface GameEvent {
   id?: number;
   type: string;
-  payload: any;
-  timestamp: string;
+  payload: Record<string, any>;
+  extraPayload?: Record<string, any>;
+  visibility?: number[];
 }
 
 /**

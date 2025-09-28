@@ -116,7 +116,8 @@ function broadcastEvent(gameEvent: GameEvent): void {
           id: gameEvent.id,
           type: gameEvent.type,
           payload: gameEvent.payload,
-          timestamp: gameEvent.timestamp
+          extraPayload: gameEvent.extraPayload,
+          visibility: gameEvent.visibility,
         });
       }
     } catch (error) {
@@ -146,13 +147,6 @@ export function getSSEStats(): {
 
 // Listen for game events from DLL and broadcast to SSE clients
 dllConnector.on('game_event', (eventData: any) => {
-  const gameEvent: GameEvent = {
-    id: eventData.id,
-    type: eventData.event,
-    payload: eventData.payload,
-    timestamp: eventData.timestamp || new Date().toISOString()
-  };
-
   // Handle player turn events for auto-pause functionality
   if (eventData.event === 'PlayerDoTurn' && eventData.payload?.args) {
     const playerId = eventData.payload.args[0];
@@ -168,15 +162,14 @@ dllConnector.on('game_event', (eventData: any) => {
     }
   }
 
-  broadcastEvent(gameEvent);
+  broadcastEvent(eventData);
 });
 
 // Send connection status events when DLL connects/disconnects
 dllConnector.on('connected', () => {
   const statusEvent: GameEvent = {
     type: 'dll_status',
-    payload: { connected: true },
-    timestamp: new Date().toISOString()
+    payload: { connected: true }
   };
   broadcastEvent(statusEvent);
 });
@@ -184,8 +177,7 @@ dllConnector.on('connected', () => {
 dllConnector.on('disconnected', () => {
   const statusEvent: GameEvent = {
     type: 'dll_status',
-    payload: { connected: false },
-    timestamp: new Date().toISOString()
+    payload: { connected: false }
   };
   broadcastEvent(statusEvent);
   gameMutexManager.clearPausedPlayers();
