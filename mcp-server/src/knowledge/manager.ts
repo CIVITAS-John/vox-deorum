@@ -5,9 +5,11 @@
 
 import { createLogger } from '../utils/logger.js';
 import { bridgeManager, MCPServer } from '../server.js';
-import { GameIdentity, syncGameIdentity } from '../utils/lua/game-identity.js';
+import { GameIdentity, syncGameIdentity } from './getters/game-identity.js';
 import { KnowledgeStore } from './store.js';
 import path from 'path';
+import { MaxMajorCivs } from './schema/base.js';
+import { LuaFunction } from '../bridge/lua-function.js';
 
 const logger = createLogger('KnowledgeManager');
 
@@ -34,15 +36,25 @@ export class KnowledgeManager {
       logger.debug(`Game event received: ${data.id} of ${data.type}`, data);
       if (data.type == "dll_status") {
         if (data.payload.connected === true) {
+          // Change the status
           this.dllConnected = true;
           await this.checkGameContext();
+          // Register analytical functions
+          const eventVisibility = await LuaFunction.fromFile(
+            'event-visibility.lua',
+            '!PostProcessGameEvent',
+            ['eventType', 'payload'],
+            { '${MaxMajorCivs}': String(MaxMajorCivs) }
+          ).register();
+          if (!eventVisibility) logger.error("Failed to register the event visibility analysis function!");
+          // Send the notification
           MCPServer.getInstance().sendNotification("DLLConnected", -1, -1, -1);
         } else if (this.dllConnected) {
           this.dllConnected = false;
           MCPServer.getInstance().sendNotification("DLLDisconnected", -1, -1, -1);
         }
       } else if (this.knowledgeStore) {
-        await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload);
+        await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload, data.visibility, data.extraPayload);
       }
     });
     this.startAutoSave();

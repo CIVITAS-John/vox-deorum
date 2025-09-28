@@ -4,7 +4,7 @@
  */
 
 import { LuaFunction } from '../../bridge/lua-function.js';
-import { createLogger } from '../logger.js';
+import { createLogger } from '../../utils/logger.js';
 
 const logger = createLogger("GameIdentity");
 

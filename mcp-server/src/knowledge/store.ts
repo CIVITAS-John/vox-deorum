@@ -17,7 +17,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { gameDatabase, knowledgeManager } from '../server.js';
 import { EventName, eventSchemas } from './schema/events/index.js';
-import { analyzeEventVisibility } from '../utils/lua/event-visibility.js';
 import { applyVisibility } from '../utils/knowledge/visibility.js';
 import { explainEnums } from '../utils/knowledge/enum.js';
 import { detectChanges } from '../utils/knowledge/changes.js';
@@ -155,12 +154,8 @@ export class KnowledgeStore {
   /**
    * Handle incoming game events by validating against schemas
    */
-  async handleGameEvent(id: number, type: string, payload: Record<string, any>): Promise<void> {
+  async handleGameEvent(id: number, type: string, payload: Record<string, any>, visibilityFlags?: number[], extraPayload?: Record<string, any>): Promise<void> {
     try {
-      // Special block: TileRevealed for minor civs
-      if (type == "TileRevealed" && payload["PlayerID"] >= MaxMajorCivs)
-        return;
-
       // Check if we have a schema for this event type
       if (!(type in eventSchemas)) {
         logger.warn(`Unknown event type: ${type}`);
@@ -173,23 +168,32 @@ export class KnowledgeStore {
       // Drop events after the id
       const droppedCount = await this.dropEventsAfterId(id);
       if (droppedCount > 0) {
-        logger.info(`Dropped ${droppedCount} events after ID ${id}`);
+        logger.warn(`Detected repeated events. Dropped ${droppedCount} events after ID ${id}`);
       }
 
       // Get the corresponding schema
       const schema = eventSchemas[type as EventName];
 
       // Other blocking reasons
-      if (payload["PlotX"] == -2147483647 || payload["PlotY"] == -2147483647) return;
-      if (payload["OldPopulation"] && payload["OldPopulation"] == payload["NewPopulation"]) return;
+      if (type == "TileRevealed" && payload["PlayerID"] >= MaxMajorCivs)
+        return;
+      if (payload["PlotX"] == -2147483647 || payload["PlotY"] == -2147483647) 
+        return;
+      if (payload["OldPopulation"] && payload["OldPopulation"] == payload["NewPopulation"])
+        return;
 
       // Validate the event object against the schema
-      const result = schema.safeParse(payload);
+      const result = schema.passthrough().safeParse(payload);
 
       if (result.success) {
         const data: any = result.data;
         const mappedType = renamedEventTypes[type] ?? type;
-        await this.storeGameEvent(id, mappedType, data);
+        // Postprocess the event
+        if (extraPayload)
+          Object.assign(payload, extraPayload);
+        
+        // Store the event
+        await this.storeGameEvent(id, mappedType, data, visibilityFlags);
         await this.setMetadata("lastID", id.toString());
         // Handle special events for notification
         if (typeof data.PlayerID === "number") {
@@ -232,16 +236,7 @@ export class KnowledgeStore {
   /**
    * Store a game event with automatic visibility determination
    */
-  async storeGameEvent<T extends object>(id: number, type: string, payload: T): Promise<void> {
-    // Determine visibility for this event
-    const visibilityResult = await analyzeEventVisibility(type, payload);
-    
-    // Extract visibility flags for storage
-    const visibilityFlags = visibilityResult?.visibilityFlags;
-    // Save the extra payloads
-    if (visibilityResult)
-      Object.assign(payload, visibilityResult.extraPayload);
-    
+  async storeGameEvent<T extends object>(id: number, type: string, payload: T, visibilityFlags?: number[]): Promise<void> {
     // Explain the enums for LLM readability
     payload = await gameDatabase.localizeObject(explainEnums(payload));
     
