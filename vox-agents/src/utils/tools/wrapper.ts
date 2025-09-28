@@ -137,7 +137,7 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         logger.info(`Calling tool ${tool.name}...`, args);
 
         // Call the tool
-        const result = await mcpClient.callTool(tool.name, args);
+        var result = await mcpClient.callTool(tool.name, args);
         const structuredResult = result.structuredContent;
         logger.info(`Tool call completed: ${tool.name}`);
 
@@ -147,7 +147,8 @@ export function wrapMCPTool(tool: Tool): VercelTool {
 
         // Return results
         if (convertMarkdown && structuredResult) {
-          const markdown = jsonToMarkdown(result?.Result ?? structuredResult, {
+          result = result?.Result ?? structuredResult.Result ?? structuredResult;
+          const markdown = jsonToMarkdown(result, {
             configs: tool.annotations?.markdownConfig as any,
             startingLevel: 2,
           });

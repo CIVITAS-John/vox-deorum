@@ -37,7 +37,7 @@ class GameMutexManager {
       this.mutex = new Mutex(this.mutexName);
       this.isPaused = true;
       if (isExternal) this.externalPause = true;
-      logger.debug(`Game paused successfully (external: ${isExternal})`);
+      logger.warn(`Game paused successfully (external: ${isExternal})`);
       return true;
     } catch (error) {
       logger.warn('Failed to pause game:', error);
@@ -64,7 +64,7 @@ class GameMutexManager {
       this.mutex.release();
       this.mutex = null;
       this.isPaused = false;
-      logger.debug(`Game resumed successfully (external: ${isExternal})`);
+      logger.warn(`Game resumed successfully (external: ${isExternal})`);
       return true;
     } catch (error) {
       logger.warn('Failed to resume game:', error);

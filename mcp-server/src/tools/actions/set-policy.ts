@@ -15,7 +15,7 @@ import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.
  */
 class SetPolicyTool extends LuaFunctionTool {
   name = "set-policy";
-  description = "Set a player's next policy selection. The in-game AI will be forced to select this policy or policy branch when making its next policy choice.";
+  description = "Set a player's next policy selection by name. The in-game AI will be forced to select this policy or policy branch when making its next policy choice.";
 
   /**
    * Input schema for the set-policy tool

@@ -14,7 +14,7 @@ import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.
  */
 class SetResearchTool extends LuaFunctionTool {
   name = "set-research";
-  description = "Set a player's next research technology. The in-game AI will be forced to select this technology when making its next tech choice.";
+  description = "Set a player's next research technology by name. The in-game AI will be forced to select this technology when making its next tech choice.";
 
   /**
    * Input schema for the set-research tool

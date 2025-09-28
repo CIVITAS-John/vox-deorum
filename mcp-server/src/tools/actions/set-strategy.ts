@@ -14,16 +14,16 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
  */
 class SetStrategyTool extends LuaFunctionTool {
   name = "set-strategy";
-  description = "Set a player's in-game strategy. Inputs must match exact values in the provided options.";
+  description = "Set a player's in-game strategy by names. Inputs must match exact values in the provided options.";
 
   /**
    * Input schema for the set-strategy tool
    */
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
-    GrandStrategy: z.nativeEnum(enumMappings["GrandStrategy"]).optional().describe("The grand strategy type to set (and override)"),
-    EconomicStrategies: z.array(z.string()).optional().describe("The economic strategy types to set (and override)"),
-    MilitaryStrategies: z.array(z.string()).optional().describe("The military strategy types to set (and override)"),
+    GrandStrategy: z.nativeEnum(enumMappings["GrandStrategy"]).optional().describe("The grand strategy name to set (and override)"),
+    EconomicStrategies: z.array(z.string()).optional().describe("The economic strategy names to set (and override)"),
+    MilitaryStrategies: z.array(z.string()).optional().describe("The military strategy names to set (and override)"),
     Rationale: z.string().describe("Explain your rationale behind choosing this strategy set")
   });
 
