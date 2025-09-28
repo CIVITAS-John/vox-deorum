@@ -138,7 +138,7 @@ export class MCPClient {
     this.transport.onerror = async (error: Error) => {
       if (error.message.indexOf("Bad Request")) {
         if (this.isConnected) {
-          logger.warn('MCP server has restarted. Reconnecting...');
+          logger.warn('MCP server has restarted. Reconnecting...', error);
           await this.disconnect();
           await this.connect();
         }

@@ -75,30 +75,26 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
           mcpServer.createServer(sessionId);
           await mcpServer.connect(sessionId, transport);
         },
+        onsessionclosed(sessionId) {
+          const serverId = serverIds[sessionId];
+          if (serverId) {
+            mcpServer.removeServer(serverId);
+            delete serverIds[sessionId];
+          }
+          delete transports[sessionId];
+        },
         // DNS rebinding protection is disabled by default for backwards compatibility. If you are running this server
         // locally, make sure to set:
         // enableDnsRebindingProtection: true,
         // allowedHosts: ['127.0.0.1'],
       });
-
-      // Clean up transport and server when closed
-      transport.onclose = () => {
-        if (transport.sessionId) {
-          const serverId = serverIds[transport.sessionId];
-          if (serverId) {
-            mcpServer.removeServer(serverId);
-            delete serverIds[transport.sessionId];
-          }
-          delete transports[transport.sessionId];
-        }
-      };
     } else {
       // Invalid request
       res.status(400).json({
         jsonrpc: '2.0',
         error: {
           code: -32000,
-          message: 'Bad Request: No valid session ID provided',
+          message: `Bad Request: No valid session ID provided (${sessionId})`,
         },
         id: null,
       });

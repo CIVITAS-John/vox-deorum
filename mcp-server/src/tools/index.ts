@@ -18,6 +18,8 @@ import createSummarizeUnitsTool from "./knowledge/summarize-units.js";
 import createSetMetadataTool from "./actions/set-metadata.js";
 import createKeepStatusQuoTool from "./actions/keep-status-quo.js";
 import createGetOptionsTool from "./knowledge/get-options.js";
+import createSetResearchTool from "./actions/set-research.js";
+import createSetPolicyTool from "./actions/set-policy.js";
 
 // Tool factory configuration - one line per tool
 const toolFactories = {
@@ -38,11 +40,13 @@ const toolFactories = {
     getOptions: createGetOptionsTool,
     setStrategy: createSetStrategyTool,
     setPersona: createSetPersonaTool,
+    setResearch: createSetResearchTool,
+    setPolicy: createSetPolicyTool,
     keepStatusQuo: createKeepStatusQuoTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
 } as const;
-
+ 
 // Type for the tools object (inferred from factories)
 type Tools = { [K in keyof typeof toolFactories]: ReturnType<typeof toolFactories[K]> };
 

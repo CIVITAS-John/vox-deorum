@@ -48,6 +48,23 @@ export async function setupKnowledgeDatabase(
   // Create indexes for StrategyChanges table
   await createMutableKnowledgeIndexes(db, 'StrategyChanges');
 
+  // Create PolicyChanges table (MutableKnowledge implementation)
+  await createMutableKnowledgeTable(db, 'PolicyChanges')
+    .addColumn('Policy', 'text', (col) => col.notNull())
+    .addColumn('Rationale', 'text', (col) => col.notNull())
+    .addColumn('IsBranch', 'integer', (col) => col.notNull())
+    .execute();
+  // Create indexes for PolicyChanges table
+  await createMutableKnowledgeIndexes(db, 'PolicyChanges');
+
+  // Create ResearchDecisions table (MutableKnowledge implementation)
+  await createMutableKnowledgeTable(db, 'ResearchChanges')
+    .addColumn('Technology', 'text', (col) => col.notNull())
+    .addColumn('Rationale', 'text', (col) => col.notNull())
+    .execute();
+  // Create indexes for ResearchChanges table
+  await createMutableKnowledgeIndexes(db, 'ResearchChanges');
+
   // Create PlayerOptions table (TimedKnowledge implementation)
   await createTimedKnowledgeTable(db, 'PlayerOptions')
     .addColumn('Key', 'integer', (col) => col.notNull()) // Player ID

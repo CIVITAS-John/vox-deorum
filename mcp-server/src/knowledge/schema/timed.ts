@@ -23,6 +23,27 @@ export interface StrategyChange extends MutableKnowledge {
 }
 
 /**
+ * Policy change records for AI policy selection
+ * Visible only to the player themselves (self-knowledge)
+ * Tracks policy selection decisions
+ */
+export interface PolicyChange extends MutableKnowledge {
+  Policy: string; // The policy branch or policy name that was set
+  IsBranch: boolean; // Whether this is a policy branch (true) or individual policy (false)
+  Rationale: string; // Explanation for why this policy was chosen
+}
+
+/**
+ * Research change records for AI technology selection
+ * Visible only to the player themselves (self-knowledge)
+ * Tracks technology research decisions and their rationale
+ */
+export interface ResearchChange extends MutableKnowledge {
+  Technology: string; // The technology being researched
+  Rationale: string; // Explanation for why this technology was chosen
+}
+
+/**
  * Player summary information (visible to met players)
  */
 export interface PlayerSummary extends MutableKnowledge {

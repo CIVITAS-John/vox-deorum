@@ -7,6 +7,8 @@ import type { Generated, JSONColumnType } from 'kysely';
 import {
   GameEvent,
   StrategyChange,
+  PolicyChange,
+  ResearchChange,
   PlayerSummary,
   PlayerEconomics,
   PlayerScience,
@@ -118,6 +120,8 @@ export interface KnowledgeDatabase {
   CityInformations: CityInformation;
   PersonaChanges: PersonaChange;
   StrategyChanges: StrategyChange;
+  PolicyChanges: PolicyChange;
+  ResearchChanges: ResearchChange;
   // Public Knowledge
   PlayerInformations: PlayerInformation;
 }
