@@ -43,6 +43,7 @@ const renamedEventTypes: Record<string, string> = {
 export class KnowledgeStore {
   private db?: Kysely<KnowledgeDatabase>;
   private gameId?: string;
+  private resyncing: boolean = true;
 
   /**
    * Initialize or switch to a game-specific database
@@ -152,6 +153,13 @@ export class KnowledgeStore {
   }
 
   /**
+   * Set the knowledge store in resyncing mode (dropping all events with an ID later than the first incoming event)
+   */
+  setResyncing() {
+    this.resyncing = true;
+  }
+
+  /**
    * Handle incoming game events by validating against schemas
    */
   async handleGameEvent(id: number, type: string, payload: Record<string, any>, visibilityFlags?: number[], extraPayload?: Record<string, any>): Promise<void> {
@@ -166,9 +174,12 @@ export class KnowledgeStore {
       knowledgeManager.updateTurn(Math.floor(id / 1000000));
 
       // Drop events after the id
-      const droppedCount = await this.dropEventsAfterId(id);
-      if (droppedCount > 0) {
-        logger.warn(`Detected repeated events. Dropped ${droppedCount} events after ID ${id}`);
+      if (this.resyncing) {
+        const droppedCount = await this.dropEventsAfterId(id);
+        if (droppedCount > 0) {
+          logger.warn(`Detected repeated events after resyncing. Dropped ${droppedCount} events after ID ${id}`);
+        }
+        this.resyncing = false;
       }
 
       // Get the corresponding schema

@@ -51,6 +51,7 @@ export class KnowledgeManager {
           MCPServer.getInstance().sendNotification("DLLConnected", -1, -1, -1);
         } else if (this.dllConnected) {
           this.dllConnected = false;
+          this.knowledgeStore?.setResyncing();
           MCPServer.getInstance().sendNotification("DLLDisconnected", -1, -1, -1);
         }
       } else if (this.knowledgeStore) {
