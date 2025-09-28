@@ -29,6 +29,7 @@
   "license": "CC-BY-NC-SA-4.0",
   "dependencies": {
     "axios": "^1.6.2",
+    "better-sse": "^0.15.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "helmet": "^7.1.0",

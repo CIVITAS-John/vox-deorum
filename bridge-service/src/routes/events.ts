@@ -3,76 +3,65 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { createSession, Session } from 'better-sse';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger.js';
 import { dllConnector } from '../services/dll-connector.js';
-import { GameEvent, GameEventMessage, SSEClient } from '../types/event.js';
+import { GameEvent, GameEventMessage } from '../types/event.js';
 import { respondError } from '../types/api.js';
 import { gameMutexManager } from '../utils/mutex.js';
 
 const logger = createLogger('EventRoutes');
 const router = Router();
 
-// Store active SSE connections
-const sseClients: Map<string, SSEClient> = new Map();
+// Store active SSE sessions
+const sseSessions: Map<string, Session> = new Map();
 
 /**
  * GET /events - Server-Sent Events endpoint for game events
  */
-router.get('/', (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const clientId = uuidv4();
-    
+
     logger.info(`New SSE client connected: ${clientId}`);
 
-    // Set headers for Server-Sent Events
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      'X-Accel-Buffering': 'no',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control'
+    // Create a better-sse session
+    const session = await createSession(req, res, {
+      headers: {
+        'X-Accel-Buffering': 'no',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      },
+      retry: 1000
     });
 
-    // Store client connection
-    const client: SSEClient = {
-      id: clientId,
-      response: res,
-      connectedAt: new Date()
-    };
-    sseClients.set(clientId, client);
+    // Store session
+    sseSessions.set(clientId, session);
 
     // Send initial connection event
-    sendSSEMessage(res, 'connected', {
+    session.push({
       clientId,
       timestamp: new Date().toISOString(),
       message: 'Successfully connected to event stream'
-    });
+    }, 'connected');
 
-    // Send keep-alive ping every 5 seconds
-    // Due to unknown reasons, sometimes on my computer the mcp-server has a 30s (previously = keep-alive interval) delay and then receive a ton of messages
-    // Change to 5 secs to see how it goes!
+    // Set up keep-alive pings every 5 seconds
     const keepAlive = setInterval(() => {
-      if (!res.destroyed) {
-        sendSSEMessage(res, 'ping', { timestamp: new Date().toISOString() });
+      if (session.isConnected) {
+        session.push({ timestamp: new Date().toISOString() }, 'ping');
       } else {
         clearInterval(keepAlive);
       }
     }, 5000);
 
-    // Handle client disconnect
-    req.on('close', () => {
+    // Handle session disconnect
+    session.on('disconnected', () => {
       logger.info(`SSE client disconnected: ${clientId}`);
-      sseClients.delete(clientId);
+      sseSessions.delete(clientId);
       clearInterval(keepAlive);
     });
 
-    req.on('error', (error) => {
-      logger.error(`SSE client error: ${clientId}`, error);
-      sseClients.delete(clientId);
-      clearInterval(keepAlive);
-    });
   } catch (error) {
     logger.error('Error establishing SSE connection:', error);
     // If headers not sent yet, send error response
@@ -87,39 +76,25 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 /**
- * Send SSE message to a specific response
- */
-function sendSSEMessage(res: Response, event: string, data: any): void {
-  try {
-    if (!res.destroyed) {
-      res.write(`event: ${event}\n`);
-      res.write(`data: ${JSON.stringify(data)}\n\n`);
-    }
-  } catch (error) {
-    logger.error('Error sending SSE message:', error);
-  }
-}
-
-/**
  * Broadcast event to all connected SSE clients
  */
 function broadcastEvent(gameEvent: GameEvent): void {
-  logger.debug(`Broadcasting event to ${sseClients.size} clients: ${gameEvent.type}`);
-  
+  logger.debug(`Broadcasting event to ${sseSessions.size} clients: ${gameEvent.type}`);
+
   const disconnectedClients: string[] = [];
-  
-  for (const [clientId, client] of sseClients) {
+
+  for (const [clientId, session] of sseSessions) {
     try {
-      if (client.response.destroyed) {
+      if (!session.isConnected) {
         disconnectedClients.push(clientId);
       } else {
-        sendSSEMessage(client.response, "message", {
+        session.push({
           id: gameEvent.id,
           type: gameEvent.type,
           payload: gameEvent.payload,
           extraPayload: gameEvent.extraPayload,
           visibility: gameEvent.visibility,
-        });
+        }, 'message');
       }
     } catch (error) {
       logger.error(`Error broadcasting to client ${clientId}:`, error);
@@ -129,7 +104,7 @@ function broadcastEvent(gameEvent: GameEvent): void {
 
   // Clean up disconnected clients
   for (const clientId of disconnectedClients) {
-    sseClients.delete(clientId);
+    sseSessions.delete(clientId);
   }
 }
 
@@ -141,8 +116,8 @@ export function getSSEStats(): {
   clientIds: string[];
 } {
   return {
-    activeClients: sseClients.size,
-    clientIds: Array.from(sseClients.keys())
+    activeClients: sseSessions.size,
+    clientIds: Array.from(sseSessions.keys())
   };
 }
 
