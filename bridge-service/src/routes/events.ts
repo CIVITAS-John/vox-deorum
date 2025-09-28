@@ -49,14 +49,16 @@ router.get('/', (req: Request, res: Response) => {
       message: 'Successfully connected to event stream'
     });
 
-    // Send keep-alive ping every 30 seconds
+    // Send keep-alive ping every 5 seconds
+    // Due to unknown reasons, sometimes on my computer the mcp-server has a 30s (previously = keep-alive interval) delay and then receive a ton of messages
+    // Change to 5 secs to see how it goes!
     const keepAlive = setInterval(() => {
       if (!res.destroyed) {
         sendSSEMessage(res, 'ping', { timestamp: new Date().toISOString() });
       } else {
         clearInterval(keepAlive);
       }
-    }, 30000);
+    }, 5000);
 
     // Handle client disconnect
     req.on('close', () => {

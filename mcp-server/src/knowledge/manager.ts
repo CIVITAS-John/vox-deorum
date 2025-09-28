@@ -33,7 +33,7 @@ export class KnowledgeManager {
       this.checkGameContext();
     });
     bridgeManager.on('gameEvent', async (data) => {
-      logger.debug(`Game event received: ${data.id} of ${data.type}`, data);
+      logger.debug(`Game event received: ${data.id ?? "unknown"} of ${data.type}`, data);
       if (data.type == "dll_status") {
         if (data.payload.connected === true) {
           // Change the status

@@ -193,7 +193,7 @@ export class BridgeManager extends EventEmitter {
           this.queueOverflowing = false;
         }
         if (batch.length === 0) {
-          await sleep(50);
+          await sleep(20);
           return;
         }
         logger.info(`Batch executing ${batch.length} Lua calls, ${this.luaCallQueue.length} remaining...`);

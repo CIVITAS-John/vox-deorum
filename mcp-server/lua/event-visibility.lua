@@ -282,7 +282,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
       addCity(value, 2, key)
     end
   end
-  return {visibilityFlags, extraPayloads}
+  return visibilityFlags, extraPayloads
 end)
 
 return true
