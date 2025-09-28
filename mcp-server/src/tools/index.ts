@@ -35,12 +35,12 @@ const toolFactories = {
     getMetadata: createGetMetadataTool,
     setMetadata: createSetMetadataTool,
     summarizeUnits: createSummarizeUnitsTool,
+    getOptions: createGetOptionsTool,
     setStrategy: createSetStrategyTool,
     setPersona: createSetPersonaTool,
+    keepStatusQuo: createKeepStatusQuoTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
-    keepStatusQuo: createKeepStatusQuoTool,
-    getOptions: createGetOptionsTool,
 } as const;
 
 // Type for the tools object (inferred from factories)

@@ -21,6 +21,12 @@ Each component has its own README with setup instructions and CLAUDE.md with dev
    - Debug logs: `clang-output/Debug/build.log`
    - See `civ5-dll/CLAUDE.md` for C++ patterns and IPC protocol
 
+   **Exposing Lua APIs:**
+   - Add method declarations in `Lua/CvLuaPlayer.h` as static methods
+   - Implement methods in `Lua/CvLuaPlayer.cpp` with `lMethodName` naming
+   - Register methods using `Method(MethodName)` macro in CvLuaPlayer.cpp constructor area
+   - For serialized data, update `Serialize()`, constructor, and `Reset()` in the relevant class
+
 2. **Bridge Service** (`bridge-service/`) - IPC bridge between DLL and services
    - REST API + SSE for real-time events
    - Follow `protocol.md` for cross-module communication

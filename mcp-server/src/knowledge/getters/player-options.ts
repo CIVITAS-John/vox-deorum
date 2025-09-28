@@ -22,6 +22,7 @@ const luaFunc = LuaFunction.fromFile(
  * Convert numeric strategy IDs to localized names
  */
 function convertStrategiesToNames(strategies: number[]): string[] {
+  if (!Array.isArray(strategies)) return [];
   return strategies
     .map(id => retrieveEnumName("EconomicStrategy", id) || retrieveEnumName("MilitaryStrategy", id))
     .filter(name => name !== undefined) as string[];
@@ -31,6 +32,7 @@ function convertStrategiesToNames(strategies: number[]): string[] {
  * Convert numeric technology IDs to localized names
  */
 function convertTechnologiesToNames(technologies: number[]): string[] {
+  if (!Array.isArray(technologies)) return [];
   return technologies
     .map(id => retrieveEnumName("TechID", id))
     .filter(name => name !== undefined) as string[];
@@ -40,6 +42,7 @@ function convertTechnologiesToNames(technologies: number[]): string[] {
  * Convert numeric policy IDs to localized names
  */
 function convertPoliciesToNames(policies: number[]): string[] {
+  if (!Array.isArray(policies)) return [];
   return policies
     .map(id => retrieveEnumName("PolicyID", id))
     .filter(name => name !== undefined) as string[];
@@ -49,6 +52,7 @@ function convertPoliciesToNames(policies: number[]): string[] {
  * Convert numeric policy branch IDs to localized names
  */
 function convertPolicyBranchesToNames(branches: number[]): string[] {
+  if (!Array.isArray(branches)) return [];
   return branches
     .map(id => retrieveEnumName("BranchType", id))
     .filter(name => name !== undefined) as string[];
@@ -70,11 +74,11 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
   const processedResults = response.result.map((options: any) => {
     return {
       Key: options.Key,
-      EconomicStrategies: convertStrategiesToNames(options.EconomicStrategies || []),
-      MilitaryStrategies: convertStrategiesToNames(options.MilitaryStrategies || []),
-      Technologies: convertTechnologiesToNames(options.Technologies || []),
-      Policies: convertPoliciesToNames(options.Policies || []),
-      PolicyBranches: convertPolicyBranchesToNames(options.PolicyBranches || [])
+      EconomicStrategies: convertStrategiesToNames(options.EconomicStrategies),
+      MilitaryStrategies: convertStrategiesToNames(options.MilitaryStrategies),
+      Technologies: convertTechnologiesToNames(options.Technologies),
+      Policies: convertPoliciesToNames(options.Policies),
+      PolicyBranches: convertPolicyBranchesToNames(options.PolicyBranches)
     };
   });
 
