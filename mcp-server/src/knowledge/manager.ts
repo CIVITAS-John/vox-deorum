@@ -42,7 +42,7 @@ export class KnowledgeManager {
           MCPServer.getInstance().sendNotification("DLLDisconnected", -1, -1, -1);
         }
       } else if (this.knowledgeStore) {
-        await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload?.args);
+        await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload);
       }
     });
     this.startAutoSave();

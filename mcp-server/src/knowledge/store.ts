@@ -31,9 +31,6 @@ import { getPlayerSummaries } from './getters/player-summary.js';
 
 const logger = createLogger('KnowledgeStore');
 
-// List of event types to block from being stored
-const blockedEventTypes = new Set<string>([]);
-
 // List of event types renamed for better understanding
 const renamedEventTypes: Record<string, string> = {
   "PlayerBuilt": "UnitBuildStart",
@@ -158,21 +155,10 @@ export class KnowledgeStore {
   /**
    * Handle incoming game events by validating against schemas
    */
-  async handleGameEvent(id: number, type: string, payload: unknown): Promise<void> {
+  async handleGameEvent(id: number, type: string, payload: Record<string, any>): Promise<void> {
     try {
-      if (blockedEventTypes.has(type)) {
-        // logger.debug(`Blocked event type: ${type}`);
-        return;
-      }
-
-      // Check if the payload is an array (it should be an array from the DLL)
-      if (!Array.isArray(payload)) {
-        logger.warn(`Invalid ${type} event payload: not an array`);
-        return;
-      }
-
       // Special block: TileRevealed for minor civs
-      if (type == "TileRevealed" && payload[5] >= MaxMajorCivs)
+      if (type == "TileRevealed" && payload["PlayerID"] >= MaxMajorCivs)
         return;
 
       // Check if we have a schema for this event type
@@ -193,59 +179,12 @@ export class KnowledgeStore {
       // Get the corresponding schema
       const schema = eventSchemas[type as EventName];
 
-      // Get the schema shape to map payload array to object
-      // We need to get the field names from the schema
-      const schemaShape = schema._def.shape() as Record<string, any>;
-      const fieldNames = Object.keys(schemaShape);
-
-      // Create an object from the payload array
-      const eventObject: Record<string, unknown> = {};
-      let payloadIndex = 0;
-      
-      // Process each field in the schema
-      for (const fieldName of fieldNames) {
-        const fieldSchema = schemaShape[fieldName];
-        
-        // Check if this field is an array of objects
-        if (fieldSchema._def.typeName === 'ZodArray' && 
-            fieldSchema._def.type._def.typeName === 'ZodObject') {
-          // The current payload index should contain the count
-          const itemCount = payload[payloadIndex] as number;
-          payloadIndex++;
-          
-          // Get the nested object's field names
-          const nestedShape = fieldSchema._def.type._def.shape();
-          const nestedFieldNames = Object.keys(nestedShape);
-          
-          // Parse each item in the array
-          const items: Array<Record<string, unknown>> = [];
-          for (let i = 0; i < itemCount; i++) {
-            const item: Record<string, unknown> = {};
-            for (const nestedFieldName of nestedFieldNames) {
-              if (payloadIndex < payload.length) {
-                item[nestedFieldName] = payload[payloadIndex];
-                payloadIndex++;
-              }
-            }
-            items.push(item);
-          }
-          
-          eventObject[fieldName] = items;
-        } else {
-          // Simple field mapping
-          if (payloadIndex < payload.length) {
-            eventObject[fieldName] = payload[payloadIndex];
-            payloadIndex++;
-          }
-        }
-      }
-
       // Other blocking reasons
-      if (eventObject["PlotX"] == -2147483647 || eventObject["PlotY"] == -2147483647) return;
-      if (eventObject["OldPopulation"] && eventObject["OldPopulation"] == eventObject["NewPopulation"]) return;
+      if (payload["PlotX"] == -2147483647 || payload["PlotY"] == -2147483647) return;
+      if (payload["OldPopulation"] && payload["OldPopulation"] == payload["NewPopulation"]) return;
 
       // Validate the event object against the schema
-      const result = schema.safeParse(eventObject);
+      const result = schema.safeParse(payload);
 
       if (result.success) {
         const data: any = result.data;
@@ -282,8 +221,7 @@ export class KnowledgeStore {
       } else {
         logger.warn(`Invalid ${type} event:`, {
           errors: result.error.errors,
-          payload,
-          eventObject
+          payload
         });
       }
     } catch (error) {
