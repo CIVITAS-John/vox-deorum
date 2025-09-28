@@ -6,7 +6,7 @@ import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger.js';
 import { dllConnector } from '../services/dll-connector.js';
-import { GameEvent, SSEClient } from '../types/event.js';
+import { GameEvent, GameEventMessage, SSEClient } from '../types/event.js';
 import { respondError } from '../types/api.js';
 import { gameMutexManager } from '../utils/mutex.js';
 
@@ -146,7 +146,7 @@ export function getSSEStats(): {
 }
 
 // Listen for game events from DLL and broadcast to SSE clients
-dllConnector.on('game_event', (eventData: any) => {
+dllConnector.on('game_event', (eventData: GameEventMessage) => {
   // Handle player turn events for auto-pause functionality
   if (eventData.event === 'PlayerDoTurn' && eventData.payload?.args) {
     const playerId = eventData.payload.args[0];
@@ -162,7 +162,13 @@ dllConnector.on('game_event', (eventData: any) => {
     }
   }
 
-  broadcastEvent(eventData);
+  broadcastEvent({
+    type: eventData.event,
+    id: eventData.id,
+    payload: eventData.payload,
+    extraPayload: eventData.extraPayload,
+    visibility: eventData.visibility
+  });
 });
 
 // Send connection status events when DLL connects/disconnects

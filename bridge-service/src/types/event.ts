@@ -30,6 +30,8 @@ export interface GameEventMessage extends IPCMessage {
   id?: number;
   event: string;
   payload: any;
+  extraPayload?: Record<string, any>;
+  visibility?: number[];
 }
 
 /**
