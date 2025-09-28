@@ -2,16 +2,16 @@
  * Tool for recording the decision to maintain current strategic direction
  */
 
-import { ToolBase } from "../base.js";
+import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
- * Tool that records the decision to keep the status quo without changing game state
+ * Tool that refreshes the current strategies and records the decision to keep the status quo
  */
-class KeepStatusQuoTool extends ToolBase {
+class KeepStatusQuoTool extends LuaFunctionTool {
   /**
    * Unique identifier for the keep-status-quo tool
    */
@@ -31,9 +31,14 @@ class KeepStatusQuoTool extends ToolBase {
   });
 
   /**
-   * Output schema for the tool
+   * Result schema - always true unless execution failed
    */
-  readonly outputSchema = z.boolean();
+  protected resultSchema = z.boolean();
+
+  /**
+   * The Lua function arguments
+   */
+  protected arguments = ["playerID"];
 
   /**
    * Optional annotations for the Lua executor tool
@@ -44,22 +49,51 @@ class KeepStatusQuoTool extends ToolBase {
   }
 
   /**
+   * The Lua script to execute - refreshes current strategies by reading and re-applying them
+   */
+  protected script = `
+    local activePlayer = Players[playerID]
+
+    -- Get current strategies
+    local currentGrand = activePlayer:GetGrandStrategy()
+    local currentEconomic = activePlayer:GetEconomicStrategies()
+    local currentMilitary = activePlayer:GetMilitaryStrategies()
+
+    -- Re-apply the same strategies to refresh them
+    activePlayer:SetGrandStrategy(currentGrand)
+    activePlayer:SetEconomicStrategies(currentEconomic)
+    activePlayer:SetMilitaryStrategies(currentMilitary)
+
+    return true
+  `;
+
+  /**
    * Execute the keep-status-quo command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    const store = knowledgeManager.getStore();
-    const previous = await store.getMutableKnowledge("StrategyChanges", args.PlayerID);
-    await store.storeMutableKnowledge(
-      'StrategyChanges',
-      args.PlayerID,
-      {
-        GrandStrategy: previous?.GrandStrategy,
-        MilitaryStrategies: previous?.MilitaryStrategies ?? [],
-        EconomicStrategies: previous?.EconomicStrategies ?? [],
-        Rationale: args.Rationale
-      }
-    );
-    return true;
+    // Call the Lua function to refresh strategies
+    const result = await super.call(args.PlayerID);
+
+    if (result.Success) {
+      const store = knowledgeManager.getStore();
+
+      // Get the current strategies from the knowledge store
+      const previous = await store.getMutableKnowledge("StrategyChanges", args.PlayerID);
+
+      // Store the strategy (always) with the rationale
+      await store.storeMutableKnowledge(
+        'StrategyChanges',
+        args.PlayerID,
+        {
+          GrandStrategy: previous?.GrandStrategy,
+          MilitaryStrategies: previous?.MilitaryStrategies ?? [],
+          EconomicStrategies: previous?.EconomicStrategies ?? [],
+          Rationale: args.Rationale
+        }
+      );
+    }
+
+    return result;
   }
 }
 

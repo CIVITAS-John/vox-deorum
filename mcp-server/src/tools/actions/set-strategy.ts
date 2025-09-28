@@ -14,16 +14,16 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
  */
 class SetStrategyTool extends LuaFunctionTool {
   name = "set-strategy";
-  description = "Set a player's in-game strategy. Inputs must match exact values in the provided schema.";
+  description = "Set a player's in-game strategy. Inputs must match exact values in the provided options.";
 
   /**
    * Input schema for the set-strategy tool
    */
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
-    GrandStrategy: z.nativeEnum(enumMappings["GrandStrategy"]).optional().describe("The grand strategy type to optionally set (and override)"),
-    EconomicStrategies: z.array(z.nativeEnum(enumMappings["EconomicStrategy"])).optional().describe("The economic strategy types to optionally set (and override)"),
-    MilitaryStrategies: z.array(z.nativeEnum(enumMappings["MilitaryStrategy"])).optional().describe("The military strategy types to optionally set (and override)"),
+    GrandStrategy: z.nativeEnum(enumMappings["GrandStrategy"]).optional().describe("The grand strategy type to set (and override)"),
+    EconomicStrategies: z.array(z.string()).optional().describe("The economic strategy types to set (and override)"),
+    MilitaryStrategies: z.array(z.string()).optional().describe("The military strategy types to set (and override)"),
     Rationale: z.string().describe("Explain your rationale behind choosing this strategy set")
   });
 
@@ -85,8 +85,10 @@ class SetStrategyTool extends LuaFunctionTool {
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Find the strategy ID from the string name
     let grandStrategy = retrieveEnumValue("GrandStrategy", args.GrandStrategy)
-    let economicStrategies = args.EconomicStrategies?.map(s => retrieveEnumValue("EconomicStrategy", s));
-    let militaryStrategies = args.MilitaryStrategies?.map(s => retrieveEnumValue("MilitaryStrategy", s));
+    let economicStrategies = args.EconomicStrategies?.
+      map(s => retrieveEnumValue("EconomicStrategy", s)).filter(s => s !== -1);
+    let militaryStrategies = args.MilitaryStrategies?.
+      map(s => retrieveEnumValue("MilitaryStrategy", s)).filter(s => s !== -1);
 
     // Call the parent execute with the strategy ID
     var result = await super.call(args.PlayerID, grandStrategy, economicStrategies, militaryStrategies);

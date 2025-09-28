@@ -34,20 +34,17 @@ You can interact with multiple tools at a time. Used tools will be removed from 
 Your goal is to **use tools** and make high-level decisions for the in-game AI. 
 - You can change the in-game AI's diplomatic strategy by calling the \`set-persona\` tool.
 - You can set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
-  - The in-game AI can only execute the tool's provided options. Double check if your choices match.
   - This operation finishes the decision-making loop. If you need to take other actions, do them before.
   - You don't have to make a change. The tool \`keep-status-quo\` also finishes the decision-making loop.
 - Always provide a rationale for each decision. You will be able to read the rationale next turn.
 
 # Resources
 You will receive the following reports:
-- Players: summary reports about visible players in the world. Also:
-  - You will receive in-game AI's diplomatic evaluations.
-  - You will receive the strategy, persona, and rationales you set last time.
-  - You will receive each player's publicly available relationships.
+- Players: summary reports about visible players in the world.
 - Cities: summary reports about discovered cities in the world.
 - Units: summary reports about visible units.
 - Events: events since you last made a decision.
+- Options: available strategic options for you. 
 You have tool access to the game's database to learn more about game rules.
 `.trim()
   }
@@ -71,16 +68,29 @@ ${parameters.store!.metadata}`.trim()
 You are making strategic decisions after turn ${parameters.turn} has been executed.
 
 # Players
+Players: summary reports about visible players in the world. Also:
+- You will receive in-game AI's diplomatic evaluations.
+- You will receive the strategy, persona, and rationales you set last time.
+- You will receive each player's publicly available relationships.
 ${parameters.store!.players}
 
 # Cities
+Cities: summary reports about discovered cities in the world.
 ${parameters.store!.cities}
 
 # Units
+Units: summary reports about visible units.
 ${parameters.store!.units}
 
 # Events
+Events: events since you last made a decision.
 ${parameters.store!.events}
+
+# Options
+Options: available strategic options for you. 
+- Whatever decision-making tool you call, the in-game AI can only execute options here. 
+- You must choose options from the relevant lists. Double check if your choices match.
+${parameters.store!.options}
 `.trim()
     }];
   }
