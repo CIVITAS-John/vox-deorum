@@ -201,7 +201,7 @@ export class KnowledgeStore {
         const mappedType = renamedEventTypes[type] ?? type;
         // Postprocess the event
         if (extraPayload)
-          Object.assign(payload, extraPayload);
+          Object.assign(data, extraPayload);
         
         // Store the event
         await this.storeGameEvent(id, mappedType, data, visibilityFlags);
