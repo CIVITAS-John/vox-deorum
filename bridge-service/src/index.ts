@@ -24,6 +24,11 @@ const app = express();
 /**
  * Middleware setup
  */
+app.use(function(req, _res, next) {
+  req.socket.setNoDelay(true);
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {

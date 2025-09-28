@@ -23,6 +23,12 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
   const app = express();
   const httpServer = createServer(app);
 
+  // Disable nagles
+  app.use(function(req, _res, next) {
+    req.socket.setNoDelay(true);
+    next();
+  });
+
   // Configure CORS
   app.use(cors({
     origin: config.transport.cors?.origin || '*',

@@ -97,14 +97,14 @@ export class MCPClient {
           // Include connection errors and server unavailable statuses
           errorCodes: [
             'ECONNRESET',
-            'ECONNREFUSED',      // Connection refused - server not yet running
+            'ECONNREFUSED',
             'ENOTFOUND',
             'ENETDOWN',
             'ENETUNREACH',
             'EHOSTDOWN',
             'EHOSTUNREACH',
             'EPIPE',
-            'ETIMEDOUT'          // Add timeout errors
+            'ETIMEDOUT'
           ],
           statusCodes: [500, 502, 503, 504, 429],  // Standard retry status codes
           methods: ['GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE']  // Include POST
@@ -113,12 +113,6 @@ export class MCPClient {
       // Global pooling for HTTP requests
       const mcpUrl = new URL(transportConfig.endpoint!);
       this.transport = new StreamableHTTPClientTransport(mcpUrl, {
-        reconnectionOptions: {
-          maxReconnectionDelay: 2000,
-          initialReconnectionDelay: 200,
-          reconnectionDelayGrowFactor: 2,
-          maxRetries: 1000
-        },
         fetch: (url, init) => {
           init = init ?? {};
           init.dispatcher = this.dispatcher;
@@ -187,7 +181,9 @@ export class MCPClient {
     if (this.isConnected) return;
     try {
       logger.info('Connecting to MCP server...');
-      await this.client.connect(this.transport);
+      await this.client.connect(this.transport, {
+        timeout: 3600000 // 60 minutes retry to MCP server
+      });
       this.isConnected = true;
       logger.info('Successfully connected to MCP server');
     } catch (error) {

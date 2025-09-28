@@ -10,6 +10,7 @@ import { config } from '../utils/config.js';
 import { LuaFunction } from './lua-function.js';
 import { HttpClient, HttpError } from './http-client.js';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { fetch } from 'undici';
 
 const logger = createLogger('BridgeManager');
 
@@ -310,7 +311,9 @@ export class BridgeManager extends EventEmitter {
 
     try {
       logger.info('Connecting to SSE stream');
-      this.sseConnection = new EventSource(`${this.baseUrl}/events`);
+      this.sseConnection = new EventSource(`${this.baseUrl}/events`, {
+        fetch
+      });
 
       this.sseConnection.onopen = () => {
         logger.info('SSE connection established');
