@@ -146,11 +146,6 @@ export class VoxContext<TParameters extends AgentParameters> {
       observation.update({
         input: parameters
       });
-      observation.updateTrace({
-        sessionId: parameters.gameID ?? "unknown",
-        environment: agentName,
-        version: config.versionInfo?.version || "unknown"
-      });
       try {
         // Dynamically create agent tools for handoff capability
         let allTools = { ...this.tools };

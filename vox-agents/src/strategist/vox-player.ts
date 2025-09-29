@@ -1,5 +1,5 @@
 import { VoxContext } from "../infra/vox-context.js";
-import { startActiveObservation } from "@langfuse/tracing";
+import { startActiveObservation, updateActiveTrace } from "@langfuse/tracing";
 import { StrategistParameters } from "./strategist.js";
 import { createLogger } from "../utils/logger.js";
 import { getModelConfig } from "../utils/models/models.js";
@@ -74,7 +74,7 @@ export class VoxPlayer {
             turns: this.parameters.turn,
           }
         });
-        observation.updateTrace({
+        updateActiveTrace({
           input: {
             playerID: this.playerID,
             gameID: this.parameters.gameID,
@@ -87,7 +87,7 @@ export class VoxPlayer {
           sessionId: this.parameters.gameID ?? "Unknown",
           environment: this.strategistType,
           version: config.versionInfo?.version || "unknown"
-        });
+        })
         await langfuseSpanProcessor.forceFlush();
 
         try {
@@ -139,7 +139,7 @@ export class VoxPlayer {
                   turns: this.parameters.turn,
                 }
               });
-              observation.updateTrace({
+              updateActiveTrace({
                 output: {
                   completed: false,
                   turns: this.parameters.turn,

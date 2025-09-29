@@ -39,9 +39,6 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
         observation.update({
           input: input
         });
-        observation.updateTrace({
-          sessionId: baseParameters.gameID ?? "unknown",
-        });
         try {
           let parameters = baseParameters;
           let currentAgent = parameters.running;
@@ -124,9 +121,6 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         // Log inputs
         observation.update({
           input: args
-        });
-        observation.updateTrace({
-          sessionId: (options.experimental_context as any).gameID ?? "unknown",
         });
         logger.info(`Calling tool ${tool.name}...`, args);
 
