@@ -67,37 +67,6 @@ export interface PlayerSummary extends MutableKnowledge {
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)
 }
 
-
-/**
- * Player economics report (visible to self/espionage reasons)
- */
-export interface PlayerEconomics extends MutableKnowledge {
-}
-
-/**
- * Player science report (visible to self/espionage reasons)
- */
-export interface PlayerScience extends MutableKnowledge {
-}
-
-/**
- * Player culture report (visible to self/espionage reasons)
- */
-export interface PlayerCulture extends MutableKnowledge {
-}
-
-/**
- * Player military report (visible to self/espionage reasons)
- */
-export interface PlayerMilitary extends MutableKnowledge {
-}
-
-/**
- * Player diplomacy report (visible to self/espionage reasons)
- */
-export interface PlayerDiplomacy extends MutableKnowledge {
-}
-
 /**
  * Player strategic options (technologies, policies, and strategies)
  * Visible only to the player themselves (self-knowledge)

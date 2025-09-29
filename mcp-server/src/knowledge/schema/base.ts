@@ -10,11 +10,6 @@ import {
   PolicyChange,
   ResearchChange,
   PlayerSummary,
-  PlayerEconomics,
-  PlayerScience,
-  PlayerCulture,
-  PlayerMilitary,
-  PlayerDiplomacy,
   PlayerOpinions,
   CityInformation,
   PersonaChange,
@@ -111,11 +106,6 @@ export interface KnowledgeDatabase {
   PlayerOptions: PlayerOptions;
   // Mutable Knowledge
   PlayerSummaries: PlayerSummary;
-  PlayerEconomics: PlayerEconomics;
-  PlayerSciences: PlayerScience;
-  PlayerCultures: PlayerCulture;
-  PlayerMilitaries: PlayerMilitary;
-  PlayerDiplomacies: PlayerDiplomacy;
   PlayerOpinions: PlayerOpinions;
   CityInformations: CityInformation;
   PersonaChanges: PersonaChange;
