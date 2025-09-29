@@ -3,7 +3,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { createSession, Session } from 'better-sse';
+import { createSession, createChannel, createEventBuffer, EventBuffer } from 'better-sse';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger.js';
 import { dllConnector } from '../services/dll-connector.js';
@@ -14,8 +14,17 @@ import { pauseManager } from '../services/pause-manager.js';
 const logger = createLogger('EventRoutes');
 const router = Router();
 
-// Store active SSE sessions
-const sseSessions: Map<string, Session> = new Map();
+// Create a channel for broadcasting events to all connected clients
+const eventChannel = createChannel();
+
+// Batching configuration
+const BATCH_TIMEOUT_MS = 50; // Flush buffer every 50ms
+const BATCH_SIZE_LIMIT = 10;  // Flush buffer when reaching 10 events
+
+// Event buffer management
+let eventBuffer: EventBuffer | null = null;
+let flushTimer: NodeJS.Timeout | null = null;
+let eventCount = 0;
 
 /**
  * GET /events - Server-Sent Events endpoint for game events
@@ -36,8 +45,8 @@ router.get('/', async (req: Request, res: Response) => {
       retry: 1000
     });
 
-    // Store session
-    sseSessions.set(clientId, session);
+    // Register session with the channel
+    eventChannel.register(session);
 
     // Send initial connection event
     session.push({
@@ -58,8 +67,8 @@ router.get('/', async (req: Request, res: Response) => {
     // Handle session disconnect
     session.on('disconnected', () => {
       logger.info(`SSE client disconnected: ${clientId}`);
-      sseSessions.delete(clientId);
       clearInterval(keepAlive);
+      // Channel automatically handles session cleanup
     });
 
   } catch (error) {
@@ -76,35 +85,71 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 /**
- * Broadcast event to all connected SSE clients
+ * Flush the event buffer to all connected clients
  */
-function broadcastEvent(gameEvent: GameEvent): void {
-  logger.debug(`Broadcasting event to ${sseSessions.size} clients: ${gameEvent.type}`);
+function flushEventBuffer(): void {
+  if (!eventBuffer || eventCount === 0) return;
 
-  const disconnectedClients: string[] = [];
+  // Reset buffer and counter
+  const buffer = eventBuffer;
+  eventBuffer = createEventBuffer();
+  eventCount = 0;
 
-  for (const [clientId, session] of sseSessions) {
-    try {
-      if (!session.isConnected) {
-        disconnectedClients.push(clientId);
-      } else {
-        session.push({
-          id: gameEvent.id,
-          type: gameEvent.type,
-          payload: gameEvent.payload,
-          extraPayload: gameEvent.extraPayload,
-          visibility: gameEvent.visibility,
-        }, 'message');
-      }
-    } catch (error) {
-      logger.error(`Error broadcasting to client ${clientId}:`, error);
-      disconnectedClients.push(clientId);
-    }
+  // Clear the flush timer
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
   }
 
-  // Clean up disconnected clients
-  for (const clientId of disconnectedClients) {
-    sseSessions.delete(clientId);
+  // Send the events
+  try {
+    eventChannel.activeSessions.map(session => session.batch(buffer));
+    logger.debug(`Flushed ${eventCount} events to ${eventChannel.sessionCount} clients`);
+  } catch (error) {
+    logger.error('Error flushing event buffer:', error);
+  }
+}
+
+/**
+ * Schedule a flush based on timeout
+ */
+function scheduleFlush(): void {
+  if (!flushTimer) {
+    flushTimer = setTimeout(() => {
+      flushEventBuffer();
+    }, BATCH_TIMEOUT_MS);
+  }
+}
+
+/**
+ * Broadcast event to all connected SSE clients
+ * @param gameEvent The event to broadcast
+ * @param critical If true, flush the buffer immediately after adding this event
+ */
+function broadcastEvent(gameEvent: GameEvent, critical: boolean = false): void {
+  logger.debug(`Broadcasting event to ${eventChannel.sessionCount} clients: ${gameEvent.type}${critical ? ' (critical)' : ''}`);
+
+  // Initialize buffer if needed
+  if (!eventBuffer) {
+    eventBuffer = createEventBuffer();
+  }
+
+  // Add event to buffer
+  eventBuffer.push({
+    id: gameEvent.id,
+    type: gameEvent.type,
+    payload: gameEvent.payload,
+    extraPayload: gameEvent.extraPayload,
+    visibility: gameEvent.visibility,
+  }, 'message');
+
+  eventCount++;
+
+  // Determine if we should flush
+  if (critical || eventCount >= BATCH_SIZE_LIMIT) {
+    flushEventBuffer();
+  } else {
+    scheduleFlush();
   }
 }
 
@@ -113,11 +158,9 @@ function broadcastEvent(gameEvent: GameEvent): void {
  */
 export function getSSEStats(): {
   activeClients: number;
-  clientIds: string[];
 } {
   return {
-    activeClients: sseSessions.size,
-    clientIds: Array.from(sseSessions.keys())
+    activeClients: eventChannel.sessionCount
   };
 }
 
@@ -153,7 +196,7 @@ dllConnector.on('connected', () => {
     type: 'dll_status',
     payload: { connected: true }
   };
-  broadcastEvent(statusEvent);
+  broadcastEvent(statusEvent, true); // Critical event
 });
 
 dllConnector.on('disconnected', () => {
@@ -161,7 +204,7 @@ dllConnector.on('disconnected', () => {
     type: 'dll_status',
     payload: { connected: false }
   };
-  broadcastEvent(statusEvent);
+  broadcastEvent(statusEvent, true); // Critical event
   pauseManager.clearPausedPlayers();
 });
 

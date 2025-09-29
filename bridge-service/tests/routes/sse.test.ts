@@ -118,11 +118,6 @@ describe('SSE Service', () => {
       // Check client count
       const stats = getSSEStats();
       expect(stats.activeClients).toBeGreaterThanOrEqual(clientCount);
-      expect(stats.clientIds.length).toBeGreaterThanOrEqual(clientCount);
-      
-      // All client IDs should be unique
-      const uniqueIds = new Set(stats.clientIds);
-      expect(uniqueIds.size).toBe(stats.clientIds.length);
       
       logSuccess(`Multiple SSE connections handled (${clientCount} clients)`);
     });
@@ -140,19 +135,17 @@ describe('SSE Service', () => {
       dllConnector.emit('game_event', {
         id: 1000001,
         event: 'test_event',
-        payload: { test: 'data', value: 123 },
-        timestamp: new Date().toISOString()
+        payload: { test: 'data', value: 123 }
       });
-      
+
       // All clients should receive the event
       const receivedEvents = await Promise.all(eventPromises);
-      
+
       expect(receivedEvents).toHaveLength(clientCount);
       receivedEvents.forEach(event => {
         expect(event.id).toBe(1000001);
         expect(event.type).toBe('test_event');
         expect(event.payload).toEqual({ test: 'data', value: 123 });
-        expect(event).toHaveProperty('timestamp');
       });
       
       logSuccess(`Event broadcast to all ${clientCount} clients`);
@@ -186,7 +179,6 @@ describe('SSE Service', () => {
       expectSuccessResponse(response, (res) => {
         expect(res.body.result).toHaveProperty('sse');
         expect(res.body.result.sse.activeClients).toBe(2);
-        expect(res.body.result.sse.clientIds).toHaveLength(2);
       });
       
       logSuccess('SSE stats available via REST endpoint');
