@@ -224,11 +224,13 @@ export class VoxContext<TParameters extends AgentParameters> {
                 },
               });
             }, this.logger);
-            messages = initialMessages.concat(response.response.messages).concat({
-              role: "user",
-              content: "Execute the tool call appropriately with your interim reasoning/generation output."
-            });
-            this.logger.warn(`Agent execution unexpectedly finished: ${agentName}. Resuming ${++retry}/3...`);
+            if (!shouldStop) {
+              messages = initialMessages.concat(response.response.messages).concat({
+                role: "user",
+                content: "Execute the tool call appropriately with your interim reasoning/generation output."
+              });
+              this.logger.warn(`Agent execution unexpectedly finished: ${agentName}. Resuming ${++retry}/3...`);
+            }
           }
 
           this.logger.info(`Agent execution completed: ${agentName}`);
