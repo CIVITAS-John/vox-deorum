@@ -224,7 +224,8 @@ export class VoxContext<TParameters extends AgentParameters> {
                 }
               });
             }, this.logger);
-            if (!shouldStop) {
+            // If we stop unexpectedly, check with the agent again. If not, we should try to resume...
+            if (!shouldStop && (response.steps.length == 0 || !agent.stopCheck(parameters, response.steps[response.steps.length - 1], response.steps, true))) {
               messages = initialMessages.concat(response.response.messages).concat({
                 role: "user",
                 content: "Execute the tool call appropriately with your interim reasoning/generation output. Do not repeat existing calls."

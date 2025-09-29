@@ -104,12 +104,14 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * @param parameters - The execution parameters
    * @param lastStep - The most recent step result
    * @param allSteps - All steps executed so far
+   * @param lastCheck - Whether we are checking after the agent has stopped
    * @returns True if the agent should stop, false to continue
    */
   public stopCheck(
     _parameters: TParameters,
     _lastStep: StepResult<Record<string, Tool>>,
-    _allSteps: StepResult<Record<string, Tool>>[]
+    _allSteps: StepResult<Record<string, Tool>>[],
+    _lastCheck: boolean = false
   ): boolean {
     return _allSteps.length >= 10;
   }

@@ -2,7 +2,7 @@ import type {
   LanguageModelV2Content,
 } from '@ai-sdk/provider';
 import { LanguageModelMiddleware } from 'ai';
-import { createLogger } from '../logger';
+import { createLogger } from '../logger.js';
 
 const logger = createLogger("tool-rescue");
 
@@ -10,6 +10,9 @@ const logger = createLogger("tool-rescue");
  * Rescue tool calls from JSON in text responses and transform them into proper tool calls.
  * Detects when a text response contains valid JSON with tool name and parameters,
  * validates against available tools, and converts to tool-call format.
+ *
+ * Supports both single tool calls and arrays of multiple tool calls.
+ * If multiple tool calls are provided as an array, all must be valid for the rescue to succeed.
  *
  * @param nameField - The JSON field name for the tool name (default: 'name').
  * @param parametersField - The JSON field name for the tool parameters (default: 'parameters').
@@ -49,34 +52,49 @@ export function toolRescueMiddleware({
           continue;
         }
 
-        // Check if it has the required fields
-        const toolName = parsed[nameField];
-        const toolParameters = parsed[parametersField];
+        // Check if it's an array of tool calls
+        const toolCalls = Array.isArray(parsed) ? parsed : [parsed];
+        let allToolCallsValid = true;
+        const rescuedToolCalls: LanguageModelV2Content[] = [];
 
-        if (!toolName || !toolParameters) {
-          logger.log("warn", `Failed to rescue tool call: missing parts`, parsed);
-          // Missing required fields, keep as text
-          transformedContent.push(part);
-          continue;
+        for (const toolCall of toolCalls) {
+          // Check if it has the required fields
+          const toolName = toolCall[nameField];
+          const toolParameters = toolCall[parametersField];
+
+          if (!toolName || !toolParameters) {
+            logger.log("warn", `Failed to rescue tool call: missing parts`, toolCall);
+            // Missing required fields for this tool call
+            allToolCallsValid = false;
+            break;
+          }
+
+          // Check if the tool exists in available tools
+          if (!availableTools.has(toolName)) {
+            logger.log("warn", `Failed to rescue tool call: non-existent tool ${toolName}`, toolParameters);
+            // Tool not available
+            allToolCallsValid = false;
+            break;
+          }
+
+          logger.log("info", `Rescued tool call: ${toolName}`, toolParameters);
+
+          // Transform into a tool call
+          rescuedToolCalls.push({
+            type: 'tool-call',
+            toolCallId: generateId(),
+            toolName: toolName,
+            input: JSON.stringify(toolParameters),
+          });
         }
 
-        // Check if the tool exists in available tools
-        if (!availableTools.has(toolName)) {
-          logger.log("warn", `Failed to rescue tool call: non-existent tool ${toolName}`, toolParameters);
-          // Tool not available, keep as text
+        // Only add the rescued tool calls if all were valid
+        if (allToolCallsValid && rescuedToolCalls.length > 0) {
+          transformedContent.push(...rescuedToolCalls);
+        } else {
+          // Keep as text if any tool call was invalid
           transformedContent.push(part);
-          continue;
         }
-
-        logger.log("info", `Rescued tool call: ${toolName}`, toolParameters);
-
-        // Transform into a tool call
-        transformedContent.push({
-          type: 'tool-call',
-          toolCallId: generateId(),
-          toolName: toolName,
-          input: JSON.stringify(toolParameters),
-        });
       }
 
       return { content: transformedContent, ...rest };

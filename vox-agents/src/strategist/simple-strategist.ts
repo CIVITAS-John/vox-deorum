@@ -122,11 +122,16 @@ ${parameters.store!.events}
   public stopCheck(
     _parameters: StrategistParameters,
     lastStep: StepResult<Record<string, Tool>>,
-    allSteps: StepResult<Record<string, Tool>>[]
+    allSteps: StepResult<Record<string, Tool>>[],
+    lastCheck: boolean
   ): boolean {
     // Stop if we've executed set-strategy tool
     if (lastStep?.toolResults) {
       for (const result of lastStep.toolResults) {
+        if (lastCheck && result.toolName.startsWith("set-")) {
+          this.logger.info("The agent has called non-passive tools, stopping agent");
+          return true;
+        }
         if (result.toolName === "set-strategy" && result.output) {
           this.logger.info("Set-strategy tool executed, stopping agent");
           return true;
