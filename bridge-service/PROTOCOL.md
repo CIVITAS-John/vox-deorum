@@ -253,6 +253,15 @@ The Bridge Service acts as a communication hub using three primary channels:
    }
    ```
 
+3. **Bridge → DLL (Named Pipe)**
+   ```json
+   {"type": "pause_player", "playerID": 2}
+   ```
+
+4. **DLL updates internal pause state**
+   - Adds player ID to m_pausedPlayers set
+   - Message processing will pause when this player becomes active
+
 ##### Unregister Player from Auto-Pause
 
 1. **External service → DELETE /external/pause-player/:id**
@@ -267,6 +276,15 @@ The Bridge Service acts as a communication hub using three primary channels:
      "pausedPlayers": [0, 5]
    }
    ```
+
+3. **Bridge → DLL (Named Pipe)**
+   ```json
+   {"type": "unpause_player", "playerID": 2}
+   ```
+
+4. **DLL updates internal pause state**
+   - Removes player ID from m_pausedPlayers set
+   - Message processing resumes if this was the blocking player
 
 ##### Get Paused Players List
 
@@ -292,6 +310,15 @@ The Bridge Service acts as a communication hub using three primary channels:
      "pausedPlayers": []
    }
    ```
+
+3. **Bridge → DLL (Named Pipe)**
+   ```json
+   {"type": "clear_paused_players"}
+   ```
+
+4. **DLL clears internal pause state**
+   - Clears entire m_pausedPlayers set
+   - Message processing resumes immediately
 
 #### Function Invocation
 
@@ -437,6 +464,23 @@ The Bridge Service automatically handles game pausing based on registered paused
 3. **DLL Disconnection**
    - On disconnect, Bridge clears all paused players
    - Prevents stuck pauses when game restarts
+
+#### DLL Message Processing Pause Behavior
+
+When the DLL receives pause/unpause messages, it maintains an internal set of paused player IDs:
+
+1. **Message Processing Loop**
+   - The DLL's `ProcessMessages()` function checks if any active player is in the paused set
+   - If paused: Blocks the game core thread, sleeping 20ms between checks, but still process messages
+
+2. **Pause Check Logic**
+   - For regular turns: Checks if current player (GetActivePlayer) is paused
+   - For simultaneous turns: Checks if ANY turn-active player is paused
+   - Uses `ShouldPauseGameCore()` utility function for centralized logic
+
+3. **Auto-Clear on Disconnect**
+   - When Named Pipe disconnects, DLL automatically clears m_pausedPlayers set
+   - Ensures game doesn't remain paused if Bridge Service crashes
 
 ## HTTP API Responses
 

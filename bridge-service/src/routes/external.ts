@@ -7,7 +7,7 @@ import { createLogger } from '../utils/logger.js';
 import { handleAPIError } from '../utils/api.js';
 import { externalManager } from '../services/external-manager.js';
 import { ExternalFunctionRegistration } from '../types/external.js';
-import { gameMutexManager, MaxCivs } from '../utils/mutex.js';
+import { pauseManager, MaxCivs } from '../services/pause-manager.js';
 
 const logger = createLogger('ExternalRoutes');
 const router = Router();
@@ -56,7 +56,7 @@ router.get('/functions', async (_req: Request, res: Response) => {
  */
 router.post('/pause', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/external/pause', async () => {
-    const result = gameMutexManager.pauseGame(true); // Mark as external/manual pause
+    const result = pauseManager.pauseGame();
     return {
       success: result
     };
@@ -68,7 +68,7 @@ router.post('/pause', async (_req: Request, res: Response) => {
  */
 router.post('/resume', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/external/resume', async () => {
-    const result = gameMutexManager.resumeGame(true); // Mark as external/manual resume
+    const result = pauseManager.resumeGame();
     return {
       success: result
     };
@@ -88,10 +88,10 @@ router.post('/pause-player/:id', async (req: Request, res: Response) => {
       };
     }
 
-    const result = gameMutexManager.registerPausedPlayer(playerId);
+    const result = pauseManager.registerPausedPlayer(playerId);
     return {
       success: result,
-      pausedPlayers: gameMutexManager.getPausedPlayers()
+      pausedPlayers: pauseManager.getPausedPlayers()
     };
   });
 });
@@ -109,10 +109,10 @@ router.delete('/pause-player/:id', async (req: Request, res: Response) => {
       };
     }
 
-    const result = gameMutexManager.unregisterPausedPlayer(playerId);
+    const result = pauseManager.unregisterPausedPlayer(playerId);
     return {
       success: result,
-      pausedPlayers: gameMutexManager.getPausedPlayers()
+      pausedPlayers: pauseManager.getPausedPlayers()
     };
   });
 });
@@ -124,8 +124,8 @@ router.get('/paused-players', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/external/paused-players', async () => {
     return {
       success: true,
-      pausedPlayers: gameMutexManager.getPausedPlayers(),
-      isGamePaused: gameMutexManager.isGamePaused()
+      pausedPlayers: pauseManager.getPausedPlayers(),
+      isGamePaused: pauseManager.isGamePaused()
     };
   });
 });
@@ -135,7 +135,7 @@ router.get('/paused-players', async (_req: Request, res: Response) => {
  */
 router.delete('/paused-players', async (_req: Request, res: Response) => {
   await handleAPIError(res, '/external/paused-players', async () => {
-    gameMutexManager.clearPausedPlayers();
+    pauseManager.clearPausedPlayers();
     return {
       success: true,
       pausedPlayers: []

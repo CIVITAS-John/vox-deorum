@@ -12,6 +12,13 @@ export interface IPCMessage {
 }
 
 /**
+ * Pause/unpause message structure
+ */
+export interface PauseMessage extends IPCMessage {
+  playerID: number;
+}
+
+/**
  * Game event structure for SSE broadcast
  */
 export interface GameEvent {

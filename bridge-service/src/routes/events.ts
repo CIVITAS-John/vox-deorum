@@ -9,7 +9,7 @@ import { createLogger } from '../utils/logger.js';
 import { dllConnector } from '../services/dll-connector.js';
 import { GameEvent, GameEventMessage } from '../types/event.js';
 import { respondError } from '../types/api.js';
-import { gameMutexManager } from '../utils/mutex.js';
+import { pauseManager } from '../services/pause-manager.js';
 
 const logger = createLogger('EventRoutes');
 const router = Router();
@@ -127,13 +127,13 @@ dllConnector.on('game_event', (eventData: GameEventMessage) => {
   if (eventData.event === 'PlayerDoTurn' && eventData.payload) {
     const playerId = eventData.payload["PlayerID"]
     if (typeof playerId === 'number') {
-      gameMutexManager.setActivePlayer(playerId);
+      pauseManager.setActivePlayer(playerId);
       logger.debug(`Active player changed to ${playerId} (PlayerDoTurn event)`);
     }
   } else if (eventData.event === 'PlayerDoneTurn' && eventData.payload?.args) {
     const nextPlayerId = eventData.payload["NextPlayerID"]
     if (typeof nextPlayerId === 'number') {
-      gameMutexManager.setActivePlayer(nextPlayerId);
+      pauseManager.setActivePlayer(nextPlayerId);
       logger.debug(`Active player changed to ${nextPlayerId} (PlayerDoneTurn event)`);
     }
   }
@@ -162,7 +162,7 @@ dllConnector.on('disconnected', () => {
     payload: { connected: false }
   };
   broadcastEvent(statusEvent);
-  gameMutexManager.clearPausedPlayers();
+  pauseManager.clearPausedPlayers();
 });
 
 export default router;

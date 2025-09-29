@@ -175,9 +175,10 @@ export class VoxContext<TParameters extends AgentParameters> {
           var response;
           var retry = 0;
           var shouldStop = false;
+          var messages = initialMessages;
           // Vercel AI may stop an agent prematurely if no valid tool call is issued.
           // Therefore, we have to make the agent realize that...
-          while (!shouldStop && retry <= 3) {
+          while (!shouldStop && retry < 3) {
             response = await exponentialRetry(async () => {
               return await generateText({
                 // Model settings
@@ -191,7 +192,7 @@ export class VoxContext<TParameters extends AgentParameters> {
                 messages: [{
                   role: "system",
                   content: system
-                }, ...initialMessages],
+                }, ...messages],
                 // Initial tools
                 tools: allTools,
                 activeTools: agent.getActiveTools(parameters),
@@ -223,7 +224,10 @@ export class VoxContext<TParameters extends AgentParameters> {
                 },
               });
             }, this.logger);
-            initialMessages = response.response.messages;
+            messages = initialMessages.concat(response.response.messages).concat({
+              role: "user",
+              content: "Execute the tool call appropriately with your interim reasoning/generation output."
+            });
             this.logger.warn(`Agent execution unexpectedly finished: ${agentName}. Resuming ${++retry}/3...`);
           }
 
