@@ -225,13 +225,17 @@ export class VoxContext<TParameters extends AgentParameters> {
               });
             }, this.logger);
             // If we stop unexpectedly, check with the agent again. If not, we should try to resume...
-            if (!shouldStop && (response.steps.length === 0 || 
-              !agent.stopCheck(parameters, response.steps[response.steps.length - 1], response.steps, true))) {
-              messages = initialMessages.concat(response.response.messages).concat({
-                role: "user",
-                content: "Execute the tool call appropriately with your interim reasoning/generation output. Do not repeat existing calls."
-              });
-              this.logger.warn(`Agent execution unexpectedly finished: ${agentName} with ${response.steps.length} steps. Resuming ${++retry}/3...`);
+            if (!shouldStop) {
+              if (response.steps.length !== 0) {
+                shouldStop = agent.stopCheck(parameters, response.steps[response.steps.length - 1], response.steps, true);
+              }
+              if (!shouldStop) {
+                messages = initialMessages.concat(response.response.messages).concat({
+                  role: "user",
+                  content: "Execute the tool call appropriately with your interim reasoning/generation output. Do not repeat existing calls."
+                });
+                this.logger.warn(`Agent execution unexpectedly finished: ${agentName} with ${response.steps.length} steps. Resuming ${++retry}/3...`);
+              }
             }
           }
 

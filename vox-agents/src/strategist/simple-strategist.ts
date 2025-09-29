@@ -33,8 +33,8 @@ You can interact with multiple tools at a time. Used tools will be removed from 
 # Goals
 Your goal is to **call tools** to make high-level decisions for the in-game AI. Each tool has a list of acceptable options and you must follow them.
 - You can change the in-game AI's diplomatic strategy by calling the \`set-persona\` tool.
-- You can change the in-game AI's NEXT technology to research by calling the \`set-research\` tool.
-- You can change the in-game AI's NEXT policy to adopt by calling the \`set-policy\` tool.
+- You can change the in-game AI's NEXT technology to research (when you finish the ongoing one) by calling the \`set-research\` tool.
+- You can change the in-game AI's NEXT policy to adopt (when you have enough culture) by calling the \`set-policy\` tool.
 - You can set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
   - This operation finishes the decision-making loop. If you need to take other actions, do them before.
   - You don't have to make a change. The tool \`keep-status-quo\` also finishes the decision-making loop.
@@ -121,13 +121,13 @@ ${parameters.store!.events}
    */
   public stopCheck(
     _parameters: StrategistParameters,
-    lastStep: StepResult<Record<string, Tool>>,
+    _lastStep: StepResult<Record<string, Tool>>,
     allSteps: StepResult<Record<string, Tool>>[],
     lastCheck: boolean
   ): boolean {
     // Stop if we've executed set-strategy tool
-    if (lastStep?.toolResults) {
-      for (const result of lastStep.toolResults) {
+    for (var step of allSteps) {
+      for (const result of step.toolResults) {
         if (lastCheck && result.toolName.startsWith("set-")) {
           this.logger.info("The agent has called non-passive tools, stopping agent");
           return true;
