@@ -146,36 +146,6 @@ export async function setupKnowledgeDatabase(
   // Create indexes for PlayerSummaries table
   await createMutableKnowledgeIndexes(db, 'PlayerSummaries');
 
-  // Create PlayerEconomics table (MutableKnowledge implementation)
-  await createMutableKnowledgeTable(db, 'PlayerEconomics')
-    .execute();
-  // Create indexes for PlayerEconomics table
-  await createMutableKnowledgeIndexes(db, 'PlayerEconomics');
-
-  // Create PlayerSciences table (MutableKnowledge implementation)
-  await createMutableKnowledgeTable(db, 'PlayerSciences')
-    .execute();
-  // Create indexes for PlayerSciences table
-  await createMutableKnowledgeIndexes(db, 'PlayerSciences');
-
-  // Create PlayerCultures table (MutableKnowledge implementation)
-  await createMutableKnowledgeTable(db, 'PlayerCultures')
-    .execute();
-  // Create indexes for PlayerCultures table
-  await createMutableKnowledgeIndexes(db, 'PlayerCultures');
-
-  // Create PlayerMilitaries table (MutableKnowledge implementation)
-  await createMutableKnowledgeTable(db, 'PlayerMilitaries')
-    .execute();
-  // Create indexes for PlayerMilitaries table
-  await createMutableKnowledgeIndexes(db, 'PlayerMilitaries');
-
-  // Create PlayerDiplomacies table (MutableKnowledge implementation)
-  await createMutableKnowledgeTable(db, 'PlayerDiplomacies')
-    .execute();
-  // Create indexes for PlayerDiplomacies table
-  await createMutableKnowledgeIndexes(db, 'PlayerDiplomacies');
-
   // Create PlayerOpinions table (MutableKnowledge implementation)
   var opinions = createMutableKnowledgeTable(db, 'PlayerOpinions');
   for (var I = 0; I < MaxMajorCivs; I++) {
