@@ -22,6 +22,7 @@ class GameMutexManager {
   private readonly mutexName = 'TurnByTurn';
   private pausedPlayerIds: Set<number> = new Set();
   private externalPause = false; // Whether game is paused by external (manual) operation
+  private pausedActivePlayer: number = -1;
   private currentActivePlayer: number = -1;
 
   /**
@@ -52,6 +53,7 @@ class GameMutexManager {
   resumeGame(isExternal: boolean = false): boolean {
     if (!Mutex) return false;
     if (isExternal) this.externalPause = false;
+    else this.pausedActivePlayer = -1;
     if (!this.mutex) return true;
 
     // Only resume if it's an external call or if there's no external pause
@@ -108,7 +110,7 @@ class GameMutexManager {
     logger.info(`Player ${playerId} removed from paused players list, currently ${this.isPaused}`);
 
     // If this player is currently active and game is paused, try to resume
-    if (this.currentActivePlayer === playerId && this.isPaused) {
+    if (this.pausedActivePlayer === playerId) {
       return this.resumeGame(false);
     }
     return true;
@@ -150,9 +152,8 @@ class GameMutexManager {
     if (this.shouldPauseForPlayer(playerId)) {
       if (!this.isPaused && this.pauseGame(false)) {
         logger.info(`Game auto-paused for player ${playerId}`);
+        this.pausedActivePlayer = playerId;
       }
-    } else if (this.resumeGame(false)) {
-      logger.info(`Game auto-resumed for player ${playerId}`);
     }
   }
 

@@ -17,27 +17,27 @@ import { exponentialRetry } from "../utils/retry.js";
  */
 export class VoxContext<TParameters extends AgentParameters> {
   private logger = createLogger('VoxContext');
-  
+
   /**
    * Registry of available agents indexed by name
    */
   public agents: Record<string, VoxAgent<unknown, TParameters>> = {};
-  
+
   /**
    * Registry of available tools indexed by name
    */
   public tools: Record<string, Tool> = {};
-  
+
   /**
    * Default language model to use when agents don't specify one
    */
   public defaultModel: Model;
-  
+
   /**
    * AbortController for managing generation cancellation
    */
   private abortController: AbortController;
-  
+
   /**
    * Constructor for VoxContext
    * @param defaultModel - The default language model to use
@@ -47,7 +47,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     this.abortController = new AbortController();
     this.logger.info('VoxContext initialized');
   }
-  
+
   /**
    * Register an agent in the context
    * @param agent - The agent to register
@@ -56,7 +56,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     this.agents[agent.name] = agent;
     this.logger.info(`Agent registered: ${agent.name}`);
   }
-  
+
   /**
    * Register a tool in the context
    * @param name - The tool name
@@ -66,7 +66,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     this.tools[name] = tool;
     this.logger.info(`Tool registered: ${name}`);
   }
-  
+
   /**
    * Register all MCP client tools
    */
@@ -77,7 +77,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     }
     this.logger.info(`MCP tools registered: ${Object.keys(mcpTools).length}`)
   }
-  
+
   /**
    * Abort the current generation if one is in progress
    * Creates a new AbortController after aborting for future operations
@@ -97,7 +97,7 @@ export class VoxContext<TParameters extends AgentParameters> {
    * @throws Error if the tool is not found
    */
   public async callTool<T = any>(
-    name: string, 
+    name: string,
     args: any,
     parameters: TParameters): Promise<T | undefined> {
     const tool = this.tools[name];
@@ -109,7 +109,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     try {
       const result = await tool.execute?.(args, {
         toolCallId: "manual",
-        messages: [], 
+        messages: [],
         experimental_context: parameters
       });
       return result;
@@ -118,7 +118,7 @@ export class VoxContext<TParameters extends AgentParameters> {
       return undefined;
     }
   }
-  
+
   /**
    * Execute an agent with the given parameters
    * @param agentName - The name of the agent to execute
@@ -128,7 +128,7 @@ export class VoxContext<TParameters extends AgentParameters> {
    * @throws Error if the agent is not found or if aborted
    */
   public async execute(
-    agentName: string, 
+    agentName: string,
     parameters: TParameters,
     outputSchema?: ZodObject
   ): Promise<string> {
@@ -137,11 +137,11 @@ export class VoxContext<TParameters extends AgentParameters> {
       this.logger.error(`Agent not found: ${agentName}`);
       throw new Error(`Agent '${agentName}' not found in context`);
     }
-    
+
     this.logger.info(`Executing agent: ${agentName}`);
     parameters.store = parameters.store ?? {};
     parameters.running = agentName;
-    
+
     return await startActiveObservation(agentName, async (observation) => {
       observation.update({
         input: parameters,
@@ -155,7 +155,7 @@ export class VoxContext<TParameters extends AgentParameters> {
       try {
         // Dynamically create agent tools for handoff capability
         let allTools = { ...this.tools };
-        
+
         // Add other agents as tools (excluding the current agent to prevent recursion)
         for (const [otherAgentName, otherAgent] of Object.entries(this.agents)) {
           if (otherAgentName !== agentName) {
@@ -166,14 +166,19 @@ export class VoxContext<TParameters extends AgentParameters> {
             );
           }
         }
-        
+
         // Execute the agent using generateText
         var model = agent.getModel(parameters) ?? this.defaultModel;
         var system = await agent.getSystem(parameters, this);
         var initialMessages = await agent.getInitialMessages(parameters, this);
         if (system != "") {
-          const response = await exponentialRetry(
-            async () => {
+          var response;
+          var retry = 0;
+          var shouldStop = false;
+          // Vercel AI may stop an agent prematurely if no valid tool call is issued.
+          // Therefore, we have to make the agent realize that...
+          while (!shouldStop && retry <= 3) {
+            response = await exponentialRetry(async () => {
               return await generateText({
                 // Model settings
                 model: getModel(model),
@@ -192,20 +197,20 @@ export class VoxContext<TParameters extends AgentParameters> {
                 activeTools: agent.getActiveTools(parameters),
                 toolChoice: "required",
                 // Telemetry support
-                experimental_telemetry: { 
+                experimental_telemetry: {
                   isEnabled: true,
                   functionId: agentName
                 },
                 experimental_context: parameters,
                 // Output schema for tool as agent
                 experimental_output: outputSchema ? Output.object({
-                    schema: outputSchema
-                  }) : undefined,
+                  schema: outputSchema
+                }) : undefined,
                 // Checks each step's result and deciding to stop or not
                 stopWhen: (context) => {
                   const lastStep = context.steps[context.steps.length - 1];
-                  const shouldStop = agent.stopCheck(parameters, lastStep, context.steps);
-                  this.logger.debug(`Stop check for ${agentName}: ${shouldStop}`, {
+                  shouldStop = agent.stopCheck(parameters, lastStep, context.steps);
+                  this.logger.info(`Stop check for ${agentName}: ${shouldStop}`, {
                     stepCount: context.steps.length
                   });
                   return shouldStop;
@@ -218,9 +223,13 @@ export class VoxContext<TParameters extends AgentParameters> {
                 },
               });
             }, this.logger);
-        
+            initialMessages = response.response.messages;
+            this.logger.warn(`Agent execution unexpectedly finished: ${agentName}. Resuming ${++retry}/3...`);
+          }
+
           this.logger.info(`Agent execution completed: ${agentName}`);
-          
+
+          response = response!;
           // Log the conclusion
           observation.update({
             output: response.steps[response.steps.length - 1]?.toolCalls ?? response.text,
