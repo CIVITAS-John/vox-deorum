@@ -144,13 +144,12 @@ export class VoxContext<TParameters extends AgentParameters> {
 
     return await startActiveObservation(agentName, async (observation) => {
       observation.update({
-        input: parameters,
-        metadata: {
-          version: config.versionInfo?.version || "unknown"
-        }
+        input: parameters
       });
       observation.updateTrace({
         sessionId: parameters.gameID ?? "unknown",
+        environment: agentName,
+        version: config.versionInfo?.version || "unknown"
       });
       try {
         // Dynamically create agent tools for handoff capability
@@ -176,13 +175,14 @@ export class VoxContext<TParameters extends AgentParameters> {
           var retry = 0;
           var shouldStop = false;
           var messages = initialMessages;
+          const LLM = getModel(model);
           // Vercel AI may stop an agent prematurely if no valid tool call is issued.
           // Therefore, we have to make the agent realize that...
           while (!shouldStop && retry < 3) {
             response = await exponentialRetry(async () => {
               return await generateText({
                 // Model settings
-                model: getModel(model),
+                model: LLM,
                 providerOptions: {
                   [model.provider]: model.options
                 } as any,
@@ -246,6 +246,7 @@ export class VoxContext<TParameters extends AgentParameters> {
           observation.update({
             output: response.steps[response.steps.length - 1]?.toolCalls ?? response.text,
             metadata: {
+              model: `${model.name}@${model.provider}`,
               stepCount: response.steps.length,
               stepTools: response.steps.reduce((list, current) => list.concat(current.toolCalls.map(call => call.toolName)), [] as string[]),
               steps: response.steps.map(step => step.content),

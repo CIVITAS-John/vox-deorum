@@ -69,17 +69,26 @@ export class VoxPlayer {
             gameID: this.parameters.gameID,
             strategist: this.strategistType
           },
-          metadata: {
-            version: config.versionInfo?.version || "unknown"
-          },
           output: {
             completed: false,
             turns: this.parameters.turn,
           }
         });
         observation.updateTrace({
+          input: {
+            playerID: this.playerID,
+            gameID: this.parameters.gameID,
+            strategist: this.strategistType
+          },
+          output: {
+            completed: false,
+            turns: this.parameters.turn,
+          },
           sessionId: this.parameters.gameID ?? "Unknown",
+          environment: this.strategistType,
+          version: config.versionInfo?.version || "unknown"
         });
+        await langfuseSpanProcessor.forceFlush();
 
         try {
           await this.context.registerMCP();
@@ -125,6 +134,12 @@ export class VoxPlayer {
               await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
 
               observation.update({
+                output: {
+                  completed: false,
+                  turns: this.parameters.turn,
+                }
+              });
+              observation.updateTrace({
                 output: {
                   completed: false,
                   turns: this.parameters.turn,
