@@ -10,6 +10,7 @@ import { gemmaToolMiddleware } from '@ai-sdk-tool/parser';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import dotenv from 'dotenv';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { toolRescueMiddleware } from './tool-rescue.js';
 
 dotenv.config();
 
@@ -57,6 +58,15 @@ export function getModel(config: Model): LanguageModel {
     result = wrapLanguageModel({
       model: result,
       middleware: gemmaToolMiddleware
+    });
+  }
+  if (config.name.indexOf("gpt-oss") !== -1) {
+    result = wrapLanguageModel({
+      model: result,
+      middleware: toolRescueMiddleware({
+        nameField: 'name',
+        parametersField: 'parameters',
+      })
     });
   }
   return result;

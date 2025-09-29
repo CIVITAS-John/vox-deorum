@@ -32,7 +32,8 @@
       "Bash(git lfs:*)",
       "Bash(git add:*)",
       "Bash(git rm:*)",
-      "Bash(git submodule:*)"
+      "Bash(git submodule:*)",
+      "WebFetch(domain:ai-sdk.dev)"
     ],
     "deny": [],
     "ask": []

@@ -221,7 +221,7 @@ export class VoxContext<TParameters extends AgentParameters> {
                   const lastStep = context.steps[context.steps.length - 1];
                   this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
                   return await agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
-                },
+                }
               });
             }, this.logger);
             if (!shouldStop) {
