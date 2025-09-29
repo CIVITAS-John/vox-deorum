@@ -126,7 +126,7 @@ class GetOptionsTool extends ToolBase {
       }
     }
     if (policy) {
-      if (playerOptions.NextPolicy == "None" || policy.Policy == "None") {
+      if ((playerOptions.NextPolicy == "None" && playerOptions.NextBranch == "None") || policy.Policy == "None") {
         delete policy.Rationale;
         policy.Policy = "None";
       }

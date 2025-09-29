@@ -59,14 +59,10 @@ export function getModel(config: Model): LanguageModel {
       model: result,
       middleware: gemmaToolMiddleware
     });
-  }
-  if (config.name.indexOf("gpt-oss") !== -1) {
+  } else {
     result = wrapLanguageModel({
       model: result,
-      middleware: toolRescueMiddleware({
-        nameField: 'name',
-        parametersField: 'parameters',
-      })
+      middleware: toolRescueMiddleware()
     });
   }
   return result;

@@ -14,16 +14,19 @@ const logger = createLogger("tool-rescue");
  * Supports both single tool calls and arrays of multiple tool calls.
  * If multiple tool calls are provided as an array, all must be valid for the rescue to succeed.
  *
- * @param nameField - The JSON field name for the tool name (default: 'name').
- * @param parametersField - The JSON field name for the tool parameters (default: 'parameters').
+ * Automatically detects common field name patterns:
+ * - name/parameters
+ * - toolName/input
+ * - tool/arguments
+ * - function/args
  */
-export function toolRescueMiddleware({
-  nameField = 'name',
-  parametersField = 'parameters',
-}: {
-  nameField?: string;
-  parametersField?: string;
-} = {}): LanguageModelMiddleware {
+export function toolRescueMiddleware(): LanguageModelMiddleware {
+  // Define common field name patterns to check
+  const fieldPatterns = [
+    { nameField: 'name', parametersField: 'parameters' },
+    { nameField: 'toolName', parametersField: 'input' }
+  ];
+
   return {
     middlewareVersion: 'v2',
     wrapGenerate: async ({ doGenerate, params }) => {
@@ -58,19 +61,32 @@ export function toolRescueMiddleware({
         const rescuedToolCalls: LanguageModelV2Content[] = [];
 
         for (const toolCall of toolCalls) {
-          // Check if it has the required fields
-          const toolName = toolCall[nameField];
-          const toolParameters = toolCall[parametersField];
+          // Try each field pattern to find valid tool call structure
+          let toolName: string | undefined;
+          let toolParameters: any;
+          let patternFound = false;
 
-          if (!toolName || !toolParameters) {
-            logger.log("warn", `Failed to rescue tool call: missing parts`, toolCall);
-            // Missing required fields for this tool call
+          for (const pattern of fieldPatterns) {
+            const candidateName = toolCall[pattern.nameField];
+            const candidateParams = toolCall[pattern.parametersField];
+
+            if (candidateName && candidateParams) {
+              toolName = candidateName;
+              toolParameters = candidateParams;
+              patternFound = true;
+              break;
+            }
+          }
+
+          if (!patternFound) {
+            logger.log("warn", `Failed to rescue tool call: no matching field pattern found`, toolCall);
+            // No matching pattern found for this tool call
             allToolCallsValid = false;
             break;
           }
 
           // Check if the tool exists in available tools
-          if (!availableTools.has(toolName)) {
+          if (!availableTools.has(toolName!)) {
             logger.log("warn", `Failed to rescue tool call: non-existent tool ${toolName}`, toolParameters);
             // Tool not available
             allToolCallsValid = false;
@@ -83,7 +99,7 @@ export function toolRescueMiddleware({
           rescuedToolCalls.push({
             type: 'tool-call',
             toolCallId: generateId(),
-            toolName: toolName,
+            toolName: toolName!,
             input: JSON.stringify(toolParameters),
           });
         }
