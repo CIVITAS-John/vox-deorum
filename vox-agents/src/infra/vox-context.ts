@@ -227,7 +227,7 @@ export class VoxContext<TParameters extends AgentParameters> {
             if (!shouldStop) {
               messages = initialMessages.concat(response.response.messages).concat({
                 role: "user",
-                content: "Execute the tool call appropriately with your interim reasoning/generation output."
+                content: "Execute the tool call appropriately with your interim reasoning/generation output. Do not repeat existing calls."
               });
               this.logger.warn(`Agent execution unexpectedly finished: ${agentName}. Resuming ${++retry}/3...`);
             }

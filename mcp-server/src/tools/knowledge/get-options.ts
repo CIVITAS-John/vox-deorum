@@ -120,13 +120,13 @@ class GetOptionsTool extends ToolBase {
 
     // If the research has been done, remove the rationale
     if (research) {
-      if (!playerOptions.NextResearch || research.Technology == "None") {
+      if (playerOptions.NextResearch == "None" || research.Technology == "None") {
         delete research.Rationale;
         research.Technology = "None";
       }
     }
     if (policy) {
-      if (!playerOptions.NextPolicy || policy.Policy == "None") {
+      if (playerOptions.NextPolicy == "None" || policy.Policy == "None") {
         delete policy.Rationale;
         policy.Policy = "None";
       }

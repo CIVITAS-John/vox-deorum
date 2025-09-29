@@ -113,7 +113,7 @@ class SetStrategyTool extends LuaFunctionTool {
           GrandStrategy: before.GrandStrategy,
           EconomicStrategies: before.EconomicStrategies,
           MilitaryStrategies: before.MilitaryStrategies,
-          Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI(${lastRationale})`
+          Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI(${lastRationale.trim()})`
         },
         undefined,
         ["Rationale"] // Only ignore Rationale when checking for changes

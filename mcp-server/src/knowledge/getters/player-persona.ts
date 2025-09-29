@@ -88,7 +88,7 @@ export async function getPlayerPersona(playerId: number): Promise<Partial<Person
       DeceptiveBias: persona.DeceptiveBias,
 
       // Metadata
-      Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale})`
+      Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale.trim()})`
     },
     undefined,
     ["Rationale"] // Only ignore Rationale when checking for changes
