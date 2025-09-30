@@ -52,7 +52,7 @@ You will receive the following reports:
   - You will receive in-game AI's diplomatic evaluations.
   - You will receive each player's publicly available relationships.
 - Cities: summary reports about discovered cities in the world.
-- Units: summary reports about visible units.
+- Units: summary reports about your units and other players' visible units (only).
 - Events: events since you last made a decision.
 You have tool access to the game's database to learn more about game rules.
 `.trim()

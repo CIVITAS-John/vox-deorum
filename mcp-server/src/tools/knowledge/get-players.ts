@@ -139,8 +139,7 @@ class GetPlayersTool extends ToolBase {
         IsHuman: info.IsHuman == 1,
         IsMajor: info.IsMajor == 1,
         // Dynamic summary (if available)
-        ...postProcessSummary(info, cleanSummary, 
-            !summary || args.PlayerID === undefined || playerID === args.PlayerID ? 2 : (summary[`Player${args.PlayerID}` as keyof PlayerSummary] as number)),
+        ...cleanSummary
       } as any;
 
       // Text format for happiness
@@ -163,6 +162,10 @@ class GetPlayersTool extends ToolBase {
           playerData.OpinionToMe = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
         }
       }
+      
+      // Postprocess to remove things you shouldn't see
+      postProcessData(playerData, 
+        !summary || args.PlayerID === undefined || playerID === args.PlayerID ? 2 : (summary[`Player${args.PlayerID}` as keyof PlayerSummary] as number)),
 
       playersDict[playerID.toString()] = cleanEventData(playerData, false)!;
     }
@@ -181,8 +184,8 @@ export default function createGetPlayersTool() {
 /**
  * Post process from a player's perspective based on visibility.
  */
-function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>
-  (info: PlayerInformation, summary: T, visibility: number): T {
+function postProcessData
+  (summary: z.infer<typeof PlayerDataSchema>, visibility: number): z.infer<typeof PlayerDataSchema> {
   // If it's the player's own data, return everything
   if (visibility == 2) return summary;
 
@@ -220,7 +223,7 @@ function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>
   }
 
   // Remove info from minor civs
-  if (!info.IsMajor) {
+  if (!summary.IsMajor) {
     delete summary.Era;
     delete summary.Cities;
     delete summary.Gold;
