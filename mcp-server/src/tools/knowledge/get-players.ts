@@ -111,7 +111,12 @@ class GetPlayersTool extends ToolBase {
       const playerID = info.Key;
       const summary = playerSummaries.find(s => s.Key === playerID);
       // Ignore dead players
-      if (playerSummaries.length > 0 && !summary) continue;
+      if (playerSummaries.length > 0 && !summary) {
+        playersDict[playerID.toString()] = info.IsMajor === 1 
+          ? `Defeated Major Civilization ${info.Civilization}` 
+          : `Defeated Minor Civilization ${info.Civilization}`;
+        continue;
+      }
       
       // Check visibility
       const visibility = getPlayerVisibility(playerSummaries, args.PlayerID, playerID);
