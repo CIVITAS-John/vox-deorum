@@ -47,6 +47,7 @@ export interface ResearchChange extends MutableKnowledge {
  * Player summary information (visible to met players)
  */
 export interface PlayerSummary extends MutableKnowledge {
+  Score: number | null; // Player's current score (major civs only)
   Era: string | null; // Localized era name (e.g., "Ancient Era", "Classical Era")
   MajorAlly: string | null; // Ally civilization's short description (null if no ally)
   Cities: number | null;

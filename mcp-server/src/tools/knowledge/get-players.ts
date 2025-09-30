@@ -39,6 +39,7 @@ const PlayerDataSchema = z.object({
   OpinionToMe: z.array(z.string()).optional(),
   MyEvaluations: z.array(z.string()).optional(),
   // PlayerSummary fields
+  Score: z.number().optional(),
   Era: z.string().optional(),
   Technologies: z.number().optional(),
   CurrentResearch: z.string().nullable().optional(),
@@ -232,6 +233,7 @@ function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>
     delete summary.Cities;
     delete summary.Gold;
     delete summary.GoldPerTurn;
+    delete summary.Score;
   }
   return summary;
 }

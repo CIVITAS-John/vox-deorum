@@ -59,6 +59,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
 
     local summary = {
       Key = playerID,
+      Score = player:GetScore(),  -- Player's current score
       Era = currentEra,
       MajorAlly = nil,  -- Default to no ally
       Cities = player:GetNumCities(),
@@ -161,6 +162,12 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
               -- Defensive pacts still need team check
               if not relationshipList then relationshipList = {} end
               relationshipList[#relationshipList + 1] = "Defensive Pact"
+            end
+
+            -- Check for peace treaty
+            if fromTeam:IsForcePeace(otherTeamID) then
+              if not relationshipList then relationshipList = {} end
+              relationshipList[#relationshipList + 1] = "Peace Treaty"
             end
 
             -- Check vassal/master relationships at team level
