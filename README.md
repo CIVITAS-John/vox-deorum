@@ -2,7 +2,7 @@
 
 LLM-enhanced AI system for Civilization V upon the [Community Patch + Vox Populi](https://github.com/LoneGazebo/Community-Patch-DLL).
 
-**Version 0.1.0 - Alpha (Last Updated: 9/26/25)**
+**Version 0.1.0 - Alpha (Last Updated: 9/30/25)**
 
 ## For Players
 
@@ -22,8 +22,8 @@ Vox Deorum brings modern AI capabilities to your Civilization V games, allowing 
 #### Easy Setup (Recommended)
 
 1. **Download and run the installer**:
-   - Get `bootstrap.cmd` from the [releases page](https://github.com/CIVITAS-John/vox-deorum/releases)
-   - Double-click to run - it will install everything automatically
+   - Download `bootstrap.cmd` from the [releases page](https://github.com/CIVITAS-John/vox-deorum/blob/main/scripts/bootstrap.cmd)
+   - Double-click to run - it will install everything automatically in the `vox-deorum/` folder
 
 2. **Add your AI API key**:
    - The installer opens a `.env` file

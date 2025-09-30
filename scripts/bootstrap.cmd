@@ -6,6 +6,10 @@ setlocal EnableDelayedExpansion
 
 title Vox Deorum Quick Start
 
+:: Parse command line arguments
+set "BRANCH=release"
+if not "%~1"=="" set "BRANCH=%~1"
+
 :: Configuration
 set "REPO_URL=https://github.com/CIVITAS-John/vox-deorum.git"
 :: Install in a vox-deorum subfolder next to this script
@@ -23,9 +27,11 @@ echo ============================================
 echo       Vox Deorum Quick Start Script
 echo ============================================
 echo.
+echo Branch: %BRANCH%
+echo.
 echo This script will:
 echo   1. Install Git for Windows (if needed)
-echo   2. Clone the Vox Deorum repository
+echo   2. Clone the Vox Deorum repository (branch: %BRANCH%)
 echo   3. Initialize submodules
 echo   4. Run the installation script
 echo.
@@ -130,14 +136,14 @@ if exist "%INSTALL_DIR%" (
 
         :: Simple force update - user configs are not tracked by git
         echo   Fetching latest changes...
-        git fetch --depth 1 --force origin main
+        git fetch --depth 1 --force origin %BRANCH%
 
         echo   Updating to latest version...
-        git reset --hard origin/main
+        git reset --hard origin/%BRANCH%
         if %errorlevel% neq 0 (
             echo   [WARN] Shallow update failed. Trying full fetch...
             git fetch --unshallow 2>nul
-            git reset --hard origin/main
+            git reset --hard origin/%BRANCH%
             if %errorlevel% neq 0 (
                 echo   [WARN] Update failed. Continuing with existing version...
             )
@@ -155,9 +161,10 @@ if exist "%INSTALL_DIR%" (
 
 :: Clone the repository (shallow clone for faster download)
 echo   Cloning from: %REPO_URL%
+echo   Branch: %BRANCH%
 echo   Destination: %INSTALL_DIR%
 echo   Using shallow clone for faster download...
-git clone --depth 1 "%REPO_URL%" "%INSTALL_DIR%"
+git clone --depth 1 --branch "%BRANCH%" "%REPO_URL%" "%INSTALL_DIR%"
 
 if %errorlevel% neq 0 (
     echo   [FAIL] Failed to clone repository.
