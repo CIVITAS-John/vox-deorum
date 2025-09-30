@@ -244,8 +244,12 @@ export class MCPServer {
       const health = await this.bridgeManager.checkHealth();
       logger.info('Bridge Service health:', health);
       
-      // Connect to SSE stream for game events
-      this.bridgeManager.connectSSE();
+      // Connect to event stream (tries event pipe first if enabled, falls back to SSE)
+      if (config.bridgeService.eventPipe?.enabled) {
+        this.bridgeManager.connectEventPipe();
+      } else {
+        this.bridgeManager.connectSSE();
+      }
     } catch (error: any) {
       throw new Error('Failed to connect to Bridge Service: ' + (error.message ?? "unknown error"), error);
     }

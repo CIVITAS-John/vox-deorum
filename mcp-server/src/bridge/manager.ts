@@ -5,6 +5,7 @@
 
 import { EventEmitter } from 'events';
 import { EventSource } from 'eventsource'
+import ipc from 'node-ipc';
 import { createLogger } from '../utils/logger.js';
 import { config } from '../utils/config.js';
 import { LuaFunction } from './lua-function.js';
@@ -64,9 +65,12 @@ export class BridgeManager extends EventEmitter {
   private baseUrl: string;
   private luaFunctions: Map<string, LuaFunction>;
   private sseConnection: EventSource | null = null;
+  private eventPipeConnected: boolean = false;
   private connectionRetryTimeout: NodeJS.Timeout | null = null;
   private isDllConnected: boolean = false;
   private httpClient: HttpClient;
+  private eventPipeBuffer: string = '';
+  private connectionMethod: 'eventPipe' | 'sse' | null = null;
 
   /**
    * Create a new BridgeManager instance
@@ -77,7 +81,6 @@ export class BridgeManager extends EventEmitter {
     this.luaFunctions = new Map();
     this.httpClient = new HttpClient(this.baseUrl);
     logger.info(`BridgeManager initialized with URL: ${this.baseUrl}`);
-
     // Start the queue processor loop
     this.startQueueProcessorLoop();
   }
@@ -291,6 +294,86 @@ export class BridgeManager extends EventEmitter {
   }
 
   /**
+   * Connect to event pipe for game events
+   */
+  public connectEventPipe(): void {
+    ipc.config.id = config.bridgeService.eventPipe!.name;
+    ipc.config.silent = true;
+    ipc.config.rawBuffer = true; // Use raw buffer like bridge-service
+    ipc.config.encoding = 'utf8';
+
+    const pipeName = config.bridgeService.eventPipe!.name;
+    logger.info(`Attempting to connect to event pipe: ${pipeName}`);
+
+    ipc.connectTo(pipeName, () => {
+      ipc.of[pipeName].on('connect', () => {
+        logger.info('Event pipe connection established');
+        this.eventPipeConnected = true;
+        this.connectionMethod = 'eventPipe';
+        this.emit('connected');
+        this.clearRetryTimeout();
+      });
+
+      ipc.of[pipeName].on('disconnect', () => {
+        logger.warn('Event pipe disconnected, retrying');
+        this.eventPipeConnected = false;
+        this.emit('disconnected');
+        this.scheduleReconnect();
+      });
+
+      // Handle raw buffer data with delimiter
+      ipc.of[pipeName].on('data', (data: Buffer) => {
+        // Append to buffer
+        this.eventPipeBuffer += data.toString();
+
+        // Process all complete messages (delimited by !@#$%^!)
+        const messages = this.eventPipeBuffer.split('!@#$%^!');
+
+        // Keep the last incomplete message in buffer (if any)
+        this.eventPipeBuffer = messages.pop() || '';
+
+        // Process each complete message
+        messages.forEach(message => {
+          const trimmed = message.trim();
+          if (trimmed === '') return;
+
+          try {
+            const event = JSON.parse(trimmed) as GameEvent;
+            this.handleGameEvent(event);
+          } catch (error) {
+            logger.error('Failed to parse event pipe message:', error);
+          }
+        });
+      });
+
+      ipc.of[pipeName].on('error', (error: any) => {
+        logger.error('Event pipe connection error:', error);
+        this.eventPipeConnected = false;
+
+        // Fallback to SSE on error
+        logger.info('Event pipe connection failed, falling back to SSE');
+        ipc.disconnect(pipeName);
+        this.connectSSE();
+      });
+    });
+  }
+
+  /**
+   * Handle game event from either event pipe or SSE
+   */
+  private handleGameEvent(data: GameEvent): void {
+    if (data.type == "dll_status") {
+      if (this.isDllConnected != data.payload.connected) {
+        this.isDllConnected = data.payload.connected;
+        logger.warn("DLL connected status changed: " + this.isDllConnected);
+        // If disconnected, reset functions
+        if (!this.dllConnected) this.resetFunctions();
+      }
+    }
+    this.emit('gameEvent', data);
+  }
+
+  /**
    * Reset all registered functions (mark as unregistered)
    */
   public resetFunctions(): void {
@@ -305,18 +388,25 @@ export class BridgeManager extends EventEmitter {
    * Connect to SSE stream for game events
    */
   public connectSSE(): void {
+    // Don't switch to SSE if we're already connected via event pipe
+    if (this.eventPipeConnected) {
+      logger.debug('Event pipe is connected, not switching to SSE');
+      return;
+    }
+
     if (this.sseConnection) {
       this.sseConnection.close();
     }
 
     try {
-      logger.info('Connecting to SSE stream');
+      logger.info('Connecting to SSE stream' + (this.connectionMethod === 'eventPipe' ? ' (fallback from event pipe)' : ''));
       this.sseConnection = new EventSource(`${this.baseUrl}/events`, {
         fetch
       });
 
       this.sseConnection.onopen = () => {
         logger.info('SSE connection established');
+        this.connectionMethod = 'sse';
         this.emit('connected');
         this.clearRetryTimeout();
       };
@@ -324,16 +414,7 @@ export class BridgeManager extends EventEmitter {
       this.sseConnection.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data) as GameEvent;
-          if (data.type == "dll_status") {
-            if (this.isDllConnected != data.payload.connected) {
-              this.isDllConnected = data.payload.connected;
-              logger.warn("DLL connected status changed: " + this.isDllConnected);
-              // If disconnected, reset functions
-              if (!this.dllConnected) this.resetFunctions();
-            }
-          } 
-          this.emit('gameEvent', data);
-          // logger.debug('Received SSE event: ' + data.type, data);
+          this.handleGameEvent(data);
         } catch (error) {
           logger.error('Failed to parse SSE event:', error);
         }
@@ -351,14 +432,19 @@ export class BridgeManager extends EventEmitter {
   }
 
   /**
-   * Schedule SSE reconnection with exponential backoff
+   * Schedule reconnection (tries event pipe first if enabled, then SSE)
    */
   private scheduleReconnect(): void {
     this.clearRetryTimeout();
-    const delay = 1000; // Start with 5 second delay
-    logger.info(`Scheduling SSE reconnection in ${delay}ms`);
+    const delay = 1000; // Start with 1 second delay
+    logger.info(`Scheduling reconnection in ${delay}ms`);
     this.connectionRetryTimeout = setTimeout(() => {
-      this.connectSSE();
+      // Try event pipe first if enabled
+      if (config.bridgeService.eventPipe?.enabled) {
+        this.connectEventPipe();
+      } else {
+        this.connectSSE();
+      }
     }, delay);
   }
 
@@ -373,15 +459,34 @@ export class BridgeManager extends EventEmitter {
   }
 
   /**
-   * Disconnect from SSE stream
+   * Disconnect from event streams (both event pipe and SSE)
    */
-  public disconnectSSE(): void {
+  public disconnectStreams(): void {
     this.clearRetryTimeout();
+
+    // Disconnect event pipe if connected
+    if (this.eventPipeConnected && config.bridgeService.eventPipe?.enabled) {
+      const pipeName = config.bridgeService.eventPipe.name;
+      ipc.disconnect(pipeName);
+      this.eventPipeConnected = false;
+      logger.info('Event pipe connection closed');
+    }
+
+    // Disconnect SSE if connected
     if (this.sseConnection) {
       this.sseConnection.close();
       this.sseConnection = null;
       logger.info('SSE connection closed');
     }
+
+    this.connectionMethod = null;
+  }
+
+  /**
+   * @deprecated Use disconnectStreams() instead
+   */
+  public disconnectSSE(): void {
+    this.disconnectStreams();
   }
 
   /**
@@ -459,7 +564,7 @@ export class BridgeManager extends EventEmitter {
     // Drop all pending queue items
     this.dropAllPendingCalls('BridgeManager shutting down');
 
-    this.disconnectSSE();
+    this.disconnectStreams();
     this.resetFunctions();
     this.removeAllListeners();
     await this.httpClient.shutdown();

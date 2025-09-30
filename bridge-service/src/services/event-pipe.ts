@@ -16,7 +16,7 @@ const logger = createLogger('EventPipe');
 export class EventPipe extends EventEmitter {
   private isServing: boolean = false;
   private shuttingDown: boolean = false;
-  private connectedClients: Set<string> = new Set();
+  private connectedClientsCount: number = 0;
 
   constructor() {
     super();
@@ -28,7 +28,6 @@ export class EventPipe extends EventEmitter {
    */
   private setupIPC(): void {
     ipc.config.id = config.eventpipe.name;
-    ipc.config.retry = 1500;
     ipc.config.silent = true; // We'll handle our own logging
     ipc.config.rawBuffer = true; // Use raw buffer like dll-connector
     ipc.config.encoding = 'utf8';
@@ -56,10 +55,9 @@ export class EventPipe extends EventEmitter {
         this.isServing = true;
 
         // Handle new client connections
-        ipc.server.on('connect', (socket: any) => {
-          const clientId = socket.id || 'unknown';
-          this.connectedClients.add(clientId);
-          logger.info(`Event pipe client connected: ${clientId} (total: ${this.connectedClients.size})`);
+        ipc.server.on('connect', () => {
+          this.connectedClientsCount++;
+          logger.info(`Event pipe client connected (total: ${this.connectedClientsCount})`);
 
           // Send welcome message using raw buffer format
           const welcomeMessage = JSON.stringify({
@@ -67,13 +65,14 @@ export class EventPipe extends EventEmitter {
             timestamp: new Date().toISOString(),
             message: 'Connected to event pipe'
           });
-          ipc.server.emit(socket, welcomeMessage + '!@#$%^!');
+          ipc.server.broadcast(welcomeMessage + '!@#$%^!');
         });
 
         // Handle client disconnections
-        ipc.server.on('socket.disconnected', (_socket: any, destroyedSocketId: string) => {
-          this.connectedClients.delete(destroyedSocketId);
-          logger.info(`Event pipe client disconnected: ${destroyedSocketId} (remaining: ${this.connectedClients.size})`);
+        ipc.server.on('disconnect', () => {
+          if (this.connectedClientsCount > 0)
+            this.connectedClientsCount--;
+          logger.info(`Event pipe client disconnected (remaining: ${this.connectedClientsCount})`);
         });
 
         // Handle errors
@@ -118,7 +117,7 @@ export class EventPipe extends EventEmitter {
       const batchData = events.map(event => JSON.stringify(event)).join('!@#$%^!');
       ipc.server.broadcast(batchData + '!@#$%^!');
 
-      logger.debug(`Broadcast batch of ${events.length} events to ${this.connectedClients.size} clients`);
+      logger.debug(`Broadcast batch of ${events.length} events to ${this.connectedClientsCount} clients`);
     } catch (error) {
       logger.error('Error broadcasting event batch:', error);
     }
@@ -150,7 +149,7 @@ export class EventPipe extends EventEmitter {
     // Stop the IPC server
     ipc.server.stop();
     this.isServing = false;
-    this.connectedClients.clear();
+    this.connectedClientsCount = 0;
 
     logger.info('Event pipe server stopped');
   }
@@ -161,7 +160,7 @@ export class EventPipe extends EventEmitter {
   getStats(): { enabled: boolean; clients: number; pipeName: string } {
     return {
       enabled: config.eventpipe.enabled,
-      clients: this.connectedClients.size,
+      clients: this.connectedClientsCount,
       pipeName: config.eventpipe.name
     };
   }

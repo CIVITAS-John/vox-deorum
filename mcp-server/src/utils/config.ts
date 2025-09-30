@@ -44,6 +44,10 @@ export interface MCPServerConfig {
       host: string;
       port: number;
     };
+    eventPipe?: {
+      enabled: boolean;
+      name: string;
+    };
   };
   database?: {
     language?: string;
@@ -77,6 +81,10 @@ const defaultConfig: MCPServerConfig = {
     endpoint: {
       host: '127.0.0.1',
       port: 5000
+    },
+    eventPipe: {
+      enabled: false,
+      name: 'vox-deorum-events'
     }
   },
   database: {
@@ -128,7 +136,9 @@ export function loadConfig(): MCPServerConfig {
   // Build final configuration with environment variable overrides
   const bridgeHost = process.env.BRIDGE_SERVICE_HOST || fileConfig.bridgeService?.endpoint?.host || defaultConfig.bridgeService.endpoint.host;
   const bridgePort = parseInt(process.env.BRIDGE_SERVICE_PORT || '') || fileConfig.bridgeService?.endpoint?.port || defaultConfig.bridgeService.endpoint.port;
-  
+  const eventPipeEnabled = process.env.EVENTPIPE_ENABLED === 'true' || fileConfig.bridgeService?.eventPipe?.enabled || defaultConfig.bridgeService.eventPipe?.enabled || false;
+  const eventPipeName = process.env.EVENTPIPE_NAME || fileConfig.bridgeService?.eventPipe?.name || defaultConfig.bridgeService.eventPipe?.name || 'vox-deorum-events';
+
   const config: MCPServerConfig = {
     server: {
       name: process.env.MCP_SERVER_NAME || fileConfig.server?.name || defaultConfig.server.name,
@@ -158,6 +168,10 @@ export function loadConfig(): MCPServerConfig {
       endpoint: {
         host: bridgeHost,
         port: bridgePort
+      },
+      eventPipe: {
+        enabled: eventPipeEnabled,
+        name: eventPipeName
       }
     },
     database: {

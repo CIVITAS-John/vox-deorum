@@ -7,6 +7,10 @@
     "endpoint": {
       "host": "127.0.0.1",
       "port": 5000
+    },
+    "eventPipe": {
+      "enabled": true,
+      "name": "vox-deorum-events"
     }
   },
   "logging": {

@@ -8,7 +8,7 @@
     "retry": 5000
   },
   "eventpipe": {
-    "enabled": false,
+    "enabled": true,
     "name": "vox-deorum-events"
   },
   "logging": {
