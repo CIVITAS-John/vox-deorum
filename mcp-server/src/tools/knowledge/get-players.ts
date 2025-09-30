@@ -139,7 +139,8 @@ class GetPlayersTool extends ToolBase {
         IsHuman: info.IsHuman == 1,
         IsMajor: info.IsMajor == 1,
         // Dynamic summary (if available)
-        ...postProcessSummary(info, cleanSummary, args.PlayerID === undefined || playerID === args.PlayerID, args.PlayerID),
+        ...postProcessSummary(info, cleanSummary, 
+            !summary || args.PlayerID === undefined || playerID === args.PlayerID ? 2 : (summary[`Player${args.PlayerID}` as keyof PlayerSummary] as number)),
       } as any;
 
       // Text format for happiness
@@ -181,44 +182,35 @@ export default function createGetPlayersTool() {
  * Post process from a player's perspective based on visibility.
  */
 function postProcessSummary<T extends Partial<Selectable<PlayerSummary>>>
-  (info: PlayerInformation, summary: T, isSelf: boolean, requestingPlayerID?: number): T {
+  (info: PlayerInformation, summary: T, visibility: number): T {
   // If it's the player's own data, return everything
-  if (isSelf) return summary;
+  if (visibility == 2) return summary;
 
-  // Check visibility level if a requesting player is specified
-  if (requestingPlayerID !== undefined && summary) {
-    const visibilityField = `Player${requestingPlayerID}` as keyof PlayerSummary;
-    const visibility = (summary as any)[visibilityField];
-
-    // If visibility is 1 (met but not team), filter sensitive data
-    if (visibility === 1) {
-      // For met players (visibility 1): only show policy branch counts, not details
-      if (summary.PolicyBranches) {
-        const branches = summary.PolicyBranches as Record<string, string[]>;
-        const counts: Record<string, number> = {};
-        for (const [branch, policies] of Object.entries(branches)) {
-          counts[branch] = Array.isArray(policies) ? policies.length : policies as number;
-        }
-        summary.PolicyBranches = counts as any;
-      }
-
-      // Hide current research from non-team members
-      delete summary.CurrentResearch;
-
-      // Hide actual happiness number
-      delete summary.HappinessPercentage;
-
-      // Hide war weariness from relationships
-      if (summary.Relationships) 
-        for (var player in summary.Relationships) {
-          summary.Relationships[player] = summary.Relationships[player].map(rel => {
-            // Remove war weariness from war relationships (keep only the score)
-            const warRegex = /; War Weariness: -?[\d\.]+%/;
-            return rel.replace(warRegex, "");
-          });
-        } 
+  // For met players (visibility 1): only show policy branch counts, not details
+  if (summary.PolicyBranches) {
+    const branches = summary.PolicyBranches as Record<string, string[]>;
+    const counts: Record<string, number> = {};
+    for (const [branch, policies] of Object.entries(branches)) {
+      counts[branch] = Array.isArray(policies) ? policies.length : policies as number;
     }
+    summary.PolicyBranches = counts as any;
   }
+
+  // Hide current research from non-team members
+  delete summary.CurrentResearch;
+
+  // Hide actual happiness number
+  delete summary.HappinessPercentage;
+
+  // Hide war weariness from relationships
+  if (summary.Relationships) 
+    for (var player in summary.Relationships) {
+      summary.Relationships[player] = summary.Relationships[player].map(rel => {
+        // Remove war weariness from war relationships (keep only the score)
+        const warRegex = /; War Weariness: -?[\d\.]+%/;
+        return rel.replace(warRegex, "");
+      });
+    } 
 
   // Remove resources with value 0 from other players' data
   if (summary.ResourcesAvailable) {
