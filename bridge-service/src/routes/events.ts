@@ -19,7 +19,7 @@ const eventChannel = createChannel();
 
 // Batching configuration
 const BATCH_TIMEOUT_MS = 50; // Flush buffer every 50ms
-const BATCH_SIZE_LIMIT = 10;  // Flush buffer when reaching 10 events
+const BATCH_SIZE_LIMIT = 20;  // Flush buffer when reaching 20 events
 
 // Event buffer management
 let eventBuffer: EventBuffer | null = null;
