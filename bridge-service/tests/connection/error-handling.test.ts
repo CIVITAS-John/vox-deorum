@@ -25,8 +25,8 @@ describe('Connection Error Handling', () => {
   // Connection failures with invalid configurations
   it('should handle connection failures gracefully', async () => {
     // Mock invalid connection scenario
-    const originalConfig = config.namedpipe.id;
-    config.namedpipe.id = 'invalid-id-that-does-not-exist';
+    const originalConfig = config.gamepipe.id;
+    config.gamepipe.id = 'invalid-id-that-does-not-exist';
     
     try {
       await expect(connector.connect()).resolves.toBe(false);
@@ -35,7 +35,7 @@ describe('Connection Error Handling', () => {
       logSuccess('Connection failure handled correctly');
     } finally {
       // Restore original config
-      config.namedpipe.id = originalConfig;
+      config.gamepipe.id = originalConfig;
     }
   });
   

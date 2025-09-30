@@ -3,7 +3,7 @@
     "port": 5000,
     "host": "127.0.0.1"
   },
-  "namedpipe": {
+  "gamepipe": {
     "id": "vox-deorum-bridge",
     "retry": 5000
   },

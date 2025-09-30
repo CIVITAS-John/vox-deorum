@@ -43,7 +43,7 @@ export class DLLConnector extends EventEmitter {
    */
   private setupIPC(): void {
     ipc.config.id = 'bridge-service';
-    ipc.config.retry = config.namedpipe.retry;
+    ipc.config.retry = config.gamepipe.retry;
     ipc.config.maxRetries = false; // Infinite retries
     ipc.config.silent = true; // We'll handle our own logging
     ipc.config.rawBuffer = true;
@@ -60,10 +60,10 @@ export class DLLConnector extends EventEmitter {
       return Promise.resolve(true);
     }
     return new Promise((resolve) => {
-      logger.info(`Connecting to DLL with ID: ${config.namedpipe.id}`);
+      logger.info(`Connecting to DLL with ID: ${config.gamepipe.id}`);
 
-      ipc.connectTo(config.namedpipe.id, () => {
-        ipc.of[config.namedpipe.id].on('connect', () => {
+      ipc.connectTo(config.gamepipe.id, () => {
+        ipc.of[config.gamepipe.id].on('connect', () => {
           this.connected = true;
           this.reconnectAttempts = 0;
           logger.info('Connected to DLL successfully');
@@ -222,7 +222,7 @@ export class DLLConnector extends EventEmitter {
     // Send all messages as a batch
     try {
       const batchData = messagesWithIds.map(msg => JSON.stringify(msg)).join("!@#$%^!");
-      ipc.of[config.namedpipe.id].emit(batchData + "!@#$%^!");
+      ipc.of[config.gamepipe.id].emit(batchData + "!@#$%^!");
       logger.debug(`Sent batch of ${messagesWithIds.length} messages to DLL`);
       // Emit event for testing
       messagesWithIds.forEach(msg => this.emit('ipc_send', msg));
@@ -253,7 +253,7 @@ export class DLLConnector extends EventEmitter {
     }
 
     try {
-      ipc.of[config.namedpipe.id].emit(JSON.stringify(message) + "!@#$%^!");
+      ipc.of[config.gamepipe.id].emit(JSON.stringify(message) + "!@#$%^!");
       logger.debug('Sent no-wait message to DLL:', message);
       // Emit event for testing
       this.emit('ipc_send', message);
@@ -314,8 +314,8 @@ export class DLLConnector extends EventEmitter {
 
     // Disconnect IPC
     this.connected = false;
-    if (ipc.of[config.namedpipe.id]) {
-      ipc.disconnect(config.namedpipe.id);
+    if (ipc.of[config.gamepipe.id]) {
+      ipc.disconnect(config.gamepipe.id);
     }
 
     // Wait for disconnected event or timeout

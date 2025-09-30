@@ -12,13 +12,13 @@ describe('Configuration', () => {
     // Verify configuration is loaded
     expect(config).toBeDefined();
     expect(config.rest.port).toBeTypeOf('number');
-    expect(config.namedpipe.id).toBeTypeOf('string');
+    expect(config.gamepipe.id).toBeTypeOf('string');
     expect(config.rest.host).toBeTypeOf('string');
     
     console.log('⚙️ Bridge service config:', {
       port: config.rest.port,
       host: config.rest.host,
-      namedpipeId: config.namedpipe.id
+      gamepipeId: config.gamepipe.id
     });
   });
 });

@@ -14,7 +14,7 @@ export interface ServiceConfig {
     port: number;
     host: string;
   };
-  namedpipe: {
+  gamepipe: {
     id: string;
     retry: number;
   };
@@ -33,7 +33,7 @@ const defaultConfig: ServiceConfig = {
     port: 5000,
     host: '127.0.0.1'
   },
-  namedpipe: {
+  gamepipe: {
     id: 'vox-deorum-bridge',
     retry: 5000
   },
@@ -66,9 +66,9 @@ export function loadConfig(): ServiceConfig {
       port: parseInt(process.env.PORT || '') || fileConfig.rest?.port || defaultConfig.rest.port,
       host: process.env.HOST || fileConfig.rest?.host || defaultConfig.rest.host
     },
-    namedpipe: {
-      id: process.env.namedpipe_ID || fileConfig.namedpipe?.id || defaultConfig.namedpipe.id,
-      retry: parseInt(process.env.namedpipe_RETRY || '') || fileConfig.namedpipe?.retry || defaultConfig.namedpipe.retry
+    gamepipe: {
+      id: process.env.gamepipe_ID || fileConfig.gamepipe?.id || defaultConfig.gamepipe.id,
+      retry: parseInt(process.env.gamepipe_RETRY || '') || fileConfig.gamepipe?.retry || defaultConfig.gamepipe.retry
     },
     logging: {
       level: process.env.LOG_LEVEL || fileConfig.logging?.level || defaultConfig.logging.level
@@ -80,7 +80,7 @@ export function loadConfig(): ServiceConfig {
 
   logger.info('Configuration loaded:', {
     rest: config.rest,
-    namedpipe: { id: config.namedpipe.id, retry: config.namedpipe.retry },
+    gamepipe: { id: config.gamepipe.id, retry: config.gamepipe.retry },
     logging: { level: config.logging.level }
   });
 
