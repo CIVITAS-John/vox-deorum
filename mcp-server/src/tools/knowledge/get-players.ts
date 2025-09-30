@@ -14,6 +14,9 @@ import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metad
 import { cleanEventData } from "./get-events.js";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
 import { readPlayerKnowledge, readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
+import { getPlayerVisibility } from "../../utils/knowledge/visibility.js";
+import { PlayerInformation } from "../../knowledge/schema/public.js";
+import { Selectable } from "kysely";
 
 /**
  * Input schema for the GetPlayers tool
@@ -54,7 +57,7 @@ const PlayerDataSchema = z.object({
   ResourcesAvailable: z.record(z.string(), z.number()).optional(),
   FoundedReligion: z.string().nullable().optional(),
   MajorityReligion: z.string().nullable().optional(),
-  Relationships: z.record(z.string(), z.array(z.string())).optional(),
+  Relationships: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional(),
 }).passthrough();
 
 /**
@@ -104,26 +107,21 @@ class GetPlayersTool extends ToolBase {
 
     // Combine the data and create dictionary
     const playersDict: Record<string, z.infer<typeof this.outputSchema>[string]> = {};
-    
     for (const info of playerInfos) {
       const playerID = info.Key;
       const summary = playerSummaries.find(s => s.Key === playerID);
       // Ignore dead players
       if (playerSummaries.length > 0 && !summary) continue;
       
-      // If a specific PlayerID is provided, check visibility
-      if (args.PlayerID !== undefined && summary) {
-        // Get the visibility field for the requesting player
-        const visibilityField = `Player${args.PlayerID}` as keyof PlayerSummary;
-        const visibility = (summary as any)[visibilityField];
-        
-        // If not met (visibility = 0), return unmet string
-        if (visibility === 0) {
-          playersDict[playerID.toString()] = info.IsMajor === 1 
-            ? "Unmet Major Civilization" 
-            : "Unmet Minor Civilization";
-          continue;
-        }
+      // Check visibility
+      const visibility = getPlayerVisibility(playerSummaries, args.PlayerID, playerID);
+      
+      // If not met (visibility = 0), return unmet string
+      if (visibility === 0) {
+        playersDict[playerID.toString()] = info.IsMajor === 1 
+          ? "Unmet Major Civilization" 
+          : "Unmet Minor Civilization";
+        continue;
       }
       
       // Strip metadata and rename Key to PlayerID
@@ -162,8 +160,7 @@ class GetPlayersTool extends ToolBase {
       }
       
       // Postprocess to remove things you shouldn't see
-      postProcessData(playerData, 
-        !summary || args.PlayerID === undefined || playerID === args.PlayerID ? 2 : (summary[`Player${args.PlayerID}` as keyof PlayerSummary] as number)),
+      if (visibility !== 2) postProcessData(playerData, playerInfos, playerSummaries, args.PlayerID);
 
       playersDict[playerID.toString()] = cleanEventData(playerData, false)!;
     }
@@ -182,11 +179,12 @@ export default function createGetPlayersTool() {
 /**
  * Post process from a player's perspective based on visibility.
  */
-function postProcessData
-  (summary: z.infer<typeof PlayerDataSchema>, visibility: number): z.infer<typeof PlayerDataSchema> {
-  // If it's the player's own data, return everything
-  if (visibility == 2) return summary;
-
+function postProcessData(
+  summary: z.infer<typeof PlayerDataSchema>,
+  playerInfos: Selectable<PlayerInformation>[],
+  playerSummaries: Selectable<PlayerSummary>[],
+  viewingPlayerID?: number
+): z.infer<typeof PlayerDataSchema> {
   // For met players (visibility 1): only show policy branch counts, not details
   if (summary.PolicyBranches) {
     const branches = summary.PolicyBranches as Record<string, string[]>;
@@ -204,14 +202,44 @@ function postProcessData
   delete summary.HappinessPercentage;
 
   // Hide war weariness from relationships
-  if (summary.Relationships) 
+  if (summary.Relationships && summary.IsMajor)
     for (var player in summary.Relationships) {
-      summary.Relationships[player] = summary.Relationships[player].map(rel => {
+      summary.Relationships[player] = (summary.Relationships[player] as string[]).map(rel => {
         // Remove war weariness from war relationships (keep only the score)
         const warRegex = /; War Weariness: -?[\d\.]+%/;
         return rel.replace(warRegex, "");
       });
-    } 
+    }
+
+  // Check for unmet civilizations in relationships
+  if (summary.Relationships && viewingPlayerID !== undefined) {
+    const updatedRelationships: Record<string, string[] | string> = {};
+
+    for (const civName in summary.Relationships) {
+      // Find the player info by civilization name
+      const targetInfo = playerInfos.find(info => info.Civilization === civName);
+
+      if (targetInfo) {
+        // Check visibility of the target player
+        const targetVisibility = getPlayerVisibility(playerSummaries, viewingPlayerID, targetInfo.Key);
+
+        if (targetVisibility === 0) {
+          // Player hasn't met this civilization
+          updatedRelationships[civName] = targetInfo.IsMajor === 1
+            ? "Unmet Major Civilization"
+            : "Unmet Minor Civilization";
+        } else {
+          // Player has met this civilization, keep the original relationships
+          updatedRelationships[civName] = summary.Relationships[civName];
+        }
+      } else {
+        // Keep original if we can't find the player (shouldn't happen)
+        updatedRelationships[civName] = summary.Relationships[civName];
+      }
+    }
+
+    summary.Relationships = updatedRelationships;
+  }
 
   // Remove resources with value 0 from other players' data
   if (summary.ResourcesAvailable) {

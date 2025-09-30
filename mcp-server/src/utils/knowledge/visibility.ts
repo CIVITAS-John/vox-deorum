@@ -1,4 +1,6 @@
+import { Selectable } from "kysely";
 import { MaxMajorCivs, PlayerVisibility } from "../../knowledge/schema/base.js";
+import { PlayerSummary } from "../../knowledge/schema/timed.js";
 
 /**
  * Marks the visibility of a knowledge item to specific players
@@ -14,7 +16,7 @@ export function applyVisibility<T extends PlayerVisibility>(data: T, visibility?
 /**
  * Parses visibility flags into a set of player IDs who can see the item
  */
-export function parseVisibility<T extends PlayerVisibility>(data: T): number[] {
+export function parseVisibility<T extends PlayerVisibility>(data: T | Selectable<T>): number[] {
   const visibleTo: number[] = [];
   for (let i = 0; i < MaxMajorCivs; i++) {
     visibleTo.push((data as any)[`Player${i}`]);
@@ -26,6 +28,53 @@ export function parseVisibility<T extends PlayerVisibility>(data: T): number[] {
  * Checks if a knowledge item is visible to a specific player
  * Returns 2 if fully visible, 1 if partly visible, 0 if not visible
  */
-export function getVisibility<T extends PlayerVisibility>(data: T, playerId: number): number {
+export function getVisibility<T extends PlayerVisibility>(data: T | Selectable<T>, playerId: number): number {
   return (data as any)[`Player${playerId}`];
+}
+
+/**
+ * Gets the visibility level that a player has of a target player
+ *
+ * @param playerSummaries - Array of PlayerSummary objects from the game
+ * @param playerID - The ID of the viewing player
+ * @param targetID - The ID of the target player being viewed
+ * @returns Visibility level: 2 (team/full), 1 (met/partial), 0 (unmet), or null if target not found
+ */
+export function getPlayerVisibility(
+  playerSummaries: Selectable<PlayerSummary>[],
+  playerID: number | undefined,
+  targetID: number
+): number {
+  if (playerID === undefined) return 2;
+  // Find the target player's summary
+  const targetSummary = playerSummaries.find(summary => summary.Key === targetID);
+  // If target player not found, return null
+  if (!targetSummary) return 2
+  // Reuse the existing getVisibility function
+  return getVisibility(targetSummary, playerID);
+}
+
+/**
+ * Gets all players visible to a specific player
+ *
+ * @param playerSummaries - Array of PlayerSummary objects from the game
+ * @param playerID - The ID of the viewing player
+ * @param minVisibility - Minimum visibility level to include (default: 1 for met players)
+ * @returns Array of player IDs that are visible to the viewing player
+ */
+export function getVisiblePlayers(
+  playerSummaries: PlayerSummary[],
+  playerID: number,
+  minVisibility: number = 1
+): number[] {
+  const visiblePlayers: number[] = [];
+
+  for (const summary of playerSummaries) {
+    const visibility = getVisibility(summary, playerID);
+    if (visibility >= minVisibility) {
+      visiblePlayers.push(summary.Key);
+    }
+  }
+
+  return visiblePlayers;
 }

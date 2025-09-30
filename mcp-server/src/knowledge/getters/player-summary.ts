@@ -22,7 +22,7 @@ const luaFunc = LuaFunction.fromFile(
  * Returns summary data for all active players (major civs, minor civs)
  * @returns Array of PlayerSummary objects for all active players
  */
-export async function getPlayerSummaries(saving: boolean = true): Promise<Partial<Selectable<PlayerSummary>>[]> {
+export async function getPlayerSummaries(saving: boolean = true): Promise<Selectable<PlayerSummary>[]> {
   const response = await luaFunc.execute();
   if (!response.success)
     return [];

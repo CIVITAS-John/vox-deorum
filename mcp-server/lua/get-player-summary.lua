@@ -157,7 +157,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
               -- Include war score (positive = winning, negative = losing)
               local warScore = player:GetWarScore(otherPlayerID)
               local weariness = player:GetWarWearinessPercent(otherPlayerID)
-              relationshipList[#relationshipList + 1] = "War (Our Score: " .. warScore .. "%; Our War Weariness: " .. weariness .. "%)"
+              relationshipList[#relationshipList + 1] = string.format("War (Our Score: %d%%; Our War Weariness: %d%%)", warScore, weariness)
             elseif fromTeam and fromTeam:IsDefensivePact(otherTeamID) then
               -- Defensive pacts still need team check
               if not relationshipList then relationshipList = {} end
@@ -233,7 +233,7 @@ end
 -- Also check minor civs (city-states)
 for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
   local player = Players[playerID]
-  
+
   -- Only include minor civs that are alive
   if player and player:IsAlive() and player:IsMinorCiv() then
     -- Get current tech information (still requires team access)
@@ -242,7 +242,7 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
     if Teams[teamID] then
       currentTech = Teams[teamID]:GetTeamTechs():GetNumTechsKnown() or 0
     end
-    
+
     local summary = {
       Key = playerID,
       MajorAlly = nil,  -- Will be populated below
@@ -251,7 +251,8 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
       Gold = player:GetGold(),
       GoldPerTurn = math.floor(player:CalculateGoldRateTimes100() / 100),
       Technologies = currentTech,  -- Get actual tech count for minor civs
-      ResourcesAvailable = {}  -- Will be populated with actual available resources
+      ResourcesAvailable = nil,  -- Will be populated with actual available resources
+      Relationships = nil  -- Will be populated with relationships to major civs
     }
     
     -- Get ally name for minor civs
@@ -262,6 +263,64 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
         summary.MajorAlly = Locale.ConvertTextKey(allyPlayer:GetCivilizationShortDescription())
       end
     end
+
+    -- Get relationships with all major civs
+    local relationships = {}
+    for majorID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
+      local major = Players[majorID]
+      if major and major:IsAlive() and Teams[teamID]:IsHasMet(major:GetTeam()) then
+        -- Get influence score
+        local influence = player:GetMinorCivFriendshipWithMajor(majorID)
+
+        -- Determine relationship status
+        local status = "Neutral"
+        local playerTeam = Teams[player:GetTeam()]
+        local majorTeam = Teams[major:GetTeam()]
+        local isProtected = player:IsProtectedByMajor(majorID)
+
+        -- Check war status first
+        if playerTeam:IsAtWar(major:GetTeam()) then
+          if player:IsMinorPermanentWar(majorTeam) then
+            status = "Permanent War"
+          else
+            status = "War"
+          end
+        -- Check if peace is blocked
+        elseif player:IsPeaceBlocked(majorTeam) then
+          status = "Peace Blocked"
+        -- Check if major is the ally
+        elseif player:IsAllies(majorID) then
+          status = "Ally"
+        -- Check if someone else is the ally (sphere of influence)
+        elseif allyID ~= -1 and allyID ~= majorID then
+          if player:IsProtectedByMajor(allyID) then
+            status = "Sphere of Influence (Protected)"
+          else
+            status = "Sphere of Influence"
+          end
+        -- Check if major is friends
+        elseif player:IsFriends(majorID) then
+          status = "Friends"
+        -- Neutral with influence indication
+        elseif influence > 0 then
+          status = "Neutral (Positive)"
+        elseif influence < 0 then
+          status = "Neutral (Negative)"
+        end
+
+        -- Format the status with influence and protected status at the end
+        local formattedStatus
+        if isProtected then
+          formattedStatus = string.format("%s (Influence: %d, Protected)", status, influence)
+        else
+          formattedStatus = string.format("%s (Influence: %d)", status, influence)
+        end
+
+        local majorName = Locale.ConvertTextKey(major:GetCivilizationShortDescription())
+        relationships[majorName] = formattedStatus
+      end
+    end
+    summary.Relationships = relationships
 
     -- Add relative visibility to all other players
     for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
