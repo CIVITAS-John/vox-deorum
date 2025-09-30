@@ -154,27 +154,39 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
             if player:IsAtWarWith(otherPlayerID) then
               if not relationshipList then relationshipList = {} end
               -- Include war score (positive = winning, negative = losing)
-              local warScore = player:GetWarScore()
+              local warScore = player:GetWarScore(otherPlayerID)
               local weariness = player:GetWarWearinessPercent(otherPlayerID)
-              relationshipList[#relationshipList + 1] = "War (Score: " .. warScore .. "%; War Weariness: " .. weariness .. "%)"
+              relationshipList[#relationshipList + 1] = "War (Our Score: " .. warScore .. "%; Our War Weariness: " .. weariness .. "%)"
             elseif fromTeam and fromTeam:IsDefensivePact(otherTeamID) then
               -- Defensive pacts still need team check
               if not relationshipList then relationshipList = {} end
               relationshipList[#relationshipList + 1] = "Defensive Pact"
             end
 
-            -- Check for other agreements
-            if fromTeam then
-              if fromTeam:IsAllowsOpenBordersToTeam(otherTeamID) then
-                if not relationshipList then relationshipList = {} end
-                relationshipList[#relationshipList + 1] = "Open Borders"
-              end
+            -- Check vassal/master relationships at team level
+            local otherTeam = Teams[otherTeamID]
+            -- Check if other team is our vassal
+            if otherTeam:IsVassal(player:GetTeam()) then
+              if not relationshipList then relationshipList = {} end
+              local voluntary = otherTeam:IsVoluntaryVassal(player:GetTeam())
+              relationshipList[#relationshipList + 1] = voluntary and "Our Vassal (Voluntary)" or "Our Vassal (Capitulated)"
+            -- Check if we are vassal of other team
+            elseif fromTeam:IsVassal(otherTeamID) then
+              if not relationshipList then relationshipList = {} end
+              local voluntary = fromTeam:IsVoluntaryVassal(otherTeamID)
+              relationshipList[#relationshipList + 1] = voluntary and "Our Master (Voluntary)" or "Our Master (Capitulated)"
+            end
 
-              -- Check for research agreement
-              if fromTeam:IsHasResearchAgreement(otherTeamID) then
-                if not relationshipList then relationshipList = {} end
-                relationshipList[#relationshipList + 1] = "Research Agreement"
-              end
+            -- Check for other agreements
+            if fromTeam:IsAllowsOpenBordersToTeam(otherTeamID) then
+              if not relationshipList then relationshipList = {} end
+              relationshipList[#relationshipList + 1] = "Open Borders"
+            end
+
+            -- Check for research agreement
+            if fromTeam:IsHasResearchAgreement(otherTeamID) then
+              if not relationshipList then relationshipList = {} end
+              relationshipList[#relationshipList + 1] = "Research Agreement"
             end
 
             -- Check for Declaration of Friendship
