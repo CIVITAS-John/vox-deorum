@@ -10,6 +10,7 @@ import { dllConnector } from '../services/dll-connector.js';
 import { GameEvent, GameEventMessage } from '../types/event.js';
 import { respondError } from '../types/api.js';
 import { pauseManager } from '../services/pause-manager.js';
+import { eventPipe } from '../services/event-pipe.js';
 
 const logger = createLogger('EventRoutes');
 const router = Router();
@@ -23,6 +24,7 @@ const BATCH_SIZE_LIMIT = 100;  // Flush buffer when reaching 100 events
 
 // Event buffer management
 let eventBuffer: EventBuffer | null = null;
+let eventArrayForPipe: GameEvent[] = []; // Track events for event pipe
 let flushTimer: NodeJS.Timeout | null = null;
 let eventCount = 0;
 
@@ -85,14 +87,19 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 /**
- * Flush the event buffer to all connected clients
+ * Flush the event buffer to all connected clients (SSE and event pipe)
  */
 function flushEventBuffer(): void {
   if (!eventBuffer || eventCount === 0) return;
 
-  // Reset buffer and counter
+  // Get buffers to send
   const buffer = eventBuffer;
+  const eventsForPipe = eventArrayForPipe;
+  const currentEventCount = eventCount;
+
+  // Reset buffers and counter
   eventBuffer = createEventBuffer();
+  eventArrayForPipe = [];
   eventCount = 0;
 
   // Clear the flush timer
@@ -101,12 +108,17 @@ function flushEventBuffer(): void {
     flushTimer = null;
   }
 
-  // Send the events
+  // Send to SSE clients
   try {
     eventChannel.activeSessions.map(session => session.batch(buffer));
-    logger.debug(`Flushed ${eventCount} events to ${eventChannel.sessionCount} clients`);
+    logger.debug(`Flushed ${currentEventCount} events to ${eventChannel.sessionCount} SSE clients`);
   } catch (error) {
-    logger.error('Error flushing event buffer:', error);
+    logger.error('Error flushing SSE event buffer:', error);
+  }
+
+  // Send to event pipe clients as a batch
+  if (eventsForPipe.length > 0) {
+    eventPipe.broadcastBatch(eventsForPipe);
   }
 }
 
@@ -122,7 +134,7 @@ function scheduleFlush(): void {
 }
 
 /**
- * Broadcast event to all connected SSE clients
+ * Broadcast event to all connected SSE clients and event pipe
  * @param gameEvent The event to broadcast
  * @param critical If true, flush the buffer immediately after adding this event
  */
@@ -134,7 +146,7 @@ function broadcastEvent(gameEvent: GameEvent, critical: boolean = false): void {
     eventBuffer = createEventBuffer();
   }
 
-  // Add event to buffer
+  // Add event to SSE buffer
   eventBuffer.push({
     id: gameEvent.id,
     type: gameEvent.type,
@@ -142,6 +154,9 @@ function broadcastEvent(gameEvent: GameEvent, critical: boolean = false): void {
     extraPayload: gameEvent.extraPayload,
     visibility: gameEvent.visibility,
   }, 'message');
+
+  // Add event to pipe buffer
+  eventArrayForPipe.push(gameEvent);
 
   eventCount++;
 
@@ -154,13 +169,15 @@ function broadcastEvent(gameEvent: GameEvent, critical: boolean = false): void {
 }
 
 /**
- * Get SSE statistics
+ * Get SSE and event pipe statistics
  */
 export function getSSEStats(): {
   activeClients: number;
+  eventPipeStats?: { enabled: boolean; clients: number; pipeName: string };
 } {
   return {
-    activeClients: eventChannel.sessionCount
+    activeClients: eventChannel.sessionCount,
+    eventPipeStats: eventPipe.getStats()
   };
 }
 

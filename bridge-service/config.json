@@ -7,6 +7,10 @@
     "id": "vox-deorum-bridge",
     "retry": 5000
   },
+  "eventpipe": {
+    "enabled": false,
+    "name": "vox-deorum-events"
+  },
   "logging": {
     "level": "info"
   }

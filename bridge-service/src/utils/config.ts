@@ -18,6 +18,10 @@ export interface ServiceConfig {
     id: string;
     retry: number;
   };
+  eventpipe: {
+    enabled: boolean;
+    name: string;
+  };
   logging: {
     level: string;
   };
@@ -36,6 +40,10 @@ const defaultConfig: ServiceConfig = {
   gamepipe: {
     id: 'vox-deorum-bridge',
     retry: 5000
+  },
+  eventpipe: {
+    enabled: false,
+    name: 'vox-deorum-events'
   },
   logging: {
     level: 'info'
@@ -70,6 +78,10 @@ export function loadConfig(): ServiceConfig {
       id: process.env.gamepipe_ID || fileConfig.gamepipe?.id || defaultConfig.gamepipe.id,
       retry: parseInt(process.env.gamepipe_RETRY || '') || fileConfig.gamepipe?.retry || defaultConfig.gamepipe.retry
     },
+    eventpipe: {
+      enabled: process.env.EVENTPIPE_ENABLED === 'true' || fileConfig.eventpipe?.enabled || defaultConfig.eventpipe.enabled,
+      name: process.env.EVENTPIPE_NAME || fileConfig.eventpipe?.name || defaultConfig.eventpipe.name
+    },
     logging: {
       level: process.env.LOG_LEVEL || fileConfig.logging?.level || defaultConfig.logging.level
     }
@@ -81,6 +93,7 @@ export function loadConfig(): ServiceConfig {
   logger.info('Configuration loaded:', {
     rest: config.rest,
     gamepipe: { id: config.gamepipe.id, retry: config.gamepipe.retry },
+    eventpipe: config.eventpipe,
     logging: { level: config.logging.level }
   });
 

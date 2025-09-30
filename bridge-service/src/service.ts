@@ -8,6 +8,7 @@ import { config } from './utils/config.js';
 import { dllConnector } from './services/dll-connector.js';
 import { luaManager } from './services/lua-manager.js';
 import { externalManager } from './services/external-manager.js';
+import { eventPipe } from './services/event-pipe.js';
 import { HealthCheckResponse } from './types/api.js';
 
 const logger = createLogger('BridgeService');
@@ -56,9 +57,13 @@ export class BridgeService extends EventEmitter {
    */
   public async start(): Promise<void> {
     logger.info('Starting Bridge Service...');
-    
     this.isRunning = true;
+
+    // Connect to DLL
     await dllConnector.connect();
+
+    // Start event pipe if enabled
+    await eventPipe.start();
 
     this.emit('started');
   }
@@ -69,12 +74,14 @@ export class BridgeService extends EventEmitter {
   public async shutdown(): Promise<void> {
     if (!this.isRunning) return;
     logger.info('Shutting down Bridge Service...');
-    
+
     try {
       this.isRunning = false;
       // Disconnect from DLL (this will also clear any reconnection timers)
       await dllConnector.disconnect();
-      
+
+      // Stop event pipe
+      await eventPipe.stop();
       logger.info('Bridge Service shut down successfully');
       this.emit('shutdown');
     } catch (error) {
@@ -115,6 +122,11 @@ export class BridgeService extends EventEmitter {
       registeredFunctions: number;
       functionNames: string[];
     };
+    eventPipe: {
+      enabled: boolean;
+      clients: number;
+      pipeName: string;
+    };
     memory: {
       used: number;
       total: number;
@@ -130,6 +142,7 @@ export class BridgeService extends EventEmitter {
       dll: dllConnector.getStats(),
       lua: luaManager.getStats(),
       external: externalManager.getStats(),
+      eventPipe: eventPipe.getStats(),
       memory: {
         used: Math.round(memUsage.rss / 1024 / 1024), // MB
         total: Math.round(memUsage.rss / 1024 / 1024), // MB
