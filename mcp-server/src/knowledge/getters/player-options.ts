@@ -88,9 +88,9 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
       processedResults.map((options: any) => {
         return {
           key: options.Key!,
-          data: options,
-          visibilityFlags: [options.Key] // Only visible to the player themselves
-        }})
+          data: options
+        };
+      })
     );
   }
 
