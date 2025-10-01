@@ -117,7 +117,8 @@ export class EventPipe extends EventEmitter {
       const batchData = events.map(event => JSON.stringify(event)).join('!@#$%^!');
       ipc.server.broadcast(batchData + '!@#$%^!');
 
-      logger.debug(`Broadcast batch of ${events.length} events to ${this.connectedClientsCount} clients`);
+      if (this.connectedClientsCount > 0)
+        logger.debug(`Broadcast batch of ${events.length} events to ${this.connectedClientsCount} clients`);
     } catch (error) {
       logger.error('Error broadcasting event batch:', error);
     }

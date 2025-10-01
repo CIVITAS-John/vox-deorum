@@ -109,11 +109,13 @@ function flushEventBuffer(): void {
   }
 
   // Send to SSE clients
-  try {
-    eventChannel.activeSessions.map(session => session.batch(buffer));
-    logger.debug(`Flushed ${currentEventCount} events to ${eventChannel.sessionCount} SSE clients`);
-  } catch (error) {
-    logger.error('Error flushing SSE event buffer:', error);
+  if (eventChannel.activeSessions.length > 0) {
+    try {
+      eventChannel.activeSessions.map(session => session.batch(buffer));
+      logger.debug(`Flushed ${currentEventCount} events to ${eventChannel.sessionCount} SSE clients`);
+    } catch (error) {
+      logger.error('Error flushing SSE event buffer:', error);
+    }
   }
 
   // Send to event pipe clients as a batch
@@ -139,8 +141,6 @@ function scheduleFlush(): void {
  * @param critical If true, flush the buffer immediately after adding this event
  */
 function broadcastEvent(gameEvent: GameEvent, critical: boolean = false): void {
-  logger.debug(`Broadcasting event to ${eventChannel.sessionCount} clients: ${gameEvent.type}${critical ? ' (critical)' : ''}`);
-
   // Initialize buffer if needed
   if (!eventBuffer) {
     eventBuffer = createEventBuffer();

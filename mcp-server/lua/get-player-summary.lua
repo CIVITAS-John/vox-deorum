@@ -37,6 +37,9 @@ local function getVisibility(fromPlayerID, toPlayerID)
 end
 
 Game.RegisterFunction("${Name}", function(${Arguments})
+  -- Get the active league once at the beginning
+  local league = Game.GetActiveLeague()
+
   -- Iterate through all major players
   for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
     local player = Players[playerID]
@@ -63,11 +66,17 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         currentResearch = "None"
       end
 
+      -- Get votes in the league if it exists
+      local votes = nil
+      if league then
+        votes = league:CalculateStartingVotesForMember(playerID)
+      end
+
       local summary = {
         Key = playerID,
         Score = player:GetScore(),  -- Player's current score
         Era = currentEra,
-        MajorAlly = nil,  -- Default to no ally
+        Votes = votes,  -- Votes in the World Congress/UN
         Cities = player:GetNumCities(),
         Population = player:GetTotalPopulation(),
         Territory = player:GetNumPlots(),  -- Number of plots owned (major civs only)

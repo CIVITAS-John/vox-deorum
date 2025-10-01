@@ -344,6 +344,8 @@ export class BridgeManager extends EventEmitter {
             logger.error('Failed to parse event pipe message:', error);
           }
         });
+
+        logger.debug(`Pipe message handled: ${messages.length}, remaining ${this.eventPipeBuffer.length}`);
       });
 
       ipc.of[pipeName].on('error', (error: any) => {
