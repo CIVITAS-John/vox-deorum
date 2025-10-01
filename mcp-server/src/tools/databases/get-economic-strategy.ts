@@ -9,7 +9,8 @@ import * as changeCase from "change-case";
  */
 const EconomicStrategySchema = z.object({
   Type: z.string(),
-  Weights: z.record(z.string(), z.number()),
+  Production: z.record(z.string(), z.number()),
+  Overall: z.record(z.string(), z.number()),
 });
 
 type EconomicStrategy = z.infer<typeof EconomicStrategySchema>;
@@ -86,21 +87,19 @@ class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, Econom
       // Remove ECONOMICAISTRATEGY_ prefix and convert to PascalCase
       const ProductionWeights = ProductionWeightsByStrategy.get(strategy.Type!) || [];
       const OverallWeights = OverallWeightsByStrategy.get(strategy.Type!) || [];
-      const Weights = new Map<string, number>();
-
-      // Combine production and overall weights into a single Weights object
-      ProductionWeights.map((f: any) => Weights.set(
-        changeCase.pascalCase(f.FlavorType!.replace('FLAVOR_', '')),
-        f.Flavor!
-      ));
-      OverallWeights.map((f: any) => Weights.set(
-        changeCase.pascalCase(f.FlavorType!.replace('FLAVOR_', '')),
-        f.Flavor!
-      ));
 
       results.push({
         Type: changeCase.pascalCase(strategy.Type!.replace('ECONOMICAISTRATEGY_', '')),
-        Weights: Object.fromEntries(Weights)
+        Production: Object.fromEntries(
+          ProductionWeights.map((f: any) => [
+            changeCase.pascalCase(f.FlavorType!.replace('FLAVOR_', '')),
+            f.Flavor!
+          ])),
+        Overall: Object.fromEntries(
+          OverallWeights.map((f: any) => [
+            changeCase.pascalCase(f.FlavorType!.replace('FLAVOR_', '')),
+            f.Flavor!
+          ]))
       });
     }
 

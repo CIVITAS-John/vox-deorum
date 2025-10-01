@@ -45,6 +45,7 @@ You will receive the following reports:
 - Strategies: current strategic decisions and available options for you. 
   - You will receive the strategy, persona, technology, policy you set last time.
     - You will also receive the rationale you wrote.
+    - It is typically preferable to finish existing policy branches before starting new ones.
   - You will receive options for each type of decisions.
     - Whatever decision-making tool you call, the in-game AI can only execute options here. 
     - You must choose options from the relevant lists. Double check if your choices match.
@@ -54,7 +55,6 @@ You will receive the following reports:
 - Cities: summary reports about discovered cities in the world.
 - Units: summary reports about your units and other players' visible units (only).
 - Events: events since you last made a decision.
-You have tool access to the game's database to learn more about game rules.
 `.trim()
   }
   
@@ -105,8 +105,6 @@ ${parameters.store!.events}
   public getActiveTools(_parameters: StrategistParameters): string[] | undefined {
     // Return specific tools the strategist needs
     return [
-      "get-technology",
-      "get-policy",
       "get-civilization",
       "set-strategy",
       "set-persona",

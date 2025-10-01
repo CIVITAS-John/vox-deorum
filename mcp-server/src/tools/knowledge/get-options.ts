@@ -34,27 +34,27 @@ const GetOptionsOutputSchema = z.object({
     Rationale: z.string().optional(),
     GrandStrategy: z.object({
       Current: z.string().optional(),
-      Options: z.union([z.record(z.string(), z.record(z.string(), z.number())), z.array(z.string())]),
+      Options: z.any(),
     }),
     EconomicStrategies: z.object({
       Current: z.array(z.string()).optional(),
-      Options: z.union([z.record(z.string(), z.record(z.string(), z.number())), z.array(z.string())]),
+      Options: z.any(),
     }),
     MilitaryStrategies: z.object({
       Current: z.array(z.string()).optional(),
-      Options: z.union([z.record(z.string(), z.record(z.string(), z.number())), z.array(z.string())]),
+      Options: z.any(),
     })
   }),
   // Technology and Policies
   Research: z.object({
     Next: z.string(),
     Rationale: z.string().optional(),
-    Options: z.union([z.record(z.string(), z.string()), z.array(z.string())]),
+    Options: z.any(),
   }),
   Policies: z.object({
     Next: z.string(),
     Rationale: z.string().optional(),
-    Options: z.union([z.record(z.string(), z.string()), z.array(z.string())]),
+    Options: z.any(),
   })
 }).passthrough();
 
@@ -142,7 +142,7 @@ class GetOptionsTool extends ToolBase {
     const cleanOptions = stripTimedKnowledgeMetadata<PlayerOptions>(playerOptions as any);
 
     // Chime in more data
-    return {
+    const result = {
       Strategy: {
         Rationale: (strategies as any)?.Rationale,
         GrandStrategy: {
@@ -157,10 +157,13 @@ class GetOptionsTool extends ToolBase {
                 const strategy = economicStrategies.find(s => s.Type === strategyName)!;
                 return [
                   strategyName,
-                  strategy?.Weights
+                  {
+                    Production: strategy?.Production,
+                    Overall: strategy?.Overall
+                  }
                 ];
               })
-            )! : cleanOptions.EconomicStrategies
+            ) : cleanOptions.EconomicStrategies
         },
         MilitaryStrategies: {
           Current: strategies?.MilitaryStrategies,
@@ -170,49 +173,59 @@ class GetOptionsTool extends ToolBase {
                 const strategy = militaryStrategies.find(s => s.Type === strategyName)!;
                 return [
                   strategyName,
-                  strategy?.Weights
+                  {
+                    Production: strategy?.Production,
+                    Overall: strategy?.Overall
+                  }
                 ];
               })
-            )! : cleanOptions.MilitaryStrategies
+            ) : cleanOptions.MilitaryStrategies
         },
       },
       Persona: persona as Record<string, string | number>,
       Research: {
         Next: research?.Technology ?? "None",
         Rationale: research?.Rationale,
-        Options: technologies ?
+        Options: technologies && cleanOptions.Technologies.length > 0 ?
           Object.fromEntries(
             cleanOptions.Technologies.map(techName => {
-              const tech = technologies.find(s => s.Type === techName)!;
+              const tech = technologies.find(s => s.Name === techName)!;
               return [
                 techName,
-                tech?.Help
+                tech?.Help ?? ""
               ];
             })
-          )! : cleanOptions.Technologies
+          ) : cleanOptions.Technologies
       },
       Policies: {
         Next: policy?.Policy ? `${policy.Policy} (${policy.IsBranch ? "New Branch" : "Policy"})` : "None",
         Rationale: policy?.Rationale,
-        Options: policies ?
+        Options: policies && cleanOptions.Policies.length > 0 ?
           Object.fromEntries(
             cleanOptions.Policies.map(policyName => {
-              const policy = policies.find(s => s.Type === policyName)!;
+              const current = policies.find(s => s.Name === policyName)!;
+              var Help = current?.Help ?? "";
+              if (policy?.Policy !== undefined && policy?.Policy !== "None") 
+                Help = Help.substring(0, Help.indexOf("\n")).trim();
               return [
-                policyName + ` (Policy in ${policy?.Branch})`,
-                policy?.Help
+                policyName + ` (Policy in ${current?.Branch})`,
+                Help
               ];
             }).concat(cleanOptions.PolicyBranches.map(policyName => {
-              const policy = policies.find(s => s.Type === policyName)!;
+              const current = policies.find(s => s.Name === policyName)!;
+              var Help = current?.Help ?? "";
+              if (policy?.Policy !== undefined && policy?.Policy !== "None") 
+                Help = Help.substring(0, Help.indexOf("\n")).trim();
               return [
                 policyName + " (New Branch)",
-                policy?.Help
+                Help
               ];
             }))
-          )! : cleanOptions.Technologies
+          ) : cleanOptions.Policies
       }
     };
-  }
+    return result;
+  };
 }
 
 /**

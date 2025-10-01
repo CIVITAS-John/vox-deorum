@@ -127,7 +127,7 @@ export class DatabaseManager {
     }
 
     // Pattern to match TXT_KEY_* references, including those within strings
-    const TXT_KEY_PATTERN = /TXT_KEY_[A-Z_]+/g;
+    const TXT_KEY_PATTERN = /\{(TXT_KEY_[A-Z_]+)\}|(TXT_KEY_[A-Z_]+)/g;
 
     // Recursively collect TXT_KEY_* values
     const collectTxtKeys = (obj: any, keys: Set<string>): void => {
@@ -136,9 +136,11 @@ export class DatabaseManager {
       if (Array.isArray(obj)) {
         obj.forEach(item => {
           if (typeof item === 'string') {
-            const matches = item.match(TXT_KEY_PATTERN);
-            if (matches)
-              matches.forEach(match => keys.add(match));
+            let match;
+            while ((match = TXT_KEY_PATTERN.exec(item)) !== null) {
+              const txtKey = match[1] || match[0];
+              keys.add(txtKey);
+            }
           } else {
             collectTxtKeys(item, keys);
           }
@@ -146,9 +148,11 @@ export class DatabaseManager {
       } else if (typeof obj === 'object') {
         Object.entries(obj).forEach(([_key, value]) => {
           if (typeof value === 'string') {
-            const matches = value.match(TXT_KEY_PATTERN);
-            if (matches)
-              matches.forEach(match => keys.add(match));
+            let match;
+            while ((match = TXT_KEY_PATTERN.exec(value)) !== null) {
+              const txtKey = match[1] || match[0];
+              keys.add(txtKey);
+            }
           } else if (typeof value === 'object') {
             collectTxtKeys(value, keys);
           }
@@ -183,6 +187,7 @@ export class DatabaseManager {
       logger.error('Batch localization lookup failed:', error);
       return results;
     }
+    if (localizationMap.size === 0) return results;
 
     // Recursively localize values
     const localizeValue = (obj: any): any => {
@@ -196,7 +201,7 @@ export class DatabaseManager {
         }
         // Then check for embedded TXT_KEY patterns and replace them
         return obj.replaceAll(TXT_KEY_PATTERN, (match) => {
-          return localizationMap.get(match) || match;
+          return localizationMap.get(match[1]) || localizationMap.get(match[0]) || match[0];
         });
       }
       
@@ -215,7 +220,8 @@ export class DatabaseManager {
       return obj;
     };
 
-    return results.map(localizeValue) as T;
+    results = results.map(localizeValue) as T;
+    return await this.localizeObjects(results);
   }
 
   /**
