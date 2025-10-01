@@ -230,9 +230,7 @@ function postProcessData(
 
         if (targetVisibility === 0) {
           // Player hasn't met this civilization
-          updatedRelationships[civName] = targetInfo.IsMajor === 1
-            ? "Unmet Major Civilization"
-            : "Unmet Minor Civilization";
+          delete updatedRelationships[civName];
         } else {
           // Player has met this civilization, keep the original relationships
           updatedRelationships[civName] = summary.Relationships[civName];

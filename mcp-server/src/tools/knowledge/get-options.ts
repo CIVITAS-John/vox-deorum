@@ -14,6 +14,7 @@ import { readPlayerKnowledge } from "../../utils/knowledge/cached.js";
 import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
 import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
 import { enumMappings } from "../../utils/knowledge/enum.js";
+import { getTool } from "../index.js";
 
 /**
  * Input schema for the GetOptions tool
@@ -33,27 +34,27 @@ const GetOptionsOutputSchema = z.object({
     Rationale: z.string().optional(),
     GrandStrategy: z.object({
       Current: z.string().optional(),
-      Options: z.array(z.string()),
+      Options: z.union([z.record(z.string(), z.record(z.string(), z.number())), z.array(z.string())]),
     }),
     EconomicStrategies: z.object({
       Current: z.array(z.string()).optional(),
-      Options: z.array(z.string()),
+      Options: z.union([z.record(z.string(), z.record(z.string(), z.number())), z.array(z.string())]),
     }),
     MilitaryStrategies: z.object({
       Current: z.array(z.string()).optional(),
-      Options: z.array(z.string()),
+      Options: z.union([z.record(z.string(), z.record(z.string(), z.number())), z.array(z.string())]),
     })
   }),
   // Technology and Policies
   Research: z.object({
     Next: z.string(),
     Rationale: z.string().optional(),
-    Options: z.array(z.string())
+    Options: z.union([z.record(z.string(), z.string()), z.array(z.string())]),
   }),
   Policies: z.object({
     Next: z.string(),
     Rationale: z.string().optional(),
-    Options: z.array(z.string())
+    Options: z.union([z.record(z.string(), z.string()), z.array(z.string())]),
   })
 }).passthrough();
 
@@ -88,6 +89,7 @@ class GetOptionsTool extends ToolBase {
     autoComplete: ["PlayerID"],
     markdownConfig: [
       { format: "{key}" },
+      { format: "{key}" },
       { format: "{key}" }
     ]
   }
@@ -97,10 +99,14 @@ class GetOptionsTool extends ToolBase {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Get all player options
-    const [allOptions, strategies, persona] = await Promise.all([
+    const [allOptions, strategies, persona, economicStrategies, militaryStrategies, technologies, policies] = await Promise.all([
       getPlayerOptions(true),
       readPlayerKnowledge(args.PlayerID, "StrategyChanges", getPlayerStrategy),
-      readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona)
+      readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona),
+      getTool("getEconomicStrategy")?.getSummaries(),
+      getTool("getMilitaryStrategy")?.getSummaries(),
+      getTool("getTechnology")?.getSummaries(),
+      getTool("getPolicy")?.getSummaries()
     ]);
 
     // Find options for the requested player
@@ -145,24 +151,65 @@ class GetOptionsTool extends ToolBase {
         },
         EconomicStrategies: {
           Current: strategies?.EconomicStrategies,
-          Options: cleanOptions.EconomicStrategies
+          Options: economicStrategies ?
+            Object.fromEntries(
+              cleanOptions.EconomicStrategies.map(strategyName => {
+                const strategy = economicStrategies.find(s => s.Type === strategyName)!;
+                return [
+                  strategyName,
+                  strategy?.Weights
+                ];
+              })
+            )! : cleanOptions.EconomicStrategies
         },
         MilitaryStrategies: {
           Current: strategies?.MilitaryStrategies,
-          Options: cleanOptions.MilitaryStrategies
-        }
+          Options: militaryStrategies ?
+            Object.fromEntries(
+              cleanOptions.MilitaryStrategies.map(strategyName => {
+                const strategy = militaryStrategies.find(s => s.Type === strategyName)!;
+                return [
+                  strategyName,
+                  strategy?.Weights
+                ];
+              })
+            )! : cleanOptions.MilitaryStrategies
+        },
       },
       Persona: persona as Record<string, string | number>,
       Research: {
         Next: research?.Technology ?? "None",
         Rationale: research?.Rationale,
-        Options: cleanOptions.Technologies,
+        Options: technologies ?
+          Object.fromEntries(
+            cleanOptions.Technologies.map(techName => {
+              const tech = technologies.find(s => s.Type === techName)!;
+              return [
+                techName,
+                tech?.Help
+              ];
+            })
+          )! : cleanOptions.Technologies
       },
       Policies: {
         Next: policy?.Policy ? `${policy.Policy} (${policy.IsBranch ? "New Branch" : "Policy"})` : "None",
         Rationale: policy?.Rationale,
-        Options: cleanOptions.Policies.map(p => p + " (Policy)")
-          .concat(cleanOptions.PolicyBranches.map(p => p + " (New Branch)"))
+        Options: policies ?
+          Object.fromEntries(
+            cleanOptions.Policies.map(policyName => {
+              const policy = policies.find(s => s.Type === policyName)!;
+              return [
+                policyName + ` (Policy in ${policy?.Branch})`,
+                policy?.Help
+              ];
+            }).concat(cleanOptions.PolicyBranches.map(policyName => {
+              const policy = policies.find(s => s.Type === policyName)!;
+              return [
+                policyName + " (New Branch)",
+                policy?.Help
+              ];
+            }))
+          )! : cleanOptions.Technologies
       }
     };
   }

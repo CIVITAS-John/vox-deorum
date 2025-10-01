@@ -17,7 +17,7 @@ type EconomicStrategy = z.infer<typeof EconomicStrategySchema>;
 /**
  * Tool for querying AI economic strategies from the game database
  */
-class GetEconomicStrategiesTool extends DatabaseQueryTool<EconomicStrategy, EconomicStrategy> {
+class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, EconomicStrategy> {
   /**
    * Unique identifier for the get economic strategies tool
    */
@@ -128,6 +128,6 @@ class GetEconomicStrategiesTool extends DatabaseQueryTool<EconomicStrategy, Econ
 /**
  * Creates a new instance of the get economic strategies tool
  */
-export default function createGetEconomicStrategiesTool() {
-  return new GetEconomicStrategiesTool();
+export default function createGetEconomicStrategyTool() {
+  return new GetEconomicStrategyTool();
 }

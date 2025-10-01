@@ -5,8 +5,8 @@ import createGetPolicyTool from "./databases/get-policy.js";
 import createGetBuildingTool from "./databases/get-building.js";
 import createGetCivilizationTool from "./databases/get-civilization.js";
 import createGetUnitTool from "./databases/get-unit.js";
-import createGetEconomicStrategiesTool from "./databases/get-economic-strategies.js";
-import createGetMilitaryStrategiesTool from "./databases/get-military-strategies.js";
+import createGetEconomicStrategyTool from "./databases/get-economic-strategy.js";
+import createGetMilitaryStrategyTool from "./databases/get-military-strategy.js";
 import createGetEventsTool from "./knowledge/get-events.js";
 import createGetPlayersTool from "./knowledge/get-players.js";
 import createGetOpinionsTool from "./knowledge/get-opinions.js";
@@ -32,8 +32,8 @@ const toolFactories = {
     getBuilding: createGetBuildingTool,
     getCivilization: createGetCivilizationTool,
     getUnit: createGetUnitTool,
-    getEconomicStrategies: createGetEconomicStrategiesTool,
-    getMilitaryStrategies: createGetMilitaryStrategiesTool,
+    getEconomicStrategy: createGetEconomicStrategyTool,
+    getMilitaryStrategy: createGetMilitaryStrategyTool,
     getEvents: createGetEventsTool,
     getPlayers: createGetPlayersTool,
     getOpinions: createGetOpinionsTool,

@@ -17,7 +17,7 @@ type MilitaryStrategy = z.infer<typeof MilitaryStrategySchema>;
 /**
  * Tool for querying AI military strategies from the game database
  */
-class GetMilitaryStrategiesTool extends DatabaseQueryTool<MilitaryStrategy, MilitaryStrategy> {
+class GetMilitaryStrategyTool extends DatabaseQueryTool<MilitaryStrategy, MilitaryStrategy> {
   /**
    * Unique identifier for the get military strategies tool
    */
@@ -128,6 +128,6 @@ class GetMilitaryStrategiesTool extends DatabaseQueryTool<MilitaryStrategy, Mili
 /**
  * Creates a new instance of the get military strategies tool
  */
-export default function createGetMilitaryStrategiesTool() {
-  return new GetMilitaryStrategiesTool();
+export default function createGetMilitaryStrategyTool() {
+  return new GetMilitaryStrategyTool();
 }
