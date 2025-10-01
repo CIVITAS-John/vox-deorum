@@ -47,6 +47,7 @@ export class MCPClient {
   private isConnected: boolean = false;
   private notificationHandlers: Map<string, (data: any) => any> = new Map();
   private dispatcher?: Dispatcher;
+  private connectionPool: Pool | undefined;
 
   constructor() {
     this.client = undefined as any;
@@ -85,14 +86,16 @@ export class MCPClient {
         args: transportConfig.args 
       });
     } else if (transportConfig.type === 'http') {
+      if (this.connectionPool) this.connectionPool.close();
+      this.connectionPool = new Pool(new URL(transportConfig.endpoint!).origin, { connections: 50 });
       this.dispatcher = new RetryAgent(
-        new Pool(new URL(transportConfig.endpoint!).origin, { connections: 5 }),
+        this.connectionPool,
         {
           // Retry configuration for connection failures
-          maxRetries: 1000,          // More retries for initial connection
-          minTimeout: 200,        // Start with 0.1 second delay
-          maxTimeout: 2000,       // Cap at 1 seconds
-          timeoutFactor: 2,      // Gentler backoff (1s, 1.5s, 2.25s, 3.37s, ...)
+          maxRetries: 1000000,          // More retries for initial connection
+          minTimeout: 200,        // Start with 0.2 second delay
+          maxTimeout: 2000,       // Cap at 2 seconds
+          timeoutFactor: 2,       // Exponential backoff factor
           retryAfter: true,        // Respect Retry-After headers
           // Include connection errors and server unavailable statuses
           errorCodes: [
@@ -136,7 +139,7 @@ export class MCPClient {
    */
   private setupErrorHandlers(): void {
     this.transport.onerror = async (error: Error) => {
-      if (error.message.indexOf("Bad Request")) {
+      if (error.message.indexOf("Bad Request") !== -1) {
         if (this.isConnected) {
           logger.warn('MCP server has restarted. Reconnecting...', error);
           await this.disconnect();
