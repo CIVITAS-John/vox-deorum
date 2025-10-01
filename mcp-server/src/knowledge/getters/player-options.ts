@@ -59,7 +59,7 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
     'ConcertTour',             // Immediate effect: triggers great musician concert tour
   ];
   const blacklistedMilitaryStrategies: string[] = [
-    
+
   ];  // Currently no military strategies need blacklisting
 
   // Process and convert numeric IDs to names for all options
@@ -94,5 +94,5 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
     );
   }
 
-  return filteredResults;
+  return processedResults;
 }
