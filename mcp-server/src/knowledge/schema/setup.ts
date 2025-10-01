@@ -129,6 +129,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('Score', 'integer') // Player's current score (major civs only)
     .addColumn('Era', 'text')
     .addColumn('MajorAlly', 'text')
+    .addColumn('Votes', 'integer')
     .addColumn('Cities', 'integer', (col) => col.notNull())
     .addColumn('Population', 'integer', (col) => col.notNull())
     .addColumn('Territory', 'integer') // Number of plots owned (major civs only)
