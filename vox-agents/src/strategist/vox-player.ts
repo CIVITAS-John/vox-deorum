@@ -160,6 +160,12 @@ export class VoxPlayer {
               turns: this.parameters.turn
             }
           });
+          updateActiveTrace({
+            output: {
+              completed: true,
+              turns: this.parameters.turn,
+            }
+          });
           await langfuseSpanProcessor.forceFlush();
           await setTimeout(1000);
         }

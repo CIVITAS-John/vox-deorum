@@ -1,14 +1,13 @@
 -- Extract player summary information from the game
 -- Returns summary data with relative visibility between all players
 
-local summaries = {}
 local influenceLookup = {
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN] = "TXT_KEY_CO_UNKNOWN",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_EXOTIC] = "TXT_KEY_CO_EXOTIC",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_FAMILIAR] = "TXT_KEY_CO_FAMILIAR",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_POPULAR] = "TXT_KEY_CO_POPULAR",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL] = "TXT_KEY_CO_INFLUENTIAL",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_DOMINANT] = "TXT_KEY_CO_DOMINANT",
+  [InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN] = "Unknown",
+  [InfluenceLevelTypes.INFLUENCE_LEVEL_EXOTIC] = "Exotic",
+  [InfluenceLevelTypes.INFLUENCE_LEVEL_FAMILIAR] = "Familiar",
+  [InfluenceLevelTypes.INFLUENCE_LEVEL_POPULAR] = "Popular",
+  [InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL] = "Influential",
+  [InfluenceLevelTypes.INFLUENCE_LEVEL_DOMINANT] = "Dominant",
 };
 
 -- Helper function to calculate visibility between two players
@@ -37,6 +36,7 @@ local function getVisibility(fromPlayerID, toPlayerID)
 end
 
 Game.RegisterFunction("${Name}", function(${Arguments})
+  local summaries = {}
   -- Get the active league once at the beginning
   local league = Game.GetActiveLeague()
 
@@ -218,7 +218,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
 
             -- Check for cultural influence from tourism
             local iInfluenceLevel = player:GetInfluenceLevel(otherPlayerID)
-            if iInfluenceLevel and iInfluenceLevel > InfluenceLevelTypes.NO_INFLUENCE_LEVEL then
+            if iInfluenceLevel and iInfluenceLevel > InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN then
               local levelText = Locale.ConvertTextKey(influenceLookup[iInfluenceLevel])
 
               -- Calculate influence percentage
@@ -230,12 +230,11 @@ Game.RegisterFunction("${Name}", function(${Arguments})
                 iPercent = math.floor((iInfluence * 100) / iCulture)
               end
 
-              relationshipList[#relationshipList + 1] = string.format("Our Cultural Influence through Tourism (%s, %d%%)", levelText, iPercent)
+              relationshipList[#relationshipList + 1] = string.format("Our Cultural Influence through Tourism: %s (%d%%)", levelText, iPercent)
             end
 
             -- Only add if there are relationships
             if #relationshipList > 0 then
-              if not relationships then relationships = {} end  -- Lazy allocate
               local civName = Locale.ConvertTextKey(otherPlayer:GetCivilizationShortDescription())
               relationships[civName] = relationshipList
             end
@@ -283,7 +282,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
       local relationships = {}
       for majorID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
         local major = Players[majorID]
-        if major and major:IsAlive() and fromTeam:IsHasMet(major:GetTeam()) then
+        if major and major:IsAlive() then
           -- Get influence score
           local influence = player:GetMinorCivFriendshipWithMajor(majorID)
 
@@ -315,11 +314,9 @@ Game.RegisterFunction("${Name}", function(${Arguments})
           -- Check if major is friends
           elseif player:IsFriends(majorID) then
             status = "Friends"
-          -- Neutral with influence indication
-          elseif influence > 0 then
-            status = "Neutral (Positive)"
-          elseif influence < 0 then
-            status = "Neutral (Negative)"
+          -- Neutral
+          else
+            status = "Neutral"
           end
 
           -- Format the status with influence and protected status at the end
