@@ -32,6 +32,7 @@ export class StrategistSession {
   private victoryResolve?: () => void;
   private lastGameState: 'running' | 'crashed' | 'victory' | 'initializing' = 'initializing';
   private crashRecoveryAttempts = 0;
+  private dllConnected = false;
   private readonly MAX_RECOVERY_ATTEMPTS = 3;
 
   constructor(private config: StrategistSessionConfig) {
@@ -72,12 +73,18 @@ export class StrategistSession {
           await this.handlePlayerVictory(params);
           break;
         case "DLLConnected":
+          this.dllConnected = true;
           await this.handleDLLConnected(params);
           break;
         case "DLLDisconnected":
+          this.dllConnected = false;
           // Kill the game when the game hangs
-          logger.warn(`The DLL is no longer connected. Trying to restart the game...`);
-          await voxCivilization.killGame();
+          logger.warn(`The DLL is no longer connected. Waiting for 30 seconds...`);
+          await setTimeout(30000);
+          if (!this.dllConnected) {
+            logger.warn(`The DLL is no longer connected. Trying to restart the game...`);
+            await voxCivilization.killGame();
+          }
           break;
         default:
           logger.info(`Received game event notification: ${params.event}`, params);

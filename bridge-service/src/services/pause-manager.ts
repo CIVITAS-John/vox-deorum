@@ -38,14 +38,6 @@ class PauseManager extends EventEmitter {
     dllConnector.on('connected', () => {
       this.handleDllReconnected();
     });
-
-    dllConnector.on('disconnected', () => {
-      // When DLL disconnects, clear local state as DLL will clear its state too
-      if (this.pausedPlayerIds.size > 0) {
-        this.pausedPlayerIds.clear();
-        logger.info('DLL disconnected, cleared paused players');
-      }
-    });
   }
 
   /**
