@@ -79,6 +79,7 @@ export function toolRescueMiddleware(): LanguageModelMiddleware {
           }
 
           if (!patternFound) {
+            // Sometimes a false alarm - Jetstream2's response can have both text AND tool_calls. Those warnings can be safely ignored then.
             logger.log("warn", `Failed to rescue tool call: no matching field pattern found`, toolCall);
             // No matching pattern found for this tool call
             allToolCallsValid = false;
