@@ -195,6 +195,14 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
       config.messages = filteredMessages;
     }
 
+    const model = this.getModel(parameters);
+    if (model) {
+      config.model = model;
+      config.providerOptions = {
+        [model.provider]: model.options
+      }
+    }
+
     return config;
   }
 }

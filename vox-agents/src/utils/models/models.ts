@@ -19,12 +19,15 @@ dotenv.config();
  * @param modelName - Name of the model configuration (default: "default")
  * @returns Model configuration or undefined if not found
  */
-export function getModelConfig(name: string = 'default'): Model {
+export function getModelConfig(name: string = 'default', reasoning?: 'minimal' | 'low' | 'medium' | 'high'): Model {
   const model = config.llms[name];
-  if (!model) return getModelConfig("default");
+  if (!model) return getModelConfig("default", reasoning);
   if (typeof(model) === "string")
-    return getModelConfig(model);
-  else return model;
+    return getModelConfig(model, reasoning);
+  else if (reasoning) {
+    model.options = { ...model.options, reasoningEffort: reasoning };
+    return model;
+  } else return model;
 }
 
 /**
@@ -40,8 +43,8 @@ export function getModel(config: Model): LanguageModel {
     case "jetstream2":
       result = createOpenAICompatible({
         baseURL: "https://llm.jetstream-cloud.org/api/",
-        name: "Jetstream2",
-        apiKey: process.env.JETSTREAM2_API_KEY
+        name: "jetstream2",
+        apiKey: process.env.JETSTREAM2_API_KEY,
       }).chatModel(config.name);
       break;
     case "openai":
