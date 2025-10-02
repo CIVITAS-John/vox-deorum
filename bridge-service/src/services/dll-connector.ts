@@ -188,7 +188,7 @@ export class DLLConnector extends EventEmitter {
   /**
    * Send multiple messages to the DLL in batch
    */
-  public async sendBatch<T>(messages: IPCMessage[], timeout: number = 60000): Promise<APIResponse<T>[]> {
+  public async sendBatch<T>(messages: IPCMessage[], timeout: number = 120000): Promise<APIResponse<T>[]> {
     if (!this.connected) {
       logger.warn('Cannot send messages, DLL is disconnected');
       return messages.map(() => respondError(ErrorCode.DLL_DISCONNECTED));
@@ -238,7 +238,7 @@ export class DLLConnector extends EventEmitter {
   /**
    * Send a message to the DLL
    */
-  public async send<T>(message: IPCMessage, timeout: number = 60000): Promise<APIResponse<T>> {
+  public async send<T>(message: IPCMessage, timeout: number = 120000): Promise<APIResponse<T>> {
     const results = await this.sendBatch<T>([message], timeout);
     return results[0];
   }

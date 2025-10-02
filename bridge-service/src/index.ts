@@ -166,7 +166,7 @@ async function startServer(): Promise<void> {
     
     // Start HTTP server
     const server = createServer(app);
-    server.keepAliveTimeout = 60000; // 60 seconds keep-alive timeout
+    server.keepAliveTimeout = 120000; // 120 seconds keep-alive timeout
     server.listen(config.rest.port, config.rest.host, () => {
       logger.info(`Bridge Service HTTP server listening on http://${config.rest.host}:${config.rest.port}`);
       logger.info('Service endpoints:');
