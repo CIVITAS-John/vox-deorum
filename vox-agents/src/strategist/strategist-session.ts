@@ -3,6 +3,7 @@ import { mcpClient } from "../utils/models/mcp-client.js";
 import { VoxPlayer } from "./vox-player.js";
 import { voxCivilization } from "../infra/vox-civilization.js";
 import { setTimeout } from 'node:timers/promises';
+import { Model } from "../utils/config.js";
 
 const logger = createLogger('StrategistSession');
 
@@ -20,6 +21,8 @@ export interface StrategistSessionConfig {
   gameMode: 'start' | 'load';
   /** The number of repeated runs. After the first, all will be new games. */
   repetition?: number;
+  /** LLM model to use for the strategist - override the baseline config */
+  llms?: Record<string, Model | string>;
 }
 
 /**

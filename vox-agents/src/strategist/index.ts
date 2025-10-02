@@ -1,6 +1,6 @@
 import { langfuseSpanProcessor } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
-import { loadConfigFromFile } from "../utils/config.js";
+import config, { loadConfigFromFile } from "../utils/config.js";
 import { StrategistSession, StrategistSessionConfig } from "./strategist-session.js";
 import { setTimeout } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
@@ -84,11 +84,14 @@ if (values.repetition !== undefined) {
 }
 
 // Load configuration from file with command line overrides
-const config: StrategistSessionConfig = loadConfigFromFile(
+const sessionConfig: StrategistSessionConfig = loadConfigFromFile(
   "configs/" + configFile,
   defaultConfig,
   cmdOverrides
 );
+// Merge LLM configurations
+if (sessionConfig.llms)
+  Object.assign(config.llms, sessionConfig.llms);
 
 // Session instance
 let session: StrategistSession | null = null;
@@ -129,14 +132,14 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Start the session
 async function main() {
-  logger.info(`Starting in ${config.gameMode} mode`);
+  logger.info(`Starting in ${sessionConfig.gameMode} mode`);
   try {
-    for (var I = 0; I < (config.repetition ?? 1); I++) {
+    for (var I = 0; I < (sessionConfig.repetition ?? 1); I++) {
       if (shuttingdown) break;
       // Start a new session
-      session = new StrategistSession(config);
+      session = new StrategistSession(sessionConfig);
       await session.start();
-      config.gameMode = "start";
+      sessionConfig.gameMode = "start";
       logger.info(`Session ${I} completed successfully`);
       // Shut down the session
       await session.shutdown();
