@@ -67,11 +67,11 @@ export function toolRescueMiddleware(): LanguageModelMiddleware {
           let patternFound = false;
 
           for (const pattern of fieldPatterns) {
-            const candidateName = toolCall[pattern.nameField].replaceAll(/_/g, '-');
+            const candidateName = toolCall[pattern.nameField];
             const candidateParams = toolCall[pattern.parametersField];
 
             if (candidateName && candidateParams) {
-              toolName = candidateName;
+              toolName = candidateName?.replaceAll(/_/g, '-');
               toolParameters = candidateParams;
               patternFound = true;
               break;
