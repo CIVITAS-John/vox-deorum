@@ -3,6 +3,7 @@ import { createLogger } from "../utils/logger.js";
 import { z } from "zod";
 import { Model } from "../utils/config.js";
 import { VoxContext } from "./vox-context.js";
+import { buildProviderOptions } from "../utils/models/models.js";
 
 /**
  * Parameters for configuring agent execution.
@@ -198,9 +199,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
     const model = this.getModel(parameters);
     if (model) {
       config.model = model;
-      config.providerOptions = {
-        [model.provider]: model.options
-      }
+      config.providerOptions = buildProviderOptions(model)
     }
 
     return config;

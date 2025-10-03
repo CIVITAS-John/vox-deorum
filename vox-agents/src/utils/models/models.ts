@@ -70,3 +70,54 @@ export function getModel(config: Model): LanguageModel {
   }
   return result;
 }
+
+/**
+ * Build provider options from model configuration
+ *
+ * Converts OpenAI-style reasoningEffort to OpenRouter's reasoning.effort format
+ * when using the openrouter provider.
+ *
+ * @param model - The model configuration
+ * @returns Provider options object keyed by provider name
+ *
+ * @example
+ * // OpenAI format
+ * buildProviderOptions({
+ *   provider: 'openai',
+ *   name: 'gpt-5',
+ *   options: { reasoningEffort: 'high' }
+ * })
+ * // Returns: { openai: { reasoningEffort: 'high' } }
+ *
+ * @example
+ * // OpenRouter conversion
+ * buildProviderOptions({
+ *   provider: 'openrouter',
+ *   name: 'deepseek/deepseek-r1',
+ *   options: { reasoningEffort: 'medium' }
+ * })
+ * // Returns: { openrouter: { reasoning: { effort: 'medium' } } }
+ */
+export function buildProviderOptions(model: Model): Record<string, any> {
+  if (!model.options) {
+    return { [model.provider]: {} };
+  }
+
+  // Handle OpenRouter's reasoning format
+  if (model.provider === 'openrouter' && model.options.reasoningEffort) {
+    const { reasoningEffort, ...otherOptions } = model.options;
+    return {
+      openrouter: {
+        ...otherOptions,
+        reasoning: {
+          effort: reasoningEffort
+        }
+      }
+    };
+  }
+
+  // Default: pass options through as-is
+  return {
+    [model.provider]: model.options
+  };
+}
