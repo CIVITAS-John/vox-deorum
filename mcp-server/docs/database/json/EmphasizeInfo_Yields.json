@@ -1,0 +1,52 @@
+{
+  "tableName": "EmphasizeInfo_Yields",
+  "rowCount": 2,
+  "columns": [
+    {
+      "name": "EmphasizeType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "YieldType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Yield",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "YieldType",
+      "referencedTable": "Yields",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EmphasizeType",
+      "referencedTable": "EmphasizeInfos",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE EmphasizeInfo_Yields ('EmphasizeType' text , 'YieldType' text , 'Yield' integer  not null , foreign key (EmphasizeType) references EmphasizeInfos(Type), foreign key (YieldType) references Yields(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.173Z"
+  }
+}

@@ -1,0 +1,682 @@
+{
+  "tableName": "Resources",
+  "rowCount": 42,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Civilopedia",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "Help",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "ResourceClassType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "ArtDefineTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "AltArtDefineTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "ArtDefineTagHeavy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "AltArtDefineTagHeavy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "TechReveal",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "PolicyReveal",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "TechCityTrade",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "TechObsolete",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "AIStopTradingEra",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "CivilizationType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "Happiness",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "WonderProductionMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "WonderProductionModObsoleteEra",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "StartingResourceQuantity",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "AITradeModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "AIObjective",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "PlacementOrder",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "ConstAppearance",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "MinAreaSize",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "MinLatitude",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "MaxLatitude",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "RandApp1",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27
+    },
+    {
+      "name": "RandApp2",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 28
+    },
+    {
+      "name": "RandApp3",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 29
+    },
+    {
+      "name": "RandApp4",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 30
+    },
+    {
+      "name": "Player",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 31
+    },
+    {
+      "name": "TilesPer",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 32
+    },
+    {
+      "name": "MinLandPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 33
+    },
+    {
+      "name": "Unique",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 34
+    },
+    {
+      "name": "GroupRange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 35
+    },
+    {
+      "name": "GroupRand",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 36
+    },
+    {
+      "name": "ResourceUsage",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 37
+    },
+    {
+      "name": "PresentOnAllValidPlots",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 38
+    },
+    {
+      "name": "Area",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 39
+    },
+    {
+      "name": "Hills",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 40
+    },
+    {
+      "name": "Flatlands",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 41
+    },
+    {
+      "name": "NoRiverSide",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 42
+    },
+    {
+      "name": "Normalize",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 43
+    },
+    {
+      "name": "OnlyMinorCivs",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 44
+    },
+    {
+      "name": "IconString",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 45
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 46
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 47
+    },
+    {
+      "name": "IsMonopoly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 48,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MonopolyHappiness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 49,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MonopolyGALength",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 50,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MonopolyAttackBonus",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 51,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MonopolyDefenseBonus",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 52,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MonopolyMovementBonus",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 53,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MonopolyHealBonus",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 54,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MonopolyXPBonus",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 55,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "StrategicHelp",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 56,
+      "constraints": "REFERENCES Language_en_US (Tag)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "StrategicPriority",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 57,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "TechImproveable",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 58,
+      "constraints": "REFERENCES Technologies (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "LandResource",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 59,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "SeaResource",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 60,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "AnimalResource",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 61,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PlantResource",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 62,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "RockResource",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 63,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "IconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "WonderProductionModObsoleteEra",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "CivilizationType",
+      "referencedTable": "Civilizations",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TechObsolete",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TechCityTrade",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PolicyReveal",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TechReveal",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Help",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Civilopedia",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TechImproveable",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "StrategicHelp",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Resources_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Resources ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Civilopedia' text , 'Help' text , 'ResourceClassType' text , 'ArtDefineTag' text , 'AltArtDefineTag' text , 'ArtDefineTagHeavy' text , 'AltArtDefineTagHeavy' text , 'TechReveal' text default NULL , 'PolicyReveal' text default NULL , 'TechCityTrade' text default NULL , 'TechObsolete' text default NULL , 'AIStopTradingEra' text default NULL , 'CivilizationType' text default NULL , 'Happiness' integer default 0 , 'WonderProductionMod' integer default 0 , 'WonderProductionModObsoleteEra' text default NULL , 'StartingResourceQuantity' integer default 0 , 'AITradeModifier' integer default 0 , 'AIObjective' integer default 0 , 'PlacementOrder' integer default 0 , 'ConstAppearance' integer default 0 , 'MinAreaSize' integer default 0 , 'MinLatitude' integer default 0 , 'MaxLatitude' integer default 0 , 'RandApp1' integer default 0 , 'RandApp2' integer default 0 , 'RandApp3' integer default 0 , 'RandApp4' integer default 0 , 'Player' integer default 0 , 'TilesPer' integer default 0 , 'MinLandPercent' integer default 0 , 'Unique' integer default 0 , 'GroupRange' integer default 0 , 'GroupRand' integer default 0 , 'ResourceUsage' integer default 0 , 'PresentOnAllValidPlots' boolean default 0 , 'Area' boolean default 0 , 'Hills' boolean default 0 , 'Flatlands' boolean default 0 , 'NoRiverSide' boolean default 0 , 'Normalize' boolean default 0 , 'OnlyMinorCivs' boolean default 0 , 'IconString' text , 'PortraitIndex' integer default '-1' , 'IconAtlas' text default NULL , IsMonopoly boolean DEFAULT 0, MonopolyHappiness integer DEFAULT 0, MonopolyGALength integer DEFAULT 0, MonopolyAttackBonus integer DEFAULT 0, MonopolyDefenseBonus integer DEFAULT 0, MonopolyMovementBonus integer DEFAULT 0, MonopolyHealBonus integer DEFAULT 0, MonopolyXPBonus integer DEFAULT 0, StrategicHelp text REFERENCES Language_en_US (Tag), StrategicPriority integer DEFAULT 0, TechImproveable text REFERENCES Technologies (Type), LandResource boolean DEFAULT 0, SeaResource boolean DEFAULT 0, AnimalResource boolean DEFAULT 0, PlantResource boolean DEFAULT 0, RockResource boolean DEFAULT 0, foreign key (Description) references Language_en_US(Tag), foreign key (Civilopedia) references Language_en_US(Tag), foreign key (Help) references Language_en_US(Tag), foreign key (TechReveal) references Technologies(Type), foreign key (PolicyReveal) references Policies(Type), foreign key (TechCityTrade) references Technologies(Type), foreign key (TechObsolete) references Technologies(Type), foreign key (CivilizationType) references Civilizations(Type), foreign key (WonderProductionModObsoleteEra) references Eras(Type), foreign key (IconAtlas) references IconTextureAtlases(Atlas))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.391Z"
+  }
+}

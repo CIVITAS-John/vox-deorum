@@ -1,0 +1,21 @@
+{
+  "eventName": "PlayerTradeRouteCompleted",
+  "generatedAt": "2025-09-02T16:48:30.113Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTradeClasses.cpp",
+      "line": 2587,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerTradeRouteCompleted, pOriginCity->getOwner(), pOriginCity->GetID(), pDestCity->getOwner(), pDestCity->GetID(), eDomain, pTradeConnection->m_eConnectionType);",
+      "eventName": "PlayerTradeRouteCompleted",
+      "args": [
+        "pOriginCity->getOwner()",
+        "pOriginCity->GetID()",
+        "pDestCity->getOwner()",
+        "pDestCity->GetID()",
+        "eDomain",
+        "pTradeConnection->m_eConnectionType"
+      ]
+    }
+  ]
+}

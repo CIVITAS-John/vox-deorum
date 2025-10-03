@@ -1,0 +1,53 @@
+{
+  "tableName": "LeagueNames",
+  "rowCount": 3,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "NameKey",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "NameKey",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_LeagueNames_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE LeagueNames ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'NameKey' text default NULL , foreign key (NameKey) references Language_en_US(Tag))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.256Z"
+  }
+}

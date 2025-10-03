@@ -1,0 +1,52 @@
+{
+  "tableName": "Trait_FreeUnitClassesDOW",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "TraitType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "UnitClassType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Number",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "UnitClassType",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TraitType",
+      "referencedTable": "Traits",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Trait_FreeUnitClassesDOW ('TraitType' text  not null , 'UnitClassType' text  not null , 'Number' integer  not null , foreign key (TraitType) references Traits(Type), foreign key (UnitClassType) references UnitClasses(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.436Z"
+  }
+}

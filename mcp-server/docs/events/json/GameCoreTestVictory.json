@@ -1,0 +1,14 @@
+{
+  "eventName": "GameCoreTestVictory",
+  "generatedAt": "2025-09-02T16:48:34.172Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 9731,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"GameCoreTestVictory\", args.get(), bResult);",
+      "eventName": "GameCoreTestVictory",
+      "args": []
+    }
+  ]
+}

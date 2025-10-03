@@ -1,0 +1,660 @@
+{
+  "tableName": "CityEvents",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "EventClass",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "Help",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "CityEventAudio",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "CityEventArt",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "RandomChance",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "RandomChanceDelta",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "IsOneShot",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "EventCooldown",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "30",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "NumChoices",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "EraScaling",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "IgnoresGlobalCooldown",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "MinimumCityPopulation",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "MaximumCityPopulation",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "RequiredCiv",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "RequiredEra",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "ObsoleteEra",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "ImprovementRequired",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "NearbyFeature",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "NearbyTerrain",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "LocalResourceRequired",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "RequiredPolicy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "RequiredIdeology",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "PrereqTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "ObsoleteTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "RequiredReligion",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 27
+    },
+    {
+      "name": "RequiredStateReligion",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 28
+    },
+    {
+      "name": "RequiresAnyStateReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 29
+    },
+    {
+      "name": "RequiredBuildingClass",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 30
+    },
+    {
+      "name": "CannotHaveBuildingClass",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 31
+    },
+    {
+      "name": "HasTradeConnection",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 32
+    },
+    {
+      "name": "HasCityConnection",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 33
+    },
+    {
+      "name": "RequiresGarrison",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 34
+    },
+    {
+      "name": "RequiresHolyCity",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 35
+    },
+    {
+      "name": "RequiresIdeology",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 36
+    },
+    {
+      "name": "CapitalOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 37
+    },
+    {
+      "name": "CoastalOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 38
+    },
+    {
+      "name": "RiverOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 39
+    },
+    {
+      "name": "RequiresWar",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 40
+    },
+    {
+      "name": "RequiresWarMinor",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 41
+    },
+    {
+      "name": "RequiresResistance",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 42
+    },
+    {
+      "name": "RequiresWLTKD",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 43
+    },
+    {
+      "name": "RequiresOccupied",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 44
+    },
+    {
+      "name": "RequiresRazing",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 45
+    },
+    {
+      "name": "HasAnyReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 46
+    },
+    {
+      "name": "RequiresPuppet",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 47
+    },
+    {
+      "name": "HasMetAMajorCiv",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 48
+    },
+    {
+      "name": "CityHasPlayerReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 49
+    },
+    {
+      "name": "CityLacksPlayerReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 50
+    },
+    {
+      "name": "CityHasPlayerMajorityReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 51
+    },
+    {
+      "name": "CityLacksPlayerMajorityReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 52
+    },
+    {
+      "name": "IsVassalOfSomeone",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 53
+    },
+    {
+      "name": "IsMasterOfSomeone",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 54
+    },
+    {
+      "name": "RequiresPantheon",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 55
+    },
+    {
+      "name": "InDebt",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 56
+    },
+    {
+      "name": "LosingMoney",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 57
+    },
+    {
+      "name": "IsUnhappy",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 58
+    },
+    {
+      "name": "IsSuperUnhappy",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 59
+    },
+    {
+      "name": "RequiresNearbyNaturalWonder",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 60
+    },
+    {
+      "name": "RequiresNearbyMountain",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 61
+    },
+    {
+      "name": "EspionageSetup",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 62
+    },
+    {
+      "name": "IsCounterSpy",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 63
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "CannotHaveBuildingClass",
+      "referencedTable": "BuildingClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredBuildingClass",
+      "referencedTable": "BuildingClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredStateReligion",
+      "referencedTable": "Religions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredReligion",
+      "referencedTable": "Religions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ObsoleteTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PrereqTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredIdeology",
+      "referencedTable": "PolicyBranchTypes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredPolicy",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "LocalResourceRequired",
+      "referencedTable": "Resources",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "NearbyTerrain",
+      "referencedTable": "Terrains",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "NearbyFeature",
+      "referencedTable": "Features",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ImprovementRequired",
+      "referencedTable": "Improvements",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ObsoleteEra",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredEra",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredCiv",
+      "referencedTable": "Civilizations",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Help",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EventClass",
+      "referencedTable": "EventClassTypes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_CityEvents_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE CityEvents ('ID' integer primary key , 'Type' text  not null unique , 'EventClass' text , 'Description' text , 'Help' text , 'CityEventAudio' text , 'CityEventArt' text , 'RandomChance' integer default 0 , 'RandomChanceDelta' integer default 0 , 'IsOneShot' boolean default 0 , 'EventCooldown' integer default 30 , 'NumChoices' integer default 1 , 'EraScaling' boolean default 0 , 'IgnoresGlobalCooldown' boolean default 0 , 'MinimumCityPopulation' integer default 0 , 'MaximumCityPopulation' integer default 0 , 'RequiredCiv' text , 'RequiredEra' text , 'ObsoleteEra' text , 'ImprovementRequired' text , 'NearbyFeature' text , 'NearbyTerrain' text , 'LocalResourceRequired' text , 'RequiredPolicy' text , 'RequiredIdeology' text , 'PrereqTech' text , 'ObsoleteTech' text , 'RequiredReligion' text , 'RequiredStateReligion' text , 'RequiresAnyStateReligion' boolean default 0 , 'RequiredBuildingClass' text , 'CannotHaveBuildingClass' text , 'HasTradeConnection' boolean default 0 , 'HasCityConnection' boolean default 0 , 'RequiresGarrison' boolean default 0 , 'RequiresHolyCity' boolean default 0 , 'RequiresIdeology' boolean default 0 , 'CapitalOnly' boolean default 0 , 'CoastalOnly' boolean default 0 , 'RiverOnly' boolean default 0 , 'RequiresWar' boolean default 0 , 'RequiresWarMinor' boolean default 0 , 'RequiresResistance' boolean default 0 , 'RequiresWLTKD' boolean default 0 , 'RequiresOccupied' boolean default 0 , 'RequiresRazing' boolean default 0 , 'HasAnyReligion' boolean default 0 , 'RequiresPuppet' boolean default 0 , 'HasMetAMajorCiv' boolean default 0 , 'CityHasPlayerReligion' boolean default 0 , 'CityLacksPlayerReligion' boolean default 0 , 'CityHasPlayerMajorityReligion' boolean default 0 , 'CityLacksPlayerMajorityReligion' boolean default 0 , 'IsVassalOfSomeone' boolean default 0 , 'IsMasterOfSomeone' boolean default 0 , 'RequiresPantheon' boolean default 0 , 'InDebt' boolean default 0 , 'LosingMoney' boolean default 0 , 'IsUnhappy' boolean default 0 , 'IsSuperUnhappy' boolean default 0 , 'RequiresNearbyNaturalWonder' boolean default 0 , 'RequiresNearbyMountain' boolean default 0 , 'EspionageSetup' boolean default 0 , 'IsCounterSpy' boolean default 0 , foreign key (EventClass) references EventClassTypes(Type), foreign key (Description) references Language_en_US(Tag), foreign key (Help) references Language_en_US(Tag), foreign key (RequiredCiv) references Civilizations(Type), foreign key (RequiredEra) references Eras(Type), foreign key (ObsoleteEra) references Eras(Type), foreign key (ImprovementRequired) references Improvements(Type), foreign key (NearbyFeature) references Features(Type), foreign key (NearbyTerrain) references Terrains(Type), foreign key (LocalResourceRequired) references Resources(Type), foreign key (RequiredPolicy) references Policies(Type), foreign key (RequiredIdeology) references PolicyBranchTypes(Type), foreign key (PrereqTech) references Technologies(Type), foreign key (ObsoleteTech) references Technologies(Type), foreign key (RequiredReligion) references Religions(Type), foreign key (RequiredStateReligion) references Religions(Type), foreign key (RequiredBuildingClass) references BuildingClasses(Type), foreign key (CannotHaveBuildingClass) references BuildingClasses(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.135Z"
+  }
+}

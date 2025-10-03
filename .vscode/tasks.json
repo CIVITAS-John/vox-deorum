@@ -1,0 +1,131 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open All Service Terminals",
+      "dependsOn": [
+        "Open Bridge Service Terminal",
+        "Open MCP Server Terminal",
+        "Open Vox Agents Terminal",
+        "Open Civ5 DLL Terminal"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "Open Bridge Service Terminal",
+      "type": "shell",
+      "command": "echo 'Bridge Service terminal ready' && cmd /K",
+      "options": {
+        "cwd": "${workspaceFolder}/bridge-service"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "services"
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Open MCP Server Terminal",
+      "type": "shell",
+      "command": "echo 'MCP Server terminal ready' && cmd /K",
+      "options": {
+        "cwd": "${workspaceFolder}/mcp-server"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "services"
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Open Vox Agents Terminal",
+      "type": "shell",
+      "command": "echo 'Vox Agents terminal ready' && cmd /K",
+      "options": {
+        "cwd": "${workspaceFolder}/vox-agents"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "services"
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Open Civ5 DLL Terminal",
+      "type": "shell",
+      "command": "echo 'Civ5 DLL terminal ready' && cmd /K",
+      "options": {
+        "cwd": "${workspaceFolder}/civ5-dll"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "services"
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Start All Services",
+      "dependsOn": [
+        "Start Bridge Service",
+        "Start MCP Server",
+        "Start Vox Agents Strategist"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Bridge Service",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/bridge-service"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "running-services"
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Start MCP Server",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/mcp-server"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "running-services"
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Start Vox Agents Strategist",
+      "type": "shell",
+      "command": "npm run strategist",
+      "options": {
+        "cwd": "${workspaceFolder}/vox-agents"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "running-services"
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    }
+  ]
+}

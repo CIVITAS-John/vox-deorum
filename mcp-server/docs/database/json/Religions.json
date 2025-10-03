@@ -1,0 +1,119 @@
+{
+  "tableName": "Religions",
+  "rowCount": 14,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Civilopedia",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "EarliestFoundDate",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "IconString",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "LocalReligion",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "IconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Civilopedia",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Religions_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Religions ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Civilopedia' text , 'EarliestFoundDate' integer default '-1' , 'PortraitIndex' integer default '-1' , 'IconAtlas' text default NULL , 'IconString' text , LocalReligion integer DEFAULT 0, foreign key (Description) references Language_en_US(Tag), foreign key (Civilopedia) references Language_en_US(Tag), foreign key (IconAtlas) references IconTextureAtlases(Atlas))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.375Z"
+  }
+}

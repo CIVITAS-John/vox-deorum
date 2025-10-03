@@ -1,0 +1,27 @@
+{
+  "eventName": "TeamSetHasTech",
+  "generatedAt": "2025-09-02T16:48:34.174Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTechClasses.cpp",
+      "line": 2372,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamSetHasTech\", args.get(), bResult);",
+      "eventName": "TeamSetHasTech",
+      "args": [
+        {
+          "line": 2365,
+          "content": "args->Push(m_pTeam->GetID());"
+        },
+        {
+          "line": 2366,
+          "content": "args->Push(eIndex);"
+        },
+        {
+          "line": 2367,
+          "content": "args->Push(bNewValue);"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "tableName": "Calendars",
+  "rowCount": 7,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Calendars ('ID' integer primary key autoincrement , 'Type' text , 'Description' text )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.115Z"
+  }
+}

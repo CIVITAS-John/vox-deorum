@@ -1,0 +1,3 @@
+[submodule "civ5-dll"]
+	path = civ5-dll
+	url = https://github.com/CIVITAS-John/vox-populi.git

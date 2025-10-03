@@ -1,0 +1,53 @@
+{
+  "tableName": "CustomModOptions",
+  "rowCount": 286,
+  "columns": [
+    {
+      "name": "Name",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Value",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Class",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "DbUpdates",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    }
+  ],
+  "primaryKeys": [
+    "Name"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_CustomModOptions_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE CustomModOptions ('Name' text primary key , 'Value' integer default 1 , 'Class' integer default 5 , 'DbUpdates' integer default 0 )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.167Z"
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "tableName": "PolicyBranchTypes",
+  "rowCount": 12,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Civilopedia",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "Strategy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Help",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "Title",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "EraPrereq",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "FreePolicy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "FreeFinishingPolicy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "FirstAdopterFreePolicies",
+      "type": "INT",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "SecondAdopterFreePolicies",
+      "type": "INT",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "PurchaseByLevel",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "LockedWithoutReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "AIMutuallyExclusive",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "AIDelayNoReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "AIDelayNoCulture",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "AIDelayNoCityStates",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "AIDelayNoScience",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "NumPolicyRequirement",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "-1",
+      "primaryKey": false,
+      "position": 19,
+      "constraints": "DEFAULT -1",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "FontIcon",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 20,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "FreeFinishingPolicy",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "FreePolicy",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EraPrereq",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Title",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Help",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Strategy",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Civilopedia",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_PolicyBranchTypes_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE PolicyBranchTypes ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Civilopedia' text , 'Strategy' text , 'Help' text , 'Title' text , 'EraPrereq' text default NULL , 'FreePolicy' text default NULL , 'FreeFinishingPolicy' text default NULL , 'FirstAdopterFreePolicies' int default 0 , 'SecondAdopterFreePolicies' int default 0 , 'PurchaseByLevel' boolean default 0 , 'LockedWithoutReligion' boolean default 0 , 'AIMutuallyExclusive' boolean default 0 , 'AIDelayNoReligion' boolean default 0 , 'AIDelayNoCulture' boolean default 0 , 'AIDelayNoCityStates' boolean default 0 , 'AIDelayNoScience' boolean default 0 , NumPolicyRequirement integer DEFAULT -1, FontIcon text, foreign key (Description) references Language_en_US(Tag), foreign key (Civilopedia) references Language_en_US(Tag), foreign key (Strategy) references Language_en_US(Tag), foreign key (Help) references Language_en_US(Tag), foreign key (Title) references Language_en_US(Tag), foreign key (EraPrereq) references Eras(Type), foreign key (FreePolicy) references Policies(Type), foreign key (FreeFinishingPolicy) references Policies(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.291Z"
+  }
+}

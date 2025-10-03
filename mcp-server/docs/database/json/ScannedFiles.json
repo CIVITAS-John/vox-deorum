@@ -1,0 +1,45 @@
+{
+  "tableName": "ScannedFiles",
+  "rowCount": 156,
+  "columns": [
+    {
+      "name": "Path",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0,
+      "constraints": "NOT NULL PRIMARY KEY",
+      "isPrimaryKey": true,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "DateTime",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "Path"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_ScannedFiles_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE ScannedFiles(\"Path\" TEXT NOT NULL PRIMARY KEY, \"DateTime\" INTEGER NOT NULL)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.396Z"
+  }
+}

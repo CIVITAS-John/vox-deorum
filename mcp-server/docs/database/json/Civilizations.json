@@ -1,0 +1,271 @@
+{
+  "tableName": "Civilizations",
+  "rowCount": 45,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Civilopedia",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "CivilopediaTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Strategy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "Playable",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "AIPlayable",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "ShortDescription",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "Adjective",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "DefaultPlayerColor",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "ArtDefineTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "ArtStyleType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "ArtStyleSuffix",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "ArtStylePrefix",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "DerivativeCiv",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "AlphaIconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "MapImage",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "DawnOfManQuote",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "DawnOfManImage",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "DawnOfManAudio",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "PackageID",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "SoundtrackTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 24
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "AlphaIconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "IconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "DefaultPlayerColor",
+      "referencedTable": "PlayerColors",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Adjective",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ShortDescription",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Strategy",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Civilizations_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Civilizations ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Civilopedia' text default NULL , 'CivilopediaTag' text , 'Strategy' text , 'Playable' boolean default 1 , 'AIPlayable' boolean default 1 , 'ShortDescription' text default NULL , 'Adjective' text default NULL , 'DefaultPlayerColor' text default NULL , 'ArtDefineTag' text default NULL , 'ArtStyleType' text default NULL , 'ArtStyleSuffix' text default NULL , 'ArtStylePrefix' text default NULL , 'DerivativeCiv' text default NULL , 'PortraitIndex' integer default '-1' , 'IconAtlas' text default NULL , 'AlphaIconAtlas' text default NULL , 'MapImage' text default NULL , 'DawnOfManQuote' text default NULL , 'DawnOfManImage' text default NULL , 'DawnOfManAudio' text default NULL , 'PackageID' text default NULL , 'SoundtrackTag' text default NULL , foreign key (Description) references Language_en_US(Tag), foreign key (Strategy) references Language_en_US(Tag), foreign key (ShortDescription) references Language_en_US(Tag), foreign key (Adjective) references Language_en_US(Tag), foreign key (DefaultPlayerColor) references PlayerColors(Type), foreign key (IconAtlas) references IconTextureAtlases(Atlas), foreign key (AlphaIconAtlas) references IconTextureAtlases(Atlas))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.150Z"
+  }
+}

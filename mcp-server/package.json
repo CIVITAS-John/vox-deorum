@@ -1,0 +1,72 @@
+{
+  "name": "mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Vox Deorum - Exposes Civilization V game state as MCP resources and tools",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "test:stdio": "cross-env TEST_TRANSPORT=stdio vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "inspect": "npx @modelcontextprotocol/inspector",
+    "codegen": "kysely-codegen --dialect sqlite --singularize --out-file ./src/database/localization.d.ts"
+  },
+  "keywords": [
+    "civilization",
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "John Chen",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "better-sqlite3": "^12.2.0",
+    "change-case": "^5.4.4",
+    "cors": "2.8.5",
+    "cross-env": "^10.0.0",
+    "eventsource": "^4.0.0",
+    "express": "4.21.2",
+    "fast-fuzzy": "^1.12.0",
+    "kysely": "^0.28.5",
+    "mathjs": "^14.6.0",
+    "node-ipc": "^12.0.0",
+    "undici": "^7.16.0",
+    "winston": "^3.17.0",
+    "zod": "^3.22.0",
+    "zod-to-json-schema": "3.24.6"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/cors": "2.8.19",
+    "@types/express": "4.17.23",
+    "@types/node": "^20.10.4",
+    "@types/node-ipc": "^9.2.3",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "@vitest/coverage-v8": "^2.0.5",
+    "eslint": "^8.54.0",
+    "kysely-codegen": "^0.18.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.6.2",
+    "typescript": "^5.9.2",
+    "vitest": "^2.0.5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "overrides": {
+    "kysely-codegen": {
+      "better-sqlite3": "^12.2.0"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "tableName": "MapScriptRequiredDLC",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "FileName",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "PackageID",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE MapScriptRequiredDLC('FileName' TEXT NOT NULL COLLATE NOCASE, 'PackageID' TEXT NOT NULL)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.264Z"
+  }
+}

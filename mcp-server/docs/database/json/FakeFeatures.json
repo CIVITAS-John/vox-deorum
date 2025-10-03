@@ -1,0 +1,338 @@
+{
+  "tableName": "FakeFeatures",
+  "rowCount": 2,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Civilopedia",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "ArtDefineTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "StartingLocationWeight",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "Movement",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "SeeThrough",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "Defense",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "InfluenceCost",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "AppearanceProbability",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "DisappearanceProbability",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "Growth",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "GrowthTerrainType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "TurnDamage",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "YieldNotAdditive",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "NoCoast",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "NoRiver",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "NoAdjacent",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "RequiresFlatlands",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "RequiresRiver",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "AddsFreshWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "Impassable",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "NoCity",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "NoImprovement",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "VisibleAlways",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "NukeImmune",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "NaturalWonder",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27
+    },
+    {
+      "name": "Rough",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 28
+    },
+    {
+      "name": "WorldSoundscapeAudioScript",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 29
+    },
+    {
+      "name": "EffectType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 30
+    },
+    {
+      "name": "EffectProbability",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 31
+    },
+    {
+      "name": "EffectTypeTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 32
+    },
+    {
+      "name": "AdvancedStartRemoveCost",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 33
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 34
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 35
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "IconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "GrowthTerrainType",
+      "referencedTable": "Terrains",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Civilopedia",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_FakeFeatures_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE FakeFeatures ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Civilopedia' text , 'ArtDefineTag' text , 'StartingLocationWeight' integer default 0 , 'Movement' integer default 0 , 'SeeThrough' integer default 0 , 'Defense' integer default 0 , 'InfluenceCost' integer default 0 , 'AppearanceProbability' integer default 0 , 'DisappearanceProbability' integer default 0 , 'Growth' integer default 0 , 'GrowthTerrainType' text , 'TurnDamage' integer default 0 , 'YieldNotAdditive' boolean default 0 , 'NoCoast' boolean default 0 , 'NoRiver' boolean default 0 , 'NoAdjacent' boolean default 0 , 'RequiresFlatlands' boolean default 0 , 'RequiresRiver' boolean default 0 , 'AddsFreshWater' boolean default 0 , 'Impassable' boolean default 0 , 'NoCity' boolean default 0 , 'NoImprovement' boolean default 0 , 'VisibleAlways' boolean default 0 , 'NukeImmune' boolean default 0 , 'NaturalWonder' boolean default 0 , 'Rough' boolean default 0 , 'WorldSoundscapeAudioScript' text , 'EffectType' text , 'EffectProbability' integer default 0 , 'EffectTypeTag' text , 'AdvancedStartRemoveCost' integer default 0 , 'PortraitIndex' integer default '-1' , 'IconAtlas' text default NULL , foreign key (Description) references Language_en_US(Tag), foreign key (Civilopedia) references Language_en_US(Tag), foreign key (GrowthTerrainType) references Terrains(Type), foreign key (IconAtlas) references IconTextureAtlases(Atlas))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.198Z"
+  }
+}

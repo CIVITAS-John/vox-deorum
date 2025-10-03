@@ -1,0 +1,27 @@
+{
+  "eventName": "GovernmentCooldownRateChanges",
+  "generatedAt": "2025-09-02T16:48:30.111Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 29645,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_GovernmentCooldownRateChanges, GetID(), iValue);",
+      "eventName": "GovernmentCooldownRateChanges",
+      "args": [
+        "GetID()",
+        "iValue"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 29654,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_GovernmentCooldownRateChanges, GetID(), iValue);",
+      "eventName": "GovernmentCooldownRateChanges",
+      "args": [
+        "GetID()",
+        "iValue"
+      ]
+    }
+  ]
+}

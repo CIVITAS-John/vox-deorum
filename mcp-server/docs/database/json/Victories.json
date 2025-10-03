@@ -1,0 +1,213 @@
+{
+  "tableName": "Victories",
+  "rowCount": 5,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "VictoryStatement",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "VictoryBackground",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Civilopedia",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "WinsGame",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "TargetScore",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "EndScore",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "Conquest",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "Influential",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "DiploVote",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "Permanent",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "ReligionInAllCities",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "FindAllNaturalWonders",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "PopulationPercentLead",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "LandPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "MinLandPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "NumCultureCities",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "TotalCultureRatio",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "VictoryDelayTurns",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "VictoryMovie",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "CityCulture",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "Audio",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 23
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Victories_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Victories ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'VictoryStatement' text , 'VictoryBackground' text , 'Civilopedia' text , 'WinsGame' boolean default 0 , 'TargetScore' boolean default 0 , 'EndScore' boolean default 0 , 'Conquest' boolean default 0 , 'Influential' boolean default 0 , 'DiploVote' boolean default 0 , 'Permanent' boolean default 0 , 'ReligionInAllCities' boolean default 0 , 'FindAllNaturalWonders' boolean default 0 , 'PopulationPercentLead' integer default 0 , 'LandPercent' integer default 0 , 'MinLandPercent' integer default 0 , 'NumCultureCities' integer default 0 , 'TotalCultureRatio' integer default 0 , 'VictoryDelayTurns' integer default 0 , 'VictoryMovie' text , 'CityCulture' text default NULL , 'Audio' text default NULL )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.535Z"
+  }
+}

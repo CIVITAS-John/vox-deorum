@@ -1,0 +1,17 @@
+{
+  "eventName": "IdeologyAdopted",
+  "generatedAt": "2025-09-02T16:48:30.112Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPolicyClasses.cpp",
+      "line": 5547,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_IdeologyAdopted, m_pPlayer->GetID(), eBranchType);",
+      "eventName": "IdeologyAdopted",
+      "args": [
+        "m_pPlayer->GetID()",
+        "eBranchType"
+      ]
+    }
+  ]
+}

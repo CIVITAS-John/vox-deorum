@@ -1,0 +1,71 @@
+{
+  "tableName": "Building_TechEnhancedYieldChanges",
+  "rowCount": 1,
+  "columns": [
+    {
+      "name": "BuildingType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "YieldType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Yield",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "TechType",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3,
+      "constraints": "REFERENCES Technologies (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "YieldType",
+      "referencedTable": "Yields",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "BuildingType",
+      "referencedTable": "Buildings",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TechType",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Building_TechEnhancedYieldChanges ('BuildingType' text , 'YieldType' text , 'Yield' integer , TechType text REFERENCES Technologies (Type), foreign key (BuildingType) references Buildings(Type), foreign key (YieldType) references Yields(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.066Z"
+  }
+}

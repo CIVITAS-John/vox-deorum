@@ -1,0 +1,85 @@
+{
+  "tableName": "MovementRates",
+  "rowCount": 180,
+  "columns": [
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "NumHexes",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "TotalTime",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "EaseIn",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "EaseOut",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "IndividualOffset",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "RowOffset",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "CurveRoll",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "PathSubdivision",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 8
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE MovementRates ('Type' text  not null , 'NumHexes' integer  not null , 'TotalTime' float , 'EaseIn' float , 'EaseOut' float , 'IndividualOffset' float , 'RowOffset' float , 'CurveRoll' float , 'PathSubdivision' integer )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.277Z"
+  }
+}

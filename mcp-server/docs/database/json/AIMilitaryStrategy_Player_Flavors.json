@@ -1,0 +1,52 @@
+{
+  "tableName": "AIMilitaryStrategy_Player_Flavors",
+  "rowCount": 146,
+  "columns": [
+    {
+      "name": "AIMilitaryStrategyType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "FlavorType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Flavor",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "FlavorType",
+      "referencedTable": "Flavors",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "AIMilitaryStrategyType",
+      "referencedTable": "AIMilitaryStrategies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE AIMilitaryStrategy_Player_Flavors ('AIMilitaryStrategyType' text , 'FlavorType' text , 'Flavor' integer , foreign key (AIMilitaryStrategyType) references AIMilitaryStrategies(Type), foreign key (FlavorType) references Flavors(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.957Z"
+  }
+}

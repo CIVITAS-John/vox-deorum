@@ -1,0 +1,84 @@
+{
+  "tableName": "UnitPromotions_UnitCombatMods",
+  "rowCount": 24,
+  "columns": [
+    {
+      "name": "PromotionType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "UnitCombatType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Modifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "PediaType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "Attack",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Defense",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "UnitCombatType",
+      "referencedTable": "UnitCombatInfos",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PromotionType",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE UnitPromotions_UnitCombatMods ('PromotionType' text , 'UnitCombatType' text , 'Modifier' integer , 'PediaType' text , Attack integer DEFAULT 0, Defense integer DEFAULT 0, foreign key (PromotionType) references UnitPromotions(Type), foreign key (UnitCombatType) references UnitCombatInfos(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.509Z"
+  }
+}

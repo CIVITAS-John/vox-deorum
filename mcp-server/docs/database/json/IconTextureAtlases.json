@@ -1,0 +1,59 @@
+{
+  "tableName": "IconTextureAtlases",
+  "rowCount": 535,
+  "columns": [
+    {
+      "name": "Atlas",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "IconSize",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Filename",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "IconsPerRow",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "IconsPerColumn",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "IconTextureAtlases_Index",
+      "unique": false,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE IconTextureAtlases ('Atlas' text  not null , 'IconSize' integer  not null , 'Filename' text  not null , 'IconsPerRow' text  not null , 'IconsPerColumn' text  not null )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.222Z"
+  }
+}

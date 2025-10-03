@@ -1,0 +1,143 @@
+{
+  "tableName": "ArtDefine_Landmarks",
+  "rowCount": 497,
+  "columns": [
+    {
+      "name": "Era",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "\"Any\"",
+      "primaryKey": false,
+      "position": 0,
+      "constraints": "DEFAULT \"Any\"",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "State",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "\"Any\"",
+      "primaryKey": false,
+      "position": 1,
+      "constraints": "DEFAULT \"Any\"",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Scale",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 2,
+      "constraints": "DEFAULT 1",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ImprovementType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "LayoutHandler",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "ResourceType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "Model",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "TerrainContour",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Tech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 8,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "LayoutHandler",
+      "referencedTable": "ArtDefine_LandmarkTypes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ResourceType",
+      "referencedTable": "ArtDefine_LandmarkTypes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ImprovementType",
+      "referencedTable": "ArtDefine_LandmarkTypes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE ArtDefine_Landmarks(\t\"Era\" TEXT DEFAULT \"Any\",\r\n\t\t\t\t\t\t\t\t\t\"State\" TEXT DEFAULT \"Any\",\r\n\t\t\t\t\t\t\t\t\t\"Scale\" FLOAT DEFAULT 1,\r\n\t\t\t\t\t\t\t\t\t\"ImprovementType\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\"LayoutHandler\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\"ResourceType\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\"Model\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\"TerrainContour\" INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t\t\t\"Tech\" TEXT,\r\n\t\t\t\t\t\t\t\t\tFOREIGN KEY(\"ImprovementType\") REFERENCES ArtDefine_LandmarkTypes(\"Type\"),\r\n\t\t\t\t\t\t\t\t\tFOREIGN KEY(\"ResourceType\") REFERENCES ArtDefine_LandmarkTypes(\"Type\"),\r\n\t\t\t\t\t\t\t\t\tFOREIGN KEY(\"LayoutHandler\") REFERENCES ArtDefine_LandmarkTypes(\"Type\"))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.962Z"
+  }
+}

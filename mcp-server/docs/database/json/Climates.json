@@ -1,0 +1,133 @@
+{
+  "tableName": "Climates",
+  "rowCount": 5,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "DesertPercentChange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "JungleLatitude",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "HillRange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "MountainPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "SnowLatitudeChange",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "0.0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "TundraLatitudeChange",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "0.0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "GrassLatitudeChange",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "0.0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "DesertBottomLatitudeChange",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "0.0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "DesertTopLatitudeChange",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "0.0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "IceLatitude",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "RandIceLatitude",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 13
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Climates_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Climates ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'DesertPercentChange' integer default 0 , 'JungleLatitude' integer , 'HillRange' integer , 'MountainPercent' integer , 'SnowLatitudeChange' float default 0.0 , 'TundraLatitudeChange' float default 0.0 , 'GrassLatitudeChange' float default 0.0 , 'DesertBottomLatitudeChange' float default 0.0 , 'DesertTopLatitudeChange' float default 0.0 , 'IceLatitude' float , 'RandIceLatitude' float )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.150Z"
+  }
+}

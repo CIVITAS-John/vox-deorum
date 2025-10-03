@@ -1,0 +1,745 @@
+{
+  "tableName": "Beliefs",
+  "rowCount": 69,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "ShortDescription",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "Pantheon",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Founder",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "Follower",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "Enhancer",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "Reformation",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "RequiresPeace",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "ConvertsBarbarians",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "FaithPurchaseAllGreatPeople",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "MinPopulation",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "MinFollowers",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "MaxDistance",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "CityGrowthModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "FaithFromKills",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "FaithFromDyingUnits",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "RiverHappiness",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "HappinessPerCity",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "HappinessPerFollowingCity",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "0.0",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "HappinessPerXPeacefulForeignFollowers",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "PlotCultureCostModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "CityRangeStrikeModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "CombatModifierEnemyCities",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "CombatModifierFriendlyCities",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "FriendlyHealChange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "CityStateFriendshipModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27
+    },
+    {
+      "name": "LandBarbarianConversionPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 28
+    },
+    {
+      "name": "WonderProductionModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 29
+    },
+    {
+      "name": "PlayerHappiness",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 30
+    },
+    {
+      "name": "PlayerCultureModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 31
+    },
+    {
+      "name": "GoldPerFollowingCity",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 32
+    },
+    {
+      "name": "GoldPerXFollowers",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 33
+    },
+    {
+      "name": "GoldPerFirstCityConversion",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 34
+    },
+    {
+      "name": "SciencePerOtherReligionFollower",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 35
+    },
+    {
+      "name": "SpreadDistanceModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 36
+    },
+    {
+      "name": "SpreadStrengthModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 37
+    },
+    {
+      "name": "ProphetStrengthModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 38
+    },
+    {
+      "name": "ProphetCostModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 39
+    },
+    {
+      "name": "MissionaryStrengthModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 40
+    },
+    {
+      "name": "MissionaryCostModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 41
+    },
+    {
+      "name": "FriendlyCityStateSpreadModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 42
+    },
+    {
+      "name": "GreatPersonExpendedFaith",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 43
+    },
+    {
+      "name": "CityStateMinimumInfluence",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 44
+    },
+    {
+      "name": "CityStateInfluenceModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 45
+    },
+    {
+      "name": "OtherReligionPressureErosion",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 46
+    },
+    {
+      "name": "SpyPressure",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 47
+    },
+    {
+      "name": "InquisitorPressureRetention",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 48
+    },
+    {
+      "name": "FaithBuildingTourism",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 49
+    },
+    {
+      "name": "ObsoleteEra",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 50
+    },
+    {
+      "name": "ResourceRevealed",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 51
+    },
+    {
+      "name": "SpreadModifierDoublingTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 52
+    },
+    {
+      "name": "BorderGrowthRateIncreaseGlobal",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 53,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Tooltip",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 54,
+      "constraints": "REFERENCES Language_en_US (Tag)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "RequiresImprovement",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 55,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "RequiresResource",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 56,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "RequiresNoImprovement",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 57,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "RequiresNoImprovementFeature",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 58,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PolicyReductionWonderXFollowerCities",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 59,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "AI_GoodStartingPantheon",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 60,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PressureChangeTradeRoute",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 61,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CivilizationType",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 62,
+      "constraints": "REFERENCES Civilizations (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CombatVersusOtherReligionOwnLands",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 63,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CombatVersusOtherReligionTheirLands",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 64,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "UnitProductionModifier",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 65,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MissionaryInfluenceCS",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 66,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "HappinessPerPantheon",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 67,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ExtraVotes",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 68,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CityScalerLimiter",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 69,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "FollowerScalerLimiter",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 70,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ReducePolicyRequirements",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 71,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CSYieldBonusFromSharedReligion",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 72,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "HappinessFromForeignSpies",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 73,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "InquisitorCostModifier",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 74,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "SpreadModifierDoublingTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ResourceRevealed",
+      "referencedTable": "Resources",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ObsoleteEra",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "CivilizationType",
+      "referencedTable": "Civilizations",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Tooltip",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Beliefs_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Beliefs ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'ShortDescription' text , 'Pantheon' boolean default 0 , 'Founder' boolean default 0 , 'Follower' boolean default 0 , 'Enhancer' boolean default 0 , 'Reformation' boolean default 0 , 'RequiresPeace' boolean default 0 , 'ConvertsBarbarians' boolean default 0 , 'FaithPurchaseAllGreatPeople' boolean default 0 , 'MinPopulation' integer default 0 , 'MinFollowers' integer default 0 , 'MaxDistance' integer default 0 , 'CityGrowthModifier' integer default 0 , 'FaithFromKills' integer default 0 , 'FaithFromDyingUnits' integer default 0 , 'RiverHappiness' integer default 0 , 'HappinessPerCity' integer default 0 , 'HappinessPerFollowingCity' float default 0.0 , 'HappinessPerXPeacefulForeignFollowers' integer default 0 , 'PlotCultureCostModifier' integer default 0 , 'CityRangeStrikeModifier' integer default 0 , 'CombatModifierEnemyCities' integer default 0 , 'CombatModifierFriendlyCities' integer default 0 , 'FriendlyHealChange' integer default 0 , 'CityStateFriendshipModifier' integer default 0 , 'LandBarbarianConversionPercent' integer default 0 , 'WonderProductionModifier' integer default 0 , 'PlayerHappiness' integer default 0 , 'PlayerCultureModifier' integer default 0 , 'GoldPerFollowingCity' integer default 0 , 'GoldPerXFollowers' integer default 0 , 'GoldPerFirstCityConversion' integer default 0 , 'SciencePerOtherReligionFollower' integer default 0 , 'SpreadDistanceModifier' integer default 0 , 'SpreadStrengthModifier' integer default 0 , 'ProphetStrengthModifier' integer default 0 , 'ProphetCostModifier' integer default 0 , 'MissionaryStrengthModifier' integer default 0 , 'MissionaryCostModifier' integer default 0 , 'FriendlyCityStateSpreadModifier' integer default 0 , 'GreatPersonExpendedFaith' integer default 0 , 'CityStateMinimumInfluence' integer default 0 , 'CityStateInfluenceModifier' integer default 0 , 'OtherReligionPressureErosion' integer default 0 , 'SpyPressure' integer default 0 , 'InquisitorPressureRetention' integer default 0 , 'FaithBuildingTourism' integer default 0 , 'ObsoleteEra' text default NULL , 'ResourceRevealed' text default NULL , 'SpreadModifierDoublingTech' text default NULL , BorderGrowthRateIncreaseGlobal integer DEFAULT 0, Tooltip text REFERENCES Language_en_US (Tag), RequiresImprovement boolean DEFAULT 0, RequiresResource boolean DEFAULT 0, RequiresNoImprovement boolean DEFAULT 0, RequiresNoImprovementFeature boolean DEFAULT 0, PolicyReductionWonderXFollowerCities integer DEFAULT 0, AI_GoodStartingPantheon boolean DEFAULT 0, PressureChangeTradeRoute integer DEFAULT 0, CivilizationType text REFERENCES Civilizations (Type), CombatVersusOtherReligionOwnLands integer DEFAULT 0, CombatVersusOtherReligionTheirLands integer DEFAULT 0, UnitProductionModifier integer DEFAULT 0, MissionaryInfluenceCS integer DEFAULT 0, HappinessPerPantheon integer DEFAULT 0, ExtraVotes integer DEFAULT 0, CityScalerLimiter integer DEFAULT 0, FollowerScalerLimiter integer DEFAULT 0, ReducePolicyRequirements integer DEFAULT 0, CSYieldBonusFromSharedReligion integer DEFAULT 0, HappinessFromForeignSpies integer DEFAULT 0, InquisitorCostModifier integer DEFAULT 0, foreign key (ObsoleteEra) references Eras(Type), foreign key (ResourceRevealed) references Resources(Type), foreign key (SpreadModifierDoublingTech) references Technologies(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.021Z"
+  }
+}

@@ -1,0 +1,338 @@
+{
+  "tableName": "Terrains",
+  "rowCount": 9,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Civilopedia",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "ArtDefineTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Water",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "Impassable",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "Found",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "FoundCoast",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "FoundFreshWater",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "Movement",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "SeeFrom",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "SeeThrough",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "BuildModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "Defense",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "InfluenceCost",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "Button",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "WorldSoundscapeAudioScript",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "GraphicalOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "EffectTypeTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "TurnDamage",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ExtraTurnDamage",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 23,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PassableTechTerrain",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 24,
+      "constraints": "REFERENCES Technologies (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "LocationUnitFreePromotion",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 25,
+      "constraints": "REFERENCES UnitPromotions (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "AdjacentUnitFreePromotion",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 26,
+      "constraints": "REFERENCES UnitPromotions (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "SpawnLocationUnitFreePromotion",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 27,
+      "constraints": "REFERENCES UnitPromotions (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "AdjacentSpawnLocationUnitFreePromotion",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 28,
+      "constraints": "REFERENCES UnitPromotions (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "IconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Civilopedia",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "AdjacentSpawnLocationUnitFreePromotion",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "SpawnLocationUnitFreePromotion",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "AdjacentUnitFreePromotion",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "LocationUnitFreePromotion",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PassableTechTerrain",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Terrains_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Terrains ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Civilopedia' text , 'ArtDefineTag' text , 'Water' boolean default 0 , 'Impassable' boolean default 0 , 'Found' boolean default 0 , 'FoundCoast' boolean default 0 , 'FoundFreshWater' boolean default 0 , 'Movement' integer default 1 , 'SeeFrom' integer default 1 , 'SeeThrough' integer default 1 , 'BuildModifier' integer default 0 , 'Defense' integer default 0 , 'InfluenceCost' integer default 0 , 'Button' text , 'WorldSoundscapeAudioScript' text , 'GraphicalOnly' boolean default 0 , 'PortraitIndex' integer default '-1' , 'EffectTypeTag' text , 'IconAtlas' text default NULL , TurnDamage integer DEFAULT 0, ExtraTurnDamage integer DEFAULT 0, PassableTechTerrain text REFERENCES Technologies (Type), LocationUnitFreePromotion text REFERENCES UnitPromotions (Type), AdjacentUnitFreePromotion text REFERENCES UnitPromotions (Type), SpawnLocationUnitFreePromotion text REFERENCES UnitPromotions (Type), AdjacentSpawnLocationUnitFreePromotion text REFERENCES UnitPromotions (Type), foreign key (Description) references Language_en_US(Tag), foreign key (Civilopedia) references Language_en_US(Tag), foreign key (IconAtlas) references IconTextureAtlases(Atlas))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.419Z"
+  }
+}

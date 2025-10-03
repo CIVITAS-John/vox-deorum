@@ -1,0 +1,97 @@
+{
+  "tableName": "DownloadableContent",
+  "rowCount": 15,
+  "columns": [
+    {
+      "name": "PackageID",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "FriendlyNameKey",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "DescriptionKey",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Version",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 3,
+      "constraints": "DEFAULT 1",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IsFiraxisContent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IsActive",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IsBaseContentUpgrade",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE DownloadableContent(\t\"PackageID\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\"FriendlyNameKey\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\"DescriptionKey\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\"Version\" INTEGER DEFAULT 1,\r\n\t\t\t\t\t\t\t\t\t\"IsFiraxisContent\" INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t\t\t\"IsActive\" INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t\t\t\"IsBaseContentUpgrade\" INTEGER DEFAULT 0)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.172Z"
+  }
+}

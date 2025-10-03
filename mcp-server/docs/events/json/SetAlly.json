@@ -1,0 +1,27 @@
+{
+  "eventName": "SetAlly",
+  "generatedAt": "2025-09-02T16:48:34.172Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+      "line": 12449,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"SetAlly\", args.get(), bResult);",
+      "eventName": "SetAlly",
+      "args": [
+        {
+          "line": 12444,
+          "content": "args->Push(m_pPlayer->GetID());"
+        },
+        {
+          "line": 12445,
+          "content": "args->Push(eOldAlly);"
+        },
+        {
+          "line": 12446,
+          "content": "args->Push(eNewAlly);"
+        }
+      ]
+    }
+  ]
+}

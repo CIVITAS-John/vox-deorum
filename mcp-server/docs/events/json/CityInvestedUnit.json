@@ -1,0 +1,19 @@
+{
+  "eventName": "CityInvestedUnit",
+  "generatedAt": "2025-09-02T16:48:30.105Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 11607,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityInvestedUnit, getOwner(), GetID(), eUnitClass, bNewValue);",
+      "eventName": "CityInvestedUnit",
+      "args": [
+        "getOwner()",
+        "GetID()",
+        "eUnitClass",
+        "bNewValue"
+      ]
+    }
+  ]
+}

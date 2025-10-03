@@ -1,0 +1,51 @@
+{
+  "eventName": "CityCaptureComplete",
+  "generatedAt": "2025-09-02T16:48:34.172Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 4361,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityCaptureComplete\", args.get(), bResult);",
+      "eventName": "CityCaptureComplete",
+      "args": [
+        {
+          "line": 4350,
+          "content": "args->Push(eOldOwner);"
+        },
+        {
+          "line": 4351,
+          "content": "args->Push(bCapital);"
+        },
+        {
+          "line": 4352,
+          "content": "args->Push(iCityX);"
+        },
+        {
+          "line": 4353,
+          "content": "args->Push(iCityY);"
+        },
+        {
+          "line": 4354,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 4355,
+          "content": "args->Push(iPopulation);"
+        },
+        {
+          "line": 4356,
+          "content": "args->Push(bConquest);"
+        },
+        {
+          "line": 4357,
+          "content": "args->Push((int)vcGreatWorkData.size());"
+        },
+        {
+          "line": 4358,
+          "content": "args->Push(iCaptureGreatWorks);"
+        }
+      ]
+    }
+  ]
+}

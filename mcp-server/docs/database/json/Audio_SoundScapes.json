@@ -1,0 +1,69 @@
+{
+  "tableName": "Audio_SoundScapes",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "ScriptID",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "MinVolume",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "MaxVolume",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "MinGridDistance",
+      "type": "REAL",
+      "notNull": false,
+      "defaultValue": "0.0",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "MaxGridDistance",
+      "type": "REAL",
+      "notNull": false,
+      "defaultValue": "0.0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Priority",
+      "type": "REAL",
+      "notNull": false,
+      "defaultValue": "1.0",
+      "primaryKey": false,
+      "position": 5
+    }
+  ],
+  "primaryKeys": [
+    "ScriptID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Audio_SoundScapes_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Audio_SoundScapes('ScriptID' TEXT PRIMARY KEY,\r\n\t\t\t\t\t\t\t   'MinVolume' INTEGER DEFAULT 100,\r\n\t\t\t\t\t\t\t   'MaxVolume' INTEGER DEFAULT 100,\r\n\t\t\t\t\t\t\t   'MinGridDistance' REAL DEFAULT 0.0,\r\n\t\t\t\t\t\t\t   'MaxGridDistance' REAL DEFAULT 0.0,\r\n\t\t\t\t\t\t\t   'Priority' REAL DEFAULT 1.0)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.972Z"
+  }
+}

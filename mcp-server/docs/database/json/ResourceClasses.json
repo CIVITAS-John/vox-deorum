@@ -1,0 +1,45 @@
+{
+  "tableName": "ResourceClasses",
+  "rowCount": 4,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "UniqueRange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_ResourceClasses_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE ResourceClasses ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'UniqueRange' integer )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.379Z"
+  }
+}

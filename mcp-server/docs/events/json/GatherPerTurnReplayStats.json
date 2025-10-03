@@ -1,0 +1,19 @@
+{
+  "eventName": "GatherPerTurnReplayStats",
+  "generatedAt": "2025-09-02T16:48:34.173Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 46699,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"GatherPerTurnReplayStats\", args.get(), bResult);",
+      "eventName": "GatherPerTurnReplayStats",
+      "args": [
+        {
+          "line": 46696,
+          "content": "args->Push(GetID());"
+        }
+      ]
+    }
+  ]
+}

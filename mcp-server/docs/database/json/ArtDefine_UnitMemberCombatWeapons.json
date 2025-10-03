@@ -1,0 +1,275 @@
+{
+  "tableName": "ArtDefine_UnitMemberCombatWeapons",
+  "rowCount": 284,
+  "columns": [
+    {
+      "name": "UnitMemberType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "Index",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 1,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "SubIndex",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 2,
+      "constraints": "NOT NULL",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": false
+    },
+    {
+      "name": "ID",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "VisKillStrengthMin",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "VisKillStrengthMax",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ProjectileSpeed",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ProjectileTurnRateMin",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ProjectileTurnRateMax",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 8,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "HitEffect",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 9,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "HitEffectScale",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 10,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "HitRadius",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 11,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ProjectileChildEffectScale",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 12,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "AreaDamageDelay",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 13,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ContinuousFire",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 14,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "WaitForEffectCompletion",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 15,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "TargetGround",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 16,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IsDropped",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 17,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "WeaponTypeTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 18,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "WeaponTypeSoundOverrideTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 19,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MissTargetSlopRadius",
+      "type": "FLOAT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 20,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "UnitMemberType",
+    "Index",
+    "SubIndex"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_ArtDefine_UnitMemberCombatWeapons_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE ArtDefine_UnitMemberCombatWeapons(\t\"UnitMemberType\" TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"Index\" INTEGER NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"SubIndex\" INTEGER NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"ID\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"VisKillStrengthMin\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"VisKillStrengthMax\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"ProjectileSpeed\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"ProjectileTurnRateMin\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"ProjectileTurnRateMax\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"HitEffect\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"HitEffectScale\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"HitRadius\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"ProjectileChildEffectScale\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"AreaDamageDelay\" FLOAT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"ContinuousFire\" INTEGER,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"WaitForEffectCompletion\" INTEGER,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"TargetGround\" INTEGER,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"IsDropped\" INTEGER,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"WeaponTypeTag\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"WeaponTypeSoundOverrideTag\" TEXT,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\"MissTargetSlopRadius\" FLOAT,\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\tPRIMARY KEY(\"UnitMemberType\", \"Index\" ASC, \"SubIndex\" ASC))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.965Z"
+  }
+}

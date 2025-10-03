@@ -1,0 +1,52 @@
+{
+  "tableName": "Building_ExtraPlayerInstancesFromAccomplishments",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "BuildingType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "AccomplishmentType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "ExtraInstances",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "AccomplishmentType",
+      "referencedTable": "Accomplishments",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "BuildingType",
+      "referencedTable": "Buildings",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Building_ExtraPlayerInstancesFromAccomplishments ('BuildingType' text  not null , 'AccomplishmentType' text  not null , 'ExtraInstances' integer  not null , foreign key (BuildingType) references Buildings(Type), foreign key (AccomplishmentType) references Accomplishments(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.034Z"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "tableName": "CityEventChoice_FreeUnitClasses",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "CityEventChoiceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "UnitClassType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Quantity",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "UnitClassType",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "CityEventChoiceType",
+      "referencedTable": "CityEventChoices",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE CityEventChoice_FreeUnitClasses ('CityEventChoiceType' text , 'UnitClassType' text , 'Quantity' integer  not null , foreign key (CityEventChoiceType) references CityEventChoices(Type), foreign key (UnitClassType) references UnitClasses(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.122Z"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "tableName": "Belief_ResourceYieldChanges",
+  "rowCount": 16,
+  "columns": [
+    {
+      "name": "BeliefType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "ResourceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "YieldType",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Yield",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "YieldType",
+      "referencedTable": "Yields",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ResourceType",
+      "referencedTable": "Resources",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "BeliefType",
+      "referencedTable": "Beliefs",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Belief_ResourceYieldChanges ('BeliefType' text , 'ResourceType' text , 'YieldType' integer , 'Yield' integer default 0 , foreign key (BeliefType) references Beliefs(Type), foreign key (ResourceType) references Resources(Type), foreign key (YieldType) references Yields(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.991Z"
+  }
+}

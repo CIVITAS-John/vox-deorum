@@ -1,0 +1,47 @@
+{
+  "eventName": "ReligionFounded",
+  "generatedAt": "2025-09-02T16:48:34.173Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+      "line": 1274,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"ReligionFounded\", args.get(), bResult);",
+      "eventName": "ReligionFounded",
+      "args": [
+        {
+          "line": 1264,
+          "content": "args->Push(ePlayer);"
+        },
+        {
+          "line": 1265,
+          "content": "args->Push(pkHolyCity->GetID());"
+        },
+        {
+          "line": 1266,
+          "content": "args->Push(eReligion);"
+        },
+        {
+          "line": 1267,
+          "content": "args->Push(eBelief);"
+        },
+        {
+          "line": 1268,
+          "content": "args->Push(eBelief1);"
+        },
+        {
+          "line": 1269,
+          "content": "args->Push(eBelief2);"
+        },
+        {
+          "line": 1270,
+          "content": "args->Push(eBelief3);"
+        },
+        {
+          "line": 1271,
+          "content": "args->Push(eBelief4);"
+        }
+      ]
+    }
+  ]
+}

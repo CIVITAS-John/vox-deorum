@@ -1,0 +1,27 @@
+{
+  "eventName": "TeamTechResearched",
+  "generatedAt": "2025-09-02T16:48:34.174Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 8271,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamTechResearched\", args.get(), bResult);",
+      "eventName": "TeamTechResearched",
+      "args": [
+        {
+          "line": 8266,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 8267,
+          "content": "args->Push(eTech);"
+        },
+        {
+          "line": 8268,
+          "content": "args->Push(iChange);"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "tableName": "Feature_TerrainBooleans",
+  "rowCount": 11,
+  "columns": [
+    {
+      "name": "FeatureType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "TerrainType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "TerrainType",
+      "referencedTable": "Terrains",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "FeatureType",
+      "referencedTable": "Features",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Feature_TerrainBooleans ('FeatureType' text , 'TerrainType' text , foreign key (FeatureType) references Features(Type), foreign key (TerrainType) references Terrains(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.202Z"
+  }
+}

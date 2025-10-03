@@ -1,0 +1,17 @@
+{
+  "eventName": "EventActivated",
+  "generatedAt": "2025-09-02T16:48:30.109Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 6674,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_EventActivated, GetID(), eChosenEvent);",
+      "eventName": "EventActivated",
+      "args": [
+        "GetID()",
+        "eChosenEvent"
+      ]
+    }
+  ]
+}

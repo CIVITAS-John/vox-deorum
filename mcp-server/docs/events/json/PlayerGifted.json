@@ -1,0 +1,49 @@
+{
+  "eventName": "PlayerGifted",
+  "generatedAt": "2025-09-02T16:48:30.109Z",
+  "occurrences": 3,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+      "line": 17405,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerGifted, eFromPlayer, GetPlayer()->GetID(), -1, pGiftUnit->getUnitType(), -1, -1);",
+      "eventName": "PlayerGifted",
+      "args": [
+        "eFromPlayer",
+        "GetPlayer()->GetID()",
+        "-1",
+        "pGiftUnit->getUnitType()",
+        "-1",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+      "line": 17505,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerGifted, ePlayer, GetPlayer()->GetID(), iGold, -1, -1, -1);",
+      "eventName": "PlayerGifted",
+      "args": [
+        "ePlayer",
+        "GetPlayer()->GetID()",
+        "iGold",
+        "-1",
+        "-1",
+        "-1"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+      "line": 17824,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerGifted, eMajor, GetPlayer()->GetID(), -1, -1, iPlotX, iPlotY);",
+      "eventName": "PlayerGifted",
+      "args": [
+        "eMajor",
+        "GetPlayer()->GetID()",
+        "-1",
+        "-1",
+        "iPlotX",
+        "iPlotY"
+      ]
+    }
+  ]
+}

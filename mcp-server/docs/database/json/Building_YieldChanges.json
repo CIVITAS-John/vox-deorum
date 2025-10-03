@@ -1,0 +1,58 @@
+{
+  "tableName": "Building_YieldChanges",
+  "rowCount": 113,
+  "columns": [
+    {
+      "name": "BuildingType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "YieldType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Yield",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "YieldType",
+      "referencedTable": "Yields",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "BuildingType",
+      "referencedTable": "Buildings",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_Building_YieldChanges_ON_BuildingType_AND_YieldType",
+      "unique": false,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Building_YieldChanges ('BuildingType' text , 'YieldType' text , 'Yield' integer , foreign key (BuildingType) references Buildings(Type), foreign key (YieldType) references Yields(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.073Z"
+  }
+}

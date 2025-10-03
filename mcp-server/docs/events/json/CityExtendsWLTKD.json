@@ -1,0 +1,19 @@
+{
+  "eventName": "CityExtendsWLTKD",
+  "generatedAt": "2025-09-02T16:48:30.106Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 22042,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityExtendsWLTKD, getOwner(), getX(), getY(), iChange);",
+      "eventName": "CityExtendsWLTKD",
+      "args": [
+        "getOwner()",
+        "getX()",
+        "getY()",
+        "iChange"
+      ]
+    }
+  ]
+}

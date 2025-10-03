@@ -1,0 +1,31 @@
+{
+  "eventName": "ReligionEnhanced",
+  "generatedAt": "2025-09-02T16:48:34.173Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+      "line": 1507,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"ReligionEnhanced\", args.get(), bResult);",
+      "eventName": "ReligionEnhanced",
+      "args": [
+        {
+          "line": 1501,
+          "content": "args->Push(ePlayer);"
+        },
+        {
+          "line": 1502,
+          "content": "args->Push(eReligion);"
+        },
+        {
+          "line": 1503,
+          "content": "args->Push(eBelief1);"
+        },
+        {
+          "line": 1504,
+          "content": "args->Push(eBelief2);"
+        }
+      ]
+    }
+  ]
+}

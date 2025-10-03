@@ -1,0 +1,31 @@
+{
+  "eventName": "UiDiploEvent",
+  "generatedAt": "2025-09-02T16:48:34.172Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 5493,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"UiDiploEvent\", args.get(), bResult);",
+      "eventName": "UiDiploEvent",
+      "args": [
+        {
+          "line": 5487,
+          "content": "args->Push(eEvent);"
+        },
+        {
+          "line": 5488,
+          "content": "args->Push(eAIPlayer);"
+        },
+        {
+          "line": 5489,
+          "content": "args->Push(iArg1);"
+        },
+        {
+          "line": 5490,
+          "content": "args->Push(iArg2);"
+        }
+      ]
+    }
+  ]
+}

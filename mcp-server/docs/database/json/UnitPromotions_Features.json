@@ -1,0 +1,159 @@
+{
+  "tableName": "UnitPromotions_Features",
+  "rowCount": 8,
+  "columns": [
+    {
+      "name": "PromotionType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "FeatureType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Attack",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Defense",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "DoubleMove",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Impassable",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "PassableTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "PediaType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "DoubleHeal",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "HalfMove",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ExtraMove",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IgnoreTerrainCostIn",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IgnoreTerrainCostFrom",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "PassableTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "FeatureType",
+      "referencedTable": "Features",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PromotionType",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE UnitPromotions_Features ('PromotionType' text , 'FeatureType' text , 'Attack' integer default 0 , 'Defense' integer default 0 , 'DoubleMove' boolean default 0 , 'Impassable' boolean default 0 , 'PassableTech' text , 'PediaType' text , DoubleHeal boolean DEFAULT 0, HalfMove boolean DEFAULT 0, ExtraMove boolean DEFAULT 0, IgnoreTerrainCostIn boolean DEFAULT 0, IgnoreTerrainCostFrom boolean DEFAULT 0, foreign key (PromotionType) references UnitPromotions(Type), foreign key (FeatureType) references Features(Type), foreign key (PassableTech) references Technologies(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.504Z"
+  }
+}

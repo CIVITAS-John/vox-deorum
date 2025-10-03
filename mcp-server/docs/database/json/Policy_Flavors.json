@@ -1,0 +1,52 @@
+{
+  "tableName": "Policy_Flavors",
+  "rowCount": 183,
+  "columns": [
+    {
+      "name": "PolicyType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "FlavorType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Flavor",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "FlavorType",
+      "referencedTable": "Flavors",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PolicyType",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Policy_Flavors ('PolicyType' text , 'FlavorType' text , 'Flavor' integer  not null , foreign key (PolicyType) references Policies(Type), foreign key (FlavorType) references Flavors(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.313Z"
+  }
+}

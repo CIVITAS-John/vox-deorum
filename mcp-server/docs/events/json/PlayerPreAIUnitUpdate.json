@@ -1,0 +1,19 @@
+{
+  "eventName": "PlayerPreAIUnitUpdate",
+  "generatedAt": "2025-09-02T16:48:34.173Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayerAI.cpp",
+      "line": 267,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerPreAIUnitUpdate\", args.get(), bResult);",
+      "eventName": "PlayerPreAIUnitUpdate",
+      "args": [
+        {
+          "line": 264,
+          "content": "args->Push(GetID());"
+        }
+      ]
+    }
+  ]
+}

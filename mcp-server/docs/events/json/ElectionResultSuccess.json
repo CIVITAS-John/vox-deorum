@@ -1,0 +1,20 @@
+{
+  "eventName": "ElectionResultSuccess",
+  "generatedAt": "2025-09-02T16:48:30.108Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+      "line": 17248,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_ElectionResultSuccess, (int)ePlayer, iSpyID, iValue, pCapital->getX(), pCapital->getY());",
+      "eventName": "ElectionResultSuccess",
+      "args": [
+        "(int)ePlayer",
+        "iSpyID",
+        "iValue",
+        "pCapital->getX()",
+        "pCapital->getY()"
+      ]
+    }
+  ]
+}

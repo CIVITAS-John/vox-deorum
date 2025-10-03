@@ -1,0 +1,55 @@
+{
+  "eventName": "UnitUpgraded",
+  "generatedAt": "2025-09-02T16:48:34.172Z",
+  "occurrences": 2,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 12760,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitUpgraded\", args.get(), bScriptResult);",
+      "eventName": "UnitUpgraded",
+      "args": [
+        {
+          "line": 12754,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 12755,
+          "content": "args->Push(pUnit->GetID());"
+        },
+        {
+          "line": 12756,
+          "content": "args->Push(pNewUnit->GetID());"
+        },
+        {
+          "line": 12757,
+          "content": "args->Push(true); // bGoodyHut"
+        }
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 14314,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitUpgraded\", args.get(), bResult);",
+      "eventName": "UnitUpgraded",
+      "args": [
+        {
+          "line": 14308,
+          "content": "args->Push(((int)getOwner()));"
+        },
+        {
+          "line": 14309,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 14310,
+          "content": "args->Push(pNewUnit->GetID());"
+        },
+        {
+          "line": 14311,
+          "content": "args->Push(false); // bGoodyHut"
+        }
+      ]
+    }
+  ]
+}

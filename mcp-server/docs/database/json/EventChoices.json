@@ -1,0 +1,690 @@
+{
+  "tableName": "EventChoices",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Help",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "DisabledTooltip",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "EventChoiceAudio",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'AS2D_EVENT_CHOICE'",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "IsOneShot",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "EventDuration",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "30",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "EventDurationScaling",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "EventChance",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "EraScaling",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "Expires",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "CoastalOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "CapitalEffectOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "YieldBonusAllCities",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "EventPolicy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "EventTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "EventPromotion",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "EventBuildingClassGlobal",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "EventFreePolicies",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "EventFreeTechs",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "FreeGreatPeople",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "GoldenAgeTurns",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "WLTKDTurns",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "ResistanceTurns",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "PlayerHappiness",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "HappinessPerCity",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "RandomBarbarianSpawn",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27
+    },
+    {
+      "name": "FreeUnitsTechAppropriate",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 28
+    },
+    {
+      "name": "SpecialistsGreatPersonPointsPerTurn",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 29
+    },
+    {
+      "name": "MinimumNationalPopulation",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 30
+    },
+    {
+      "name": "MinimumNumberCities",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 31
+    },
+    {
+      "name": "HasMetAMajorCiv",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 32
+    },
+    {
+      "name": "InDebt",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 33
+    },
+    {
+      "name": "LosingMoney",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 34
+    },
+    {
+      "name": "MinimumNumCoastalCities",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 35
+    },
+    {
+      "name": "AffectsCoastalCitiesOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 36
+    },
+    {
+      "name": "LessThanMaximumTradeRoutes",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 37
+    },
+    {
+      "name": "IsUnhappy",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 38
+    },
+    {
+      "name": "IsSuperUnhappy",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 39
+    },
+    {
+      "name": "RequiredCiv",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 40
+    },
+    {
+      "name": "RequiredEra",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 41
+    },
+    {
+      "name": "ObsoleteEra",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 42
+    },
+    {
+      "name": "ImprovementAnywhereRequired",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 43
+    },
+    {
+      "name": "RequiredPolicy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 44
+    },
+    {
+      "name": "RequiredIdeology",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 45
+    },
+    {
+      "name": "UnitClassRequired",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 46
+    },
+    {
+      "name": "PrereqTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 47
+    },
+    {
+      "name": "ObsoleteTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 48
+    },
+    {
+      "name": "RequiresPantheon",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 49
+    },
+    {
+      "name": "RequiredReligion",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 50
+    },
+    {
+      "name": "RequiredStateReligion",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 51
+    },
+    {
+      "name": "RequiresAnyStateReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 52
+    },
+    {
+      "name": "RequiredAnywhereBuildingClass",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 53
+    },
+    {
+      "name": "RequiredNowhereBuildingClass",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 54
+    },
+    {
+      "name": "RequiresHolyCity",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 55
+    },
+    {
+      "name": "RequiresIdeology",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 56
+    },
+    {
+      "name": "RequiresWar",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 57
+    },
+    {
+      "name": "RequiresWarMinor",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 58
+    },
+    {
+      "name": "IsVassalOfSomeone",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 59
+    },
+    {
+      "name": "IsMasterOfSomeone",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 60
+    },
+    {
+      "name": "BasicNeedsMedianModifierGlobal",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 61
+    },
+    {
+      "name": "GoldMedianModifierGlobal",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 62
+    },
+    {
+      "name": "ScienceMedianModifierGlobal",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 63
+    },
+    {
+      "name": "CultureMedianModifierGlobal",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 64
+    },
+    {
+      "name": "ReligiousUnrestModifierGlobal",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 65
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "RequiredNowhereBuildingClass",
+      "referencedTable": "BuildingClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredAnywhereBuildingClass",
+      "referencedTable": "BuildingClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredStateReligion",
+      "referencedTable": "Religions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredReligion",
+      "referencedTable": "Religions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ObsoleteTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PrereqTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "UnitClassRequired",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredIdeology",
+      "referencedTable": "PolicyBranchTypes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredPolicy",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ImprovementAnywhereRequired",
+      "referencedTable": "Improvements",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ObsoleteEra",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredEra",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "RequiredCiv",
+      "referencedTable": "Civilizations",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EventBuildingClassGlobal",
+      "referencedTable": "BuildingClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EventPromotion",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EventTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EventPolicy",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "DisabledTooltip",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Help",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_EventChoices_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE EventChoices ('ID' integer primary key , 'Type' text  not null unique , 'Description' text , 'Help' text , 'DisabledTooltip' text , 'EventChoiceAudio' text default 'AS2D_EVENT_CHOICE' , 'IsOneShot' boolean default 0 , 'EventDuration' integer default 30 , 'EventDurationScaling' boolean default 1 , 'EventChance' integer default 0 , 'EraScaling' boolean default 0 , 'Expires' boolean default 0 , 'CoastalOnly' boolean default 0 , 'CapitalEffectOnly' boolean default 0 , 'YieldBonusAllCities' boolean default 0 , 'EventPolicy' text , 'EventTech' text , 'EventPromotion' text , 'EventBuildingClassGlobal' text , 'EventFreePolicies' integer default 0 , 'EventFreeTechs' integer default 0 , 'FreeGreatPeople' integer default 0 , 'GoldenAgeTurns' integer default 0 , 'WLTKDTurns' integer default 0 , 'ResistanceTurns' integer default 0 , 'PlayerHappiness' integer default 0 , 'HappinessPerCity' integer default 0 , 'RandomBarbarianSpawn' integer default 0 , 'FreeUnitsTechAppropriate' integer default 0 , 'SpecialistsGreatPersonPointsPerTurn' integer default 0 , 'MinimumNationalPopulation' integer default 0 , 'MinimumNumberCities' integer default 0 , 'HasMetAMajorCiv' boolean default 0 , 'InDebt' boolean default 0 , 'LosingMoney' boolean default 0 , 'MinimumNumCoastalCities' integer default 0 , 'AffectsCoastalCitiesOnly' boolean default 0 , 'LessThanMaximumTradeRoutes' boolean default 0 , 'IsUnhappy' boolean default 0 , 'IsSuperUnhappy' boolean default 0 , 'RequiredCiv' text , 'RequiredEra' text , 'ObsoleteEra' text , 'ImprovementAnywhereRequired' text , 'RequiredPolicy' text , 'RequiredIdeology' text , 'UnitClassRequired' text , 'PrereqTech' text , 'ObsoleteTech' text , 'RequiresPantheon' boolean default 0 , 'RequiredReligion' text , 'RequiredStateReligion' text , 'RequiresAnyStateReligion' boolean default 0 , 'RequiredAnywhereBuildingClass' text , 'RequiredNowhereBuildingClass' text , 'RequiresHolyCity' boolean default 0 , 'RequiresIdeology' boolean default 0 , 'RequiresWar' boolean default 0 , 'RequiresWarMinor' boolean default 0 , 'IsVassalOfSomeone' boolean default 0 , 'IsMasterOfSomeone' boolean default 0 , 'BasicNeedsMedianModifierGlobal' integer default 0 , 'GoldMedianModifierGlobal' integer default 0 , 'ScienceMedianModifierGlobal' integer default 0 , 'CultureMedianModifierGlobal' integer default 0 , 'ReligiousUnrestModifierGlobal' integer default 0 , foreign key (Description) references Language_en_US(Tag), foreign key (Help) references Language_en_US(Tag), foreign key (DisabledTooltip) references Language_en_US(Tag), foreign key (EventPolicy) references Policies(Type), foreign key (EventTech) references Technologies(Type), foreign key (EventPromotion) references UnitPromotions(Type), foreign key (EventBuildingClassGlobal) references BuildingClasses(Type), foreign key (RequiredCiv) references Civilizations(Type), foreign key (RequiredEra) references Eras(Type), foreign key (ObsoleteEra) references Eras(Type), foreign key (ImprovementAnywhereRequired) references Improvements(Type), foreign key (RequiredPolicy) references Policies(Type), foreign key (RequiredIdeology) references PolicyBranchTypes(Type), foreign key (UnitClassRequired) references UnitClasses(Type), foreign key (PrereqTech) references Technologies(Type), foreign key (ObsoleteTech) references Technologies(Type), foreign key (RequiredReligion) references Religions(Type), foreign key (RequiredStateReligion) references Religions(Type), foreign key (RequiredAnywhereBuildingClass) references BuildingClasses(Type), foreign key (RequiredNowhereBuildingClass) references BuildingClasses(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.192Z"
+  }
+}

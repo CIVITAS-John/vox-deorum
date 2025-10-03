@@ -1,0 +1,53 @@
+{
+  "tableName": "AnimationPath_Entries",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "AnimationPathType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "Category",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Operator",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Parameter",
+      "type": "float",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "AnimationPathType",
+      "referencedTable": "AnimationPaths",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE AnimationPath_Entries ('AnimationPathType' text , 'Category' text , 'Operator' text , 'Parameter' float default 0 , foreign key (AnimationPathType) references AnimationPaths(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.959Z"
+  }
+}

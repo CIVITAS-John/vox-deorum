@@ -1,0 +1,99 @@
+/**
+ * Getter function to read a player's AI persona values and store them in the knowledge database
+ */
+
+import { knowledgeManager } from "../../server.js";
+import { LuaFunction } from "../../bridge/lua-function.js";
+import { createLogger } from "../../utils/logger.js";
+import { PersonaChange } from "../schema/timed.js";
+
+const logger = createLogger("ReadPlayerPersona");
+
+// Create a reusable LuaFunction for reading player persona values
+const readPlayerPersonaFunction = new LuaFunction(
+  "ReadPlayerPersona",
+  ["playerId"],
+  `
+    local player = Players[playerId]
+    if player == nil then
+      return nil
+    end
+
+    -- Get persona values (returns entire table)
+    local persona = player:GetPersona()
+
+    -- Return the entire persona table
+    return persona
+  `
+);
+
+/**
+ * Reads the AI persona values of a player and stores them in the knowledge database
+ *
+ * @param playerId - The ID of the player (0 to MaxMajorCivs - 1)
+ * @returns Object containing the persona values or null if failed
+ */
+export async function getPlayerPersona(playerId: number): Promise<Partial<PersonaChange> | null> {
+  // Execute the registered Lua function to get persona values
+  const result = await readPlayerPersonaFunction.execute(playerId);
+
+  if (!result || !result.success || !result.result) {
+    logger.error(`Failed to read persona for player ${playerId}`);
+    return null;
+  }
+
+  const persona = result.result;
+
+  // Store the persona values in the knowledge database with "In-Game AI" rationale
+  const store = knowledgeManager.getStore();
+  const lastRationale = (await store.getMutableKnowledge("PersonaChanges", playerId))?.Rationale ?? "Unknown";
+  await store.storeMutableKnowledge(
+    'PersonaChanges',
+    playerId,
+    {
+      // Core Competitiveness & Ambition
+      VictoryCompetitiveness: persona.VictoryCompetitiveness,
+      WonderCompetitiveness: persona.WonderCompetitiveness,
+      MinorCivCompetitiveness: persona.MinorCivCompetitiveness,
+      Boldness: persona.Boldness,
+
+      // War & Peace Tendencies (including defensive traits)
+      WarBias: persona.WarBias,
+      HostileBias: persona.HostileBias,
+      WarmongerHate: persona.WarmongerHate,
+      NeutralBias: persona.NeutralBias,
+      FriendlyBias: persona.FriendlyBias,
+      GuardedBias: persona.GuardedBias,
+      AfraidBias: persona.AfraidBias,
+
+      // Diplomacy & Cooperation
+      DiplomaticBalance: persona.DiplomaticBalance,
+      Friendliness: persona.Friendliness,
+      WorkWithWillingness: persona.WorkWithWillingness,
+      WorkAgainstWillingness: persona.WorkAgainstWillingness,
+      Loyalty: persona.Loyalty,
+
+      // Minor Civ Relations
+      MinorCivFriendlyBias: persona.MinorCivFriendlyBias,
+      MinorCivNeutralBias: persona.MinorCivNeutralBias,
+      MinorCivHostileBias: persona.MinorCivHostileBias,
+      MinorCivWarBias: persona.MinorCivWarBias,
+
+      // Personality Traits
+      DenounceWillingness: persona.DenounceWillingness,
+      Forgiveness: persona.Forgiveness,
+      Meanness: persona.Meanness,
+      Neediness: persona.Neediness,
+      Chattiness: persona.Chattiness,
+      DeceptiveBias: persona.DeceptiveBias,
+
+      // Metadata
+      Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale.trim()})`
+    },
+    undefined,
+    ["Rationale"] // Only ignore Rationale when checking for changes
+  );
+
+  // Return the persona values as-is (no enum conversion needed)
+  return persona;
+}

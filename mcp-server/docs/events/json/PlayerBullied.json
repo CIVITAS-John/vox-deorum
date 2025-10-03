@@ -1,0 +1,52 @@
+{
+  "eventName": "PlayerBullied",
+  "generatedAt": "2025-09-02T16:48:30.108Z",
+  "occurrences": 3,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+      "line": 16595,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerBullied, eBully, GetPlayer()->GetID(), iGold, -1, -1, -1, YIELD_GOLD);",
+      "eventName": "PlayerBullied",
+      "args": [
+        "eBully",
+        "GetPlayer()->GetID()",
+        "iGold",
+        "-1",
+        "-1",
+        "-1",
+        "YIELD_GOLD"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+      "line": 16925,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerBullied, eBully, GetPlayer()->GetID(), iGold, -1, -1, -1, YIELD_SCIENCE);",
+      "eventName": "PlayerBullied",
+      "args": [
+        "eBully",
+        "GetPlayer()->GetID()",
+        "iGold",
+        "-1",
+        "-1",
+        "-1",
+        "YIELD_SCIENCE"
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+      "line": 16957,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerBullied, eBully, GetPlayer()->GetID(), -1, eUnitType, pNewUnit->getX(), pNewUnit->getY(), -1);",
+      "eventName": "PlayerBullied",
+      "args": [
+        "eBully",
+        "GetPlayer()->GetID()",
+        "-1",
+        "eUnitType",
+        "pNewUnit->getX()",
+        "pNewUnit->getY()",
+        "-1"
+      ]
+    }
+  ]
+}

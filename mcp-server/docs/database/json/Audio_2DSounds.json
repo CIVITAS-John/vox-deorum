@@ -1,0 +1,253 @@
+{
+  "tableName": "Audio_2DSounds",
+  "rowCount": 145,
+  "columns": [
+    {
+      "name": "ScriptID",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "SoundID",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "SoundType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'GAME_SFX'",
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "MaxVolume",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "MinVolume",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Looping",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "DryLevel",
+      "type": "REAL",
+      "notNull": false,
+      "defaultValue": "1.0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "WetLevel",
+      "type": "REAL",
+      "notNull": false,
+      "defaultValue": "0.0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "StartFromRandomPosition",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "DontPlayMoreThan",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "-1",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "OnlyTriggerOnUnitRuns",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "PercentChanceOfPlaying",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "DontPlay",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "DontTriggerDuplicates",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "DontTriggerDuplicatesOnUnits",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "MinTimeMustNotPlayAgain",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "MaxTimeMustNotPlayAgain",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "IsMusic",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "MinTimeDelay",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "MaxTimeDelay",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "TaperSoundtrackVolume",
+      "type": "REAL",
+      "notNull": false,
+      "defaultValue": "-1.0",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "PitchChangeDown",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "PitchChangeUp",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "Priority",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "MinRightPan",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "MaxRightPan",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "MinLeftPan",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "MaxLeftPan",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27
+    }
+  ],
+  "primaryKeys": [
+    "ScriptID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "SoundType",
+      "referencedTable": "Audio_SoundTypes",
+      "referencedColumn": "SoundType",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Audio_2DSounds_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Audio_2DSounds('ScriptID' TEXT PRIMARY KEY, \r\n\t\t\t\t\t\t\t'SoundID' TEXT NOT NULL, \r\n\t\t\t\t\t\t\t'SoundType' TEXT DEFAULT 'GAME_SFX', \r\n\t\t\t\t\t\t\t'MaxVolume' INTEGER DEFAULT 100, \r\n\t\t\t\t\t\t\t'MinVolume' INTEGER DEFAULT 100, \r\n\t\t\t\t\t\t\t'Looping' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'DryLevel' REAL DEFAULT 1.0,\r\n\t\t\t\t\t\t\t'WetLevel' REAL DEFAULT 0.0,\r\n\t\t\t\t\t\t\t'StartFromRandomPosition' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'DontPlayMoreThan' INTEGER DEFAULT -1,\r\n\t\t\t\t\t\t\t'OnlyTriggerOnUnitRuns' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'PercentChanceOfPlaying' INTEGER DEFAULT 100,\r\n\t\t\t\t\t\t\t'DontPlay' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'DontTriggerDuplicates' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'DontTriggerDuplicatesOnUnits' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'MinTimeMustNotPlayAgain' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'MaxTimeMustNotPlayAgain' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'IsMusic' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'MinTimeDelay' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'MaxTimeDelay' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'TaperSoundtrackVolume' REAL DEFAULT -1.0,\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t'PitchChangeDown' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'PitchChangeUp' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'Priority' INTEGER DEFAULT 1,\r\n\t\t\t\t\t\t\t'MinRightPan' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'MaxRightPan' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'MinLeftPan' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'MaxLeftPan' INTEGER DEFAULT 0, \r\n\t\t\t\t\t\t\tFOREIGN KEY('SoundType') REFERENCES Audio_SoundTypes('SoundType'))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.968Z"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "agent": {
+    "name": "vox-agents",
+    "version": "1.0.0"
+  },
+  "mcpServer": {
+    "transport": {
+      "type": "http",
+      "endpoint": "http://127.0.0.1:4000/mcp"
+    }
+  },
+  "logging": {
+    "level": "info"
+  },
+  "llms": {
+    "default": "gpt-oss-20b",
+    "gemma3": {
+      "provider": "openrouter",
+      "name": "google/gemma-3-27b-it"
+    },
+    "gpt-5-mini-minimal": {
+      "provider": "openai",
+      "name": "gpt-5-mini",
+      "options": {
+        "reasoningEffort": "minimal"
+      }
+    },
+    "gpt-5-nano-minimal": {
+      "provider": "openai",
+      "name": "gpt-5-nano",
+      "options": {
+        "reasoningEffort": "minimal"
+      }
+    },
+    "gpt-oss-20b": {
+      "provider": "openrouter",
+      "name": "openai/gpt-oss-20b"
+    },
+    "gpt-oss-20b-minimal": {
+      "provider": "openrouter",
+      "name": "openai/gpt-oss-20b",
+      "options": {
+        "reasoningEffort": "minimal"
+      }
+    },
+    "jetstream2/gpt-oss-120b": {
+      "provider": "jetstream2",
+      "name": "gpt-oss-120b"
+    },
+    "jetstream2/gpt-oss-120b-minimal": {
+      "provider": "jetstream2",
+      "name": "gpt-oss-120b",
+      "options": {
+        "reasoningEffort": "minimal"
+      }
+    }
+  }
+} 

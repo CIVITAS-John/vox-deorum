@@ -1,0 +1,37 @@
+{
+  "tableName": "VictoryPursuitTypes",
+  "rowCount": 4,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_VictoryPursuitTypes_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE VictoryPursuitTypes ('ID' integer primary key , 'Type' text  not null unique )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.537Z"
+  }
+}

@@ -1,0 +1,249 @@
+{
+  "tableName": "Yields",
+  "rowCount": 17,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "IconString",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "HillsChange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "MountainChange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "LakeChange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "CityChange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "PopulationChangeOffset",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "PopulationChangeDivisor",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "MinCity",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "GoldenAgeYield",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "GoldenAgeYieldThreshold",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "GoldenAgeYieldMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "AIWeightPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "ColorString",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": "'[COLOR_WHITE]'",
+      "primaryKey": false,
+      "position": 15,
+      "constraints": "DEFAULT '[COLOR_WHITE]'",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ImageTexture",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": "'YieldAtlas.dds'",
+      "primaryKey": false,
+      "position": 16,
+      "constraints": "DEFAULT 'YieldAtlas.dds'",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ImageOffset",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 17,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinCityFlatFreshWater",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinCityFlatNoFreshWater",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinCityHillFreshWater",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 20,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinCityHillNoFreshWater",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 21,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinCityMountainFreshWater",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinCityMountainNoFreshWater",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 23,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Yields_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Yields ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'IconString' text , 'HillsChange' integer default 0 , 'MountainChange' integer default 0 , 'LakeChange' integer default 0 , 'CityChange' integer default 0 , 'PopulationChangeOffset' integer default 0 , 'PopulationChangeDivisor' integer default 0 , 'MinCity' integer , 'GoldenAgeYield' integer default 0 , 'GoldenAgeYieldThreshold' integer default 0 , 'GoldenAgeYieldMod' integer default 0 , 'AIWeightPercent' integer , ColorString text DEFAULT '[COLOR_WHITE]', ImageTexture text DEFAULT 'YieldAtlas.dds', ImageOffset integer DEFAULT 0, MinCityFlatFreshWater integer DEFAULT 0, MinCityFlatNoFreshWater integer DEFAULT 0, MinCityHillFreshWater integer DEFAULT 0, MinCityHillNoFreshWater integer DEFAULT 0, MinCityMountainFreshWater integer DEFAULT 0, MinCityMountainNoFreshWater integer DEFAULT 0)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.540Z"
+  }
+}

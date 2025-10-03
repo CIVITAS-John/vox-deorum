@@ -1,0 +1,91 @@
+{
+  "eventName": "CityTrained",
+  "generatedAt": "2025-09-02T16:48:34.170Z",
+  "occurrences": 3,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 29541,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityTrained\", args.get(), bResult);",
+      "eventName": "CityTrained",
+      "args": [
+        {
+          "line": 29534,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 29535,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 29536,
+          "content": "args->Push(pUnit->GetID());"
+        },
+        {
+          "line": 29537,
+          "content": "args->Push(false); // bGold"
+        },
+        {
+          "line": 29538,
+          "content": "args->Push(false); // bFaith/bCulture"
+        }
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 30591,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityTrained\", args.get(), bScriptResult);",
+      "eventName": "CityTrained",
+      "args": [
+        {
+          "line": 30584,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 30585,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 30586,
+          "content": "args->Push(pUnit->GetID());"
+        },
+        {
+          "line": 30587,
+          "content": "args->Push(true); // bGold"
+        },
+        {
+          "line": 30588,
+          "content": "args->Push(false); // bFaith/bCulture"
+        }
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 30651,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityTrained\", args.get(), bResult);",
+      "eventName": "CityTrained",
+      "args": [
+        {
+          "line": 30644,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 30645,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 30646,
+          "content": "args->Push(pUnit->GetID());"
+        },
+        {
+          "line": 30647,
+          "content": "args->Push(false); // bGold"
+        },
+        {
+          "line": 30648,
+          "content": "args->Push(true); // bFaith/bCulture"
+        }
+      ]
+    }
+  ]
+}

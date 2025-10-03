@@ -1,0 +1,44 @@
+{
+  "tableName": "Civilization_Start_Region_Avoid",
+  "rowCount": 9,
+  "columns": [
+    {
+      "name": "CivilizationType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "RegionType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "RegionType",
+      "referencedTable": "Regions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "CivilizationType",
+      "referencedTable": "Civilizations",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Civilization_Start_Region_Avoid ('CivilizationType' text , 'RegionType' text , foreign key (CivilizationType) references Civilizations(Type), foreign key (RegionType) references Regions(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.147Z"
+  }
+}

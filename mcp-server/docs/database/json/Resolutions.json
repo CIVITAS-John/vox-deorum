@@ -1,0 +1,480 @@
+{
+  "tableName": "Resolutions",
+  "rowCount": 18,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Help",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "VoterDecision",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "ProposerDecision",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "TechPrereqAnyMember",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "AutomaticProposal",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "UniqueType",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "NoProposalByPlayer",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "QuorumPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "LeadersVoteBonusOnFail",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "DiplomaticVictory",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "ChangeLeagueHost",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "OneTimeGold",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "OneTimeGoldPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "RaiseCityStateInfluenceToNeutral",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "LeagueProjectEnabled",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "GoldPerTurn",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "ResourceQuantity",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "EmbargoCityStates",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "EmbargoPlayer",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "NoResourceHappiness",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "UnitMaintenanceGoldPercent",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "MemberDiscoveredTechMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "CulturePerWonder",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "CulturePerNaturalWonder",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "NoTrainingNuclearWeapons",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27
+    },
+    {
+      "name": "VotesForFollowingReligion",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 28
+    },
+    {
+      "name": "HolyCityTourism",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 29
+    },
+    {
+      "name": "ReligionSpreadStrengthMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 30
+    },
+    {
+      "name": "VotesForFollowingIdeology",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 31
+    },
+    {
+      "name": "OtherIdeologyRebellionMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 32
+    },
+    {
+      "name": "ArtsyGreatPersonRateMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 33
+    },
+    {
+      "name": "ScienceyGreatPersonRateMod",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 34
+    },
+    {
+      "name": "GreatPersonTileImprovementCulture",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 35
+    },
+    {
+      "name": "LandmarkCulture",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 36
+    },
+    {
+      "name": "TourismMod",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 37,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "OpenDoor",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 38,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "SphereOfInfluence",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 39,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Decolonization",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 40,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "SpaceshipProductionMod",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 41,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "SpaceshipPurchaseMod",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 42,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IsWorldWar",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 43,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "EmbargoIdeology",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 44,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "VassalMaintenanceGoldPercent",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 45,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "EndAllCurrentVassals",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 46,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "LeagueProjectEnabled",
+      "referencedTable": "LeagueProjects",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TechPrereqAnyMember",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ProposerDecision",
+      "referencedTable": "ResolutionDecisions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "VoterDecision",
+      "referencedTable": "ResolutionDecisions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Help",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Resolutions_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Resolutions ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Help' text , 'VoterDecision' text default NULL , 'ProposerDecision' text default NULL , 'TechPrereqAnyMember' text default NULL , 'AutomaticProposal' boolean default 0 , 'UniqueType' boolean default 0 , 'NoProposalByPlayer' boolean default 0 , 'QuorumPercent' integer default 0 , 'LeadersVoteBonusOnFail' integer default 0 , 'DiplomaticVictory' boolean default 0 , 'ChangeLeagueHost' boolean default 0 , 'OneTimeGold' integer default 0 , 'OneTimeGoldPercent' integer default 0 , 'RaiseCityStateInfluenceToNeutral' boolean default 0 , 'LeagueProjectEnabled' text default NULL , 'GoldPerTurn' integer default 0 , 'ResourceQuantity' integer default 0 , 'EmbargoCityStates' boolean default 0 , 'EmbargoPlayer' boolean default 0 , 'NoResourceHappiness' boolean default 0 , 'UnitMaintenanceGoldPercent' integer default 0 , 'MemberDiscoveredTechMod' integer default 0 , 'CulturePerWonder' integer default 0 , 'CulturePerNaturalWonder' integer default 0 , 'NoTrainingNuclearWeapons' boolean default 0 , 'VotesForFollowingReligion' integer default 0 , 'HolyCityTourism' integer default 0 , 'ReligionSpreadStrengthMod' integer default 0 , 'VotesForFollowingIdeology' integer default 0 , 'OtherIdeologyRebellionMod' integer default 0 , 'ArtsyGreatPersonRateMod' integer default 0 , 'ScienceyGreatPersonRateMod' integer default 0 , 'GreatPersonTileImprovementCulture' integer default 0 , 'LandmarkCulture' integer default 0 , TourismMod integer DEFAULT 0, OpenDoor boolean DEFAULT 0, SphereOfInfluence boolean DEFAULT 0, Decolonization boolean DEFAULT 0, SpaceshipProductionMod integer DEFAULT 0, SpaceshipPurchaseMod integer DEFAULT 0, IsWorldWar integer DEFAULT 0, EmbargoIdeology boolean DEFAULT 0, VassalMaintenanceGoldPercent integer DEFAULT 0, EndAllCurrentVassals boolean DEFAULT 0, foreign key (Description) references Language_en_US(Tag), foreign key (Help) references Language_en_US(Tag), foreign key (VoterDecision) references ResolutionDecisions(Type), foreign key (ProposerDecision) references ResolutionDecisions(Type), foreign key (TechPrereqAnyMember) references Technologies(Type), foreign key (LeagueProjectEnabled) references LeagueProjects(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.379Z"
+  }
+}

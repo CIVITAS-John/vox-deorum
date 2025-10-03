@@ -1,0 +1,50 @@
+{
+  "name": "vox-agents",
+  "version": "1.0.0",
+  "description": "LLM-powered strategic AI agents for Civilization V that provide high-level decision making and strategy planning through the Vox Deorum system.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch --import ./src/instrumentation.ts src/standalone.ts",
+    "briefer": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/briefer/index.js",
+    "strategist": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js",
+    "strategist-load": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js --load",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "@vitest/ui": "^3.2.4",
+    "suppress-experimental-warnings": "^2.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@ai-sdk-tool/eval": "^0.1.8",
+    "@ai-sdk-tool/parser": "^2.1.7",
+    "@ai-sdk/google": "^2.0.13",
+    "@ai-sdk/openai": "^2.0.27",
+    "@ai-sdk/openai-compatible": "^1.0.18",
+    "@langfuse/otel": "^4.2.0",
+    "@langfuse/tracing": "^4.2.0",
+    "@modelcontextprotocol/sdk": "^1.17.5",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
+    "@opentelemetry/instrumentation": "^0.204.0",
+    "@opentelemetry/sdk-trace-node": "^2.1.0",
+    "ai": "^5.0.56",
+    "change-case": "^5.4.4",
+    "dotenv": "^17.2.2",
+    "langfuse-vercel": "^3.38.5",
+    "undici": "^7.16.0",
+    "winston": "^3.17.0",
+    "zod": "^3.25.76",
+    "zod-from-json-schema": "^0.5.0"
+  }
+}

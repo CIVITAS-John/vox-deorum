@@ -1,0 +1,52 @@
+{
+  "tableName": "EventChoice_ConvertPercentPopToReligion",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "EventChoiceType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "ReligionType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Percent",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "ReligionType",
+      "referencedTable": "Religions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EventChoiceType",
+      "referencedTable": "EventChoices",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE EventChoice_ConvertPercentPopToReligion ('EventChoiceType' text , 'ReligionType' text , 'Percent' integer  not null , foreign key (EventChoiceType) references EventChoices(Type), foreign key (ReligionType) references Religions(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.182Z"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "eventName": "PlayerCityFounded",
+  "generatedAt": "2025-09-02T16:48:34.172Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 13478,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerCityFounded\", args.get(), bResult);",
+      "eventName": "PlayerCityFounded",
+      "args": [
+        {
+          "line": 13473,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 13474,
+          "content": "args->Push(pCity->getX());"
+        },
+        {
+          "line": 13475,
+          "content": "args->Push(pCity->getY());"
+        }
+      ]
+    }
+  ]
+}

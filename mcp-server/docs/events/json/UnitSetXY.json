@@ -1,0 +1,31 @@
+{
+  "eventName": "UnitSetXY",
+  "generatedAt": "2025-09-02T16:48:34.174Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 20899,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitSetXY\", args.get(), bResult);",
+      "eventName": "UnitSetXY",
+      "args": [
+        {
+          "line": 20893,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 20894,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 20895,
+          "content": "args->Push(getX());"
+        },
+        {
+          "line": 20896,
+          "content": "args->Push(getY());"
+        }
+      ]
+    }
+  ]
+}

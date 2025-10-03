@@ -1,0 +1,44 @@
+{
+  "tableName": "Trait_FreePromotions",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "TraitType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "PromotionType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "PromotionType",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TraitType",
+      "referencedTable": "Traits",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE Trait_FreePromotions ('TraitType' text , 'PromotionType' text , foreign key (TraitType) references Traits(Type), foreign key (PromotionType) references UnitPromotions(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.434Z"
+  }
+}

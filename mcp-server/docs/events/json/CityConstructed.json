@@ -1,0 +1,91 @@
+{
+  "eventName": "CityConstructed",
+  "generatedAt": "2025-09-02T16:48:34.171Z",
+  "occurrences": 3,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 29627,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConstructed\", args.get(), bScriptResult);",
+      "eventName": "CityConstructed",
+      "args": [
+        {
+          "line": 29620,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 29621,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 29622,
+          "content": "args->Push(eConstructBuilding);"
+        },
+        {
+          "line": 29623,
+          "content": "args->Push(false); // bGold"
+        },
+        {
+          "line": 29624,
+          "content": "args->Push(false); // bFaith/bCulture"
+        }
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 30856,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConstructed\", args.get(), bScriptResult);",
+      "eventName": "CityConstructed",
+      "args": [
+        {
+          "line": 30849,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 30850,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 30851,
+          "content": "args->Push(eBuildingType);"
+        },
+        {
+          "line": 30852,
+          "content": "args->Push(true); // bGold"
+        },
+        {
+          "line": 30853,
+          "content": "args->Push(false); // bFaith/bCulture"
+        }
+      ]
+    },
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvCity.cpp",
+      "line": 30907,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConstructed\", args.get(), bScriptResult);",
+      "eventName": "CityConstructed",
+      "args": [
+        {
+          "line": 30900,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 30901,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 30902,
+          "content": "args->Push(eBuildingType);"
+        },
+        {
+          "line": 30903,
+          "content": "args->Push(false); // bGold"
+        },
+        {
+          "line": 30904,
+          "content": "args->Push(true); // bFaith/bCulture"
+        }
+      ]
+    }
+  ]
+}

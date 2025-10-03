@@ -1,0 +1,83 @@
+name: Update Prebuilt Binaries
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  update-binaries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Get submodule commit
+        id: submodule
+        run: |
+          SUBMODULE_COMMIT=$(git submodule status civ5-dll | awk '{print $1}' | sed 's/^[+-]//')
+          echo "commit=$SUBMODULE_COMMIT" >> $GITHUB_OUTPUT
+          echo "Submodule commit: $SUBMODULE_COMMIT"
+
+      - name: Download Debug artifact
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          repo: CIVITAS-John/vox-populi
+          workflow: build_vp.yml
+          workflow_conclusion: success
+          commit: ${{ steps.submodule.outputs.commit }}
+          name: VP_MSVC_Debug
+          path: ./debug-artifact
+
+      - name: Download Release artifact
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          repo: CIVITAS-John/vox-populi
+          workflow: build_vp.yml
+          workflow_conclusion: success
+          commit: ${{ steps.submodule.outputs.commit }}
+          name: VP_MSVC_Release
+          path: ./release-artifact
+
+      - name: Update prebuilt binaries
+        run: |
+          # Update debug binaries (only .dll and .pdb files)
+          if [ -d "./debug-artifact" ]; then
+            echo "Updating debug binaries..."
+            find ./debug-artifact -name "*.dll" -o -name "*.pdb" | while read file; do
+              cp "$file" scripts/debug/
+            done
+          fi
+
+          # Update release binaries (only .dll and .pdb files)
+          if [ -d "./release-artifact" ]; then
+            echo "Updating release binaries..."
+            find ./release-artifact -name "*.dll" -o -name "*.pdb" | while read file; do
+              cp "$file" scripts/release/
+            done
+          fi
+
+          # Clean up artifact folders
+          rm -rf ./debug-artifact ./release-artifact
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git add scripts/debug scripts/release
+          if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes detected"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in binaries"
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update prebuilt binaries from civ5-dll ${{ steps.submodule.outputs.commit }}"
+          git push

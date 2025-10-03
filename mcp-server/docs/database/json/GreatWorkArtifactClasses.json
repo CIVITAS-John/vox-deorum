@@ -1,0 +1,50 @@
+{
+  "tableName": "GreatWorkArtifactClasses",
+  "rowCount": 7,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Value",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_GreatWorkArtifactClasses_2",
+      "unique": true,
+      "partial": false
+    },
+    {
+      "name": "sqlite_autoindex_GreatWorkArtifactClasses_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE GreatWorkArtifactClasses ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Value' integer unique )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.208Z"
+  }
+}

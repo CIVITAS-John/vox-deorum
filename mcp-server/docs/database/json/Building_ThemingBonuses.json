@@ -1,0 +1,143 @@
+{
+  "tableName": "Building_ThemingBonuses",
+  "rowCount": 21,
+  "columns": [
+    {
+      "name": "BuildingType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Bonus",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "SameEra",
+      "type": "bool",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "UniqueEras",
+      "type": "bool",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "MustBeArt",
+      "type": "bool",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "MustBeArtifact",
+      "type": "bool",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "MustBeEqualArtArtifact",
+      "type": "bool",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "RequiresOwner",
+      "type": "bool",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "RequiresAnyButOwner",
+      "type": "bool",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "RequiresSamePlayer",
+      "type": "bool",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "RequiresUniquePlayers",
+      "type": "bool",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "AIPriority",
+      "type": "INT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "ConsecutiveEras",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "BuildingType",
+      "referencedTable": "Buildings",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_Building_ThemingBonuses_ON_BuildingType",
+      "unique": false,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Building_ThemingBonuses ('BuildingType' text , 'Description' text , 'Bonus' integer , 'SameEra' bool , 'UniqueEras' bool , 'MustBeArt' bool , 'MustBeArtifact' bool , 'MustBeEqualArtArtifact' bool , 'RequiresOwner' bool , 'RequiresAnyButOwner' bool , 'RequiresSamePlayer' bool , 'RequiresUniquePlayers' bool , 'AIPriority' int , ConsecutiveEras integer DEFAULT 0, foreign key (BuildingType) references Buildings(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.067Z"
+  }
+}

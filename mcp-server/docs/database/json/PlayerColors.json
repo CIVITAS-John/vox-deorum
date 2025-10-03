@@ -1,0 +1,83 @@
+{
+  "tableName": "PlayerColors",
+  "rowCount": 106,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "PrimaryColor",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "SecondaryColor",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "TextColor",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "TextColor",
+      "referencedTable": "Colors",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "SecondaryColor",
+      "referencedTable": "Colors",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PrimaryColor",
+      "referencedTable": "Colors",
+      "referencedColumn": "type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_PlayerColors_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE PlayerColors ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'PrimaryColor' text  not null , 'SecondaryColor' text  not null , 'TextColor' text  not null , foreign key (PrimaryColor) references Colors(type), foreign key (SecondaryColor) references Colors(Type), foreign key (TextColor) references Colors(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.284Z"
+  }
+}

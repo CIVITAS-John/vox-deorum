@@ -1,0 +1,23 @@
+{
+  "eventName": "GoodyHutTechResearched",
+  "generatedAt": "2025-09-02T16:48:34.172Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 12853,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"GoodyHutTechResearched\", args.get(), bScriptResult);",
+      "eventName": "GoodyHutTechResearched",
+      "args": [
+        {
+          "line": 12849,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 12850,
+          "content": "args->Push(eBestTech);"
+        }
+      ]
+    }
+  ]
+}

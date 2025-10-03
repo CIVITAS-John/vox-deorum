@@ -1,0 +1,37 @@
+{
+  "tableName": "CustomModDbUpdates",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "Name",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Value",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 1
+    }
+  ],
+  "primaryKeys": [
+    "Name"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_CustomModDbUpdates_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE CustomModDbUpdates ('Name' text primary key , 'Value' integer default 0 )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.166Z"
+  }
+}

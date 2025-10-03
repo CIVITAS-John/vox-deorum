@@ -1,0 +1,31 @@
+{
+  "eventName": "TestEvent",
+  "generatedAt": "2025-09-02T16:48:34.175Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/Lua/CvLuaGame.cpp",
+      "line": 3763,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TestEvent\", args.get(), bResult);",
+      "eventName": "TestEvent",
+      "args": [
+        {
+          "line": 3757,
+          "content": "args->Push(-1);"
+        },
+        {
+          "line": 3758,
+          "content": "args->Push(-1);"
+        },
+        {
+          "line": 3759,
+          "content": "args->Push(-1);"
+        },
+        {
+          "line": 3760,
+          "content": "args->Push(-1);"
+        }
+      ]
+    }
+  ]
+}

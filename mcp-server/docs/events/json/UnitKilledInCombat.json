@@ -1,0 +1,31 @@
+{
+  "eventName": "UnitKilledInCombat",
+  "generatedAt": "2025-09-02T16:48:34.173Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 25021,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitKilledInCombat\", args.get(), bResult);",
+      "eventName": "UnitKilledInCombat",
+      "args": [
+        {
+          "line": 25015,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 25016,
+          "content": "args->Push(eKilledPlayer);"
+        },
+        {
+          "line": 25017,
+          "content": "args->Push(eUnitType);"
+        },
+        {
+          "line": 25018,
+          "content": "args->Push(pKillingUnit ? pKillingUnit->GetID() : -1);"
+        }
+      ]
+    }
+  ]
+}

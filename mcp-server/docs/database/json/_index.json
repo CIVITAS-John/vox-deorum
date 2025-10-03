@@ -1,0 +1,4053 @@
+{
+  "database": "Civ5DebugDatabase",
+  "description": "Civilization V debug database containing game state and configuration data",
+  "tableCount": 809,
+  "tables": [
+    {
+      "name": "AICityStrategies",
+      "description": "Game data table for AICityStrategies",
+      "schemaFile": "AICityStrategies.json"
+    },
+    {
+      "name": "AICityStrategy_Flavors",
+      "description": "Game data table for AICityStrategy_Flavors",
+      "schemaFile": "AICityStrategy_Flavors.json"
+    },
+    {
+      "name": "AICityStrategy_PersonalityFlavorThresholdMods",
+      "description": "Installed mods and their configurations",
+      "schemaFile": "AICityStrategy_PersonalityFlavorThresholdMods.json"
+    },
+    {
+      "name": "AIEconomicStrategies",
+      "description": "Game data table for AIEconomicStrategies",
+      "schemaFile": "AIEconomicStrategies.json"
+    },
+    {
+      "name": "AIEconomicStrategy_City_Flavors",
+      "description": "Game data table for AIEconomicStrategy_City_Flavors",
+      "schemaFile": "AIEconomicStrategy_City_Flavors.json"
+    },
+    {
+      "name": "AIEconomicStrategy_PersonalityFlavorThresholdMods",
+      "description": "Installed mods and their configurations",
+      "schemaFile": "AIEconomicStrategy_PersonalityFlavorThresholdMods.json"
+    },
+    {
+      "name": "AIEconomicStrategy_Player_Flavors",
+      "description": "Game data table for AIEconomicStrategy_Player_Flavors",
+      "schemaFile": "AIEconomicStrategy_Player_Flavors.json"
+    },
+    {
+      "name": "AIGrandStrategies",
+      "description": "Game data table for AIGrandStrategies",
+      "schemaFile": "AIGrandStrategies.json"
+    },
+    {
+      "name": "AIGrandStrategy_FlavorMods",
+      "description": "Installed mods and their configurations",
+      "schemaFile": "AIGrandStrategy_FlavorMods.json"
+    },
+    {
+      "name": "AIGrandStrategy_Flavors",
+      "description": "Game data table for AIGrandStrategy_Flavors",
+      "schemaFile": "AIGrandStrategy_Flavors.json"
+    },
+    {
+      "name": "AIGrandStrategy_Yields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "AIGrandStrategy_Yields.json"
+    },
+    {
+      "name": "AIMilitaryStrategies",
+      "description": "Game data table for AIMilitaryStrategies",
+      "schemaFile": "AIMilitaryStrategies.json"
+    },
+    {
+      "name": "AIMilitaryStrategy_City_Flavors",
+      "description": "Game data table for AIMilitaryStrategy_City_Flavors",
+      "schemaFile": "AIMilitaryStrategy_City_Flavors.json"
+    },
+    {
+      "name": "AIMilitaryStrategy_PersonalityFlavorThresholdMods",
+      "description": "Installed mods and their configurations",
+      "schemaFile": "AIMilitaryStrategy_PersonalityFlavorThresholdMods.json"
+    },
+    {
+      "name": "AIMilitaryStrategy_Player_Flavors",
+      "description": "Game data table for AIMilitaryStrategy_Player_Flavors",
+      "schemaFile": "AIMilitaryStrategy_Player_Flavors.json"
+    },
+    {
+      "name": "Accomplishments",
+      "description": "Game data table for Accomplishments",
+      "schemaFile": "Accomplishments.json"
+    },
+    {
+      "name": "Achievements",
+      "description": "Game data table for Achievements",
+      "schemaFile": "Achievements.json"
+    },
+    {
+      "name": "AnimationCategories",
+      "description": "Game data table for AnimationCategories",
+      "schemaFile": "AnimationCategories.json"
+    },
+    {
+      "name": "AnimationPath_Entries",
+      "description": "Game data table for AnimationPath_Entries",
+      "schemaFile": "AnimationPath_Entries.json"
+    },
+    {
+      "name": "AnimationPaths",
+      "description": "Game data table for AnimationPaths",
+      "schemaFile": "AnimationPaths.json"
+    },
+    {
+      "name": "ApplicationInfo",
+      "description": "Game data table for ApplicationInfo",
+      "schemaFile": "ApplicationInfo.json"
+    },
+    {
+      "name": "ArtDefine_LandmarkTypes",
+      "description": "Game data table for ArtDefine_LandmarkTypes",
+      "schemaFile": "ArtDefine_LandmarkTypes.json"
+    },
+    {
+      "name": "ArtDefine_Landmarks",
+      "description": "Game data table for ArtDefine_Landmarks",
+      "schemaFile": "ArtDefine_Landmarks.json"
+    },
+    {
+      "name": "ArtDefine_StrategicView",
+      "description": "Game data table for ArtDefine_StrategicView",
+      "schemaFile": "ArtDefine_StrategicView.json"
+    },
+    {
+      "name": "ArtDefine_UnitInfoMemberInfos",
+      "description": "Game data table for ArtDefine_UnitInfoMemberInfos",
+      "schemaFile": "ArtDefine_UnitInfoMemberInfos.json"
+    },
+    {
+      "name": "ArtDefine_UnitInfos",
+      "description": "Game data table for ArtDefine_UnitInfos",
+      "schemaFile": "ArtDefine_UnitInfos.json"
+    },
+    {
+      "name": "ArtDefine_UnitMemberCombatWeapons",
+      "description": "Game data table for ArtDefine_UnitMemberCombatWeapons",
+      "schemaFile": "ArtDefine_UnitMemberCombatWeapons.json"
+    },
+    {
+      "name": "ArtDefine_UnitMemberCombats",
+      "description": "Game data table for ArtDefine_UnitMemberCombats",
+      "schemaFile": "ArtDefine_UnitMemberCombats.json"
+    },
+    {
+      "name": "ArtDefine_UnitMemberInfos",
+      "description": "Game data table for ArtDefine_UnitMemberInfos",
+      "schemaFile": "ArtDefine_UnitMemberInfos.json"
+    },
+    {
+      "name": "ArtStyleTypes",
+      "description": "Game data table for ArtStyleTypes",
+      "schemaFile": "ArtStyleTypes.json"
+    },
+    {
+      "name": "Attitudes",
+      "description": "Game data table for Attitudes",
+      "schemaFile": "Attitudes.json"
+    },
+    {
+      "name": "Audio_2DSounds",
+      "description": "Game data table for Audio_2DSounds",
+      "schemaFile": "Audio_2DSounds.json"
+    },
+    {
+      "name": "Audio_3DSounds",
+      "description": "Game data table for Audio_3DSounds",
+      "schemaFile": "Audio_3DSounds.json"
+    },
+    {
+      "name": "Audio_ScriptTypes",
+      "description": "Game data table for Audio_ScriptTypes",
+      "schemaFile": "Audio_ScriptTypes.json"
+    },
+    {
+      "name": "Audio_SoundLoadTypes",
+      "description": "Game data table for Audio_SoundLoadTypes",
+      "schemaFile": "Audio_SoundLoadTypes.json"
+    },
+    {
+      "name": "Audio_SoundScapeElementScripts",
+      "description": "Game data table for Audio_SoundScapeElementScripts",
+      "schemaFile": "Audio_SoundScapeElementScripts.json"
+    },
+    {
+      "name": "Audio_SoundScapeElements",
+      "description": "Game data table for Audio_SoundScapeElements",
+      "schemaFile": "Audio_SoundScapeElements.json"
+    },
+    {
+      "name": "Audio_SoundScapes",
+      "description": "Game data table for Audio_SoundScapes",
+      "schemaFile": "Audio_SoundScapes.json"
+    },
+    {
+      "name": "Audio_SoundTypes",
+      "description": "Game data table for Audio_SoundTypes",
+      "schemaFile": "Audio_SoundTypes.json"
+    },
+    {
+      "name": "Audio_Sounds",
+      "description": "Game data table for Audio_Sounds",
+      "schemaFile": "Audio_Sounds.json"
+    },
+    {
+      "name": "Audio_SpeakerChannels",
+      "description": "Game data table for Audio_SpeakerChannels",
+      "schemaFile": "Audio_SpeakerChannels.json"
+    },
+    {
+      "name": "Automates",
+      "description": "Game data table for Automates",
+      "schemaFile": "Automates.json"
+    },
+    {
+      "name": "Belief_BuildingClassFaithPurchase",
+      "description": "Game data table for Belief_BuildingClassFaithPurchase",
+      "schemaFile": "Belief_BuildingClassFaithPurchase.json"
+    },
+    {
+      "name": "Belief_BuildingClassHappiness",
+      "description": "Game data table for Belief_BuildingClassHappiness",
+      "schemaFile": "Belief_BuildingClassHappiness.json"
+    },
+    {
+      "name": "Belief_BuildingClassTourism",
+      "description": "Game data table for Belief_BuildingClassTourism",
+      "schemaFile": "Belief_BuildingClassTourism.json"
+    },
+    {
+      "name": "Belief_BuildingClassYieldChanges",
+      "description": "Game data table for Belief_BuildingClassYieldChanges",
+      "schemaFile": "Belief_BuildingClassYieldChanges.json"
+    },
+    {
+      "name": "Belief_CapitalYieldChanges",
+      "description": "Game data table for Belief_CapitalYieldChanges",
+      "schemaFile": "Belief_CapitalYieldChanges.json"
+    },
+    {
+      "name": "Belief_CityYieldChanges",
+      "description": "Game data table for Belief_CityYieldChanges",
+      "schemaFile": "Belief_CityYieldChanges.json"
+    },
+    {
+      "name": "Belief_CityYieldFromUnimprovedFeature",
+      "description": "Game data table for Belief_CityYieldFromUnimprovedFeature",
+      "schemaFile": "Belief_CityYieldFromUnimprovedFeature.json"
+    },
+    {
+      "name": "Belief_CityYieldPerXFeatureTimes100",
+      "description": "Game data table for Belief_CityYieldPerXFeatureTimes100",
+      "schemaFile": "Belief_CityYieldPerXFeatureTimes100.json"
+    },
+    {
+      "name": "Belief_CityYieldPerXTerrainTimes100",
+      "description": "Game data table for Belief_CityYieldPerXTerrainTimes100",
+      "schemaFile": "Belief_CityYieldPerXTerrainTimes100.json"
+    },
+    {
+      "name": "Belief_CoastalCityYieldChanges",
+      "description": "Game data table for Belief_CoastalCityYieldChanges",
+      "schemaFile": "Belief_CoastalCityYieldChanges.json"
+    },
+    {
+      "name": "Belief_EraFaithUnitPurchase",
+      "description": "Game data table for Belief_EraFaithUnitPurchase",
+      "schemaFile": "Belief_EraFaithUnitPurchase.json"
+    },
+    {
+      "name": "Belief_FeatureYieldChanges",
+      "description": "Game data table for Belief_FeatureYieldChanges",
+      "schemaFile": "Belief_FeatureYieldChanges.json"
+    },
+    {
+      "name": "Belief_FreePromotions",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "Belief_FreePromotions.json"
+    },
+    {
+      "name": "Belief_GoldenAgeGreatPersonRateModifier",
+      "description": "Game data table for Belief_GoldenAgeGreatPersonRateModifier",
+      "schemaFile": "Belief_GoldenAgeGreatPersonRateModifier.json"
+    },
+    {
+      "name": "Belief_GreatPersonExpendedYield",
+      "description": "Game data table for Belief_GreatPersonExpendedYield",
+      "schemaFile": "Belief_GreatPersonExpendedYield.json"
+    },
+    {
+      "name": "Belief_GreatPersonPoints",
+      "description": "Game data table for Belief_GreatPersonPoints",
+      "schemaFile": "Belief_GreatPersonPoints.json"
+    },
+    {
+      "name": "Belief_GreatWorkYieldChanges",
+      "description": "Game data table for Belief_GreatWorkYieldChanges",
+      "schemaFile": "Belief_GreatWorkYieldChanges.json"
+    },
+    {
+      "name": "Belief_HolyCityYieldChanges",
+      "description": "Game data table for Belief_HolyCityYieldChanges",
+      "schemaFile": "Belief_HolyCityYieldChanges.json"
+    },
+    {
+      "name": "Belief_ImprovementYieldChanges",
+      "description": "Game data table for Belief_ImprovementYieldChanges",
+      "schemaFile": "Belief_ImprovementYieldChanges.json"
+    },
+    {
+      "name": "Belief_LakePlotYield",
+      "description": "Game data table for Belief_LakePlotYield",
+      "schemaFile": "Belief_LakePlotYield.json"
+    },
+    {
+      "name": "Belief_MaxYieldModifierPerFollower",
+      "description": "Game data table for Belief_MaxYieldModifierPerFollower",
+      "schemaFile": "Belief_MaxYieldModifierPerFollower.json"
+    },
+    {
+      "name": "Belief_MaxYieldModifierPerFollowerPercent",
+      "description": "Game data table for Belief_MaxYieldModifierPerFollowerPercent",
+      "schemaFile": "Belief_MaxYieldModifierPerFollowerPercent.json"
+    },
+    {
+      "name": "Belief_MaxYieldPerFollower",
+      "description": "Game data table for Belief_MaxYieldPerFollower",
+      "schemaFile": "Belief_MaxYieldPerFollower.json"
+    },
+    {
+      "name": "Belief_MaxYieldPerFollowerPercent",
+      "description": "Game data table for Belief_MaxYieldPerFollowerPercent",
+      "schemaFile": "Belief_MaxYieldPerFollowerPercent.json"
+    },
+    {
+      "name": "Belief_PlotYieldChanges",
+      "description": "Game data table for Belief_PlotYieldChanges",
+      "schemaFile": "Belief_PlotYieldChanges.json"
+    },
+    {
+      "name": "Belief_ResourceHappiness",
+      "description": "Game data table for Belief_ResourceHappiness",
+      "schemaFile": "Belief_ResourceHappiness.json"
+    },
+    {
+      "name": "Belief_ResourceQuantityModifiers",
+      "description": "Game data table for Belief_ResourceQuantityModifiers",
+      "schemaFile": "Belief_ResourceQuantityModifiers.json"
+    },
+    {
+      "name": "Belief_ResourceYieldChanges",
+      "description": "Game data table for Belief_ResourceYieldChanges",
+      "schemaFile": "Belief_ResourceYieldChanges.json"
+    },
+    {
+      "name": "Belief_SpecialistYieldChanges",
+      "description": "Game data table for Belief_SpecialistYieldChanges",
+      "schemaFile": "Belief_SpecialistYieldChanges.json"
+    },
+    {
+      "name": "Belief_SpecificFaithUnitPurchase",
+      "description": "Game data table for Belief_SpecificFaithUnitPurchase",
+      "schemaFile": "Belief_SpecificFaithUnitPurchase.json"
+    },
+    {
+      "name": "Belief_TerrainYieldChanges",
+      "description": "Game data table for Belief_TerrainYieldChanges",
+      "schemaFile": "Belief_TerrainYieldChanges.json"
+    },
+    {
+      "name": "Belief_TradeRouteYieldChange",
+      "description": "Game data table for Belief_TradeRouteYieldChange",
+      "schemaFile": "Belief_TradeRouteYieldChange.json"
+    },
+    {
+      "name": "Belief_UnimprovedFeatureYieldChanges",
+      "description": "Game data table for Belief_UnimprovedFeatureYieldChanges",
+      "schemaFile": "Belief_UnimprovedFeatureYieldChanges.json"
+    },
+    {
+      "name": "Belief_VotePerXImprovementOwned",
+      "description": "Game data table for Belief_VotePerXImprovementOwned",
+      "schemaFile": "Belief_VotePerXImprovementOwned.json"
+    },
+    {
+      "name": "Belief_YieldBonusGoldenAge",
+      "description": "Game data table for Belief_YieldBonusGoldenAge",
+      "schemaFile": "Belief_YieldBonusGoldenAge.json"
+    },
+    {
+      "name": "Belief_YieldChangeAnySpecialist",
+      "description": "Game data table for Belief_YieldChangeAnySpecialist",
+      "schemaFile": "Belief_YieldChangeAnySpecialist.json"
+    },
+    {
+      "name": "Belief_YieldChangeNaturalWonder",
+      "description": "Game data table for Belief_YieldChangeNaturalWonder",
+      "schemaFile": "Belief_YieldChangeNaturalWonder.json"
+    },
+    {
+      "name": "Belief_YieldChangePerForeignCity",
+      "description": "Game data table for Belief_YieldChangePerForeignCity",
+      "schemaFile": "Belief_YieldChangePerForeignCity.json"
+    },
+    {
+      "name": "Belief_YieldChangePerXCityStateFollowers",
+      "description": "Game data table for Belief_YieldChangePerXCityStateFollowers",
+      "schemaFile": "Belief_YieldChangePerXCityStateFollowers.json"
+    },
+    {
+      "name": "Belief_YieldChangePerXForeignFollowers",
+      "description": "Game data table for Belief_YieldChangePerXForeignFollowers",
+      "schemaFile": "Belief_YieldChangePerXForeignFollowers.json"
+    },
+    {
+      "name": "Belief_YieldChangeTradeRoute",
+      "description": "Game data table for Belief_YieldChangeTradeRoute",
+      "schemaFile": "Belief_YieldChangeTradeRoute.json"
+    },
+    {
+      "name": "Belief_YieldChangeWorldWonder",
+      "description": "Game data table for Belief_YieldChangeWorldWonder",
+      "schemaFile": "Belief_YieldChangeWorldWonder.json"
+    },
+    {
+      "name": "Belief_YieldFromBarbarianKills",
+      "description": "Game data table for Belief_YieldFromBarbarianKills",
+      "schemaFile": "Belief_YieldFromBarbarianKills.json"
+    },
+    {
+      "name": "Belief_YieldFromConquest",
+      "description": "Game data table for Belief_YieldFromConquest",
+      "schemaFile": "Belief_YieldFromConquest.json"
+    },
+    {
+      "name": "Belief_YieldFromConversion",
+      "description": "Game data table for Belief_YieldFromConversion",
+      "schemaFile": "Belief_YieldFromConversion.json"
+    },
+    {
+      "name": "Belief_YieldFromConversionExpo",
+      "description": "Game data table for Belief_YieldFromConversionExpo",
+      "schemaFile": "Belief_YieldFromConversionExpo.json"
+    },
+    {
+      "name": "Belief_YieldFromEraUnlock",
+      "description": "Game data table for Belief_YieldFromEraUnlock",
+      "schemaFile": "Belief_YieldFromEraUnlock.json"
+    },
+    {
+      "name": "Belief_YieldFromFaithPurchase",
+      "description": "Game data table for Belief_YieldFromFaithPurchase",
+      "schemaFile": "Belief_YieldFromFaithPurchase.json"
+    },
+    {
+      "name": "Belief_YieldFromForeignSpread",
+      "description": "Game data table for Belief_YieldFromForeignSpread",
+      "schemaFile": "Belief_YieldFromForeignSpread.json"
+    },
+    {
+      "name": "Belief_YieldFromGPUse",
+      "description": "Game data table for Belief_YieldFromGPUse",
+      "schemaFile": "Belief_YieldFromGPUse.json"
+    },
+    {
+      "name": "Belief_YieldFromHost",
+      "description": "Game data table for Belief_YieldFromHost",
+      "schemaFile": "Belief_YieldFromHost.json"
+    },
+    {
+      "name": "Belief_YieldFromImprovementBuild",
+      "description": "Game data table for Belief_YieldFromImprovementBuild",
+      "schemaFile": "Belief_YieldFromImprovementBuild.json"
+    },
+    {
+      "name": "Belief_YieldFromKills",
+      "description": "Game data table for Belief_YieldFromKills",
+      "schemaFile": "Belief_YieldFromKills.json"
+    },
+    {
+      "name": "Belief_YieldFromKnownPantheons",
+      "description": "Game data table for Belief_YieldFromKnownPantheons",
+      "schemaFile": "Belief_YieldFromKnownPantheons.json"
+    },
+    {
+      "name": "Belief_YieldFromPillageGlobal",
+      "description": "Game data table for Belief_YieldFromPillageGlobal",
+      "schemaFile": "Belief_YieldFromPillageGlobal.json"
+    },
+    {
+      "name": "Belief_YieldFromPolicyUnlock",
+      "description": "Game data table for Belief_YieldFromPolicyUnlock",
+      "schemaFile": "Belief_YieldFromPolicyUnlock.json"
+    },
+    {
+      "name": "Belief_YieldFromProposal",
+      "description": "Game data table for Belief_YieldFromProposal",
+      "schemaFile": "Belief_YieldFromProposal.json"
+    },
+    {
+      "name": "Belief_YieldFromRemoveHeresy",
+      "description": "Game data table for Belief_YieldFromRemoveHeresy",
+      "schemaFile": "Belief_YieldFromRemoveHeresy.json"
+    },
+    {
+      "name": "Belief_YieldFromSpread",
+      "description": "Game data table for Belief_YieldFromSpread",
+      "schemaFile": "Belief_YieldFromSpread.json"
+    },
+    {
+      "name": "Belief_YieldFromTechUnlock",
+      "description": "Game data table for Belief_YieldFromTechUnlock",
+      "schemaFile": "Belief_YieldFromTechUnlock.json"
+    },
+    {
+      "name": "Belief_YieldFromWLTKD",
+      "description": "Game data table for Belief_YieldFromWLTKD",
+      "schemaFile": "Belief_YieldFromWLTKD.json"
+    },
+    {
+      "name": "Belief_YieldModifierNaturalWonder",
+      "description": "Game data table for Belief_YieldModifierNaturalWonder",
+      "schemaFile": "Belief_YieldModifierNaturalWonder.json"
+    },
+    {
+      "name": "Belief_YieldPerActiveTR",
+      "description": "Game data table for Belief_YieldPerActiveTR",
+      "schemaFile": "Belief_YieldPerActiveTR.json"
+    },
+    {
+      "name": "Belief_YieldPerBirth",
+      "description": "Game data table for Belief_YieldPerBirth",
+      "schemaFile": "Belief_YieldPerBirth.json"
+    },
+    {
+      "name": "Belief_YieldPerBorderGrowth",
+      "description": "Game data table for Belief_YieldPerBorderGrowth",
+      "schemaFile": "Belief_YieldPerBorderGrowth.json"
+    },
+    {
+      "name": "Belief_YieldPerConstruction",
+      "description": "Game data table for Belief_YieldPerConstruction",
+      "schemaFile": "Belief_YieldPerConstruction.json"
+    },
+    {
+      "name": "Belief_YieldPerFollowingCity",
+      "description": "Game data table for Belief_YieldPerFollowingCity",
+      "schemaFile": "Belief_YieldPerFollowingCity.json"
+    },
+    {
+      "name": "Belief_YieldPerGPT",
+      "description": "Game data table for Belief_YieldPerGPT",
+      "schemaFile": "Belief_YieldPerGPT.json"
+    },
+    {
+      "name": "Belief_YieldPerHeal",
+      "description": "Game data table for Belief_YieldPerHeal",
+      "schemaFile": "Belief_YieldPerHeal.json"
+    },
+    {
+      "name": "Belief_YieldPerHolyCityBirth",
+      "description": "Game data table for Belief_YieldPerHolyCityBirth",
+      "schemaFile": "Belief_YieldPerHolyCityBirth.json"
+    },
+    {
+      "name": "Belief_YieldPerLux",
+      "description": "Game data table for Belief_YieldPerLux",
+      "schemaFile": "Belief_YieldPerLux.json"
+    },
+    {
+      "name": "Belief_YieldPerOtherReligionFollower",
+      "description": "Game data table for Belief_YieldPerOtherReligionFollower",
+      "schemaFile": "Belief_YieldPerOtherReligionFollower.json"
+    },
+    {
+      "name": "Belief_YieldPerPop",
+      "description": "Game data table for Belief_YieldPerPop",
+      "schemaFile": "Belief_YieldPerPop.json"
+    },
+    {
+      "name": "Belief_YieldPerScience",
+      "description": "Game data table for Belief_YieldPerScience",
+      "schemaFile": "Belief_YieldPerScience.json"
+    },
+    {
+      "name": "Belief_YieldPerWorldWonderConstruction",
+      "description": "Game data table for Belief_YieldPerWorldWonderConstruction",
+      "schemaFile": "Belief_YieldPerWorldWonderConstruction.json"
+    },
+    {
+      "name": "Belief_YieldPerXFollowers",
+      "description": "Game data table for Belief_YieldPerXFollowers",
+      "schemaFile": "Belief_YieldPerXFollowers.json"
+    },
+    {
+      "name": "Beliefs",
+      "description": "Game data table for Beliefs",
+      "schemaFile": "Beliefs.json"
+    },
+    {
+      "name": "BuildFeatures",
+      "description": "Natural features like forests, hills, and rivers",
+      "schemaFile": "BuildFeatures.json"
+    },
+    {
+      "name": "Build_TechTimeChanges",
+      "description": "Game data table for Build_TechTimeChanges",
+      "schemaFile": "Build_TechTimeChanges.json"
+    },
+    {
+      "name": "BuildingClass_VictoryThresholds",
+      "description": "Victory condition definitions and requirements",
+      "schemaFile": "BuildingClass_VictoryThresholds.json"
+    },
+    {
+      "name": "BuildingClasses",
+      "description": "Game data table for BuildingClasses",
+      "schemaFile": "BuildingClasses.json"
+    },
+    {
+      "name": "Building_AreaYieldModifiers",
+      "description": "Game data table for Building_AreaYieldModifiers",
+      "schemaFile": "Building_AreaYieldModifiers.json"
+    },
+    {
+      "name": "Building_BonusFromAccomplishments",
+      "description": "Game data table for Building_BonusFromAccomplishments",
+      "schemaFile": "Building_BonusFromAccomplishments.json"
+    },
+    {
+      "name": "Building_BuildingClassHappiness",
+      "description": "Game data table for Building_BuildingClassHappiness",
+      "schemaFile": "Building_BuildingClassHappiness.json"
+    },
+    {
+      "name": "Building_BuildingClassLocalHappiness",
+      "description": "Game data table for Building_BuildingClassLocalHappiness",
+      "schemaFile": "Building_BuildingClassLocalHappiness.json"
+    },
+    {
+      "name": "Building_BuildingClassLocalYieldChanges",
+      "description": "Game data table for Building_BuildingClassLocalYieldChanges",
+      "schemaFile": "Building_BuildingClassLocalYieldChanges.json"
+    },
+    {
+      "name": "Building_BuildingClassYieldChanges",
+      "description": "Game data table for Building_BuildingClassYieldChanges",
+      "schemaFile": "Building_BuildingClassYieldChanges.json"
+    },
+    {
+      "name": "Building_BuildingClassYieldModifiers",
+      "description": "Game data table for Building_BuildingClassYieldModifiers",
+      "schemaFile": "Building_BuildingClassYieldModifiers.json"
+    },
+    {
+      "name": "Building_ClassNeededAnywhere",
+      "description": "Game data table for Building_ClassNeededAnywhere",
+      "schemaFile": "Building_ClassNeededAnywhere.json"
+    },
+    {
+      "name": "Building_ClassNeededNowhere",
+      "description": "Game data table for Building_ClassNeededNowhere",
+      "schemaFile": "Building_ClassNeededNowhere.json"
+    },
+    {
+      "name": "Building_ClassesNeededInCity",
+      "description": "Game data table for Building_ClassesNeededInCity",
+      "schemaFile": "Building_ClassesNeededInCity.json"
+    },
+    {
+      "name": "Building_DomainFreeExperiencePerGreatWork",
+      "description": "Game data table for Building_DomainFreeExperiencePerGreatWork",
+      "schemaFile": "Building_DomainFreeExperiencePerGreatWork.json"
+    },
+    {
+      "name": "Building_DomainFreeExperiencePerGreatWorkGlobal",
+      "description": "Game data table for Building_DomainFreeExperiencePerGreatWorkGlobal",
+      "schemaFile": "Building_DomainFreeExperiencePerGreatWorkGlobal.json"
+    },
+    {
+      "name": "Building_DomainFreeExperiences",
+      "description": "Game data table for Building_DomainFreeExperiences",
+      "schemaFile": "Building_DomainFreeExperiences.json"
+    },
+    {
+      "name": "Building_DomainFreeExperiencesGlobal",
+      "description": "Game data table for Building_DomainFreeExperiencesGlobal",
+      "schemaFile": "Building_DomainFreeExperiencesGlobal.json"
+    },
+    {
+      "name": "Building_DomainProductionModifiers",
+      "description": "Game data table for Building_DomainProductionModifiers",
+      "schemaFile": "Building_DomainProductionModifiers.json"
+    },
+    {
+      "name": "Building_ExtraPlayerInstancesFromAccomplishments",
+      "description": "Game data table for Building_ExtraPlayerInstancesFromAccomplishments",
+      "schemaFile": "Building_ExtraPlayerInstancesFromAccomplishments.json"
+    },
+    {
+      "name": "Building_FeatureYieldChanges",
+      "description": "Game data table for Building_FeatureYieldChanges",
+      "schemaFile": "Building_FeatureYieldChanges.json"
+    },
+    {
+      "name": "Building_Flavors",
+      "description": "Game data table for Building_Flavors",
+      "schemaFile": "Building_Flavors.json"
+    },
+    {
+      "name": "Building_FreeSpecUnits",
+      "description": "Tracks all military and civilian units, their positions, health, and ownership",
+      "schemaFile": "Building_FreeSpecUnits.json"
+    },
+    {
+      "name": "Building_FreeSpecialistCounts",
+      "description": "Game data table for Building_FreeSpecialistCounts",
+      "schemaFile": "Building_FreeSpecialistCounts.json"
+    },
+    {
+      "name": "Building_FreeUnits",
+      "description": "Tracks all military and civilian units, their positions, health, and ownership",
+      "schemaFile": "Building_FreeUnits.json"
+    },
+    {
+      "name": "Building_GlobalYieldModifiers",
+      "description": "Game data table for Building_GlobalYieldModifiers",
+      "schemaFile": "Building_GlobalYieldModifiers.json"
+    },
+    {
+      "name": "Building_GoldenAgeYieldMod",
+      "description": "Game data table for Building_GoldenAgeYieldMod",
+      "schemaFile": "Building_GoldenAgeYieldMod.json"
+    },
+    {
+      "name": "Building_GreatPersonPointFromConstruction",
+      "description": "Game data table for Building_GreatPersonPointFromConstruction",
+      "schemaFile": "Building_GreatPersonPointFromConstruction.json"
+    },
+    {
+      "name": "Building_GreatPersonProgressFromConstruction",
+      "description": "Game data table for Building_GreatPersonProgressFromConstruction",
+      "schemaFile": "Building_GreatPersonProgressFromConstruction.json"
+    },
+    {
+      "name": "Building_GreatWorkYieldChanges",
+      "description": "Game data table for Building_GreatWorkYieldChanges",
+      "schemaFile": "Building_GreatWorkYieldChanges.json"
+    },
+    {
+      "name": "Building_GreatWorkYieldChangesLocal",
+      "description": "Game data table for Building_GreatWorkYieldChangesLocal",
+      "schemaFile": "Building_GreatWorkYieldChangesLocal.json"
+    },
+    {
+      "name": "Building_GrowthExtraYield",
+      "description": "Game data table for Building_GrowthExtraYield",
+      "schemaFile": "Building_GrowthExtraYield.json"
+    },
+    {
+      "name": "Building_HurryModifiers",
+      "description": "Game data table for Building_HurryModifiers",
+      "schemaFile": "Building_HurryModifiers.json"
+    },
+    {
+      "name": "Building_HurryModifiersLocal",
+      "description": "Game data table for Building_HurryModifiersLocal",
+      "schemaFile": "Building_HurryModifiersLocal.json"
+    },
+    {
+      "name": "Building_ImprovementYieldChanges",
+      "description": "Game data table for Building_ImprovementYieldChanges",
+      "schemaFile": "Building_ImprovementYieldChanges.json"
+    },
+    {
+      "name": "Building_ImprovementYieldChangesGlobal",
+      "description": "Game data table for Building_ImprovementYieldChangesGlobal",
+      "schemaFile": "Building_ImprovementYieldChangesGlobal.json"
+    },
+    {
+      "name": "Building_InstantYield",
+      "description": "Game data table for Building_InstantYield",
+      "schemaFile": "Building_InstantYield.json"
+    },
+    {
+      "name": "Building_InstantYieldFromWLTKDStart",
+      "description": "Game data table for Building_InstantYieldFromWLTKDStart",
+      "schemaFile": "Building_InstantYieldFromWLTKDStart.json"
+    },
+    {
+      "name": "Building_LakePlotYieldChanges",
+      "description": "Game data table for Building_LakePlotYieldChanges",
+      "schemaFile": "Building_LakePlotYieldChanges.json"
+    },
+    {
+      "name": "Building_LakePlotYieldChangesGlobal",
+      "description": "Game data table for Building_LakePlotYieldChangesGlobal",
+      "schemaFile": "Building_LakePlotYieldChangesGlobal.json"
+    },
+    {
+      "name": "Building_LocalFeatureAnds",
+      "description": "Game data table for Building_LocalFeatureAnds",
+      "schemaFile": "Building_LocalFeatureAnds.json"
+    },
+    {
+      "name": "Building_LocalFeatureOrs",
+      "description": "Game data table for Building_LocalFeatureOrs",
+      "schemaFile": "Building_LocalFeatureOrs.json"
+    },
+    {
+      "name": "Building_LocalResourceAnds",
+      "description": "Game data table for Building_LocalResourceAnds",
+      "schemaFile": "Building_LocalResourceAnds.json"
+    },
+    {
+      "name": "Building_LocalResourceOrs",
+      "description": "Game data table for Building_LocalResourceOrs",
+      "schemaFile": "Building_LocalResourceOrs.json"
+    },
+    {
+      "name": "Building_LockedBuildingClasses",
+      "description": "Game data table for Building_LockedBuildingClasses",
+      "schemaFile": "Building_LockedBuildingClasses.json"
+    },
+    {
+      "name": "Building_LuxuryYieldChanges",
+      "description": "Game data table for Building_LuxuryYieldChanges",
+      "schemaFile": "Building_LuxuryYieldChanges.json"
+    },
+    {
+      "name": "Building_PlotYieldChanges",
+      "description": "Game data table for Building_PlotYieldChanges",
+      "schemaFile": "Building_PlotYieldChanges.json"
+    },
+    {
+      "name": "Building_PrereqBuildingClasses",
+      "description": "Game data table for Building_PrereqBuildingClasses",
+      "schemaFile": "Building_PrereqBuildingClasses.json"
+    },
+    {
+      "name": "Building_ResourceClaim",
+      "description": "Game data table for Building_ResourceClaim",
+      "schemaFile": "Building_ResourceClaim.json"
+    },
+    {
+      "name": "Building_ResourceCultureChanges",
+      "description": "Game data table for Building_ResourceCultureChanges",
+      "schemaFile": "Building_ResourceCultureChanges.json"
+    },
+    {
+      "name": "Building_ResourceFaithChanges",
+      "description": "Game data table for Building_ResourceFaithChanges",
+      "schemaFile": "Building_ResourceFaithChanges.json"
+    },
+    {
+      "name": "Building_ResourceHappinessChange",
+      "description": "Game data table for Building_ResourceHappinessChange",
+      "schemaFile": "Building_ResourceHappinessChange.json"
+    },
+    {
+      "name": "Building_ResourceMonopolyAnds",
+      "description": "Game data table for Building_ResourceMonopolyAnds",
+      "schemaFile": "Building_ResourceMonopolyAnds.json"
+    },
+    {
+      "name": "Building_ResourceMonopolyOrs",
+      "description": "Game data table for Building_ResourceMonopolyOrs",
+      "schemaFile": "Building_ResourceMonopolyOrs.json"
+    },
+    {
+      "name": "Building_ResourcePlotsToPlace",
+      "description": "Individual map tiles, their terrain type, improvements, and resources",
+      "schemaFile": "Building_ResourcePlotsToPlace.json"
+    },
+    {
+      "name": "Building_ResourceQuantity",
+      "description": "Game data table for Building_ResourceQuantity",
+      "schemaFile": "Building_ResourceQuantity.json"
+    },
+    {
+      "name": "Building_ResourceQuantityFromPOP",
+      "description": "Game data table for Building_ResourceQuantityFromPOP",
+      "schemaFile": "Building_ResourceQuantityFromPOP.json"
+    },
+    {
+      "name": "Building_ResourceQuantityPerXFranchises",
+      "description": "Game data table for Building_ResourceQuantityPerXFranchises",
+      "schemaFile": "Building_ResourceQuantityPerXFranchises.json"
+    },
+    {
+      "name": "Building_ResourceQuantityRequirements",
+      "description": "Game data table for Building_ResourceQuantityRequirements",
+      "schemaFile": "Building_ResourceQuantityRequirements.json"
+    },
+    {
+      "name": "Building_ResourceYieldChanges",
+      "description": "Game data table for Building_ResourceYieldChanges",
+      "schemaFile": "Building_ResourceYieldChanges.json"
+    },
+    {
+      "name": "Building_ResourceYieldChangesGlobal",
+      "description": "Game data table for Building_ResourceYieldChangesGlobal",
+      "schemaFile": "Building_ResourceYieldChangesGlobal.json"
+    },
+    {
+      "name": "Building_ResourceYieldModifiers",
+      "description": "Game data table for Building_ResourceYieldModifiers",
+      "schemaFile": "Building_ResourceYieldModifiers.json"
+    },
+    {
+      "name": "Building_RiverPlotYieldChanges",
+      "description": "Game data table for Building_RiverPlotYieldChanges",
+      "schemaFile": "Building_RiverPlotYieldChanges.json"
+    },
+    {
+      "name": "Building_SeaPlotYieldChanges",
+      "description": "Game data table for Building_SeaPlotYieldChanges",
+      "schemaFile": "Building_SeaPlotYieldChanges.json"
+    },
+    {
+      "name": "Building_SeaResourceYieldChanges",
+      "description": "Game data table for Building_SeaResourceYieldChanges",
+      "schemaFile": "Building_SeaResourceYieldChanges.json"
+    },
+    {
+      "name": "Building_SpecialistYieldChanges",
+      "description": "Game data table for Building_SpecialistYieldChanges",
+      "schemaFile": "Building_SpecialistYieldChanges.json"
+    },
+    {
+      "name": "Building_SpecialistYieldChangesLocal",
+      "description": "Game data table for Building_SpecialistYieldChangesLocal",
+      "schemaFile": "Building_SpecialistYieldChangesLocal.json"
+    },
+    {
+      "name": "Building_SpecificGreatPersonRateModifier",
+      "description": "Game data table for Building_SpecificGreatPersonRateModifier",
+      "schemaFile": "Building_SpecificGreatPersonRateModifier.json"
+    },
+    {
+      "name": "Building_TechAndPrereqs",
+      "description": "Game data table for Building_TechAndPrereqs",
+      "schemaFile": "Building_TechAndPrereqs.json"
+    },
+    {
+      "name": "Building_TechEnhancedYieldChanges",
+      "description": "Game data table for Building_TechEnhancedYieldChanges",
+      "schemaFile": "Building_TechEnhancedYieldChanges.json"
+    },
+    {
+      "name": "Building_TerrainYieldChanges",
+      "description": "Game data table for Building_TerrainYieldChanges",
+      "schemaFile": "Building_TerrainYieldChanges.json"
+    },
+    {
+      "name": "Building_ThemingBonuses",
+      "description": "Game data table for Building_ThemingBonuses",
+      "schemaFile": "Building_ThemingBonuses.json"
+    },
+    {
+      "name": "Building_ThemingYieldBonus",
+      "description": "Game data table for Building_ThemingYieldBonus",
+      "schemaFile": "Building_ThemingYieldBonus.json"
+    },
+    {
+      "name": "Building_UnitClassTrainingAllowed",
+      "description": "Game data table for Building_UnitClassTrainingAllowed",
+      "schemaFile": "Building_UnitClassTrainingAllowed.json"
+    },
+    {
+      "name": "Building_UnitCombatFreeExperiences",
+      "description": "Game data table for Building_UnitCombatFreeExperiences",
+      "schemaFile": "Building_UnitCombatFreeExperiences.json"
+    },
+    {
+      "name": "Building_UnitCombatProductionModifiers",
+      "description": "Game data table for Building_UnitCombatProductionModifiers",
+      "schemaFile": "Building_UnitCombatProductionModifiers.json"
+    },
+    {
+      "name": "Building_UnitCombatProductionModifiersGlobal",
+      "description": "Game data table for Building_UnitCombatProductionModifiersGlobal",
+      "schemaFile": "Building_UnitCombatProductionModifiersGlobal.json"
+    },
+    {
+      "name": "Building_WLTKDFromProject",
+      "description": "Game data table for Building_WLTKDFromProject",
+      "schemaFile": "Building_WLTKDFromProject.json"
+    },
+    {
+      "name": "Building_WLTKDYieldMod",
+      "description": "Game data table for Building_WLTKDYieldMod",
+      "schemaFile": "Building_WLTKDYieldMod.json"
+    },
+    {
+      "name": "Building_YieldChangeWorldWonder",
+      "description": "Game data table for Building_YieldChangeWorldWonder",
+      "schemaFile": "Building_YieldChangeWorldWonder.json"
+    },
+    {
+      "name": "Building_YieldChangeWorldWonderGlobal",
+      "description": "Game data table for Building_YieldChangeWorldWonderGlobal",
+      "schemaFile": "Building_YieldChangeWorldWonderGlobal.json"
+    },
+    {
+      "name": "Building_YieldChanges",
+      "description": "Game data table for Building_YieldChanges",
+      "schemaFile": "Building_YieldChanges.json"
+    },
+    {
+      "name": "Building_YieldChangesEraScalingTimes100",
+      "description": "Historical era definitions and progression",
+      "schemaFile": "Building_YieldChangesEraScalingTimes100.json"
+    },
+    {
+      "name": "Building_YieldChangesFromAccomplishments",
+      "description": "Game data table for Building_YieldChangesFromAccomplishments",
+      "schemaFile": "Building_YieldChangesFromAccomplishments.json"
+    },
+    {
+      "name": "Building_YieldChangesFromPassingTR",
+      "description": "Game data table for Building_YieldChangesFromPassingTR",
+      "schemaFile": "Building_YieldChangesFromPassingTR.json"
+    },
+    {
+      "name": "Building_YieldChangesFromXCityStateStrategicResource",
+      "description": "Game data table for Building_YieldChangesFromXCityStateStrategicResource",
+      "schemaFile": "Building_YieldChangesFromXCityStateStrategicResource.json"
+    },
+    {
+      "name": "Building_YieldChangesPerCityStrengthTimes100",
+      "description": "Game data table for Building_YieldChangesPerCityStrengthTimes100",
+      "schemaFile": "Building_YieldChangesPerCityStrengthTimes100.json"
+    },
+    {
+      "name": "Building_YieldChangesPerGoldenAge",
+      "description": "Game data table for Building_YieldChangesPerGoldenAge",
+      "schemaFile": "Building_YieldChangesPerGoldenAge.json"
+    },
+    {
+      "name": "Building_YieldChangesPerLocalTheme",
+      "description": "Game data table for Building_YieldChangesPerLocalTheme",
+      "schemaFile": "Building_YieldChangesPerLocalTheme.json"
+    },
+    {
+      "name": "Building_YieldChangesPerMonopoly",
+      "description": "Game data table for Building_YieldChangesPerMonopoly",
+      "schemaFile": "Building_YieldChangesPerMonopoly.json"
+    },
+    {
+      "name": "Building_YieldChangesPerPop",
+      "description": "Game data table for Building_YieldChangesPerPop",
+      "schemaFile": "Building_YieldChangesPerPop.json"
+    },
+    {
+      "name": "Building_YieldChangesPerPopInEmpire",
+      "description": "Game data table for Building_YieldChangesPerPopInEmpire",
+      "schemaFile": "Building_YieldChangesPerPopInEmpire.json"
+    },
+    {
+      "name": "Building_YieldChangesPerReligion",
+      "description": "Game data table for Building_YieldChangesPerReligion",
+      "schemaFile": "Building_YieldChangesPerReligion.json"
+    },
+    {
+      "name": "Building_YieldChangesPerXBuilding",
+      "description": "Game data table for Building_YieldChangesPerXBuilding",
+      "schemaFile": "Building_YieldChangesPerXBuilding.json"
+    },
+    {
+      "name": "Building_YieldChangesPerXTiles",
+      "description": "Game data table for Building_YieldChangesPerXTiles",
+      "schemaFile": "Building_YieldChangesPerXTiles.json"
+    },
+    {
+      "name": "Building_YieldFromBirth",
+      "description": "Game data table for Building_YieldFromBirth",
+      "schemaFile": "Building_YieldFromBirth.json"
+    },
+    {
+      "name": "Building_YieldFromBirthRetroactive",
+      "description": "Game data table for Building_YieldFromBirthRetroactive",
+      "schemaFile": "Building_YieldFromBirthRetroactive.json"
+    },
+    {
+      "name": "Building_YieldFromBorderGrowth",
+      "description": "Game data table for Building_YieldFromBorderGrowth",
+      "schemaFile": "Building_YieldFromBorderGrowth.json"
+    },
+    {
+      "name": "Building_YieldFromCombatExperienceTimes100",
+      "description": "Game data table for Building_YieldFromCombatExperienceTimes100",
+      "schemaFile": "Building_YieldFromCombatExperienceTimes100.json"
+    },
+    {
+      "name": "Building_YieldFromConstruction",
+      "description": "Game data table for Building_YieldFromConstruction",
+      "schemaFile": "Building_YieldFromConstruction.json"
+    },
+    {
+      "name": "Building_YieldFromDeath",
+      "description": "Game data table for Building_YieldFromDeath",
+      "schemaFile": "Building_YieldFromDeath.json"
+    },
+    {
+      "name": "Building_YieldFromFaithPurchase",
+      "description": "Game data table for Building_YieldFromFaithPurchase",
+      "schemaFile": "Building_YieldFromFaithPurchase.json"
+    },
+    {
+      "name": "Building_YieldFromGPBirthScaledWithArtistBulb",
+      "description": "Game data table for Building_YieldFromGPBirthScaledWithArtistBulb",
+      "schemaFile": "Building_YieldFromGPBirthScaledWithArtistBulb.json"
+    },
+    {
+      "name": "Building_YieldFromGPBirthScaledWithPerTurnYield",
+      "description": "Game data table for Building_YieldFromGPBirthScaledWithPerTurnYield",
+      "schemaFile": "Building_YieldFromGPBirthScaledWithPerTurnYield.json"
+    },
+    {
+      "name": "Building_YieldFromGPBirthScaledWithWriterBulb",
+      "description": "Game data table for Building_YieldFromGPBirthScaledWithWriterBulb",
+      "schemaFile": "Building_YieldFromGPBirthScaledWithWriterBulb.json"
+    },
+    {
+      "name": "Building_YieldFromGPExpend",
+      "description": "Game data table for Building_YieldFromGPExpend",
+      "schemaFile": "Building_YieldFromGPExpend.json"
+    },
+    {
+      "name": "Building_YieldFromGoldenAgeStart",
+      "description": "Game data table for Building_YieldFromGoldenAgeStart",
+      "schemaFile": "Building_YieldFromGoldenAgeStart.json"
+    },
+    {
+      "name": "Building_YieldFromInternalTR",
+      "description": "Game data table for Building_YieldFromInternalTR",
+      "schemaFile": "Building_YieldFromInternalTR.json"
+    },
+    {
+      "name": "Building_YieldFromInternalTREnd",
+      "description": "Game data table for Building_YieldFromInternalTREnd",
+      "schemaFile": "Building_YieldFromInternalTREnd.json"
+    },
+    {
+      "name": "Building_YieldFromInternationalTREnd",
+      "description": "Game data table for Building_YieldFromInternationalTREnd",
+      "schemaFile": "Building_YieldFromInternationalTREnd.json"
+    },
+    {
+      "name": "Building_YieldFromLongCount",
+      "description": "Game data table for Building_YieldFromLongCount",
+      "schemaFile": "Building_YieldFromLongCount.json"
+    },
+    {
+      "name": "Building_YieldFromPillage",
+      "description": "Game data table for Building_YieldFromPillage",
+      "schemaFile": "Building_YieldFromPillage.json"
+    },
+    {
+      "name": "Building_YieldFromPillageGlobal",
+      "description": "Game data table for Building_YieldFromPillageGlobal",
+      "schemaFile": "Building_YieldFromPillageGlobal.json"
+    },
+    {
+      "name": "Building_YieldFromPillageGlobalPlayer",
+      "description": "Game data table for Building_YieldFromPillageGlobalPlayer",
+      "schemaFile": "Building_YieldFromPillageGlobalPlayer.json"
+    },
+    {
+      "name": "Building_YieldFromPolicyUnlock",
+      "description": "Game data table for Building_YieldFromPolicyUnlock",
+      "schemaFile": "Building_YieldFromPolicyUnlock.json"
+    },
+    {
+      "name": "Building_YieldFromProcessModifier",
+      "description": "Game data table for Building_YieldFromProcessModifier",
+      "schemaFile": "Building_YieldFromProcessModifier.json"
+    },
+    {
+      "name": "Building_YieldFromPurchase",
+      "description": "Game data table for Building_YieldFromPurchase",
+      "schemaFile": "Building_YieldFromPurchase.json"
+    },
+    {
+      "name": "Building_YieldFromPurchaseGlobal",
+      "description": "Game data table for Building_YieldFromPurchaseGlobal",
+      "schemaFile": "Building_YieldFromPurchaseGlobal.json"
+    },
+    {
+      "name": "Building_YieldFromSpyAttack",
+      "description": "Game data table for Building_YieldFromSpyAttack",
+      "schemaFile": "Building_YieldFromSpyAttack.json"
+    },
+    {
+      "name": "Building_YieldFromSpyDefense",
+      "description": "Game data table for Building_YieldFromSpyDefense",
+      "schemaFile": "Building_YieldFromSpyDefense.json"
+    },
+    {
+      "name": "Building_YieldFromSpyDefenseOrID",
+      "description": "Game data table for Building_YieldFromSpyDefenseOrID",
+      "schemaFile": "Building_YieldFromSpyDefenseOrID.json"
+    },
+    {
+      "name": "Building_YieldFromSpyIdentify",
+      "description": "Game data table for Building_YieldFromSpyIdentify",
+      "schemaFile": "Building_YieldFromSpyIdentify.json"
+    },
+    {
+      "name": "Building_YieldFromSpyRigElection",
+      "description": "Game data table for Building_YieldFromSpyRigElection",
+      "schemaFile": "Building_YieldFromSpyRigElection.json"
+    },
+    {
+      "name": "Building_YieldFromTech",
+      "description": "Game data table for Building_YieldFromTech",
+      "schemaFile": "Building_YieldFromTech.json"
+    },
+    {
+      "name": "Building_YieldFromUnitGiftGlobal",
+      "description": "Game data table for Building_YieldFromUnitGiftGlobal",
+      "schemaFile": "Building_YieldFromUnitGiftGlobal.json"
+    },
+    {
+      "name": "Building_YieldFromUnitLevelUp",
+      "description": "Game data table for Building_YieldFromUnitLevelUp",
+      "schemaFile": "Building_YieldFromUnitLevelUp.json"
+    },
+    {
+      "name": "Building_YieldFromUnitLevelUpGlobal",
+      "description": "Game data table for Building_YieldFromUnitLevelUpGlobal",
+      "schemaFile": "Building_YieldFromUnitLevelUpGlobal.json"
+    },
+    {
+      "name": "Building_YieldFromUnitProduction",
+      "description": "Game data table for Building_YieldFromUnitProduction",
+      "schemaFile": "Building_YieldFromUnitProduction.json"
+    },
+    {
+      "name": "Building_YieldFromVictory",
+      "description": "Victory condition definitions and requirements",
+      "schemaFile": "Building_YieldFromVictory.json"
+    },
+    {
+      "name": "Building_YieldFromVictoryGlobal",
+      "description": "Victory condition definitions and requirements",
+      "schemaFile": "Building_YieldFromVictoryGlobal.json"
+    },
+    {
+      "name": "Building_YieldFromVictoryGlobalPlayer",
+      "description": "Victory condition definitions and requirements",
+      "schemaFile": "Building_YieldFromVictoryGlobalPlayer.json"
+    },
+    {
+      "name": "Building_YieldFromYieldPercent",
+      "description": "Game data table for Building_YieldFromYieldPercent",
+      "schemaFile": "Building_YieldFromYieldPercent.json"
+    },
+    {
+      "name": "Building_YieldFromYieldPercentGlobal",
+      "description": "Game data table for Building_YieldFromYieldPercentGlobal",
+      "schemaFile": "Building_YieldFromYieldPercentGlobal.json"
+    },
+    {
+      "name": "Building_YieldModifiers",
+      "description": "Game data table for Building_YieldModifiers",
+      "schemaFile": "Building_YieldModifiers.json"
+    },
+    {
+      "name": "Building_YieldPerAlly",
+      "description": "Game data table for Building_YieldPerAlly",
+      "schemaFile": "Building_YieldPerAlly.json"
+    },
+    {
+      "name": "Building_YieldPerFranchise",
+      "description": "Game data table for Building_YieldPerFranchise",
+      "schemaFile": "Building_YieldPerFranchise.json"
+    },
+    {
+      "name": "Building_YieldPerFriend",
+      "description": "Game data table for Building_YieldPerFriend",
+      "schemaFile": "Building_YieldPerFriend.json"
+    },
+    {
+      "name": "Building_YieldPerXFeatureTimes100",
+      "description": "Game data table for Building_YieldPerXFeatureTimes100",
+      "schemaFile": "Building_YieldPerXFeatureTimes100.json"
+    },
+    {
+      "name": "Building_YieldPerXImprovementGlobal",
+      "description": "Game data table for Building_YieldPerXImprovementGlobal",
+      "schemaFile": "Building_YieldPerXImprovementGlobal.json"
+    },
+    {
+      "name": "Building_YieldPerXImprovementLocal",
+      "description": "Game data table for Building_YieldPerXImprovementLocal",
+      "schemaFile": "Building_YieldPerXImprovementLocal.json"
+    },
+    {
+      "name": "Building_YieldPerXTerrainTimes100",
+      "description": "Game data table for Building_YieldPerXTerrainTimes100",
+      "schemaFile": "Building_YieldPerXTerrainTimes100.json"
+    },
+    {
+      "name": "Buildings",
+      "description": "Defines all building types and their effects in the game",
+      "schemaFile": "Buildings.json"
+    },
+    {
+      "name": "Builds",
+      "description": "Game data table for Builds",
+      "schemaFile": "Builds.json"
+    },
+    {
+      "name": "Calendars",
+      "description": "Game data table for Calendars",
+      "schemaFile": "Calendars.json"
+    },
+    {
+      "name": "CityEventChoiceFlavors",
+      "description": "Game data table for CityEventChoiceFlavors",
+      "schemaFile": "CityEventChoiceFlavors.json"
+    },
+    {
+      "name": "CityEventChoice_BuildingClassDestructionChance",
+      "description": "Game data table for CityEventChoice_BuildingClassDestructionChance",
+      "schemaFile": "CityEventChoice_BuildingClassDestructionChance.json"
+    },
+    {
+      "name": "CityEventChoice_BuildingClassYieldChange",
+      "description": "Game data table for CityEventChoice_BuildingClassYieldChange",
+      "schemaFile": "CityEventChoice_BuildingClassYieldChange.json"
+    },
+    {
+      "name": "CityEventChoice_BuildingClassYieldModifier",
+      "description": "Game data table for CityEventChoice_BuildingClassYieldModifier",
+      "schemaFile": "CityEventChoice_BuildingClassYieldModifier.json"
+    },
+    {
+      "name": "CityEventChoice_CityYield",
+      "description": "Game data table for CityEventChoice_CityYield",
+      "schemaFile": "CityEventChoice_CityYield.json"
+    },
+    {
+      "name": "CityEventChoice_CityYieldModifier",
+      "description": "Game data table for CityEventChoice_CityYieldModifier",
+      "schemaFile": "CityEventChoice_CityYieldModifier.json"
+    },
+    {
+      "name": "CityEventChoice_ConvertNumPopToReligion",
+      "description": "Game data table for CityEventChoice_ConvertNumPopToReligion",
+      "schemaFile": "CityEventChoice_ConvertNumPopToReligion.json"
+    },
+    {
+      "name": "CityEventChoice_ConvertPercentPopToReligion",
+      "description": "Game data table for CityEventChoice_ConvertPercentPopToReligion",
+      "schemaFile": "CityEventChoice_ConvertPercentPopToReligion.json"
+    },
+    {
+      "name": "CityEventChoice_EventCostYield",
+      "description": "Game data table for CityEventChoice_EventCostYield",
+      "schemaFile": "CityEventChoice_EventCostYield.json"
+    },
+    {
+      "name": "CityEventChoice_EventLinks",
+      "description": "Game data table for CityEventChoice_EventLinks",
+      "schemaFile": "CityEventChoice_EventLinks.json"
+    },
+    {
+      "name": "CityEventChoice_FeatureYieldChange",
+      "description": "Game data table for CityEventChoice_FeatureYieldChange",
+      "schemaFile": "CityEventChoice_FeatureYieldChange.json"
+    },
+    {
+      "name": "CityEventChoice_FreeUnitClasses",
+      "description": "Unit class definitions and upgrade paths",
+      "schemaFile": "CityEventChoice_FreeUnitClasses.json"
+    },
+    {
+      "name": "CityEventChoice_FreeUnits",
+      "description": "Tracks all military and civilian units, their positions, health, and ownership",
+      "schemaFile": "CityEventChoice_FreeUnits.json"
+    },
+    {
+      "name": "CityEventChoice_GreatPersonPoints",
+      "description": "Game data table for CityEventChoice_GreatPersonPoints",
+      "schemaFile": "CityEventChoice_GreatPersonPoints.json"
+    },
+    {
+      "name": "CityEventChoice_ImprovementDestructionRandom",
+      "description": "Game data table for CityEventChoice_ImprovementDestructionRandom",
+      "schemaFile": "CityEventChoice_ImprovementDestructionRandom.json"
+    },
+    {
+      "name": "CityEventChoice_ImprovementYieldChange",
+      "description": "Game data table for CityEventChoice_ImprovementYieldChange",
+      "schemaFile": "CityEventChoice_ImprovementYieldChange.json"
+    },
+    {
+      "name": "CityEventChoice_InstantYield",
+      "description": "Game data table for CityEventChoice_InstantYield",
+      "schemaFile": "CityEventChoice_InstantYield.json"
+    },
+    {
+      "name": "CityEventChoice_MinimumStartYield",
+      "description": "Game data table for CityEventChoice_MinimumStartYield",
+      "schemaFile": "CityEventChoice_MinimumStartYield.json"
+    },
+    {
+      "name": "CityEventChoice_Notification",
+      "description": "Game data table for CityEventChoice_Notification",
+      "schemaFile": "CityEventChoice_Notification.json"
+    },
+    {
+      "name": "CityEventChoice_ResourceQuantity",
+      "description": "Game data table for CityEventChoice_ResourceQuantity",
+      "schemaFile": "CityEventChoice_ResourceQuantity.json"
+    },
+    {
+      "name": "CityEventChoice_ResourceYieldChange",
+      "description": "Game data table for CityEventChoice_ResourceYieldChange",
+      "schemaFile": "CityEventChoice_ResourceYieldChange.json"
+    },
+    {
+      "name": "CityEventChoice_SpecialistYieldChange",
+      "description": "Game data table for CityEventChoice_SpecialistYieldChange",
+      "schemaFile": "CityEventChoice_SpecialistYieldChange.json"
+    },
+    {
+      "name": "CityEventChoice_TerrainYieldChange",
+      "description": "Game data table for CityEventChoice_TerrainYieldChange",
+      "schemaFile": "CityEventChoice_TerrainYieldChange.json"
+    },
+    {
+      "name": "CityEventChoice_YieldOnSpyIdentified",
+      "description": "Game data table for CityEventChoice_YieldOnSpyIdentified",
+      "schemaFile": "CityEventChoice_YieldOnSpyIdentified.json"
+    },
+    {
+      "name": "CityEventChoice_YieldOnSpyKilled",
+      "description": "Game data table for CityEventChoice_YieldOnSpyKilled",
+      "schemaFile": "CityEventChoice_YieldOnSpyKilled.json"
+    },
+    {
+      "name": "CityEventChoice_YieldSiphon",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "CityEventChoice_YieldSiphon.json"
+    },
+    {
+      "name": "CityEventChoices",
+      "description": "Game data table for CityEventChoices",
+      "schemaFile": "CityEventChoices.json"
+    },
+    {
+      "name": "CityEvent_EventLinks",
+      "description": "Game data table for CityEvent_EventLinks",
+      "schemaFile": "CityEvent_EventLinks.json"
+    },
+    {
+      "name": "CityEvent_MinimumStartYield",
+      "description": "Game data table for CityEvent_MinimumStartYield",
+      "schemaFile": "CityEvent_MinimumStartYield.json"
+    },
+    {
+      "name": "CityEvent_ParentEvents",
+      "description": "Game data table for CityEvent_ParentEvents",
+      "schemaFile": "CityEvent_ParentEvents.json"
+    },
+    {
+      "name": "CityEvents",
+      "description": "Game data table for CityEvents",
+      "schemaFile": "CityEvents.json"
+    },
+    {
+      "name": "CitySizes",
+      "description": "Game data table for CitySizes",
+      "schemaFile": "CitySizes.json"
+    },
+    {
+      "name": "CitySpecialization_Flavors",
+      "description": "Game data table for CitySpecialization_Flavors",
+      "schemaFile": "CitySpecialization_Flavors.json"
+    },
+    {
+      "name": "CitySpecialization_TargetYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "CitySpecialization_TargetYields.json"
+    },
+    {
+      "name": "CitySpecializations",
+      "description": "Game data table for CitySpecializations",
+      "schemaFile": "CitySpecializations.json"
+    },
+    {
+      "name": "CivilianAttackPriorities",
+      "description": "Game data table for CivilianAttackPriorities",
+      "schemaFile": "CivilianAttackPriorities.json"
+    },
+    {
+      "name": "Civilization_BuildingClassOverrides",
+      "description": "Game data table for Civilization_BuildingClassOverrides",
+      "schemaFile": "Civilization_BuildingClassOverrides.json"
+    },
+    {
+      "name": "Civilization_CityNames",
+      "description": "Game data table for Civilization_CityNames",
+      "schemaFile": "Civilization_CityNames.json"
+    },
+    {
+      "name": "Civilization_DisableTechs",
+      "description": "Game data table for Civilization_DisableTechs",
+      "schemaFile": "Civilization_DisableTechs.json"
+    },
+    {
+      "name": "Civilization_FreeBuildingClasses",
+      "description": "Game data table for Civilization_FreeBuildingClasses",
+      "schemaFile": "Civilization_FreeBuildingClasses.json"
+    },
+    {
+      "name": "Civilization_FreeTechs",
+      "description": "Game data table for Civilization_FreeTechs",
+      "schemaFile": "Civilization_FreeTechs.json"
+    },
+    {
+      "name": "Civilization_FreeUnits",
+      "description": "Tracks all military and civilian units, their positions, health, and ownership",
+      "schemaFile": "Civilization_FreeUnits.json"
+    },
+    {
+      "name": "Civilization_Leaders",
+      "description": "Game data table for Civilization_Leaders",
+      "schemaFile": "Civilization_Leaders.json"
+    },
+    {
+      "name": "Civilization_Religions",
+      "description": "Religion and belief system data",
+      "schemaFile": "Civilization_Religions.json"
+    },
+    {
+      "name": "Civilization_SpyNames",
+      "description": "Game data table for Civilization_SpyNames",
+      "schemaFile": "Civilization_SpyNames.json"
+    },
+    {
+      "name": "Civilization_Start_Along_Ocean",
+      "description": "Game data table for Civilization_Start_Along_Ocean",
+      "schemaFile": "Civilization_Start_Along_Ocean.json"
+    },
+    {
+      "name": "Civilization_Start_Along_River",
+      "description": "Game data table for Civilization_Start_Along_River",
+      "schemaFile": "Civilization_Start_Along_River.json"
+    },
+    {
+      "name": "Civilization_Start_Place_First_Along_Ocean",
+      "description": "Game data table for Civilization_Start_Place_First_Along_Ocean",
+      "schemaFile": "Civilization_Start_Place_First_Along_Ocean.json"
+    },
+    {
+      "name": "Civilization_Start_Prefer_Mountain",
+      "description": "Game data table for Civilization_Start_Prefer_Mountain",
+      "schemaFile": "Civilization_Start_Prefer_Mountain.json"
+    },
+    {
+      "name": "Civilization_Start_Prefer_Snow",
+      "description": "Game data table for Civilization_Start_Prefer_Snow",
+      "schemaFile": "Civilization_Start_Prefer_Snow.json"
+    },
+    {
+      "name": "Civilization_Start_Region_Avoid",
+      "description": "Game data table for Civilization_Start_Region_Avoid",
+      "schemaFile": "Civilization_Start_Region_Avoid.json"
+    },
+    {
+      "name": "Civilization_Start_Region_Priority",
+      "description": "Game data table for Civilization_Start_Region_Priority",
+      "schemaFile": "Civilization_Start_Region_Priority.json"
+    },
+    {
+      "name": "Civilization_UnitClassOverrides",
+      "description": "Game data table for Civilization_UnitClassOverrides",
+      "schemaFile": "Civilization_UnitClassOverrides.json"
+    },
+    {
+      "name": "Civilizations",
+      "description": "Civilization definitions, unique abilities, and starting bonuses",
+      "schemaFile": "Civilizations.json"
+    },
+    {
+      "name": "Climates",
+      "description": "Game data table for Climates",
+      "schemaFile": "Climates.json"
+    },
+    {
+      "name": "Colors",
+      "description": "Color definitions for civilizations and UI elements",
+      "schemaFile": "Colors.json"
+    },
+    {
+      "name": "Commands",
+      "description": "Game data table for Commands",
+      "schemaFile": "Commands.json"
+    },
+    {
+      "name": "Community",
+      "description": "Game data table for Community",
+      "schemaFile": "Community.json"
+    },
+    {
+      "name": "Concepts",
+      "description": "Game data table for Concepts",
+      "schemaFile": "Concepts.json"
+    },
+    {
+      "name": "Concepts_RelatedConcept",
+      "description": "Game data table for Concepts_RelatedConcept",
+      "schemaFile": "Concepts_RelatedConcept.json"
+    },
+    {
+      "name": "Contacts",
+      "description": "Game data table for Contacts",
+      "schemaFile": "Contacts.json"
+    },
+    {
+      "name": "Contract_Flavor",
+      "description": "Game data table for Contract_Flavor",
+      "schemaFile": "Contract_Flavor.json"
+    },
+    {
+      "name": "Contract_YieldCost",
+      "description": "Game data table for Contract_YieldCost",
+      "schemaFile": "Contract_YieldCost.json"
+    },
+    {
+      "name": "Contracts",
+      "description": "Game data table for Contracts",
+      "schemaFile": "Contracts.json"
+    },
+    {
+      "name": "Controls",
+      "description": "Game data table for Controls",
+      "schemaFile": "Controls.json"
+    },
+    {
+      "name": "Corporation_BuildingClassYieldChanges",
+      "description": "Game data table for Corporation_BuildingClassYieldChanges",
+      "schemaFile": "Corporation_BuildingClassYieldChanges.json"
+    },
+    {
+      "name": "Corporation_NumFreeResource",
+      "description": "Game data table for Corporation_NumFreeResource",
+      "schemaFile": "Corporation_NumFreeResource.json"
+    },
+    {
+      "name": "Corporation_ResourceMonopolyAnds",
+      "description": "Game data table for Corporation_ResourceMonopolyAnds",
+      "schemaFile": "Corporation_ResourceMonopolyAnds.json"
+    },
+    {
+      "name": "Corporation_ResourceMonopolyOrs",
+      "description": "Game data table for Corporation_ResourceMonopolyOrs",
+      "schemaFile": "Corporation_ResourceMonopolyOrs.json"
+    },
+    {
+      "name": "Corporation_ResourceYieldChanges",
+      "description": "Game data table for Corporation_ResourceYieldChanges",
+      "schemaFile": "Corporation_ResourceYieldChanges.json"
+    },
+    {
+      "name": "Corporation_SpecialistYieldChanges",
+      "description": "Game data table for Corporation_SpecialistYieldChanges",
+      "schemaFile": "Corporation_SpecialistYieldChanges.json"
+    },
+    {
+      "name": "Corporation_TradeRouteCityYield",
+      "description": "Game data table for Corporation_TradeRouteCityYield",
+      "schemaFile": "Corporation_TradeRouteCityYield.json"
+    },
+    {
+      "name": "Corporation_TradeRouteMod",
+      "description": "Game data table for Corporation_TradeRouteMod",
+      "schemaFile": "Corporation_TradeRouteMod.json"
+    },
+    {
+      "name": "Corporation_UnitResourceProductionModifier",
+      "description": "Game data table for Corporation_UnitResourceProductionModifier",
+      "schemaFile": "Corporation_UnitResourceProductionModifier.json"
+    },
+    {
+      "name": "Corporations",
+      "description": "Game data table for Corporations",
+      "schemaFile": "Corporations.json"
+    },
+    {
+      "name": "Cursors",
+      "description": "Game data table for Cursors",
+      "schemaFile": "Cursors.json"
+    },
+    {
+      "name": "CustomModDbUpdates",
+      "description": "Game data table for CustomModDbUpdates",
+      "schemaFile": "CustomModDbUpdates.json"
+    },
+    {
+      "name": "CustomModOptions",
+      "description": "Game data table for CustomModOptions",
+      "schemaFile": "CustomModOptions.json"
+    },
+    {
+      "name": "CustomModPostDefines",
+      "description": "Game data table for CustomModPostDefines",
+      "schemaFile": "CustomModPostDefines.json"
+    },
+    {
+      "name": "Defines",
+      "description": "Game data table for Defines",
+      "schemaFile": "Defines.json"
+    },
+    {
+      "name": "DenialInfos",
+      "description": "Game data table for DenialInfos",
+      "schemaFile": "DenialInfos.json"
+    },
+    {
+      "name": "DiploModifiers",
+      "description": "Game data table for DiploModifiers",
+      "schemaFile": "DiploModifiers.json"
+    },
+    {
+      "name": "Diplomacy_Responses",
+      "description": "Diplomatic relationships and agreements between civilizations",
+      "schemaFile": "Diplomacy_Responses.json"
+    },
+    {
+      "name": "Domains",
+      "description": "Game data table for Domains",
+      "schemaFile": "Domains.json"
+    },
+    {
+      "name": "DownloadableContent",
+      "description": "Game data table for DownloadableContent",
+      "schemaFile": "DownloadableContent.json"
+    },
+    {
+      "name": "EmphasizeInfo_Yields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "EmphasizeInfo_Yields.json"
+    },
+    {
+      "name": "EmphasizeInfos",
+      "description": "Game data table for EmphasizeInfos",
+      "schemaFile": "EmphasizeInfos.json"
+    },
+    {
+      "name": "EntityEvent_AnimationPaths",
+      "description": "Game data table for EntityEvent_AnimationPaths",
+      "schemaFile": "EntityEvent_AnimationPaths.json"
+    },
+    {
+      "name": "EntityEvents",
+      "description": "Game data table for EntityEvents",
+      "schemaFile": "EntityEvents.json"
+    },
+    {
+      "name": "Era_CitySoundscapes",
+      "description": "Game data table for Era_CitySoundscapes",
+      "schemaFile": "Era_CitySoundscapes.json"
+    },
+    {
+      "name": "Era_NewEraVOs",
+      "description": "Game data table for Era_NewEraVOs",
+      "schemaFile": "Era_NewEraVOs.json"
+    },
+    {
+      "name": "Era_Soundtracks",
+      "description": "Game data table for Era_Soundtracks",
+      "schemaFile": "Era_Soundtracks.json"
+    },
+    {
+      "name": "Eras",
+      "description": "Historical era definitions and progression",
+      "schemaFile": "Eras.json"
+    },
+    {
+      "name": "EventChoiceFlavors",
+      "description": "Game data table for EventChoiceFlavors",
+      "schemaFile": "EventChoiceFlavors.json"
+    },
+    {
+      "name": "EventChoice_BuildingClassYieldChange",
+      "description": "Game data table for EventChoice_BuildingClassYieldChange",
+      "schemaFile": "EventChoice_BuildingClassYieldChange.json"
+    },
+    {
+      "name": "EventChoice_BuildingClassYieldModifier",
+      "description": "Game data table for EventChoice_BuildingClassYieldModifier",
+      "schemaFile": "EventChoice_BuildingClassYieldModifier.json"
+    },
+    {
+      "name": "EventChoice_CityYield",
+      "description": "Game data table for EventChoice_CityYield",
+      "schemaFile": "EventChoice_CityYield.json"
+    },
+    {
+      "name": "EventChoice_ConvertNumPopToReligion",
+      "description": "Game data table for EventChoice_ConvertNumPopToReligion",
+      "schemaFile": "EventChoice_ConvertNumPopToReligion.json"
+    },
+    {
+      "name": "EventChoice_ConvertPercentPopToReligion",
+      "description": "Game data table for EventChoice_ConvertPercentPopToReligion",
+      "schemaFile": "EventChoice_ConvertPercentPopToReligion.json"
+    },
+    {
+      "name": "EventChoice_EventCostYield",
+      "description": "Game data table for EventChoice_EventCostYield",
+      "schemaFile": "EventChoice_EventCostYield.json"
+    },
+    {
+      "name": "EventChoice_EventLinks",
+      "description": "Game data table for EventChoice_EventLinks",
+      "schemaFile": "EventChoice_EventLinks.json"
+    },
+    {
+      "name": "EventChoice_FeatureYieldChange",
+      "description": "Game data table for EventChoice_FeatureYieldChange",
+      "schemaFile": "EventChoice_FeatureYieldChange.json"
+    },
+    {
+      "name": "EventChoice_FreeUnitClasses",
+      "description": "Unit class definitions and upgrade paths",
+      "schemaFile": "EventChoice_FreeUnitClasses.json"
+    },
+    {
+      "name": "EventChoice_FreeUnits",
+      "description": "Tracks all military and civilian units, their positions, health, and ownership",
+      "schemaFile": "EventChoice_FreeUnits.json"
+    },
+    {
+      "name": "EventChoice_ImprovementYieldChange",
+      "description": "Game data table for EventChoice_ImprovementYieldChange",
+      "schemaFile": "EventChoice_ImprovementYieldChange.json"
+    },
+    {
+      "name": "EventChoice_InstantYield",
+      "description": "Game data table for EventChoice_InstantYield",
+      "schemaFile": "EventChoice_InstantYield.json"
+    },
+    {
+      "name": "EventChoice_MinimumFeatureRequired",
+      "description": "Game data table for EventChoice_MinimumFeatureRequired",
+      "schemaFile": "EventChoice_MinimumFeatureRequired.json"
+    },
+    {
+      "name": "EventChoice_MinimumResourceRequired",
+      "description": "Game data table for EventChoice_MinimumResourceRequired",
+      "schemaFile": "EventChoice_MinimumResourceRequired.json"
+    },
+    {
+      "name": "EventChoice_MinimumStartYield",
+      "description": "Game data table for EventChoice_MinimumStartYield",
+      "schemaFile": "EventChoice_MinimumStartYield.json"
+    },
+    {
+      "name": "EventChoice_Notification",
+      "description": "Game data table for EventChoice_Notification",
+      "schemaFile": "EventChoice_Notification.json"
+    },
+    {
+      "name": "EventChoice_ResourceQuantity",
+      "description": "Game data table for EventChoice_ResourceQuantity",
+      "schemaFile": "EventChoice_ResourceQuantity.json"
+    },
+    {
+      "name": "EventChoice_ResourceYieldChange",
+      "description": "Game data table for EventChoice_ResourceYieldChange",
+      "schemaFile": "EventChoice_ResourceYieldChange.json"
+    },
+    {
+      "name": "EventChoice_SpecialistYieldChange",
+      "description": "Game data table for EventChoice_SpecialistYieldChange",
+      "schemaFile": "EventChoice_SpecialistYieldChange.json"
+    },
+    {
+      "name": "EventChoice_TerrainYieldChange",
+      "description": "Game data table for EventChoice_TerrainYieldChange",
+      "schemaFile": "EventChoice_TerrainYieldChange.json"
+    },
+    {
+      "name": "EventChoices",
+      "description": "Game data table for EventChoices",
+      "schemaFile": "EventChoices.json"
+    },
+    {
+      "name": "EventClassTypes",
+      "description": "Game data table for EventClassTypes",
+      "schemaFile": "EventClassTypes.json"
+    },
+    {
+      "name": "Event_EventLinks",
+      "description": "Game data table for Event_EventLinks",
+      "schemaFile": "Event_EventLinks.json"
+    },
+    {
+      "name": "Event_MinimumFeatureRequired",
+      "description": "Game data table for Event_MinimumFeatureRequired",
+      "schemaFile": "Event_MinimumFeatureRequired.json"
+    },
+    {
+      "name": "Event_MinimumResourceRequired",
+      "description": "Game data table for Event_MinimumResourceRequired",
+      "schemaFile": "Event_MinimumResourceRequired.json"
+    },
+    {
+      "name": "Event_MinimumStartYield",
+      "description": "Game data table for Event_MinimumStartYield",
+      "schemaFile": "Event_MinimumStartYield.json"
+    },
+    {
+      "name": "Event_ParentEvents",
+      "description": "Game data table for Event_ParentEvents",
+      "schemaFile": "Event_ParentEvents.json"
+    },
+    {
+      "name": "Events",
+      "description": "Game data table for Events",
+      "schemaFile": "Events.json"
+    },
+    {
+      "name": "FakeFeatures",
+      "description": "Natural features like forests, hills, and rivers",
+      "schemaFile": "FakeFeatures.json"
+    },
+    {
+      "name": "Feature_CoastalLandYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Feature_CoastalLandYields.json"
+    },
+    {
+      "name": "Feature_EraYieldChanges",
+      "description": "Game data table for Feature_EraYieldChanges",
+      "schemaFile": "Feature_EraYieldChanges.json"
+    },
+    {
+      "name": "Feature_FreshWaterYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Feature_FreshWaterYields.json"
+    },
+    {
+      "name": "Feature_HillsYieldChanges",
+      "description": "Game data table for Feature_HillsYieldChanges",
+      "schemaFile": "Feature_HillsYieldChanges.json"
+    },
+    {
+      "name": "Feature_RiverYieldChanges",
+      "description": "Game data table for Feature_RiverYieldChanges",
+      "schemaFile": "Feature_RiverYieldChanges.json"
+    },
+    {
+      "name": "Feature_TechYieldChanges",
+      "description": "Game data table for Feature_TechYieldChanges",
+      "schemaFile": "Feature_TechYieldChanges.json"
+    },
+    {
+      "name": "Feature_TerrainBooleans",
+      "description": "Game data table for Feature_TerrainBooleans",
+      "schemaFile": "Feature_TerrainBooleans.json"
+    },
+    {
+      "name": "Feature_YieldChanges",
+      "description": "Game data table for Feature_YieldChanges",
+      "schemaFile": "Feature_YieldChanges.json"
+    },
+    {
+      "name": "Features",
+      "description": "Natural features like forests, hills, and rivers",
+      "schemaFile": "Features.json"
+    },
+    {
+      "name": "Flavors",
+      "description": "Game data table for Flavors",
+      "schemaFile": "Flavors.json"
+    },
+    {
+      "name": "GameOptions",
+      "description": "Game data table for GameOptions",
+      "schemaFile": "GameOptions.json"
+    },
+    {
+      "name": "GameSpeed_Turns",
+      "description": "Game speed settings and their modifiers",
+      "schemaFile": "GameSpeed_Turns.json"
+    },
+    {
+      "name": "GameSpeeds",
+      "description": "Game speed settings and their modifiers",
+      "schemaFile": "GameSpeeds.json"
+    },
+    {
+      "name": "GoodyHuts",
+      "description": "Game data table for GoodyHuts",
+      "schemaFile": "GoodyHuts.json"
+    },
+    {
+      "name": "GreatPersons",
+      "description": "Game data table for GreatPersons",
+      "schemaFile": "GreatPersons.json"
+    },
+    {
+      "name": "GreatWorkArtifactClasses",
+      "description": "Game data table for GreatWorkArtifactClasses",
+      "schemaFile": "GreatWorkArtifactClasses.json"
+    },
+    {
+      "name": "GreatWorkClasses",
+      "description": "Game data table for GreatWorkClasses",
+      "schemaFile": "GreatWorkClasses.json"
+    },
+    {
+      "name": "GreatWorkSlots",
+      "description": "Game data table for GreatWorkSlots",
+      "schemaFile": "GreatWorkSlots.json"
+    },
+    {
+      "name": "GreatWorks",
+      "description": "Game data table for GreatWorks",
+      "schemaFile": "GreatWorks.json"
+    },
+    {
+      "name": "HandicapInfo_AIDifficultyBonus",
+      "description": "Game data table for HandicapInfo_AIDifficultyBonus",
+      "schemaFile": "HandicapInfo_AIDifficultyBonus.json"
+    },
+    {
+      "name": "HandicapInfo_AIFreeTechs",
+      "description": "Game data table for HandicapInfo_AIFreeTechs",
+      "schemaFile": "HandicapInfo_AIFreeTechs.json"
+    },
+    {
+      "name": "HandicapInfo_DifficultyBonus",
+      "description": "Game data table for HandicapInfo_DifficultyBonus",
+      "schemaFile": "HandicapInfo_DifficultyBonus.json"
+    },
+    {
+      "name": "HandicapInfo_FreeTechs",
+      "description": "Game data table for HandicapInfo_FreeTechs",
+      "schemaFile": "HandicapInfo_FreeTechs.json"
+    },
+    {
+      "name": "HandicapInfo_Goodies",
+      "description": "Game data table for HandicapInfo_Goodies",
+      "schemaFile": "HandicapInfo_Goodies.json"
+    },
+    {
+      "name": "HandicapInfos",
+      "description": "Game data table for HandicapInfos",
+      "schemaFile": "HandicapInfos.json"
+    },
+    {
+      "name": "HistoricEventTypes",
+      "description": "Game data table for HistoricEventTypes",
+      "schemaFile": "HistoricEventTypes.json"
+    },
+    {
+      "name": "HistoricRankings",
+      "description": "Game data table for HistoricRankings",
+      "schemaFile": "HistoricRankings.json"
+    },
+    {
+      "name": "HurryInfos",
+      "description": "Game data table for HurryInfos",
+      "schemaFile": "HurryInfos.json"
+    },
+    {
+      "name": "IconFontMapping",
+      "description": "Game data table for IconFontMapping",
+      "schemaFile": "IconFontMapping.json"
+    },
+    {
+      "name": "IconFontTextures",
+      "description": "Game data table for IconFontTextures",
+      "schemaFile": "IconFontTextures.json"
+    },
+    {
+      "name": "IconTextureAtlases",
+      "description": "Game data table for IconTextureAtlases",
+      "schemaFile": "IconTextureAtlases.json"
+    },
+    {
+      "name": "Improvement_AccomplishmentYieldChanges",
+      "description": "Game data table for Improvement_AccomplishmentYieldChanges",
+      "schemaFile": "Improvement_AccomplishmentYieldChanges.json"
+    },
+    {
+      "name": "Improvement_AdjacentCityYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_AdjacentCityYields.json"
+    },
+    {
+      "name": "Improvement_AdjacentFeatureYieldChanges",
+      "description": "Game data table for Improvement_AdjacentFeatureYieldChanges",
+      "schemaFile": "Improvement_AdjacentFeatureYieldChanges.json"
+    },
+    {
+      "name": "Improvement_AdjacentMountainYieldChanges",
+      "description": "Game data table for Improvement_AdjacentMountainYieldChanges",
+      "schemaFile": "Improvement_AdjacentMountainYieldChanges.json"
+    },
+    {
+      "name": "Improvement_AdjacentResourceYieldChanges",
+      "description": "Game data table for Improvement_AdjacentResourceYieldChanges",
+      "schemaFile": "Improvement_AdjacentResourceYieldChanges.json"
+    },
+    {
+      "name": "Improvement_AdjacentTerrainYieldChanges",
+      "description": "Game data table for Improvement_AdjacentTerrainYieldChanges",
+      "schemaFile": "Improvement_AdjacentTerrainYieldChanges.json"
+    },
+    {
+      "name": "Improvement_CoastalLandYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_CoastalLandYields.json"
+    },
+    {
+      "name": "Improvement_DomainFreeExperience",
+      "description": "Game data table for Improvement_DomainFreeExperience",
+      "schemaFile": "Improvement_DomainFreeExperience.json"
+    },
+    {
+      "name": "Improvement_DomainProductionModifier",
+      "description": "Game data table for Improvement_DomainProductionModifier",
+      "schemaFile": "Improvement_DomainProductionModifier.json"
+    },
+    {
+      "name": "Improvement_FeatureYieldChanges",
+      "description": "Game data table for Improvement_FeatureYieldChanges",
+      "schemaFile": "Improvement_FeatureYieldChanges.json"
+    },
+    {
+      "name": "Improvement_Flavors",
+      "description": "Game data table for Improvement_Flavors",
+      "schemaFile": "Improvement_Flavors.json"
+    },
+    {
+      "name": "Improvement_FreshWaterYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_FreshWaterYields.json"
+    },
+    {
+      "name": "Improvement_GoldenAgeYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_GoldenAgeYields.json"
+    },
+    {
+      "name": "Improvement_HillsYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_HillsYields.json"
+    },
+    {
+      "name": "Improvement_PrereqNatureYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_PrereqNatureYields.json"
+    },
+    {
+      "name": "Improvement_ResourceType_Yields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_ResourceType_Yields.json"
+    },
+    {
+      "name": "Improvement_ResourceTypes",
+      "description": "Game data table for Improvement_ResourceTypes",
+      "schemaFile": "Improvement_ResourceTypes.json"
+    },
+    {
+      "name": "Improvement_RiverSideYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_RiverSideYields.json"
+    },
+    {
+      "name": "Improvement_RouteYieldChanges",
+      "description": "Game data table for Improvement_RouteYieldChanges",
+      "schemaFile": "Improvement_RouteYieldChanges.json"
+    },
+    {
+      "name": "Improvement_TechFreshWaterYieldChanges",
+      "description": "Game data table for Improvement_TechFreshWaterYieldChanges",
+      "schemaFile": "Improvement_TechFreshWaterYieldChanges.json"
+    },
+    {
+      "name": "Improvement_TechNoFreshWaterYieldChanges",
+      "description": "Game data table for Improvement_TechNoFreshWaterYieldChanges",
+      "schemaFile": "Improvement_TechNoFreshWaterYieldChanges.json"
+    },
+    {
+      "name": "Improvement_TechYieldChanges",
+      "description": "Game data table for Improvement_TechYieldChanges",
+      "schemaFile": "Improvement_TechYieldChanges.json"
+    },
+    {
+      "name": "Improvement_ValidFeatures",
+      "description": "Natural features like forests, hills, and rivers",
+      "schemaFile": "Improvement_ValidFeatures.json"
+    },
+    {
+      "name": "Improvement_ValidImprovements",
+      "description": "Tile improvements like farms, mines, and roads",
+      "schemaFile": "Improvement_ValidImprovements.json"
+    },
+    {
+      "name": "Improvement_ValidTerrains",
+      "description": "Game data table for Improvement_ValidTerrains",
+      "schemaFile": "Improvement_ValidTerrains.json"
+    },
+    {
+      "name": "Improvement_WLTKDYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_WLTKDYields.json"
+    },
+    {
+      "name": "Improvement_YieldPerEra",
+      "description": "Game data table for Improvement_YieldPerEra",
+      "schemaFile": "Improvement_YieldPerEra.json"
+    },
+    {
+      "name": "Improvement_YieldPerXAdjacentImprovement",
+      "description": "Game data table for Improvement_YieldPerXAdjacentImprovement",
+      "schemaFile": "Improvement_YieldPerXAdjacentImprovement.json"
+    },
+    {
+      "name": "Improvement_YieldPerXAdjacentTerrain",
+      "description": "Game data table for Improvement_YieldPerXAdjacentTerrain",
+      "schemaFile": "Improvement_YieldPerXAdjacentTerrain.json"
+    },
+    {
+      "name": "Improvement_Yields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Improvement_Yields.json"
+    },
+    {
+      "name": "Improvements",
+      "description": "Tile improvements like farms, mines, and roads",
+      "schemaFile": "Improvements.json"
+    },
+    {
+      "name": "InterfaceModes",
+      "description": "Game data table for InterfaceModes",
+      "schemaFile": "InterfaceModes.json"
+    },
+    {
+      "name": "InvisibleInfos",
+      "description": "Game data table for InvisibleInfos",
+      "schemaFile": "InvisibleInfos.json"
+    },
+    {
+      "name": "Leader_Flavors",
+      "description": "Game data table for Leader_Flavors",
+      "schemaFile": "Leader_Flavors.json"
+    },
+    {
+      "name": "Leader_MajorCivApproachBiases",
+      "description": "Game data table for Leader_MajorCivApproachBiases",
+      "schemaFile": "Leader_MajorCivApproachBiases.json"
+    },
+    {
+      "name": "Leader_MinorCivApproachBiases",
+      "description": "Game data table for Leader_MinorCivApproachBiases",
+      "schemaFile": "Leader_MinorCivApproachBiases.json"
+    },
+    {
+      "name": "Leader_Traits",
+      "description": "Game data table for Leader_Traits",
+      "schemaFile": "Leader_Traits.json"
+    },
+    {
+      "name": "Leaders",
+      "description": "Game data table for Leaders",
+      "schemaFile": "Leaders.json"
+    },
+    {
+      "name": "LeagueNames",
+      "description": "Game data table for LeagueNames",
+      "schemaFile": "LeagueNames.json"
+    },
+    {
+      "name": "LeagueProjectRewards",
+      "description": "Game data table for LeagueProjectRewards",
+      "schemaFile": "LeagueProjectRewards.json"
+    },
+    {
+      "name": "LeagueProjects",
+      "description": "Game data table for LeagueProjects",
+      "schemaFile": "LeagueProjects.json"
+    },
+    {
+      "name": "LeagueSpecialSessions",
+      "description": "Game data table for LeagueSpecialSessions",
+      "schemaFile": "LeagueSpecialSessions.json"
+    },
+    {
+      "name": "MajorBlocksMinor",
+      "description": "Game data table for MajorBlocksMinor",
+      "schemaFile": "MajorBlocksMinor.json"
+    },
+    {
+      "name": "MajorCivApproachTypes",
+      "description": "Game data table for MajorCivApproachTypes",
+      "schemaFile": "MajorCivApproachTypes.json"
+    },
+    {
+      "name": "MapScriptOptionPossibleValues",
+      "description": "Map scripts and custom map data",
+      "schemaFile": "MapScriptOptionPossibleValues.json"
+    },
+    {
+      "name": "MapScriptOptions",
+      "description": "Map scripts and custom map data",
+      "schemaFile": "MapScriptOptions.json"
+    },
+    {
+      "name": "MapScriptRequiredDLC",
+      "description": "Map scripts and custom map data",
+      "schemaFile": "MapScriptRequiredDLC.json"
+    },
+    {
+      "name": "MapScripts",
+      "description": "Map scripts and custom map data",
+      "schemaFile": "MapScripts.json"
+    },
+    {
+      "name": "Map_Folders",
+      "description": "Game data table for Map_Folders",
+      "schemaFile": "Map_Folders.json"
+    },
+    {
+      "name": "Map_Sizes",
+      "description": "Game data table for Map_Sizes",
+      "schemaFile": "Map_Sizes.json"
+    },
+    {
+      "name": "Maps",
+      "description": "Map scripts and custom map data",
+      "schemaFile": "Maps.json"
+    },
+    {
+      "name": "MemoryInfos",
+      "description": "Game data table for MemoryInfos",
+      "schemaFile": "MemoryInfos.json"
+    },
+    {
+      "name": "MinorCivApproachTypes",
+      "description": "Game data table for MinorCivApproachTypes",
+      "schemaFile": "MinorCivApproachTypes.json"
+    },
+    {
+      "name": "MinorCivPersonalityTypes",
+      "description": "Game data table for MinorCivPersonalityTypes",
+      "schemaFile": "MinorCivPersonalityTypes.json"
+    },
+    {
+      "name": "MinorCivTraits",
+      "description": "Game data table for MinorCivTraits",
+      "schemaFile": "MinorCivTraits.json"
+    },
+    {
+      "name": "MinorCivTraits_Status",
+      "description": "Game data table for MinorCivTraits_Status",
+      "schemaFile": "MinorCivTraits_Status.json"
+    },
+    {
+      "name": "MinorCivilization_CityNames",
+      "description": "Game data table for MinorCivilization_CityNames",
+      "schemaFile": "MinorCivilization_CityNames.json"
+    },
+    {
+      "name": "MinorCivilization_Flavors",
+      "description": "Game data table for MinorCivilization_Flavors",
+      "schemaFile": "MinorCivilization_Flavors.json"
+    },
+    {
+      "name": "MinorCivilizations",
+      "description": "Civilization definitions, unique abilities, and starting bonuses",
+      "schemaFile": "MinorCivilizations.json"
+    },
+    {
+      "name": "Missions",
+      "description": "Game data table for Missions",
+      "schemaFile": "Missions.json"
+    },
+    {
+      "name": "Months",
+      "description": "Game data table for Months",
+      "schemaFile": "Months.json"
+    },
+    {
+      "name": "MovementRates",
+      "description": "Game data table for MovementRates",
+      "schemaFile": "MovementRates.json"
+    },
+    {
+      "name": "MultiUnitFormation_SlotEntries",
+      "description": "Game data table for MultiUnitFormation_SlotEntries",
+      "schemaFile": "MultiUnitFormation_SlotEntries.json"
+    },
+    {
+      "name": "MultiUnitFormations",
+      "description": "Game data table for MultiUnitFormations",
+      "schemaFile": "MultiUnitFormations.json"
+    },
+    {
+      "name": "MultiUnitPositions",
+      "description": "Game data table for MultiUnitPositions",
+      "schemaFile": "MultiUnitPositions.json"
+    },
+    {
+      "name": "MultiplayerOptions",
+      "description": "Game data table for MultiplayerOptions",
+      "schemaFile": "MultiplayerOptions.json"
+    },
+    {
+      "name": "Natural_Wonder_Placement",
+      "description": "Game data table for Natural_Wonder_Placement",
+      "schemaFile": "Natural_Wonder_Placement.json"
+    },
+    {
+      "name": "Notifications",
+      "description": "Game data table for Notifications",
+      "schemaFile": "Notifications.json"
+    },
+    {
+      "name": "PlayerColors",
+      "description": "Color definitions for civilizations and UI elements",
+      "schemaFile": "PlayerColors.json"
+    },
+    {
+      "name": "PlayerOptions",
+      "description": "Game data table for PlayerOptions",
+      "schemaFile": "PlayerOptions.json"
+    },
+    {
+      "name": "Plot_AdjacentFeatureYieldChanges",
+      "description": "Game data table for Plot_AdjacentFeatureYieldChanges",
+      "schemaFile": "Plot_AdjacentFeatureYieldChanges.json"
+    },
+    {
+      "name": "Plot_Yields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Plot_Yields.json"
+    },
+    {
+      "name": "Plots",
+      "description": "Individual map tiles, their terrain type, improvements, and resources",
+      "schemaFile": "Plots.json"
+    },
+    {
+      "name": "Policies",
+      "description": "Social policy definitions and their effects",
+      "schemaFile": "Policies.json"
+    },
+    {
+      "name": "PolicyBranchTypes",
+      "description": "Game data table for PolicyBranchTypes",
+      "schemaFile": "PolicyBranchTypes.json"
+    },
+    {
+      "name": "PolicyBranch_Disables",
+      "description": "Game data table for PolicyBranch_Disables",
+      "schemaFile": "PolicyBranch_Disables.json"
+    },
+    {
+      "name": "Policy_ArtYieldChanges",
+      "description": "Game data table for Policy_ArtYieldChanges",
+      "schemaFile": "Policy_ArtYieldChanges.json"
+    },
+    {
+      "name": "Policy_ArtifactYieldChanges",
+      "description": "Game data table for Policy_ArtifactYieldChanges",
+      "schemaFile": "Policy_ArtifactYieldChanges.json"
+    },
+    {
+      "name": "Policy_BuildingClassCultureChanges",
+      "description": "Game data table for Policy_BuildingClassCultureChanges",
+      "schemaFile": "Policy_BuildingClassCultureChanges.json"
+    },
+    {
+      "name": "Policy_BuildingClassHappiness",
+      "description": "Game data table for Policy_BuildingClassHappiness",
+      "schemaFile": "Policy_BuildingClassHappiness.json"
+    },
+    {
+      "name": "Policy_BuildingClassInLiberatedCities",
+      "description": "Contains data for all cities in the game, their ownership, population, and production",
+      "schemaFile": "Policy_BuildingClassInLiberatedCities.json"
+    },
+    {
+      "name": "Policy_BuildingClassProductionModifiers",
+      "description": "Game data table for Policy_BuildingClassProductionModifiers",
+      "schemaFile": "Policy_BuildingClassProductionModifiers.json"
+    },
+    {
+      "name": "Policy_BuildingClassSecurityChanges",
+      "description": "Game data table for Policy_BuildingClassSecurityChanges",
+      "schemaFile": "Policy_BuildingClassSecurityChanges.json"
+    },
+    {
+      "name": "Policy_BuildingClassTourismModifiers",
+      "description": "Game data table for Policy_BuildingClassTourismModifiers",
+      "schemaFile": "Policy_BuildingClassTourismModifiers.json"
+    },
+    {
+      "name": "Policy_BuildingClassYieldChanges",
+      "description": "Game data table for Policy_BuildingClassYieldChanges",
+      "schemaFile": "Policy_BuildingClassYieldChanges.json"
+    },
+    {
+      "name": "Policy_BuildingClassYieldModifiers",
+      "description": "Game data table for Policy_BuildingClassYieldModifiers",
+      "schemaFile": "Policy_BuildingClassYieldModifiers.json"
+    },
+    {
+      "name": "Policy_CapitalYieldChanges",
+      "description": "Game data table for Policy_CapitalYieldChanges",
+      "schemaFile": "Policy_CapitalYieldChanges.json"
+    },
+    {
+      "name": "Policy_CapitalYieldModifiers",
+      "description": "Game data table for Policy_CapitalYieldModifiers",
+      "schemaFile": "Policy_CapitalYieldModifiers.json"
+    },
+    {
+      "name": "Policy_CapitalYieldPerPopChangeEmpire",
+      "description": "Game data table for Policy_CapitalYieldPerPopChangeEmpire",
+      "schemaFile": "Policy_CapitalYieldPerPopChangeEmpire.json"
+    },
+    {
+      "name": "Policy_CapitalYieldPerPopChanges",
+      "description": "Game data table for Policy_CapitalYieldPerPopChanges",
+      "schemaFile": "Policy_CapitalYieldPerPopChanges.json"
+    },
+    {
+      "name": "Policy_CityYieldChanges",
+      "description": "Game data table for Policy_CityYieldChanges",
+      "schemaFile": "Policy_CityYieldChanges.json"
+    },
+    {
+      "name": "Policy_CityYieldFromUnimprovedFeature",
+      "description": "Game data table for Policy_CityYieldFromUnimprovedFeature",
+      "schemaFile": "Policy_CityYieldFromUnimprovedFeature.json"
+    },
+    {
+      "name": "Policy_CoastalCityYieldChanges",
+      "description": "Game data table for Policy_CoastalCityYieldChanges",
+      "schemaFile": "Policy_CoastalCityYieldChanges.json"
+    },
+    {
+      "name": "Policy_ConquerorYield",
+      "description": "Game data table for Policy_ConquerorYield",
+      "schemaFile": "Policy_ConquerorYield.json"
+    },
+    {
+      "name": "Policy_Disables",
+      "description": "Game data table for Policy_Disables",
+      "schemaFile": "Policy_Disables.json"
+    },
+    {
+      "name": "Policy_FaithPurchaseUnitClasses",
+      "description": "Unit class definitions and upgrade paths",
+      "schemaFile": "Policy_FaithPurchaseUnitClasses.json"
+    },
+    {
+      "name": "Policy_FeatureYieldChanges",
+      "description": "Game data table for Policy_FeatureYieldChanges",
+      "schemaFile": "Policy_FeatureYieldChanges.json"
+    },
+    {
+      "name": "Policy_FilmYieldChanges",
+      "description": "Game data table for Policy_FilmYieldChanges",
+      "schemaFile": "Policy_FilmYieldChanges.json"
+    },
+    {
+      "name": "Policy_Flavors",
+      "description": "Game data table for Policy_Flavors",
+      "schemaFile": "Policy_Flavors.json"
+    },
+    {
+      "name": "Policy_FounderYield",
+      "description": "Game data table for Policy_FounderYield",
+      "schemaFile": "Policy_FounderYield.json"
+    },
+    {
+      "name": "Policy_FranchisePerImprovement",
+      "description": "Game data table for Policy_FranchisePerImprovement",
+      "schemaFile": "Policy_FranchisePerImprovement.json"
+    },
+    {
+      "name": "Policy_FreeBuilding",
+      "description": "Game data table for Policy_FreeBuilding",
+      "schemaFile": "Policy_FreeBuilding.json"
+    },
+    {
+      "name": "Policy_FreeItems",
+      "description": "Game data table for Policy_FreeItems",
+      "schemaFile": "Policy_FreeItems.json"
+    },
+    {
+      "name": "Policy_FreePromotionUnitCombats",
+      "description": "Game data table for Policy_FreePromotionUnitCombats",
+      "schemaFile": "Policy_FreePromotionUnitCombats.json"
+    },
+    {
+      "name": "Policy_FreePromotions",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "Policy_FreePromotions.json"
+    },
+    {
+      "name": "Policy_FreeUnitClasses",
+      "description": "Unit class definitions and upgrade paths",
+      "schemaFile": "Policy_FreeUnitClasses.json"
+    },
+    {
+      "name": "Policy_GoldenAgeGreatPersonRateModifier",
+      "description": "Game data table for Policy_GoldenAgeGreatPersonRateModifier",
+      "schemaFile": "Policy_GoldenAgeGreatPersonRateModifier.json"
+    },
+    {
+      "name": "Policy_GoldenAgeYieldMod",
+      "description": "Game data table for Policy_GoldenAgeYieldMod",
+      "schemaFile": "Policy_GoldenAgeYieldMod.json"
+    },
+    {
+      "name": "Policy_GreatPersonExpendedYield",
+      "description": "Game data table for Policy_GreatPersonExpendedYield",
+      "schemaFile": "Policy_GreatPersonExpendedYield.json"
+    },
+    {
+      "name": "Policy_GreatWorkYieldChanges",
+      "description": "Game data table for Policy_GreatWorkYieldChanges",
+      "schemaFile": "Policy_GreatWorkYieldChanges.json"
+    },
+    {
+      "name": "Policy_HurryModifiers",
+      "description": "Game data table for Policy_HurryModifiers",
+      "schemaFile": "Policy_HurryModifiers.json"
+    },
+    {
+      "name": "Policy_ImprovementCultureChanges",
+      "description": "Game data table for Policy_ImprovementCultureChanges",
+      "schemaFile": "Policy_ImprovementCultureChanges.json"
+    },
+    {
+      "name": "Policy_ImprovementYieldChanges",
+      "description": "Game data table for Policy_ImprovementYieldChanges",
+      "schemaFile": "Policy_ImprovementYieldChanges.json"
+    },
+    {
+      "name": "Policy_InternationalRouteYieldModifiers",
+      "description": "Game data table for Policy_InternationalRouteYieldModifiers",
+      "schemaFile": "Policy_InternationalRouteYieldModifiers.json"
+    },
+    {
+      "name": "Policy_LitYieldChanges",
+      "description": "Game data table for Policy_LitYieldChanges",
+      "schemaFile": "Policy_LitYieldChanges.json"
+    },
+    {
+      "name": "Policy_MusicYieldChanges",
+      "description": "Game data table for Policy_MusicYieldChanges",
+      "schemaFile": "Policy_MusicYieldChanges.json"
+    },
+    {
+      "name": "Policy_PlotYieldChanges",
+      "description": "Game data table for Policy_PlotYieldChanges",
+      "schemaFile": "Policy_PlotYieldChanges.json"
+    },
+    {
+      "name": "Policy_PrereqORPolicies",
+      "description": "Social policy definitions and their effects",
+      "schemaFile": "Policy_PrereqORPolicies.json"
+    },
+    {
+      "name": "Policy_PrereqPolicies",
+      "description": "Social policy definitions and their effects",
+      "schemaFile": "Policy_PrereqPolicies.json"
+    },
+    {
+      "name": "Policy_RelicYieldChanges",
+      "description": "Game data table for Policy_RelicYieldChanges",
+      "schemaFile": "Policy_RelicYieldChanges.json"
+    },
+    {
+      "name": "Policy_ReligionBuildingYieldMod",
+      "description": "Game data table for Policy_ReligionBuildingYieldMod",
+      "schemaFile": "Policy_ReligionBuildingYieldMod.json"
+    },
+    {
+      "name": "Policy_ReligionYieldMod",
+      "description": "Game data table for Policy_ReligionYieldMod",
+      "schemaFile": "Policy_ReligionYieldMod.json"
+    },
+    {
+      "name": "Policy_ResourceYieldChanges",
+      "description": "Game data table for Policy_ResourceYieldChanges",
+      "schemaFile": "Policy_ResourceYieldChanges.json"
+    },
+    {
+      "name": "Policy_ResourcefromCSAlly",
+      "description": "Game data table for Policy_ResourcefromCSAlly",
+      "schemaFile": "Policy_ResourcefromCSAlly.json"
+    },
+    {
+      "name": "Policy_SpecialistExtraYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Policy_SpecialistExtraYields.json"
+    },
+    {
+      "name": "Policy_SpecialistYieldChanges",
+      "description": "Game data table for Policy_SpecialistYieldChanges",
+      "schemaFile": "Policy_SpecialistYieldChanges.json"
+    },
+    {
+      "name": "Policy_TerrainYieldChanges",
+      "description": "Game data table for Policy_TerrainYieldChanges",
+      "schemaFile": "Policy_TerrainYieldChanges.json"
+    },
+    {
+      "name": "Policy_TourismOnUnitCreation",
+      "description": "Game data table for Policy_TourismOnUnitCreation",
+      "schemaFile": "Policy_TourismOnUnitCreation.json"
+    },
+    {
+      "name": "Policy_TradeRouteYieldChange",
+      "description": "Game data table for Policy_TradeRouteYieldChange",
+      "schemaFile": "Policy_TradeRouteYieldChange.json"
+    },
+    {
+      "name": "Policy_UnimprovedFeatureYieldChanges",
+      "description": "Game data table for Policy_UnimprovedFeatureYieldChanges",
+      "schemaFile": "Policy_UnimprovedFeatureYieldChanges.json"
+    },
+    {
+      "name": "Policy_UnitClassProductionModifiers",
+      "description": "Game data table for Policy_UnitClassProductionModifiers",
+      "schemaFile": "Policy_UnitClassProductionModifiers.json"
+    },
+    {
+      "name": "Policy_UnitClassReplacements",
+      "description": "Game data table for Policy_UnitClassReplacements",
+      "schemaFile": "Policy_UnitClassReplacements.json"
+    },
+    {
+      "name": "Policy_UnitCombatFreeExperiences",
+      "description": "Game data table for Policy_UnitCombatFreeExperiences",
+      "schemaFile": "Policy_UnitCombatFreeExperiences.json"
+    },
+    {
+      "name": "Policy_UnitCombatProductionModifiers",
+      "description": "Game data table for Policy_UnitCombatProductionModifiers",
+      "schemaFile": "Policy_UnitCombatProductionModifiers.json"
+    },
+    {
+      "name": "Policy_ValidSpecialists",
+      "description": "Specialist citizen types and their yields",
+      "schemaFile": "Policy_ValidSpecialists.json"
+    },
+    {
+      "name": "Policy_WLTKDYieldMod",
+      "description": "Game data table for Policy_WLTKDYieldMod",
+      "schemaFile": "Policy_WLTKDYieldMod.json"
+    },
+    {
+      "name": "Policy_YieldChangeTradeRoute",
+      "description": "Game data table for Policy_YieldChangeTradeRoute",
+      "schemaFile": "Policy_YieldChangeTradeRoute.json"
+    },
+    {
+      "name": "Policy_YieldChangeWorldWonder",
+      "description": "Game data table for Policy_YieldChangeWorldWonder",
+      "schemaFile": "Policy_YieldChangeWorldWonder.json"
+    },
+    {
+      "name": "Policy_YieldChangesNaturalWonder",
+      "description": "Game data table for Policy_YieldChangesNaturalWonder",
+      "schemaFile": "Policy_YieldChangesNaturalWonder.json"
+    },
+    {
+      "name": "Policy_YieldChangesPerReligion",
+      "description": "Game data table for Policy_YieldChangesPerReligion",
+      "schemaFile": "Policy_YieldChangesPerReligion.json"
+    },
+    {
+      "name": "Policy_YieldForLiberation",
+      "description": "Game data table for Policy_YieldForLiberation",
+      "schemaFile": "Policy_YieldForLiberation.json"
+    },
+    {
+      "name": "Policy_YieldForSpyID",
+      "description": "Game data table for Policy_YieldForSpyID",
+      "schemaFile": "Policy_YieldForSpyID.json"
+    },
+    {
+      "name": "Policy_YieldFromBarbarianKills",
+      "description": "Game data table for Policy_YieldFromBarbarianKills",
+      "schemaFile": "Policy_YieldFromBarbarianKills.json"
+    },
+    {
+      "name": "Policy_YieldFromBirth",
+      "description": "Game data table for Policy_YieldFromBirth",
+      "schemaFile": "Policy_YieldFromBirth.json"
+    },
+    {
+      "name": "Policy_YieldFromBirthCapital",
+      "description": "Game data table for Policy_YieldFromBirthCapital",
+      "schemaFile": "Policy_YieldFromBirthCapital.json"
+    },
+    {
+      "name": "Policy_YieldFromBirthCapitalRetroactive",
+      "description": "Game data table for Policy_YieldFromBirthCapitalRetroactive",
+      "schemaFile": "Policy_YieldFromBirthCapitalRetroactive.json"
+    },
+    {
+      "name": "Policy_YieldFromBirthRetroactive",
+      "description": "Game data table for Policy_YieldFromBirthRetroactive",
+      "schemaFile": "Policy_YieldFromBirthRetroactive.json"
+    },
+    {
+      "name": "Policy_YieldFromBorderGrowth",
+      "description": "Game data table for Policy_YieldFromBorderGrowth",
+      "schemaFile": "Policy_YieldFromBorderGrowth.json"
+    },
+    {
+      "name": "Policy_YieldFromConstruction",
+      "description": "Game data table for Policy_YieldFromConstruction",
+      "schemaFile": "Policy_YieldFromConstruction.json"
+    },
+    {
+      "name": "Policy_YieldFromDelegateCount",
+      "description": "Game data table for Policy_YieldFromDelegateCount",
+      "schemaFile": "Policy_YieldFromDelegateCount.json"
+    },
+    {
+      "name": "Policy_YieldFromKills",
+      "description": "Game data table for Policy_YieldFromKills",
+      "schemaFile": "Policy_YieldFromKills.json"
+    },
+    {
+      "name": "Policy_YieldFromMinorDemand",
+      "description": "Game data table for Policy_YieldFromMinorDemand",
+      "schemaFile": "Policy_YieldFromMinorDemand.json"
+    },
+    {
+      "name": "Policy_YieldFromNonSpecialistCitizens",
+      "description": "Game data table for Policy_YieldFromNonSpecialistCitizens",
+      "schemaFile": "Policy_YieldFromNonSpecialistCitizens.json"
+    },
+    {
+      "name": "Policy_YieldFromTech",
+      "description": "Game data table for Policy_YieldFromTech",
+      "schemaFile": "Policy_YieldFromTech.json"
+    },
+    {
+      "name": "Policy_YieldFromTechRetroactive",
+      "description": "Game data table for Policy_YieldFromTechRetroactive",
+      "schemaFile": "Policy_YieldFromTechRetroactive.json"
+    },
+    {
+      "name": "Policy_YieldFromWorldWonderConstruction",
+      "description": "Game data table for Policy_YieldFromWorldWonderConstruction",
+      "schemaFile": "Policy_YieldFromWorldWonderConstruction.json"
+    },
+    {
+      "name": "Policy_YieldFromXMilitaryUnits",
+      "description": "Tracks all military and civilian units, their positions, health, and ownership",
+      "schemaFile": "Policy_YieldFromXMilitaryUnits.json"
+    },
+    {
+      "name": "Policy_YieldGPExpend",
+      "description": "Game data table for Policy_YieldGPExpend",
+      "schemaFile": "Policy_YieldGPExpend.json"
+    },
+    {
+      "name": "Policy_YieldModifierFromActiveSpies",
+      "description": "Game data table for Policy_YieldModifierFromActiveSpies",
+      "schemaFile": "Policy_YieldModifierFromActiveSpies.json"
+    },
+    {
+      "name": "Policy_YieldModifierFromGreatWorks",
+      "description": "Game data table for Policy_YieldModifierFromGreatWorks",
+      "schemaFile": "Policy_YieldModifierFromGreatWorks.json"
+    },
+    {
+      "name": "Policy_YieldModifiers",
+      "description": "Game data table for Policy_YieldModifiers",
+      "schemaFile": "Policy_YieldModifiers.json"
+    },
+    {
+      "name": "Policy_YieldPerCityOverStrengthThreshold",
+      "description": "Game data table for Policy_YieldPerCityOverStrengthThreshold",
+      "schemaFile": "Policy_YieldPerCityOverStrengthThreshold.json"
+    },
+    {
+      "name": "PostDefines",
+      "description": "Game data table for PostDefines",
+      "schemaFile": "PostDefines.json"
+    },
+    {
+      "name": "Process_Flavors",
+      "description": "Game data table for Process_Flavors",
+      "schemaFile": "Process_Flavors.json"
+    },
+    {
+      "name": "Process_ProductionYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Process_ProductionYields.json"
+    },
+    {
+      "name": "Processes",
+      "description": "Game data table for Processes",
+      "schemaFile": "Processes.json"
+    },
+    {
+      "name": "Project_Flavors",
+      "description": "Game data table for Project_Flavors",
+      "schemaFile": "Project_Flavors.json"
+    },
+    {
+      "name": "Project_Prereqs",
+      "description": "Game data table for Project_Prereqs",
+      "schemaFile": "Project_Prereqs.json"
+    },
+    {
+      "name": "Project_ResourceQuantityRequirements",
+      "description": "Game data table for Project_ResourceQuantityRequirements",
+      "schemaFile": "Project_ResourceQuantityRequirements.json"
+    },
+    {
+      "name": "Project_UnitCombatProductionModifiersGlobal",
+      "description": "Game data table for Project_UnitCombatProductionModifiersGlobal",
+      "schemaFile": "Project_UnitCombatProductionModifiersGlobal.json"
+    },
+    {
+      "name": "Project_VictoryThresholds",
+      "description": "Victory condition definitions and requirements",
+      "schemaFile": "Project_VictoryThresholds.json"
+    },
+    {
+      "name": "Project_YieldFromConquestAllCities",
+      "description": "Contains data for all cities in the game, their ownership, population, and production",
+      "schemaFile": "Project_YieldFromConquestAllCities.json"
+    },
+    {
+      "name": "Projects",
+      "description": "Game data table for Projects",
+      "schemaFile": "Projects.json"
+    },
+    {
+      "name": "Regions",
+      "description": "Game data table for Regions",
+      "schemaFile": "Regions.json"
+    },
+    {
+      "name": "Religions",
+      "description": "Religion and belief system data",
+      "schemaFile": "Religions.json"
+    },
+    {
+      "name": "Remapper",
+      "description": "Game data table for Remapper",
+      "schemaFile": "Remapper.json"
+    },
+    {
+      "name": "ReplayDataSets",
+      "description": "Game data table for ReplayDataSets",
+      "schemaFile": "ReplayDataSets.json"
+    },
+    {
+      "name": "ResolutionDecisions",
+      "description": "Game data table for ResolutionDecisions",
+      "schemaFile": "ResolutionDecisions.json"
+    },
+    {
+      "name": "Resolutions",
+      "description": "Game data table for Resolutions",
+      "schemaFile": "Resolutions.json"
+    },
+    {
+      "name": "ResourceClasses",
+      "description": "Game data table for ResourceClasses",
+      "schemaFile": "ResourceClasses.json"
+    },
+    {
+      "name": "Resource_BuildingProductionCostModifiersLocal",
+      "description": "Game data table for Resource_BuildingProductionCostModifiersLocal",
+      "schemaFile": "Resource_BuildingProductionCostModifiersLocal.json"
+    },
+    {
+      "name": "Resource_CityYieldModFromMonopoly",
+      "description": "Game data table for Resource_CityYieldModFromMonopoly",
+      "schemaFile": "Resource_CityYieldModFromMonopoly.json"
+    },
+    {
+      "name": "Resource_FeatureBooleans",
+      "description": "Game data table for Resource_FeatureBooleans",
+      "schemaFile": "Resource_FeatureBooleans.json"
+    },
+    {
+      "name": "Resource_FeatureTerrainBooleans",
+      "description": "Game data table for Resource_FeatureTerrainBooleans",
+      "schemaFile": "Resource_FeatureTerrainBooleans.json"
+    },
+    {
+      "name": "Resource_Flavors",
+      "description": "Game data table for Resource_Flavors",
+      "schemaFile": "Resource_Flavors.json"
+    },
+    {
+      "name": "Resource_MonopolyCombatModifiers",
+      "description": "Game data table for Resource_MonopolyCombatModifiers",
+      "schemaFile": "Resource_MonopolyCombatModifiers.json"
+    },
+    {
+      "name": "Resource_MonopolyGreatPersonRateChanges",
+      "description": "Game data table for Resource_MonopolyGreatPersonRateChanges",
+      "schemaFile": "Resource_MonopolyGreatPersonRateChanges.json"
+    },
+    {
+      "name": "Resource_MonopolyGreatPersonRateModifiers",
+      "description": "Game data table for Resource_MonopolyGreatPersonRateModifiers",
+      "schemaFile": "Resource_MonopolyGreatPersonRateModifiers.json"
+    },
+    {
+      "name": "Resource_QuantityTypes",
+      "description": "Game data table for Resource_QuantityTypes",
+      "schemaFile": "Resource_QuantityTypes.json"
+    },
+    {
+      "name": "Resource_TerrainBooleans",
+      "description": "Game data table for Resource_TerrainBooleans",
+      "schemaFile": "Resource_TerrainBooleans.json"
+    },
+    {
+      "name": "Resource_UnitCombatProductionCostModifiersLocal",
+      "description": "Game data table for Resource_UnitCombatProductionCostModifiersLocal",
+      "schemaFile": "Resource_UnitCombatProductionCostModifiersLocal.json"
+    },
+    {
+      "name": "Resource_YieldChangeFromMonopoly",
+      "description": "Game data table for Resource_YieldChangeFromMonopoly",
+      "schemaFile": "Resource_YieldChangeFromMonopoly.json"
+    },
+    {
+      "name": "Resource_YieldChanges",
+      "description": "Game data table for Resource_YieldChanges",
+      "schemaFile": "Resource_YieldChanges.json"
+    },
+    {
+      "name": "Resources",
+      "description": "Strategic, luxury, and bonus resource definitions",
+      "schemaFile": "Resources.json"
+    },
+    {
+      "name": "Route_ResourceQuantityRequirements",
+      "description": "Game data table for Route_ResourceQuantityRequirements",
+      "schemaFile": "Route_ResourceQuantityRequirements.json"
+    },
+    {
+      "name": "Route_TechMovementChanges",
+      "description": "Game data table for Route_TechMovementChanges",
+      "schemaFile": "Route_TechMovementChanges.json"
+    },
+    {
+      "name": "Route_Yields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Route_Yields.json"
+    },
+    {
+      "name": "Routes",
+      "description": "Game data table for Routes",
+      "schemaFile": "Routes.json"
+    },
+    {
+      "name": "ScannedFiles",
+      "description": "Game data table for ScannedFiles",
+      "schemaFile": "ScannedFiles.json"
+    },
+    {
+      "name": "SeaLevels",
+      "description": "Game data table for SeaLevels",
+      "schemaFile": "SeaLevels.json"
+    },
+    {
+      "name": "Seasons",
+      "description": "Game data table for Seasons",
+      "schemaFile": "Seasons.json"
+    },
+    {
+      "name": "SmallAwards",
+      "description": "Game data table for SmallAwards",
+      "schemaFile": "SmallAwards.json"
+    },
+    {
+      "name": "SpecialUnit_CarrierUnitAI",
+      "description": "Game data table for SpecialUnit_CarrierUnitAI",
+      "schemaFile": "SpecialUnit_CarrierUnitAI.json"
+    },
+    {
+      "name": "SpecialUnit_ProductionTraits",
+      "description": "Game data table for SpecialUnit_ProductionTraits",
+      "schemaFile": "SpecialUnit_ProductionTraits.json"
+    },
+    {
+      "name": "SpecialUnits",
+      "description": "Tracks all military and civilian units, their positions, health, and ownership",
+      "schemaFile": "SpecialUnits.json"
+    },
+    {
+      "name": "SpecialistFlavors",
+      "description": "Game data table for SpecialistFlavors",
+      "schemaFile": "SpecialistFlavors.json"
+    },
+    {
+      "name": "SpecialistYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "SpecialistYields.json"
+    },
+    {
+      "name": "Specialists",
+      "description": "Specialist citizen types and their yields",
+      "schemaFile": "Specialists.json"
+    },
+    {
+      "name": "SpyPassiveBonuses",
+      "description": "Game data table for SpyPassiveBonuses",
+      "schemaFile": "SpyPassiveBonuses.json"
+    },
+    {
+      "name": "SpyPassiveBonusesDiplomat",
+      "description": "Game data table for SpyPassiveBonusesDiplomat",
+      "schemaFile": "SpyPassiveBonusesDiplomat.json"
+    },
+    {
+      "name": "TacticalMoves",
+      "description": "Game data table for TacticalMoves",
+      "schemaFile": "TacticalMoves.json"
+    },
+    {
+      "name": "Tech_SpecialistYieldChanges",
+      "description": "Game data table for Tech_SpecialistYieldChanges",
+      "schemaFile": "Tech_SpecialistYieldChanges.json"
+    },
+    {
+      "name": "Technologies",
+      "description": "Technology tree definitions and research requirements",
+      "schemaFile": "Technologies.json"
+    },
+    {
+      "name": "Technology_DomainExtraMoves",
+      "description": "Game data table for Technology_DomainExtraMoves",
+      "schemaFile": "Technology_DomainExtraMoves.json"
+    },
+    {
+      "name": "Technology_Flavors",
+      "description": "Game data table for Technology_Flavors",
+      "schemaFile": "Technology_Flavors.json"
+    },
+    {
+      "name": "Technology_FreePromotions",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "Technology_FreePromotions.json"
+    },
+    {
+      "name": "Technology_ORPrereqTechs",
+      "description": "Game data table for Technology_ORPrereqTechs",
+      "schemaFile": "Technology_ORPrereqTechs.json"
+    },
+    {
+      "name": "Technology_PrereqTechs",
+      "description": "Game data table for Technology_PrereqTechs",
+      "schemaFile": "Technology_PrereqTechs.json"
+    },
+    {
+      "name": "Technology_TradeRouteDomainExtraRange",
+      "description": "Game data table for Technology_TradeRouteDomainExtraRange",
+      "schemaFile": "Technology_TradeRouteDomainExtraRange.json"
+    },
+    {
+      "name": "Terrain_CoastalLandYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Terrain_CoastalLandYields.json"
+    },
+    {
+      "name": "Terrain_FreshWaterYields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Terrain_FreshWaterYields.json"
+    },
+    {
+      "name": "Terrain_HillsYieldChanges",
+      "description": "Game data table for Terrain_HillsYieldChanges",
+      "schemaFile": "Terrain_HillsYieldChanges.json"
+    },
+    {
+      "name": "Terrain_RiverYieldChanges",
+      "description": "Game data table for Terrain_RiverYieldChanges",
+      "schemaFile": "Terrain_RiverYieldChanges.json"
+    },
+    {
+      "name": "Terrain_TechYieldChanges",
+      "description": "Game data table for Terrain_TechYieldChanges",
+      "schemaFile": "Terrain_TechYieldChanges.json"
+    },
+    {
+      "name": "Terrain_Yields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Terrain_Yields.json"
+    },
+    {
+      "name": "Terrains",
+      "description": "Game data table for Terrains",
+      "schemaFile": "Terrains.json"
+    },
+    {
+      "name": "Trades",
+      "description": "Game data table for Trades",
+      "schemaFile": "Trades.json"
+    },
+    {
+      "name": "Trait_AlternateResourceTechs",
+      "description": "Game data table for Trait_AlternateResourceTechs",
+      "schemaFile": "Trait_AlternateResourceTechs.json"
+    },
+    {
+      "name": "Trait_ArtYieldChanges",
+      "description": "Game data table for Trait_ArtYieldChanges",
+      "schemaFile": "Trait_ArtYieldChanges.json"
+    },
+    {
+      "name": "Trait_ArtifactYieldChanges",
+      "description": "Game data table for Trait_ArtifactYieldChanges",
+      "schemaFile": "Trait_ArtifactYieldChanges.json"
+    },
+    {
+      "name": "Trait_BonusFromGPBirth",
+      "description": "Game data table for Trait_BonusFromGPBirth",
+      "schemaFile": "Trait_BonusFromGPBirth.json"
+    },
+    {
+      "name": "Trait_BuildingClassYieldChanges",
+      "description": "Game data table for Trait_BuildingClassYieldChanges",
+      "schemaFile": "Trait_BuildingClassYieldChanges.json"
+    },
+    {
+      "name": "Trait_BuildsUnitClasses",
+      "description": "Unit class definitions and upgrade paths",
+      "schemaFile": "Trait_BuildsUnitClasses.json"
+    },
+    {
+      "name": "Trait_CapitalYieldChanges",
+      "description": "Game data table for Trait_CapitalYieldChanges",
+      "schemaFile": "Trait_CapitalYieldChanges.json"
+    },
+    {
+      "name": "Trait_CityYieldChanges",
+      "description": "Game data table for Trait_CityYieldChanges",
+      "schemaFile": "Trait_CityYieldChanges.json"
+    },
+    {
+      "name": "Trait_CityYieldFromUnimprovedFeature",
+      "description": "Game data table for Trait_CityYieldFromUnimprovedFeature",
+      "schemaFile": "Trait_CityYieldFromUnimprovedFeature.json"
+    },
+    {
+      "name": "Trait_CoastalCityYieldChanges",
+      "description": "Game data table for Trait_CoastalCityYieldChanges",
+      "schemaFile": "Trait_CoastalCityYieldChanges.json"
+    },
+    {
+      "name": "Trait_DomainFreeExperienceModifier",
+      "description": "Game data table for Trait_DomainFreeExperienceModifier",
+      "schemaFile": "Trait_DomainFreeExperienceModifier.json"
+    },
+    {
+      "name": "Trait_DomainProductionModifiersPerSpecialist",
+      "description": "Game data table for Trait_DomainProductionModifiersPerSpecialist",
+      "schemaFile": "Trait_DomainProductionModifiersPerSpecialist.json"
+    },
+    {
+      "name": "Trait_ExtraYieldThresholds",
+      "description": "Game data table for Trait_ExtraYieldThresholds",
+      "schemaFile": "Trait_ExtraYieldThresholds.json"
+    },
+    {
+      "name": "Trait_FeatureYieldChanges",
+      "description": "Game data table for Trait_FeatureYieldChanges",
+      "schemaFile": "Trait_FeatureYieldChanges.json"
+    },
+    {
+      "name": "Trait_FreePromotionUnitClass",
+      "description": "Game data table for Trait_FreePromotionUnitClass",
+      "schemaFile": "Trait_FreePromotionUnitClass.json"
+    },
+    {
+      "name": "Trait_FreePromotionUnitCombats",
+      "description": "Game data table for Trait_FreePromotionUnitCombats",
+      "schemaFile": "Trait_FreePromotionUnitCombats.json"
+    },
+    {
+      "name": "Trait_FreePromotions",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "Trait_FreePromotions.json"
+    },
+    {
+      "name": "Trait_FreeResourceFirstXCities",
+      "description": "Contains data for all cities in the game, their ownership, population, and production",
+      "schemaFile": "Trait_FreeResourceFirstXCities.json"
+    },
+    {
+      "name": "Trait_FreeResourceOnWonderCompletion",
+      "description": "Game data table for Trait_FreeResourceOnWonderCompletion",
+      "schemaFile": "Trait_FreeResourceOnWonderCompletion.json"
+    },
+    {
+      "name": "Trait_FreeUnitClassesDOW",
+      "description": "Unit class definitions and upgrade paths",
+      "schemaFile": "Trait_FreeUnitClassesDOW.json"
+    },
+    {
+      "name": "Trait_GAPToYield",
+      "description": "Game data table for Trait_GAPToYield",
+      "schemaFile": "Trait_GAPToYield.json"
+    },
+    {
+      "name": "Trait_GoldenAgeFromGreatPersonBirth",
+      "description": "Game data table for Trait_GoldenAgeFromGreatPersonBirth",
+      "schemaFile": "Trait_GoldenAgeFromGreatPersonBirth.json"
+    },
+    {
+      "name": "Trait_GoldenAgeGreatPersonRateModifier",
+      "description": "Game data table for Trait_GoldenAgeGreatPersonRateModifier",
+      "schemaFile": "Trait_GoldenAgeGreatPersonRateModifier.json"
+    },
+    {
+      "name": "Trait_GoldenAgeYieldModifiers",
+      "description": "Game data table for Trait_GoldenAgeYieldModifiers",
+      "schemaFile": "Trait_GoldenAgeYieldModifiers.json"
+    },
+    {
+      "name": "Trait_GreatPersonBirthGWAM",
+      "description": "Game data table for Trait_GreatPersonBirthGWAM",
+      "schemaFile": "Trait_GreatPersonBirthGWAM.json"
+    },
+    {
+      "name": "Trait_GreatPersonBornYield",
+      "description": "Game data table for Trait_GreatPersonBornYield",
+      "schemaFile": "Trait_GreatPersonBornYield.json"
+    },
+    {
+      "name": "Trait_GreatPersonCostReduction",
+      "description": "Game data table for Trait_GreatPersonCostReduction",
+      "schemaFile": "Trait_GreatPersonCostReduction.json"
+    },
+    {
+      "name": "Trait_GreatPersonExpendedYield",
+      "description": "Game data table for Trait_GreatPersonExpendedYield",
+      "schemaFile": "Trait_GreatPersonExpendedYield.json"
+    },
+    {
+      "name": "Trait_GreatPersonProgressFromKills",
+      "description": "Game data table for Trait_GreatPersonProgressFromKills",
+      "schemaFile": "Trait_GreatPersonProgressFromKills.json"
+    },
+    {
+      "name": "Trait_GreatPersonProgressFromPolicyUnlock",
+      "description": "Game data table for Trait_GreatPersonProgressFromPolicyUnlock",
+      "schemaFile": "Trait_GreatPersonProgressFromPolicyUnlock.json"
+    },
+    {
+      "name": "Trait_GreatWorkYieldChanges",
+      "description": "Game data table for Trait_GreatWorkYieldChanges",
+      "schemaFile": "Trait_GreatWorkYieldChanges.json"
+    },
+    {
+      "name": "Trait_ImprovementYieldChanges",
+      "description": "Game data table for Trait_ImprovementYieldChanges",
+      "schemaFile": "Trait_ImprovementYieldChanges.json"
+    },
+    {
+      "name": "Trait_LitYieldChanges",
+      "description": "Game data table for Trait_LitYieldChanges",
+      "schemaFile": "Trait_LitYieldChanges.json"
+    },
+    {
+      "name": "Trait_LuxuryYieldChanges",
+      "description": "Game data table for Trait_LuxuryYieldChanges",
+      "schemaFile": "Trait_LuxuryYieldChanges.json"
+    },
+    {
+      "name": "Trait_MaintenanceModifierUnitCombats",
+      "description": "Game data table for Trait_MaintenanceModifierUnitCombats",
+      "schemaFile": "Trait_MaintenanceModifierUnitCombats.json"
+    },
+    {
+      "name": "Trait_MountainRangeYield",
+      "description": "Game data table for Trait_MountainRangeYield",
+      "schemaFile": "Trait_MountainRangeYield.json"
+    },
+    {
+      "name": "Trait_MovesChangeUnitClass",
+      "description": "Game data table for Trait_MovesChangeUnitClass",
+      "schemaFile": "Trait_MovesChangeUnitClass.json"
+    },
+    {
+      "name": "Trait_MovesChangeUnitCombats",
+      "description": "Game data table for Trait_MovesChangeUnitCombats",
+      "schemaFile": "Trait_MovesChangeUnitCombats.json"
+    },
+    {
+      "name": "Trait_MusicYieldChanges",
+      "description": "Game data table for Trait_MusicYieldChanges",
+      "schemaFile": "Trait_MusicYieldChanges.json"
+    },
+    {
+      "name": "Trait_NoBuilds",
+      "description": "Game data table for Trait_NoBuilds",
+      "schemaFile": "Trait_NoBuilds.json"
+    },
+    {
+      "name": "Trait_NoTrain",
+      "description": "Game data table for Trait_NoTrain",
+      "schemaFile": "Trait_NoTrain.json"
+    },
+    {
+      "name": "Trait_NumPledgeDomainProdMod",
+      "description": "Game data table for Trait_NumPledgeDomainProdMod",
+      "schemaFile": "Trait_NumPledgeDomainProdMod.json"
+    },
+    {
+      "name": "Trait_PerPuppetGreatPersonRateModifier",
+      "description": "Game data table for Trait_PerPuppetGreatPersonRateModifier",
+      "schemaFile": "Trait_PerPuppetGreatPersonRateModifier.json"
+    },
+    {
+      "name": "Trait_PermanentYieldChangeGoldenAge",
+      "description": "Game data table for Trait_PermanentYieldChangeGoldenAge",
+      "schemaFile": "Trait_PermanentYieldChangeGoldenAge.json"
+    },
+    {
+      "name": "Trait_PermanentYieldChangeWLTKD",
+      "description": "Game data table for Trait_PermanentYieldChangeWLTKD",
+      "schemaFile": "Trait_PermanentYieldChangeWLTKD.json"
+    },
+    {
+      "name": "Trait_PlotYieldChanges",
+      "description": "Game data table for Trait_PlotYieldChanges",
+      "schemaFile": "Trait_PlotYieldChanges.json"
+    },
+    {
+      "name": "Trait_RandomGreatPersonProgressFromKills",
+      "description": "Game data table for Trait_RandomGreatPersonProgressFromKills",
+      "schemaFile": "Trait_RandomGreatPersonProgressFromKills.json"
+    },
+    {
+      "name": "Trait_ResourceQuantityModifiers",
+      "description": "Game data table for Trait_ResourceQuantityModifiers",
+      "schemaFile": "Trait_ResourceQuantityModifiers.json"
+    },
+    {
+      "name": "Trait_ResourceYieldChanges",
+      "description": "Game data table for Trait_ResourceYieldChanges",
+      "schemaFile": "Trait_ResourceYieldChanges.json"
+    },
+    {
+      "name": "Trait_ResourceYieldChangesFromGoldenAge",
+      "description": "Game data table for Trait_ResourceYieldChangesFromGoldenAge",
+      "schemaFile": "Trait_ResourceYieldChangesFromGoldenAge.json"
+    },
+    {
+      "name": "Trait_SeaPlotYieldChanges",
+      "description": "Game data table for Trait_SeaPlotYieldChanges",
+      "schemaFile": "Trait_SeaPlotYieldChanges.json"
+    },
+    {
+      "name": "Trait_SpecialistYieldChanges",
+      "description": "Game data table for Trait_SpecialistYieldChanges",
+      "schemaFile": "Trait_SpecialistYieldChanges.json"
+    },
+    {
+      "name": "Trait_TerrainClaimBoost",
+      "description": "Game data table for Trait_TerrainClaimBoost",
+      "schemaFile": "Trait_TerrainClaimBoost.json"
+    },
+    {
+      "name": "Trait_TerrainYieldChanges",
+      "description": "Game data table for Trait_TerrainYieldChanges",
+      "schemaFile": "Trait_TerrainYieldChanges.json"
+    },
+    {
+      "name": "Trait_Terrains",
+      "description": "Game data table for Trait_Terrains",
+      "schemaFile": "Trait_Terrains.json"
+    },
+    {
+      "name": "Trait_TradeRouteEndYield",
+      "description": "Game data table for Trait_TradeRouteEndYield",
+      "schemaFile": "Trait_TradeRouteEndYield.json"
+    },
+    {
+      "name": "Trait_TradeRouteProductionSiphon",
+      "description": "Game data table for Trait_TradeRouteProductionSiphon",
+      "schemaFile": "Trait_TradeRouteProductionSiphon.json"
+    },
+    {
+      "name": "Trait_TradeRouteYieldChange",
+      "description": "Game data table for Trait_TradeRouteYieldChange",
+      "schemaFile": "Trait_TradeRouteYieldChange.json"
+    },
+    {
+      "name": "Trait_UnhappyYieldModifiers",
+      "description": "Game data table for Trait_UnhappyYieldModifiers",
+      "schemaFile": "Trait_UnhappyYieldModifiers.json"
+    },
+    {
+      "name": "Trait_UnimprovedFeatureYieldChanges",
+      "description": "Game data table for Trait_UnimprovedFeatureYieldChanges",
+      "schemaFile": "Trait_UnimprovedFeatureYieldChanges.json"
+    },
+    {
+      "name": "Trait_UnitClassUpgrade",
+      "description": "Game data table for Trait_UnitClassUpgrade",
+      "schemaFile": "Trait_UnitClassUpgrade.json"
+    },
+    {
+      "name": "Trait_UnitCombatProductionCostModifiers",
+      "description": "Game data table for Trait_UnitCombatProductionCostModifiers",
+      "schemaFile": "Trait_UnitCombatProductionCostModifiers.json"
+    },
+    {
+      "name": "Trait_YieldChangeFromCityGain",
+      "description": "Game data table for Trait_YieldChangeFromCityGain",
+      "schemaFile": "Trait_YieldChangeFromCityGain.json"
+    },
+    {
+      "name": "Trait_YieldChangeTradeRoute",
+      "description": "Game data table for Trait_YieldChangeTradeRoute",
+      "schemaFile": "Trait_YieldChangeTradeRoute.json"
+    },
+    {
+      "name": "Trait_YieldChangeWorldWonder",
+      "description": "Game data table for Trait_YieldChangeWorldWonder",
+      "schemaFile": "Trait_YieldChangeWorldWonder.json"
+    },
+    {
+      "name": "Trait_YieldChanges",
+      "description": "Game data table for Trait_YieldChanges",
+      "schemaFile": "Trait_YieldChanges.json"
+    },
+    {
+      "name": "Trait_YieldChangesIncomingTradeRoute",
+      "description": "Game data table for Trait_YieldChangesIncomingTradeRoute",
+      "schemaFile": "Trait_YieldChangesIncomingTradeRoute.json"
+    },
+    {
+      "name": "Trait_YieldChangesNaturalWonder",
+      "description": "Game data table for Trait_YieldChangesNaturalWonder",
+      "schemaFile": "Trait_YieldChangesNaturalWonder.json"
+    },
+    {
+      "name": "Trait_YieldChangesPerImprovementBuilt",
+      "description": "Game data table for Trait_YieldChangesPerImprovementBuilt",
+      "schemaFile": "Trait_YieldChangesPerImprovementBuilt.json"
+    },
+    {
+      "name": "Trait_YieldChangesPerTradePartner",
+      "description": "Game data table for Trait_YieldChangesPerTradePartner",
+      "schemaFile": "Trait_YieldChangesPerTradePartner.json"
+    },
+    {
+      "name": "Trait_YieldChangesStrategicResources",
+      "description": "Strategic, luxury, and bonus resource definitions",
+      "schemaFile": "Trait_YieldChangesStrategicResources.json"
+    },
+    {
+      "name": "Trait_YieldFromBarbarianCampClears",
+      "description": "Game data table for Trait_YieldFromBarbarianCampClears",
+      "schemaFile": "Trait_YieldFromBarbarianCampClears.json"
+    },
+    {
+      "name": "Trait_YieldFromBarbarianKills",
+      "description": "Game data table for Trait_YieldFromBarbarianKills",
+      "schemaFile": "Trait_YieldFromBarbarianKills.json"
+    },
+    {
+      "name": "Trait_YieldFromCSAlly",
+      "description": "Game data table for Trait_YieldFromCSAlly",
+      "schemaFile": "Trait_YieldFromCSAlly.json"
+    },
+    {
+      "name": "Trait_YieldFromCSFriend",
+      "description": "Game data table for Trait_YieldFromCSFriend",
+      "schemaFile": "Trait_YieldFromCSFriend.json"
+    },
+    {
+      "name": "Trait_YieldFromCityDamageTimes100",
+      "description": "Game data table for Trait_YieldFromCityDamageTimes100",
+      "schemaFile": "Trait_YieldFromCityDamageTimes100.json"
+    },
+    {
+      "name": "Trait_YieldFromConquest",
+      "description": "Game data table for Trait_YieldFromConquest",
+      "schemaFile": "Trait_YieldFromConquest.json"
+    },
+    {
+      "name": "Trait_YieldFromExport",
+      "description": "Game data table for Trait_YieldFromExport",
+      "schemaFile": "Trait_YieldFromExport.json"
+    },
+    {
+      "name": "Trait_YieldFromHistoricEvent",
+      "description": "Game data table for Trait_YieldFromHistoricEvent",
+      "schemaFile": "Trait_YieldFromHistoricEvent.json"
+    },
+    {
+      "name": "Trait_YieldFromImport",
+      "description": "Game data table for Trait_YieldFromImport",
+      "schemaFile": "Trait_YieldFromImport.json"
+    },
+    {
+      "name": "Trait_YieldFromKills",
+      "description": "Game data table for Trait_YieldFromKills",
+      "schemaFile": "Trait_YieldFromKills.json"
+    },
+    {
+      "name": "Trait_YieldFromLevelUp",
+      "description": "Game data table for Trait_YieldFromLevelUp",
+      "schemaFile": "Trait_YieldFromLevelUp.json"
+    },
+    {
+      "name": "Trait_YieldFromLuxuryResourceGain",
+      "description": "Game data table for Trait_YieldFromLuxuryResourceGain",
+      "schemaFile": "Trait_YieldFromLuxuryResourceGain.json"
+    },
+    {
+      "name": "Trait_YieldFromMinorDemand",
+      "description": "Game data table for Trait_YieldFromMinorDemand",
+      "schemaFile": "Trait_YieldFromMinorDemand.json"
+    },
+    {
+      "name": "Trait_YieldFromOwnPantheon",
+      "description": "Game data table for Trait_YieldFromOwnPantheon",
+      "schemaFile": "Trait_YieldFromOwnPantheon.json"
+    },
+    {
+      "name": "Trait_YieldFromRouteMovement",
+      "description": "Game data table for Trait_YieldFromRouteMovement",
+      "schemaFile": "Trait_YieldFromRouteMovement.json"
+    },
+    {
+      "name": "Trait_YieldFromRouteMovementInForeignTerritory",
+      "description": "Game data table for Trait_YieldFromRouteMovementInForeignTerritory",
+      "schemaFile": "Trait_YieldFromRouteMovementInForeignTerritory.json"
+    },
+    {
+      "name": "Trait_YieldFromSettle",
+      "description": "Game data table for Trait_YieldFromSettle",
+      "schemaFile": "Trait_YieldFromSettle.json"
+    },
+    {
+      "name": "Trait_YieldFromTileConquest",
+      "description": "Game data table for Trait_YieldFromTileConquest",
+      "schemaFile": "Trait_YieldFromTileConquest.json"
+    },
+    {
+      "name": "Trait_YieldFromTileCultureBomb",
+      "description": "Game data table for Trait_YieldFromTileCultureBomb",
+      "schemaFile": "Trait_YieldFromTileCultureBomb.json"
+    },
+    {
+      "name": "Trait_YieldFromTileEarn",
+      "description": "Game data table for Trait_YieldFromTileEarn",
+      "schemaFile": "Trait_YieldFromTileEarn.json"
+    },
+    {
+      "name": "Trait_YieldFromTileEarnTerrainType",
+      "description": "Game data table for Trait_YieldFromTileEarnTerrainType",
+      "schemaFile": "Trait_YieldFromTileEarnTerrainType.json"
+    },
+    {
+      "name": "Trait_YieldFromTilePurchase",
+      "description": "Game data table for Trait_YieldFromTilePurchase",
+      "schemaFile": "Trait_YieldFromTilePurchase.json"
+    },
+    {
+      "name": "Trait_YieldFromTilePurchaseTerrainType",
+      "description": "Game data table for Trait_YieldFromTilePurchaseTerrainType",
+      "schemaFile": "Trait_YieldFromTilePurchaseTerrainType.json"
+    },
+    {
+      "name": "Trait_YieldFromTileSettle",
+      "description": "Game data table for Trait_YieldFromTileSettle",
+      "schemaFile": "Trait_YieldFromTileSettle.json"
+    },
+    {
+      "name": "Trait_YieldFromTileStealCultureBomb",
+      "description": "Game data table for Trait_YieldFromTileStealCultureBomb",
+      "schemaFile": "Trait_YieldFromTileStealCultureBomb.json"
+    },
+    {
+      "name": "Trait_YieldFromXMilitaryUnits",
+      "description": "Tracks all military and civilian units, their positions, health, and ownership",
+      "schemaFile": "Trait_YieldFromXMilitaryUnits.json"
+    },
+    {
+      "name": "Trait_YieldModifiers",
+      "description": "Game data table for Trait_YieldModifiers",
+      "schemaFile": "Trait_YieldModifiers.json"
+    },
+    {
+      "name": "Traits",
+      "description": "Game data table for Traits",
+      "schemaFile": "Traits.json"
+    },
+    {
+      "name": "TurnTimers",
+      "description": "Game data table for TurnTimers",
+      "schemaFile": "TurnTimers.json"
+    },
+    {
+      "name": "UnitAIInfos",
+      "description": "Game data table for UnitAIInfos",
+      "schemaFile": "UnitAIInfos.json"
+    },
+    {
+      "name": "UnitClasses",
+      "description": "Unit class definitions and upgrade paths",
+      "schemaFile": "UnitClasses.json"
+    },
+    {
+      "name": "UnitCombatInfos",
+      "description": "Combat resolution and battle history",
+      "schemaFile": "UnitCombatInfos.json"
+    },
+    {
+      "name": "UnitGameplay2DScripts",
+      "description": "Game data table for UnitGameplay2DScripts",
+      "schemaFile": "UnitGameplay2DScripts.json"
+    },
+    {
+      "name": "UnitPromotions",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions.json"
+    },
+    {
+      "name": "UnitPromotions_BlockedPromotions",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_BlockedPromotions.json"
+    },
+    {
+      "name": "UnitPromotions_CivilianUnitType",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_CivilianUnitType.json"
+    },
+    {
+      "name": "UnitPromotions_CombatModPerAdjacentUnitCombat",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_CombatModPerAdjacentUnitCombat.json"
+    },
+    {
+      "name": "UnitPromotions_Domains",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_Domains.json"
+    },
+    {
+      "name": "UnitPromotions_Features",
+      "description": "Natural features like forests, hills, and rivers",
+      "schemaFile": "UnitPromotions_Features.json"
+    },
+    {
+      "name": "UnitPromotions_FortificationYield",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_FortificationYield.json"
+    },
+    {
+      "name": "UnitPromotions_GarrisonYield",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_GarrisonYield.json"
+    },
+    {
+      "name": "UnitPromotions_InstantYields",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_InstantYields.json"
+    },
+    {
+      "name": "UnitPromotions_Plagues",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_Plagues.json"
+    },
+    {
+      "name": "UnitPromotions_PostCombatRandomPromotion",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_PostCombatRandomPromotion.json"
+    },
+    {
+      "name": "UnitPromotions_TerrainModifiers",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_TerrainModifiers.json"
+    },
+    {
+      "name": "UnitPromotions_Terrains",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_Terrains.json"
+    },
+    {
+      "name": "UnitPromotions_UnitClasses",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_UnitClasses.json"
+    },
+    {
+      "name": "UnitPromotions_UnitCombatMods",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_UnitCombatMods.json"
+    },
+    {
+      "name": "UnitPromotions_UnitCombats",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_UnitCombats.json"
+    },
+    {
+      "name": "UnitPromotions_UnitName",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_UnitName.json"
+    },
+    {
+      "name": "UnitPromotions_YieldChanges",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_YieldChanges.json"
+    },
+    {
+      "name": "UnitPromotions_YieldFromAncientRuins",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_YieldFromAncientRuins.json"
+    },
+    {
+      "name": "UnitPromotions_YieldFromBarbarianKills",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_YieldFromBarbarianKills.json"
+    },
+    {
+      "name": "UnitPromotions_YieldFromCombatExperienceTimes100",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_YieldFromCombatExperienceTimes100.json"
+    },
+    {
+      "name": "UnitPromotions_YieldFromKills",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_YieldFromKills.json"
+    },
+    {
+      "name": "UnitPromotions_YieldFromPillage",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_YieldFromPillage.json"
+    },
+    {
+      "name": "UnitPromotions_YieldFromScouting",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_YieldFromScouting.json"
+    },
+    {
+      "name": "UnitPromotions_YieldFromTRPlunder",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_YieldFromTRPlunder.json"
+    },
+    {
+      "name": "UnitPromotions_YieldModifiers",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "UnitPromotions_YieldModifiers.json"
+    },
+    {
+      "name": "Unit_AITypes",
+      "description": "Game data table for Unit_AITypes",
+      "schemaFile": "Unit_AITypes.json"
+    },
+    {
+      "name": "Unit_Bounties",
+      "description": "Game data table for Unit_Bounties",
+      "schemaFile": "Unit_Bounties.json"
+    },
+    {
+      "name": "Unit_BuildOnFound",
+      "description": "Game data table for Unit_BuildOnFound",
+      "schemaFile": "Unit_BuildOnFound.json"
+    },
+    {
+      "name": "Unit_BuildingClassPurchaseRequireds",
+      "description": "Game data table for Unit_BuildingClassPurchaseRequireds",
+      "schemaFile": "Unit_BuildingClassPurchaseRequireds.json"
+    },
+    {
+      "name": "Unit_BuildingClassRequireds",
+      "description": "Game data table for Unit_BuildingClassRequireds",
+      "schemaFile": "Unit_BuildingClassRequireds.json"
+    },
+    {
+      "name": "Unit_Buildings",
+      "description": "Defines all building types and their effects in the game",
+      "schemaFile": "Unit_Buildings.json"
+    },
+    {
+      "name": "Unit_Builds",
+      "description": "Game data table for Unit_Builds",
+      "schemaFile": "Unit_Builds.json"
+    },
+    {
+      "name": "Unit_ClassUpgrades",
+      "description": "Game data table for Unit_ClassUpgrades",
+      "schemaFile": "Unit_ClassUpgrades.json"
+    },
+    {
+      "name": "Unit_EraCombatStrength",
+      "description": "Game data table for Unit_EraCombatStrength",
+      "schemaFile": "Unit_EraCombatStrength.json"
+    },
+    {
+      "name": "Unit_EraCombatType",
+      "description": "Game data table for Unit_EraCombatType",
+      "schemaFile": "Unit_EraCombatType.json"
+    },
+    {
+      "name": "Unit_EraUnitPromotions",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "Unit_EraUnitPromotions.json"
+    },
+    {
+      "name": "Unit_Flavors",
+      "description": "Game data table for Unit_Flavors",
+      "schemaFile": "Unit_Flavors.json"
+    },
+    {
+      "name": "Unit_FreePromotions",
+      "description": "Unit promotion definitions and requirements",
+      "schemaFile": "Unit_FreePromotions.json"
+    },
+    {
+      "name": "Unit_GreatPersons",
+      "description": "Game data table for Unit_GreatPersons",
+      "schemaFile": "Unit_GreatPersons.json"
+    },
+    {
+      "name": "Unit_NotAITypes",
+      "description": "Game data table for Unit_NotAITypes",
+      "schemaFile": "Unit_NotAITypes.json"
+    },
+    {
+      "name": "Unit_ProductionModifierBuildings",
+      "description": "Defines all building types and their effects in the game",
+      "schemaFile": "Unit_ProductionModifierBuildings.json"
+    },
+    {
+      "name": "Unit_ProductionTraits",
+      "description": "Game data table for Unit_ProductionTraits",
+      "schemaFile": "Unit_ProductionTraits.json"
+    },
+    {
+      "name": "Unit_ResourceQuantityExpended",
+      "description": "Game data table for Unit_ResourceQuantityExpended",
+      "schemaFile": "Unit_ResourceQuantityExpended.json"
+    },
+    {
+      "name": "Unit_ResourceQuantityRequirements",
+      "description": "Game data table for Unit_ResourceQuantityRequirements",
+      "schemaFile": "Unit_ResourceQuantityRequirements.json"
+    },
+    {
+      "name": "Unit_ResourceQuantityTotals",
+      "description": "Game data table for Unit_ResourceQuantityTotals",
+      "schemaFile": "Unit_ResourceQuantityTotals.json"
+    },
+    {
+      "name": "Unit_ScalingFromOwnedImprovements",
+      "description": "Tile improvements like farms, mines, and roads",
+      "schemaFile": "Unit_ScalingFromOwnedImprovements.json"
+    },
+    {
+      "name": "Unit_TechTypes",
+      "description": "Game data table for Unit_TechTypes",
+      "schemaFile": "Unit_TechTypes.json"
+    },
+    {
+      "name": "Unit_UniqueNames",
+      "description": "Game data table for Unit_UniqueNames",
+      "schemaFile": "Unit_UniqueNames.json"
+    },
+    {
+      "name": "Unit_YieldFromBarbarianKills",
+      "description": "Game data table for Unit_YieldFromBarbarianKills",
+      "schemaFile": "Unit_YieldFromBarbarianKills.json"
+    },
+    {
+      "name": "Unit_YieldFromKills",
+      "description": "Game data table for Unit_YieldFromKills",
+      "schemaFile": "Unit_YieldFromKills.json"
+    },
+    {
+      "name": "Unit_YieldOnCompletion",
+      "description": "Game data table for Unit_YieldOnCompletion",
+      "schemaFile": "Unit_YieldOnCompletion.json"
+    },
+    {
+      "name": "Units",
+      "description": "Tracks all military and civilian units, their positions, health, and ownership",
+      "schemaFile": "Units.json"
+    },
+    {
+      "name": "Victories",
+      "description": "Game data table for Victories",
+      "schemaFile": "Victories.json"
+    },
+    {
+      "name": "VictoryPointAwards",
+      "description": "Victory condition definitions and requirements",
+      "schemaFile": "VictoryPointAwards.json"
+    },
+    {
+      "name": "VictoryPursuitTypes",
+      "description": "Victory condition definitions and requirements",
+      "schemaFile": "VictoryPursuitTypes.json"
+    },
+    {
+      "name": "VoteSources",
+      "description": "Game data table for VoteSources",
+      "schemaFile": "VoteSources.json"
+    },
+    {
+      "name": "Vote_DiploVotes",
+      "description": "Game data table for Vote_DiploVotes",
+      "schemaFile": "Vote_DiploVotes.json"
+    },
+    {
+      "name": "Votes",
+      "description": "Game data table for Votes",
+      "schemaFile": "Votes.json"
+    },
+    {
+      "name": "Worlds",
+      "description": "Game data table for Worlds",
+      "schemaFile": "Worlds.json"
+    },
+    {
+      "name": "Yields",
+      "description": "Resource yields like food, production, gold, science, culture, faith",
+      "schemaFile": "Yields.json"
+    }
+  ],
+  "exportDate": "2025-09-01T02:26:32.741Z"
+}

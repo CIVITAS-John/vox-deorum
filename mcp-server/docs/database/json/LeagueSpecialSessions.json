@@ -1,0 +1,199 @@
+{
+  "tableName": "LeagueSpecialSessions",
+  "rowCount": 4,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Help",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "SessionSplashImage",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "EraTrigger",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "ImmediateProposal",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "RecurringProposal",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "TurnsBetweenSessions",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "CivDelegates",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "HostDelegates",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "CityStateDelegates",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "UnitedNations",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "BuildingTrigger",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 13,
+      "constraints": "REFERENCES Buildings (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "TriggerResolution",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 14,
+      "constraints": "REFERENCES Resolutions (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "RecurringProposal",
+      "referencedTable": "Resolutions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ImmediateProposal",
+      "referencedTable": "Resolutions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "EraTrigger",
+      "referencedTable": "Eras",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Help",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TriggerResolution",
+      "referencedTable": "Resolutions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "BuildingTrigger",
+      "referencedTable": "Buildings",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_LeagueSpecialSessions_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE LeagueSpecialSessions ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text default NULL , 'Help' text default NULL , 'SessionSplashImage' text default NULL , 'EraTrigger' text default NULL , 'ImmediateProposal' text default NULL , 'RecurringProposal' text default NULL , 'TurnsBetweenSessions' integer default 0 , 'CivDelegates' integer default 0 , 'HostDelegates' integer default 0 , 'CityStateDelegates' integer default 0 , 'UnitedNations' boolean default 0 , BuildingTrigger text REFERENCES Buildings (Type), TriggerResolution text REFERENCES Resolutions (Type), foreign key (Description) references Language_en_US(Tag), foreign key (Help) references Language_en_US(Tag), foreign key (EraTrigger) references Eras(Type), foreign key (ImmediateProposal) references Resolutions(Type), foreign key (RecurringProposal) references Resolutions(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.259Z"
+  }
+}

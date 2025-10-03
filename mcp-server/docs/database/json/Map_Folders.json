@@ -1,0 +1,69 @@
+{
+  "tableName": "Map_Folders",
+  "rowCount": 4,
+  "columns": [
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "ParentType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Title",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "IconIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'WORLDTYPE_ATLAS'",
+      "primaryKey": false,
+      "position": 5
+    }
+  ],
+  "primaryKeys": [
+    "Type"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Map_Folders_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Map_Folders(\t'Type' TEXT NOT NULL, \r\n\t\t\t\t\t\t\t'ParentType' TEXT, \r\n\t\t\t\t\t\t\t'Title' TEXT NOT NULL, \r\n\t\t\t\t\t\t\t'Description' TEXT NOT NULL,\r\n\t\t\t\t\t\t\t'IconIndex' INTEGER DEFAULT 0,\r\n\t\t\t\t\t\t\t'IconAtlas' TEXT DEFAULT 'WORLDTYPE_ATLAS',\r\n\t\t\t\t\t\t\tPRIMARY KEY('Type'))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.265Z"
+  }
+}

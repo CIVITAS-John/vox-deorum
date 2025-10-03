@@ -1,0 +1,19 @@
+{
+  "eventName": "CircumnavigatedGlobe",
+  "generatedAt": "2025-09-02T16:48:34.174Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 7704,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CircumnavigatedGlobe\", args.get(), bResult);",
+      "eventName": "CircumnavigatedGlobe",
+      "args": [
+        {
+          "line": 7701,
+          "content": "args->Push(eTeamID);"
+        }
+      ]
+    }
+  ]
+}

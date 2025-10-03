@@ -1,0 +1,45 @@
+{
+  "tableName": "GameSpeed_Turns",
+  "rowCount": 31,
+  "columns": [
+    {
+      "name": "GameSpeedType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "MonthIncrement",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "TurnsPerIncrement",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "GameSpeedType",
+      "referencedTable": "GameSpeeds",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE GameSpeed_Turns ('GameSpeedType' text , 'MonthIncrement' integer , 'TurnsPerIncrement' integer , foreign key (GameSpeedType) references GameSpeeds(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.205Z"
+  }
+}

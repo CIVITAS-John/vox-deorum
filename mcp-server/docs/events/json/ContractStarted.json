@@ -1,0 +1,19 @@
+{
+  "eventName": "ContractStarted",
+  "generatedAt": "2025-09-02T16:48:30.107Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvContractClasses.cpp",
+      "line": 387,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_ContractStarted, m_pPlayer->GetID(), eContract, iTurns, iMaintenance);",
+      "eventName": "ContractStarted",
+      "args": [
+        "m_pPlayer->GetID()",
+        "eContract",
+        "iTurns",
+        "iMaintenance"
+      ]
+    }
+  ]
+}

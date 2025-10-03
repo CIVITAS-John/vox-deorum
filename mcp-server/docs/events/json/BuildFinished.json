@@ -1,0 +1,31 @@
+{
+  "eventName": "BuildFinished",
+  "generatedAt": "2025-09-02T16:48:34.173Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+      "line": 12838,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"BuildFinished\", args.get(), bResult);",
+      "eventName": "BuildFinished",
+      "args": [
+        {
+          "line": 12832,
+          "content": "args->Push(ePlayer);"
+        },
+        {
+          "line": 12833,
+          "content": "args->Push(getX());"
+        },
+        {
+          "line": 12834,
+          "content": "args->Push(getY());"
+        },
+        {
+          "line": 12835,
+          "content": "args->Push(eImprovement);"
+        }
+      ]
+    }
+  ]
+}

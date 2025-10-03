@@ -1,0 +1,132 @@
+{
+  "tableName": "AICityStrategies",
+  "rowCount": 48,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "CheckTriggerTurnCount",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "MinimumNumTurnsExecuted",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "WeightThreshold",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "NoMinorCivs",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "Permanent",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "TechPrereq",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "TechObsolete",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "Advisor",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "AdvisorCounsel",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "AdvisorCounselImportance",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 11
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "TechObsolete",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "TechPrereq",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_AICityStrategies_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE AICityStrategies ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'CheckTriggerTurnCount' integer , 'MinimumNumTurnsExecuted' integer , 'WeightThreshold' integer default 0 , 'NoMinorCivs' boolean default 0 , 'Permanent' boolean default 0 , 'TechPrereq' text default NULL , 'TechObsolete' text default NULL , 'Advisor' text , 'AdvisorCounsel' text , 'AdvisorCounselImportance' integer default 1 , foreign key (TechPrereq) references Technologies(Type), foreign key (TechObsolete) references Technologies(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.946Z"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "tableName": "Maps",
+  "rowCount": 23,
+  "columns": [
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Name",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "FolderType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "IconIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'WORLDTYPE_ATLAS'",
+      "primaryKey": false,
+      "position": 5
+    }
+  ],
+  "primaryKeys": [
+    "Type"
+  ],
+  "foreignKeys": [
+    {
+      "column": "FolderType",
+      "referencedTable": "Map_Folders",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Maps_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Maps('Type' TEXT PRIMARY KEY,\r\n\t\t\t\t  'Name' TEXT NOT NULL,\r\n\t\t\t\t  'Description' TEXT NOT NULL,\r\n\t\t\t\t  'FolderType' TEXT DEFAULT NULL,\r\n\t\t\t\t  'IconIndex' INTEGER DEFAULT 0,\r\n\t\t\t\t  'IconAtlas' TEXT DEFAULT 'WORLDTYPE_ATLAS',\r\n\t\t\t\t  FOREIGN KEY('FolderType') REFERENCES Map_Folders('Type'))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.267Z"
+  }
+}

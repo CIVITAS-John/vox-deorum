@@ -1,0 +1,27 @@
+{
+  "eventName": "CitySoldBuilding",
+  "generatedAt": "2025-09-02T16:48:34.171Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvDllNetMessageHandler.cpp",
+      "line": 1125,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CitySoldBuilding\", args.get(), bResult);",
+      "eventName": "CitySoldBuilding",
+      "args": [
+        {
+          "line": 1120,
+          "content": "args->Push(ePlayer);"
+        },
+        {
+          "line": 1121,
+          "content": "args->Push(iCityID);"
+        },
+        {
+          "line": 1122,
+          "content": "args->Push(eBuilding);"
+        }
+      ]
+    }
+  ]
+}

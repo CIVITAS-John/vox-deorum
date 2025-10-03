@@ -1,0 +1,23 @@
+{
+  "eventName": "TeamMeet",
+  "generatedAt": "2025-09-02T16:48:34.174Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 2528,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"TeamMeet\", args.get(), bResult);",
+      "eventName": "TeamMeet",
+      "args": [
+        {
+          "line": 2524,
+          "content": "args->Push(eTeam);"
+        },
+        {
+          "line": 2525,
+          "content": "args->Push(GetID());"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "server": {
+    "name": "vox-deorum-mcp-server",
+    "version": "1.0.0"
+  },
+  "bridgeService": {
+    "endpoint": {
+      "host": "127.0.0.1",
+      "port": 5000
+    },
+    "eventPipe": {
+      "enabled": true,
+      "name": "vox-deorum-events"
+    }
+  },
+  "logging": {
+    "level": "info"
+  }
+}

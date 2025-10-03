@@ -1,0 +1,19 @@
+{
+  "eventName": "PlayerEndTurnInitiated",
+  "generatedAt": "2025-09-02T16:48:34.173Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 32751,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerEndTurnInitiated\", args.get(), bResult);",
+      "eventName": "PlayerEndTurnInitiated",
+      "args": [
+        {
+          "line": 32748,
+          "content": "args->Push(GetID());"
+        }
+      ]
+    }
+  ]
+}

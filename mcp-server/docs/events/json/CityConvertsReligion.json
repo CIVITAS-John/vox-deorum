@@ -1,0 +1,31 @@
+{
+  "eventName": "CityConvertsReligion",
+  "generatedAt": "2025-09-02T16:48:34.173Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+      "line": 5716,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CityConvertsReligion\", args.get(), bResult);",
+      "eventName": "CityConvertsReligion",
+      "args": [
+        {
+          "line": 5708,
+          "content": "args->Push(m_pCity->getOwner());"
+        },
+        {
+          "line": 5709,
+          "content": "args->Push(eMajority);"
+        },
+        {
+          "line": 5710,
+          "content": "args->Push(m_pCity->getX());"
+        },
+        {
+          "line": 5711,
+          "content": "args->Push(m_pCity->getY());"
+        }
+      ]
+    }
+  ]
+}

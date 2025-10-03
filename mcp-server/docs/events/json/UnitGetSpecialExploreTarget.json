@@ -1,0 +1,23 @@
+{
+  "eventName": "UnitGetSpecialExploreTarget",
+  "generatedAt": "2025-09-02T16:48:34.172Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvHomelandAI.cpp",
+      "line": 2344,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"UnitGetSpecialExploreTarget\", args.get(), bResult);",
+      "eventName": "UnitGetSpecialExploreTarget",
+      "args": [
+        {
+          "line": 2340,
+          "content": "args->Push(pUnit->getOwner());"
+        },
+        {
+          "line": 2341,
+          "content": "args->Push(pUnit->GetID());"
+        }
+      ]
+    }
+  ]
+}

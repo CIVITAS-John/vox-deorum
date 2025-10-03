@@ -1,0 +1,23 @@
+{
+  "eventName": "GreatPersonExpended",
+  "generatedAt": "2025-09-02T16:48:34.173Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 27934,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"GreatPersonExpended\", args.get(), bResult);",
+      "eventName": "GreatPersonExpended",
+      "args": [
+        {
+          "line": 27930,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 27931,
+          "content": "args->Push(eGreatPersonUnit);"
+        }
+      ]
+    }
+  ]
+}

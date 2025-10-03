@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npm install)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run start:*)",
+      "Bash(dir:*)",
+      "WebFetch(domain:modiki.civfanatics.com)",
+      "Bash(node:*)",
+      "Bash(python:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(move:*)",
+      "Bash(npm run test:*)",
+      "Bash(npx tsc:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run dev:*)",
+      "WebFetch(domain:mastra.dev)",
+      "WebFetch(domain:mastra.ai)",
+      "Bash(find:*)",
+      "Bash(cmd /c \"dir *\")",
+      "Bash(git lfs:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git submodule:*)",
+      "WebFetch(domain:ai-sdk.dev)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "outputStyle": "default"
+}

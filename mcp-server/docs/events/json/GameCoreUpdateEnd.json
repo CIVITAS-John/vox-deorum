@@ -1,0 +1,14 @@
+{
+  "eventName": "GameCoreUpdateEnd",
+  "generatedAt": "2025-09-02T16:48:34.171Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvGame.cpp",
+      "line": 1619,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"GameCoreUpdateEnd\", args.get(), bResult);",
+      "eventName": "GameCoreUpdateEnd",
+      "args": []
+    }
+  ]
+}

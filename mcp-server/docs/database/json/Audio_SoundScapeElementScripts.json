@@ -1,0 +1,55 @@
+{
+  "tableName": "Audio_SoundScapeElementScripts",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "SoundScapeScriptID",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "SoundScapeIndex",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 1
+    },
+    {
+      "name": "ScriptIndex",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 2
+    },
+    {
+      "name": "ScriptID",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    }
+  ],
+  "primaryKeys": [
+    "SoundScapeScriptID",
+    "SoundScapeIndex",
+    "ScriptIndex"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Audio_SoundScapeElementScripts_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Audio_SoundScapeElementScripts('SoundScapeScriptID' TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\t\t'SoundScapeIndex' INTEGER NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\t\t'ScriptIndex' INTEGER NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\t\t'ScriptID' TEXT NOT NULL,\r\n\t\t\t\t\t\t\t\t\t\t\tPRIMARY KEY('SoundScapeScriptID', 'SoundScapeIndex', 'ScriptIndex'))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:22.971Z"
+  }
+}

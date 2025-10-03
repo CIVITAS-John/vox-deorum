@@ -1,0 +1,77 @@
+{
+  "tableName": "TacticalMoves",
+  "rowCount": 53,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "OperationsCanRecruit",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "DominanceZoneMove",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "OffenseFlavorWeight",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "DefenseFlavorWeight",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "Priority",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_TacticalMoves_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE TacticalMoves ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'OperationsCanRecruit' boolean default 1 , 'DominanceZoneMove' boolean default 0 , 'OffenseFlavorWeight' integer , 'DefenseFlavorWeight' integer , 'Priority' integer )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.405Z"
+  }
+}

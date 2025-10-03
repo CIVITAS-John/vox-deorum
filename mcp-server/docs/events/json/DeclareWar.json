@@ -1,0 +1,23 @@
+{
+  "eventName": "DeclareWar",
+  "generatedAt": "2025-09-02T16:48:34.174Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+      "line": 1286,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"DeclareWar\", args.get(), bResult);",
+      "eventName": "DeclareWar",
+      "args": [
+        {
+          "line": 1282,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 1283,
+          "content": "args->Push(eTeam);"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "generatedAt": "2025-09-02T16:48:34.175Z",
+  "totalReferences": 67,
+  "totalUniqueEvents": 51,
+  "eventNames": [
+    "BuildFinished",
+    "ChangeGoldenAgeProgressMeter",
+    "CircumnavigatedGlobe",
+    "CityBoughtPlot",
+    "CityCaptureComplete",
+    "CityConstructed",
+    "CityConvertsPantheon",
+    "CityConvertsReligion",
+    "CityCreated",
+    "CitySoldBuilding",
+    "CityTrained",
+    "CombatEnded",
+    "CombatResult",
+    "DeclareWar",
+    "GameCoreTestVictory",
+    "GameCoreUpdateBegin",
+    "GameCoreUpdateEnd",
+    "GatherPerTurnReplayStats",
+    "GoodyHutTechResearched",
+    "GreatPersonExpended",
+    "MakePeace",
+    "NaturalWonderDiscovered",
+    "NuclearDetonation",
+    "PantheonFounded",
+    "ParadropAt",
+    "PlayerAdoptPolicy",
+    "PlayerAdoptPolicyBranch",
+    "PlayerCityFounded",
+    "PlayerDoTurn",
+    "PlayerEndTurnCompleted",
+    "PlayerEndTurnInitiated",
+    "PlayerPreAIUnitUpdate",
+    "PushingMissionTo",
+    "RebaseTo",
+    "ReligionEnhanced",
+    "ReligionFounded",
+    "SetAlly",
+    "SetPopulation",
+    "TeamMeet",
+    "TeamSetEra",
+    "TeamSetHasTech",
+    "TeamTechResearched",
+    "TestEvent",
+    "TurnComplete",
+    "UiDiploEvent",
+    "UnitGetSpecialExploreTarget",
+    "UnitKilledInCombat",
+    "UnitPrekill",
+    "UnitPromoted",
+    "UnitSetXY",
+    "UnitUpgraded"
+  ],
+  "filesCovered": [
+    "CvGameCoreDLL_Expansion2/CustomMods.cpp",
+    "CvGameCoreDLL_Expansion2/CvCity.cpp",
+    "CvGameCoreDLL_Expansion2/CvDllNetMessageHandler.cpp",
+    "CvGameCoreDLL_Expansion2/CvGame.cpp",
+    "CvGameCoreDLL_Expansion2/CvHomelandAI.cpp",
+    "CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp",
+    "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+    "CvGameCoreDLL_Expansion2/CvPlayerAI.cpp",
+    "CvGameCoreDLL_Expansion2/CvPlot.cpp",
+    "CvGameCoreDLL_Expansion2/CvPolicyAI.cpp",
+    "CvGameCoreDLL_Expansion2/CvPolicyClasses.cpp",
+    "CvGameCoreDLL_Expansion2/CvReligionClasses.cpp",
+    "CvGameCoreDLL_Expansion2/CvTeam.cpp",
+    "CvGameCoreDLL_Expansion2/CvTechClasses.cpp",
+    "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+    "CvGameCoreDLL_Expansion2/CvUnitCombat.cpp",
+    "CvGameCoreDLL_Expansion2/Lua/CvLuaGame.cpp",
+    "CvGameCoreDLL_Expansion2/Lua/CvLuaSupport.cpp"
+  ],
+  "topEvents": [
+    {
+      "name": "TurnComplete",
+      "count": 5
+    },
+    {
+      "name": "CityBoughtPlot",
+      "count": 3
+    },
+    {
+      "name": "CityTrained",
+      "count": 3
+    },
+    {
+      "name": "CityConstructed",
+      "count": 3
+    },
+    {
+      "name": "PlayerAdoptPolicyBranch",
+      "count": 3
+    },
+    {
+      "name": "CityCreated",
+      "count": 2
+    },
+    {
+      "name": "UnitUpgraded",
+      "count": 2
+    },
+    {
+      "name": "SetPopulation",
+      "count": 1
+    },
+    {
+      "name": "CitySoldBuilding",
+      "count": 1
+    },
+    {
+      "name": "GameCoreUpdateBegin",
+      "count": 1
+    }
+  ]
+}

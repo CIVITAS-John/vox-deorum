@@ -1,0 +1,366 @@
+{
+  "tableName": "Leaders",
+  "rowCount": 44,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0,
+      "constraints": "PRIMARY KEY",
+      "isPrimaryKey": true,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Type",
+      "type": "text",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1,
+      "constraints": "NOT NULL UNIQUE",
+      "isPrimaryKey": false,
+      "isNotNull": true,
+      "isUnique": true
+    },
+    {
+      "name": "Description",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2,
+      "constraints": "REFERENCES Language_en_US (Tag)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Civilopedia",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CivilopediaTag",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "ArtDefineTag",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Personality",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PrimaryVictoryPursuit",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "SecondaryVictoryPursuit",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 8,
+      "constraints": "REFERENCES VictoryPursuitTypes (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "VictoryCompetitiveness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 9,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "WonderCompetitiveness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 10,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinorCivCompetitiveness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 11,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Boldness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 12,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "DiploBalance",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 13,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "WarmongerHate",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 14,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "DoFWillingness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 15,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "DenounceWillingness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 16,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "WorkWithWillingness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 17,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "WorkAgainstWillingness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 18,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Loyalty",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 19,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Forgiveness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 20,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Neediness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 21,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Meanness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "5",
+      "primaryKey": false,
+      "position": 22,
+      "constraints": "DEFAULT 5",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "Chattiness",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "4",
+      "primaryKey": false,
+      "position": 23,
+      "constraints": "DEFAULT 4",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "-1",
+      "primaryKey": false,
+      "position": 24,
+      "constraints": "DEFAULT -1",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IconAtlas",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 25,
+      "constraints": "REFERENCES IconTextureAtlases (Atlas)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PackageID",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 26,
+      "constraints": null,
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "IconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "SecondaryVictoryPursuit",
+      "referencedTable": "VictoryPursuitTypes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PrimaryVictoryPursuit",
+      "referencedTable": "VictoryPursuitTypes",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Leaders_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE \"Leaders\" (\r\n\tID integer PRIMARY KEY,\r\n\tType text NOT NULL UNIQUE,\r\n\tDescription text REFERENCES Language_en_US (Tag),\r\n\tCivilopedia text, -- unused?\r\n\tCivilopediaTag text,\r\n\tArtDefineTag text,\r\n\tPersonality text,\r\n\tPrimaryVictoryPursuit text REFERENCES VictoryPursuitTypes (Type),\r\n\tSecondaryVictoryPursuit text REFERENCES VictoryPursuitTypes (Type),\r\n\tVictoryCompetitiveness integer DEFAULT 5,\r\n\tWonderCompetitiveness integer DEFAULT 5,\r\n\tMinorCivCompetitiveness integer DEFAULT 5,\r\n\tBoldness integer DEFAULT 5,\r\n\tDiploBalance integer DEFAULT 5,\r\n\tWarmongerHate integer DEFAULT 5,\r\n\tDoFWillingness integer DEFAULT 5,\r\n\tDenounceWillingness integer DEFAULT 5,\r\n\tWorkWithWillingness integer DEFAULT 5,\r\n\tWorkAgainstWillingness integer DEFAULT 5,\r\n\tLoyalty integer DEFAULT 5,\r\n\tForgiveness integer DEFAULT 5,\r\n\tNeediness integer DEFAULT 5,\r\n\tMeanness integer DEFAULT 5,\r\n\tChattiness integer DEFAULT 4,\r\n\tPortraitIndex integer DEFAULT -1,\r\n\tIconAtlas text REFERENCES IconTextureAtlases (Atlas),\r\n\tPackageID text\r\n)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.254Z"
+  }
+}

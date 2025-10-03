@@ -1,0 +1,1682 @@
+{
+  "tableName": "Units",
+  "rowCount": 148,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Civilopedia",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "Strategy",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "Help",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    },
+    {
+      "name": "Requirements",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 6
+    },
+    {
+      "name": "Combat",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 7
+    },
+    {
+      "name": "RangedCombat",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 8
+    },
+    {
+      "name": "Cost",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 9
+    },
+    {
+      "name": "FaithCost",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 10
+    },
+    {
+      "name": "RequiresFaithPurchaseEnabled",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 11
+    },
+    {
+      "name": "PurchaseOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 12
+    },
+    {
+      "name": "MoveAfterPurchase",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 13
+    },
+    {
+      "name": "Moves",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 14
+    },
+    {
+      "name": "Immobile",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 15
+    },
+    {
+      "name": "Range",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 16
+    },
+    {
+      "name": "BaseSightRange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "2",
+      "primaryKey": false,
+      "position": 17
+    },
+    {
+      "name": "Class",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 18
+    },
+    {
+      "name": "Special",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 19
+    },
+    {
+      "name": "Capture",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 20
+    },
+    {
+      "name": "CombatClass",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 21
+    },
+    {
+      "name": "Domain",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 22
+    },
+    {
+      "name": "CivilianAttackPriority",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 23
+    },
+    {
+      "name": "DefaultUnitAI",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 24
+    },
+    {
+      "name": "Food",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 25
+    },
+    {
+      "name": "NoBadGoodies",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 26
+    },
+    {
+      "name": "RivalTerritory",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 27
+    },
+    {
+      "name": "MilitarySupport",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 28
+    },
+    {
+      "name": "MilitaryProduction",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 29
+    },
+    {
+      "name": "Pillage",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 30
+    },
+    {
+      "name": "PillagePrereqTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 31
+    },
+    {
+      "name": "Found",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 32
+    },
+    {
+      "name": "FoundAbroad",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 33
+    },
+    {
+      "name": "CultureBombRadius",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 34
+    },
+    {
+      "name": "GoldenAgeTurns",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 35
+    },
+    {
+      "name": "FreePolicies",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 36
+    },
+    {
+      "name": "OneShotTourism",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 37
+    },
+    {
+      "name": "OneShotTourismPercentOthers",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 38
+    },
+    {
+      "name": "IgnoreBuildingDefense",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 39
+    },
+    {
+      "name": "PrereqResources",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 40
+    },
+    {
+      "name": "Mechanized",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 41
+    },
+    {
+      "name": "Suicide",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 42
+    },
+    {
+      "name": "CaptureWhileEmbarked",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 43
+    },
+    {
+      "name": "PrereqTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 44
+    },
+    {
+      "name": "ObsoleteTech",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 45
+    },
+    {
+      "name": "GoodyHutUpgradeUnitClass",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 46
+    },
+    {
+      "name": "HurryCostModifier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 47
+    },
+    {
+      "name": "AdvancedStartCost",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 48
+    },
+    {
+      "name": "MinAreaSize",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 49
+    },
+    {
+      "name": "AirInterceptRange",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 50
+    },
+    {
+      "name": "AirUnitCap",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 51
+    },
+    {
+      "name": "NukeDamageLevel",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 52
+    },
+    {
+      "name": "WorkRate",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 53
+    },
+    {
+      "name": "NumFreeTechs",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 54
+    },
+    {
+      "name": "BaseBeakersTurnsToCount",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 55
+    },
+    {
+      "name": "BaseCultureTurnsToCount",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 56
+    },
+    {
+      "name": "RushBuilding",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 57
+    },
+    {
+      "name": "BaseHurry",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 58
+    },
+    {
+      "name": "HurryMultiplier",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 59
+    },
+    {
+      "name": "BaseGold",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 60
+    },
+    {
+      "name": "NumGoldPerEra",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 61
+    },
+    {
+      "name": "SpreadReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 62
+    },
+    {
+      "name": "RemoveHeresy",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 63
+    },
+    {
+      "name": "ReligionSpreads",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 64
+    },
+    {
+      "name": "ReligiousStrength",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 65
+    },
+    {
+      "name": "FoundReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 66
+    },
+    {
+      "name": "RequiresEnhancedReligion",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 67
+    },
+    {
+      "name": "ProhibitsSpread",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 68
+    },
+    {
+      "name": "CanBuyCityState",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 69
+    },
+    {
+      "name": "CombatLimit",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 70
+    },
+    {
+      "name": "RangeAttackOnlyInDomain",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 71
+    },
+    {
+      "name": "RangeAttackIgnoreLOS",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 72
+    },
+    {
+      "name": "Trade",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 73
+    },
+    {
+      "name": "NumExoticGoods",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 74
+    },
+    {
+      "name": "PolicyType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 75
+    },
+    {
+      "name": "RangedCombatLimit",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 76
+    },
+    {
+      "name": "XPValueAttack",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 77
+    },
+    {
+      "name": "XPValueDefense",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 78
+    },
+    {
+      "name": "SpecialCargo",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 79
+    },
+    {
+      "name": "DomainCargo",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 80
+    },
+    {
+      "name": "Conscription",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 81
+    },
+    {
+      "name": "ExtraMaintenanceCost",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 82
+    },
+    {
+      "name": "NoMaintenance",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 83
+    },
+    {
+      "name": "Unhappiness",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 84
+    },
+    {
+      "name": "UnitArtInfo",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 85
+    },
+    {
+      "name": "UnitArtInfoCulturalVariation",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 86
+    },
+    {
+      "name": "UnitArtInfoEraVariation",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 87
+    },
+    {
+      "name": "ProjectPrereq",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 88
+    },
+    {
+      "name": "SpaceshipProject",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 89
+    },
+    {
+      "name": "LeaderPromotion",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 90
+    },
+    {
+      "name": "LeaderExperience",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 91
+    },
+    {
+      "name": "DontShowYields",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 92
+    },
+    {
+      "name": "ShowInPedia",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 93
+    },
+    {
+      "name": "MoveRate",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'BIPED'",
+      "primaryKey": false,
+      "position": 94
+    },
+    {
+      "name": "UnitFlagIconOffset",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 95
+    },
+    {
+      "name": "PortraitIndex",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "'-1'",
+      "primaryKey": false,
+      "position": 96
+    },
+    {
+      "name": "IconAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "NULL",
+      "primaryKey": false,
+      "position": 97
+    },
+    {
+      "name": "UnitFlagAtlas",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": "'UNIT_FLAG_ATLAS'",
+      "primaryKey": false,
+      "position": 98
+    },
+    {
+      "name": "CargoCombat",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 99,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MaxHitPoints",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 100,
+      "constraints": "DEFAULT 100",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "FoundMid",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 101,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "FoundLate",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 102,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "FoundColony",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 103,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CityAttackOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 104,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CulExpOnDisbandUpgrade",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 105,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CostScalerNumRepeats",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 106,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "TourismBonusTurns",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 107,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ResourceType",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 108,
+      "constraints": "REFERENCES Resources (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "BeliefRequired",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 109,
+      "constraints": "REFERENCES Beliefs (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PuppetPurchaseOverride",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 110,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "GoodyModifier",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 111,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "SupplyCapBoost",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 112,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "BaseProductionTurnsToCount",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 113,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "BaseGoldTurnsToCount",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 114,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "BaseTurnsForGAPToCount",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 115,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "BaseWLTKDTurns",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 116,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NumFreeLux",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 117,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "GPExtra",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 118,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "FriendlyLandsPromotion",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 119,
+      "constraints": "REFERENCES UnitPromotions (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IsConvertUnit",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 120,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ScaleFromNumGWs",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 121,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ScaleFromNumThemes",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 122,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NumberOfCultureBombs",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 123,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PurchaseCooldown",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 124,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "LocalFaithPurchaseCooldown",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 125,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "GlobalFaithPurchaseCooldown",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 126,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "BaseLandAirDefense",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 127,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "IsMounted",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 128,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NoSupply",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 129,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "FreeUpgrade",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 130,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "UnitEraUpgrade",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 131,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "SpecialUnitCargoLoad",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 132,
+      "constraints": "REFERENCES SpecialUnits (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "WarOnly",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 133,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "WLTKDFromBirth",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 134,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "GoldenAgeFromBirth",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 135,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CultureBoost",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 136,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ExtraAttackHealthOnKill",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 137,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "HighSeaRaider",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 138,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NumInfPerEra",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 139,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "RestingPointChange",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 140,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "ProductionCostAddedPerEra",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 141,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CopyYieldsFromExpendTile",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 142,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "TileXPOnExpend",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 143,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "SendCanMoveIntoEvent",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 144,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CannotEmbark",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 145,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MinorCivGift",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 146,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NoMinorCivGift",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 147,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NoMinorGifts",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 148,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "MoveAfterUpgrade",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 149,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "PromotionClass",
+      "type": "text",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 150,
+      "constraints": "REFERENCES UnitCombatInfos (Type)",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CanRepairFleet",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 151,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "CanChangePort",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 152,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "NumberStackingUnits",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 153,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    },
+    {
+      "name": "StackCombat",
+      "type": "integer",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 154,
+      "constraints": "DEFAULT 0",
+      "isPrimaryKey": false,
+      "isNotNull": false,
+      "isUnique": false
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [
+    {
+      "column": "UnitFlagAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "IconAtlas",
+      "referencedTable": "IconTextureAtlases",
+      "referencedColumn": "Atlas",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "MoveRate",
+      "referencedTable": "MovementRates",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "LeaderPromotion",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "SpaceshipProject",
+      "referencedTable": "Projects",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ProjectPrereq",
+      "referencedTable": "Projects",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "DomainCargo",
+      "referencedTable": "Domains",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "SpecialCargo",
+      "referencedTable": "SpecialUnits",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PolicyType",
+      "referencedTable": "Policies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "GoodyHutUpgradeUnitClass",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ObsoleteTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PrereqTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PillagePrereqTech",
+      "referencedTable": "Technologies",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "DefaultUnitAI",
+      "referencedTable": "UnitAIInfos",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Domain",
+      "referencedTable": "Domains",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "CombatClass",
+      "referencedTable": "UnitCombatInfos",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Capture",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Special",
+      "referencedTable": "SpecialUnits",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Class",
+      "referencedTable": "UnitClasses",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Help",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Strategy",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Civilopedia",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "Description",
+      "referencedTable": "Language_en_US",
+      "referencedColumn": "Tag",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PromotionClass",
+      "referencedTable": "UnitCombatInfos",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "SpecialUnitCargoLoad",
+      "referencedTable": "SpecialUnits",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "FriendlyLandsPromotion",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "BeliefRequired",
+      "referencedTable": "Beliefs",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "ResourceType",
+      "referencedTable": "Resources",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_Units_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Units ('ID' integer primary key autoincrement , 'Type' text  not null unique , 'Description' text , 'Civilopedia' text , 'Strategy' text , 'Help' text , 'Requirements' text , 'Combat' integer default 0 , 'RangedCombat' integer default 0 , 'Cost' integer default 0 , 'FaithCost' integer default 0 , 'RequiresFaithPurchaseEnabled' boolean default 0 , 'PurchaseOnly' boolean default 0 , 'MoveAfterPurchase' boolean default 0 , 'Moves' integer default 0 , 'Immobile' boolean default 0 , 'Range' integer default 0 , 'BaseSightRange' integer default 2 , 'Class' text default NULL , 'Special' text default NULL , 'Capture' text default NULL , 'CombatClass' text default NULL , 'Domain' text default NULL , 'CivilianAttackPriority' text default NULL , 'DefaultUnitAI' text default NULL , 'Food' boolean default 0 , 'NoBadGoodies' boolean default 0 , 'RivalTerritory' boolean default 0 , 'MilitarySupport' boolean default 0 , 'MilitaryProduction' boolean default 0 , 'Pillage' boolean default 0 , 'PillagePrereqTech' text default NULL , 'Found' boolean default 0 , 'FoundAbroad' boolean default 0 , 'CultureBombRadius' integer default 0 , 'GoldenAgeTurns' integer default 0 , 'FreePolicies' integer default 0 , 'OneShotTourism' integer default 0 , 'OneShotTourismPercentOthers' integer default 0 , 'IgnoreBuildingDefense' boolean default 0 , 'PrereqResources' boolean default 0 , 'Mechanized' boolean default 0 , 'Suicide' boolean default 0 , 'CaptureWhileEmbarked' boolean default 0 , 'PrereqTech' text default NULL , 'ObsoleteTech' text default NULL , 'GoodyHutUpgradeUnitClass' text default NULL , 'HurryCostModifier' integer default 0 , 'AdvancedStartCost' integer default 0 , 'MinAreaSize' integer default '-1' , 'AirInterceptRange' integer default 0 , 'AirUnitCap' integer default 0 , 'NukeDamageLevel' integer default '-1' , 'WorkRate' integer default 0 , 'NumFreeTechs' integer default 0 , 'BaseBeakersTurnsToCount' integer default 0 , 'BaseCultureTurnsToCount' integer default 0 , 'RushBuilding' boolean default 0 , 'BaseHurry' integer default 0 , 'HurryMultiplier' integer default 0 , 'BaseGold' integer default 0 , 'NumGoldPerEra' integer default 0 , 'SpreadReligion' boolean default 0 , 'RemoveHeresy' boolean default 0 , 'ReligionSpreads' integer default 0 , 'ReligiousStrength' integer default 0 , 'FoundReligion' boolean default 0 , 'RequiresEnhancedReligion' boolean default 0 , 'ProhibitsSpread' boolean default 0 , 'CanBuyCityState' boolean default 0 , 'CombatLimit' integer default 100 , 'RangeAttackOnlyInDomain' boolean default 0 , 'RangeAttackIgnoreLOS' boolean default 0 , 'Trade' boolean default 0 , 'NumExoticGoods' integer default 0 , 'PolicyType' text default NULL , 'RangedCombatLimit' integer default 0 , 'XPValueAttack' integer default 0 , 'XPValueDefense' integer default 0 , 'SpecialCargo' text default NULL , 'DomainCargo' text default NULL , 'Conscription' integer default 0 , 'ExtraMaintenanceCost' integer default 0 , 'NoMaintenance' boolean default 0 , 'Unhappiness' integer default 0 , 'UnitArtInfo' text default NULL , 'UnitArtInfoCulturalVariation' boolean default 0 , 'UnitArtInfoEraVariation' boolean default 0 , 'ProjectPrereq' text default NULL , 'SpaceshipProject' text default NULL , 'LeaderPromotion' text default NULL , 'LeaderExperience' integer default 0 , 'DontShowYields' boolean default 0 , 'ShowInPedia' boolean default 1 , 'MoveRate' text default 'BIPED' , 'UnitFlagIconOffset' integer default 0 , 'PortraitIndex' integer default '-1' , 'IconAtlas' text default NULL , 'UnitFlagAtlas' text default 'UNIT_FLAG_ATLAS' , CargoCombat integer DEFAULT 0, MaxHitPoints integer DEFAULT 100, FoundMid boolean DEFAULT 0, FoundLate boolean DEFAULT 0, FoundColony integer DEFAULT 0, CityAttackOnly boolean DEFAULT 0, CulExpOnDisbandUpgrade boolean DEFAULT 0, CostScalerNumRepeats integer DEFAULT 0, TourismBonusTurns integer DEFAULT 0, ResourceType text REFERENCES Resources (Type), BeliefRequired text REFERENCES Beliefs (Type), PuppetPurchaseOverride boolean DEFAULT 0, GoodyModifier integer DEFAULT 0, SupplyCapBoost integer DEFAULT 0, BaseProductionTurnsToCount integer DEFAULT 0, BaseGoldTurnsToCount integer DEFAULT 0, BaseTurnsForGAPToCount integer DEFAULT 0, BaseWLTKDTurns integer DEFAULT 0, NumFreeLux integer DEFAULT 0, GPExtra integer DEFAULT 0, FriendlyLandsPromotion text REFERENCES UnitPromotions (Type), IsConvertUnit boolean DEFAULT 0, ScaleFromNumGWs integer DEFAULT 0, ScaleFromNumThemes integer DEFAULT 0, NumberOfCultureBombs integer DEFAULT 0, PurchaseCooldown integer DEFAULT 0, LocalFaithPurchaseCooldown integer DEFAULT 0, GlobalFaithPurchaseCooldown integer DEFAULT 0, BaseLandAirDefense integer DEFAULT 0, IsMounted boolean DEFAULT 0, NoSupply boolean DEFAULT 0, FreeUpgrade boolean DEFAULT 0, UnitEraUpgrade boolean DEFAULT 0, SpecialUnitCargoLoad text REFERENCES SpecialUnits (Type), WarOnly boolean DEFAULT 0, WLTKDFromBirth boolean DEFAULT 0, GoldenAgeFromBirth boolean DEFAULT 0, CultureBoost boolean DEFAULT 0, ExtraAttackHealthOnKill boolean DEFAULT 0, HighSeaRaider boolean DEFAULT 0, NumInfPerEra integer DEFAULT 0, RestingPointChange integer DEFAULT 0, ProductionCostAddedPerEra integer DEFAULT 0, CopyYieldsFromExpendTile boolean DEFAULT 0, TileXPOnExpend integer DEFAULT 0, SendCanMoveIntoEvent boolean DEFAULT 0, CannotEmbark boolean DEFAULT 0, MinorCivGift boolean DEFAULT 0, NoMinorCivGift boolean DEFAULT 0, NoMinorGifts boolean DEFAULT 0, MoveAfterUpgrade boolean DEFAULT 0, PromotionClass text REFERENCES UnitCombatInfos (Type), CanRepairFleet boolean DEFAULT 0, CanChangePort boolean DEFAULT 0, NumberStackingUnits integer DEFAULT 0, StackCombat integer DEFAULT 0, foreign key (Description) references Language_en_US(Tag), foreign key (Civilopedia) references Language_en_US(Tag), foreign key (Strategy) references Language_en_US(Tag), foreign key (Help) references Language_en_US(Tag), foreign key (Class) references UnitClasses(Type), foreign key (Special) references SpecialUnits(Type), foreign key (Capture) references UnitClasses(Type), foreign key (CombatClass) references UnitCombatInfos(Type), foreign key (Domain) references Domains(Type), foreign key (DefaultUnitAI) references UnitAIInfos(Type), foreign key (PillagePrereqTech) references Technologies(Type), foreign key (PrereqTech) references Technologies(Type), foreign key (ObsoleteTech) references Technologies(Type), foreign key (GoodyHutUpgradeUnitClass) references UnitClasses(Type), foreign key (PolicyType) references Policies(Type), foreign key (SpecialCargo) references SpecialUnits(Type), foreign key (DomainCargo) references Domains(Type), foreign key (ProjectPrereq) references Projects(Type), foreign key (SpaceshipProject) references Projects(Type), foreign key (LeaderPromotion) references UnitPromotions(Type), foreign key (MoveRate) references MovementRates(Type), foreign key (IconAtlas) references IconTextureAtlases(Atlas), foreign key (UnitFlagAtlas) references IconTextureAtlases(Atlas))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.534Z"
+  }
+}

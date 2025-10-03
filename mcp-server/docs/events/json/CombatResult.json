@@ -1,0 +1,75 @@
+{
+  "eventName": "CombatResult",
+  "generatedAt": "2025-09-02T16:48:34.175Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnitCombat.cpp",
+      "line": 3293,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"CombatResult\", args.get(), bResult);",
+      "eventName": "CombatResult",
+      "args": [
+        {
+          "line": 3262,
+          "content": "args->Push(iAttackingPlayer);"
+        },
+        {
+          "line": 3263,
+          "content": "args->Push(iAttackingUnit);"
+        },
+        {
+          "line": 3264,
+          "content": "args->Push(attackerDamage);"
+        },
+        {
+          "line": 3265,
+          "content": "args->Push(attackerFinalDamage);"
+        },
+        {
+          "line": 3266,
+          "content": "args->Push(attackerMaxHP);"
+        },
+        {
+          "line": 3267,
+          "content": "args->Push(iDefendingPlayer);"
+        },
+        {
+          "line": 3268,
+          "content": "args->Push(iDefendingUnit);"
+        },
+        {
+          "line": 3269,
+          "content": "args->Push(defenderDamage);"
+        },
+        {
+          "line": 3270,
+          "content": "args->Push(defenderFinalDamage);"
+        },
+        {
+          "line": 3271,
+          "content": "args->Push(defenderMaxHP);"
+        },
+        {
+          "line": 3272,
+          "content": "args->Push(iInterceptingPlayer);"
+        },
+        {
+          "line": 3273,
+          "content": "args->Push(iInterceptingUnit);"
+        },
+        {
+          "line": 3274,
+          "content": "args->Push(interceptorDamage);"
+        },
+        {
+          "line": 3275,
+          "content": "args->Push(plotX);"
+        },
+        {
+          "line": 3276,
+          "content": "args->Push(plotY);"
+        }
+      ]
+    }
+  ]
+}

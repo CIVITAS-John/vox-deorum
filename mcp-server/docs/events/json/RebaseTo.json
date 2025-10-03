@@ -1,0 +1,31 @@
+{
+  "eventName": "RebaseTo",
+  "generatedAt": "2025-09-02T16:48:34.174Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvUnit.cpp",
+      "line": 10281,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"RebaseTo\", args.get(), bResult);",
+      "eventName": "RebaseTo",
+      "args": [
+        {
+          "line": 10275,
+          "content": "args->Push(getOwner());"
+        },
+        {
+          "line": 10276,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 10277,
+          "content": "args->Push(iX);"
+        },
+        {
+          "line": 10278,
+          "content": "args->Push(iY);"
+        }
+      ]
+    }
+  ]
+}

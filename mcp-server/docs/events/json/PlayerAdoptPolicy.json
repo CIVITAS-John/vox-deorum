@@ -1,0 +1,23 @@
+{
+  "eventName": "PlayerAdoptPolicy",
+  "generatedAt": "2025-09-02T16:48:34.172Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 23576,
+      "content": "LuaSupport::CallHook(pkScriptSystem, \"PlayerAdoptPolicy\", args.get(), bResult);",
+      "eventName": "PlayerAdoptPolicy",
+      "args": [
+        {
+          "line": 23570,
+          "content": "args->Push(GetID());"
+        },
+        {
+          "line": 23571,
+          "content": "args->Push(ePolicy);"
+        }
+      ]
+    }
+  ]
+}

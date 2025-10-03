@@ -1,0 +1,83 @@
+{
+  "tableName": "UnitPromotions_Plagues",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "PromotionType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "PlaguePromotionType",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "DomainType",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "ApplyOnAttack",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "ApplyOnDefense",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": "0",
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "ApplyChance",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "100",
+      "primaryKey": false,
+      "position": 5
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [
+    {
+      "column": "DomainType",
+      "referencedTable": "Domains",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PlaguePromotionType",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    },
+    {
+      "column": "PromotionType",
+      "referencedTable": "UnitPromotions",
+      "referencedColumn": "Type",
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION"
+    }
+  ],
+  "indexes": [],
+  "createStatement": "CREATE TABLE UnitPromotions_Plagues ('PromotionType' text  not null , 'PlaguePromotionType' text  not null , 'DomainType' text , 'ApplyOnAttack' boolean default 0 , 'ApplyOnDefense' boolean default 0 , 'ApplyChance' integer default 100 , foreign key (PromotionType) references UnitPromotions(Type), foreign key (PlaguePromotionType) references UnitPromotions(Type), foreign key (DomainType) references Domains(Type))",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.506Z"
+  }
+}

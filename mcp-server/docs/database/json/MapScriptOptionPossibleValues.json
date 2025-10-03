@@ -1,0 +1,61 @@
+{
+  "tableName": "MapScriptOptionPossibleValues",
+  "rowCount": 654,
+  "columns": [
+    {
+      "name": "FileName",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "OptionID",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Name",
+      "type": "TEXT",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "Value",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    },
+    {
+      "name": "SortIndex",
+      "type": "INTEGER",
+      "notNull": true,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 5
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE MapScriptOptionPossibleValues('FileName' TEXT NOT NULL COLLATE NOCASE, 'OptionID' TEXT NOT NULL, 'Name' TEXT NOT NULL, 'Description' TEXT, 'Value' INTEGER NOT NULL, 'SortIndex' INTEGER NOT NULL)",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.262Z"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "tableName": "SpecialUnits",
+  "rowCount": 4,
+  "columns": [
+    {
+      "name": "ID",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Description",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Valid",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 3
+    },
+    {
+      "name": "CityLoad",
+      "type": "boolean",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 4
+    }
+  ],
+  "primaryKeys": [
+    "ID"
+  ],
+  "foreignKeys": [],
+  "indexes": [],
+  "createStatement": "CREATE TABLE SpecialUnits ('ID' integer primary key autoincrement , 'Type' text , 'Description' text , 'Valid' boolean , 'CityLoad' boolean )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.400Z"
+  }
+}

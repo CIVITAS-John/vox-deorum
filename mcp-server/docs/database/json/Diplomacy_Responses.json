@@ -1,0 +1,56 @@
+{
+  "tableName": "Diplomacy_Responses",
+  "rowCount": 1702,
+  "columns": [
+    {
+      "name": "LeaderType",
+      "type": "string",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 0
+    },
+    {
+      "name": "ResponseType",
+      "type": "string",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Response",
+      "type": "string",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    },
+    {
+      "name": "Bias",
+      "type": "INTEGER",
+      "notNull": false,
+      "defaultValue": "1",
+      "primaryKey": false,
+      "position": 3
+    }
+  ],
+  "primaryKeys": [],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "idx_Diplomacy_Responses_ON_LeaderType_AND_ResponseType",
+      "unique": false,
+      "partial": false
+    },
+    {
+      "name": "Diplomacy_ResponsesIndex",
+      "unique": false,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE Diplomacy_Responses ('LeaderType' string , 'ResponseType' string , 'Response' string , 'Bias' integer default 1 )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.170Z"
+  }
+}

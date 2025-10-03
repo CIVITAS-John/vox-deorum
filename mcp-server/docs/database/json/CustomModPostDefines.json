@@ -1,0 +1,45 @@
+{
+  "tableName": "CustomModPostDefines",
+  "rowCount": 0,
+  "columns": [
+    {
+      "name": "Name",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": true,
+      "position": 0
+    },
+    {
+      "name": "Table",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 1
+    },
+    {
+      "name": "Type",
+      "type": "TEXT",
+      "notNull": false,
+      "defaultValue": null,
+      "primaryKey": false,
+      "position": 2
+    }
+  ],
+  "primaryKeys": [
+    "Name"
+  ],
+  "foreignKeys": [],
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_CustomModPostDefines_1",
+      "unique": true,
+      "partial": false
+    }
+  ],
+  "createStatement": "CREATE TABLE CustomModPostDefines ('Name' text primary key , 'Table' text , 'Type' text )",
+  "metadata": {
+    "exportDate": "2025-09-01T02:32:23.167Z"
+  }
+}

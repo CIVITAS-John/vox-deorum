@@ -1,0 +1,17 @@
+{
+  "eventName": "PlayerAdoptsGovernment",
+  "generatedAt": "2025-09-02T16:48:30.111Z",
+  "occurrences": 1,
+  "references": [
+    {
+      "file": "CvGameCoreDLL_Expansion2/CvPlayer.cpp",
+      "line": 29568,
+      "content": "GAMEEVENTINVOKE_HOOK(GAMEEVENT_PlayerAdoptsGovernment, GetID(), iValue);",
+      "eventName": "PlayerAdoptsGovernment",
+      "args": [
+        "GetID()",
+        "iValue"
+      ]
+    }
+  ]
+}
