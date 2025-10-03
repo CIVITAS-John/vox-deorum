@@ -84,7 +84,7 @@ export class StrategistSession {
           // Kill the game when the game hangs
           logger.warn(`The DLL is no longer connected. Waiting for 60 seconds...`);
           await setTimeout(60000);
-          if (!this.dllConnected && this.lastGameState !== 'victory') {
+          if (!this.dllConnected && this.lastGameState !== 'crashed' && this.lastGameState !== 'victory') {
             logger.warn(`The DLL is no longer connected. Trying to restart the game...`);
             await voxCivilization.killGame();
           }
