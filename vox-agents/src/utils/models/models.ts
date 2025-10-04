@@ -42,7 +42,7 @@ export function getModel(config: Model): LanguageModel {
       break;
     case "jetstream2":
       result = createOpenAICompatible({
-        baseURL: "https://llm.jetstream-cloud.org/api/",
+        baseURL: "https://llm-api.jetstream-cloud.org/v1",
         name: "jetstream2",
         apiKey: process.env.JETSTREAM2_API_KEY,
       }).chatModel(config.name);
