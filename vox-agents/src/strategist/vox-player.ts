@@ -51,8 +51,9 @@ export class VoxPlayer {
       return this.pendingTurn?.turn !== turn;
     }
 
+    const result = this.pendingTurn?.turn !== turn;
     this.pendingTurn = { turn, latestID };
-    return this.pendingTurn?.turn !== turn;
+    return result;
   }
 
   /**
