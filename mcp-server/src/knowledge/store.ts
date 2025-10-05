@@ -27,6 +27,7 @@ import { archiveGameData } from '../utils/knowledge/archive.js';
 import { getPlayerPersona } from './getters/player-persona.js';
 import { getPlayerOpinions } from './getters/player-opinions.js';
 import { getPlayerSummaries } from './getters/player-summary.js';
+import { getCityInformations } from './getters/city-information.js';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -244,8 +245,12 @@ export class KnowledgeStore {
             knowledgeManager.updateActivePlayer(data.PlayerID);
           } else if (type === "PlayerDoneTurn") {
             // Store all players' summary info
-            if (data.PlayerID === 63)
-              await getPlayerSummaries();
+            if (data.PlayerID === 63) {
+              await Promise.all([
+                getPlayerSummaries(),
+                getCityInformations()
+              ]);
+            }
             // Store game data for examination
             if (data.PlayerID < MaxMajorCivs) {
               await Promise.all([

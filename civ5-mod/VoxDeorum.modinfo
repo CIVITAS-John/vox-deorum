@@ -26,11 +26,17 @@
   <Blocks />
   <Files>
     <File import="0">SQL/VoxDeorum_Options.sql</File>
+    <File import="1">Mapscripts/Vox_Deorum.lua</File>
   </Files>
   <Actions>
     <OnModActivated>
       <UpdateDatabase>SQL/VoxDeorum_Options.sql</UpdateDatabase>
     </OnModActivated>
   </Actions>
-  <EntryPoints/>
+  <EntryPoints>
+    <EntryPoint type="MapScript" file="Mapscripts/Vox_Deorum.lua">
+      <Name>Vox_Deorum</Name>
+      <Description>Communitas rewrite by tu_79 and azum4roll - fixed parameters for Vox Deorum research</Description>
+    </EntryPoint>
+  </EntryPoints>
 </Mod>
