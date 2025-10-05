@@ -558,7 +558,7 @@ function MapGlobals:New()
 		------------------------------------------------------------------------------
 		function GetNumNaturalWondersToPlace(_, iWorldSize)
 			local iTarget = (iWorldSize + 1) * 2;
-			if Map.GetCustomOption(5) == 1 then
+			if 2 == 1 then
 				iTarget = Round(1.25 * iTarget); -- more NWs for Terra's larger map size
 			end
 			return iTarget;
@@ -1206,7 +1206,7 @@ function MapGlobals:New()
 			ASP:AdjustTiles();
 
 			local largestLandmassID = Map.FindBiggestLandmassID(false);
-			if Map.GetCustomOption(5) == 1 then
+			if 2 == 1 then
 				-- Biggest continent placement
 				if Map.GetNumTilesOfLandmass(largestLandmassID) < 0.25 * Map.GetLandPlots() then
 					print("AI Map Strategy - Offshore expansion with navy bias");
@@ -1408,7 +1408,7 @@ function GetMapInitData(worldSize)
 		[GameInfo.Worlds.WORLDSIZE_HUGE.ID] = {97, 66},
 	};
 
-	if Map.GetCustomOption(5) == 1 then
+	if 2 == 1 then
 		-- Enlarge terra-style maps 30% to create expansion room on the new world
 		worldsizes = {
 			[GameInfo.Worlds.WORLDSIZE_DUEL.ID] = {44, 31},
@@ -1695,7 +1695,7 @@ function StartPlotSystem()
 		end
 	end
 
-	local oStarts = Map.GetCustomOption(5);
+	local oStarts = 2;
 	local divMethod;
 	if oStarts == 2 then
 		-- Continents
@@ -1861,7 +1861,7 @@ function ConnectPolarSeasToOceans()
 	table.sort(areaMap.areaList, function (a, b) return a.size > b.size end);
 
 	local plotFunc = function(plot)
-		if Map.GetCustomOption(5) == 1 then
+		if 2 == 1 then
 			-- Terra-style formation, don't remove land
 			return plot:GetFeatureType() == FeatureTypes.FEATURE_ICE;
 		end
@@ -1905,7 +1905,7 @@ function ConnectPolarSeasToOceans()
 end
 
 function ConnectTerraContinents()
-	if Map.GetCustomOption(5) == 2 then
+	if 2 == 2 then
 		-- Continents-style formation
 		return;
 	end
@@ -3534,7 +3534,7 @@ end
 -- Creates an horizontal passage (by tu_79)
 function CreateMagallanes()
 	-- Don't do this for Terra maps or if the option is turned off
-	if Map.GetCustomOption(5) == 1 or Map.GetCustomOption(8) == 2 then
+	if 2 == 1 or Map.GetCustomOption(8) == 2 then
 		return;
 	end
 
