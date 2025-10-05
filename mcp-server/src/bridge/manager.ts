@@ -173,7 +173,11 @@ export class BridgeManager extends EventEmitter {
         continue;
       }
       // Process a batch
-      await this.processBatch();
+      if (this.luaCallQueue.length > 0) {
+        await this.processBatch();
+      } else {
+        await sleep(20);
+      }
     }
     logger.info(`The queue processor has completed.`);
   }
@@ -501,13 +505,6 @@ export class BridgeManager extends EventEmitter {
     }
 
     this.connectionMethod = null;
-  }
-
-  /**
-   * @deprecated Use disconnectStreams() instead
-   */
-  public disconnectSSE(): void {
-    this.disconnectStreams();
   }
 
   /**
