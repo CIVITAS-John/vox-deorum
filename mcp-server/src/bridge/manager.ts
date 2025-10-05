@@ -5,7 +5,7 @@
 
 import { EventEmitter } from 'events';
 import { EventSource } from 'eventsource'
-import ipc from 'node-ipc';
+import * as net from 'node:net';
 import { createLogger } from '../utils/logger.js';
 import { config } from '../utils/config.js';
 import { LuaFunction } from './lua-function.js';
@@ -65,6 +65,7 @@ export class BridgeManager extends EventEmitter {
   private baseUrl: string;
   private luaFunctions: Map<string, LuaFunction>;
   private sseConnection: EventSource | null = null;
+  private eventPipeSocket: net.Socket | null = null;
   private eventPipeConnected: boolean = false;
   private connectionRetryTimeout: NodeJS.Timeout | null = null;
   private isDllConnected: boolean = false;
@@ -297,66 +298,84 @@ export class BridgeManager extends EventEmitter {
    * Connect to event pipe for game events
    */
   public connectEventPipe(): void {
-    ipc.config.id = config.bridgeService.eventPipe!.name;
-    ipc.config.silent = true;
-    ipc.config.rawBuffer = true; // Use raw buffer like bridge-service
-    ipc.config.encoding = 'utf8';
-
     const pipeName = config.bridgeService.eventPipe!.name;
-    logger.info(`Attempting to connect to event pipe: ${pipeName}`);
+    const pipePath = `\\\\.\\pipe\\tmp-app.${pipeName}`;
+    logger.info(`Attempting to connect to event pipe: ${pipePath}`);
 
-    ipc.connectTo(pipeName, () => {
-      ipc.of[pipeName].on('connect', () => {
-        logger.info('Event pipe connection established');
-        this.eventPipeConnected = true;
-        this.connectionMethod = 'eventPipe';
-        this.emit('connected');
-        this.clearRetryTimeout();
+    // Clean up existing socket if any
+    if (this.eventPipeSocket) {
+      this.eventPipeSocket.destroy();
+      this.eventPipeSocket = null;
+    }
+
+    // Create socket and connect to named pipe
+    this.eventPipeSocket = net.createConnection(pipePath);
+    this.eventPipeSocket.setEncoding('utf8');
+
+    this.eventPipeSocket.on('connect', () => {
+      logger.info('Event pipe connection established');
+      this.eventPipeConnected = true;
+      this.connectionMethod = 'eventPipe';
+      this.eventPipeSocket?.setTimeout(30000); 
+      this.emit('connected');
+      this.clearRetryTimeout();
+    });
+
+    this.eventPipeSocket.on('data', (data: string) => {
+      // Append to buffer
+      this.eventPipeBuffer += data;
+
+      // Process all complete messages (delimited by !@#$%^!)
+      const messages = this.eventPipeBuffer.split('!@#$%^!');
+
+      // Keep the last incomplete message in buffer (if any)
+      this.eventPipeBuffer = messages.pop() || '';
+
+      // Process each complete message
+      messages.forEach(message => {
+        const trimmed = message.trim();
+        if (trimmed === '') return;
+
+        try {
+          const event = JSON.parse(trimmed) as GameEvent;
+          this.handleGameEvent(event);
+        } catch (error) {
+          logger.error('Failed to parse event pipe message:', error);
+        }
       });
 
-      ipc.of[pipeName].on('disconnect', () => {
-        logger.warn('Event pipe disconnected, retrying');
-        this.eventPipeConnected = false;
-        this.emit('disconnected');
-        this.scheduleReconnect();
-      });
+      logger.debug(`Pipe message handled: ${messages.length}, remaining ${this.eventPipeBuffer.length}`);
+    });
 
-      // Handle raw buffer data with delimiter
-      ipc.of[pipeName].on('data', (data: Buffer) => {
-        // Append to buffer
-        this.eventPipeBuffer += data.toString();
+    this.eventPipeSocket.on('timeout', () => {
+      logger.warn('Event pipe connection timeout - no data received within timeout period');
+      this.eventPipeSocket?.destroy();
+    });
 
-        // Process all complete messages (delimited by !@#$%^!)
-        const messages = this.eventPipeBuffer.split('!@#$%^!');
+    this.eventPipeSocket.on('end', () => {
+      logger.warn('Event pipe disconnected (end), retrying');
+      this.eventPipeConnected = false;
+      this.emit('disconnected');
+      this.scheduleReconnect();
+    });
 
-        // Keep the last incomplete message in buffer (if any)
-        this.eventPipeBuffer = messages.pop() || '';
+    this.eventPipeSocket.on('close', () => {
+      logger.warn('Event pipe disconnected (close), retrying');
+      this.eventPipeConnected = false;
+      this.emit('disconnected');
+      this.scheduleReconnect();
+    });
 
-        // Process each complete message
-        messages.forEach(message => {
-          const trimmed = message.trim();
-          if (trimmed === '') return;
+    this.eventPipeSocket.on('error', (error: any) => {
+      this.eventPipeConnected = false;
 
-          try {
-            const event = JSON.parse(trimmed) as GameEvent;
-            this.handleGameEvent(event);
-          } catch (error) {
-            logger.error('Failed to parse event pipe message:', error);
-          }
-        });
-
-        logger.debug(`Pipe message handled: ${messages.length}, remaining ${this.eventPipeBuffer.length}`);
-      });
-
-      ipc.of[pipeName].on('error', (error: any) => {
-        logger.error('Event pipe connection error:', error);
-        this.eventPipeConnected = false;
-
-        // Fallback to SSE on error
-        logger.info('Event pipe connection failed, falling back to SSE');
-        ipc.disconnect(pipeName);
-        this.connectSSE();
-      });
+      // Fallback to SSE on error
+      logger.error('Event pipe connection failed, falling back to SSE', error);
+      if (this.eventPipeSocket) {
+        this.eventPipeSocket.destroy();
+        this.eventPipeSocket = null;
+      }
+      this.connectSSE();
     });
   }
 
@@ -467,9 +486,9 @@ export class BridgeManager extends EventEmitter {
     this.clearRetryTimeout();
 
     // Disconnect event pipe if connected
-    if (this.eventPipeConnected && config.bridgeService.eventPipe?.enabled) {
-      const pipeName = config.bridgeService.eventPipe.name;
-      ipc.disconnect(pipeName);
+    if (this.eventPipeSocket) {
+      this.eventPipeSocket.destroy();
+      this.eventPipeSocket = null;
       this.eventPipeConnected = false;
       logger.info('Event pipe connection closed');
     }
