@@ -3,6 +3,8 @@ import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
 import * as z from "zod";
 import * as changeCase from "change-case";
+import * as fs from "fs/promises";
+import * as path from "path";
 
 /**
  * Schema for economic strategy information
@@ -11,6 +13,7 @@ const EconomicStrategySchema = z.object({
   Type: z.string(),
   Production: z.record(z.string(), z.number()),
   Overall: z.record(z.string(), z.number()),
+  Description: z.string().optional()
 });
 
 type EconomicStrategy = z.infer<typeof EconomicStrategySchema>;
@@ -40,7 +43,7 @@ class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, Econom
   protected readonly fullSchema = EconomicStrategySchema;
 
   /**
-   * Fetch economic strategy summaries from database
+   * Fetch economic strategy summaries from database and sync with JSON file
    */
   protected async fetchSummaries(): Promise<EconomicStrategy[]> {
     const db = gameDatabase.getDatabase();
@@ -81,15 +84,36 @@ class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, Econom
       OverallWeightsByStrategy.get(flavor.AIEconomicStrategyType!)!.push(flavor);
     }
 
+    // Read existing descriptions from JSON file
+    const jsonPath = path.join(process.cwd(), 'docs', 'strategies', 'economic.json');
+    let existingDescriptions = new Map<string, string>();
+
+    try {
+      const fileContent = await fs.readFile(jsonPath, 'utf-8');
+      const existingData = JSON.parse(fileContent) as EconomicStrategy[];
+
+      for (const item of existingData) {
+        if (item.Description) {
+          existingDescriptions.set(item.Type, item.Description);
+        }
+      }
+    } catch (error: any) {
+      // File doesn't exist or is invalid, will create it below
+      if (error.code !== 'ENOENT') {
+        console.warn(`Warning reading economic.json: ${error.message}`);
+      }
+    }
+
     const results: EconomicStrategy[] = [];
 
     for (const strategy of strategies) {
       // Remove ECONOMICAISTRATEGY_ prefix and convert to PascalCase
       const ProductionWeights = ProductionWeightsByStrategy.get(strategy.Type!) || [];
       const OverallWeights = OverallWeightsByStrategy.get(strategy.Type!) || [];
+      const strategyType = changeCase.pascalCase(strategy.Type!.replace('ECONOMICAISTRATEGY_', ''));
 
       results.push({
-        Type: changeCase.pascalCase(strategy.Type!.replace('ECONOMICAISTRATEGY_', '')),
+        Type: strategyType,
         Production: Object.fromEntries(
           ProductionWeights.map((f: any) => [
             changeCase.pascalCase(f.FlavorType!.replace('FLAVOR_', '')),
@@ -99,8 +123,17 @@ class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, Econom
           OverallWeights.map((f: any) => [
             changeCase.pascalCase(f.FlavorType!.replace('FLAVOR_', '')),
             f.Flavor!
-          ]))
+          ])),
+        Description: existingDescriptions.get(strategyType) || ""
       });
+    }
+
+    // Write back to JSON file
+    try {
+      await fs.mkdir(path.dirname(jsonPath), { recursive: true });
+      await fs.writeFile(jsonPath, JSON.stringify(results, null, 2), 'utf-8');
+    } catch (error: any) {
+      console.warn(`Warning writing economic.json: ${error.message}`);
     }
 
     return results;

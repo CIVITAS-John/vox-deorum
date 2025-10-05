@@ -1,0 +1,478 @@
+[
+  {
+    "Type": "CitiesNeedNavalGrowth",
+    "Production": {},
+    "Overall": {
+      "NavalGrowth": 15
+    },
+    "Description": "Moderately prioritizes coastal and water-based food resources. Consider adopting when several coastal cities would benefit from improved naval food production."
+  },
+  {
+    "Type": "CitiesNeedNavalTileImprovement",
+    "Production": {},
+    "Overall": {
+      "NavalTileImprovement": 20
+    },
+    "Description": "Moderately prioritizes naval tile improvements like fishing boats and offshore platforms. Consider adopting when coastal cities have unimproved water tiles that could provide valuable resources."
+  },
+  {
+    "Type": "ConcertTour",
+    "Production": {},
+    "Overall": {},
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "DevelopingReligion",
+    "Production": {
+      "Religion": 30
+    },
+    "Overall": {
+      "Religion": 30
+    },
+    "Description": "Moderately prioritizes faith output and religious unit production. Consider adopting when establishing or expanding a religion, especially after founding a pantheon or when civilization traits support religious development."
+  },
+  {
+    "Type": "EarlyExpansion",
+    "Production": {
+      "NavalGrowth": -5,
+      "TileImprovement": 5,
+      "Expansion": 75,
+      "Production": -4,
+      "Gold": -4,
+      "Science": -4,
+      "Culture": -4
+    },
+    "Overall": {
+      "TileImprovement": 10,
+      "Expansion": 10
+    },
+    "Description": "Substantially prioritizes settler production while sacrificing short-term development. Consider adopting in the early game when quality settlement locations are available nearby and competition for land is manageable."
+  },
+  {
+    "Type": "EnoughArchaeologists",
+    "Production": {
+      "Archaeology": -200
+    },
+    "Overall": {},
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "EnoughExpansion",
+    "Production": {
+      "Expansion": -250
+    },
+    "Overall": {
+      "Expansion": -10
+    },
+    "Description": "Overwhelmingly halts settler production. Consider adopting when quality settlement locations are exhausted or when facing severe happiness or military crises."
+  },
+  {
+    "Type": "EnoughRecon",
+    "Production": {
+      "Recon": -25
+    },
+    "Overall": {},
+    "Description": "Moderately reduces land scout production. Consider adopting when exploration needs are met and further scout production would be redundant."
+  },
+  {
+    "Type": "EnoughReconSea",
+    "Production": {
+      "NavalRecon": -200
+    },
+    "Overall": {},
+    "Description": "Overwhelmingly halts naval scout production. Consider adopting when ocean reconnaissance is complete or when military threats demand immediate attention."
+  },
+  {
+    "Type": "ExpandToOtherContinents",
+    "Production": {
+      "Naval": 20,
+      "NavalTileImprovement": 10,
+      "NavalGrowth": 5,
+      "WaterConnection": 10,
+      "NavalRecon": 40,
+      "Offense": -10,
+      "Defense": -10,
+      "Expansion": 50,
+      "CityDefense": -10,
+      "Recon": 15
+    },
+    "Overall": {
+      "Naval": 20,
+      "NavalTileImprovement": 10,
+      "NavalGrowth": 5,
+      "WaterConnection": 10,
+      "NavalRecon": 5,
+      "Offense": -10,
+      "Defense": -10,
+      "Expansion": 75,
+      "CityDefense": -10,
+      "Recon": 10
+    },
+    "Description": "Substantially prioritizes overseas colonization, naval production, and maritime development. Consider adopting when coastal infrastructure is established, embarkation is available, and valuable settlement opportunities exist on other continents with limited competition."
+  },
+  {
+    "Type": "FoundCity",
+    "Production": {},
+    "Overall": {},
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "GsConquest",
+    "Production": {
+      "Offense": 25,
+      "Defense": 10,
+      "Naval": 10,
+      "MilitaryTraining": 20,
+      "Air": 5,
+      "Nuke": 25,
+      "Production": 25,
+      "Diplomacy": 11
+    },
+    "Overall": {
+      "Offense": 25,
+      "Defense": 10,
+      "Naval": 10,
+      "MilitaryTraining": 20,
+      "Air": 5,
+      "Nuke": 25,
+      "Spaceship": -10,
+      "Production": 25,
+      "Diplomacy": 11
+    },
+    "Description": "Moderately prioritizes military production and offensive capabilities. Consider adopting when pursuing domination victory with sufficient resources and happiness for sustained warfare."
+  },
+  {
+    "Type": "GsCulture",
+    "Production": {
+      "Culture": 45,
+      "Production": 20,
+      "Gold": 10,
+      "Growth": 35,
+      "Happiness": 10,
+      "Expansion": 8,
+      "CityDefense": 10,
+      "Defense": 20,
+      "Wonder": 35,
+      "Diplomacy": 22
+    },
+    "Overall": {
+      "Culture": 35,
+      "Production": 20,
+      "Gold": 10,
+      "Growth": 35,
+      "Happiness": 10,
+      "Expansion": -10,
+      "CityDefense": 10,
+      "Defense": 20,
+      "Spaceship": -10,
+      "Wonder": 35,
+      "Diplomacy": 22
+    },
+    "Description": "Substantially prioritizes cultural output, wonder construction, diplomat production, and population growth. Consider adopting when pursuing culture victory."
+  },
+  {
+    "Type": "GsDiplomacy",
+    "Production": {
+      "Gold": 10,
+      "Diplomacy": 30
+    },
+    "Overall": {
+      "Gold": 10,
+      "Spaceship": -10,
+      "Diplomacy": 26
+    },
+    "Description": "Moderately prioritizes diplomatic and economic output. Consider adopting when pursuing diplomatic victory."
+  },
+  {
+    "Type": "GsSpaceship",
+    "Production": {
+      "Science": 20,
+      "Expansion": 20,
+      "Production": 5,
+      "Spaceship": 50,
+      "Diplomacy": 16
+    },
+    "Overall": {
+      "Science": 20,
+      "Expansion": 20,
+      "Growth": 10,
+      "Production": 5,
+      "Spaceship": 50,
+      "Diplomacy": 16
+    },
+    "Description": "Substantially prioritizes scientific research, territorial expansion, and spaceship production. Consider adopting when pursuing science victory."
+  },
+  {
+    "Type": "GsSpaceshipHomestretch",
+    "Production": {
+      "Science": 25,
+      "Spaceship": 250,
+      "Diplomacy": -50
+    },
+    "Overall": {
+      "Science": 25,
+      "Spaceship": 100,
+      "Diplomacy": -50
+    },
+    "Description": "Overwhelmingly prioritizes spaceship production while sacrificing diplomatic relations. Consider adopting after completing Apollo Program for accelerated science victory."
+  },
+  {
+    "Type": "InfluenceCityState",
+    "Production": {},
+    "Overall": {},
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "IslandStart",
+    "Production": {
+      "Naval": 100,
+      "NavalTileImprovement": 10,
+      "NavalGrowth": 5,
+      "WaterConnection": 5,
+      "Offense": -5,
+      "Defense": -5,
+      "CityDefense": -5,
+      "Recon": -20,
+      "Diplomacy": -10
+    },
+    "Overall": {
+      "Naval": 20,
+      "NavalTileImprovement": 10,
+      "NavalGrowth": 5,
+      "WaterConnection": 5,
+      "Offense": -5,
+      "Defense": -5,
+      "Recon": -20,
+      "Diplomacy": -10
+    },
+    "Description": "Dramatically prioritizes naval production and maritime infrastructure. Consider adopting in early game when starting on small landmass with limited land-based opportunities."
+  },
+  {
+    "Type": "LosingMoney",
+    "Production": {
+      "Gold": 100,
+      "ILandTradeRoute": 25,
+      "ISeaTradeRoute": 25,
+      "Offense": -50,
+      "Defense": -50,
+      "Antiair": -300,
+      "Air": -300,
+      "Mobile": -300,
+      "Naval": -300,
+      "NavalRecon": -300,
+      "Ranged": -300,
+      "Recon": -300
+    },
+    "Overall": {
+      "Gold": 25
+    },
+    "Description": "Overwhelmingly halts military spending while dramatically increasing gold and trade route production. Consider adopting when facing severe financial crisis with treasury depletion imminent."
+  },
+  {
+    "Type": "MostlyOnTheCoast",
+    "Production": {
+      "Naval": 10,
+      "NavalRecon": 5,
+      "Gold": 5
+    },
+    "Overall": {
+      "Naval": 10,
+      "NavalRecon": 5,
+      "Gold": 5
+    },
+    "Description": "Moderately prioritizes maritime infrastructure and naval capabilities. Consider adopting when coastal cities comprise significant portion of population."
+  },
+  {
+    "Type": "NeedArchaeologists",
+    "Production": {
+      "Archaeology": 100
+    },
+    "Overall": {
+      "Archaeology": 50
+    },
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "NeedDiplomats",
+    "Production": {
+      "Diplomacy": 20
+    },
+    "Overall": {
+      "Diplomacy": 20
+    },
+    "Description": "Moderately prioritizes diplomat production. Consider adopting when valuable city-state opportunities present."
+  },
+  {
+    "Type": "NeedDiplomatsCritical",
+    "Production": {
+      "Diplomacy": 60
+    },
+    "Overall": {
+      "Diplomacy": 60
+    },
+    "Description": "Substantially prioritizes diplomat production. Consider adopting when highly valuable city-state opportunities present, such as contested alliances or crucial World Congress votes."
+  },
+  {
+    "Type": "NeedGuilds",
+    "Production": {
+      "Culture": 35
+    },
+    "Overall": {},
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "NeedHappiness",
+    "Production": {
+      "Happiness": 35,
+      "Expansion": -10,
+      "Growth": -5,
+      "Diplomacy": 6
+    },
+    "Overall": {
+      "Happiness": 35,
+      "Expansion": -10,
+      "Growth": -5,
+      "Diplomacy": 6
+    },
+    "Description": "Moderately prioritizes happiness buildings while reducing expansion. Consider adopting when happiness margins are thin and unrest threatens productivity."
+  },
+  {
+    "Type": "NeedHappinessCritical",
+    "Production": {
+      "Happiness": 250,
+      "Expansion": -100,
+      "Growth": -10,
+      "Diplomacy": 11
+    },
+    "Overall": {
+      "Happiness": 250,
+      "Expansion": -10,
+      "Growth": -10,
+      "Diplomacy": 11
+    },
+    "Description": "Overwhelmingly prioritizes happiness buildings while halting expansion and growth. Consider adopting when facing severe unrest."
+  },
+  {
+    "Type": "NeedImprovementFood",
+    "Production": {},
+    "Overall": {
+      "TileImprovement": 10,
+      "Growth": 20
+    },
+    "Description": "Moderately prioritizes food production and tile improvements. Consider adopting when cities need population growth or face famine."
+  },
+  {
+    "Type": "NeedImprovementProduction",
+    "Production": {},
+    "Overall": {
+      "TileImprovement": 10,
+      "Production": 10
+    },
+    "Description": "Moderately prioritizes production capacity and tile improvements. Consider adopting when cities need more production."
+  },
+  {
+    "Type": "NeedMuseums",
+    "Production": {
+      "Culture": 40
+    },
+    "Overall": {},
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "NeedRecon",
+    "Production": {
+      "Recon": 20
+    },
+    "Overall": {
+      "Recon": 10
+    },
+    "Description": "Moderately prioritizes land scout production. Consider adopting during peacetime when exploration would reveal strategic opportunities."
+  },
+  {
+    "Type": "NeedReconSea",
+    "Production": {
+      "NavalRecon": 20
+    },
+    "Overall": {
+      "NavalRecon": 20
+    },
+    "Description": "Moderately prioritizes naval scout production. Consider adopting when ocean coverage is insufficient and military situation permits."
+  },
+  {
+    "Type": "OneOrFewerCoastalCities",
+    "Production": {
+      "WaterConnection": -10
+    },
+    "Overall": {
+      "WaterConnection": -10
+    },
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "ReallyNeedReconSea",
+    "Production": {
+      "NavalRecon": 50,
+      "Naval": 40
+    },
+    "Overall": {
+      "NavalRecon": 50
+    },
+    "Description": "Substantially prioritizes naval scout and fleet production. Consider adopting when ocean crossing is technologically available but naval reconnaissance is absent."
+  },
+  {
+    "Type": "StartedPiety",
+    "Production": {
+      "Religion": 40
+    },
+    "Overall": {
+      "Religion": 20
+    },
+    "Description": "Moderately prioritizes faith output and religious infrastructure. Consider adopting when planning to increase faith output to support religious endeavors."
+  },
+  {
+    "Type": "TechLeader",
+    "Production": {
+      "Espionage": 20
+    },
+    "Overall": {
+      "Espionage": 40
+    },
+    "Description": "Moderately prioritizes counterintelligence defenses. Consider adopting when leading in research and vulnerable to technology theft by competing civilizations."
+  },
+  {
+    "Type": "TooManyUnits",
+    "Production": {
+      "Offense": -100,
+      "Defense": -100,
+      "Naval": -100,
+      "Ranged": -100,
+      "Mobile": -100,
+      "Recon": -100,
+      "Gold": 15,
+      "Growth": 20,
+      "Science": 15,
+      "Culture": 10,
+      "Happiness": 10,
+      "Wonder": 5,
+      "Antiair": -300,
+      "Air": -300,
+      "Diplomacy": -15
+    },
+    "Overall": {
+      "Gold": 15,
+      "Growth": 20,
+      "Science": 15,
+      "Culture": 10,
+      "Happiness": 10,
+      "Wonder": 5,
+      "Diplomacy": -10
+    },
+    "Description": "Overwhelmingly halts military production while moderately prioritizing economic output. Consider adopting when unit costs severely drain treasury or when facing bankruptcy with continued military spending."
+  },
+  {
+    "Type": "TradeWithCityState",
+    "Production": {},
+    "Overall": {},
+    "Description": "[Not-available]"
+  }
+]

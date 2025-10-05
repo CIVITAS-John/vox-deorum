@@ -139,6 +139,15 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         if religionInfo then
           summary.FoundedReligion = Locale.ConvertTextKey(religionInfo.Description)
         end
+      elseif player:HasCreatedPantheon() then
+        -- Player has a pantheon but no full religion
+        -- Check if religion is still possible (religions still available to found)
+        local religionsStillToFound = Game.GetNumReligionsStillToFound()
+        if religionsStillToFound > 0 then
+          summary.FoundedReligion = "Pantheon (Religion Possible)"
+        else
+          summary.FoundedReligion = "Pantheon (Religion Impossible)"
+        end
       end
       
       -- Get resources for major civs (revealed resources in format {"Iron": 0})

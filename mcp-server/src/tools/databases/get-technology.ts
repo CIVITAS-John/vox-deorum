@@ -11,14 +11,15 @@ const TechnologySummarySchema = z.object({
   Name: z.string(),
   Help: z.string(),
   Cost: z.number(),
-  Era: z.string().optional()
+  Era: z.string().optional(),
+  TechsUnlocked: z.array(z.string()).optional(),
 });
 
 /**
  * Schema for full technology information including relations
  */
 const TechnologyReportSchema = TechnologySummarySchema.extend({
-  PrereqTechs: z.array(z.string()),
+  TechsPrereq: z.array(z.string()),
   UnitsUnlocked: z.array(z.string()),
   BuildingsUnlocked: z.array(z.string()),
   ImprovementsUnlocked: z.array(z.string()),
@@ -58,14 +59,26 @@ class GetTechnologyTool extends DatabaseQueryTool<TechnologySummary, TechnologyR
    * Fetch technology summaries from database
    */
   protected async fetchSummaries(): Promise<TechnologySummary[]> {
-    var summaries = await gameDatabase.getDatabase()
+    const db = gameDatabase.getDatabase();
+    var summaries = await db
       .selectFrom("Technologies as t")
       .leftJoin("Eras as e", "t.Era", "e.Type")
       .select(['t.Type', 't.Description as Name', 't.Help', 't.Cost', 'e.Type as Era'])
       .execute() as TechnologySummary[];
-    summaries.forEach(p => {
-      p.Era = getEraName(p.Era);
-    });
+
+    // Fetch TechsUnlocked for each technology
+    for (const summary of summaries) {
+      const techsUnlocked = await db
+        .selectFrom('Technology_PrereqTechs')
+        .innerJoin('Technologies as t', 't.Type', 'TechType')
+        .select(['t.Description'])
+        .where('PrereqTech', '=', summary.Type)
+        .execute();
+
+      summary.TechsUnlocked = techsUnlocked.map(t => t.Description!);
+      summary.Era = getEraName(summary.Era);
+    }
+
     return summaries;
   }
   
@@ -136,7 +149,16 @@ export async function getTechnology(techType: string) {
     .select('Description')
     .where('TechReveal', '=', techType)
     .execute();
-  
+
+  // Get technologies unlocked by this technology
+  const techsUnlocked = await db
+    .selectFrom('Technology_PrereqTechs')
+    .select('TechType')
+    .innerJoin('Technologies as t', 't.Type', 'TechType')
+    .select(['t.Description'])
+    .where('PrereqTech', '=', techType)
+    .execute();
+
   // Construct the full technology object
   return {
     Type: tech.Type,
@@ -144,7 +166,8 @@ export async function getTechnology(techType: string) {
     Help: tech.Help!,
     Cost: tech.Cost!,
     Era: getEraName(tech?.EraType),
-    PrereqTechs: prereqTechs.map(p => p.Description!),
+    TechsPrereq: prereqTechs.map(p => p.Description!),
+    TechsUnlocked: techsUnlocked.map(t => t.Description!),
     UnitsUnlocked: unitsUnlocked.map(u => u.Description!),
     BuildingsUnlocked: buildingsUnlocked.filter(b => b.MaxGlobalInstances == 0 && b.MaxPlayerInstances == 0).map(b => b.Description!),
     NationalWondersUnlocked: buildingsUnlocked.filter(b => b.MaxPlayerInstances == 0).map(b => b.Description!),

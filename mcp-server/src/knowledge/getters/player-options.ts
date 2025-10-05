@@ -51,27 +51,13 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
     return [];
   const store = knowledgeManager.getStore();
 
-  // Blacklist strategies that have immediate effects or are not suitable for LLM decision-making
-  const blacklistedEconomicStrategies = [
-    'TradeWithCityState',     // Immediate effect: triggers trade routes with city-states
-    'FoundCity',               // Immediate effect: triggers city founding operations
-    'InfluenceCityState',      // Immediate effect: purchases influence with city-states
-    'ConcertTour',             // Immediate effect: triggers great musician concert tour
-  ];
-  const blacklistedMilitaryStrategies: string[] = [
-
-  ];  // Currently no military strategies need blacklisting
-
   // Process and convert numeric IDs to names for all options
+  // Note: Strategy blacklisting is now handled in CvLuaPlayer.cpp
   const processedResults = response.result.map((options: any) => {
     return {
       Key: options.Key,
-      EconomicStrategies: convertToNames(options.EconomicStrategies, "EconomicStrategy", "MilitaryStrategy")?.filter(
-        (strategy: string) => !blacklistedEconomicStrategies.includes(strategy)
-      ),
-      MilitaryStrategies: convertToNames(options.MilitaryStrategies, "MilitaryStrategy", "EconomicStrategy")?.filter(
-        (strategy: string) => !blacklistedMilitaryStrategies.includes(strategy)
-      ),
+      EconomicStrategies: convertToNames(options.EconomicStrategies, "EconomicStrategy", "MilitaryStrategy"),
+      MilitaryStrategies: convertToNames(options.MilitaryStrategies, "MilitaryStrategy", "EconomicStrategy"),
       Technologies: convertToNames(options.Technologies, "TechID"),
       NextResearch: convertToName(options.NextResearch, "TechID"),
       Policies: convertToNames(options.Policies, "PolicyID"),
