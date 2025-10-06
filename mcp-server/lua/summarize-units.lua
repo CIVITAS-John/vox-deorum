@@ -2,80 +2,80 @@
 -- Groups units by civilization owner, AI type, and unit type
 local pPlayer = Players[playerID]
 if not pPlayer or not pPlayer:IsAlive() then
-    return nil, "Player " .. tostring(playerID) .. " is not valid or not alive"
+  return nil, "Player " .. tostring(playerID) .. " is not valid or not alive"
 end
 
 local unitsByOwner = {}
 
 -- Iterate through all players to find their units
 for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
-    local pLoopPlayer = Players[iPlayerLoop]
+  local pLoopPlayer = Players[iPlayerLoop]
 
-    -- Check if this player exists and has units
-    if pLoopPlayer and pLoopPlayer:IsAlive() then
-        local civName = nil
-        local unitsForThisCiv = {}
+  -- Check if this player exists and has units
+  if pLoopPlayer and pLoopPlayer:IsAlive() then
+    local civName = nil
+    local unitsForThisCiv = {}
 
-        -- Iterate through all units of this player
-        for pUnit in pLoopPlayer:Units() do
-            -- Check if the unit's plot is visible to our player
-            local pPlot = pUnit:GetPlot()
-            if pPlot and pPlot:IsVisible(pPlayer:GetTeam(), false) then
-                -- Get civilization name lazily (only when we find a visible unit)
-                if not civName then
-                    if pLoopPlayer:IsMinorCiv() then
-                        civName = "City-State " .. pLoopPlayer:GetName()
-                    elseif pLoopPlayer:IsBarbarian() then
-                        civName = "Barbarians"
-                    else
-                        civName = pLoopPlayer:GetCivilizationShortDescription()
-                    end
-                end
-
-                -- Get unit details
-                local aiType = pUnit:GetUnitAIType()
-                local unitType = pUnit:GetUnitType()
-
-                -- Check if this is a military unit (has combat strength or ranged strength)
-                local combatStrength = pUnit:GetBaseCombatStrength()
-                local rangedStrength = pUnit:GetBaseRangedCombatStrength()
-                local isMilitaryUnit = (combatStrength > 0 or rangedStrength > 0)
-
-                if not unitsForThisCiv[aiType] then
-                    unitsForThisCiv[aiType] = {}
-                end
-                -- Store unit information based on type
-                if isMilitaryUnit then
-                    -- Military units: store with Strength, RangedStrength, and Count
-                    if combatStrength == 0 then
-                        combatStrength = nil
-                    end
-                    if rangedStrength == 0 then
-                        rangedStrength = nil
-                    end
-                    if not unitsForThisCiv[aiType][unitType] then
-                        unitsForThisCiv[aiType][unitType] = {
-                            Strength = combatStrength,
-                            RangedStrength = rangedStrength,
-                            Count = 0
-                        }
-                    end
-                    unitsForThisCiv[aiType][unitType].Count = unitsForThisCiv[aiType][unitType].Count + 1
-                else
-                    if not unitsForThisCiv[aiType] then
-                        unitsForThisCiv[aiType] = {}
-                    end
-                    -- Non-military units: keep simple count
-                    unitsForThisCiv[aiType][unitType] = (unitsForThisCiv[aiType][unitType] or 0) + 1
-                end
-            end
+    -- Iterate through all units of this player
+    for pUnit in pLoopPlayer:Units() do
+      -- Check if the unit's plot is visible to our player
+      local pPlot = pUnit:GetPlot()
+      if pPlot and pPlot:IsVisible(pPlayer:GetTeam(), false) then
+        -- Get civilization name lazily (only when we find a visible unit)
+        if not civName then
+          if pLoopPlayer:IsMinorCiv() then
+            civName = "City-State " .. pLoopPlayer:GetName()
+          elseif pLoopPlayer:IsBarbarian() then
+            civName = "Barbarians"
+          else
+            civName = pLoopPlayer:GetCivilizationShortDescription()
+          end
         end
 
-        -- Add to main table if we found any visible units
-        if civName and next(unitsForThisCiv) then
-            unitsByOwner[civName] = unitsForThisCiv
+        -- Get unit details
+        local aiType = pUnit:GetUnitAIType()
+        local unitType = pUnit:GetUnitType()
+
+        -- Check if this is a military unit (has combat strength or ranged strength)
+        local combatStrength = pUnit:GetBaseCombatStrength()
+        local rangedStrength = pUnit:GetBaseRangedCombatStrength()
+        local isMilitaryUnit = (combatStrength > 0 or rangedStrength > 0)
+
+        if not unitsForThisCiv[aiType] then
+          unitsForThisCiv[aiType] = {}
         end
+        -- Store unit information based on type
+        if isMilitaryUnit then
+          -- Military units: store with Strength, RangedStrength, and Count
+          if combatStrength == 0 then
+            combatStrength = nil
+          end
+          if rangedStrength == 0 then
+            rangedStrength = nil
+          end
+          if not unitsForThisCiv[aiType][unitType] then
+            unitsForThisCiv[aiType][unitType] = {
+              Strength = combatStrength,
+              RangedStrength = rangedStrength,
+              Count = 0
+            }
+          end
+          unitsForThisCiv[aiType][unitType].Count = unitsForThisCiv[aiType][unitType].Count + 1
+        else
+          if not unitsForThisCiv[aiType] then
+            unitsForThisCiv[aiType] = {}
+          end
+          -- Non-military units: keep simple count
+          unitsForThisCiv[aiType][unitType] = (unitsForThisCiv[aiType][unitType] or 0) + 1
+        end
+      end
     end
+
+    -- Add to main table if we found any visible units
+    if civName and next(unitsForThisCiv) then
+      unitsByOwner[civName] = unitsForThisCiv
+    end
+  end
 end
 
 return unitsByOwner

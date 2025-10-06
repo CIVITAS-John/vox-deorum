@@ -182,7 +182,7 @@ class GetOptionsTool extends ToolBase {
             ) : cleanOptions.MilitaryStrategies
         },
       },
-      Persona: persona as Record<string, string | number>,
+      Persona: persona as Record<string, string | number> | undefined,
       Research: {
         Next: research?.Technology ?? "None",
         Rationale: research?.Rationale,
@@ -229,11 +229,4 @@ class GetOptionsTool extends ToolBase {
     };
     return result;
   };
-}
-
-/**
- * Creates a new instance of the get options tool
- */
-export default function createGetOptionsTool() {
-  return new GetOptionsTool();
 }
