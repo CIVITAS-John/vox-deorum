@@ -46,8 +46,11 @@ export class KnowledgeStore {
   private db?: Kysely<KnowledgeDatabase>;
   private gameId?: string;
   private resyncing: boolean = true;
+
+  // Database operation bottleneck
   private bottleneck = new Bottleneck({
-    maxConcurrent: 1
+    maxConcurrent: 1,
+    timeout: 1000,
   })
 
   /**
@@ -236,7 +239,7 @@ export class KnowledgeStore {
         // Store the event
         await this.storeGameEvent(id, mappedType, data, visibilityFlags);
         await this.setMetadata("lastID", id.toString());
-        
+
         // Handle special events for notification
         if (typeof data.PlayerID === "number") {
           // Special: Victory
