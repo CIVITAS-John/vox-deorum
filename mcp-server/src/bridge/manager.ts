@@ -320,7 +320,7 @@ export class BridgeManager extends EventEmitter {
       logger.info('Event pipe connection established');
       this.eventPipeConnected = true;
       this.connectionMethod = 'eventPipe';
-      this.eventPipeSocket?.setTimeout(30000); 
+      this.eventPipeSocket?.setTimeout(300000); // 5 minutes timeout
       this.emit('connected');
       this.clearRetryTimeout();
     });
