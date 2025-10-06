@@ -294,3 +294,70 @@ export interface PlayerOpinions extends MutableKnowledge {
   // Opinion from the Key player to Player 21
   OpinionTo21: string | null;
 }
+
+/**
+ * Domination victory progress data
+ * Player-keyed object with capital control counts
+ */
+export interface DominationVictoryData {
+  CapitalsNeeded: number;
+  Contender: string | undefined;
+  [playerName: string]: {
+    CapitalsControlled: number;
+    CapitalsPercentage: number;
+  } | number | string | undefined;
+}
+
+/**
+ * Science victory progress data
+ * Player-keyed object with spaceship progress
+ */
+export interface ScienceVictoryData {
+  Contender: string | undefined;
+  [playerName: string]: {
+    ApolloComplete: number; // 0 or 1 (boolean as number for SQLite)
+    PartsCompleted: number;
+    PartsPercentage: number;
+  } | number | string | undefined;
+}
+
+/**
+ * Cultural victory progress data
+ * Player-keyed object with tourism/influence progress
+ */
+export interface CulturalVictoryData {
+  CivsNeeded: number;
+  Contender: string | undefined;
+  [playerName: string]: {
+    InfluentialCivs: number;
+    InfluentialPercentage: number;
+    PolicyPercentage: number;
+  } | number | string | undefined;
+}
+
+/**
+ * Diplomatic victory progress data
+ * Player-keyed object with delegate counts
+ */
+export interface DiplomaticVictoryData {
+  VotesNeeded: number;
+  Status: "WorldCongress" | "UnitedNations";
+  ActiveResolutions: string[];
+  Contender: string | undefined;
+  [playerName: string]: {
+    Delegates: number;
+    VictoryPercentage: number;
+  } | number | string | undefined | string[];
+}
+
+/**
+ * Victory progress tracking for all victory types
+ * Visible to all players (global knowledge)
+ * Each victory type can be "Not available", "Not yet unlocked", or an object with progress data
+ */
+export interface VictoryProgress extends MutableKnowledge {
+  Domination: string | JSONColumnType<DominationVictoryData>;
+  Science: string | JSONColumnType<ScienceVictoryData>;
+  Cultural: string | JSONColumnType<CulturalVictoryData>;
+  Diplomatic: string | JSONColumnType<DiplomaticVictoryData>;
+}
