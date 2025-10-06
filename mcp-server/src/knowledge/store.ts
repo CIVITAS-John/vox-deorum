@@ -28,7 +28,7 @@ import { getPlayerPersona } from './getters/player-persona.js';
 import { getPlayerOpinions } from './getters/player-opinions.js';
 import { getPlayerSummaries } from './getters/player-summary.js';
 import { getCityInformations } from './getters/city-information.js';
-import Bottleneck from 'bottleneck';
+import PQueue from 'p-queue';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -48,10 +48,7 @@ export class KnowledgeStore {
   private resyncing: boolean = true;
 
   // Database operation bottleneck
-  private bottleneck = new Bottleneck({
-    maxConcurrent: 1,
-    timeout: 1000,
-  })
+  private writeQueue = new PQueue({ concurrency: 1, timeout: 1000 });
 
   /**
    * Initialize or switch to a game-specific database
@@ -72,6 +69,7 @@ export class KnowledgeStore {
 
     // Create Kysely instance with Better-SQLite3
     const sqliteDb = new Database(dbPath);
+    sqliteDb.pragma('journal_mode = WAL');
     
     this.db = new Kysely<KnowledgeDatabase>({
       dialect: new SqliteDialect({
@@ -120,7 +118,7 @@ export class KnowledgeStore {
    * Set metadata value
    */
   async setMetadata(key: string, value: string): Promise<void> {
-    await this.bottleneck.schedule(() => this.getDatabase()
+    await this.writeQueue.add(() => this.getDatabase()
       .insertInto('GameMetadata')
       .values({ Key: key, Value: value })
       .onConflict((oc) => oc.column('Key').doUpdateSet({ Value: value }))
@@ -148,7 +146,7 @@ export class KnowledgeStore {
     const db = this.getDatabase();
 
     try {
-      const result = await this.bottleneck.schedule(() => db
+      const result = await this.writeQueue.add(() => db
         .deleteFrom('GameEvents')
         .where('ID', '>=', id)
         .executeTakeFirst());
@@ -301,7 +299,7 @@ export class KnowledgeStore {
     );
 
     try {
-      await this.bottleneck.schedule(() => this.getDatabase()
+      await this.writeQueue.add(() => this.getDatabase()
         .insertInto('GameEvents')
         .values(eventWithVisibility)
         .execute());
@@ -335,7 +333,7 @@ export class KnowledgeStore {
 
     try {
       // Process all items in a single transaction for efficiency
-      await this.bottleneck.schedule(() => db.transaction().execute(async (trx) => {
+      await this.writeQueue.add(() => db.transaction().execute(async (trx) => {
         for (const item of items) {
           const { key, data, visibilityFlags } = item;
 
@@ -353,10 +351,9 @@ export class KnowledgeStore {
             applyVisibility(newEntry, visibilityFlags);
 
           // Insert the entry
-          await this.bottleneck.schedule(() => trx
-            .insertInto(tableName)
+          trx.insertInto(tableName)
             .values(newEntry)
-            .execute());
+            .execute();
 
           logger.debug(
             `Stored ${tableName} entry - Key: ${key}, Turn: ${turn}`
@@ -394,7 +391,7 @@ export class KnowledgeStore {
 
     try {
       // Process all items in a single transaction for efficiency
-      await this.bottleneck.schedule(() => db.transaction().execute(async (trx) => {
+      await this.writeQueue.add(() => db.transaction().execute(async (trx) => {
         for (const item of items) {
           const { key, data, visibilityFlags, ignoreFields } = item;
 
@@ -585,7 +582,7 @@ export class KnowledgeStore {
       };
       
       // Insert or update the entry
-      await this.bottleneck.schedule(() => db
+      await this.writeQueue.add(() => db
         .insertInto(tableName)
         .values(entry)
         .onConflict((oc) => oc
