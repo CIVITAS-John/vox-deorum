@@ -44,6 +44,7 @@ const renamedEventTypes: Record<string, string> = {
  */
 export class KnowledgeStore {
   private db?: Kysely<KnowledgeDatabase>;
+  private sqliteDb?: Database.Database;
   private gameId?: string;
   private resyncing: boolean = true;
 
@@ -68,12 +69,12 @@ export class KnowledgeStore {
     logger.info(`Initializing KnowledgeStore for game: ${gameId} at path: ${dbPath}`);
 
     // Create Kysely instance with Better-SQLite3
-    const sqliteDb = new Database(dbPath);
-    sqliteDb.pragma('journal_mode = WAL');
+    this.sqliteDb = new Database(dbPath);
+    this.sqliteDb.pragma('journal_mode = WAL');
     
     this.db = new Kysely<KnowledgeDatabase>({
       dialect: new SqliteDialect({
-        database: sqliteDb,
+        database: this.sqliteDb,
       }),
       plugins: [new JsonSerializePlugin(), new ParseJSONResultsPlugin()],
     });
@@ -166,6 +167,15 @@ export class KnowledgeStore {
   }
 
   /**
+   * Save the knowledge database
+   */
+  async saveKnowledge() {
+    if (this.db) {
+      await this.writeQueue.add(() => this.sqliteDb?.pragma('wal_checkpoint(RESTART)'));
+    }
+  }
+
+  /**
    * Close database connection
    */
   async close(): Promise<void> {
@@ -244,6 +254,7 @@ export class KnowledgeStore {
           if (type == "PlayerVictory") {
             await this.setMetadata("victoryPlayerID", data.PlayerID);
             await this.setMetadata("victoryType", data.VictoryType);
+            await this.saveKnowledge();
             archiveGameData();
           }
           // Track active player on turn events
