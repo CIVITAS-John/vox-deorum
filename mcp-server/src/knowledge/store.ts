@@ -28,6 +28,7 @@ import { getPlayerPersona } from './getters/player-persona.js';
 import { getPlayerOpinions } from './getters/player-opinions.js';
 import { getPlayerSummaries } from './getters/player-summary.js';
 import { getCityInformations } from './getters/city-information.js';
+import Bottleneck from 'bottleneck';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -45,6 +46,9 @@ export class KnowledgeStore {
   private db?: Kysely<KnowledgeDatabase>;
   private gameId?: string;
   private resyncing: boolean = true;
+  private bottleneck = new Bottleneck({
+    maxConcurrent: 1
+  })
 
   /**
    * Initialize or switch to a game-specific database
@@ -113,11 +117,11 @@ export class KnowledgeStore {
    * Set metadata value
    */
   async setMetadata(key: string, value: string): Promise<void> {
-    await this.getDatabase()
+    await this.bottleneck.schedule(() => this.getDatabase()
       .insertInto('GameMetadata')
       .values({ Key: key, Value: value })
       .onConflict((oc) => oc.column('Key').doUpdateSet({ Value: value }))
-      .execute();
+      .execute());
   }
 
   /**
@@ -141,10 +145,10 @@ export class KnowledgeStore {
     const db = this.getDatabase();
 
     try {
-      const result = await db
+      const result = await this.bottleneck.schedule(() => db
         .deleteFrom('GameEvents')
         .where('ID', '>=', id)
-        .executeTakeFirst();
+        .executeTakeFirst());
 
       return Number(result.numDeletedRows) || 0;
     } catch (error) {
@@ -293,10 +297,10 @@ export class KnowledgeStore {
     );
 
     try {
-      await this.getDatabase()
+      await this.bottleneck.schedule(() => this.getDatabase()
         .insertInto('GameEvents')
         .values(eventWithVisibility)
-        .execute();
+        .execute());
       logger.debug(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
     } catch (error) {
       logger.warn(`Failed to store event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, ${String(error)}`);
@@ -327,7 +331,7 @@ export class KnowledgeStore {
 
     try {
       // Process all items in a single transaction for efficiency
-      await db.transaction().execute(async (trx) => {
+      await this.bottleneck.schedule(() => db.transaction().execute(async (trx) => {
         for (const item of items) {
           const { key, data, visibilityFlags } = item;
 
@@ -345,16 +349,16 @@ export class KnowledgeStore {
             applyVisibility(newEntry, visibilityFlags);
 
           // Insert the entry
-          await trx
+          await this.bottleneck.schedule(() => trx
             .insertInto(tableName)
             .values(newEntry)
-            .execute();
+            .execute());
 
           logger.debug(
             `Stored ${tableName} entry - Key: ${key}, Turn: ${turn}`
           );
         }
-      });
+      }));
     } catch (error) {
       logger.error(`Error storing TimedKnowledge batch in ${tableName}:`, error);
       throw error;
@@ -386,7 +390,7 @@ export class KnowledgeStore {
 
     try {
       // Process all items in a single transaction for efficiency
-      await db.transaction().execute(async (trx) => {
+      await this.bottleneck.schedule(() => db.transaction().execute(async (trx) => {
         for (const item of items) {
           const { key, data, visibilityFlags, ignoreFields } = item;
 
@@ -445,7 +449,7 @@ export class KnowledgeStore {
             `Stored ${tableName} entry - Key: ${key}, Version: ${newVersion}, Turn: ${turn}, Changes: ${changes.join(', ') || 'initial'}`
           );
         }
-      });
+      }));
     } catch (error) {
       logger.error(`Error storing MutableKnowledge batch in ${tableName}:`, error);
       throw error;
@@ -577,14 +581,14 @@ export class KnowledgeStore {
       };
       
       // Insert or update the entry
-      await db
+      await this.bottleneck.schedule(() => db
         .insertInto(tableName)
         .values(entry)
         .onConflict((oc) => oc
           .column('Key' as any)
           .doUpdateSet(entry)
         )
-        .execute();
+        .execute());
       
       logger.debug(
         `Stored ${tableName} public knowledge - Key: ${key}`
