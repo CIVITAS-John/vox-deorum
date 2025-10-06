@@ -236,12 +236,13 @@ export class KnowledgeStore {
         // Store the event
         await this.storeGameEvent(id, mappedType, data, visibilityFlags);
         await this.setMetadata("lastID", id.toString());
+        
         // Handle special events for notification
         if (typeof data.PlayerID === "number") {
           // Special: Victory
           if (type == "PlayerVictory") {
-            this.setMetadata("victoryPlayerID", data.PlayerID);
-            this.setMetadata("victoryType", data.VictoryType);
+            await this.setMetadata("victoryPlayerID", data.PlayerID);
+            await this.setMetadata("victoryType", data.VictoryType);
             archiveGameData();
           }
           // Track active player on turn events
