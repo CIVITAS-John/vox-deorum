@@ -20,13 +20,15 @@ for i = 0, numZones - 1 do
 end
 
 -- Add a default zone for units not in any tactical zone
-tacticalZones[-1] = {
-  ZoneID = -1,
-  Territory = "None",
-  Dominance = "None",
-  Domain = "None",
-  Units = {}
-}
+if (!tacticalZones[0]) then
+  tacticalZones[0] = {
+    ZoneID = 0,
+    Territory = "None",
+    Dominance = "None",
+    Domain = "None",
+    Units = {}
+  }
+end
 
 -- Iterate through all players to find their units
 for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
@@ -75,7 +77,10 @@ for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
           end
 
           -- Find which zone this unit belongs to
-          local zoneID = pUnit:GetTacticalZone() or -1
+          local zoneID = pUnit:GetTacticalZoneID(playerID)
+          if zoneID == -1 then
+            zoneID = 0 -- Default zone for unassigned units
+          end
           local zone = tacticalZones[zoneID]
 
           -- Initialize nested tables if needed (organized by Country only)

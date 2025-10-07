@@ -65,7 +65,7 @@ class GetMilitaryReportTool extends ToolBase {
       Units: report.units || []
     };
     for (var zoneID in report.zones) {
-      if (zoneID === "-1")
+      if (zoneID === "0")
         results["Zone Unassigned"] = report.zones[zoneID];
       else
         results[`Zone ${zoneID}`] = report.zones[zoneID];
