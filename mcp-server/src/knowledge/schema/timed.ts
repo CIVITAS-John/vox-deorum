@@ -370,3 +370,28 @@ export interface VictoryProgress extends MutableKnowledge {
   CulturalVictory: string | JSONColumnType<CulturalVictoryData>;
   DiplomaticVictory: string | JSONColumnType<DiplomaticVictoryData>;
 }
+
+/**
+ * Tactical zone information from the AI's tactical analysis
+ * Visible only to the player who owns the tactical analysis (self-knowledge)
+ * Saved per turn with all zone properties including unit assignments
+ */
+export interface TacticalZones extends TimedKnowledge {
+  ZoneID: number; // Unique zone identifier
+  Territory: string; // Territory type: "None", "Friendly", "Enemy", "Neutral"
+  Dominance: string; // Dominance status: "NoUnits", "Friendly", "Enemy", "Even"
+  Domain: string; // Domain type: "Sea" or "Land"
+  Posture: string; // Tactical posture: "None", "Withdraw", "Attrition", etc.
+  Owner: number; // Owner player ID
+  AreaID: number; // Area ID
+  City: string | null; // City name key (or null if no city)
+  CenterX: number; // Zone center X coordinate
+  CenterY: number; // Zone center Y coordinate
+  Plots: number; // Number of plots in zone
+  Value: number; // Dominance zone priority value
+  FriendlyStrength: number; // Overall friendly strength
+  EnemyStrength: number; // Overall enemy strength
+  NeutralStrength: number; // Neutral strength
+  Neighbors: JSONColumnType<number[]>; // Array of neighboring zone IDs
+  Units: JSONColumnType<Record<string, Record<string, number>>>; // Unit assignments: Civ name -> Unit type -> Count
+}

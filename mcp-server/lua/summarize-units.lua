@@ -1,10 +1,6 @@
 -- Get an overview of all visible units for a given player
 -- Groups units by civilization owner, AI type, and unit type
 local pPlayer = Players[playerID]
-if not pPlayer or not pPlayer:IsAlive() then
-  return nil, "Player " .. tostring(playerID) .. " is not valid or not alive"
-end
-
 local unitsByOwner = {}
 
 -- Iterate through all players to find their units

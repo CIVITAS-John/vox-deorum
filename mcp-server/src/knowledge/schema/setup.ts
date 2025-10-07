@@ -218,5 +218,28 @@ export async function setupKnowledgeDatabase(
   // Create indexes for VictoryProgress table
   await createMutableKnowledgeIndexes(db, 'VictoryProgress');
 
+  // Create TacticalZones table (TimedKnowledge implementation)
+  await createTimedKnowledgeTable(db, 'TacticalZones')
+    .addColumn('ZoneID', 'integer', (col) => col.notNull())
+    .addColumn('Territory', 'text', (col) => col.notNull())
+    .addColumn('Dominance', 'text', (col) => col.notNull())
+    .addColumn('Domain', 'text', (col) => col.notNull())
+    .addColumn('Posture', 'text', (col) => col.notNull())
+    .addColumn('Owner', 'integer', (col) => col.notNull())
+    .addColumn('AreaID', 'integer', (col) => col.notNull())
+    .addColumn('City', 'text')
+    .addColumn('CenterX', 'integer', (col) => col.notNull())
+    .addColumn('CenterY', 'integer', (col) => col.notNull())
+    .addColumn('Plots', 'integer', (col) => col.notNull())
+    .addColumn('Value', 'integer', (col) => col.notNull())
+    .addColumn('FriendlyStrength', 'integer', (col) => col.notNull())
+    .addColumn('EnemyStrength', 'integer', (col) => col.notNull())
+    .addColumn('NeutralStrength', 'integer', (col) => col.notNull())
+    .addColumn('Neighbors', 'text', (col) => col.notNull()) // JSON array
+    .addColumn('Units', 'text', (col) => col.notNull()) // JSON object: Civ name -> Unit type -> Count
+    .execute();
+  // Create indexes for TacticalZones table
+  await createTimedKnowledgeIndexes(db, 'TacticalZones', 'ZoneID');
+
   return db;
 }
