@@ -34,6 +34,7 @@ export async function getPlayerSummaries(saving: boolean = true): Promise<Select
   }
 
   // Store all summaries in batch if saving is enabled
+  // Visibility handled by Lua script
   if (saving) {
     await store.storeMutableKnowledgeBatch(
       'PlayerSummaries',

@@ -8,6 +8,7 @@ import { LuaFunction } from '../../bridge/lua-function.js';
 import { PlayerOptions } from '../schema/timed.js';
 import { knowledgeManager } from '../../server.js';
 import { retrieveEnumName } from '../../utils/knowledge/enum.js';
+import { composeVisibility } from '../../utils/knowledge/visibility.js';
 
 /**
  * Lua function that extracts player options information from the game
@@ -71,7 +72,10 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
   if (saving) await store.storeTimedKnowledgeBatch(
     'PlayerOptions',
     processedResults.map((options: any) => {
-      return { data: options };
+      return { 
+        data: options,
+        visibilityFlags: composeVisibility([options.PlayerID])
+      };
     })
   );
 

@@ -78,3 +78,20 @@ export function getVisiblePlayers(
 
   return visiblePlayers;
 }
+
+/**
+ * Creates a visibility array for a list of player IDs
+ * All specified players get visibility level 2, others get 0
+ *
+ * @param playerIDs - Array of player IDs that should have visibility
+ * @returns Array of visibility levels indexed by player ID
+ */
+export function composeVisibility(playerIDs: number[]): number[] {
+  const visibility: number[] = new Array(MaxMajorCivs).fill(0);
+  for (const playerID of playerIDs) {
+    if (playerID >= 0 && playerID < MaxMajorCivs) {
+      visibility[playerID] = 2;
+    }
+  }
+  return visibility;
+}

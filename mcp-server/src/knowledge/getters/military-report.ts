@@ -6,6 +6,7 @@
 import { LuaFunction } from '../../bridge/lua-function.js';
 import { knowledgeManager } from '../../server.js';
 import { enumMappings } from '../../utils/knowledge/enum.js';
+import { composeVisibility } from '../../utils/knowledge/visibility.js';
 import { createLogger } from '../../utils/logger.js';
 
 const logger = createLogger("getMilitaryReport");
@@ -88,7 +89,8 @@ export async function getMilitaryReport(
         data: zone,
         extra: {
           PlayerID: playerID
-        }
+        },
+        visibilityFlags: composeVisibility([playerID])
       }));
 
     if (zoneItems.length > 0) {

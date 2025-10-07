@@ -33,10 +33,11 @@ export async function getVictoryProgress(saving: boolean = true): Promise<Partia
 
   // Store the victory progress if saving is enabled (always use Key = 0)
   if (saving) {
+    // Visible to all players (constrained by visibility for player's identity)
     await store.storeMutableKnowledge(
       'VictoryProgress',
       0,  // Key is always 0 for global victory progress
-      victoryData
+      victoryData,
     );
   }
 

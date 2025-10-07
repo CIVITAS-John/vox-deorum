@@ -6,6 +6,7 @@ import { knowledgeManager } from "../../server.js";
 import { convertStrategyToNames } from "../../utils/knowledge/enum.js";
 import { LuaFunction } from "../../bridge/lua-function.js";
 import { createLogger } from "../../utils/logger.js";
+import { composeVisibility } from "../../utils/knowledge/visibility.js";
 
 const logger = createLogger("ReadPlayerStrategies");
 
@@ -77,7 +78,7 @@ export async function getPlayerStrategy(playerId: number): Promise<{
       MilitaryStrategies: readableStrategies.MilitaryStrategies,
       Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI(${lastRationale.trim()})`
     },
-    undefined,
+      composeVisibility([playerId]),
     ["Rationale"] // Only ignore Rationale when checking for changes
   );
   

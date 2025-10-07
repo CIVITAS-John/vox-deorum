@@ -446,9 +446,8 @@ export class KnowledgeStore {
           if (!newEntry.payload) newEntry.payload = {};
 
           // Apply visibility flags if provided
-          if (visibilityFlags) {
+          if (visibilityFlags)
             applyVisibility(newEntry, visibilityFlags);
-          }
 
           // Insert the new version
           await trx
