@@ -5,6 +5,9 @@ local pPlayer = Players[playerID]
 -- Units organized by AIType
 local units = {}
 
+-- Track which unit types we've already added to prevent duplicates
+local seenUnitTypes = {}
+
 -- Tactical zones with unit assignments
 local tacticalZones = {}
 
@@ -20,7 +23,7 @@ for i = 0, numZones - 1 do
 end
 
 -- Add a default zone for units not in any tactical zone
-if (!tacticalZones[0]) then
+if (not tacticalZones[0]) then
   tacticalZones[0] = {
     ZoneID = 0,
     Territory = "None",
@@ -56,17 +59,18 @@ for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
 
         -- Get unit details
         local aiType = pUnit:GetUnitAIType()
-        local unitType = GameInfo.Units[pUnit:GetUnitType()].Type
+        local unitType = pUnit:GetUnitType()
         local combatStrength = pUnit:GetBaseCombatStrength()
         local rangedStrength = pUnit:GetBaseRangedCombatStrength()
         local isMilitaryUnit = (combatStrength > 0 or rangedStrength > 0)
 
         if isMilitaryUnit then
-          -- Add unit type to Units table (organized by AIType)
-          if not units[aiType] then
-            units[aiType] = {}
-          end
-          if not units[aiType][unitType] then
+          -- Add unit type to Units table (organized by AIType) - only once per unit type
+          if not seenUnitTypes[unitType] then
+            seenUnitTypes[unitType] = true
+            if not units[aiType] then
+              units[aiType] = {}
+            end
             units[aiType][unitType] = {}
             if combatStrength > 0 then
               units[aiType][unitType].Strength = combatStrength

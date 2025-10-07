@@ -24,13 +24,13 @@ export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistPara
    */
   public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     // Get the information
-    const [players, events, cities, options, victory, units] = await Promise.all([
+    const [players, events, cities, options, victory, military] = await Promise.all([
       context.callTool("get-players", { }, parameters),
       context.callTool("get-events", { }, parameters),
       context.callTool("get-cities", { }, parameters),
       context.callTool("get-options", { }, parameters),
       context.callTool("get-victory-progress", { }, parameters),
-      context.callTool("summarize-units", { }, parameters),
+      context.callTool("get-military-report", { }, parameters),
     ]);
     if (players === undefined || events === undefined || cities === undefined || units === undefined)
       throw Error("Cannot fetch necessary data for decision-making. Aborting.")
@@ -38,7 +38,7 @@ export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistPara
     parameters.store!.events = events;
     parameters.store!.cities = cities;
     parameters.store!.options = options;
-    parameters.store!.units = units;
+    parameters.store!.military = military;
     parameters.store!.victory = victory;
     return [];
   }

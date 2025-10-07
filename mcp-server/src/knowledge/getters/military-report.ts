@@ -39,8 +39,10 @@ export async function getMilitaryReport(
     // Convert zones object to array for batch processing
     const zoneItems = Object.entries(zones as Record<string, any>)
       .map(([_, zone]) => ({
-        key: playerID,
-        data: zone
+        data: zone,
+        extra: {
+          PlayerID: playerID
+        }
       }));
 
     if (zoneItems.length > 0) {

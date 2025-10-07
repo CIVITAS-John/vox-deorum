@@ -59,7 +59,9 @@ You will receive the following reports:
   - You will receive in-game AI's diplomatic evaluations.
   - You will receive each player's publicly available relationships.
 - Cities: summary reports about discovered cities in the world.
-- Units: summary reports about your units and other players' visible units (only).
+- Military: summary reports about tactical zones and visible units.
+  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
+  - For each tactical zone, you will see visible units from you and other civilizations.
 - Events: events since you last made a decision.
 `.trim()
   }
@@ -98,9 +100,9 @@ ${parameters.store!.players}
 Cities: summary reports about discovered cities in the world.
 ${parameters.store!.cities}
 
-# Units
-Units: summary reports about visible units.
-${parameters.store!.units}
+# Military
+Military: summary reports about tactical zones and visible units.
+${parameters.store!.military}
 
 # Events
 Events: events since you last made a decision.

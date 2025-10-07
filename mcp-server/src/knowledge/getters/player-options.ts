@@ -53,9 +53,9 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
 
   // Process and convert numeric IDs to names for all options
   // Note: Strategy blacklisting is now handled in CvLuaPlayer.cpp
-  const processedResults = response.result.map((options: any) => {
+  const processedResults = (response.result as any[]).map((options: any) => {
     return {
-      Key: options.Key,
+      PlayerID: options.PlayerID,
       EconomicStrategies: convertToNames(options.EconomicStrategies, "EconomicStrategy", "MilitaryStrategy"),
       MilitaryStrategies: convertToNames(options.MilitaryStrategies, "MilitaryStrategy", "EconomicStrategy"),
       Technologies: convertToNames(options.Technologies, "TechID"),
@@ -68,17 +68,12 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
   });
 
   // Store all options in batch if saving is enabled
-  if (saving) {
-    await store.storeTimedKnowledgeBatch(
-      'PlayerOptions',
-      processedResults.map((options: any) => {
-        return {
-          key: options.Key!,
-          data: options
-        };
-      })
-    );
-  }
+  if (saving) await store.storeTimedKnowledgeBatch(
+    'PlayerOptions',
+    processedResults.map((options: any) => {
+      return { data: options };
+    })
+  );
 
   return processedResults;
 }

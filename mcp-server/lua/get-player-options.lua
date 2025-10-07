@@ -11,7 +11,7 @@ for playerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
   -- Only include players that are alive
   if player and player:IsAlive() then
     local playerOptions = {
-      Key = playerID,
+      PlayerID = playerID,
       EconomicStrategies = player:GetPossibleEconomicStrategies(),
       MilitaryStrategies = player:GetPossibleMilitaryStrategies(),
       Technologies = player:GetPossibleTechs(true),

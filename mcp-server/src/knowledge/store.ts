@@ -334,7 +334,7 @@ export class KnowledgeStore {
   >(
     tableName: TTable,
     items: Array<{
-      key: number;
+      extra?: Record<string, any>;
       data: TData;
       visibilityFlags?: number[];
     }>
@@ -346,12 +346,12 @@ export class KnowledgeStore {
       // Process all items in a single transaction for efficiency
       await this.writeQueue.add(() => db.transaction().execute(async (trx) => {
         for (const item of items) {
-          const { key, data, visibilityFlags } = item;
+          const { extra, data, visibilityFlags } = item;
 
           // Prepare the new entry with TimedKnowledge fields
           const newEntry: any = {
             ...data,
-            Key: key,
+            ...extra,
             Turn: turn
           };
           if (!newEntry.payload)
@@ -365,12 +365,11 @@ export class KnowledgeStore {
           trx.insertInto(tableName)
             .values(newEntry)
             .execute();
-
-          logger.debug(
-            `Stored ${tableName} entry - Key: ${key}, Turn: ${turn}`
-          );
         }
       }));
+      logger.debug(
+        `Stored ${tableName} entries x ${items.length} - Turn: ${turn}`
+      );
     } catch (error) {
       logger.error(`Error storing TimedKnowledge batch in ${tableName}:`, error);
       throw error;
