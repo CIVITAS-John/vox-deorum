@@ -111,7 +111,7 @@ export class StrategistSession {
     // Abort all active players
     for (const [playerID, player] of this.activePlayers.entries()) {
       logger.debug(`Aborting player ${playerID}`);
-      player.abort();
+      player.abort(false);
     }
     this.activePlayers.clear();
 
@@ -141,7 +141,7 @@ export class StrategistSession {
 
     // Abort all existing players
     for (const player of this.activePlayers.values()) {
-      player.abort();
+      player.abort(false);
     }
     this.activePlayers.clear();
 
@@ -192,7 +192,7 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // Abort all existing players
     for (const player of this.activePlayers.values()) {
-      player.abort();
+      player.abort(true);
     }
     this.activePlayers.clear();
 

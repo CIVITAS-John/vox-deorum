@@ -81,9 +81,10 @@ export class VoxContext<TParameters extends AgentParameters> {
   /**
    * Abort the current generation if one is in progress
    * Creates a new AbortController after aborting for future operations
+   * @param successful - Whether the abort is due to successful completion
    */
-  public abort(): void {
-    this.logger.info('Aborting current generation');
+  public abort(successful: boolean = false): void {
+    this.logger.info(`Aborting current generation (successful: ${successful})`);
     this.abortController.abort();
     // Create a new AbortController for future executions
     this.abortController = new AbortController();

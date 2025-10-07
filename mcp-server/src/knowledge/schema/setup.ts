@@ -226,7 +226,6 @@ export async function setupKnowledgeDatabase(
     .addColumn('Dominance', 'text', (col) => col.notNull())
     .addColumn('Domain', 'text', (col) => col.notNull())
     .addColumn('Posture', 'text', (col) => col.notNull())
-    .addColumn('Owner', 'integer', (col) => col.notNull())
     .addColumn('AreaID', 'integer', (col) => col.notNull())
     .addColumn('City', 'text')
     .addColumn('CenterX', 'integer', (col) => col.notNull())

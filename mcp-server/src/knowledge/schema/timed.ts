@@ -74,7 +74,7 @@ export interface PlayerSummary extends MutableKnowledge {
  * Saved as snapshots when player acquires new options or strategies change
  */
 export interface PlayerOptions extends TimedKnowledge {
-  Key: number; // Player ID
+  PlayerID: number; // Player ID
   EconomicStrategies: JSONColumnType<string[]>; // Available economic strategy names
   MilitaryStrategies: JSONColumnType<string[]>; // Available military strategy names
   Technologies: JSONColumnType<string[]>; // Possible technology names
@@ -382,7 +382,6 @@ export interface TacticalZones extends TimedKnowledge {
   Dominance: string; // Dominance status: "NoUnits", "Friendly", "Enemy", "Even"
   Domain: string; // Domain type: "Sea" or "Land"
   Posture: string; // Tactical posture: "None", "Withdraw", "Attrition", etc.
-  Owner: number; // Owner player ID
   AreaID: number; // Area ID
   City: string | null; // City name key (or null if no city)
   CenterX: number; // Zone center X coordinate

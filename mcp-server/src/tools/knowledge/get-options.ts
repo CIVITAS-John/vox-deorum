@@ -110,7 +110,7 @@ class GetOptionsTool extends ToolBase {
     ]);
 
     // Find options for the requested player
-    const playerOptions = allOptions.find(options => options.Key === args.PlayerID);
+    const playerOptions = allOptions.find(options => options.PlayerID === args.PlayerID);
     if (!playerOptions)
       throw new Error(`No options found for player ${args.PlayerID}. Player may not be alive or does not exist.`);
 
