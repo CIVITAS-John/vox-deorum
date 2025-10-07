@@ -71,7 +71,7 @@ class GetMilitaryReportTool extends ToolBase {
         (zone.Neighbors as any[]).filter((n: number) => report.zones.hasOwnProperty(String(n))) : [];
       const postprocessed = {
         ZoneValue: zone.Value,
-        Dominance: zone.Dominance == "No Units" ? zone.Dominance : undefined,
+        Dominance: zone.Dominance === "No Units" ? undefined : zone.Dominance,
         Posture:
           zone.FriendlyStrength > 0 &&
           zone.EnemyStrength > 0 ? zone.Posture : undefined,

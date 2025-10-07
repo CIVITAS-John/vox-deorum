@@ -77,7 +77,7 @@ echo [2/3] Stopping MCP Server (PID: %MCP_PID%)...
 taskkill /PID %MCP_PID% /T /F >nul 2>&1
 
 echo [3/3] Stopping Bridge Service (PID: %BRIDGE_PID%)...
-taskkill /PID %BRIDGE_PID% /T >nul 2>&1
+taskkill /PID %BRIDGE_PID% /T /F >nul 2>&1
 
 :: Clean up temp files
 del "%TEMP%\bridge.pid" 2>nul
