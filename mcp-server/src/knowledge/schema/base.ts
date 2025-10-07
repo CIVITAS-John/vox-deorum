@@ -13,7 +13,8 @@ import {
   PlayerOpinions,
   CityInformation,
   PersonaChange,
-  PlayerOptions
+  PlayerOptions,
+  VictoryProgress
 } from './timed';
 import { PlayerInformation } from './public';
 
@@ -112,6 +113,7 @@ export interface KnowledgeDatabase {
   StrategyChanges: StrategyChange;
   PolicyChanges: PolicyChange;
   ResearchChanges: ResearchChange;
+  VictoryProgress: VictoryProgress;
   // Public Knowledge
   PlayerInformations: PlayerInformation;
 }

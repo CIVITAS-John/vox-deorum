@@ -230,3 +230,10 @@ class GetOptionsTool extends ToolBase {
     return result;
   };
 }
+
+/**
+ * Creates a new instance of the get options tool
+ */
+export default function createGetOptionsTool() {
+  return new GetOptionsTool();
+}

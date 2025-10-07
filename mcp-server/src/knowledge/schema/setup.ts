@@ -208,5 +208,15 @@ export async function setupKnowledgeDatabase(
   // Create indexes for PlayerInformation table
   await createPublicKnowledgeIndexes(db, 'PlayerInformations');
 
+  // Create VictoryProgress table (MutableKnowledge implementation)
+  await createMutableKnowledgeTable(db, 'VictoryProgress')
+    .addColumn('DominationVictory', 'text', (col) => col.notNull()) // JSON or status string
+    .addColumn('SpaceshipVictory', 'text', (col) => col.notNull()) // JSON or status string
+    .addColumn('CulturalVictory', 'text', (col) => col.notNull()) // JSON or status string
+    .addColumn('DiplomaticVictory', 'text', (col) => col.notNull()) // JSON or status string
+    .execute();
+  // Create indexes for VictoryProgress table
+  await createMutableKnowledgeIndexes(db, 'VictoryProgress');
+
   return db;
 }

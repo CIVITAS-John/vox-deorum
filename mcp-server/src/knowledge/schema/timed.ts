@@ -309,10 +309,10 @@ export interface DominationVictoryData {
 }
 
 /**
- * Science victory progress data
+ * Spaceship victory progress data
  * Player-keyed object with spaceship progress
  */
-export interface ScienceVictoryData {
+export interface SpaceshipVictoryData {
   Contender: string | undefined;
   [playerName: string]: {
     ApolloComplete: number; // 0 or 1 (boolean as number for SQLite)
@@ -336,18 +336,27 @@ export interface CulturalVictoryData {
 }
 
 /**
+ * Active resolution information for Diplomatic victory
+ */
+export interface ActiveResolution {
+  Name: string; // Resolution name
+  Description: string; // Resolution details
+  EnactedOn: number; // Turn number when enacted
+}
+
+/**
  * Diplomatic victory progress data
  * Player-keyed object with delegate counts
  */
 export interface DiplomaticVictoryData {
   VotesNeeded: number;
   Status: "WorldCongress" | "UnitedNations";
-  ActiveResolutions: string[];
+  ActiveResolutions: ActiveResolution[];
   Contender: string | undefined;
   [playerName: string]: {
     Delegates: number;
     VictoryPercentage: number;
-  } | number | string | undefined | string[];
+  } | number | string | undefined | ActiveResolution[];
 }
 
 /**
@@ -356,8 +365,8 @@ export interface DiplomaticVictoryData {
  * Each victory type can be "Not available", "Not yet unlocked", or an object with progress data
  */
 export interface VictoryProgress extends MutableKnowledge {
-  Domination: string | JSONColumnType<DominationVictoryData>;
-  Science: string | JSONColumnType<ScienceVictoryData>;
-  Cultural: string | JSONColumnType<CulturalVictoryData>;
-  Diplomatic: string | JSONColumnType<DiplomaticVictoryData>;
+  DominationVictory: string | JSONColumnType<DominationVictoryData>;
+  SpaceshipVictory: string | JSONColumnType<SpaceshipVictoryData>;
+  CulturalVictory: string | JSONColumnType<CulturalVictoryData>;
+  DiplomaticVictory: string | JSONColumnType<DiplomaticVictoryData>;
 }
