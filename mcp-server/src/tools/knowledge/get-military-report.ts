@@ -62,7 +62,7 @@ class GetMilitaryReportTool extends ToolBase {
 
     // Construct the report for LLM consumption
     const results: Record<string, any> = {
-      Units: report.units || []
+      "Unit Stats": report.units || []
     };
     for (var zoneID in report.zones) {
       // Postprocessing zones
