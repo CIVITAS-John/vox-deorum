@@ -32,7 +32,7 @@ export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistPara
       context.callTool("get-victory-progress", { }, parameters),
       context.callTool("get-military-report", { }, parameters),
     ]);
-    if (players === undefined || events === undefined || cities === undefined || units === undefined)
+    if (players === undefined || events === undefined || cities === undefined || military === undefined)
       throw Error("Cannot fetch necessary data for decision-making. Aborting.")
     parameters.store!.players = players;
     parameters.store!.events = events;
