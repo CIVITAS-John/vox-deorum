@@ -312,7 +312,7 @@ export interface DominationVictoryData {
  * Spaceship victory progress data
  * Player-keyed object with spaceship progress
  */
-export interface SpaceshipVictoryData {
+export interface ScienceVictoryData {
   Contender: string | undefined;
   [playerName: string]: {
     ApolloComplete: number; // 0 or 1 (boolean as number for SQLite)
@@ -366,7 +366,7 @@ export interface DiplomaticVictoryData {
  */
 export interface VictoryProgress extends MutableKnowledge {
   DominationVictory: string | JSONColumnType<DominationVictoryData>;
-  SpaceshipVictory: string | JSONColumnType<SpaceshipVictoryData>;
+  ScienceVictory: string | JSONColumnType<ScienceVictoryData>;
   CulturalVictory: string | JSONColumnType<CulturalVictoryData>;
   DiplomaticVictory: string | JSONColumnType<DiplomaticVictoryData>;
 }

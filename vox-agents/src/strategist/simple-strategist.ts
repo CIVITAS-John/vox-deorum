@@ -50,6 +50,11 @@ You will receive the following reports:
   - You will receive options and short descriptions for each type of decisions.
     - Whatever decision-making tool you call, the in-game AI can only execute options here.
     - You must choose options from the relevant lists. Double check if your choices match.
+- Victory Progress: current progress towards each type of victory.
+    - Domination Victory: Control or vassalize all original capitals.
+    - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
+    - Cultural Victory: Accumulate enough tourism to influence all other civilizations.
+    - Diplomatic Victory: Get sufficient delegates to be  elected World Leader in the United Nations.
 - Players: summary reports about visible players in the world. Also:
   - You will receive in-game AI's diplomatic evaluations.
   - You will receive each player's publicly available relationships.
@@ -76,6 +81,10 @@ ${parameters.store!.metadata}`.trim()
       role: "user",
       content: `
 You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
+
+# Victory Progress
+Victory Progress: current progress towards each type of victory.
+${parameters.store!.victory}
 
 # Strategies
 Strategies: existing strategic decisions and available options for you.

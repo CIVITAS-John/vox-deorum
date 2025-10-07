@@ -4,7 +4,7 @@
 
 local victoryProgress = {
   DominationVictory = "Not available",
-  SpaceshipVictory = "Not available",
+  ScienceVictory = "Not available",
   CulturalVictory = "Not available",
   DiplomaticVictory = "Not available"
 }
@@ -55,19 +55,22 @@ if dominationVictory and Game:IsVictoryValid(dominationVictory.ID) then
         end
       end
 
-      local capitalsPercentage = math.floor((capitalsControlled * 100) / totalCapitals)
-      local playerName = player:GetCivilizationShortDescription()
+      -- Only include players who control at least one capital
+      if capitalsControlled > 0 then
+        local capitalsPercentage = math.floor((capitalsControlled * 100) / totalCapitals)
+        local playerName = player:GetCivilizationShortDescription()
 
-      -- Track who's leading
-      if capitalsControlled > maxCapitals then
-        maxCapitals = capitalsControlled
-        dominationData.Contender = playerName
+        -- Track who's leading
+        if capitalsControlled > maxCapitals then
+          maxCapitals = capitalsControlled
+          dominationData.Contender = playerName
+        end
+
+        dominationData[playerName] = {
+          CapitalsControlled = capitalsControlled,
+          CapitalsPercentage = capitalsPercentage
+        }
       end
-
-      dominationData[playerName] = {
-        CapitalsControlled = capitalsControlled,
-        CapitalsPercentage = capitalsPercentage
-      }
     end
   end
 
@@ -129,9 +132,9 @@ if scienceVictory and Game:IsVictoryValid(scienceVictory.ID) then
     end
 
     if spaceshipUnlocked then
-      victoryProgress.SpaceshipVictory = scienceData
+      victoryProgress.ScienceVictory = scienceData
     else
-      victoryProgress.SpaceshipVictory = "Not yet unlocked"
+      victoryProgress.ScienceVictory = "Unlocked in later eras"
     end
   end
 end
@@ -218,7 +221,7 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
 
   if league then
     local votesNeeded = Game.GetVotesNeededForDiploVictory()
-    local status = "WorldCongress"
+    local status = "World Congress"
 
     -- Check if we have United Nations
     for projectInfo in GameInfo.Projects() do
@@ -227,7 +230,7 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
         for teamID = 0, GameDefines.MAX_TEAMS - 1 do
           local team = Teams[teamID]
           if team and team:GetProjectCount(projectInfo.ID) > 0 then
-            status = "UnitedNations"
+            status = "United Nations"
             break
           end
         end
@@ -279,7 +282,7 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
 
     victoryProgress.DiplomaticVictory = diplomaticData
   else
-    victoryProgress.DiplomaticVictory = "Not yet unlocked"
+    victoryProgress.DiplomaticVictory = "Unlocked in later eras"
   end
 end
 

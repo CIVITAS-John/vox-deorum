@@ -30,7 +30,7 @@ const GetVictoryProgressInputSchema = z.object({
  */
 const GetVictoryProgressOutputSchema = z.object({
   DominationVictory: z.any(),
-  SpaceshipVictory: z.any(),
+  ScienceVictory: z.any(),
   CulturalVictory: z.any(),
   DiplomaticVictory: z.any(),
 });
@@ -91,7 +91,7 @@ class GetVictoryProgressTool extends ToolBase {
 
     return {
       DominationVictory: parseVictoryField(cleanProgress.DominationVictory, filterContext),
-      SpaceshipVictory: parseVictoryField(cleanProgress.SpaceshipVictory, filterContext),
+      ScienceVictory: parseVictoryField(cleanProgress.ScienceVictory, filterContext),
       CulturalVictory: parseVictoryField(cleanProgress.CulturalVictory, filterContext),
       DiplomaticVictory: parseVictoryField(cleanProgress.DiplomaticVictory, filterContext),
     };

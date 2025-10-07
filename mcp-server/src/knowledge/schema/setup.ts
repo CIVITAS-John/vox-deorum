@@ -211,7 +211,7 @@ export async function setupKnowledgeDatabase(
   // Create VictoryProgress table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'VictoryProgress')
     .addColumn('DominationVictory', 'text', (col) => col.notNull()) // JSON or status string
-    .addColumn('SpaceshipVictory', 'text', (col) => col.notNull()) // JSON or status string
+    .addColumn('ScienceVictory', 'text', (col) => col.notNull()) // JSON or status string
     .addColumn('CulturalVictory', 'text', (col) => col.notNull()) // JSON or status string
     .addColumn('DiplomaticVictory', 'text', (col) => col.notNull()) // JSON or status string
     .execute();
