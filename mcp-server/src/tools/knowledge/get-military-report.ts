@@ -112,6 +112,7 @@ class GetMilitaryReportTool extends ToolBase {
     for (var zoneID in report.zones) {
       // Postprocessing zones
       const zone = report.zones[zoneID];
+      const neighbors = zone.Neighbors?.filter((n: number) => report.zones.hasOwnProperty(String(n)));
       const postprocessed = {
         Domain: zone.Domain,
         ZoneValue: zone.Value,
@@ -129,7 +130,7 @@ class GetMilitaryReportTool extends ToolBase {
         CenterX: zone.CenterX,
         CenterY: zone.CenterY,
         Units: zone.Units,
-        Neighbors: zone.Neighbors.filter((n: number) => report.zones.hasOwnProperty(String(n))),
+        Neighbors: neighbors?.length > 0 ? neighbors : undefined,
       }
       if (zoneID === "0")
         results["Zone Unassigned"] = postprocessed;
