@@ -75,9 +75,9 @@ class GetMilitaryReportTool extends ToolBase {
         Posture:
           zone.FriendlyStrength > 0 &&
           zone.EnemyStrength > 0 ? zone.Posture : undefined,
-        EnemyStrength: zone.EnemyStrength > 0 ? zone.EnemyStrength : undefined,
-        NeutralStrength: zone.NeutralStrength > 0 ? zone.NeutralStrength : undefined,
-        FriendlyStrength: zone.FriendlyStrength > 0 ? zone.FriendlyStrength : undefined,
+        EnemyStrength: zone.EnemyStrength > 0 ? Math.round(zone.EnemyStrength / 100) : undefined,
+        NeutralStrength: zone.NeutralStrength > 0 ? Math.round(zone.NeutralStrength / 100) : undefined,
+        FriendlyStrength: zone.FriendlyStrength > 0 ? Math.round(zone.FriendlyStrength / 100) : undefined,
         City: zone.City,
         AreaID: zone.AreaID,
         Plots: zone.Plots,

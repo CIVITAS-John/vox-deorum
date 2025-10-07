@@ -70,24 +70,14 @@ echo.
 echo [INFO] Shutting down services...
 
 :: First attempt graceful shutdown (without /F flag) in reverse order
-echo [1/3] Gracefully stopping Vox Agents (PID: %VOX_PID%)...
-taskkill /PID %VOX_PID% /T >nul 2>&1
-
-echo [2/3] Gracefully stopping MCP Server (PID: %MCP_PID%)...
-taskkill /PID %MCP_PID% /T >nul 2>&1
-
-echo [3/3] Gracefully stopping Bridge Service (PID: %BRIDGE_PID%)...
-taskkill /PID %BRIDGE_PID% /T >nul 2>&1
-
-:: Wait 5 seconds for graceful shutdown
-echo [INFO] Waiting 5 seconds for graceful shutdown...
-timeout /t 5 /nobreak >nul
-
-:: Force kill any remaining processes
-echo [INFO] Force stopping any remaining processes...
+echo [1/3] Stopping Vox Agents (PID: %VOX_PID%)...
 taskkill /PID %VOX_PID% /T /F >nul 2>&1
+
+echo [2/3] Stopping MCP Server (PID: %MCP_PID%)...
 taskkill /PID %MCP_PID% /T /F >nul 2>&1
-taskkill /PID %BRIDGE_PID% /T /F >nul 2>&1
+
+echo [3/3] Stopping Bridge Service (PID: %BRIDGE_PID%)...
+taskkill /PID %BRIDGE_PID% /T >nul 2>&1
 
 :: Clean up temp files
 del "%TEMP%\bridge.pid" 2>nul

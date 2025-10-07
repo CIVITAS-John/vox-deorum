@@ -150,6 +150,7 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
   if (setupSignalHandlers) {
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
+    process.on('SIGBREAK', shutdown);
   }
 
   // Start the server

@@ -23,33 +23,6 @@ export class BridgeService extends EventEmitter {
   constructor() {
     super();
     this.startTime = new Date();
-    this.setupEventHandlers();
-  }
-
-  /**
-   * Setup event handlers for service coordination
-   */
-  private setupEventHandlers(): void {
-    // Handle service-level errors
-    process.on('SIGTERM', () => {
-      logger.info('SIGTERM received - shutting down gracefully');
-      this.shutdown().then(() => {
-        process.exit(0);
-      }).catch((error) => {
-        logger.error('Error during shutdown:', error);
-        process.exit(1);
-      });
-    });
-
-    process.on('SIGINT', () => {
-      logger.info('SIGINT received - shutting down gracefully');
-      this.shutdown().then(() => {
-        process.exit(0);
-      }).catch((error) => {
-        logger.error('Error during shutdown:', error);
-        process.exit(1);
-      });
-    });
   }
 
   /**

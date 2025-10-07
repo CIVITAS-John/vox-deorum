@@ -15,6 +15,7 @@ import eventsRoutes from './routes/events.js';
 import { respondError, respondSuccess, ErrorCode } from './types/api.js';
 import { handleAPIError } from './utils/api.js';
 import { createServer } from "http";
+import { pauseManager } from './services/pause-manager.js';
 
 const logger = createLogger('Index');
 
@@ -183,6 +184,7 @@ async function startServer(): Promise<void> {
       server.close(async () => {
         try {
           await bridgeService.shutdown();
+          pauseManager.finalize();
           logger.info('Server shutdown complete');
           process.exit(0);
         } catch (error) {
@@ -193,6 +195,7 @@ async function startServer(): Promise<void> {
     };
 
     process.on('SIGTERM', shutdown);
+    process.on('SIGBREAK', shutdown);
     process.on('SIGINT', shutdown);
 
     // Handle uncaught exceptions
