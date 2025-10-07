@@ -5,6 +5,10 @@
 
 import { LuaFunction } from '../../bridge/lua-function.js';
 import { knowledgeManager } from '../../server.js';
+import { enumMappings } from '../../utils/knowledge/enum.js';
+import { createLogger } from '../../utils/logger.js';
+
+const logger = createLogger("getMilitaryReport");
 
 /**
  * Lua function that extracts military report from the game
@@ -31,7 +35,49 @@ export async function getMilitaryReport(
   if (!response.success || !response.result || response.result.length < 2)
     return null;
 
-  const [units, zones] = response.result;
+  let [units, zones] = response.result;
+
+  // Get enum mappings for post-processing
+  const unitTypes = enumMappings["UnitType"];
+  const aiTypes = enumMappings["AIType"];
+  if (!unitTypes) logger.warn("UnitType enum does not exist!");
+  if (!aiTypes) logger.warn("AIType enum does not exist!");
+
+  // Convert numeric AI types and unit types to their string representations
+  if (units) {
+    const convertedUnits: Record<string, any> = {};
+
+    for (const [aiTypeNum, unitsByType] of Object.entries(units)) {
+      // Convert AI type enum to string
+      const aiType = aiTypes?.[Number(aiTypeNum)] ?? `Unknown_${aiTypeNum}`;
+      convertedUnits[aiType] = {};
+
+      // Convert unit type IDs to their string representations
+      for (const [unitTypeNum, unitData] of Object.entries(unitsByType as Record<string, any>)) {
+        const unitType = unitTypes?.[Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
+        convertedUnits[aiType][unitType] = unitData;
+      }
+    }
+
+    units = convertedUnits;
+  }
+
+  // Convert unit types in zones
+  if (zones) {
+    for (const zone of Object.values(zones as Record<string, any>)) {
+      if (zone.Units) {
+        for (const civName in zone.Units) {
+          const convertedUnits: Record<string, number> = {};
+          for (const [unitTypeNum, count] of Object.entries(zone.Units[civName] as Record<string, number>)) {
+            const unitType = unitTypes?.[Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
+            convertedUnits[unitType] = count;
+          }
+          zone.Units[civName] = convertedUnits;
+        }
+      }
+    }
+  }
+
   const store = knowledgeManager.getStore();
 
   // Save tactical zone information with units in batch

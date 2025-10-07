@@ -8,10 +8,6 @@ import * as z from "zod";
 import { getMilitaryReport } from "../../knowledge/getters/military-report.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { enumMappings } from "../../utils/knowledge/enum.js";
-import { createLogger } from "../../utils/logger.js";
-
-const logger = createLogger("get-military-report");
 
 /**
  * Input schema for the GetMilitaryReport tool
@@ -60,50 +56,9 @@ class GetMilitaryReportTool extends ToolBase {
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     const { PlayerID } = args;
 
-    // Get military report for the player
+    // Get military report for the player (already post-processed)
     const report = await getMilitaryReport(PlayerID, true);
     if (!report) return {};
-
-    // Get enum mappings
-    const unitTypes = enumMappings["UnitType"];
-    const aiTypes = enumMappings["AIType"];
-    if (!unitTypes) logger.warn("UnitType enum does not exist!");
-    if (!aiTypes) logger.warn("AIType enum does not exist!");
-
-    // Convert numeric AI types and unit types to their string representations
-    if (report.units) {
-      const convertedUnits: Record<string, any> = {};
-
-      for (const [aiTypeNum, unitsByType] of Object.entries(report.units)) {
-        // Convert AI type enum to string
-        const aiType = aiTypes?.[Number(aiTypeNum)] ?? `Unknown_${aiTypeNum}`;
-        convertedUnits[aiType] = {};
-
-        // Convert unit type IDs to their string representations
-        for (const [unitTypeNum, unitData] of Object.entries(unitsByType as Record<string, any>)) {
-          const unitType = unitTypes?.[Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
-          convertedUnits[aiType][unitType] = unitData;
-        }
-      }
-
-      report.units = convertedUnits;
-    }
-
-    // Convert unit types in zones
-    if (report.zones) {
-      for (const zone of Object.values(report.zones as Record<string, any>)) {
-        if (zone.Units) {
-          for (const civName in zone.Units) {
-            const convertedUnits: Record<string, number> = {};
-            for (const [unitTypeNum, count] of Object.entries(zone.Units[civName] as Record<string, number>)) {
-              const unitType = unitTypes?.[Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
-              convertedUnits[unitType] = count;
-            }
-            zone.Units[civName] = convertedUnits;
-          }
-        }
-      }
-    }
 
     // Construct the report for LLM consumption
     const results: Record<string, any> = {
