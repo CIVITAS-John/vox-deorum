@@ -56,7 +56,7 @@ if dominationVictory and Game:IsVictoryValid(dominationVictory.ID) then
       end
 
       -- Only include players who control at least one capital
-      if capitalsControlled > 0 then
+      if capitalsControlled > 1 then
         local capitalsPercentage = math.floor((capitalsControlled * 100) / totalCapitals)
         local playerName = player:GetCivilizationShortDescription()
 
