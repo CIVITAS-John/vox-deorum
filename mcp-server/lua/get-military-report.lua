@@ -33,6 +33,8 @@ if (not tacticalZones[0]) then
   }
 end
 
+local ourTeam = pPlayer:GetTeam()
+
 -- Iterate through all players to find their units
 for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
   local pLoopPlayer = Players[iPlayerLoop]
@@ -43,9 +45,8 @@ for iPlayerLoop = 0, GameDefines.MAX_PLAYERS - 1 do
 
     -- Iterate through all units of this player
     for pUnit in pLoopPlayer:Units() do
-      -- Check if the unit's plot is visible to our player
-      local pPlot = pUnit:GetPlot()
-      if pPlot and pPlot:IsVisible(pPlayer:GetTeam(), false) then
+      -- Check if the unit's plot is visible and the unit is not invisible to us
+      if pPlot and pPlot:IsVisible(ourTeam, false) and not pUnit:isInvisible(ourTeam, false) then
         -- Get civilization name lazily (only when we find a visible unit)
         if not civName then
           if pLoopPlayer:IsMinorCiv() then

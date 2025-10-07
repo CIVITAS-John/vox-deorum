@@ -70,9 +70,7 @@ class GetMilitaryReportTool extends ToolBase {
       const neighbors = zone.Neighbors && Array.isArray(zone.Neighbors) ? 
         (zone.Neighbors as any[]).filter((n: number) => report.zones.hasOwnProperty(String(n))) : [];
       const postprocessed = {
-        Domain: zone.Domain,
         ZoneValue: zone.Value,
-        Territory: zone.Territory,
         Dominance: zone.Dominance == "No Units" ? zone.Dominance : undefined,
         Posture:
           zone.FriendlyStrength > 0 &&
@@ -89,9 +87,11 @@ class GetMilitaryReportTool extends ToolBase {
         Neighbors: neighbors.length > 0 ? neighbors : undefined,
       }
       if (zoneID === "0")
-        results["Zone Unassigned"] = postprocessed;
+        results["Zone Unassigned"] = {
+          Units: postprocessed.Units
+        };
       else
-        results[`Zone ${zoneID}`] = postprocessed;
+        results[`${zone.Territory} ${zone.Domain} Zone ${zoneID}`] = postprocessed;
     }
 
     // Return the compiled report
