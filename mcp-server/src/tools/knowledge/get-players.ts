@@ -110,7 +110,10 @@ class GetPlayersTool extends ToolBase {
     for (const info of playerInfos) {
       const playerID = info.Key;
       const summary = playerSummaries.find(s => s.Key === playerID);
-      // Ignore dead players
+      // Ignore dead players or barbarians
+      if (playerID == 63) {
+        playersDict[playerID.toString()] = "Barbarians";
+      }
       if (playerSummaries.length > 0 && !summary) {
         playersDict[playerID.toString()] = info.IsMajor === 1 
           ? `Defeated Major Civilization ${info.Civilization}` 
