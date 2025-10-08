@@ -124,8 +124,7 @@ class SetPersonaTool extends LuaFunctionTool {
             ...previousPersona,
             Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale.trim()})`
           },
-          undefined,
-          ["Rationale"] // Only ignore Rationale when checking for changes
+          undefined
         );
       }
 
