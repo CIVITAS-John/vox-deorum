@@ -204,7 +204,7 @@ export class VoxContext<TParameters extends AgentParameters> {
                 // Checks each step's result and deciding to stop or not
                 stopWhen: (context) => {
                   const lastStep = context.steps[context.steps.length - 1];
-                  shouldStop = agent.stopCheck(parameters, lastStep, context.steps);
+                  shouldStop = this.abortController.signal.aborted || agent.stopCheck(parameters, lastStep, context.steps);
                   this.logger.info(`Stop check for ${agentName}: ${shouldStop}`, {
                     stepCount: context.steps.length
                   });
@@ -221,7 +221,7 @@ export class VoxContext<TParameters extends AgentParameters> {
             // If we stop unexpectedly, check with the agent again. If not, we should try to resume...
             if (!shouldStop) {
               if (response.steps.length !== 0) {
-                shouldStop = agent.stopCheck(parameters, response.steps[response.steps.length - 1], response.steps, true);
+                shouldStop = this.abortController.signal.aborted || agent.stopCheck(parameters, response.steps[response.steps.length - 1], response.steps, true);
               }
               if (!shouldStop) {
                 messages = initialMessages.concat(response.response.messages).concat({
