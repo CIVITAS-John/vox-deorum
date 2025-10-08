@@ -124,7 +124,7 @@ You can also connect directly to the named pipe using raw sockets:
 
 ```javascript
 const net = require('net');
-const pipe = '\\\\.\\pipe\\vox-deorum-events';
+const pipe = '\\\\.\\pipe\\tmp-app.vox-deorum-events';
 
 let messageBuffer = '';
 const client = net.createConnection(pipe);

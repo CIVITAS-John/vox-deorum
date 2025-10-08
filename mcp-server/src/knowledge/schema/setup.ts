@@ -67,7 +67,7 @@ export async function setupKnowledgeDatabase(
 
   // Create PlayerOptions table (TimedKnowledge implementation)
   await createTimedKnowledgeTable(db, 'PlayerOptions')
-    .addColumn('Key', 'integer', (col) => col.notNull()) // Player ID
+    .addColumn('PlayerID', 'integer', (col) => col.notNull()) // Player ID
     .addColumn('EconomicStrategies', 'text') // JSON array
     .addColumn('MilitaryStrategies', 'text') // JSON array
     .addColumn('Technologies', 'text') // JSON array
@@ -78,7 +78,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('NextBranch', 'text') // Next policy branch to select (nullable)
     .execute();
   // Create indexes for PlayerOptions table
-  await createTimedKnowledgeIndexes(db, 'PlayerOptions', 'Key');
+  await createTimedKnowledgeIndexes(db, 'PlayerOptions', 'PlayerID');
 
   // Create PersonaChanges table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'PersonaChanges')
@@ -207,6 +207,39 @@ export async function setupKnowledgeDatabase(
     .execute();
   // Create indexes for PlayerInformation table
   await createPublicKnowledgeIndexes(db, 'PlayerInformations');
+
+  // Create VictoryProgress table (MutableKnowledge implementation)
+  await createMutableKnowledgeTable(db, 'VictoryProgress')
+    .addColumn('DominationVictory', 'text', (col) => col.notNull()) // JSON or status string
+    .addColumn('ScienceVictory', 'text', (col) => col.notNull()) // JSON or status string
+    .addColumn('CulturalVictory', 'text', (col) => col.notNull()) // JSON or status string
+    .addColumn('DiplomaticVictory', 'text', (col) => col.notNull()) // JSON or status string
+    .execute();
+  // Create indexes for VictoryProgress table
+  await createMutableKnowledgeIndexes(db, 'VictoryProgress');
+
+  // Create TacticalZones table (TimedKnowledge implementation)
+  await createTimedKnowledgeTable(db, 'TacticalZones')
+    .addColumn('PlayerID', 'integer', (col) => col.notNull())
+    .addColumn('ZoneID', 'integer', (col) => col.notNull())
+    .addColumn('Territory', 'text', (col) => col.notNull())
+    .addColumn('Dominance', 'text', (col) => col.notNull())
+    .addColumn('Domain', 'text', (col) => col.notNull())
+    .addColumn('Posture', 'text', (col) => col.notNull())
+    .addColumn('AreaID', 'integer', (col) => col.notNull())
+    .addColumn('City', 'text')
+    .addColumn('CenterX', 'integer', (col) => col.notNull())
+    .addColumn('CenterY', 'integer', (col) => col.notNull())
+    .addColumn('Plots', 'integer', (col) => col.notNull())
+    .addColumn('Value', 'integer', (col) => col.notNull())
+    .addColumn('FriendlyStrength', 'integer', (col) => col.notNull())
+    .addColumn('EnemyStrength', 'integer', (col) => col.notNull())
+    .addColumn('NeutralStrength', 'integer', (col) => col.notNull())
+    .addColumn('Neighbors', 'text', (col) => col.notNull()) // JSON array
+    .addColumn('Units', 'text', (col) => col.notNull()) // JSON object: Civ name -> Unit type -> Count
+    .execute();
+  // Create indexes for TacticalZones table
+  await createTimedKnowledgeIndexes(db, 'TacticalZones', 'PlayerID');
 
   return db;
 }

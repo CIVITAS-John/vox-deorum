@@ -30,6 +30,7 @@ export async function startStdioServer(setupSignalHandlers = true): Promise<() =
   if (setupSignalHandlers) {
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
+    process.on('SIGBREAK', shutdown);
   }
 
   try {

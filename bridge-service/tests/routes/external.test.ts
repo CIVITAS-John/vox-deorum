@@ -203,12 +203,10 @@ describe('External Routes', () => {
       
       await registerExternalFunction(app, syncFunction);
       await registerExternalFunction(app, asyncFunction);
-      
-      // Wait for registration to propagate in real mode
-      if (!USE_MOCK) {
-        await waitForExternalRegistration(app, 'syncTestFunction');
-        await waitForExternalRegistration(app, 'asyncTestFunction');
-      }
+
+      // Wait for registration to complete
+      await waitForExternalRegistration(app, 'syncTestFunction');
+      await waitForExternalRegistration(app, 'asyncTestFunction');
     });
 
     afterEach(async () => {

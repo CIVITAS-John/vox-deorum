@@ -209,18 +209,3 @@ class PauseManager extends EventEmitter {
  * Global singleton instance
  */
 export const pauseManager = new PauseManager();
-
-// Ensure cleanup on process exit
-process.on('exit', () => {
-  pauseManager.finalize();
-});
-
-process.on('SIGINT', () => {
-  pauseManager.finalize();
-  process.exit();
-});
-
-process.on('SIGTERM', () => {
-  pauseManager.finalize();
-  process.exit();
-});

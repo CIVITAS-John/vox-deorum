@@ -1,0 +1,509 @@
+[
+  {
+    "Type": "AtWar",
+    "Production": {
+      "Offense": 50,
+      "Mobile": 30,
+      "Defense": 40,
+      "Ranged": 40,
+      "Naval": 30,
+      "NavalRecon": 30,
+      "Air": 40,
+      "CityDefense": 20,
+      "MilitaryTraining": 15,
+      "Wonder": -30,
+      "Expansion": -10,
+      "Culture": -20,
+      "Production": -10,
+      "Growth": -10,
+      "Science": -10,
+      "Infrastructure": -10,
+      "Gold": -5,
+      "Happiness": 10,
+      "GreatPeople": -20,
+      "Religion": -30,
+      "Archaeology": -40,
+      "ILandTradeRoute": -30,
+      "ISeaTradeRoute": -30,
+      "NavalGrowth": -30,
+      "Recon": -25,
+      "Diplomacy": -40
+    },
+    "Overall": {
+      "Nuke": 50,
+      "Offense": 40,
+      "Mobile": 30,
+      "Defense": 40,
+      "Ranged": 30,
+      "Naval": 20,
+      "NavalRecon": 20,
+      "Air": 40,
+      "CityDefense": 20,
+      "MilitaryTraining": 15,
+      "Wonder": -20,
+      "Expansion": -10,
+      "Culture": -10,
+      "Production": 10,
+      "Growth": -10,
+      "Science": -10,
+      "Infrastructure": -20,
+      "Gold": -5,
+      "Happiness": -5,
+      "GreatPeople": -10,
+      "Religion": -20,
+      "Archaeology": -20,
+      "ILandTradeRoute": -10,
+      "ISeaTradeRoute": -10,
+      "NavalGrowth": -10,
+      "Recon": -10,
+      "Diplomacy": -25
+    },
+    "Description": "Substantially focuses on military production across all unit types while halting cultural, religious, diplomatic, and Wonder-building efforts. Consider adopting this strategy when engaged in active warfare with one or more civilizations."
+  },
+  {
+    "Type": "EmpireDefense",
+    "Production": {
+      "Offense": 50,
+      "Defense": 80,
+      "CityDefense": 10,
+      "MilitaryTraining": 10,
+      "Expansion": -10,
+      "TileImprovement": -5,
+      "Diplomacy": -25
+    },
+    "Overall": {
+      "Offense": 50,
+      "Defense": 75,
+      "CityDefense": 10,
+      "MilitaryTraining": 10,
+      "Mobile": 25,
+      "Nuke": 15,
+      "Diplomacy": -15
+    },
+    "Description": "Substantially prioritizes defensive warfare with increased military production and decreased diplomat output. Consider adopting this strategy when you have insufficient land units to secure existing borders."
+  },
+  {
+    "Type": "EmpireDefenseCritical",
+    "Production": {
+      "Offense": 100,
+      "Defense": 150,
+      "Naval": 40,
+      "NavalRecon": -10,
+      "Recon": -20,
+      "Expansion": -20,
+      "TileImprovement": -20,
+      "Infrastructure": -20,
+      "Culture": -20,
+      "Wonder": -20,
+      "Mobile": 40,
+      "Air": 50,
+      "Diplomacy": -50
+    },
+    "Overall": {
+      "Offense": 100,
+      "Defense": 150,
+      "Naval": 30,
+      "NavalRecon": -10,
+      "Expansion": -10,
+      "Culture": -10,
+      "Wonder": -10,
+      "Mobile": 60,
+      "Air": 60,
+      "Nuke": 50,
+      "Diplomacy": -35
+    },
+    "Description": "Overwhelmingly prioritizes defensive warfare and military production across all domains while halting cultural, wonder, and infrastructure development. Consider adopting this strategy when forces fall below critical defensive thresholds or when cities face direct siege."
+  },
+  {
+    "Type": "EnoughAir",
+    "Production": {
+      "Air": -50
+    },
+    "Overall": {
+      "Air": -10
+    },
+    "Description": "Substantially reduces emphasis on air unit production. Consider adopting this strategy when the air force has reached sufficient strength."
+  },
+  {
+    "Type": "EnoughAntiair",
+    "Production": {
+      "Antiair": -50
+    },
+    "Overall": {
+      "Antiair": -5
+    },
+    "Description": "Substantially reduces anti-air unit production. Consider adopting this strategy when anti-air coverage is sufficient or when enemy civilizations lack air power capabilities."
+  },
+  {
+    "Type": "EnoughMilitaryUnits",
+    "Production": {
+      "Offense": -100,
+      "Defense": -100
+    },
+    "Overall": {},
+    "Description": "Dramatically curtails land military production to redirect resources toward other priorities. Consider adopting this strategy when land military strength is sufficient."
+  },
+  {
+    "Type": "EnoughMobile",
+    "Production": {
+      "Mobile": -50
+    },
+    "Overall": {
+      "Mobile": -15
+    },
+    "Description": "Substantially reduces mobile unit production. Consider adopting this strategy when mobile forces are sufficient."
+  },
+  {
+    "Type": "EnoughNavalUnits",
+    "Production": {
+      "Naval": -100,
+      "NavalRecon": -100
+    },
+    "Overall": {
+      "Naval": 10
+    },
+    "Description": "Dramatically halts construction of new naval vessels while maintaining strategic focus on existing fleet operations. Consider adopting this strategy when the current fleets are sufficient."
+  },
+  {
+    "Type": "EnoughRanged",
+    "Production": {
+      "Offense": 5,
+      "Defense": 5,
+      "Ranged": -50
+    },
+    "Overall": {
+      "Ranged": -15
+    },
+    "Description": "Substantially reduces ranged units production. Consider adopting this strategy when ranged units are sufficient."
+  },
+  {
+    "Type": "EradicateBarbarians",
+    "Production": {
+      "Offense": 10,
+      "Mobile": 10,
+      "Ranged": 5,
+      "Diplomacy": -20
+    },
+    "Overall": {
+      "Offense": 15,
+      "Mobile": 10,
+      "Ranged": 10,
+      "Recon": -5,
+      "Expansion": -5,
+      "TileImprovement": -15,
+      "Diplomacy": -10
+    },
+    "Description": "Moderately increases offensive activities and prioritizes production. Consider adopting this strategy when facing multiple barbarian threats, or when barbarians have captured our civilians."
+  },
+  {
+    "Type": "EradicateBarbariansCritical",
+    "Production": {},
+    "Overall": {
+      "Offense": 25,
+      "Mobile": 10,
+      "Ranged": 10,
+      "Recon": 5,
+      "Expansion": -5,
+      "TileImprovement": -5
+    },
+    "Description": "Moderately increases military activities while minorly reducing expansion and tile improvements. Consider adopting this strategy when facing severe barbarian threats that pose critical danger."
+  },
+  {
+    "Type": "LosingWars",
+    "Production": {
+      "Offense": 20,
+      "Mobile": 15,
+      "Defense": 100,
+      "Ranged": 30,
+      "Naval": 20,
+      "NavalRecon": 20,
+      "Air": 30,
+      "CityDefense": 50,
+      "MilitaryTraining": 5,
+      "Wonder": -100,
+      "Expansion": -100,
+      "Culture": -40,
+      "Production": 20,
+      "Growth": -40,
+      "Science": -25,
+      "Infrastructure": -40,
+      "Gold": -15,
+      "Happiness": -15,
+      "GreatPeople": -40,
+      "Religion": -40,
+      "Archaeology": -60,
+      "ILandTradeRoute": -50,
+      "ISeaTradeRoute": -50,
+      "NavalGrowth": -40,
+      "Recon": -40,
+      "Diplomacy": -30
+    },
+    "Overall": {
+      "Offense": 20,
+      "Mobile": 15,
+      "Defense": 100,
+      "Ranged": 20,
+      "Naval": 20,
+      "NavalRecon": 20,
+      "Air": 30,
+      "CityDefense": 40,
+      "MilitaryTraining": -20,
+      "Wonder": -50,
+      "Expansion": -100,
+      "Culture": -50,
+      "Production": 10,
+      "Growth": -30,
+      "Science": -15,
+      "Infrastructure": -15,
+      "Gold": -10,
+      "Happiness": -10,
+      "GreatPeople": -20,
+      "Religion": -40,
+      "Archaeology": -40,
+      "ILandTradeRoute": -30,
+      "ISeaTradeRoute": -30,
+      "NavalGrowth": -40,
+      "Recon": -20,
+      "Nuke": 30,
+      "Diplomacy": -20
+    },
+    "Description": "Overwhelming focus on survival and territorial protection while halting all long-term development including wonders, expansion, culture, science, and trade. Consider adopting this strategy when losing wars or under severe military pressure."
+  },
+  {
+    "Type": "MinorCivGeneralDefense",
+    "Production": {
+      "Defense": 30,
+      "CityDefense": 10,
+      "Culture": -25
+    },
+    "Overall": {
+      "Defense": 6,
+      "CityDefense": 10
+    },
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "MinorCivThreatCritical",
+    "Production": {
+      "Offense": 80,
+      "Defense": 80,
+      "CityDefense": 40
+    },
+    "Overall": {
+      "Offense": 20,
+      "Defense": 20,
+      "CityDefense": 40
+    },
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "MinorCivThreatElevated",
+    "Production": {
+      "Defense": 50,
+      "CityDefense": 25
+    },
+    "Overall": {
+      "Defense": 10,
+      "CityDefense": 20
+    },
+    "Description": "[Not-available]"
+  },
+  {
+    "Type": "NeedAir",
+    "Production": {
+      "Air": 150
+    },
+    "Overall": {
+      "Air": 50
+    },
+    "Description": "Dramatically accelerates air power development to rapidly build aerial combat capabilities and achieve air superiority. Consider adopting this strategy when the air force is significantly undersized relative to ground forces and strategic preferences for military composition."
+  },
+  {
+    "Type": "NeedAirCarrier",
+    "Production": {
+      "AirCarrier": 75
+    },
+    "Overall": {
+      "AirCarrier": 20
+    },
+    "Description": "Substantially prioritizes construction of aircraft carriers to enable naval air projection and extend air power reach across maritime theaters. Consider adopting this strategy when maintaining an active air force but lacking adequate platforms for distant naval operations."
+  },
+  {
+    "Type": "NeedAntiair",
+    "Production": {
+      "Antiair": 75
+    },
+    "Overall": {
+      "Antiair": 50
+    },
+    "Description": "Substantially prioritizes anti-aircraft unit production. Consider adopting this strategy when enemy air forces are operational and anti-air coverage is insufficient."
+  },
+  {
+    "Type": "NeedMobile",
+    "Production": {
+      "Mobile": 75
+    },
+    "Overall": {
+      "Mobile": 15
+    },
+    "Description": "Substantially prioritizes mobile unit production. Consider adopting this strategy when mobile forces are insufficient."
+  },
+  {
+    "Type": "NeedNavalUnits",
+    "Production": {
+      "Naval": 40,
+      "NavalRecon": 10,
+      "Offense": -10,
+      "Defense": -10,
+      "Expansion": -10,
+      "TileImprovement": -5
+    },
+    "Overall": {
+      "Naval": 15,
+      "NavalRecon": 10
+    },
+    "Description": "Moderately prioritizes fleet production and maritime operations while temporarily de-emphasizing land forces. Consider adopting this strategy when coastal cities require protection from enemy naval forces but threat levels remain manageable."
+  },
+  {
+    "Type": "NeedNavalUnitsCritical",
+    "Production": {
+      "Naval": 60,
+      "NavalRecon": 25,
+      "Offense": -20,
+      "Defense": -20,
+      "Recon": -20
+    },
+    "Overall": {
+      "Offense": -10,
+      "Defense": -10,
+      "Naval": 50,
+      "NavalRecon": 25
+    },
+    "Description": "Substantially prioritizes fleet construction and maritime operations while de-emphasizing land forces. Consider adopting this strategy when naval strength falls critically or when coastal cities face siege."
+  },
+  {
+    "Type": "NeedNuke",
+    "Production": {
+      "Nuke": 150
+    },
+    "Overall": {
+      "Nuke": 100
+    },
+    "Description": "Overwhelmingly prioritizes nuclear weapons development. Consider adopting this strategy when lacking nuclear arsenals, especially with aggressive nuclear doctrines."
+  },
+  {
+    "Type": "NeedRanged",
+    "Production": {
+      "Offense": -10,
+      "Defense": -10,
+      "Ranged": 75
+    },
+    "Overall": {
+      "Ranged": 15
+    },
+    "Description": "Substantially prioritizes ranged unit production while de-emphasizing other forces. Consider adopting this strategy when ranged forces are insufficient."
+  },
+  {
+    "Type": "NeedRangedEarly",
+    "Production": {
+      "Ranged": 100
+    },
+    "Overall": {
+      "Ranged": 100
+    },
+    "Description": "Dramatically prioritizes ranged unit production. Consider adopting this strategy when ranged forces are critically insufficient."
+  },
+  {
+    "Type": "WarMobilization",
+    "Production": {
+      "Offense": 15,
+      "Defense": 10,
+      "Ranged": 10,
+      "Mobile": 10,
+      "Naval": 10,
+      "MilitaryTraining": 25,
+      "Wonder": -250,
+      "Growth": -50,
+      "Expansion": -50,
+      "TileImprovement": -50,
+      "Culture": -50,
+      "Diplomacy": -20
+    },
+    "Overall": {
+      "Offense": 60,
+      "Defense": 60,
+      "Ranged": 60,
+      "Mobile": 10,
+      "Naval": 30,
+      "MilitaryTraining": 10,
+      "Wonder": -10,
+      "Growth": -10,
+      "Expansion": -15,
+      "Culture": -10,
+      "NavalRecon": 25,
+      "Nuke": 10,
+      "Diplomacy": -15
+    },
+    "Description": "Substantially prioritizes military production while halting peaceful development including wonders, growth, and cultural pursuits. Consider adopting this strategy when preparing for military operations, facing hostile relations from multiple civilizations, or pursuing conquest."
+  },
+  {
+    "Type": "WinningWars",
+    "Production": {
+      "Offense": 60,
+      "Mobile": 50,
+      "Defense": 30,
+      "Ranged": 60,
+      "Naval": 30,
+      "NavalRecon": 30,
+      "Air": 50,
+      "CityDefense": -30,
+      "MilitaryTraining": 10,
+      "Wonder": -10,
+      "Expansion": 0,
+      "Culture": -10,
+      "Production": 20,
+      "Growth": -10,
+      "Science": -10,
+      "Infrastructure": -10,
+      "Gold": 10,
+      "Happiness": 20,
+      "GreatPeople": -10,
+      "Religion": -10,
+      "Archaeology": -30,
+      "ILandTradeRoute": -20,
+      "ISeaTradeRoute": -20,
+      "NavalGrowth": -10,
+      "Recon": 20,
+      "Diplomacy": -30
+    },
+    "Overall": {
+      "Offense": 60,
+      "Mobile": 50,
+      "Defense": 30,
+      "Ranged": 40,
+      "Naval": 30,
+      "NavalRecon": 20,
+      "Air": 40,
+      "CityDefense": -20,
+      "MilitaryTraining": 20,
+      "Wonder": -10,
+      "Expansion": 0,
+      "Culture": -10,
+      "Production": 15,
+      "Growth": -10,
+      "Science": -10,
+      "Infrastructure": -10,
+      "Gold": 20,
+      "Happiness": 20,
+      "GreatPeople": -10,
+      "Religion": -10,
+      "Archaeology": -10,
+      "ILandTradeRoute": -20,
+      "ISeaTradeRoute": -20,
+      "NavalGrowth": -10,
+      "Recon": 10,
+      "Diplomacy": -10
+    },
+    "Description": "Substantially increases offensive activities and prioritizes military production with focus on strike forces, mobility, and air superiority, while reducing defensive investments. Consider adopting this strategy when winning wars and the situation requires continued offensive pressure."
+  }
+]

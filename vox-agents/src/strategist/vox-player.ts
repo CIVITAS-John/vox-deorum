@@ -19,6 +19,7 @@ export class VoxPlayer {
   private logger;
   private pendingTurn?: { turn: number; latestID: number };
   private aborted = false;
+  private successful = false;
 
   constructor(
     public readonly playerID: number,
@@ -51,8 +52,9 @@ export class VoxPlayer {
       return this.pendingTurn?.turn !== turn;
     }
 
+    const result = this.pendingTurn?.turn !== turn;
     this.pendingTurn = { turn, latestID };
-    return this.pendingTurn?.turn !== turn;
+    return result;
   }
 
   /**
@@ -153,16 +155,18 @@ export class VoxPlayer {
           this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) execution error:`, error);
           observation.update({ output: { error: error instanceof Error ? error.message : String(error) } });
         } finally {
-          this.logger.info(`Player ${this.playerID} (${this.parameters.gameID}) completion: ${this.aborted}`);
+          this.logger.info(`Player ${this.playerID} (${this.parameters.gameID}) completion: ${this.aborted} (successful: ${this.successful})`);
           observation.update({
             output: {
               completed: true,
+              successful: this.successful,
               turns: this.parameters.turn
             }
           });
           updateActiveTrace({
             output: {
               completed: true,
+              successful: this.successful,
               turns: this.parameters.turn,
             }
           });
@@ -177,9 +181,11 @@ export class VoxPlayer {
   /**
    * Abort this player's execution
    */
-  abort() {
+  abort(successful: boolean = false) {
+    if (this.aborted) return;
     this.logger.info(`Aborting player ${this.playerID}`);
     this.aborted = true;
-    this.context.abort();
+    this.successful = successful;
+    this.context.abort(successful);
   }
 }

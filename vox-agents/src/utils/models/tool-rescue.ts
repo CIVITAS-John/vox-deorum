@@ -33,6 +33,7 @@ export function toolRescueMiddleware(): LanguageModelMiddleware {
       const { content, ...rest } = await doGenerate();
 
       const transformedContent: LanguageModelV2Content[] = [];
+      let toolSeen = content.some(part => part.type === 'tool-call');
 
       // Get available tools from params
       const availableTools = new Set(
@@ -80,10 +81,11 @@ export function toolRescueMiddleware(): LanguageModelMiddleware {
 
           if (!patternFound) {
             // Sometimes a false alarm - Jetstream2's response can have both text AND tool_calls. Those warnings can be safely ignored then.
-            logger.log("warn", `Failed to rescue tool call: no matching field pattern found`, toolCall);
+            if (!toolSeen)
+              logger.log("warn", `Failed to rescue tool call: no matching field pattern found`, toolCall);
             // No matching pattern found for this tool call
             allToolCallsValid = false;
-            break;
+            continue;
           }
 
           // Check if the tool exists in available tools
@@ -91,7 +93,7 @@ export function toolRescueMiddleware(): LanguageModelMiddleware {
             logger.log("warn", `Failed to rescue tool call: non-existent tool ${toolName}`, toolParameters);
             // Tool not available
             allToolCallsValid = false;
-            break;
+            continue;
           }
 
           logger.log("info", `Rescued tool call: ${toolName}`, toolParameters);

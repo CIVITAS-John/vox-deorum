@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - When asked to commit, always only commit the staged changes
 - When asked to implement a feature, always delegate work to appropriate sub-agents and coordinate their work
 - Refer to each submodule's CLAUDE.md for component-specific patterns
+- Always delegate to subagents when the task is complicated
 
 ## Project Overview
 This is Vox Deorum - an LLM-enhanced AI system for Civilization V using the Community Patch framework.

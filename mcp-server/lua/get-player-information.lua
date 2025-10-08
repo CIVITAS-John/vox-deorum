@@ -44,7 +44,7 @@ for playerID = GameDefines.MAX_MAJOR_CIVS, GameDefines.MAX_CIV_PLAYERS - 1 do
 end
 
 -- Check for barbarians (special case - player 63)
-local barbarianID = GameDefines.MAX_CIV_PLAYERS - 1
+local barbarianID = GameDefines.MAX_CIV_PLAYERS
 local barbarian = Players[barbarianID]
 if barbarian and barbarian:IsAlive() and barbarian:IsBarbarian() then
   local info = {

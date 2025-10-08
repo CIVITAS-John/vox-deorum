@@ -8,6 +8,7 @@ import { LuaFunction } from '../../bridge/lua-function.js';
 import { PlayerOptions } from '../schema/timed.js';
 import { knowledgeManager } from '../../server.js';
 import { retrieveEnumName } from '../../utils/knowledge/enum.js';
+import { composeVisibility } from '../../utils/knowledge/visibility.js';
 
 /**
  * Lua function that extracts player options information from the game
@@ -51,27 +52,13 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
     return [];
   const store = knowledgeManager.getStore();
 
-  // Blacklist strategies that have immediate effects or are not suitable for LLM decision-making
-  const blacklistedEconomicStrategies = [
-    'TradeWithCityState',     // Immediate effect: triggers trade routes with city-states
-    'FoundCity',               // Immediate effect: triggers city founding operations
-    'InfluenceCityState',      // Immediate effect: purchases influence with city-states
-    'ConcertTour',             // Immediate effect: triggers great musician concert tour
-  ];
-  const blacklistedMilitaryStrategies: string[] = [
-
-  ];  // Currently no military strategies need blacklisting
-
   // Process and convert numeric IDs to names for all options
-  const processedResults = response.result.map((options: any) => {
+  // Note: Strategy blacklisting is now handled in CvLuaPlayer.cpp
+  const processedResults = (response.result as any[]).map((options: any) => {
     return {
-      Key: options.Key,
-      EconomicStrategies: convertToNames(options.EconomicStrategies, "EconomicStrategy", "MilitaryStrategy")?.filter(
-        (strategy: string) => !blacklistedEconomicStrategies.includes(strategy)
-      ),
-      MilitaryStrategies: convertToNames(options.MilitaryStrategies, "MilitaryStrategy", "EconomicStrategy")?.filter(
-        (strategy: string) => !blacklistedMilitaryStrategies.includes(strategy)
-      ),
+      PlayerID: options.PlayerID,
+      EconomicStrategies: convertToNames(options.EconomicStrategies, "EconomicStrategy", "MilitaryStrategy"),
+      MilitaryStrategies: convertToNames(options.MilitaryStrategies, "MilitaryStrategy", "EconomicStrategy"),
       Technologies: convertToNames(options.Technologies, "TechID"),
       NextResearch: convertToName(options.NextResearch, "TechID"),
       Policies: convertToNames(options.Policies, "PolicyID"),
@@ -82,17 +69,15 @@ export async function getPlayerOptions(saving: boolean = true): Promise<Partial<
   });
 
   // Store all options in batch if saving is enabled
-  if (saving) {
-    await store.storeTimedKnowledgeBatch(
-      'PlayerOptions',
-      processedResults.map((options: any) => {
-        return {
-          key: options.Key!,
-          data: options
-        };
-      })
-    );
-  }
+  if (saving) await store.storeTimedKnowledgeBatch(
+    'PlayerOptions',
+    processedResults.map((options: any) => {
+      return { 
+        data: options,
+        visibilityFlags: composeVisibility([options.PlayerID])
+      };
+    })
+  );
 
   return processedResults;
 }

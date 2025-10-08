@@ -129,7 +129,7 @@ describe('Lua Service', () => {
         expect(res.body.result.functions).toBeInstanceOf(Array);
         expect(res.body.result.functions).length.greaterThanOrEqual(2);
       });
-      
+
       logSuccess('List of Lua functions retrieved successfully');
     });
 
@@ -149,6 +149,12 @@ describe('Lua Service', () => {
       });
 
       logSuccess('Concurrent requests handled successfully');
+    });
+
+    afterEach(async () => {
+      // Clean up registered test functions
+      await unregisterLuaFunction(app, 'TestFunction1');
+      await unregisterLuaFunction(app, 'TestFunction2');
     });
   });
 

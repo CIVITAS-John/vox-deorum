@@ -125,6 +125,7 @@ export class KnowledgeManager {
       // Update last save timestamp
       await this.knowledgeStore.setMetadata('turn', this.gameIdentity.turn.toString());
       await this.knowledgeStore.setMetadata('lastSave', Date.now().toString());
+      await this.knowledgeStore.saveKnowledge();
     } catch (error) {
       logger.error('Failed to save knowledge:', error);
     }

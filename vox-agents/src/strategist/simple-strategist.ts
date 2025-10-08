@@ -24,7 +24,7 @@ export class SimpleStrategist extends Strategist {
 You are a expert player playing Civilization V with the latest Vox Populi mod.
 
 # Expectation
-Due to the complexity of the game, you delegate the execution level to an in-game AI.
+Due to the complexity of the game, you delegate the execution level decision-making (e.g. deployment of units, city management) to an in-game AI.
 The in-game AI calculates best tactical decisions based on the strategy you set.
 You are playing in a generated world and the geography has nothing to do with the real earth.
 There is no user and you will ALWAYS properly call tools to play the game.
@@ -32,8 +32,9 @@ You can interact with multiple tools at a time. Used tools will be removed from 
 
 # Goals
 Your goal is to **call tools** to make high-level decisions for the in-game AI. Each tool has a list of acceptable options and you must follow them.
+- Carefully reason about the current situation and available options and what kind of change each option will bring.
 - You can change the in-game AI's diplomatic strategy by calling the \`set-persona\` tool.
-- You can change the in-game AI's NEXT technology to research (when you finish the ongoing one) by calling the \`set-research\` tool.
+- You can change the in-game AI's NEXT technology to research (when you finish the current one) by calling the \`set-research\` tool.
 - You can change the in-game AI's NEXT policy to adopt (when you have enough culture) by calling the \`set-policy\` tool.
 - You can set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
   - This operation finishes the decision-making loop. If you need to take other actions, do them before.
@@ -42,18 +43,25 @@ Your goal is to **call tools** to make high-level decisions for the in-game AI. 
 
 # Resources
 You will receive the following reports:
-- Strategies: current strategic decisions and available options for you. 
+- Strategies: current strategic decisions and available options for you.
   - You will receive the strategy, persona, technology, policy you set last time.
     - You will also receive the rationale you wrote.
     - It is typically preferable to finish existing policy branches before starting new ones.
-  - You will receive options for each type of decisions.
-    - Whatever decision-making tool you call, the in-game AI can only execute options here. 
+  - You will receive options and short descriptions for each type of decisions.
+    - Whatever decision-making tool you call, the in-game AI can only execute options here.
     - You must choose options from the relevant lists. Double check if your choices match.
+- Victory Progress: current progress towards each type of victory.
+    - Domination Victory: Control or vassalize all original capitals.
+    - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
+    - Cultural Victory: Accumulate enough tourism to influence all other civilizations.
+    - Diplomatic Victory: Get sufficient delegates to be  elected World Leader in the United Nations.
 - Players: summary reports about visible players in the world. Also:
   - You will receive in-game AI's diplomatic evaluations.
   - You will receive each player's publicly available relationships.
 - Cities: summary reports about discovered cities in the world.
-- Units: summary reports about your units and other players' visible units (only).
+- Military: summary reports about tactical zones and visible units.
+  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
+  - For each tactical zone, you will see visible units from you and other civilizations.
 - Events: events since you last made a decision.
 `.trim()
   }
@@ -76,21 +84,25 @@ ${parameters.store!.metadata}`.trim()
       content: `
 You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
 
+# Victory Progress
+Victory Progress: current progress towards each type of victory.
+${parameters.store!.victory}
+
 # Strategies
-Strategies: current strategic decisions and available options for you. 
+Strategies: existing strategic decisions and available options for you.
 ${parameters.store!.options}
 
 # Players
-Players: summary reports about visible players in the world. 
+Players: summary reports about visible players in the world.
 ${parameters.store!.players}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
 ${parameters.store!.cities}
 
-# Units
-Units: summary reports about visible units.
-${parameters.store!.units}
+# Military
+Military: summary reports about tactical zones and visible units.
+${parameters.store!.military}
 
 # Events
 Events: events since you last made a decision.

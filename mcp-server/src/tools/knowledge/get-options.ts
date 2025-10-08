@@ -110,7 +110,7 @@ class GetOptionsTool extends ToolBase {
     ]);
 
     // Find options for the requested player
-    const playerOptions = allOptions.find(options => options.Key === args.PlayerID);
+    const playerOptions = allOptions.find(options => options.PlayerID === args.PlayerID);
     if (!playerOptions)
       throw new Error(`No options found for player ${args.PlayerID}. Player may not be alive or does not exist.`);
 
@@ -157,7 +157,7 @@ class GetOptionsTool extends ToolBase {
                 const strategy = economicStrategies.find(s => s.Type === strategyName)!;
                 return [
                   strategyName,
-                  {
+                  strategy.Description ?? {
                     Production: strategy?.Production,
                     Overall: strategy?.Overall
                   }
@@ -173,7 +173,7 @@ class GetOptionsTool extends ToolBase {
                 const strategy = militaryStrategies.find(s => s.Type === strategyName)!;
                 return [
                   strategyName,
-                  {
+                  strategy.Description ?? {
                     Production: strategy?.Production,
                     Overall: strategy?.Overall
                   }
@@ -182,7 +182,7 @@ class GetOptionsTool extends ToolBase {
             ) : cleanOptions.MilitaryStrategies
         },
       },
-      Persona: persona as Record<string, string | number>,
+      Persona: persona as Record<string, string | number> | undefined,
       Research: {
         Next: research?.Technology ?? "None",
         Rationale: research?.Rationale,
@@ -190,9 +190,12 @@ class GetOptionsTool extends ToolBase {
           Object.fromEntries(
             cleanOptions.Technologies.map(techName => {
               const tech = technologies.find(s => s.Name === techName)!;
+              let help = tech?.Help ?? "";
+              if ((tech.TechsUnlocked?.length ?? 0) > 0)
+                help += `\nLeading to: ${tech.TechsUnlocked?.join(", ")}`;
               return [
                 techName,
-                tech?.Help ?? ""
+                help.trim()
               ];
             })
           ) : cleanOptions.Technologies

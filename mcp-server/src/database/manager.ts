@@ -121,7 +121,7 @@ export class DatabaseManager {
   /**
    * Convert TXT_KEY_* strings in results to localized text
    */
-  public async localizeObjects<T extends Record<any, any>[]>(results: T): Promise<T> {
+  public async localizeObjects<T extends Record<any, any>[]>(results: T, depth: number = 0): Promise<T> {
     if (!this.localizationDb) {
       throw new Error('Localization database not initialized. Call initialize() first.');
     }
@@ -221,7 +221,11 @@ export class DatabaseManager {
     };
 
     results = results.map(localizeValue) as T;
-    return await this.localizeObjects(results);
+    if (depth >= 10) {
+      logger.warn('Maximum localization recursion depth reached', results);
+      return results;
+    }
+    return await this.localizeObjects(results, depth + 1);
   }
 
   /**

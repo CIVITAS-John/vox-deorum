@@ -69,7 +69,7 @@ set /p "STOP_CONFIRM="
 echo.
 echo [INFO] Shutting down services...
 
-:: Kill services in reverse order using their PIDs
+:: First attempt graceful shutdown (without /F flag) in reverse order
 echo [1/3] Stopping Vox Agents (PID: %VOX_PID%)...
 taskkill /PID %VOX_PID% /T /F >nul 2>&1
 

@@ -84,7 +84,7 @@ export class StrategistSession {
           // Kill the game when the game hangs
           logger.warn(`The DLL is no longer connected. Waiting for 60 seconds...`);
           await setTimeout(60000);
-          if (!this.dllConnected && this.lastGameState !== 'victory') {
+          if (!this.dllConnected && this.lastGameState !== 'crashed' && this.lastGameState !== 'victory') {
             logger.warn(`The DLL is no longer connected. Trying to restart the game...`);
             await voxCivilization.killGame();
           }
@@ -111,7 +111,7 @@ export class StrategistSession {
     // Abort all active players
     for (const [playerID, player] of this.activePlayers.entries()) {
       logger.debug(`Aborting player ${playerID}`);
-      player.abort();
+      player.abort(false);
     }
     this.activePlayers.clear();
 
@@ -132,7 +132,7 @@ export class StrategistSession {
     if (player) {
       this.lastGameState = 'running';
       if (player.notifyTurn(params.turn, params.latestID))
-        this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 1);
+        this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 0.5);
     }
   }
 
@@ -141,7 +141,7 @@ export class StrategistSession {
 
     // Abort all existing players
     for (const player of this.activePlayers.values()) {
-      player.abort();
+      player.abort(false);
     }
     this.activePlayers.clear();
 
@@ -192,7 +192,7 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // Abort all existing players
     for (const player of this.activePlayers.values()) {
-      player.abort();
+      player.abort(true);
     }
     this.activePlayers.clear();
 
@@ -240,7 +240,7 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // Attempt to recover the game
     this.crashRecoveryAttempts++;
-    logger.info(`Attempting game recovery (attempt ${this.crashRecoveryAttempts}/${this.MAX_RECOVERY_ATTEMPTS})...`);
+    logger.info(`Attempting game recovery (attempt ${Math.ceil(this.crashRecoveryAttempts)}/${this.MAX_RECOVERY_ATTEMPTS})...`);
 
     // Restart the game using LoadGame.lua to load the last save
     logger.info(`Starting Civilization V with ${luaScript} to recover from crash...`);

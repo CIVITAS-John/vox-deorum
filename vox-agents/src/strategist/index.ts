@@ -118,6 +118,8 @@ async function shutdown(signal: string) {
 // Register signal handlers
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGBREAK', () => shutdown('SIGBREAK'));
+process.on('SIGHUP', () => shutdown('SIGHUP'));
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {

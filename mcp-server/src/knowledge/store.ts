@@ -27,6 +27,8 @@ import { archiveGameData } from '../utils/knowledge/archive.js';
 import { getPlayerPersona } from './getters/player-persona.js';
 import { getPlayerOpinions } from './getters/player-opinions.js';
 import { getPlayerSummaries } from './getters/player-summary.js';
+import { getCityInformations } from './getters/city-information.js';
+import PQueue from 'p-queue';
 
 const logger = createLogger('KnowledgeStore');
 
@@ -42,8 +44,12 @@ const renamedEventTypes: Record<string, string> = {
  */
 export class KnowledgeStore {
   private db?: Kysely<KnowledgeDatabase>;
+  private sqliteDb?: Database.Database;
   private gameId?: string;
   private resyncing: boolean = true;
+
+  // Database operation bottleneck
+  private writeQueue = new PQueue({ concurrency: 1, timeout: 1000 });
 
   /**
    * Initialize or switch to a game-specific database
@@ -63,11 +69,12 @@ export class KnowledgeStore {
     logger.info(`Initializing KnowledgeStore for game: ${gameId} at path: ${dbPath}`);
 
     // Create Kysely instance with Better-SQLite3
-    const sqliteDb = new Database(dbPath);
+    this.sqliteDb = new Database(dbPath);
+    this.sqliteDb.pragma('journal_mode = WAL');
     
     this.db = new Kysely<KnowledgeDatabase>({
       dialect: new SqliteDialect({
-        database: sqliteDb,
+        database: this.sqliteDb,
       }),
       plugins: [new JsonSerializePlugin(), new ParseJSONResultsPlugin()],
     });
@@ -112,11 +119,11 @@ export class KnowledgeStore {
    * Set metadata value
    */
   async setMetadata(key: string, value: string): Promise<void> {
-    await this.getDatabase()
+    await this.writeQueue.add(() => this.getDatabase()
       .insertInto('GameMetadata')
       .values({ Key: key, Value: value })
       .onConflict((oc) => oc.column('Key').doUpdateSet({ Value: value }))
-      .execute();
+      .execute());
   }
 
   /**
@@ -140,10 +147,10 @@ export class KnowledgeStore {
     const db = this.getDatabase();
 
     try {
-      const result = await db
+      const result = await this.writeQueue.add(() => db
         .deleteFrom('GameEvents')
         .where('ID', '>=', id)
-        .executeTakeFirst();
+        .executeTakeFirst());
 
       return Number(result.numDeletedRows) || 0;
     } catch (error) {
@@ -157,6 +164,15 @@ export class KnowledgeStore {
    */
   setResyncing() {
     this.resyncing = true;
+  }
+
+  /**
+   * Save the knowledge database
+   */
+  async saveKnowledge() {
+    if (this.db) {
+      await this.writeQueue.add(() => this.sqliteDb?.pragma('wal_checkpoint(RESTART)'));
+    }
   }
 
   /**
@@ -231,12 +247,14 @@ export class KnowledgeStore {
         // Store the event
         await this.storeGameEvent(id, mappedType, data, visibilityFlags);
         await this.setMetadata("lastID", id.toString());
+
         // Handle special events for notification
         if (typeof data.PlayerID === "number") {
           // Special: Victory
           if (type == "PlayerVictory") {
-            this.setMetadata("victoryPlayerID", data.PlayerID);
-            this.setMetadata("victoryType", data.VictoryType);
+            await this.setMetadata("victoryPlayerID", data.PlayerID);
+            await this.setMetadata("victoryType", data.VictoryType);
+            await this.saveKnowledge();
             archiveGameData();
           }
           // Track active player on turn events
@@ -244,8 +262,12 @@ export class KnowledgeStore {
             knowledgeManager.updateActivePlayer(data.PlayerID);
           } else if (type === "PlayerDoneTurn") {
             // Store all players' summary info
-            if (data.PlayerID === 63)
-              await getPlayerSummaries();
+            if (data.PlayerID === 63) {
+              await Promise.all([
+                getPlayerSummaries(),
+                getCityInformations()
+              ]);
+            }
             // Store game data for examination
             if (data.PlayerID < MaxMajorCivs) {
               await Promise.all([
@@ -288,10 +310,10 @@ export class KnowledgeStore {
     );
 
     try {
-      await this.getDatabase()
+      await this.writeQueue.add(() => this.getDatabase()
         .insertInto('GameEvents')
         .values(eventWithVisibility)
-        .execute();
+        .execute());
       logger.debug(`Storing event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, visibility: [${visibilityFlags}]`, payload);
     } catch (error) {
       logger.warn(`Failed to store event: ${id} / ${type} at turn ${knowledgeManager.getTurn()}, ${String(error)}`);
@@ -312,7 +334,7 @@ export class KnowledgeStore {
   >(
     tableName: TTable,
     items: Array<{
-      key: number;
+      extra?: Record<string, any>;
       data: TData;
       visibilityFlags?: number[];
     }>
@@ -322,14 +344,14 @@ export class KnowledgeStore {
 
     try {
       // Process all items in a single transaction for efficiency
-      await db.transaction().execute(async (trx) => {
+      await this.writeQueue.add(() => db.transaction().execute(async (trx) => {
         for (const item of items) {
-          const { key, data, visibilityFlags } = item;
+          const { extra, data, visibilityFlags } = item;
 
           // Prepare the new entry with TimedKnowledge fields
           const newEntry: any = {
             ...data,
-            Key: key,
+            ...extra,
             Turn: turn
           };
           if (!newEntry.payload)
@@ -340,16 +362,14 @@ export class KnowledgeStore {
             applyVisibility(newEntry, visibilityFlags);
 
           // Insert the entry
-          await trx
-            .insertInto(tableName)
+          trx.insertInto(tableName)
             .values(newEntry)
             .execute();
-
-          logger.debug(
-            `Stored ${tableName} entry - Key: ${key}, Turn: ${turn}`
-          );
         }
-      });
+      }));
+      logger.debug(
+        `Stored ${tableName} entries x ${items.length} - Turn: ${turn}`
+      );
     } catch (error) {
       logger.error(`Error storing TimedKnowledge batch in ${tableName}:`, error);
       throw error;
@@ -381,7 +401,7 @@ export class KnowledgeStore {
 
     try {
       // Process all items in a single transaction for efficiency
-      await db.transaction().execute(async (trx) => {
+      await this.writeQueue.add(() => db.transaction().execute(async (trx) => {
         for (const item of items) {
           const { key, data, visibilityFlags, ignoreFields } = item;
 
@@ -426,9 +446,8 @@ export class KnowledgeStore {
           if (!newEntry.payload) newEntry.payload = {};
 
           // Apply visibility flags if provided
-          if (visibilityFlags) {
+          if (visibilityFlags)
             applyVisibility(newEntry, visibilityFlags);
-          }
 
           // Insert the new version
           await trx
@@ -440,7 +459,7 @@ export class KnowledgeStore {
             `Stored ${tableName} entry - Key: ${key}, Version: ${newVersion}, Turn: ${turn}, Changes: ${changes.join(', ') || 'initial'}`
           );
         }
-      });
+      }));
     } catch (error) {
       logger.error(`Error storing MutableKnowledge batch in ${tableName}:`, error);
       throw error;
@@ -572,14 +591,14 @@ export class KnowledgeStore {
       };
       
       // Insert or update the entry
-      await db
+      await this.writeQueue.add(() => db
         .insertInto(tableName)
         .values(entry)
         .onConflict((oc) => oc
           .column('Key' as any)
           .doUpdateSet(entry)
         )
-        .execute();
+        .execute());
       
       logger.debug(
         `Stored ${tableName} public knowledge - Key: ${key}`

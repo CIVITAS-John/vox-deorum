@@ -36,6 +36,7 @@ export async function getCityInformations(): Promise<Selectable<CityInformation>
 
   // Store all cities as mutable knowledge in batch
   try {
+  // Visibility handled by Lua script
     await knowledgeManager.getStore().storeMutableKnowledgeBatch(
       'CityInformations',
       cities.map(city => ({

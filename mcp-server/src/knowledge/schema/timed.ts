@@ -74,7 +74,7 @@ export interface PlayerSummary extends MutableKnowledge {
  * Saved as snapshots when player acquires new options or strategies change
  */
 export interface PlayerOptions extends TimedKnowledge {
-  Key: number; // Player ID
+  PlayerID: number; // Player ID
   EconomicStrategies: JSONColumnType<string[]>; // Available economic strategy names
   MilitaryStrategies: JSONColumnType<string[]>; // Available military strategy names
   Technologies: JSONColumnType<string[]>; // Possible technology names
@@ -293,4 +293,104 @@ export interface PlayerOpinions extends MutableKnowledge {
   OpinionFrom21: string | null;
   // Opinion from the Key player to Player 21
   OpinionTo21: string | null;
+}
+
+/**
+ * Domination victory progress data
+ * Player-keyed object with capital control counts
+ */
+export interface DominationVictoryData {
+  CapitalsNeeded: number;
+  Contender: string | undefined;
+  [playerName: string]: {
+    CapitalsControlled: number;
+    CapitalsPercentage: number;
+  } | number | string | undefined;
+}
+
+/**
+ * Spaceship victory progress data
+ * Player-keyed object with spaceship progress
+ */
+export interface ScienceVictoryData {
+  Contender: string | undefined;
+  [playerName: string]: {
+    ApolloComplete: number; // 0 or 1 (boolean as number for SQLite)
+    PartsCompleted: number;
+    PartsPercentage: number;
+  } | number | string | undefined;
+}
+
+/**
+ * Cultural victory progress data
+ * Player-keyed object with tourism/influence progress
+ */
+export interface CulturalVictoryData {
+  CivsNeeded: number;
+  Contender: string | undefined;
+  [playerName: string]: {
+    InfluentialCivs: number;
+    InfluentialPercentage: number;
+    PolicyPercentage: number;
+  } | number | string | undefined;
+}
+
+/**
+ * Active resolution information for Diplomatic victory
+ */
+export interface ActiveResolution {
+  Name: string; // Resolution name
+  Description: string; // Resolution details
+  EnactedOn: number; // Turn number when enacted
+}
+
+/**
+ * Diplomatic victory progress data
+ * Player-keyed object with delegate counts
+ */
+export interface DiplomaticVictoryData {
+  VotesNeeded: number;
+  Status: "WorldCongress" | "UnitedNations";
+  ActiveResolutions: ActiveResolution[];
+  Contender: string | undefined;
+  [playerName: string]: {
+    Delegates: number;
+    VictoryPercentage: number;
+  } | number | string | undefined | ActiveResolution[];
+}
+
+/**
+ * Victory progress tracking for all victory types
+ * Visible to all players (global knowledge)
+ * Each victory type can be "Not available", "Not yet unlocked", or an object with progress data
+ */
+export interface VictoryProgress extends MutableKnowledge {
+  DominationVictory: string | JSONColumnType<DominationVictoryData>;
+  ScienceVictory: string | JSONColumnType<ScienceVictoryData>;
+  CulturalVictory: string | JSONColumnType<CulturalVictoryData>;
+  DiplomaticVictory: string | JSONColumnType<DiplomaticVictoryData>;
+}
+
+/**
+ * Tactical zone information from the AI's tactical analysis
+ * Visible only to the player who owns the tactical analysis (self-knowledge)
+ * Saved per turn with all zone properties including unit assignments
+ */
+export interface TacticalZones extends TimedKnowledge {
+  ZoneID: number; // Unique zone identifier
+  Territory: string; // Territory type: "None", "Friendly", "Enemy", "Neutral"
+  Dominance: string; // Dominance status: "NoUnits", "Friendly", "Enemy", "Even"
+  Domain: string; // Domain type: "Sea" or "Land"
+  Posture: string; // Tactical posture: "None", "Withdraw", "Attrition", etc.
+  AreaID: number; // Area ID
+  City: string | null; // City name key (or null if no city)
+  CenterX: number; // Zone center X coordinate
+  CenterY: number; // Zone center Y coordinate
+  Plots: number; // Number of plots in zone
+  Value: number; // Dominance zone priority value
+  FriendlyStrength: number; // Overall friendly strength
+  EnemyStrength: number; // Overall enemy strength
+  NeutralStrength: number; // Neutral strength
+  Neighbors: JSONColumnType<number[]>; // Array of neighboring zone IDs
+  Units: JSONColumnType<Record<string, Record<string, number>>>; // Unit assignments: Civ name -> Unit type -> Count
 }

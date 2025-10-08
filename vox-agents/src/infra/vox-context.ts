@@ -3,10 +3,10 @@ import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
-import { getModel } from "../utils/models/models.js";
+import { getModel, buildProviderOptions } from "../utils/models/models.js";
 import { startActiveObservation } from "@langfuse/tracing";
 import { ZodObject } from "zod/v4/index.js";
-import { Model, config } from "../utils/config.js";
+import { Model } from "../utils/config.js";
 import { exponentialRetry } from "../utils/retry.js";
 
 /**
@@ -81,9 +81,10 @@ export class VoxContext<TParameters extends AgentParameters> {
   /**
    * Abort the current generation if one is in progress
    * Creates a new AbortController after aborting for future operations
+   * @param successful - Whether the abort is due to successful completion
    */
-  public abort(): void {
-    this.logger.info('Aborting current generation');
+  public abort(successful: boolean = false): void {
+    this.logger.info(`Aborting current generation (successful: ${successful})`);
     this.abortController.abort();
     // Create a new AbortController for future executions
     this.abortController = new AbortController();
@@ -178,9 +179,7 @@ export class VoxContext<TParameters extends AgentParameters> {
               return await generateText({
                 // Model settings
                 model: LLM,
-                providerOptions: {
-                  [model.provider]: model.options
-                } as any,
+                providerOptions: buildProviderOptions(model),
                 // Abort signal for cancellation
                 abortSignal: this.abortController.signal,
                 // Initial messages

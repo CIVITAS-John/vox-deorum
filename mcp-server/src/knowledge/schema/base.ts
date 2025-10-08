@@ -13,7 +13,9 @@ import {
   PlayerOpinions,
   CityInformation,
   PersonaChange,
-  PlayerOptions
+  PlayerOptions,
+  VictoryProgress,
+  TacticalZones
 } from './timed';
 import { PlayerInformation } from './public';
 
@@ -104,6 +106,7 @@ export interface KnowledgeDatabase {
   // Timed Knowledge
   GameEvents: GameEvent;
   PlayerOptions: PlayerOptions;
+  TacticalZones: TacticalZones;
   // Mutable Knowledge
   PlayerSummaries: PlayerSummary;
   PlayerOpinions: PlayerOpinions;
@@ -112,6 +115,7 @@ export interface KnowledgeDatabase {
   StrategyChanges: StrategyChange;
   PolicyChanges: PolicyChange;
   ResearchChanges: ResearchChange;
+  VictoryProgress: VictoryProgress;
   // Public Knowledge
   PlayerInformations: PlayerInformation;
 }

@@ -3,6 +3,8 @@ import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
 import * as z from "zod";
 import * as changeCase from "change-case";
+import * as fs from "fs/promises";
+import * as path from "path";
 
 /**
  * Schema for military strategy information
@@ -11,6 +13,7 @@ const MilitaryStrategySchema = z.object({
   Type: z.string(),
   Production: z.record(z.string(), z.number()),
   Overall: z.record(z.string(), z.number()),
+  Description: z.string().optional()
 });
 
 type MilitaryStrategy = z.infer<typeof MilitaryStrategySchema>;
@@ -40,7 +43,7 @@ class GetMilitaryStrategyTool extends DatabaseQueryTool<MilitaryStrategy, Milita
   protected readonly fullSchema = MilitaryStrategySchema;
 
   /**
-   * Fetch military strategy summaries from database
+   * Fetch military strategy summaries from database and sync with JSON file
    */
   protected async fetchSummaries(): Promise<MilitaryStrategy[]> {
     const db = gameDatabase.getDatabase();
@@ -81,15 +84,36 @@ class GetMilitaryStrategyTool extends DatabaseQueryTool<MilitaryStrategy, Milita
       OverallWeightsByStrategy.get(flavor.AIMilitaryStrategyType!)!.push(flavor);
     }
 
+    // Read existing descriptions from JSON file
+    const jsonPath = path.join(process.cwd(), 'docs', 'strategies', 'military.json');
+    let existingDescriptions = new Map<string, string>();
+
+    try {
+      const fileContent = await fs.readFile(jsonPath, 'utf-8');
+      const existingData = JSON.parse(fileContent) as MilitaryStrategy[];
+
+      for (const item of existingData) {
+        if (item.Description) {
+          existingDescriptions.set(item.Type, item.Description);
+        }
+      }
+    } catch (error: any) {
+      // File doesn't exist or is invalid, will create it below
+      if (error.code !== 'ENOENT') {
+        console.warn(`Warning reading military.json: ${error.message}`);
+      }
+    }
+
     const results: MilitaryStrategy[] = [];
 
     for (const strategy of strategies) {
       // Remove MILITARYAISTRATEGY_ prefix and convert to PascalCase
       const ProductionWeights = ProductionWeightsByStrategy.get(strategy.Type!) || [];
       const OverallWeights = OverallWeightsByStrategy.get(strategy.Type!) || [];
+      const strategyType = changeCase.pascalCase(strategy.Type!.replace('MILITARYAISTRATEGY_', ''));
 
       results.push({
-        Type: changeCase.pascalCase(strategy.Type!.replace('MILITARYAISTRATEGY_', '')),
+        Type: strategyType,
         Production: Object.fromEntries(
           ProductionWeights.map((f: any) => [
             changeCase.pascalCase(f.FlavorType!.replace('FLAVOR_', '')),
@@ -99,8 +123,17 @@ class GetMilitaryStrategyTool extends DatabaseQueryTool<MilitaryStrategy, Milita
           OverallWeights.map((f: any) => [
             changeCase.pascalCase(f.FlavorType!.replace('FLAVOR_', '')),
             f.Flavor!
-          ]))
+          ])),
+        Description: existingDescriptions.get(strategyType) || ""
       });
+    }
+
+    // Write back to JSON file
+    try {
+      await fs.mkdir(path.dirname(jsonPath), { recursive: true });
+      await fs.writeFile(jsonPath, JSON.stringify(results, null, 2), 'utf-8');
+    } catch (error: any) {
+      console.warn(`Warning writing military.json: ${error.message}`);
     }
 
     return results;

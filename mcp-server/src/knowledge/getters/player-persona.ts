@@ -6,6 +6,7 @@ import { knowledgeManager } from "../../server.js";
 import { LuaFunction } from "../../bridge/lua-function.js";
 import { createLogger } from "../../utils/logger.js";
 import { PersonaChange } from "../schema/timed.js";
+import { composeVisibility } from "../../utils/knowledge/visibility.js";
 
 const logger = createLogger("ReadPlayerPersona");
 
@@ -51,46 +52,11 @@ export async function getPlayerPersona(playerId: number): Promise<Partial<Person
     'PersonaChanges',
     playerId,
     {
-      // Core Competitiveness & Ambition
-      VictoryCompetitiveness: persona.VictoryCompetitiveness,
-      WonderCompetitiveness: persona.WonderCompetitiveness,
-      MinorCivCompetitiveness: persona.MinorCivCompetitiveness,
-      Boldness: persona.Boldness,
-
-      // War & Peace Tendencies (including defensive traits)
-      WarBias: persona.WarBias,
-      HostileBias: persona.HostileBias,
-      WarmongerHate: persona.WarmongerHate,
-      NeutralBias: persona.NeutralBias,
-      FriendlyBias: persona.FriendlyBias,
-      GuardedBias: persona.GuardedBias,
-      AfraidBias: persona.AfraidBias,
-
-      // Diplomacy & Cooperation
-      DiplomaticBalance: persona.DiplomaticBalance,
-      Friendliness: persona.Friendliness,
-      WorkWithWillingness: persona.WorkWithWillingness,
-      WorkAgainstWillingness: persona.WorkAgainstWillingness,
-      Loyalty: persona.Loyalty,
-
-      // Minor Civ Relations
-      MinorCivFriendlyBias: persona.MinorCivFriendlyBias,
-      MinorCivNeutralBias: persona.MinorCivNeutralBias,
-      MinorCivHostileBias: persona.MinorCivHostileBias,
-      MinorCivWarBias: persona.MinorCivWarBias,
-
-      // Personality Traits
-      DenounceWillingness: persona.DenounceWillingness,
-      Forgiveness: persona.Forgiveness,
-      Meanness: persona.Meanness,
-      Neediness: persona.Neediness,
-      Chattiness: persona.Chattiness,
-      DeceptiveBias: persona.DeceptiveBias,
-
+      ...persona,
       // Metadata
       Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale.trim()})`
     },
-    undefined,
+    composeVisibility([playerId]),
     ["Rationale"] // Only ignore Rationale when checking for changes
   );
 

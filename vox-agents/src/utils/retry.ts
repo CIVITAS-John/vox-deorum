@@ -8,18 +8,18 @@ import { Logger } from "winston";
  * Executes an async function with exponential backoff retry logic
  * @param fn - The async function to execute
  * @param logger - Winston logger instance for logging retry attempts
- * @param maxRetries - Maximum number of retry attempts (default: 3)
- * @param initialDelay - Initial delay in milliseconds (default: 1000)
+ * @param maxRetries - Maximum number of retry attempts (default: 10)
+ * @param initialDelay - Initial delay in milliseconds (default: 2000)
  * @param maxDelay - Maximum delay in milliseconds (default: 15000)
- * @param backoffFactor - Exponential backoff multiplier (default: 2)
+ * @param backoffFactor - Exponential backoff multiplier (default: 1.5)
  * @returns The result of the successful function execution
  * @throws The last error if all retries are exhausted
  */
 export async function exponentialRetry<T>(
   fn: () => Promise<T>,
   logger: Logger,
-  maxRetries: number = 3,
-  initialDelay: number = 100,
+  maxRetries: number = 10,
+  initialDelay: number = 2000,
   maxDelay: number = 15000,
   backoffFactor: number = 1.5
 ): Promise<T> {

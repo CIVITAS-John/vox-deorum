@@ -8,6 +8,7 @@ import { LuaFunction } from '../../bridge/lua-function.js';
 import { PlayerOpinions } from '../schema/timed.js';
 import { knowledgeManager } from '../../server.js';
 import { stripTags } from '../../utils/database/localized.js';
+import { composeVisibility } from '../../utils/knowledge/visibility.js';
 
 /**
  * Lua function that retrieves player opinions to all major civs
@@ -53,7 +54,8 @@ export async function getPlayerOpinions(firstPlayer?: number, saving: boolean = 
     await store.storeMutableKnowledge(
       'PlayerOpinions',
       firstPlayer,
-      playerOpinion
+      playerOpinion,
+      composeVisibility([firstPlayer]),
     );
   }
   
