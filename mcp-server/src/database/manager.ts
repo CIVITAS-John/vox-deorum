@@ -201,7 +201,9 @@ export class DatabaseManager {
         }
         // Then check for embedded TXT_KEY patterns and replace them
         return obj.replaceAll(TXT_KEY_PATTERN, (match) => {
-          return localizationMap.get(match[1]) || localizationMap.get(match[0]) || match[0];
+          if (match.startsWith('{') && match.endsWith('}'))
+            return localizationMap.get(match.slice(1, -1)) || match;
+          else return localizationMap.get(match) || match;
         });
       }
       
