@@ -78,7 +78,7 @@ export async function getPlayerStrategy(playerId: number): Promise<{
       MilitaryStrategies: readableStrategies.MilitaryStrategies,
       Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI(${lastRationale.trim()})`
     },
-      composeVisibility([playerId]),
+    composeVisibility([playerId]),
     ["Rationale"] // Only ignore Rationale when checking for changes
   );
   

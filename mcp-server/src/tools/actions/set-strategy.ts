@@ -8,6 +8,7 @@ import { enumMappings, retrieveEnumValue, convertStrategyToNames } from "../../u
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
+import { composeVisibility } from "../../utils/knowledge/visibility.js";
 
 /**
  * Tool that sets the player's grand strategy using a Lua function
@@ -115,7 +116,8 @@ class SetStrategyTool extends LuaFunctionTool {
           MilitaryStrategies: before.MilitaryStrategies,
           Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI(${lastRationale.trim()})`
         },
-        undefined
+        composeVisibility([args.PlayerID]),
+        ["Rationale"] // Only ignore Rationale when checking for changes
       );
       result.Result = before;
 
@@ -134,8 +136,7 @@ class SetStrategyTool extends LuaFunctionTool {
           ...after,
           Rationale: args.Rationale
         },
-        undefined,
-        ["Rationale"] // Only ignore Rationale when checking for changes
+        composeVisibility([args.PlayerID])
       );
     }
 

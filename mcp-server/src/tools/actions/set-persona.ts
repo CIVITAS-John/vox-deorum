@@ -7,6 +7,7 @@ import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { composeVisibility } from "../../utils/knowledge/visibility.js";
 
 const personaSchema = z.object({
   // Core Competitiveness & Ambition
@@ -124,7 +125,8 @@ class SetPersonaTool extends LuaFunctionTool {
             ...previousPersona,
             Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale.trim()})`
           },
-          undefined
+          composeVisibility([PlayerID]),
+          ["Rationale"] // Only ignore Rationale when checking for changes
         );
       }
 
@@ -141,8 +143,7 @@ class SetPersonaTool extends LuaFunctionTool {
           ...newPersona,
           Rationale: Rationale
         },
-        undefined,
-        ["Rationale"] // Only ignore Rationale when checking for changes
+        composeVisibility([PlayerID])
       );
     }
 
