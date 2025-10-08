@@ -25,7 +25,7 @@ end
 local dominationVictory = GameInfo.Victories["VICTORY_DOMINATION"]
 if dominationVictory and Game:IsVictoryValid(dominationVictory.ID) then
   local totalCapitals = getTotalOriginalCapitals()
-  local capitalsNeeded = math.ceil(totalCapitals * 0.5)  -- Need 50% of original capitals
+  local capitalsNeeded = totalCapitals -- Need all original capitals
 
   local dominationData = {
     CapitalsNeeded = capitalsNeeded,
