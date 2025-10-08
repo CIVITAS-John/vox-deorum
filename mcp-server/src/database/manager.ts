@@ -79,7 +79,7 @@ export class DatabaseManager {
       logger.info('Connected to localization database');
 
       // More initialization
-      this.initializeMappings();
+      await this.initializeMappings();
 
       this.initialized = true;
     } catch (error) {
@@ -283,33 +283,39 @@ export class DatabaseManager {
 
   /**
    * Initialize enum-like mappings
+   * Throws error to abort initialization if mappings cannot be loaded
    */
   async initializeMappings() {
-    await this.addEnumMappings("AICityStrategies", "CityStrategy");
-    await this.addEnumMappings("AIEconomicStrategies", "EconomicStrategy");
-    await this.addEnumMappings("AIMilitaryStrategies", "MilitaryStrategy");
-    await this.addEnumMappings("AIGrandStrategies", "GrandStrategy");
-    await this.addEnumMappings("Improvements", "ImprovementType");
-    await this.addEnumMappings("Builds", "BuildType");
-    await this.addEnumMappings("Buildings", "BuildingType");
-    await this.addEnumMappings("BuildingClasses", "BuildingClass");
-    await this.addEnumMappings("Projects", "ProjectType");
-    await this.addEnumMappings("Specialists", "SpecialistType");
-    await this.addEnumMappings("GreatWorks", "GreatWorkType");
-    await this.addEnumMappings("Beliefs", "BeliefType");
-    await this.addEnumMappings("GoodyHuts", "GoodyType");
-    await this.addEnumMappings("GreatPersons", "GreatPersonType", "Great ");
-    await this.addEnumMappings("PolicyBranchTypes", "BranchType");
-    await this.addEnumMappings("Resolutions", "ResolutionType");
-    await this.addEnumMappings("Units", "UnitType");
-    await this.addEnumMappings("UnitClasses", "UnitClass");
-    await this.addEnumMappings("Technologies", "TechID");
-    await this.addEnumMappings("Policies", "PolicyID");
-    await this.addEnumMappings("Resources", "ResourceType");
-    await this.addEnumMappings("Religions", "ReligionID");
-    await this.addEnumMappings("Features", "FeatureType");
-    await this.addEnumMappings("UnitPromotions", "PromotionType");
-    await this.addEnumMappings("Victories", "VictoryType");
+    try {
+      await this.addEnumMappings("AICityStrategies", "CityStrategy");
+      await this.addEnumMappings("AIEconomicStrategies", "EconomicStrategy");
+      await this.addEnumMappings("AIMilitaryStrategies", "MilitaryStrategy");
+      await this.addEnumMappings("AIGrandStrategies", "GrandStrategy");
+      await this.addEnumMappings("Improvements", "ImprovementType");
+      await this.addEnumMappings("Builds", "BuildType");
+      await this.addEnumMappings("Buildings", "BuildingType");
+      await this.addEnumMappings("BuildingClasses", "BuildingClass");
+      await this.addEnumMappings("Projects", "ProjectType");
+      await this.addEnumMappings("Specialists", "SpecialistType");
+      await this.addEnumMappings("GreatWorks", "GreatWorkType");
+      await this.addEnumMappings("Beliefs", "BeliefType");
+      await this.addEnumMappings("GoodyHuts", "GoodyType");
+      await this.addEnumMappings("GreatPersons", "GreatPersonType", "Great ");
+      await this.addEnumMappings("PolicyBranchTypes", "BranchType");
+      await this.addEnumMappings("Resolutions", "ResolutionType");
+      await this.addEnumMappings("Units", "UnitType");
+      await this.addEnumMappings("UnitClasses", "UnitClass");
+      await this.addEnumMappings("Technologies", "TechID");
+      await this.addEnumMappings("Policies", "PolicyID");
+      await this.addEnumMappings("Resources", "ResourceType");
+      await this.addEnumMappings("Religions", "ReligionID");
+      await this.addEnumMappings("Features", "FeatureType");
+      await this.addEnumMappings("UnitPromotions", "PromotionType");
+      await this.addEnumMappings("Victories", "VictoryType");
+    } catch (error) {
+      logger.error('Failed to initialize enum mappings:', error);
+      throw new Error(`Critical error: Failed to initialize enum mappings from the game database. Try to successfully start the game at least once. MCP server cannot start.`);
+    }
   }
 
   /**
