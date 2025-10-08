@@ -370,30 +370,19 @@ where node >nul 2>&1
 if !errorlevel! neq 0 (
     echo   Node.js not found. Installing Node.js 22...
 
-    :: Try winget first
-    winget --version >nul 2>&1
+    :: Check for admin rights
+    net session >nul 2>&1
     if !errorlevel! equ 0 (
-        echo   Installing Node.js via winget...
-        winget install OpenJS.NodeJS --version 22.19.0 --accept-package-agreements --accept-source-agreements
-        if !errorlevel! equ 0 (
-            echo   [OK] Node.js 22 installed successfully
-            :: Add Node.js to PATH for current session
-            if exist "%ProgramFiles%\nodejs\node.exe" (
-                set "NODE_PATH=%ProgramFiles%\nodejs"
-            ) else if exist "%ProgramFiles(x86)%\nodejs\node.exe" (
-                set "NODE_PATH=%ProgramFiles(x86)%\nodejs"
-            ) else if exist "%LocalAppData%\Programs\nodejs\node.exe" (
-                set "NODE_PATH=%LocalAppData%\Programs\nodejs"
-            )
-            if defined NODE_PATH (
-                set "PATH=!NODE_PATH!;!PATH!"
-                echo   Added Node.js to PATH: !NODE_PATH!
-            )
-        ) else (
-            echo   [WARN] Failed to install Node.js via winget
-        )
+        set "HAS_ADMIN=1"
+        echo   Administrator rights detected. Attempting MSI installation...
     ) else (
-        :: Download and install Node.js manually
+        set "HAS_ADMIN=0"
+        echo   No administrator rights. Using portable installation...
+        goto :install_portable_node
+    )
+
+    :: Download and install Node.js MSI installer (only if admin)
+    if "!HAS_ADMIN!"=="1" (
         echo   Downloading Node.js 22 installer...
         set "NODE_INSTALLER=%TEMP_DIR%\node-v22.19.0-x64.msi"
         curl -L -o "!NODE_INSTALLER!" "https://nodejs.org/dist/v22.19.0/node-v22.19.0-x64.msi" >nul 2>&1
@@ -422,15 +411,61 @@ if !errorlevel! neq 0 (
                     echo   Added Node.js to PATH: !NODE_PATH!
                 )
             ) else (
-                echo   [WARN] Failed to install Node.js
-                echo   Please install Node.js manually from https://nodejs.org/
+                echo   [WARN] Failed to install Node.js via MSI installer
+                echo   Attempting portable Node.js installation...
+                goto :install_portable_node
             )
         ) else (
             echo   [WARN] Failed to download Node.js installer
-            echo   Please install Node.js manually from https://nodejs.org/
+            echo   Attempting portable Node.js installation...
+            goto :install_portable_node
         )
     )
 
+    :: Skip portable installation if previous method succeeded
+    goto :check_node_installed
+
+:install_portable_node
+    echo   Installing portable Node.js to local node/ folder...
+    set "PORTABLE_NODE_DIR=!PROJECT_ROOT!\node"
+    set "NODE_ZIP=%TEMP_DIR%\node-v22.19.0-win-x64.zip"
+
+    :: Download portable Node.js
+    echo   Downloading portable Node.js 22.19.0...
+    curl -L -o "!NODE_ZIP!" "https://nodejs.org/dist/v22.19.0/node-v22.19.0-win-x64.zip" >nul 2>&1
+    if not exist "!NODE_ZIP!" (
+        echo   curl failed, trying PowerShell...
+        powershell -Command "try { Invoke-WebRequest -Uri 'https://nodejs.org/dist/v22.19.0/node-v22.19.0-win-x64.zip' -OutFile '!NODE_ZIP!' } catch { exit 1 }"
+    )
+
+    if exist "!NODE_ZIP!" (
+        echo   Extracting portable Node.js...
+        :: Create node directory if it doesn't exist
+        if not exist "!PORTABLE_NODE_DIR!" mkdir "!PORTABLE_NODE_DIR!"
+
+        :: Extract the zip file
+        powershell -Command "Expand-Archive -Path '!NODE_ZIP!' -DestinationPath '!TEMP_DIR!\node-extract' -Force"
+
+        :: Move files from extracted folder to node/ directory
+        if exist "!TEMP_DIR!\node-extract\node-v22.19.0-win-x64" (
+            xcopy /E /I /Y "!TEMP_DIR!\node-extract\node-v22.19.0-win-x64\*" "!PORTABLE_NODE_DIR!" >nul 2>&1
+            echo   [OK] Portable Node.js extracted to: !PORTABLE_NODE_DIR!
+
+            :: Add to PATH for current session
+            set "PATH=!PORTABLE_NODE_DIR!;!PATH!"
+            echo   Added portable Node.js to PATH
+
+            :: Clean up extraction folder
+            if exist "!TEMP_DIR!\node-extract" rmdir /S /Q "!TEMP_DIR!\node-extract" >nul 2>&1
+        ) else (
+            echo   [ERROR] Failed to extract portable Node.js
+        )
+    ) else (
+        echo   [ERROR] Failed to download portable Node.js
+        echo   Please install Node.js manually from https://nodejs.org/
+    )
+
+:check_node_installed
     :: Re-check if Node.js is now available
     where node >nul 2>&1
     if !errorlevel! neq 0 (
@@ -647,5 +682,6 @@ if exist "%TEMP_DIR%\SteamSetup.exe" del "%TEMP_DIR%\SteamSetup.exe"
 if exist "%TEMP_DIR%\check_civ5.txt" del "%TEMP_DIR%\check_civ5.txt"
 if exist "%TEMP_DIR%\steamcmd_output.txt" del "%TEMP_DIR%\steamcmd_output.txt"
 if exist "%TEMP_DIR%\node-v22.19.0-x64.msi" del "%TEMP_DIR%\node-v22.19.0-x64.msi"
+if exist "%TEMP_DIR%\node-v22.19.0-win-x64.zip" del "%TEMP_DIR%\node-v22.19.0-win-x64.zip"
 
 echo.
