@@ -37,6 +37,7 @@ const renamedEventTypes: Record<string, string> = {
   "PlayerBuilt": "UnitBuildStart",
   "PlayerBuilding": "UnitBuildCompleted",
   "UnitSetXY": "UnitMoved",
+  "EspionageNotificationData": "EspionageResult",
 }
 
 /**

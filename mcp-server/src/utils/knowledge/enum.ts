@@ -1,9 +1,14 @@
 import { CaptureTypes } from "../../database/enums/CaptureTypes.js";
 import { TradeConnectionTypes } from "../../database/enums/ConnectionTypes.js";
+import { EspionageType } from "../../database/enums/EspionageType.js";
 import { FeatureTypes } from "../../database/enums/FeatureTypes.js";
 import { GuessConfidenceTypes } from "../../database/enums/GuessConfidenceTypes.js";
+import { IntrigueType } from "../../database/enums/IntrigueType.js";
 import { PlotTypes } from "../../database/enums/PlotTypes.js";
 import { RouteTypes } from "../../database/enums/RouteTypes.js";
+import { SpyRank } from "../../database/enums/SpyRank.js";
+import { SpyResult } from "../../database/enums/SpyResult.js";
+import { SpyState } from "../../database/enums/SpyState.js";
 import { TerrainTypes } from "../../database/enums/TerrainTypes.js";
 import { TradeableItems } from "../../database/enums/TradeableItems.js";
 import { UnitAITypes } from "../../database/enums/UnitAITypes.js";
@@ -21,6 +26,7 @@ export const enumMappings: Record<string, Record<number, string>> = {
   "CaptureType": CaptureTypes,
   "GuessConfidence": GuessConfidenceTypes,
   "ItemType": TradeableItems,
+  "SpyResult": SpyResult,
 }
 
 /**

@@ -12,7 +12,7 @@ export const EspionageResult = z.object({
   SpyIndex: z.number(),
   
   /** The numerical result or outcome code of the espionage operation */
-  Result: z.number(),
+  SpyResult: z.number(),
   
   /** The X coordinate of the city where the espionage operation took place */
   CityX: z.number(),
