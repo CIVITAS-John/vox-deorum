@@ -410,6 +410,20 @@ if !errorlevel! neq 0 (
                     set "PATH=!NODE_PATH!;!PATH!"
                     echo   Added Node.js to PATH: !NODE_PATH!
                 )
+                
+                :: Refresh environment variables
+                if exist "%SCRIPT_DIR%\refreshenv.cmd" (
+                    call "%SCRIPT_DIR%\refreshenv.cmd" >nul 2>&1
+                ) else if exist "%ProgramData%\chocolatey\bin\refreshenv.cmd" (
+                    call "%ProgramData%\chocolatey\bin\refreshenv.cmd" >nul 2>&1
+                ) else (
+                    :: Try to refresh PATH from registry if refreshenv.cmd not available
+                    for /f "tokens=2*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYSTEM_PATH=%%B"
+                    for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
+                    if defined SYSTEM_PATH if defined USER_PATH (
+                        set "PATH=!SYSTEM_PATH!;!USER_PATH!"
+                    )
+                )
             ) else (
                 echo   [WARN] Failed to install Node.js via MSI installer
                 echo   Attempting portable Node.js installation...
@@ -477,20 +491,6 @@ if !errorlevel! neq 0 (
     :: Node.js found, check version
     for /f "tokens=*" %%v in ('node --version 2^>nul') do set "NODE_VERSION=%%v"
     echo   [OK] Node.js found ^(!NODE_VERSION!^)
-)
-
-:: Refresh environment variables
-if exist "%SCRIPT_DIR%\refreshenv.cmd" (
-    call "%SCRIPT_DIR%\refreshenv.cmd" >nul 2>&1
-) else if exist "%ProgramData%\chocolatey\bin\refreshenv.cmd" (
-    call "%ProgramData%\chocolatey\bin\refreshenv.cmd" >nul 2>&1
-) else (
-    :: Try to refresh PATH from registry if refreshenv.cmd not available
-    for /f "tokens=2*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYSTEM_PATH=%%B"
-    for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
-    if defined SYSTEM_PATH if defined USER_PATH (
-        set "PATH=!SYSTEM_PATH!;!USER_PATH!"
-    )
 )
 
 :: Final check before installing dependencies
