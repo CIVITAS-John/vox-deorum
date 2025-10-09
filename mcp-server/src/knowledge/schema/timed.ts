@@ -174,7 +174,6 @@ export interface CityInformation extends MutableKnowledge, CityInformationBasic 
   BuildingCount: number; // Total number of buildings
   WonderCount: number; // Number of wonders
   GreatWorkCount: number; // Number of great works
-  TradeRouteCount: number; // Number of trade routes
   CurrentProduction: string | null; // What is being produced (localized)
   ProductionTurnsLeft: number; // Turns to complete production
 }

@@ -137,12 +137,14 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
       cityData.WonderCount = city:GetNumWorldWonders() + city:GetNumNationalWonders()
       cityData.GreatWorkCount = city:GetNumGreatWorks()
 
-      -- Trade route count (needs to be calculated)
-      cityData.TradeRouteCount = 0  -- Will be calculated from trade route data if available
-
       -- Current production
       cityData.CurrentProduction = getProductionName(city)
       cityData.ProductionTurnsLeft = city:GetProductionTurnsLeft()
+      if cityData.ProductionTurnsLeft == 2147483647 then
+        cityData.CurrentProduction = "Infinite Project: " .. cityData.CurrentProduction
+        cityData.ProductionStored = -1  -- Indicate no storage
+        cityData.ProductionTurnsLeft = -1  -- Indicate indefinite production time
+      end
 
       -- Add visibility information for each player
       for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do

@@ -190,7 +190,6 @@ export async function setupKnowledgeDatabase(
     .addColumn('BuildingCount', 'integer', (col) => col.notNull())
     .addColumn('WonderCount', 'integer', (col) => col.notNull())
     .addColumn('GreatWorkCount', 'integer', (col) => col.notNull())
-    .addColumn('TradeRouteCount', 'integer', (col) => col.notNull())
     .addColumn('CurrentProduction', 'text')
     .addColumn('ProductionTurnsLeft', 'integer', (col) => col.notNull())
     .execute();

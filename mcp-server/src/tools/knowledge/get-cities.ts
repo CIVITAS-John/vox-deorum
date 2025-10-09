@@ -53,7 +53,6 @@ const CityDataSchema = z.object({
   BuildingCount: z.number().optional().describe("Total number of buildings"),
   WonderCount: z.number().optional().describe("Number of wonders"),
   GreatWorkCount: z.number().optional().describe("Number of great works"),
-  TradeRouteCount: z.number().optional().describe("Number of trade routes"),
 });
 
 /**
@@ -151,7 +150,6 @@ class GetCitiesTool extends ToolBase {
           BuildingCount: city.BuildingCount,
           WonderCount: city.WonderCount,
           GreatWorkCount: city.GreatWorkCount,
-          TradeRouteCount: city.TradeRouteCount,
         };
       }
 

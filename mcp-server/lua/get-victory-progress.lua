@@ -252,7 +252,7 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
       local resolutionName = league:GetResolutionName(resolution.Type, resolution.ID, resolution.ProposerDecision or -1, false)
 
       -- Get the raw Help text (contains TXT_KEY markers) instead of localized text
-      local description = resolutionEntry and resolutionEntry.Help or "Unknown resolution"
+      local description = resolutionEntry and Locale.Lookup(resolutionEntry.Help) or "Unknown resolution"
 
       diplomaticData.ActiveResolutions[resolutionName] = {
         Description = description,
