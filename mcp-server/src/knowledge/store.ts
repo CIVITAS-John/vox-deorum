@@ -86,18 +86,10 @@ export class KnowledgeStore {
     // Store game ID in metadata
     await this.setMetadata('gameId', gameId);
     await this.setMetadata('lastSync', Date.now().toString());
-    
+
     // Retrieve and store player information as public knowledge
     try {
-      const players = await getPlayerInformations();
-      logger.info(`Retrieved ${players.length} player(s) from the game`);
-      
-      // Store each player's information in the PlayerInformation table
-      for (const player of players) {
-        await this.storePublicKnowledge('PlayerInformations', player.Key, player);
-      }
-      
-      logger.info(`Stored player information for ${players.length} players`);
+      await getPlayerInformations();
     } catch (error) {
       logger.error('Failed to retrieve or store player information:', error);
       // Continue initialization even if player info fails - it can be retrieved later

@@ -99,11 +99,23 @@ class GetPlayersTool extends ToolBase {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Get static player information, current player summaries, opinions, and strategies in parallel
-    const [playerInfos, playerSummaries, playerOpinions] = await Promise.all([
+    var [playerInfos, playerSummaries, playerOpinions] = await Promise.all([
       readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations),
       getPlayerSummaries(),
       readPlayerKnowledge(args.PlayerID, "PlayerOpinions", getPlayerOpinions)
     ]);
+
+    // Sanity check: verify all players in summary have corresponding information
+    // If any player is missing information, refresh and store it
+    const missingPlayers: number[] = [];
+    for (const summary of playerSummaries) {
+      if (!playerInfos.find(info => info.Key === summary.Key))
+        missingPlayers.push(summary.Key);
+    }
+    if (missingPlayers.length > 0) {
+      console.warn(`Found ${missingPlayers.length} player(s) in summary without corresponding information. Refreshing player information...`);
+      playerInfos = await getPlayerInformations(true);
+    }
 
     // Combine the data and create dictionary
     const playersDict: Record<string, z.infer<typeof this.outputSchema>[string]> = {};

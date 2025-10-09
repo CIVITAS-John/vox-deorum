@@ -15,8 +15,8 @@ export const NuclearDetonation = z.object({
   PlotY: z.number(),
   
   /** Whether the nuclear attack was against a civilization currently at war */
-  IsWar: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
+  HurtWarOpponent: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false),
   
   /** Whether the nuclear strike affected neutral or non-combatant civilizations */
-  IsBystander: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
+  HurtBystander: z.union([z.number(), z.boolean()]).transform((arg) => arg !== 0 && arg !== false)
 });
