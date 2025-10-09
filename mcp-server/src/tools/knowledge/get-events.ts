@@ -305,7 +305,7 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
         }
         delete item["Events"];
         if (properties.length === 1) {
-          Object.assign(item, properties[0]);
+          Object.assign(item, item.Events[0]);
         } else if (key === "Plot") {
           item[pluralize(key)] = Object.fromEntries(
             properties.map((p: any) => {
