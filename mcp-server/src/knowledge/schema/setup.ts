@@ -144,6 +144,8 @@ export async function setupKnowledgeDatabase(
     .addColumn('FoundedReligion', 'text')
     .addColumn('MajorityReligion', 'text')
     .addColumn('Relationships', 'text') // JSON object of diplomatic relationships
+    .addColumn('TradeRoutesFrom', 'text')
+    .addColumn('TradeRoutesTo', 'text')
     .execute();
   // Create indexes for PlayerSummaries table
   await createMutableKnowledgeIndexes(db, 'PlayerSummaries');

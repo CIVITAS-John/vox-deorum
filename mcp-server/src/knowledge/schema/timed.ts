@@ -44,6 +44,22 @@ export interface ResearchChange extends MutableKnowledge {
 }
 
 /**
+ * Trade route details for a specific route
+ */
+export interface TradeRouteDetails {
+  TurnsLeft: number;
+  Domain: string; // "Land" or "Sea"
+  FromGold: number;
+  ToGold: number;
+  ToFood: number;
+  ToProduction: number;
+  FromScience: number;
+  ToScience: number;
+  FromCulture: number;
+  ToCulture: number;
+}
+
+/**
  * Player summary information (visible to met players)
  */
 export interface PlayerSummary extends MutableKnowledge {
@@ -64,6 +80,8 @@ export interface PlayerSummary extends MutableKnowledge {
   MajorityReligion: string | null;
   ResourcesAvailable: JSONColumnType<Record<string, number>>;
   Relationships: JSONColumnType<Record<string, string[]>>; // Civ name -> array of relationship types
+  TradeRoutesFrom: JSONColumnType<Record<string, number | TradeRouteDetails>>; // "Not assigned": count or "FromCity => ToCity (Civ)": route details
+  TradeRoutesTo: JSONColumnType<Record<string, TradeRouteDetails>>; // "FromCity => ToCity (Civ)": route details
 
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)
 }

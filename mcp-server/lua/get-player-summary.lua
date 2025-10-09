@@ -90,7 +90,9 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         FoundedReligion = nil,  -- Will be populated if player founded religion
         MajorityReligion = player:GetStateReligionName(),
         ResourcesAvailable = nil,  -- Will be populated if player has resources
-        Relationships = nil  -- Will be populated if player has diplomatic relationships
+        Relationships = nil,  -- Will be populated if player has diplomatic relationships
+        TradeRoutesFrom = nil,  -- Will be populated if player has outgoing trade routes
+        TradeRoutesTo = nil  -- Will be populated if player has incoming trade routes
       }
       
       -- Add relative visibility to all other players
@@ -251,6 +253,75 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         end
       end
       summary.Relationships = relationships
+
+      -- Get outgoing trade routes
+      local tradeRoutesFrom = {}
+      local playerTradeRoutes = player:GetTradeRoutes()
+      local activeRouteCount = playerTradeRoutes and #playerTradeRoutes or 0
+      local maxRoutes = player:GetNumTradeRoutesPossible()
+      local unassignedCount = maxRoutes - activeRouteCount
+
+      if unassignedCount > 0 then
+        tradeRoutesFrom["Not assigned"] = unassignedCount
+      end
+
+      if playerTradeRoutes then
+        for _, route in ipairs(playerTradeRoutes) do
+          local fromCityName = route.FromCityName or "Unknown"
+          local toCityName = route.ToCityName or "Unknown"
+          local toCivName = "Unknown"
+
+          if route.ToID and Players[route.ToID] then
+            toCivName = Locale.ConvertTextKey(Players[route.ToID]:GetCivilizationShortDescription())
+          end
+
+          local routeKey = string.format("%s => %s (%s)", fromCityName, toCityName, toCivName)
+          tradeRoutesFrom[routeKey] = {
+            TurnsLeft = route.TurnsLeft,
+            Domain = route.Domain == DomainTypes.DOMAIN_LAND and "Land" or "Sea",
+            FromGold = route.FromGPT and (route.FromGPT / 100) or 0,
+            ToGold = route.ToGPT and (route.ToGPT / 100) or 0,
+            ToFood = route.ToFood and (route.ToFood / 100) or 0,
+            ToProduction = route.ToProduction and (route.ToProduction / 100) or 0,
+            FromScience = route.FromScience and (route.FromScience / 100) or 0,
+            ToScience = route.ToScience and (route.ToScience / 100) or 0,
+            FromCulture = route.FromCulture and (route.FromCulture / 100) or 0,
+            ToCulture = route.ToCulture and (route.ToCulture / 100) or 0
+          }
+        end
+      end
+      summary.TradeRoutesFrom = tradeRoutesFrom
+
+      -- Get incoming trade routes
+      local tradeRoutesTo = {}
+      local incomingRoutes = player:GetTradeRoutesToYou()
+
+      if incomingRoutes then
+        for _, route in ipairs(incomingRoutes) do
+          local fromCityName = route.FromCityName or "Unknown"
+          local toCityName = route.ToCityName or "Unknown"
+          local fromCivName = "Unknown"
+
+          if route.FromID and Players[route.FromID] then
+            fromCivName = Locale.ConvertTextKey(Players[route.FromID]:GetCivilizationShortDescription())
+          end
+
+          local routeKey = string.format("%s (%s) => %s", fromCityName, fromCivName, toCityName)
+          tradeRoutesTo[routeKey] = {
+            TurnsLeft = route.TurnsLeft,
+            Domain = route.Domain == DomainTypes.DOMAIN_LAND and "Land" or "Sea",
+            FromGold = route.FromGPT and (route.FromGPT / 100) or 0,
+            ToGold = route.ToGPT and (route.ToGPT / 100) or 0,
+            ToFood = route.ToFood and (route.ToFood / 100) or 0,
+            ToProduction = route.ToProduction and (route.ToProduction / 100) or 0,
+            FromScience = route.FromScience and (route.FromScience / 100) or 0,
+            ToScience = route.ToScience and (route.ToScience / 100) or 0,
+            FromCulture = route.FromCulture and (route.FromCulture / 100) or 0,
+            ToCulture = route.ToCulture and (route.ToCulture / 100) or 0
+          }
+        end
+      end
+      summary.TradeRoutesTo = tradeRoutesTo
 
       -- Add to results
       table.insert(summaries, summary)

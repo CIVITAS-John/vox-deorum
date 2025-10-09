@@ -58,6 +58,8 @@ const PlayerDataSchema = z.object({
   FoundedReligion: z.string().nullable().optional(),
   MajorityReligion: z.string().nullable().optional(),
   Relationships: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional(),
+  TradeRoutesFrom: z.record(z.string(), z.union([z.string(), z.record(z.string(), z.any())])).optional(),
+  TradeRoutesTo: z.record(z.string(), z.union([z.string(), z.record(z.string(), z.any())])).optional(),
 }).passthrough();
 
 /**
@@ -220,6 +222,10 @@ function postProcessData(
 
   // Hide actual happiness number
   delete summary.HappinessPercentage;
+
+  // Hide trade information
+  delete summary.TradeRoutesFrom;
+  delete summary.TradeRoutesTo;
 
   // Hide war weariness from relationships
   if (summary.Relationships && summary.IsMajor)
