@@ -10,6 +10,39 @@ local influenceLookup = {
   [InfluenceLevelTypes.INFLUENCE_LEVEL_DOMINANT] = "Dominant",
 };
 
+-- Helper function to get civilization name with city-state prefix if applicable
+local function getCivName(player)
+  local civName = player:GetCivilizationShortDescription()
+  if player:IsMinorCiv() then
+    return "City-State " .. civName
+  end
+  return civName
+end
+
+-- Helper function to determine spy role
+local function getSpyRole(spy, playerID)
+  if spy.IsDiplomat then
+    if spy.VassalDiplomatPlayer >= 0 then
+      return "Vassal Diplomat"
+    else
+      return "Diplomat"
+    end
+  end
+
+  -- Check if spy is in own city (counterspy)
+  if spy.CityX and spy.CityY and spy.CityX >= 0 and spy.CityY >= 0 then
+    local plot = Map.GetPlot(spy.CityX, spy.CityY)
+    if plot then
+      local city = plot:GetPlotCity()
+      if city and city:GetOwner() == playerID then
+        return "Counterspy"
+      end
+    end
+  end
+
+  return "Spy"
+end
+
 -- Helper function to calculate visibility between two players
 local function getVisibility(fromPlayerID, toPlayerID)
   if fromPlayerID == toPlayerID then
@@ -91,8 +124,9 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         MajorityReligion = player:GetStateReligionName(),
         ResourcesAvailable = nil,  -- Will be populated if player has resources
         Relationships = nil,  -- Will be populated if player has diplomatic relationships
-        TradeRoutesFrom = nil,  -- Will be populated if player has outgoing trade routes
-        TradeRoutesTo = nil  -- Will be populated if player has incoming trade routes
+        OutgoingTradeRoutes = nil,  -- Will be populated if player has outgoing trade routes
+        IncomingTradeRoutes = nil,  -- Will be populated if player has incoming trade routes
+        Spies = nil  -- Will be populated if player has spies
       }
       
       -- Add relative visibility to all other players
@@ -246,8 +280,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
 
             -- Only add if there are relationships
             if #relationshipList > 0 then
-              local civName = Locale.ConvertTextKey(otherPlayer:GetCivilizationShortDescription())
-              relationships[civName] = relationshipList
+              relationships[getCivName(otherPlayer)] = relationshipList
             end
           end
         end
@@ -255,73 +288,132 @@ Game.RegisterFunction("${Name}", function(${Arguments})
       summary.Relationships = relationships
 
       -- Get outgoing trade routes
-      local tradeRoutesFrom = {}
+      local outgoingTradeRoutes = {}
       local playerTradeRoutes = player:GetTradeRoutes()
       local activeRouteCount = playerTradeRoutes and #playerTradeRoutes or 0
-      local maxRoutes = player:GetNumTradeRoutesPossible()
+      local maxRoutes = player:GetNumInternationalTradeRoutesAvailable()
       local unassignedCount = maxRoutes - activeRouteCount
 
       if unassignedCount > 0 then
-        tradeRoutesFrom["Not assigned"] = unassignedCount
+        outgoingTradeRoutes["Available"] = unassignedCount
       end
 
       if playerTradeRoutes then
         for _, route in ipairs(playerTradeRoutes) do
           local fromCityName = route.FromCityName or "Unknown"
           local toCityName = route.ToCityName or "Unknown"
+          local fromCivName = "Unknown"
           local toCivName = "Unknown"
 
-          if route.ToID and Players[route.ToID] then
-            toCivName = Locale.ConvertTextKey(Players[route.ToID]:GetCivilizationShortDescription())
+          if route.FromID and Players[route.FromID] then
+            fromCivName = getCivName(Players[route.FromID])
           end
 
-          local routeKey = string.format("%s => %s (%s)", fromCityName, toCityName, toCivName)
-          tradeRoutesFrom[routeKey] = {
+          if route.ToID and Players[route.ToID] then
+            toCivName = getCivName(Players[route.ToID])
+          end
+
+          local routeKey = string.format("%s (%s) => %s (%s)", fromCityName, fromCivName, toCityName, toCivName)
+          outgoingTradeRoutes[routeKey] = {
             TurnsLeft = route.TurnsLeft,
             Domain = route.Domain == DomainTypes.DOMAIN_LAND and "Land" or "Sea",
-            FromGold = route.FromGPT and (route.FromGPT / 100) or 0,
-            ToGold = route.ToGPT and (route.ToGPT / 100) or 0,
-            ToFood = route.ToFood and (route.ToFood / 100) or 0,
-            ToProduction = route.ToProduction and (route.ToProduction / 100) or 0,
-            FromScience = route.FromScience and (route.FromScience / 100) or 0,
-            ToScience = route.ToScience and (route.ToScience / 100) or 0,
-            FromCulture = route.FromCulture and (route.FromCulture / 100) or 0,
-            ToCulture = route.ToCulture and (route.ToCulture / 100) or 0
+            FromGold = route.FromGPT > 0 and route.FromGPT / 100 or -1, -- If the value is 0, set to -1 to indicate no gold from origin
+            ToGold = route.ToGPT > 0 and route.ToGPT / 100 or -1,
+            ToFood = route.ToFood > 0 and route.ToFood / 100 or -1,
+            ToProduction = route.ToProduction > 0 and route.ToProduction / 100 or -1,
+            FromScience = route.FromScience > 0 and route.FromScience / 100 or -1,
+            ToScience = route.ToScience > 0 and route.ToScience / 100 or -1,
+            FromCulture = route.FromCulture > 0 and route.FromCulture / 100 or -1,
+            ToCulture = route.ToCulture > 0 and route.ToCulture / 100 or -1,
           }
         end
       end
-      summary.TradeRoutesFrom = tradeRoutesFrom
+      summary.OutgoingTradeRoutes = outgoingTradeRoutes
 
       -- Get incoming trade routes
-      local tradeRoutesTo = {}
-      local incomingRoutes = player:GetTradeRoutesToYou()
+      local incomingTradeRoutes = {}
+      local incomingRoutes = player:GetIncomingTradeRoutesYou()
 
       if incomingRoutes then
         for _, route in ipairs(incomingRoutes) do
           local fromCityName = route.FromCityName or "Unknown"
           local toCityName = route.ToCityName or "Unknown"
           local fromCivName = "Unknown"
+          local toCivName = "Unknown"
 
           if route.FromID and Players[route.FromID] then
-            fromCivName = Locale.ConvertTextKey(Players[route.FromID]:GetCivilizationShortDescription())
+            fromCivName = getCivName(Players[route.FromID])
           end
 
-          local routeKey = string.format("%s (%s) => %s", fromCityName, fromCivName, toCityName)
-          tradeRoutesTo[routeKey] = {
+          if route.ToID and Players[route.ToID] then
+            toCivName = getCivName(Players[route.ToID])
+          end
+
+          local routeKey = string.format("%s (%s) => %s (%s)", fromCityName, fromCivName, toCityName, toCivName)
+          incomingTradeRoutes[routeKey] = {
             TurnsLeft = route.TurnsLeft,
             Domain = route.Domain == DomainTypes.DOMAIN_LAND and "Land" or "Sea",
-            FromGold = route.FromGPT and (route.FromGPT / 100) or 0,
-            ToGold = route.ToGPT and (route.ToGPT / 100) or 0,
-            ToFood = route.ToFood and (route.ToFood / 100) or 0,
-            ToProduction = route.ToProduction and (route.ToProduction / 100) or 0,
-            FromScience = route.FromScience and (route.FromScience / 100) or 0,
-            ToScience = route.ToScience and (route.ToScience / 100) or 0,
-            FromCulture = route.FromCulture and (route.FromCulture / 100) or 0,
-            ToCulture = route.ToCulture and (route.ToCulture / 100) or 0
+            FromGold = route.FromGPT > 0 and route.FromGPT / 100 or -1,
+            ToGold = route.ToGPT > 0 and route.ToGPT / 100 or -1,
+            ToFood = route.ToFood > 0 and route.ToFood / 100 or -1,
+            ToProduction = route.ToProduction > 0 and route.ToProduction / 100 or -1,
+            FromScience = route.FromScience > 0 and route.FromScience / 100 or -1,
+            ToScience = route.ToScience > 0 and route.ToScience / 100 or -1,
+            FromCulture = route.FromCulture > 0 and route.FromCulture / 100 or -1,
+            ToCulture = route.ToCulture > 0 and route.ToCulture / 100 or -1,
           }
         end
       end
-      summary.TradeRoutesTo = tradeRoutesTo
+      summary.IncomingTradeRoutes = incomingTradeRoutes
+
+      -- Get spy information
+      local espionageSpies = player:GetEspionageSpies()
+
+      if espionageSpies then
+        local spies = {}
+        for _, spy in ipairs(espionageSpies) do
+          -- Get spy location
+          local location = "Unassigned"
+          if spy.CityX and spy.CityY and spy.CityX >= 0 and spy.CityY >= 0 then
+            local plot = Map.GetPlot(spy.CityX, spy.CityY)
+            if plot then
+              local city = plot:GetPlotCity()
+              if city then
+                local cityName = city:GetName()
+                local cityOwner = Players[city:GetOwner()]
+                if cityOwner then
+                  local civName = getCivName(cityOwner)
+                  location = string.format("%s (%s)", cityName, civName)
+                else
+                  location = cityName
+                end
+              end
+            end
+          end
+
+          -- Determine spy role
+          local role = getSpyRole(spy, playerID)
+
+          -- Get rank name (localized)
+          local rankName = Locale.ConvertTextKey(spy.Rank)
+
+          -- Create condensed spy identifier
+          local spyIdentifier = string.format("%s %s (%d)", rankName, Locale.ConvertTextKey(spy.Name), spy.AgentID)
+
+          -- Build spy entry
+          local spyEntry = {
+            Role = role,
+            Location = location,
+            State = Locale.ConvertTextKey(spy.State),
+            Network = spy.NetworkPointsStored,
+            NetworkPerTurn = spy.NetworkPointsPerTurn
+          }
+
+          -- Add to spies table using spy identifier as key
+          spies[spyIdentifier] = spyEntry
+        end
+        summary.Spies = spies
+      end
 
       -- Add to results
       table.insert(summaries, summary)
@@ -354,7 +446,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
       if allyID and allyID >= 0 then
         local allyPlayer = Players[allyID]
         if allyPlayer then
-          summary.MajorAlly = Locale.ConvertTextKey(allyPlayer:GetCivilizationShortDescription())
+          summary.MajorAlly = getCivName(allyPlayer)
         end
       end
 
@@ -407,8 +499,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
             formattedStatus = string.format("%s (Influence: %d)", status, influence)
           end
 
-          local majorName = Locale.ConvertTextKey(major:GetCivilizationShortDescription())
-          relationships[majorName] = formattedStatus
+          relationships[getCivName(major)] = formattedStatus
         end
       end
       summary.Relationships = relationships

@@ -60,11 +60,23 @@ export interface TradeRouteDetails {
 }
 
 /**
+ * Spy details for a specific spy
+ */
+export interface SpyDetails {
+  Role: string; // "Spy", "Counterspy", "Diplomat", "Vassal Diplomat"
+  Location: string; // City name (Civ) or "Unassigned"
+  State: string; // Localized state (e.g., "Establishing Surveillance", "Gathering Intelligence")
+  Network: number; // Network points stored
+  NetworkPerTurn: number; // Network points per turn
+}
+
+/**
  * Player summary information (visible to met players)
  */
 export interface PlayerSummary extends MutableKnowledge {
   Score: number | null; // Player's current score (major civs only)
   Era: string | null; // Localized era name (e.g., "Ancient Era", "Classical Era")
+  Votes: number | null; // Votes in World Congress/UN (null if no league)
   MajorAlly: string | null; // Ally civilization's short description (null if no ally)
   Cities: number | null;
   Population: number;
@@ -75,13 +87,14 @@ export interface PlayerSummary extends MutableKnowledge {
   TourismPerTurn: number | null;
   Technologies: number | null;
   CurrentResearch: string | null; // Current technology being researched (visibility 2 only)
-  PolicyBranches: JSONColumnType<Record<string, string[]>>; // Policy branch -> array of policy names (details visibility 2 only)
+  PolicyBranches: JSONColumnType<Record<string, string[]>> | null; // Policy branch -> array of policy names (details visibility 2 only)
   FoundedReligion: string | null;
   MajorityReligion: string | null;
-  ResourcesAvailable: JSONColumnType<Record<string, number>>;
-  Relationships: JSONColumnType<Record<string, string[]>>; // Civ name -> array of relationship types
-  TradeRoutesFrom: JSONColumnType<Record<string, number | TradeRouteDetails>>; // "Not assigned": count or "FromCity => ToCity (Civ)": route details
-  TradeRoutesTo: JSONColumnType<Record<string, TradeRouteDetails>>; // "FromCity => ToCity (Civ)": route details
+  ResourcesAvailable: JSONColumnType<Record<string, number>> | null;
+  Relationships: JSONColumnType<Record<string, string | string[]>> | null; // Civ name -> relationship status (string for minor civs) or array of relationship types (array for major civs)
+  OutgoingTradeRoutes: JSONColumnType<Record<string, number | TradeRouteDetails>> | null; // "Not assigned": count or "FromCity => ToCity (Civ)": route details
+  IncomingTradeRoutes: JSONColumnType<Record<string, TradeRouteDetails>> | null; // "FromCity (Civ) => ToCity": route details
+  Spies: JSONColumnType<Record<string, SpyDetails>> | null; // "Rank Name" -> spy details (visibility 2 only)
 
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)
 }
