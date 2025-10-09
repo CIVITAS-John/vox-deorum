@@ -7,7 +7,7 @@
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { getVictoryProgress } from "../../knowledge/getters/victory-progress.js";
-import { readPlayerKnowledge } from "../../utils/knowledge/cached.js";
+import { readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
 import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
 import { VictoryProgress, PlayerSummary } from "../../knowledge/schema/timed.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
@@ -72,9 +72,9 @@ class GetVictoryProgressTool extends ToolBase {
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Get victory progress data (single row with Key = 0) and player summaries for visibility
     const [victoryProgress, playerSummaries, playerInfos] = await Promise.all([
-      readPlayerKnowledge(0, "VictoryProgress", async () => getVictoryProgress()),
+      getVictoryProgress(),
       args.PlayerID !== undefined ? getPlayerSummaries() : Promise.resolve([]),
-      args.PlayerID !== undefined ? getPlayerInformations() : Promise.resolve([])
+      args.PlayerID !== undefined ? readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations) : Promise.resolve([])
     ]);
 
     if (!victoryProgress) {
