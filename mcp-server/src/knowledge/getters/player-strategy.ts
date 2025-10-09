@@ -12,7 +12,7 @@ const logger = createLogger("ReadPlayerStrategies");
 
 // Create a reusable LuaFunction for reading player strategies
 const readPlayerStrategiesFunction = new LuaFunction(
-  "ReadPlayerStrategies",
+  "readPlayerStrategies",
   ["playerId"],
   `
     local player = Players[playerId]

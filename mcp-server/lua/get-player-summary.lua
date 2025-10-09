@@ -332,7 +332,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
 
       -- Get incoming trade routes
       local incomingTradeRoutes = {}
-      local incomingRoutes = player:GetIncomingTradeRoutesYou()
+      local incomingRoutes = player:GetTradeRoutesToYou()
 
       if incomingRoutes then
         for _, route in ipairs(incomingRoutes) do
