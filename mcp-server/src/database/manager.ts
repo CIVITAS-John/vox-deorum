@@ -127,7 +127,7 @@ export class DatabaseManager {
     }
 
     // Pattern to match TXT_KEY_* references, including those within strings
-    const TXT_KEY_PATTERN = /\{(TXT_KEY_[A-Z_]+)\}|(TXT_KEY_[A-Z_]+)/g;
+    const TXT_KEY_PATTERN = /\{(TXT_KEY_[A-Z_0-9]+)\}|(TXT_KEY_[A-Z_0-9]+)/g;
 
     // Recursively collect TXT_KEY_* values
     const collectTxtKeys = (obj: any, keys: Set<string>): void => {

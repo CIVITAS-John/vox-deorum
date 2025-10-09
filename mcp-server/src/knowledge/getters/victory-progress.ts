@@ -7,6 +7,7 @@ import { Selectable } from 'kysely';
 import { LuaFunction } from '../../bridge/lua-function.js';
 import { VictoryProgress } from '../schema/timed.js';
 import { knowledgeManager } from '../../server.js';
+import { stripTags } from '../../utils/database/localized.js';
 
 /**
  * Lua function that extracts victory progress information from the game
@@ -30,6 +31,15 @@ export async function getVictoryProgress(saving: boolean = true): Promise<Partia
 
   const store = knowledgeManager.getStore();
   const victoryData = response.result[0];
+
+  // Strip localization markers from diplomatic victory resolution descriptions
+  if (victoryData.DiplomaticVictory &&
+      victoryData.DiplomaticVictory.ActiveResolutions) {
+    for (const resolutionName in victoryData.DiplomaticVictory.ActiveResolutions) {
+      const resolution = victoryData.DiplomaticVictory.ActiveResolutions[resolutionName];
+      resolution.Description = stripTags(resolution.Description);
+    }
+  }
 
   // Store the victory progress if saving is enabled (always use Key = 0)
   if (saving) {

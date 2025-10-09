@@ -12,5 +12,5 @@ export const CityConvertsReligion = z.object({
   /** The X coordinate of the city on the game map */
   CityX: z.number(),
   /** The Y coordinate of the city on the game map */
-  CitY: z.number()
+  CityY: z.number()
 });

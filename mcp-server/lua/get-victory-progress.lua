@@ -168,8 +168,6 @@ if culturalVictory and Game:IsVictoryValid(culturalVictory.ID) then
 
     if player and player:IsAlive() then
       local influentialCivs = 0
-      local totalPolicies = 0
-      local unlockedPolicies = 0
 
       -- Count how many civs this player is influential over
       for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
@@ -185,16 +183,19 @@ if culturalVictory and Game:IsVictoryValid(culturalVictory.ID) then
         end
       end
 
-      -- Count policy progress
-      for policyInfo in GameInfo.Policies() do
-        totalPolicies = totalPolicies + 1
-        if player:HasPolicy(policyInfo.ID) then
-          unlockedPolicies = unlockedPolicies + 1
-        end
-      end
+      -- Count policy progress (matching CvDiplomacyAI calculation)
+      -- GetNumPolicies(true, true) = skip finishers, exclude free policies
+      local policiesOwned = player:GetNumPolicies(true, true)
+
+      -- Add unlocked branch openers (CvDiplomacyAI includes these)
+      local branchesUnlocked = player:GetNumPolicyBranchesUnlocked()
+      local totalPoliciesOwned = policiesOwned + branchesUnlocked
+
+      -- Cap at 27 policies as per CvDiplomacyAI cultural victory calculation
+      totalPoliciesOwned = math.min(totalPoliciesOwned, 27)
+      local policyPercentage = math.floor((totalPoliciesOwned * 100) / 27)
 
       local influentialPercentage = math.floor((influentialCivs * 100) / civsNeeded)
-      local policyPercentage = totalPolicies > 0 and math.floor((unlockedPolicies * 100) / totalPolicies) or 0
       local playerName = player:GetCivilizationShortDescription()
 
       -- Track who's leading
@@ -241,19 +242,22 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
     local diplomaticData = {
       VotesNeeded = votesNeeded,
       Status = status,
-      ActiveResolutions = {},
-      Contender = nil
+      Contender = nil,
+      ActiveResolutions = {}
     }
 
     -- Extract active resolutions from the league
     for _, resolution in ipairs(league:GetActiveResolutions()) do
       local resolutionEntry = GameInfo.Resolutions[resolution.Type]
-      local resolutionInfo = {
-        Name = league:GetResolutionName(resolution.Type, resolution.ID, resolution.ProposerDecision or -1, false),
-        Description = resolutionEntry and Locale.Lookup(resolutionEntry.Help) or "Unknown resolution",
+      local resolutionName = league:GetResolutionName(resolution.Type, resolution.ID, resolution.ProposerDecision or -1, false)
+
+      -- Get the raw Help text (contains TXT_KEY markers) instead of localized text
+      local description = resolutionEntry and resolutionEntry.Help or "Unknown resolution"
+
+      diplomaticData.ActiveResolutions[resolutionName] = {
+        Description = description,
         EnactedOn = resolution.TurnEnacted or 0
       }
-      table.insert(diplomaticData.ActiveResolutions, resolutionInfo)
     end
 
     local maxDelegates = 0

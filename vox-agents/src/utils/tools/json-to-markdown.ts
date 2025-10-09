@@ -141,14 +141,15 @@ function transformObject(
     } else {
       // Use nested lists when heading level exceeded
       if (typeof value === "object" && value !== null) {
-        results.push(`${parentIndent}- ${key}:`);
-        results.push(transformValue(
+        var transformed = transformValue(
           value,
           depth + 1,
           config,
           parentIndent + config.indentString,
           undefined
-        ));
+        );
+        results.push(`${parentIndent}- ${key}${transformed === "" ? "" : ":"}`);
+        results.push(transformed);
       } else {
         results.push(`${parentIndent}- ${key}: ${formatPrimitive(value, parentIndent + config.indentString)}`);
       }

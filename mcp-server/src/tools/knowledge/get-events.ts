@@ -12,6 +12,7 @@ import { parseVisibility } from "../../utils/knowledge/visibility.js";
 import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
 import { PlayerSummary } from "../../knowledge/schema/timed.js";
 import { Selectable } from "kysely";
+import pluralize from 'pluralize-esm'
 
 /**
  * Input schema for the GetEvents tool
@@ -247,10 +248,134 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
 
   result.forEach(item => {
     if (!item.Events) return;
-    if (item.Events.length === 0) delete item["Events"];
-    if (item.Events.length === 1) {
+    // If no events, remove the Events array
+    else if (item.Events.length === 0) delete item["Events"];
+    // If only one event, merge it into the parent and remove the Events array
+    else if (item.Events.length === 1) {
       Object.assign(item, item.Events[0]);
       delete item["Events"];
+    } else {
+      // Explicitly delete undefined keys from each event
+      item.Events = item.Events.map((event: any) => {
+        for (const key of Object.keys(event)) {
+          if (event[key] === undefined) delete event[key];
+        }
+        return event;
+      });
+      // If multiple, check if all have the same one property. If so, convert into an array of that property
+      const firstKeys = Object.keys(item.Events[0]);
+      if (firstKeys.length === 1 && item.Events.every((e: any) => Object.keys(e).length === 1 && Object.keys(e)[0] === firstKeys[0])) {
+        const key = firstKeys[0];
+        var properties = item.Events.map((event: any) => event[key]);
+        if (item.Type === "UnitSetXY" && key === "Plot") {
+          // If the unit is a caravan, only keep the last plot
+          if (item.AI == "TradeUnit") {
+            properties = [properties[properties.length - 1]];
+          // If we have way too many events (that can break the context window), only keep the last plot
+          } else if (events.length > 100) {
+            properties = [properties[properties.length - 1]];
+          } else if (properties.length > 2) {
+            // For plots, ignore looping movements (a => b => c... => a => d) should become (a => d)
+            // AI really loves doing that each turn
+            const seen = new Map<string, number>(); // plotKey -> last index
+            const filtered: any[] = [];
+
+            for (let i = 0; i < properties.length; i++) {
+              const plot = properties[i];
+              const plotKey = `${plot.X},${plot.Y}`;
+
+              // If we've seen this plot before, remove everything from that index to current
+              if (seen.has(plotKey)) {
+                const prevIndex = seen.get(plotKey)!;
+                // Remove all plots from prevIndex to current (the loop)
+                filtered.splice(prevIndex);
+                // Clear seen entries for removed plots
+                seen.clear();
+                for (let j = 0; j < filtered.length; j++) {
+                  seen.set(`${filtered[j].X},${filtered[j].Y}`, j);
+                }
+              }
+
+              // Add current plot
+              seen.set(plotKey, filtered.length);
+              filtered.push(plot);
+            }
+            properties = filtered;
+          }
+        }
+        delete item["Events"];
+        if (properties.length === 1) {
+          Object.assign(item, properties[0]);
+        } else if (key === "Plot") {
+          item[pluralize(key)] = Object.fromEntries(
+            properties.map((p: any) => {
+              const { X, Y, Plot, Terrain, ...rest } = p;
+              if (Plot === "Ocean") {
+                return [`${Terrain} ${X},${Y}`, rest];
+              } else {
+                return [`${Terrain} ${Plot} ${X},${Y}`, rest];
+              }
+            })
+          );
+        } else {
+          item[pluralize(key)] = properties;
+        }
+      }
+    }
+  });
+
+  // Special postprocesses
+  result.forEach(item => {
+    if (item.Plot) {
+      const { X, Y, Plot, Terrain, ...rest } = item.Plot;
+      if (Plot === "Ocean") {
+        item[`${Terrain} ${X},${Y}`] = rest;
+      } else {
+        item[`${Terrain} ${Plot} ${X},${Y}`] = rest;
+      }
+      delete item["Plot"];
+    }
+    if (item.Type === "CombatResult") {
+      // Consolidate combat properties under Attacker/Defender/Interceptor objects
+      const attacker: Record<string, any> = {};
+      const defender: Record<string, any> = {};
+      const interceptor: Record<string, any> = {};
+
+      // Move properties to appropriate objects
+      for (const key of Object.keys(item)) {
+        if (key.startsWith("Attacker")) {
+          const newKey = key.replace("Attacker", "");
+          attacker[newKey] = item[key];
+          delete item[key];
+        } else if (key.startsWith("Attacking")) {
+          const newKey = key.replace("Attacking", "");
+          interceptor[newKey] = item[key];
+          delete item[key];
+        } else if (key.startsWith("Defender")) {
+          const newKey = key.replace("Defender", "");
+          defender[newKey] = item[key];
+          delete item[key];
+        } else if (key.startsWith("Defending")) {
+          const newKey = key.replace("Defending", "");
+          defender[newKey] = item[key];
+          delete item[key];
+        } else if (key.startsWith("Interceptor")) {
+          const newKey = key.replace("Interceptor", "");
+          interceptor[newKey] = item[key];
+          delete item[key];
+        } else if (key.startsWith("Intercepting")) {
+          const newKey = key.replace("Intercepting", "");
+          interceptor[newKey] = item[key];
+          delete item[key];
+        }
+      }
+
+      // Add consolidated objects (skip interceptor if damage is 0)
+      if (Object.keys(attacker).length > 0) item.Attacker = attacker;
+      if (Object.keys(defender).length > 0) item.Defender = defender;
+      if (Object.keys(interceptor).length > 0 && interceptor.Damage !== 0) {
+        item.Interceptor = interceptor;
+      }
     }
   });
   

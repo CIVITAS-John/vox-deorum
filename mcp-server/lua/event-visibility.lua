@@ -149,12 +149,15 @@ local function addPlotVisibility(plotX, plotY, value, key)
     if owner ~= nil then
       metadata["Owner"] = getPlayerCivName(owner)
       -- City
-      local city = owner:GetCityByID(plot:GetPlotCity())
+      local city = plot:GetPlotCity()
       if city ~= nil then
         metadata["City"] = city:GetName()
-        metadata["CityID"] = city:GetID()
-        metadata["Population"] = city:GetPopulation()
-        metadata["ReligionID"] = city:GetReligiousMajority()
+        -- Only include CityID and Population if this is the city seat
+        if city:GetX() == plotX and city:GetY() == plotY then
+          metadata["CityID"] = city:GetID()
+          metadata["Population"] = city:GetPopulation()
+          metadata["ReligionID"] = city:GetReligiousMajority()
+        end
       end
     end
 
@@ -163,7 +166,7 @@ local function addPlotVisibility(plotX, plotY, value, key)
     metadata["IsRiver"] = plot:IsRiver()
     metadata["ResourceType"] = plot:GetResourceType(-1)
     metadata["RouteType"] = plot:GetRouteType()
-    metadata["FeatureType"] = plot:GetFeatureType()
+    metadata["TerrainType"] = plot:GetTerrainType()
     metadata["FeatureType"] = plot:GetFeatureType()
     metadata["ImprovementType"] = plot:GetImprovementType()
 
@@ -200,7 +203,7 @@ local function addUnit(unitID, value, key)
     metadata["UnitType"] = unit:GetUnitType()
     metadata["AIType"] = unit:GetUnitAIType()
     if unit:GetMaxHitPoints() ~= unit:GetCurrHitPoints() then
-      metadata["Health"] = math.floor(unit:GetCurrHitPoints() / unit:GetMaxHitPoints() * 100) / 100
+      metadata["Health"] = math.floor(unit:GetCurrHitPoints() / unit:GetMaxHitPoints() * 100) .. "%"
     end
     metadata["Level"] = unit:GetLevel()
     addPayload(key, metadata)
@@ -236,7 +239,7 @@ local function addCity(cityID, value, key)
     metadata["Name"] = city:GetName()
     metadata["Population"] = city:GetPopulation()
     if city:GetDamage() ~= 0 then
-      metadata["Health"] = 1 - math.ceil(city:GetDamage() / city:GetMaxHitPoints() * 100) / 100
+      metadata["Health"] = 1 - math.ceil(city:GetDamage() / city:GetMaxHitPoints() * 100) .. "%"
     end
     addPayload(key, metadata)
   end
