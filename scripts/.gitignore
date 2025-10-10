@@ -1,0 +1,12 @@
+# DLL cache directory
+.dll-cache/
+
+# Downloaded DLL files (fetched from GitHub releases)
+debug/CvGameCore_Expansion2.dll
+debug/CvGameCore_Expansion2.pdb
+release/CvGameCore_Expansion2.dll
+release/CvGameCore_Expansion2.pdb
+
+# Keep the directories but not the DLLs
+!debug/.gitkeep
+!release/.gitkeep
