@@ -6,12 +6,13 @@ setlocal EnableDelayedExpansion
 
 title Vox Deorum Quick Start
 
-:: Parse command line arguments
-set "BRANCH=release"
-if not "%~1"=="" set "BRANCH=%~1"
+:: Parse command line arguments - use tag from release.txt
+set "TAG="
+if not "%~1"=="" set "TAG=%~1"
 
 :: Configuration
 set "REPO_URL=https://github.com/CIVITAS-John/vox-deorum.git"
+set "RELEASE_FILE_URL=https://raw.githubusercontent.com/CIVITAS-John/vox-deorum/main/release.txt"
 :: Install in a vox-deorum subfolder next to this script
 set "SCRIPT_DIR=%~dp0"
 set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
@@ -21,17 +22,27 @@ set "GIT_VERSION=2.51.0"
 
 :: Color codes removed - not reliably supported
 
+:: Fetch release tag if not provided
+if "%TAG%"=="" (
+    echo Fetching latest release tag from GitHub...
+    for /f "delims=" %%i in ('powershell -Command "& { try { (Invoke-WebRequest -Uri '%RELEASE_FILE_URL%' -UseBasicParsing).Content.Trim() } catch { exit 1 } }"') do set "TAG=%%i"
+    if "%TAG%"=="" (
+        echo [WARN] Could not fetch release tag, defaulting to v0.1.4
+        set "TAG=v0.1.4"
+    )
+)
+
 :: Banner
 echo.
 echo ============================================
 echo       Vox Deorum Quick Start Script
 echo ============================================
 echo.
-echo Branch: %BRANCH%
+echo Release Tag: %TAG%
 echo.
 echo This script will:
 echo   1. Install Git for Windows (if needed)
-echo   2. Clone the Vox Deorum repository (branch: %BRANCH%)
+echo   2. Clone the Vox Deorum repository (tag: %TAG%)
 echo   3. Initialize submodules
 echo   4. Run the installation script
 echo.
@@ -136,14 +147,14 @@ if exist "%INSTALL_DIR%" (
 
         :: Simple force update - user configs are not tracked by git
         echo   Fetching latest changes...
-        git fetch --depth 1 --force origin %BRANCH%
+        git fetch --depth 1 --force origin tag %TAG%
 
-        echo   Updating to latest version...
-        git reset --hard origin/%BRANCH%
+        echo   Updating to tag %TAG%...
+        git reset --hard %TAG%
         if %errorlevel% neq 0 (
             echo   [WARN] Shallow update failed. Trying full fetch...
             git fetch --unshallow 2>nul
-            git reset --hard origin/%BRANCH%
+            git reset --hard %TAG%
             if %errorlevel% neq 0 (
                 echo   [WARN] Update failed. Continuing with existing version...
             )
@@ -161,10 +172,10 @@ if exist "%INSTALL_DIR%" (
 
 :: Clone the repository (shallow clone for faster download)
 echo   Cloning from: %REPO_URL%
-echo   Branch: %BRANCH%
+echo   Tag: %TAG%
 echo   Destination: %INSTALL_DIR%
 echo   Using shallow clone for faster download...
-git clone --depth 1 --branch "%BRANCH%" "%REPO_URL%" "%INSTALL_DIR%"
+git clone --depth 1 --branch "%TAG%" "%REPO_URL%" "%INSTALL_DIR%"
 
 if %errorlevel% neq 0 (
     echo   [FAIL] Failed to clone repository.
