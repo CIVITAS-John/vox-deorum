@@ -25,11 +25,18 @@ set "GIT_VERSION=2.51.0"
 :: Fetch release tag if not provided
 if "%TAG%"=="" (
     echo Fetching latest release tag from GitHub...
-    for /f "delims=" %%i in ('powershell -Command "& { try { (Invoke-WebRequest -Uri '%RELEASE_FILE_URL%' -UseBasicParsing).Content.Trim() } catch { exit 1 } }"') do set "TAG=%%i"
-    if "%TAG%"=="" (
-        echo [WARN] Could not fetch release tag, defaulting to v0.1.4
-        set "TAG=v0.1.4"
+    :: Direct curl approach - most reliable
+    curl -s https://raw.githubusercontent.com/CIVITAS-John/vox-deorum/main/release.txt > "%TEMP%\vox_tag.txt" 2>nul
+    if exist "%TEMP%\vox_tag.txt" (
+        set /p TAG=<"%TEMP%\vox_tag.txt"
+        del "%TEMP%\vox_tag.txt" >nul 2>&1
     )
+    if "!TAG!"=="" (
+        echo [WARN] Could not fetch release tag, defaulting to v0.1.4
+    )
+)
+if not "!TAG!"=="" (
+    echo [OK] Using release tag: !TAG!
 )
 
 :: Banner
