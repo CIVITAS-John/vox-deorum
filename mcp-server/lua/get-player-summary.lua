@@ -476,13 +476,6 @@ Game.RegisterFunction("${Name}", function(${Arguments})
           -- Check if major is the ally
           elseif player:IsAllies(majorID) then
             status = "Ally"
-          -- Check if someone else is the ally (sphere of influence)
-          elseif allyID ~= -1 and allyID ~= majorID then
-            if player:IsProtectedByMajor(allyID) then
-              status = "Sphere of Influence (Protected)"
-            else
-              status = "Sphere of Influence"
-            end
           -- Check if major is friends
           elseif player:IsFriends(majorID) then
             status = "Friends"
