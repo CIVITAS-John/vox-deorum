@@ -24,7 +24,8 @@ export function toolRescueMiddleware(): LanguageModelMiddleware {
   // Define common field name patterns to check
   const fieldPatterns = [
     { nameField: 'name', parametersField: 'parameters' },
-    { nameField: 'toolName', parametersField: 'input' }
+    { nameField: 'toolName', parametersField: 'input' },
+    { nameField: 'tool', parametersField: 'arguments' }
   ];
 
   return {
