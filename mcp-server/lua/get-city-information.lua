@@ -89,6 +89,7 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
         HitPoints = city:GetMaxHitPoints() - city:GetDamage(),  -- Calculate current HP
         MaxHitPoints = city:GetMaxHitPoints(),
         -- Basic status flags visible at level 1
+        IsCapital = city:IsCapital() and 1 or 0,
         IsPuppet = city:IsPuppet() and 1 or 0,
         IsOccupied = city:IsOccupied() and 1 or 0,
         IsCoastal = city:IsCoastal(10) and 1 or 0  -- Near a water body of 10+ tiles

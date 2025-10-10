@@ -39,9 +39,9 @@ if dominationVictory and Game:IsVictoryValid(dominationVictory.ID) then
     local player = Players[playerID]
 
     if player and player:IsAlive() then
-      local capitalsControlled = 0
+      local capitalsControlled = {}
 
-      -- Count how many original capitals this player controls
+      -- Collect all original capitals this player controls
       for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
         local otherPlayer = Players[otherPlayerID]
         if otherPlayer and otherPlayer:IsEverAlive() then
@@ -49,20 +49,20 @@ if dominationVictory and Game:IsVictoryValid(dominationVictory.ID) then
           if capitalPlot then
             local capital = capitalPlot:GetPlotCity()
             if capital and capital:GetOwnerForDominationVictory() == playerID then
-              capitalsControlled = capitalsControlled + 1
+              table.insert(capitalsControlled, capital:GetName())
             end
           end
         end
       end
 
       -- Only include players who control at least one capital
-      if capitalsControlled > 1 then
-        local capitalsPercentage = math.floor((capitalsControlled * 100) / totalCapitals)
+      if #capitalsControlled > 1 then
+        local capitalsPercentage = math.floor((#capitalsControlled * 100) / totalCapitals)
         local playerName = player:GetCivilizationShortDescription()
 
         -- Track who's leading
-        if capitalsControlled > maxCapitals then
-          maxCapitals = capitalsControlled
+        if #capitalsControlled > maxCapitals then
+          maxCapitals = #capitalsControlled
           dominationData.Contender = playerName
         end
 

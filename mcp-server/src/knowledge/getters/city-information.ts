@@ -72,6 +72,7 @@ export function getCityBasicInfo(city: CityInformation | Selectable<CityInformat
     DefenseStrength: city.DefenseStrength,
     HitPoints: city.HitPoints,
     MaxHitPoints: city.MaxHitPoints,
+    IsCapital: city.IsCapital,
     IsCoastal: city.IsCoastal,
     IsPuppet: city.IsPuppet,
     IsOccupied: city.IsOccupied,

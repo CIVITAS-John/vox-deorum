@@ -174,6 +174,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('DefenseStrength', 'integer', (col) => col.notNull())
     .addColumn('HitPoints', 'integer', (col) => col.notNull())
     .addColumn('MaxHitPoints', 'integer', (col) => col.notNull())
+    .addColumn('IsCapital', 'integer', (col) => col.notNull())
     .addColumn('IsPuppet', 'integer', (col) => col.notNull())
     .addColumn('IsOccupied', 'integer', (col) => col.notNull())
     .addColumn('IsCoastal', 'integer', (col) => col.notNull())

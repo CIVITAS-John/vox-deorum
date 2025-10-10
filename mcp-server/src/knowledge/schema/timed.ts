@@ -178,6 +178,7 @@ export interface CityInformationBasic {
   DefenseStrength: number; // Defense strength value
   HitPoints: number; // Current hit points (MaxHP - Damage)
   MaxHitPoints: number; // Maximum hit points
+  IsCapital: number; // Is capital city (0/1)
   IsPuppet: number; // Is puppet city (0/1)
   IsOccupied: number; // Is occupied (0/1)
   IsCoastal: number; // Is coastal city (0/1)

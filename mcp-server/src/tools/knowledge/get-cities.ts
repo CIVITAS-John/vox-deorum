@@ -31,6 +31,7 @@ const CityDataSchema = z.object({
   MajorityReligion: z.string().nullable().describe("Majority religion"),
   DefenseStrength: z.number().describe("Defense strength"),
   Health: z.string().optional().describe("Remaining hit point %"),
+  IsCapital: z.boolean().optional().describe("Is capital city"),
   IsPuppet: z.boolean().optional().describe("Is puppet city"),
   IsOccupied: z.boolean().optional().describe("Is occupied"),
   IsCoastal: z.boolean().optional().describe("Is coastal city"),
