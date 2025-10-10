@@ -142,7 +142,9 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
       cityData.CurrentProduction = getProductionName(city)
       cityData.ProductionTurnsLeft = city:GetProductionTurnsLeft()
       if cityData.ProductionTurnsLeft == 2147483647 then
-        cityData.CurrentProduction = "Infinite Project: " .. cityData.CurrentProduction
+        if cityData.CurrentProduction ~= nil then
+          cityData.CurrentProduction = "Infinite Project: " .. cityData.CurrentProduction
+        end
         cityData.ProductionStored = -1  -- Indicate no storage
         cityData.ProductionTurnsLeft = -1  -- Indicate indefinite production time
       end
