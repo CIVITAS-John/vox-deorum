@@ -62,7 +62,6 @@ jobs:
           cat > scripts/dll-release-info.txt << EOF
           RELEASE_TAG=${{ steps.release.outputs.tag }}
           COMMIT=${{ steps.submodule.outputs.commit }}
-          UPDATED=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
           REPO=CIVITAS-John/vox-populi
           EOF
 
