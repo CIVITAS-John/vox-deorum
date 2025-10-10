@@ -5,6 +5,7 @@
 import { ModelMessage } from "ai";
 import { AgentParameters, VoxAgent } from "../infra/vox-agent.js";
 import { VoxContext } from "../infra/vox-context.js";
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Parameters for the strategist agent
@@ -32,8 +33,15 @@ export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistPara
       context.callTool("get-victory-progress", { }, parameters),
       context.callTool("get-military-report", { }, parameters),
     ]);
-    if (players === undefined || events === undefined || cities === undefined || military === undefined)
-      throw Error("Cannot fetch necessary data for decision-making. Aborting.")
+
+    // Validate all results are defined and not errors
+    if (this.isErrorResult(players)) throw new Error(`Failed to fetch players: ${this.extractErrorText(players)}`);
+    if (this.isErrorResult(events)) throw new Error(`Failed to fetch events: ${this.extractErrorText(events)}`);
+    if (this.isErrorResult(cities)) throw new Error(`Failed to fetch cities: ${this.extractErrorText(cities)}`);
+    if (this.isErrorResult(options)) throw new Error(`Failed to fetch options: ${this.extractErrorText(options)}`);
+    if (this.isErrorResult(victory)) throw new Error(`Failed to fetch victory: ${this.extractErrorText(victory)}`);
+    if (this.isErrorResult(military)) throw new Error(`Failed to fetch military: ${this.extractErrorText(military)}`);
+
     parameters.store!.players = players;
     parameters.store!.events = events;
     parameters.store!.cities = cities;
@@ -41,5 +49,25 @@ export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistPara
     parameters.store!.military = military;
     parameters.store!.victory = victory;
     return [];
+  }
+
+  /**
+   * Check if a CallToolResult contains an error
+   */
+  private isErrorResult(result: CallToolResult | undefined): boolean {
+    return result === undefined || result.isError === true;
+  }
+
+  /**
+   * Extract error text from a CallToolResult
+   */
+  private extractErrorText(result: CallToolResult): string {
+    if (result.content && result.content.length > 0) {
+      const textContent = result.content.find(c => c.type === 'text');
+      if (textContent && 'text' in textContent) {
+        return textContent.text;
+      }
+    }
+    return 'Unknown error';
   }
 }

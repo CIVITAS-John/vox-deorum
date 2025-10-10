@@ -191,8 +191,8 @@ class GetOptionsTool extends ToolBase {
             cleanOptions.Technologies.map(techName => {
               const tech = technologies.find(s => s.Name === techName)!;
               let help = tech?.Help ?? "";
-              if ((tech.TechsUnlocked?.length ?? 0) > 0)
-                help += `\nLeading to: ${tech.TechsUnlocked?.join(", ")}`;
+              if ((tech?.TechsUnlocked?.length ?? 0) > 0)
+                help += `\nLeading to: ${tech?.TechsUnlocked?.join(", ")}`;
               return [
                 techName,
                 help.trim()
