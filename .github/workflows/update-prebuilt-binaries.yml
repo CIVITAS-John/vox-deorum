@@ -21,57 +21,64 @@ jobs:
           echo "commit=$SUBMODULE_COMMIT" >> $GITHUB_OUTPUT
           echo "Submodule commit: $SUBMODULE_COMMIT"
 
-      - name: Download Debug artifact
-        uses: dawidd6/action-download-artifact@v3
-        with:
-          repo: CIVITAS-John/vox-populi
-          workflow: build_vp.yml
-          workflow_conclusion: success
-          commit: ${{ steps.submodule.outputs.commit }}
-          name: VP_MSVC_Debug
-          path: ./debug-artifact
-
-      - name: Download Release artifact
-        uses: dawidd6/action-download-artifact@v3
-        with:
-          repo: CIVITAS-John/vox-populi
-          workflow: build_vp.yml
-          workflow_conclusion: success
-          commit: ${{ steps.submodule.outputs.commit }}
-          name: VP_MSVC_Release
-          path: ./release-artifact
-
-      - name: Update prebuilt binaries
+      - name: Find latest release tag for commit
+        id: release
         run: |
-          # Update debug binaries (only .dll and .pdb files)
-          if [ -d "./debug-artifact" ]; then
-            echo "Updating debug binaries..."
-            find ./debug-artifact -name "*.dll" -o -name "*.pdb" | while read file; do
-              cp "$file" scripts/debug/
-            done
+          # Get all tags that contain this commit from the submodule repository
+          RELEASE_TAG=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/CIVITAS-John/vox-populi/releases \
+            --jq '.[] | select(.target_commitish == "${{ steps.submodule.outputs.commit }}" or .name | contains("${{ steps.submodule.outputs.commit }}")) | .tag_name' \
+            | head -n 1)
+
+          if [ -z "$RELEASE_TAG" ]; then
+            echo "No release found for commit ${{ steps.submodule.outputs.commit }}"
+            echo "Searching for releases containing commit SHA in body..."
+            RELEASE_TAG=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/CIVITAS-John/vox-populi/releases \
+              --jq '.[] | select(.body | contains("${{ steps.submodule.outputs.commit }}")) | .tag_name' \
+              | head -n 1)
           fi
 
-          # Update release binaries (only .dll and .pdb files)
-          if [ -d "./release-artifact" ]; then
-            echo "Updating release binaries..."
-            find ./release-artifact -name "*.dll" -o -name "*.pdb" | while read file; do
-              cp "$file" scripts/release/
-            done
+          if [ -z "$RELEASE_TAG" ]; then
+            echo "Error: No release found for commit ${{ steps.submodule.outputs.commit }}"
+            exit 1
           fi
 
-          # Clean up artifact folders
-          rm -rf ./debug-artifact ./release-artifact
+          echo "tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "Found release tag: $RELEASE_TAG"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Update release info
+        run: |
+          # Create scripts directory if it doesn't exist
+          mkdir -p scripts
+
+          # Write release info to file
+          cat > scripts/dll-release-info.txt << EOF
+          RELEASE_TAG=${{ steps.release.outputs.tag }}
+          COMMIT=${{ steps.submodule.outputs.commit }}
+          UPDATED=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          REPO=CIVITAS-John/vox-populi
+          EOF
+
+          echo "Release info written to scripts/dll-release-info.txt:"
+          cat scripts/dll-release-info.txt
 
       - name: Check for changes
         id: changes
         run: |
-          git add scripts/debug scripts/release
+          git add scripts/dll-release-info.txt
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No changes detected"
           else
             echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in binaries"
+            echo "Changes detected in release info"
           fi
 
       - name: Commit and push changes
@@ -79,5 +86,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "Update prebuilt binaries from civ5-dll ${{ steps.submodule.outputs.commit }}"
+          git commit -m "Update DLL release info to ${{ steps.release.outputs.tag }} (commit ${{ steps.submodule.outputs.commit }})"
           git push

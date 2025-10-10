@@ -44,8 +44,22 @@ echo.
 :: Create temp directory
 if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 
-:: Check for pre-built files
-echo [1/9] Checking for pre-built files...
+:: Download pre-built DLL if needed
+echo [1/9] Downloading pre-built DLL...
+if "%DEBUG_MODE%"=="1" (
+    call "%SCRIPT_DIR%\download-dll.cmd" --debug
+) else (
+    call "%SCRIPT_DIR%\download-dll.cmd"
+)
+if !errorlevel! neq 0 (
+    echo Error: Failed to download pre-built DLL
+    echo.
+    echo Please check your internet connection or the release info file.
+    pause
+    exit /b 1
+)
+
+:: Verify pre-built files exist
 if not exist "%PREBUILT_DLL%" (
     echo Error: Pre-built DLL not found at:
     echo   !PREBUILT_DLL!
@@ -54,7 +68,7 @@ if not exist "%PREBUILT_DLL%" (
     pause
     exit /b 1
 )
-echo   [OK] Pre-built DLL found
+echo   [OK] Pre-built DLL ready
 
 :: Check for Lua DLL
 if not exist "%LUA_DLL%" (
