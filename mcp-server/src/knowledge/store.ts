@@ -38,6 +38,7 @@ const renamedEventTypes: Record<string, string> = {
   "PlayerBuilding": "UnitBuildCompleted",
   "UnitSetXY": "UnitMoved",
   "EspionageNotificationData": "EspionageResult",
+  "CityExtendsWLTKD": "CityExtendsWeLoveKingDay"
 }
 
 /**

@@ -152,12 +152,9 @@ local function addPlotVisibility(plotX, plotY, value, key)
       local city = plot:GetPlotCity()
       if city ~= nil then
         metadata["City"] = city:GetName()
-        -- Only include CityID and Population if this is the city seat
-        if city:GetX() == plotX and city:GetY() == plotY then
-          metadata["CityID"] = city:GetID()
-          metadata["Population"] = city:GetPopulation()
-          metadata["ReligionID"] = city:GetReligiousMajority()
-        end
+        metadata["CityID"] = city:GetID()
+        metadata["Population"] = city:GetPopulation()
+        metadata["ReligionID"] = city:GetReligiousMajority()
       end
     end
 
