@@ -15,7 +15,7 @@ import {
 import { setupKnowledgeDatabase } from './schema/setup.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { gameDatabase, knowledgeManager } from '../server.js';
+import { bridgeManager, gameDatabase, knowledgeManager } from '../server.js';
 import { EventName, eventSchemas } from './schema/events/index.js';
 import { applyVisibility } from '../utils/knowledge/visibility.js';
 import { explainEnums } from '../utils/knowledge/enum.js';
@@ -28,6 +28,7 @@ import { getPlayerPersona } from './getters/player-persona.js';
 import { getPlayerOpinions } from './getters/player-opinions.js';
 import { getPlayerSummaries } from './getters/player-summary.js';
 import { getCityInformations } from './getters/city-information.js';
+import { setTimeout } from 'node:timers/promises';
 import PQueue from 'p-queue';
 
 const logger = createLogger('KnowledgeStore');
@@ -249,7 +250,24 @@ export class KnowledgeStore {
             await this.setMetadata("victoryPlayerID", data.PlayerID);
             await this.setMetadata("victoryType", data.VictoryType);
             await this.saveKnowledge();
-            archiveGameData();
+
+            // Save replay before archiving
+            logger.info('Victory detected - saving replay and archiving game data');
+            try {
+              const replayResponse = await bridgeManager.executeLuaScript('Game.SaveReplay()');
+              if (replayResponse.success) {
+                logger.info('Replay saved successfully');
+              } else {
+                logger.warn('Failed to save replay:', replayResponse.error);
+              }
+
+              // Wait a moment for the replay file to be written
+              await setTimeout(1000);
+            } catch (error) {
+              logger.error('Error during victory archiving:', error);
+            }
+            // Archive anyway even if replay fails
+            await archiveGameData();
           }
           // Track active player on turn events
           if (type === "PlayerDoTurn") {

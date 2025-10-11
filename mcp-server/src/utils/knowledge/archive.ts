@@ -20,31 +20,32 @@ interface SaveFileInfo {
 }
 
 /**
- * Find the latest save file for Civilization V
+ * Generic function to find the latest file with a specific extension in a directory
  */
-export async function findLatestSaveFile(): Promise<SaveFileInfo | null> {
+async function findLatestFile(
+  directoryPath: string,
+  extension: string,
+  fileType: string
+): Promise<SaveFileInfo | null> {
   try {
-    const documentsPath = await getDocumentsPath();
-    const savesPath = path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5', 'ModdedSaves', 'single', 'auto');
-
-    // Check if saves directory exists
+    // Check if directory exists
     try {
-      await fs.access(savesPath);
+      await fs.access(directoryPath);
     } catch (error) {
-      logger.warn(`Saves directory does not exist: ${savesPath}`);
+      logger.warn(`${fileType} directory does not exist: ${directoryPath}`);
       return null;
     }
 
-    // Read all files in the saves directory
-    const files = await fs.readdir(savesPath);
+    // Read all files in the directory
+    const files = await fs.readdir(directoryPath);
 
-    // Filter for .Civ5Save files and get their stats
-    const saveFiles: SaveFileInfo[] = [];
+    // Filter for files with the specified extension and get their stats
+    const matchingFiles: SaveFileInfo[] = [];
     for (const file of files) {
-      if (file.endsWith('.Civ5Save')) {
-        const filePath = path.join(savesPath, file);
+      if (file.endsWith(extension)) {
+        const filePath = path.join(directoryPath, file);
         const stats = await fs.stat(filePath);
-        saveFiles.push({
+        matchingFiles.push({
           path: filePath,
           name: file,
           modifiedTime: stats.mtime
@@ -53,27 +54,45 @@ export async function findLatestSaveFile(): Promise<SaveFileInfo | null> {
     }
 
     // Sort by modified time (newest first) and return the latest
-    saveFiles.sort((a, b) => b.modifiedTime.getTime() - a.modifiedTime.getTime());
+    matchingFiles.sort((a, b) => b.modifiedTime.getTime() - a.modifiedTime.getTime());
 
-    if (saveFiles.length > 0) {
-      logger.info(`Found latest save file: ${saveFiles[0].name}`);
-      return saveFiles[0];
+    if (matchingFiles.length > 0) {
+      logger.info(`Found latest ${fileType} file: ${matchingFiles[0].name}`);
+      return matchingFiles[0];
     }
 
-    logger.warn('No save files found');
+    logger.warn(`No ${fileType} files found`);
     return null;
   } catch (error) {
-    logger.error('Error finding latest save file:', error);
+    logger.error(`Error finding latest ${fileType} file:`, error);
     return null;
   }
 }
 
 /**
- * Archive the latest game save and database to a strategist-specific folder
+ * Find the latest replay file for Civilization V
+ */
+export async function findLatestReplayFile(): Promise<SaveFileInfo | null> {
+  const documentsPath = await getDocumentsPath();
+  const replaysPath = path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5', 'Replays');
+  return findLatestFile(replaysPath, '.Civ5Replay', 'replay');
+}
+
+/**
+ * Find the latest save file for Civilization V
+ */
+export async function findLatestSaveFile(): Promise<SaveFileInfo | null> {
+  const documentsPath = await getDocumentsPath();
+  const savesPath = path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5', 'ModdedSaves', 'single', 'auto');
+  return findLatestFile(savesPath, '.Civ5Save', 'save');
+}
+
+/**
+ * Archive the latest game save, replay, and database to a strategist-specific folder
  */
 export async function archiveGameData(
   experimentOverride?: string
-): Promise<{ savePath: string, dbPath: string } | null> {
+): Promise<{ savePath: string, dbPath: string, replayPath?: string } | null> {
   try {
     // Get the strategist name from metadata or use override/default
     const store = knowledgeManager.getStore();
@@ -118,10 +137,28 @@ export async function archiveGameData(
       // Continue even if database doesn't exist
     }
 
+    // Copy the replay file if it exists
+    let replayDest: string | undefined;
+    const latestReplay = await findLatestReplayFile();
+    if (latestReplay) {
+      const replayFileName = `${gameId}_${Date.now()}.Civ5Replay`;
+      replayDest = path.join(archivePath, replayFileName);
+      try {
+        await fs.copyFile(latestReplay.path, replayDest);
+        logger.info(`Archived replay file: ${replayFileName}`);
+      } catch (error) {
+        logger.warn(`Replay file could not be copied: ${latestReplay.path}`, error);
+        replayDest = undefined;
+      }
+    } else {
+      logger.warn('No replay file found to archive');
+    }
+
     logger.info(`Successfully archived game data for experiment: ${experiment}`);
     return {
       savePath: saveDest,
-      dbPath: dbDest
+      dbPath: dbDest,
+      replayPath: replayDest
     };
   } catch (error) {
     logger.error('Error archiving game data:', error);
