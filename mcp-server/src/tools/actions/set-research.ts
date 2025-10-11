@@ -8,6 +8,7 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
+import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
 /**
  * Tool that sets a player's next research technology using a Lua function
@@ -28,9 +29,7 @@ class SetResearchTool extends LuaFunctionTool {
   /**
    * Result schema - returns the previous technology selection
    */
-  protected resultSchema = z.object({
-    Previous: z.string().optional().describe("The previously forced technology selection, if any")
-  }).optional();
+  protected resultSchema = z.undefined();
 
   /**
    * The Lua function arguments
@@ -102,8 +101,18 @@ class SetResearchTool extends LuaFunctionTool {
           Rationale: Rationale
         }
       );
+
+      // Send replay message if the technology actually changed
+      const previousTech = result.Result?.Previous;
+      if (Technology !== previousTech) {
+        const beforeDesc = previousTech || "None";
+        const afterDesc = Technology;
+        const message = `Changed next research: ${beforeDesc} → ${afterDesc}. Rationale: ${Rationale}`;
+        await addReplayMessages(PlayerID, message);
+      }
     }
 
+    delete result.Result;
     return result;
   }
 }

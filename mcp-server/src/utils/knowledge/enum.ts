@@ -125,7 +125,7 @@ export function retrieveEnumName(type: string, value?: number | null): string | 
  * @returns Object with strategy names as strings
  */
 export function convertStrategyToNames(strategies: {
-  GrandStrategy?: number | null;
+  GrandStrategy?: number;
   EconomicStrategies?: number[];
   MilitaryStrategies?: number[];
 }): {
@@ -135,7 +135,7 @@ export function convertStrategyToNames(strategies: {
 } {
   const result: any = {};
 
-  if (strategies.GrandStrategy !== undefined && strategies.GrandStrategy !== null) {
+  if (strategies.GrandStrategy !== undefined) {
     result.GrandStrategy = retrieveEnumName("GrandStrategy", strategies.GrandStrategy);
   }
 

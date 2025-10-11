@@ -70,6 +70,16 @@ export class DatabaseManager {
       });
       logger.info('Connected to main database');
 
+      // Sanity check: Wait for GreatPersons table to exist
+      const hadToWait = await this.waitForTable('GreatPersons');
+
+      // Wait an additional 10 seconds for full database setup only if table was initially missing
+      if (hadToWait) {
+        logger.info('Waiting 10 seconds for database to fully initialize...');
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        logger.info('Database initialization wait complete');
+      }
+
       // Create Kysely instance for localization database
       this.localizationDb = new Kysely<LocalizationDB>({
         dialect: new SqliteDialect({
@@ -279,6 +289,35 @@ export class DatabaseManager {
    */
   public isInitialized(): boolean {
     return this.initialized;
+  }
+
+  /**
+   * Wait for a table to exist in the database, polling every 10 seconds
+   * @returns true if had to wait for the table, false if table existed immediately
+   */
+  private async waitForTable(tableName: string): Promise<boolean> {
+    if (!this.mainDb) {
+      throw new Error('Database not initialized');
+    }
+
+    let hadToWait = false;
+
+    while (true) {
+      try {
+        // Try to query the table - if it exists, this will succeed
+        await this.mainDb
+          .selectFrom(tableName as any)
+          .select('ID')
+          .limit(1)
+          .execute();
+
+        return hadToWait;
+      } catch (error) {
+        hadToWait = true;
+        logger.warn(`Table ${tableName} not found yet, waiting 10 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 10000));
+      }
+    }
   }
 
   /**

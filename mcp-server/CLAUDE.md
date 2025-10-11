@@ -115,6 +115,23 @@ import { gameDatabase } from "../../server.js";
 ```
 - Follow strict TypeScript configuration for type safety
 
+### Logging
+- **Always use the project's logger** instead of console.log/console.error
+- Import and create a logger with context:
+```typescript
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('ComponentName');
+
+// Usage:
+logger.debug('Detailed debugging info');
+logger.info('General information');
+logger.warn('Warning messages');
+logger.error('Error messages', { error: errorObject });
+```
+- Logger automatically handles formatting, colors, and file output
+- Use structured logging with metadata objects for errors
+
 ### Code Structure
 - Source code in `src/` directory
 - Utilities in `src/utils/` subdirectory

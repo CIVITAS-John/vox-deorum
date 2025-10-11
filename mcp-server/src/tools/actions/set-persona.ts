@@ -8,6 +8,7 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
+import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
 const personaSchema = z.object({
   // Core Competitiveness & Ambition
@@ -65,7 +66,7 @@ class SetPersonaTool extends LuaFunctionTool {
   /**
    * Result schema - returns previous persona values
    */
-  protected resultSchema = personaSchema.optional();
+  protected resultSchema = z.undefined();
 
   /**
    * The Lua function arguments
@@ -145,8 +146,24 @@ class SetPersonaTool extends LuaFunctionTool {
         },
         composeVisibility([PlayerID])
       );
+
+      // Compare and send replay messages for actual changes
+      const changeDescriptions: string[] = [];
+      for (const field of Object.keys(filteredPersona)) {
+        const beforeValue = previousPersona?.[field];
+        const afterValue = filteredPersona[field as keyof typeof filteredPersona];
+        if (beforeValue !== afterValue) {
+          changeDescriptions.push(`${field}: ${beforeValue || "Default"} → ${afterValue}`);
+        }
+      }
+
+      if (changeDescriptions.length > 0) {
+        const message = `Changed persona values: ${changeDescriptions.join("; ")}. Rationale: ${Rationale}`;
+        await addReplayMessages(PlayerID, message);
+      }
     }
 
+    delete result.Result;
     return result;
   }
 }

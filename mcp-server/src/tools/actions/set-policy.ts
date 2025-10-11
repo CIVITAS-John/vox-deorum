@@ -8,6 +8,7 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
+import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
 /**
  * Tool that sets a player's next policy selection using a Lua function
@@ -29,10 +30,7 @@ class SetPolicyTool extends LuaFunctionTool {
   /**
    * Result schema - returns the previous policy selection
    */
-  protected resultSchema = z.object({
-    Previous: z.string().optional().describe("The previously forced policy selection, if any"),
-    IsBranch: z.boolean().optional().describe("Whether the set policy was a branch or individual policy")
-  }).optional();
+  protected resultSchema = z.undefined();
 
   /**
    * The Lua function arguments
@@ -109,14 +107,14 @@ class SetPolicyTool extends LuaFunctionTool {
       if (result.Result) {
         if (result.Result.PreviousPolicy !== -1) {
           const policyName = retrieveEnumName("PolicyID", result.Result.PreviousPolicy);
-          result.Result.Previous = policyName || "Unknown";
+          result.Result.Previous = policyName || "None";
           result.Result.IsBranch = false;
         } else if (result.Result.PreviousBranch !== -1) {
           const branchName = retrieveEnumName("BranchType", result.Result.PreviousBranch);
-          result.Result.Previous = branchName || "Unknown";
+          result.Result.Previous = branchName || "None";
           result.Result.IsBranch = true;
         } else {
-          result.Result.Previous = "Unknown";
+          result.Result.Previous = "None";
           result.Result.IsBranch = false;
         }
         delete result.Result.PreviousPolicy;
@@ -133,8 +131,19 @@ class SetPolicyTool extends LuaFunctionTool {
           Rationale: Rationale
         }
       );
+
+      // Send replay message if the policy actually changed
+      const previousPolicy = result.Result?.Previous;
+      if (Policy !== previousPolicy && !(Policy === "None" && previousPolicy === "Unknown")) {
+        const beforeDesc = previousPolicy || "None";
+        const afterDesc = Policy;
+        const typeDesc = isBranch ? "policy branch" : "policy";
+        const message = `Changed next ${typeDesc}: ${beforeDesc} → ${afterDesc}. Rationale: ${Rationale}`;
+        await addReplayMessages(PlayerID, message);
+      }
     }
 
+    delete result.Result;
     return result;
   }
 }

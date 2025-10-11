@@ -9,6 +9,8 @@ import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
+import { detectChanges } from "../../utils/knowledge/changes.js";
+import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
 /**
  * Tool that sets the player's grand strategy using a Lua function
@@ -29,13 +31,9 @@ class SetStrategyTool extends LuaFunctionTool {
   });
 
   /**
-   * Result schema - returns success status and previous strategy
+   * Result schema - returns nothing (to avoid confusing LLMs)
    */
-  protected resultSchema = z.object({
-    GrandStrategy: z.string().optional(),
-    EconomicStrategies: z.array(z.string()).optional(),
-    MilitaryStrategies: z.array(z.string()).optional()
-  }).optional();
+  protected resultSchema = z.undefined();
 
   /**
    * The Lua function arguments
@@ -62,18 +60,26 @@ class SetStrategyTool extends LuaFunctionTool {
     local previousMilitary = activePlayer:GetMilitaryStrategies()
 
     -- Set new strategies
+    local changed = false
     if grandId ~= -1 then
-      activePlayer:SetGrandStrategy(grandId)
+      if activePlayer:SetGrandStrategy(grandId) then
+        changed = true
+      end
     end
     if economicIds ~= nil then
-      activePlayer:SetEconomicStrategies(economicIds)
+      if activePlayer:SetEconomicStrategies(economicIds) then
+        changed = true
+      end
     end
     if militaryIds ~= nil then
-      activePlayer:SetMilitaryStrategies(militaryIds)
+      if activePlayer:SetMilitaryStrategies(militaryIds) then
+        changed = true
+      end
     end
 
     -- Return success and previous strategies
     return {
+      Changed = changed,
       GrandStrategy = previousGrand,
       EconomicStrategies = previousEconomic,
       MilitaryStrategies = previousMilitary
@@ -119,7 +125,6 @@ class SetStrategyTool extends LuaFunctionTool {
         composeVisibility([args.PlayerID]),
         ["Rationale"] // Only ignore Rationale when checking for changes
       );
-      result.Result = before;
 
       // Convert the numeric values back to string names for the response
       const after = convertStrategyToNames({
@@ -138,6 +143,27 @@ class SetStrategyTool extends LuaFunctionTool {
         },
         composeVisibility([args.PlayerID])
       );
+
+      // Compare and send replay messages
+      const changedFields = detectChanges(before, after, ["Rationale"]);
+      if (changedFields.length > 0) {
+        // Build detailed change descriptions
+        const changeDescriptions = changedFields.map(field => {
+          const beforeValue = before[field as keyof typeof before];
+          const afterValue = after[field as keyof typeof after];
+
+          if (Array.isArray(beforeValue) && Array.isArray(afterValue)) {
+            // For array fields (strategies)
+            return `${field}: [${beforeValue.join(", ") || "None"}] → [${afterValue.join(", ") || "None"}]`;
+          } else {
+            // For single value fields
+            return `${field}: ${beforeValue || "None"} → ${afterValue || "None"}`;
+          }
+        });
+
+        const message = `Changed strategies: ${changeDescriptions.join("; ")}. Rationale: ${args.Rationale}`;
+        await addReplayMessages(args.PlayerID, message);
+      }
     }
 
     return result;
