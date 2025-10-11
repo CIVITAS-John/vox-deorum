@@ -166,6 +166,7 @@ class SetStrategyTool extends LuaFunctionTool {
       }
     }
 
+    delete result.Result;
     return result;
   }
 }
