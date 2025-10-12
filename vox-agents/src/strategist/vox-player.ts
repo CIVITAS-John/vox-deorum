@@ -101,6 +101,7 @@ export class VoxPlayer {
               await this.context.callTool("get-metadata", { PlayerID: this.playerID }, this.parameters);
 
           // Set the player's AI type
+          await this.context.callTool("set-metadata", { Key: `experiment`, Value: this.strategistType }, this.parameters);
           await this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.strategistType }, this.parameters);
 
           // Resume the game in case the vox agent was aborted
