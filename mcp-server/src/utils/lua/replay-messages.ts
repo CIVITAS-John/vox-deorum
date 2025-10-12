@@ -21,8 +21,6 @@ export async function addReplayMessages(
   // Normalize to array
   const messageArray = Array.isArray(messages) ? messages : [messages];
 
-  logger.debug(`Adding ${messageArray.length} message(s) for player ${playerID}`);
-
   // Escape strings and build Lua calls
   const luaCalls = messageArray.map(text => {
     const escaped = text
@@ -32,7 +30,6 @@ export async function addReplayMessages(
       .replace(/\r/g, '\\r')
       .replace(/\t/g, '\\t');
 
-    logger.debug(`Message: "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}"`);
     return `Players[${playerID}]:AddReplayMessage("${escaped}")`;
   });
 
