@@ -152,7 +152,6 @@ export class StrategistSession {
       player.execute();
     }
 
-    await mcpClient.callTool("set-metadata", { Key: "experiment", Value: this.config.strategist })
     if (this.config.autoPlay && params.turn === 0) {
       // Autoplay
       await setTimeout(3000);
@@ -198,6 +197,8 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // Stop autoplay
     mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` }).catch((any) => null);
+
+    // Stop the game
     if (this.config.autoPlay) {
       await setTimeout(5000);
       logger.info(`Requesting voluntary shutdown of the game...`);

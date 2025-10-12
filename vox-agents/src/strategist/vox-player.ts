@@ -100,6 +100,9 @@ export class VoxPlayer {
             this.parameters.store!.metadata ?? 
               await this.context.callTool("get-metadata", { PlayerID: this.playerID }, this.parameters);
 
+          // Set the player's AI type
+          await this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.strategistType }, this.parameters);
+
           // Resume the game in case the vox agent was aborted
           await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
 
@@ -132,8 +135,13 @@ export class VoxPlayer {
               this.parameters.running = undefined;
               this.parameters.after = turnData.latestID;
 
-              // Resume the game
-              await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
+              // Recording the tokens and resume the game
+              await Promise.all([
+                this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: this.context.inputTokens }, this.parameters),
+                this.context.callTool("set-metadata", { Key: `reasoningTokens-${this.playerID}`, Value: this.context.reasoningTokens }, this.parameters),
+                this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: this.context.outputTokens }, this.parameters),
+                this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters)
+              ]);
 
               observation.update({
                 output: {
@@ -187,5 +195,12 @@ export class VoxPlayer {
     this.aborted = true;
     this.successful = successful;
     this.context.abort(successful);
+  }
+
+  /**
+   * Get the underlying VoxContext
+   */
+  getContext() {
+    return this.context;
   }
 }

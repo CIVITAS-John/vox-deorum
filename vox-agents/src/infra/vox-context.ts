@@ -37,6 +37,19 @@ export class VoxContext<TParameters extends AgentParameters> {
    * AbortController for managing generation cancellation
    */
   private abortController: AbortController;
+  
+  /**
+   * Total input tokens
+   */
+  public inputTokens: number = 0;
+  /**
+   * Total reasoning tokens
+   */
+  public reasoningTokens: number = 0;
+  /**
+   * Total output tokens
+   */
+  public outputTokens: number = 0;
 
   /**
    * Constructor for VoxContext
@@ -215,9 +228,13 @@ export class VoxContext<TParameters extends AgentParameters> {
                   const lastStep = context.steps[context.steps.length - 1];
                   this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
                   return await agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
-                }
+                },
               });
             }, this.logger);
+            // Count the token usage here
+            this.inputTokens += response.totalUsage.inputTokens ?? 0;
+            this.reasoningTokens += response.totalUsage.reasoningTokens ?? 0;
+            this.outputTokens += response.totalUsage.outputTokens ?? 0;
             // If we stop unexpectedly, check with the agent again. If not, we should try to resume...
             if (!shouldStop) {
               if (response.steps.length !== 0) {
