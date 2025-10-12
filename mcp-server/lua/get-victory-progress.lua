@@ -144,12 +144,12 @@ local culturalVictory = GameInfo.Victories["VICTORY_CULTURAL"]
 if culturalVictory and Game:IsVictoryValid(culturalVictory.ID) then
   -- Lookup table for influence levels
   local influenceLookup = {
-    [InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN] = "TXT_KEY_CO_UNKNOWN",
-    [InfluenceLevelTypes.INFLUENCE_LEVEL_EXOTIC] = "TXT_KEY_CO_EXOTIC",
-    [InfluenceLevelTypes.INFLUENCE_LEVEL_FAMILIAR] = "TXT_KEY_CO_FAMILIAR",
-    [InfluenceLevelTypes.INFLUENCE_LEVEL_POPULAR] = "TXT_KEY_CO_POPULAR",
-    [InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL] = "TXT_KEY_CO_INFLUENTIAL",
-    [InfluenceLevelTypes.INFLUENCE_LEVEL_DOMINANT] = "TXT_KEY_CO_DOMINANT"
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN] = "Unknown",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_EXOTIC] = "Exotic",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_FAMILIAR] = "Familiar",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_POPULAR] = "Popular",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL] = "Influential",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_DOMINANT] = "Dominant"
   }
 
   local totalCivs = 0
@@ -189,7 +189,7 @@ if culturalVictory and Game:IsVictoryValid(culturalVictory.ID) then
 
             -- Track detailed influence information
             if influenceLevel and influenceLevel > InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN then
-              local levelText = Locale.ConvertTextKey(influenceLookup[influenceLevel])
+              local levelText = influenceLookup[influenceLevel]
 
               -- Calculate influence percentage
               local iInfluence = player:GetInfluenceOn(otherPlayerID)

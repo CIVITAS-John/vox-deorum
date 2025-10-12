@@ -147,7 +147,7 @@ class GetOptionsTool extends ToolBase {
         Rationale: (strategies as any)?.Rationale,
         GrandStrategy: {
           Current: strategies?.GrandStrategy,
-          Options: Object.values(enumMappings["GrandStrategy"])
+          Options: Object.values(enumMappings["GrandStrategy"]).filter(s => s !== "None")
         },
         EconomicStrategies: {
           Current: strategies?.EconomicStrategies,
