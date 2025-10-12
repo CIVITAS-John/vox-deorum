@@ -34,6 +34,7 @@ You can interact with multiple tools at a time. Used tools will be removed from 
 Your goal is to **call tools** to make high-level decisions for the in-game AI. Each tool has a list of acceptable options and you must follow them.
 - Carefully reason about the current situation and available options and what kind of change each option will bring.
   - When situation requires, do not shy away from pivoting strategies.
+  - Analyze both your situation and your opponents. Avoid wishful thinking.
 - You can change the in-game AI's diplomatic strategy by calling the \`set-persona\` tool.
 - You can change the in-game AI's NEXT technology to research (when you finish the current one) by calling the \`set-research\` tool.
 - You can change the in-game AI's NEXT policy to adopt (when you have enough culture) by calling the \`set-policy\` tool.
