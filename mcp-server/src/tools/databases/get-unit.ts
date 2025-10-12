@@ -29,7 +29,7 @@ const UnitSummarySchema = z.object({
   UniqueOf: z.string().nullable(),
   
   // Description
-  Help: z.string().nullable()
+  Description: z.string().nullable()
 });
 
 /**
@@ -53,8 +53,7 @@ const UnitReportSchema = UnitSummarySchema.extend({
   UpgradesTo: z.string().nullable(),
   
   // Abilities & gameplay
-  FreePromotions: z.array(z.string()),
-  Strategy: z.string().nullable()
+  FreePromotions: z.array(z.string())
 });
 
 type UnitSummary = z.infer<typeof UnitSummarySchema>;
@@ -101,7 +100,7 @@ class GetUnitTool extends DatabaseQueryTool<UnitSummary, UnitReport> {
       .select([
         'u.Type', 
         'u.Description as Name',
-        'u.Help',
+        'u.Strategy as Description',
         'u.Combat',
         'u.RangedCombat',
         'u.Moves',
@@ -209,7 +208,7 @@ export async function getUnit(unitType: string) {
   return {
     Type: unit.Type,
     Name: unit.Description || '',
-    Help: unit.Help || null,
+    Description: unit.Strategy || null,
     Combat: unit.Combat || 0,
     RangedCombat: unit.RangedCombat || 0,
     Moves: unit.Moves || 0,
@@ -217,7 +216,6 @@ export async function getUnit(unitType: string) {
     PrereqTech: unit.PrereqTechName || null,
     UniqueOf: unit.UniqueCivName || null,
     Era: changeCase.pascalCase(era?.Era?.substring(4) ?? "") || null,
-    Strategy: unit.Strategy,
     Class: unit.ClassName || unit.Class || '',
     AIType: changeCase.pascalCase(unit.DefaultUnitAI?.substring(7) ?? ""),
     Range: unit.Range || 0,
