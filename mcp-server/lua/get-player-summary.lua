@@ -117,6 +117,9 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         GoldPerTurn = player:CalculateGoldRate(),
         HappinessPercentage = player:GetExcessHappiness(),  -- Excess happiness (can be negative)
         TourismPerTurn = player:GetTourismPerTurnIncludingInstantTimes100() / 100,
+        CulturePerTurn = player:GetTotalJONSCulturePerTurn(),  -- Culture per turn (visible to met players)
+        FaithPerTurn = player:GetTotalFaithPerTurn(),  -- Faith per turn (only visible to team)
+        SciencePerTurn = player:GetScience(),  -- Science per turn (only visible to team)
         Technologies = fromTeam:GetTeamTechs():GetNumTechsKnown() or 0,
         CurrentResearch = currentResearch,
         PolicyBranches = nil,  -- Will be populated if player has policies
@@ -275,7 +278,30 @@ Game.RegisterFunction("${Name}", function(${Arguments})
                 iPercent = math.floor((iInfluence * 100) / iCulture)
               end
 
-              relationshipList[#relationshipList + 1] = string.format("Our Cultural Influence through Tourism: %s (%d%%)", levelText, iPercent)
+              -- Get the trend information
+              local iTrend = player:GetInfluenceTrend(otherPlayerID)
+              local trendText = ""
+
+              if iTrend == InfluenceLevelTrend.INFLUENCE_TREND_FALLING then
+                trendText = "Falling"
+              elseif iTrend == InfluenceLevelTrend.INFLUENCE_TREND_STATIC then
+                trendText = "Static"
+              elseif iTrend == InfluenceLevelTrend.INFLUENCE_TREND_RISING then
+                local turnsToInfluential = player:GetTurnsToInfluential(otherPlayerID)
+                -- Check if rising slowly or normal rising
+                if turnsToInfluential >= 999 then
+                  trendText = "Rising Slowly"
+                else
+                  -- Add turns to influential if not already influential
+                  if iInfluenceLevel < InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL then
+                    trendText = string.format("Rising (%d turns to Influential)", turnsToInfluential)
+                  else
+                    trendText = "Rising"
+                  end
+                end
+              end
+
+              relationshipList[#relationshipList + 1] = string.format("Our Cultural Influence through Tourism: %s (%d%%) - %s", levelText, iPercent, trendText)
             end
 
             -- Only add if there are relationships

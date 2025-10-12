@@ -54,8 +54,8 @@ You will receive the following reports:
 - Victory Progress: current progress towards each type of victory.
     - Domination Victory: Control or vassalize all original capitals.
     - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
-    - Cultural Victory: Accumulate enough tourism to influence all other civilizations.
-    - Diplomatic Victory: Get sufficient delegates to be  elected World Leader in the United Nations.
+    - Cultural Victory: Accumulate tourism (that outpaces other civilizations' culture) to influence all others.
+    - Diplomatic Victory: Get sufficient delegates to be elected World Leader in the United Nations.
     - Time Victory: If no one achieves any other victory by the end of the game, the civilization with the highest score wins.
 - Players: summary reports about visible players in the world. Also:
   - You will receive in-game AI's diplomatic evaluations.

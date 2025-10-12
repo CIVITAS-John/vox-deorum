@@ -53,6 +53,9 @@ const PlayerDataSchema = z.object({
   HappinessSituation: z.string().optional(),
   HappinessPercentage: z.number().optional(),
   TourismPerTurn: z.number().optional(),
+  CulturePerTurn: z.number().optional(),
+  FaithPerTurn: z.number().optional(),
+  SciencePerTurn: z.number().optional(),
   PolicyBranches: z.union([z.record(z.string(), z.array(z.string())), z.record(z.string(), z.number())]).optional(),
   ResourcesAvailable: z.record(z.string(), z.number()).optional(),
   FoundedReligion: z.string().nullable().optional(),
@@ -224,6 +227,10 @@ function postProcessData(
   // Hide actual happiness number
   delete summary.HappinessPercentage;
 
+  // Hide FaithPerTurn and SciencePerTurn from non-team members (visibility 2 only)
+  delete summary.FaithPerTurn;
+  delete summary.SciencePerTurn;
+
   // Hide trade and spy information
   delete summary.OutgoingTradeRoutes;
   delete summary.IncomingTradeRoutes;
@@ -281,6 +288,10 @@ function postProcessData(
     delete summary.Gold;
     delete summary.GoldPerTurn;
     delete summary.Score;
+    delete summary.CulturePerTurn;
+    delete summary.FaithPerTurn;
+    delete summary.SciencePerTurn;
+    delete summary.TourismPerTurn;
   }
   return summary;
 }

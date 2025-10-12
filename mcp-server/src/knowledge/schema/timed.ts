@@ -85,6 +85,9 @@ export interface PlayerSummary extends MutableKnowledge {
   GoldPerTurn: number | null; // Player:CalculateGoldRateTimes100() / 100
   HappinessPercentage: number | null; // Excess happiness percentage (can be negative)
   TourismPerTurn: number | null;
+  CulturePerTurn: number | null; // Culture per turn (visible to met players - visibility 1+)
+  FaithPerTurn: number | null; // Faith per turn (visibility 2 only - team/self)
+  SciencePerTurn: number | null; // Science per turn (visibility 2 only - team/self)
   Technologies: number | null;
   CurrentResearch: string | null; // Current technology being researched (visibility 2 only)
   PolicyBranches: JSONColumnType<Record<string, string[]>> | null; // Policy branch -> array of policy names (details visibility 2 only)
