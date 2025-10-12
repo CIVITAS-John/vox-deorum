@@ -136,6 +136,9 @@ export async function setupKnowledgeDatabase(
     .addColumn('Gold', 'integer', (col) => col.notNull())
     .addColumn('GoldPerTurn', 'real', (col) => col.notNull())
     .addColumn('HappinessPercentage', 'integer') // Excess happiness percentage (can be negative)
+    .addColumn('SciencePerTurn', 'integer', (col) => col.notNull())
+    .addColumn('CulturePerTurn', 'integer', (col) => col.notNull())
+    .addColumn('FaithPerTurn', 'integer', (col) => col.notNull())
     .addColumn('TourismPerTurn', 'integer')
     .addColumn('PolicyBranches', 'text') // JSON object
     .addColumn('Technologies', 'integer', (col) => col.notNull())
