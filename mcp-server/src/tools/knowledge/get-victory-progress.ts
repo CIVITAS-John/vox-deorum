@@ -147,7 +147,7 @@ function isPlayerVisible(
   context: VisibilityContext
 ): boolean {
   const playerInfo = context.playerInfos.find(info => info.Civilization === civName);
-  if (!playerInfo) return false;
+  if (!playerInfo) return true;
 
   const visibility = getPlayerVisibility(
     context.playerSummaries,
