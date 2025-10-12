@@ -142,6 +142,16 @@ end
 -- Check and populate Cultural victory
 local culturalVictory = GameInfo.Victories["VICTORY_CULTURAL"]
 if culturalVictory and Game:IsVictoryValid(culturalVictory.ID) then
+  -- Lookup table for influence levels
+  local influenceLookup = {
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN] = "TXT_KEY_CO_UNKNOWN",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_EXOTIC] = "TXT_KEY_CO_EXOTIC",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_FAMILIAR] = "TXT_KEY_CO_FAMILIAR",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_POPULAR] = "TXT_KEY_CO_POPULAR",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL] = "TXT_KEY_CO_INFLUENTIAL",
+    [InfluenceLevelTypes.INFLUENCE_LEVEL_DOMINANT] = "TXT_KEY_CO_DOMINANT"
+  }
+
   local totalCivs = 0
 
   -- Count total major civs
@@ -168,13 +178,55 @@ if culturalVictory and Game:IsVictoryValid(culturalVictory.ID) then
 
     if player and player:IsAlive() then
       local influentialCivs = 0
+      local influenceDetails = {}
 
-      -- Count how many civs this player is influential over
+      -- Count how many civs this player is influential over and get detailed influence data
       for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
         if otherPlayerID ~= playerID then
           local otherPlayer = Players[otherPlayerID]
           if otherPlayer and otherPlayer:IsAlive() then
             local influenceLevel = player:GetInfluenceLevel(otherPlayerID)
+
+            -- Track detailed influence information
+            if influenceLevel and influenceLevel > InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN then
+              local levelText = Locale.ConvertTextKey(influenceLookup[influenceLevel])
+
+              -- Calculate influence percentage
+              local iInfluence = player:GetInfluenceOn(otherPlayerID)
+              local iCulture = otherPlayer:GetJONSCultureEverGenerated()
+              local iPercent = 0
+
+              if iCulture > 0 then
+                iPercent = math.floor((iInfluence * 100) / iCulture)
+              end
+
+              -- Get the trend information
+              local iTrend = player:GetInfluenceTrend(otherPlayerID)
+              local trendText = ""
+
+              if iTrend == InfluenceLevelTrend.INFLUENCE_TREND_FALLING then
+                trendText = "Falling"
+              elseif iTrend == InfluenceLevelTrend.INFLUENCE_TREND_STATIC then
+                trendText = "Static"
+              elseif iTrend == InfluenceLevelTrend.INFLUENCE_TREND_RISING then
+                local turnsToInfluential = player:GetTurnsToInfluential(otherPlayerID)
+                -- Check if rising slowly or normal rising
+                if turnsToInfluential >= 999 then
+                  trendText = "Rising Slowly"
+                else
+                  -- Add turns to influential if not already influential
+                  if influenceLevel < InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL then
+                    trendText = string.format("Rising (%d turns to Influential)", turnsToInfluential)
+                  else
+                    trendText = "Rising"
+                  end
+                end
+              end
+
+              local otherPlayerName = otherPlayer:GetCivilizationShortDescription()
+              influenceDetails[otherPlayerName] = string.format("%s (%d%%) - %s", levelText, iPercent, trendText)
+            end
+
             -- Influential = 4, Dominant = 5
             if influenceLevel >= InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL then
               influentialCivs = influentialCivs + 1
@@ -194,8 +246,6 @@ if culturalVictory and Game:IsVictoryValid(culturalVictory.ID) then
       -- Cap at 27 policies as per CvDiplomacyAI cultural victory calculation
       totalPoliciesOwned = math.min(totalPoliciesOwned, 27)
       local policyPercentage = math.floor((totalPoliciesOwned * 100) / 27)
-
-      local influentialPercentage = math.floor((influentialCivs * 100) / civsNeeded)
       local playerName = player:GetCivilizationShortDescription()
 
       -- Track who's leading
@@ -206,7 +256,7 @@ if culturalVictory and Game:IsVictoryValid(culturalVictory.ID) then
 
       culturalData[playerName] = {
         InfluentialCivs = influentialCivs,
-        InfluentialPercentage = influentialPercentage,
+        Influences = influenceDetails,  -- Add detailed influence information
         PolicyPercentage = policyPercentage
       }
     end

@@ -19,6 +19,15 @@ import { Selectable } from "kysely";
 import { PlayerInformation } from "../../knowledge/schema/public.js";
 
 /**
+ * Interface for visibility filtering context
+ */
+interface VisibilityContext {
+  playerSummaries: Selectable<PlayerSummary>[];
+  playerInfos: Selectable<PlayerInformation>[];
+  viewingPlayerID: number;
+}
+
+/**
  * Input schema for the GetVictoryProgress tool
  */
 const GetVictoryProgressInputSchema = z.object({
@@ -85,7 +94,7 @@ class GetVictoryProgressTool extends ToolBase {
     const cleanProgress = victoryProgress as unknown as Omit<VictoryProgress, keyof typeof stripMutableKnowledgeMetadata>;
 
     // Parse and filter victory fields based on visibility
-    const filterContext = args.PlayerID !== undefined && playerSummaries.length > 0 && playerInfos.length > 0
+    const filterContext: VisibilityContext | undefined = args.PlayerID !== undefined && playerSummaries.length > 0 && playerInfos.length > 0
       ? { playerSummaries, playerInfos, viewingPlayerID: args.PlayerID }
       : undefined;
 
@@ -104,11 +113,7 @@ class GetVictoryProgressTool extends ToolBase {
  */
 function parseVictoryField(
   field: string | object,
-  filterContext?: {
-    playerSummaries: Selectable<PlayerSummary>[];
-    playerInfos: Selectable<PlayerInformation>[];
-    viewingPlayerID: number;
-  }
+  filterContext?: VisibilityContext
 ): string | object {
   // Parse JSON if it's a string
   let parsed: string | object = field;
@@ -135,7 +140,45 @@ function parseVictoryField(
 }
 
 /**
+ * Helper to check if a player is visible to the viewing player
+ */
+function isPlayerVisible(
+  civName: string,
+  context: VisibilityContext
+): boolean {
+  const playerInfo = context.playerInfos.find(info => info.Civilization === civName);
+  if (!playerInfo) return false;
+
+  const visibility = getPlayerVisibility(
+    context.playerSummaries,
+    context.viewingPlayerID,
+    playerInfo.Key
+  );
+  return visibility > 0;
+}
+
+/**
+ * Filter influence details to only show visible civilizations
+ */
+function filterInfluenceDetails(
+  influenceDetails: Record<string, string>,
+  context: VisibilityContext
+): Record<string, string> {
+  const filtered = { ...influenceDetails };
+
+  for (const civName in filtered) {
+    // Delete invisible civilizations
+    if (!isPlayerVisible(civName, context)) {
+      delete filtered[civName];
+    }
+  }
+
+  return filtered;
+}
+
+/**
  * Filter player-keyed victory data based on visibility
+ * Removes data for unmet players and filters nested influence information
  */
 function filterVictoryData<T extends Record<string, any>>(
   data: T,
@@ -143,20 +186,28 @@ function filterVictoryData<T extends Record<string, any>>(
   playerInfos: Selectable<PlayerInformation>[],
   viewingPlayerID: number
 ): T {
+  const context: VisibilityContext = {
+    playerSummaries,
+    playerInfos,
+    viewingPlayerID
+  };
+
   const filtered = { ...data };
 
-  // Iterate through all keys in the data
   for (const key in filtered) {
-    // Find the player info by civilization/leader name
-    const playerInfo = playerInfos.find(info =>
-      info.Civilization === key
-    );
+    // Delete invisible players
+    if (!isPlayerVisible(key, context)) {
+      delete filtered[key];
+      continue;
+    }
 
-    if (playerInfo) {
-      // Check visibility
-      const visibility = getPlayerVisibility(playerSummaries, viewingPlayerID, playerInfo.Key);
-      // If not met (visibility = 0), remove this player's data
-      if (visibility === 0) delete filtered[key];
+    // Filter nested Influences for visible players
+    const playerData = filtered[key] as { Influences?: Record<string, string> };
+    if (playerData?.Influences && typeof playerData.Influences === 'object') {
+      playerData.Influences = filterInfluenceDetails(
+        playerData.Influences,
+        context
+      );
     }
   }
 

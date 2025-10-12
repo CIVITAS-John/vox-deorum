@@ -1,15 +1,6 @@
 -- Extract player summary information from the game
 -- Returns summary data with relative visibility between all players
 
-local influenceLookup = {
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN] = "Unknown",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_EXOTIC] = "Exotic",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_FAMILIAR] = "Familiar",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_POPULAR] = "Popular",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL] = "Influential",
-  [InfluenceLevelTypes.INFLUENCE_LEVEL_DOMINANT] = "Dominant",
-};
-
 -- Helper function to get civilization name with city-state prefix if applicable
 local function getCivName(player)
   local civName = player:GetCivilizationShortDescription()
@@ -262,46 +253,6 @@ Game.RegisterFunction("${Name}", function(${Arguments})
 
             if player:IsDenouncingPlayer(otherPlayerID) then
               relationshipList[#relationshipList + 1] = "Denounced By Them"
-            end
-
-            -- Check for cultural influence from tourism
-            local iInfluenceLevel = player:GetInfluenceLevel(otherPlayerID)
-            if iInfluenceLevel and iInfluenceLevel > InfluenceLevelTypes.INFLUENCE_LEVEL_UNKNOWN then
-              local levelText = Locale.ConvertTextKey(influenceLookup[iInfluenceLevel])
-
-              -- Calculate influence percentage
-              local iInfluence = player:GetInfluenceOn(otherPlayerID)
-              local iCulture = otherPlayer:GetJONSCultureEverGenerated()
-              local iPercent = 0
-
-              if iCulture > 0 then
-                iPercent = math.floor((iInfluence * 100) / iCulture)
-              end
-
-              -- Get the trend information
-              local iTrend = player:GetInfluenceTrend(otherPlayerID)
-              local trendText = ""
-
-              if iTrend == InfluenceLevelTrend.INFLUENCE_TREND_FALLING then
-                trendText = "Falling"
-              elseif iTrend == InfluenceLevelTrend.INFLUENCE_TREND_STATIC then
-                trendText = "Static"
-              elseif iTrend == InfluenceLevelTrend.INFLUENCE_TREND_RISING then
-                local turnsToInfluential = player:GetTurnsToInfluential(otherPlayerID)
-                -- Check if rising slowly or normal rising
-                if turnsToInfluential >= 999 then
-                  trendText = "Rising Slowly"
-                else
-                  -- Add turns to influential if not already influential
-                  if iInfluenceLevel < InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL then
-                    trendText = string.format("Rising (%d turns to Influential)", turnsToInfluential)
-                  else
-                    trendText = "Rising"
-                  end
-                end
-              end
-
-              relationshipList[#relationshipList + 1] = string.format("Our Cultural Influence through Tourism: %s (%d%%) - %s", levelText, iPercent, trendText)
             end
 
             -- Only add if there are relationships

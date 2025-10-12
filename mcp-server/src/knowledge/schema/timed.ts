@@ -364,7 +364,7 @@ export interface CulturalVictoryData {
   Contender: string | undefined;
   [playerName: string]: {
     InfluentialCivs: number;
-    InfluentialPercentage: number;
+    Influences: Record<string, number>;
     PolicyPercentage: number;
   } | number | string | undefined;
 }
