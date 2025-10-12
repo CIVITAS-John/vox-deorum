@@ -136,12 +136,7 @@ export class VoxPlayer {
               this.parameters.after = turnData.latestID;
 
               // Recording the tokens and resume the game
-              await Promise.all([
-                this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: this.context.inputTokens }, this.parameters),
-                this.context.callTool("set-metadata", { Key: `reasoningTokens-${this.playerID}`, Value: this.context.reasoningTokens }, this.parameters),
-                this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: this.context.outputTokens }, this.parameters),
-                this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters)
-              ]);
+              await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
 
               observation.update({
                 output: {
@@ -178,7 +173,12 @@ export class VoxPlayer {
               turns: this.parameters.turn,
             }
           });
-          await langfuseSpanProcessor.forceFlush();
+          await Promise.all([
+            this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: String(this.context.inputTokens) }, this.parameters),
+            this.context.callTool("set-metadata", { Key: `reasoningTokens-${this.playerID}`, Value: String(this.context.reasoningTokens) }, this.parameters),
+            this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: String(this.context.outputTokens) }, this.parameters),
+            langfuseSpanProcessor.forceFlush()
+          ]);
           await setTimeout(1000);
         }
       }, {
