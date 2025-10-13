@@ -311,6 +311,19 @@ scripts\install.cmd
   - Check you have credits/quota with your provider
   - Test the key directly with the provider's playground
 
+#### "tsc not found"
+- **Solution**: Install node_modules in vox-agents
+  ```cmd
+  cd vox-agents
+  npm i
+  ```
+
+#### "Execution policy failed due to the current user policy"
+- **Solution**: Change PowerShell execution policy
+  ```cmd
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+  ```
+
 ### Debug Mode
 
 For troubleshooting at the Civ 5 level, use the debug DLLs with Visual Studio Debugger:
