@@ -258,16 +258,9 @@ if exist "%CP_PATH%" (
 )
 
 if "%VP_INSTALLED%"=="1" (
-    :: Ask user if they want to override existing installation
+    :: Always override existing installation
     echo   Existing Vox Populi installation detected.
-    echo.
-    set /p "OVERRIDE_CHOICE=Do you want to override the existing installation? (Y/N): "
-    if /i "!OVERRIDE_CHOICE!" neq "Y" (
-        echo   Skipping Vox Populi installation.
-        goto :skip_vp_override
-    )
-    :: User chose to override - treat as new installation
-    echo   Overriding existing installation...
+    echo   Overriding with fresh installation...
     set "VP_INSTALLED=0"
 )
 
