@@ -71,7 +71,7 @@ local function getProductionName(city)
 end
 
 -- Iterate through all players
-for playerID = 0, GameDefines.MAX_CIV_PLAYERS - 1 do
+for playerID = 0, GameDefines.MAX_CIV_PLAYERS do
   local player = Players[playerID]
 
   if player and player:IsAlive() and player:GetNumCities() > 0 then
