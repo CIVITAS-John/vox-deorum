@@ -260,14 +260,9 @@ export class KnowledgeStore {
               } else {
                 logger.warn('Failed to save replay:', replayResponse.error);
               }
-
-              // Wait a moment for the replay file to be written
-              await setTimeout(1000);
             } catch (error) {
               logger.error('Error during victory archiving:', error);
             }
-            // Archive anyway even if replay fails
-            await archiveGameData();
           }
           // Track active player on turn events
           if (type === "PlayerDoTurn") {
@@ -291,6 +286,16 @@ export class KnowledgeStore {
             knowledgeManager.updateActivePlayer(data.NextPlayerID);
           }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);
+          // Try to archive the game a bit after
+          if (type == "PlayerVictory") {
+            // Wait for downstream to send last bit of things
+            await setTimeout(5000);
+            // Try saving again
+            await this.saveKnowledge();
+            // Try waiting again
+            await setTimeout(10000);
+            await archiveGameData();
+          }
         }
       } else {
         logger.warn(`Invalid ${type} event:`, {
