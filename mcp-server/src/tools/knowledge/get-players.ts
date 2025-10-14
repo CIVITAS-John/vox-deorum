@@ -132,6 +132,7 @@ class GetPlayersTool extends ToolBase {
       // Ignore dead players or barbarians
       if (playerID == 63) {
         playersDict[playerID.toString()] = "Barbarians";
+        continue;
       }
       if (playerSummaries.length > 0 && !summary) {
         playersDict[playerID.toString()] = info.IsMajor === 1 
