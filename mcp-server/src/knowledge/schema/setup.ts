@@ -136,6 +136,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('Gold', 'integer', (col) => col.notNull())
     .addColumn('GoldPerTurn', 'real', (col) => col.notNull())
     .addColumn('HappinessPercentage', 'integer') // Excess happiness percentage (can be negative)
+    .addColumn('GoldenAge', 'text') // Golden Age status (e.g., "5 turns remaining", "Estimated in 8 turns", "Need More Happiness")
     .addColumn('SciencePerTurn', 'integer')
     .addColumn('CulturePerTurn', 'integer')
     .addColumn('FaithPerTurn', 'integer')

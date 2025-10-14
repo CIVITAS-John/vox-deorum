@@ -42,6 +42,7 @@ const PlayerDataSchema = z.object({
   // PlayerSummary fields
   Score: z.number().optional(),
   Era: z.string().optional(),
+  GoldenAge: z.string().optional(),
   Technologies: z.number().optional(),
   CurrentResearch: z.string().nullable().optional(),
   MajorAlly: z.string().nullable().optional(),
@@ -235,6 +236,10 @@ function postProcessData(
   delete summary.OutgoingTradeRoutes;
   delete summary.IncomingTradeRoutes;
   delete summary.Spies;
+
+  // Hide golden age if not in one
+  if (summary.GoldenAge && !summary.GoldenAge.endsWith("turns remaining"))
+    delete summary.GoldenAge;
 
   // Hide war weariness from relationships
   if (summary.Relationships && summary.IsMajor)

@@ -84,6 +84,7 @@ export interface PlayerSummary extends MutableKnowledge {
   Gold: number | null;
   GoldPerTurn: number | null; // Player:CalculateGoldRateTimes100() / 100
   HappinessPercentage: number | null; // Excess happiness percentage (can be negative)
+  GoldenAge: string | null; // Golden Age status (e.g., "5 turns remaining", "Estimated in 8 turns", "Need More Happiness")
   TourismPerTurn: number | null;
   CulturePerTurn: number | null; // Culture per turn (visible to met players - visibility 1+)
   FaithPerTurn: number | null; // Faith per turn (visibility 2 only - team/self)

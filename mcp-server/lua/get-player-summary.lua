@@ -96,6 +96,29 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         votes = league:CalculateStartingVotesForMember(playerID)
       end
 
+      -- Calculate Golden Age status
+      local goldenAge = nil
+      if player:IsGoldenAge() then
+        local turnsLeft = player:GetGoldenAgeTurns()
+        goldenAge = turnsLeft .. " turns remaining"
+      else
+        -- Calculate turns until next golden age
+        local progress = player:GetGoldenAgeProgressMeterTimes100() / 100
+        local threshold = player:GetGoldenAgeProgressThreshold()
+			  local excessHappiness = player:GetHappinessForGAP()
+        local iGAPReligion = player:GetGAPFromReligion();
+        local iGAPTrait = player:GetGAPFromTraits();
+        local iGAPCities = player:GetGAPFromCitiesTimes100() / 100;
+        local progressPerTurn = (excessHappiness + iGAPReligion + iGAPTrait + iGAPCities);
+
+        if progressPerTurn <= 0 then
+          goldenAge = "Need more happiness"
+        else
+          local turnsNeeded = math.ceil((threshold - progress) / progressPerTurn)
+          goldenAge = "Estimated in " .. turnsNeeded .. " turns"
+        end
+      end
+
       local summary = {
         Key = playerID,
         Score = player:GetScore(),  -- Player's current score
@@ -107,6 +130,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         Gold = player:GetGold(),
         GoldPerTurn = player:CalculateGoldRate(),
         HappinessPercentage = player:GetExcessHappiness(),  -- Excess happiness (can be negative)
+        GoldenAge = goldenAge,  -- Golden Age status (e.g., "5 turns remaining", "Estimated in 8 turns", "Need More Happiness")
         TourismPerTurn = player:GetTourismPerTurnIncludingInstantTimes100() / 100,
         CulturePerTurn = player:GetTotalJONSCulturePerTurn(),  -- Culture per turn (visible to met players)
         FaithPerTurn = player:GetTotalFaithPerTurn(),  -- Faith per turn (only visible to team)
