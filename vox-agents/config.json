@@ -49,7 +49,7 @@
     },
     "chutes/glm-4.6": {
       "provider": "chutes",
-      "name": "z-ai/glm-4.6"
+      "name": "zai-org/GLM-4.6-FP8"
     },
     "jetstream2/gpt-oss-120b": {
       "provider": "jetstream2",
