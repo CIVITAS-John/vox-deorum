@@ -47,6 +47,13 @@ export function getModel(config: Model): LanguageModel {
         apiKey: process.env.JETSTREAM2_API_KEY,
       }).chatModel(config.name);
       break;
+    case "chutes":
+      result = createOpenAICompatible({
+        baseURL: "https://llm.chutes.ai/v1/chat/completions",
+        name: "chutes",
+        apiKey: process.env.CHUTES_API_KEY,
+      }).chatModel(config.name);
+      break;
     case "openai":
       result = createOpenAI()(config.name);
       break;

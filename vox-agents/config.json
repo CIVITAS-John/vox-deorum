@@ -43,6 +43,10 @@
         "reasoningEffort": "minimal"
       }
     },
+    "chutes/gpt-oss-120b": {
+      "provider": "chutes",
+      "name": "openai/gpt-oss-120b"
+    },
     "jetstream2/gpt-oss-120b": {
       "provider": "jetstream2",
       "name": "gpt-oss-120b"

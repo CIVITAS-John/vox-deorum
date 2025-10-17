@@ -9,7 +9,9 @@
   },
   {
     "Type": "CitiesNeedNavalTileImprovement",
-    "Production": {},
+    "Production": {
+      "NavalTileImprovement": 10
+    },
     "Overall": {
       "NavalTileImprovement": 20
     },
