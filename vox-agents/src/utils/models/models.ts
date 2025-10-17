@@ -49,7 +49,7 @@ export function getModel(config: Model): LanguageModel {
       break;
     case "chutes":
       result = createOpenAICompatible({
-        baseURL: "https://llm.chutes.ai/v1/chat/completions",
+        baseURL: "https://llm.chutes.ai/v1",
         name: "chutes",
         apiKey: process.env.CHUTES_API_KEY,
       }).chatModel(config.name);
