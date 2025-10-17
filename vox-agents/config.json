@@ -47,6 +47,10 @@
       "provider": "chutes",
       "name": "openai/gpt-oss-120b"
     },
+    "chutes/glm-4.6": {
+      "provider": "chutes",
+      "name": "z-ai/glm-4.6"
+    },
     "jetstream2/gpt-oss-120b": {
       "provider": "jetstream2",
       "name": "gpt-oss-120b"
