@@ -13,6 +13,7 @@ import { Dispatcher, fetch, Pool, RetryAgent } from 'undici';
 import { URL } from 'node:url';
 import { setTimeout } from 'node:timers/promises';
 import { z } from 'zod';
+import { EventEmitter } from 'node:events';
 
 const logger = createLogger('MCPClient');
 
@@ -41,15 +42,15 @@ export interface GameStateNotification {
 /**
  * MCP Client wrapper with notification support
  */
-export class MCPClient {
+export class MCPClient extends EventEmitter {
   private client: Client;
   private transport: StdioClientTransport | StreamableHTTPClientTransport;
   private isConnected: boolean = false;
-  private notificationHandlers: Map<string, (data: any) => any> = new Map();
   private dispatcher?: Dispatcher;
   private connectionPool: Pool | undefined;
 
   constructor() {
+    super();
     this.client = undefined as any;
     this.transport = undefined as any;
     this.initializeClient();
@@ -165,14 +166,11 @@ export class MCPClient {
 
       // Trigger the appropriate handler based on event type
       if (event && playerID !== undefined && turn !== undefined) {
-        const handler = this.notificationHandlers.get('notification');
-        if (handler) {
-          await handler({
-            ...params,
-            PlayerID: playerID,  // Keep backward compatibility with capitalized field name
-            Turn: turn
-          });
-        }
+        this.emit('notification', {
+          ...params,
+          PlayerID: playerID,  // Keep backward compatibility with capitalized field name
+          Turn: turn
+        });
       }
     });
   }
@@ -221,8 +219,16 @@ export class MCPClient {
    * Register a handler for server-side notification (PlayerID/Turn notifications)
    */
   onNotification(handler: (data: GameStateNotification) => void): void {
-    this.notificationHandlers.set('notification', handler);
+    this.on('notification', handler);
     logger.info('Registered game state update handler');
+  }
+
+  /**
+   * Register a handler for tool errors
+   */
+  onToolError(handler: (error: { toolName: string, error: any }) => void): void {
+    this.on('toolError', handler);
+    logger.info('Registered tool error handler');
   }
 
   /**
@@ -242,9 +248,10 @@ export class MCPClient {
         });
         return result;
       } catch (error) {
-        if ((error as any).message?.indexOf("Invalid arguments") !== -1)
+        if ((error as any).message?.indexOf("Invalid arguments") !== -1) {
           throw error;
-        else if (I === 3) {
+        } else if (I === 3) {
+          this.emit('toolError', { toolName: name, error });
           throw error;
         } else logger.error(`Failed to call tool ${name}. Retrying ${I}...`, error);
         // Wait until reconnected

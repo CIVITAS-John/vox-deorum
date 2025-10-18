@@ -95,6 +95,14 @@ export class StrategistSession {
       }
     });
 
+    // Register tool error handler to kill game on critical MCP tool errors
+    mcpClient.onToolError(async ({ toolName, error }) => {
+      if (this.abortController.signal.aborted) return;
+
+      logger.error(`Critical MCP tool error in ${toolName}, killing game process`, error);
+      await voxCivilization.killGame();
+    });
+
     // Wait for victory or shutdown
     await this.finishPromise;
   }
