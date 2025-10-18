@@ -146,7 +146,7 @@ export class MCPClient {
           await this.connect();
         }
       } else {
-        logger.error('Transport error occurred:', error);
+        throw error;
       }
     };
   }
@@ -242,9 +242,11 @@ export class MCPClient {
         });
         return result;
       } catch (error) {
-        if (I === 3 || (error as any).message?.indexOf("Invalid arguments"))
+        if ((error as any).message?.indexOf("Invalid arguments") !== -1)
           throw error;
-        else logger.error(`Failed to call tool ${name}. Retrying ${I}...`, error);
+        else if (I === 3) {
+          throw error;
+        } else logger.error(`Failed to call tool ${name}. Retrying ${I}...`, error);
         // Wait until reconnected
         while (!this.isConnected) {
           await setTimeout(100);
