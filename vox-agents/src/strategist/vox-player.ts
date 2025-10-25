@@ -153,6 +153,8 @@ export class VoxPlayer {
               });
             } catch (error) {
               this.logger.error(`${this.strategistType} error:`, error);
+            } finally {
+              this.parameters.running = undefined;
             }
           }
         } catch (error) {
