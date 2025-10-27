@@ -101,18 +101,23 @@ let shuttingdown = false;
 async function shutdown(signal: string) {
   if (shuttingdown) return;
   shuttingdown = true;
-  logger.info(`Received ${signal}, shutting down gracefully...`);
 
-  // Shutdown the session if it exists
-  if (session) {
-    await session.shutdown();
+  if (signal !== 'SIGINT') {
+    logger.info(`Received ${signal}, shutting down gracefully...`);
+ 
+    // Shutdown the session if it exists
+    if (session) {
+      await session.shutdown();
+    }
+
+    // Flush telemetry
+    await langfuseSpanProcessor.forceFlush();
+    await setTimeout(1000);
+
+    process.exit(0);
+  } else {
+    logger.info(`Received ${signal}, shutting down after this ongoing session...`);
   }
-
-  // Flush telemetry
-  await langfuseSpanProcessor.forceFlush();
-  await setTimeout(1000);
-
-  process.exit(0);
 }
 
 // Register signal handlers
