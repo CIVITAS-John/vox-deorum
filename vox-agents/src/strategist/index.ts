@@ -4,6 +4,7 @@ import config, { loadConfigFromFile } from "../utils/config.js";
 import { StrategistSession, StrategistSessionConfig } from "./strategist-session.js";
 import { setTimeout } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
+import * as readline from 'node:readline';
 
 const logger = createLogger('Strategists');
 
@@ -95,29 +96,37 @@ if (sessionConfig.llms)
 
 // Session instance
 let session: StrategistSession | null = null;
+let rl: readline.Interface | null = null;
 
 // Graceful shutdown handler
 let shuttingdown = false;
+let shuttingdownAfter = false;
 async function shutdown(signal: string) {
   if (shuttingdown) return;
   shuttingdown = true;
 
-  if (signal !== 'SIGINT') {
-    logger.info(`Received ${signal}, shutting down gracefully...`);
- 
-    // Shutdown the session if it exists
-    if (session) {
-      await session.shutdown();
-    }
+  logger.info(`Received ${signal}, shutting down gracefully...`);
 
-    // Flush telemetry
-    await langfuseSpanProcessor.forceFlush();
-    await setTimeout(1000);
-
-    process.exit(0);
-  } else {
-    logger.info(`Received ${signal}, shutting down after this ongoing session...`);
+  // Restore terminal settings
+  if (process.stdin.isTTY && process.stdin.setRawMode) {
+    process.stdin.setRawMode(false);
   }
+
+  // Close readline interface
+  if (rl) {
+    rl.close();
+  }
+
+  // Shutdown the session if it exists
+  if (session) {
+    await session.shutdown();
+  }
+
+  // Flush telemetry
+  await langfuseSpanProcessor.forceFlush();
+  await setTimeout(1000);
+
+  process.exit(0);
 }
 
 // Register signal handlers
@@ -125,6 +134,36 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGBREAK', () => shutdown('SIGBREAK'));
 process.on('SIGHUP', () => shutdown('SIGHUP'));
+
+// Setup readline interface for keyboard input
+rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: true
+});
+
+// Enable raw mode to capture Ctrl key combinations
+if (process.stdin.isTTY) {
+  process.stdin.setRawMode(true);
+}
+
+// Listen for keypress events
+process.stdin.on('data', (key) => {
+  // Ctrl+A is ASCII code 1
+  if (key[0] === 1) {
+    if (!shuttingdownAfter) {
+      shuttingdownAfter = true;
+      logger.info('Ctrl+A pressed: Will stop after current session completes');
+    } else {
+      shuttingdownAfter = false;
+      logger.info('Ctrl+A pressed again: Cancelled shutdown after current session');
+    }
+  }
+  // Ctrl+C is ASCII code 3 - let it pass through for immediate shutdown
+  else if (key[0] === 3) {
+    process.emit('SIGINT', 'SIGINT');
+  }
+});
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
@@ -142,7 +181,7 @@ async function main() {
   logger.info(`Starting in ${sessionConfig.gameMode} mode`);
   try {
     for (var I = 0; I < (sessionConfig.repetition ?? 1); I++) {
-      if (shuttingdown) break;
+      if (shuttingdown || shuttingdownAfter) break;
       // Start a new session
       session = new StrategistSession(sessionConfig);
       await session.start();
@@ -150,7 +189,7 @@ async function main() {
       logger.info(`Session ${I} completed successfully`);
       // Shut down the session
       await session.shutdown();
-      if (shuttingdown) break;
+      if (shuttingdown || shuttingdownAfter) break;
     }
   } catch (error) {
     logger.error('Session failed:', error);
