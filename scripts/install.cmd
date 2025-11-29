@@ -242,13 +242,61 @@ if not exist "%MODS_DIR%" (
     mkdir "%MODS_DIR%"
 )
 echo   [OK] MODS directory: !MODS_DIR!
+
+:: Setup DLC directory for UI mods
+echo.
+echo [6/9] Installing UI mods to DLC directory...
+set "DLC_DIR=%CIV5_PATH%\Assets\DLC"
+set "SOURCE_VPUI=%SCRIPT_DIR%\..\civ5-dll\VPUI"
+set "SOURCE_UI_BC1=%SCRIPT_DIR%\..\civ5-dll\UI_bc1"
+set "DEST_VPUI=%DLC_DIR%\VPUI"
+set "DEST_UI_BC1=%DLC_DIR%\UI_bc1"
+
+if exist "%DLC_DIR%" (
+    :: Copy VPUI
+    if exist "!SOURCE_VPUI!" (
+        echo   Copying VPUI to DLC folder...
+        if exist "!DEST_VPUI!" (
+            echo   Removing existing VPUI...
+            rmdir /S /Q "!DEST_VPUI!" >nul 2>&1
+        )
+        xcopy /E /I /Y "!SOURCE_VPUI!" "!DEST_VPUI!" >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo   [OK] VPUI installed to DLC folder
+        ) else (
+            echo   [WARN] Failed to copy VPUI to DLC folder
+        )
+    ) else (
+        echo   [WARN] VPUI source folder not found
+    )
+
+    :: Copy UI_bc1
+    if exist "!SOURCE_UI_BC1!" (
+        echo   Copying UI_bc1 to DLC folder...
+        if exist "!DEST_UI_BC1!" (
+            echo   Removing existing UI_bc1...
+            rmdir /S /Q "!DEST_UI_BC1!" >nul 2>&1
+        )
+        xcopy /E /I /Y "!SOURCE_UI_BC1!" "!DEST_UI_BC1!" >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo   [OK] UI_bc1 installed to DLC folder
+        ) else (
+            echo   [WARN] Failed to copy UI_bc1 to DLC folder
+        )
+    ) else (
+        echo   [WARN] UI_bc1 source folder not found
+    )
+) else (
+    echo   [WARN] DLC directory not found at !DLC_DIR!
+)
 :: Check for existing Vox Populi installation
 echo.
-echo [6/9] Installing Vox Populi Community Patch...
+echo [7/10] Installing Vox Populi Community Patch...
 set "VP_INSTALLED=0"
 set "CP_PATH=%MODS_DIR%\(1) Community Patch"
 set "VD_PATH=%MODS_DIR%\(1b) Vox Deorum"
 set "VP_PATH=%MODS_DIR%\(2) Vox Populi"
+set "EUI_PATH=%MODS_DIR%\(3a) EUI Compatibility Files"
 
 if exist "%CP_PATH%" (
     if exist "%VP_PATH%" (
@@ -265,13 +313,14 @@ if "%VP_INSTALLED%"=="1" (
 )
 
 if "%VP_INSTALLED%"=="0" (
-    :: Copy full Community Patch, Vox Deorum, and Vox Populi
-    echo   Installing Community Patch, Vox Deorum, and Vox Populi...
+    :: Copy full Community Patch, Vox Deorum, Vox Populi, and EUI Compatibility Files
+    echo   Installing Community Patch, Vox Deorum, Vox Populi, and EUI Compatibility Files...
 
     :: Check if source folders exist
     set "SOURCE_CP=%SCRIPT_DIR%\..\civ5-dll\(1) Community Patch"
     set "SOURCE_VD=%SCRIPT_DIR%\..\civ5-mod"
     set "SOURCE_VP=%SCRIPT_DIR%\..\civ5-dll\(2) Vox Populi"
+    set "SOURCE_EUI=%SCRIPT_DIR%\..\civ5-dll\(3a) EUI Compatibility Files"
 
     if exist "!SOURCE_CP!" (
         echo   Copying ^(1^) Community Patch...
@@ -310,6 +359,11 @@ if "%VP_INSTALLED%"=="0" (
             xcopy /E /I /Y "!SOURCE_VP!" "!VP_PATH!" >nul 2>&1
         )
 
+        if exist "!SOURCE_EUI!" (
+            echo   Copying ^(3a^) EUI Compatibility Files...
+            xcopy /E /I /Y "!SOURCE_EUI!" "!EUI_PATH!" >nul 2>&1
+        )
+
         echo   [OK] Mods installed successfully
     ) else (
         echo   Warning: Source mod folders not found
@@ -318,6 +372,7 @@ if "%VP_INSTALLED%"=="0" (
         echo     - ^(1^) Community Patch folder to !CP_PATH!
         echo     - ^(1b^) Vox Deorum folder to !VD_PATH!
         echo     - ^(2^) Vox Populi folder to !VP_PATH!
+        echo     - ^(3a^) EUI Compatibility Files folder to !EUI_PATH!
         echo     - CvGameCore_Expansion2.dll to !CP_PATH!\
     )
 )
@@ -325,7 +380,7 @@ if "%VP_INSTALLED%"=="0" (
 :skip_vp_override
 :: Copy config.ini and UserSettings.ini if not present in game settings folder
 echo.
-echo [7/9] Checking Vox Deorum configuration files...
+echo [8/10] Checking Vox Deorum configuration files...
 set "SETTINGS_DIR=%DOCUMENTS%\My Games\Sid Meier's Civilization 5"
 set "CONFIG_SOURCE=%SCRIPT_DIR%\configs\config.ini"
 set "CONFIG_DEST=%SETTINGS_DIR%\config.ini"
@@ -368,7 +423,7 @@ if exist "%USERSETTINGS_SOURCE%" (
 
 :: Install Node.js dependencies
 echo.
-echo [8/9] Installing Node.js dependencies...
+echo [9/10] Installing Node.js dependencies...
 set "PROJECT_ROOT=%SCRIPT_DIR%\.."
 echo   Project root: !PROJECT_ROOT!
 
@@ -584,7 +639,7 @@ if !errorlevel! equ 0 (
 
 :: Verification
 echo.
-echo [9/9] Verification...
+echo [10/10] Verification...
 set "SUCCESS=1"
 
 :: Check Steam
@@ -623,6 +678,27 @@ if exist "%VP_PATH%" (
     echo   [OK] Vox Populi installed
 ) else (
     echo   [WARN] Vox Populi not found ^(optional^)
+)
+
+:: Check EUI Compatibility Files
+if exist "%EUI_PATH%" (
+    echo   [OK] ^(3a^) EUI Compatibility Files installed
+) else (
+    echo   [WARN] ^(3a^) EUI Compatibility Files not found
+)
+
+:: Check VPUI in DLC
+if exist "%DLC_DIR%\VPUI" (
+    echo   [OK] VPUI installed in DLC folder
+) else (
+    echo   [WARN] VPUI not found in DLC folder
+)
+
+:: Check UI_bc1 in DLC
+if exist "%DLC_DIR%\UI_bc1" (
+    echo   [OK] UI_bc1 installed in DLC folder
+) else (
+    echo   [WARN] UI_bc1 not found in DLC folder
 )
 
 :: Check Lua DLL

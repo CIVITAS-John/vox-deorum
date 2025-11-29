@@ -35,7 +35,9 @@
       "Bash(git submodule:*)",
       "WebFetch(domain:ai-sdk.dev)",
       "Bash(git ls-remote:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git tag:*)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []
