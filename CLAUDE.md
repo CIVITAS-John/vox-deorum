@@ -59,11 +59,11 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 
 ### Module System
 - All TypeScript modules use ESM ("type": "module")
-- **Critical**: Always use `.js` extensions in imports, even for `.ts` files
+- **Always use `.js` extensions in imports**, even for `.ts` files
 - This applies to ALL submodules (bridge-service, mcp-server, vox-agents)
 
 ### Testing Framework
-- **Vitest** for all TypeScript testing (NOT Jest)
+- **Use Vitest** for all TypeScript testing
 - Test files: `tests/*.test.ts`
 - Sequential execution for IPC tests: `singleFork: true`
 - Extended timeouts for game integration
@@ -77,12 +77,13 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 ### State Management
 - Singleton pattern for services (export instance, not class)
 - Map-based registries for dynamic content
-- AbortController for cancellation (refresh after abort)
+- **Always refresh AbortController after abort** for proper cancellation
 - Distinguish manual vs automatic state changes
+- **Implement graceful shutdown handlers** in all services
 
 ### Performance Optimization
 - Lazy loading with factory patterns
-- Batch operations to reduce IPC overhead (up to 50 Lua calls)
+- **Always batch operations** to reduce IPC overhead (up to 50 Lua calls)
 - Connection pooling (standard vs fast pools)
 - Multi-level caching (tool, manager, knowledge store)
 
@@ -118,29 +119,35 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 - DRY principles
 - Straightforward implementation focused on goals
 
+### Logging Conventions
+- **Use Winston logger** for all TypeScript modules (bridge-service, mcp-server, vox-agents)
+- **Never use console.log/error/warn** in production code - always use the logger utility
+- Import pattern: `import { createLogger } from '../utils/logger.js';`
+- Create logger instance: `const logger = createLogger('ComponentName');`
+- Log levels: `logger.debug()`, `logger.info()`, `logger.warn()`, `logger.error()`
+- For errors, pass error object as second parameter: `logger.error('Message', error)`
+- Test files may use console.log for debugging during test runs
+
+### Database Conventions
+- **Use `is` / `is not` for SQLite null checks** (never `=` / `!=`)
+- Prepare statements for repeated queries
+- Use transactions for batch operations
+- Implement proper indexing for performance
+
 ### Comment Conventions
 - Top-level comments in each code file
 - Comments on all public/exported definitions
 - Comments within long functions
 - Use `// Vox Deorum:` prefix for modifications in C++ code beyond CvConnectionService
 
-### Common Pitfalls Across Modules
-1. **Forgetting `.js` extensions** in TypeScript imports
-2. **Using Jest instead of Vitest** for tests
-3. **Direct HTTP calls** instead of using manager classes
-4. **Not refreshing AbortController** after abort
-5. **Missing graceful shutdown** handlers
-6. **Ignoring player visibility** in game data
-7. **Not batching operations** for performance
-8. **Using `=` / `!=` for SQLite null checks** (use `is` / `is not`)
-
 ### Integration Best Practices
-- Always use manager classes for cross-service communication
+- **Use manager classes for all cross-service communication** (not direct HTTP calls)
 - Test with both stdio and HTTP transports where applicable
 - Implement observability/telemetry wrapping
 - Handle connection failures with retry logic
 - Flush telemetry on shutdown
 - Use configuration-driven initialization
+- **Respect player visibility** when handling game data
 
 ## Quick Reference
 

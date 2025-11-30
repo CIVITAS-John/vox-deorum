@@ -5,6 +5,9 @@
 
 import { ToolBase } from "../base.js";
 import * as z from "zod";
+import { createLogger } from "../../utils/logger.js";
+
+const logger = createLogger('GetPlayersTool');
 import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
 import { PlayerOpinions, PlayerSummary } from "../../knowledge/schema/timed.js";
@@ -120,7 +123,7 @@ class GetPlayersTool extends ToolBase {
         missingPlayers.push(summary.Key);
     }
     if (missingPlayers.length > 0) {
-      console.warn(`Found ${missingPlayers.length} player(s) in summary without corresponding information. Refreshing player information...`);
+      logger.warn(`Found ${missingPlayers.length} player(s) in summary without corresponding information. Refreshing player information...`);
       playerInfos = await getPlayerInformations(true);
     }
 

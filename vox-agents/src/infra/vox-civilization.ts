@@ -6,7 +6,9 @@ import { spawn, exec } from 'child_process';
 import { join } from 'path';
 import { promisify } from 'util';
 import { setTimeout } from 'node:timers/promises'
+import { createLogger } from '../utils/logger.js';
 
+const logger = createLogger('VoxCivilization');
 const execAsync = promisify(exec);
 type ExitCallback = (code: number | null) => void;
 
@@ -25,7 +27,7 @@ export class VoxCivilization {
   private async bindToExistingProcess(): Promise<boolean> {
     const pid = await this.findCivilizationProcess();
     if (pid) {
-      console.log(`Found existing CivilizationV.exe process (PID: ${pid})`);
+      logger.info(`Found existing CivilizationV.exe process (PID: ${pid})`);
       this.externalProcessPid = pid;
       this.monitoring = true;
       this.startProcessMonitoring();
@@ -73,7 +75,7 @@ export class VoxCivilization {
       if (this.externalProcessPid) {
         const stillRunning = await this.isProcessRunning(this.externalProcessPid);
         if (!stillRunning) {
-          console.log(`Process ${this.externalProcessPid} is no longer running`);
+          logger.info(`Process ${this.externalProcessPid} is no longer running`);
           this.handleGameExit(0);
           this.stopProcessMonitoring();
         }
@@ -106,7 +108,7 @@ export class VoxCivilization {
       }
       return false;
     } catch (error) {
-      console.error(`Error checking if process ${pid} is running:`, error);
+      logger.error(`Error checking if process ${pid} is running:`, error);
       return false;
     }
   }
@@ -119,14 +121,14 @@ export class VoxCivilization {
   async startGame(luaName: string = 'LoadMods.lua'): Promise<boolean> {
     // Check if game is already running
     if (await this.bindToExistingProcess() || this.isGameRunning()) {
-      console.log('Game instance already exists, monitoring it...');
+      logger.info('Game instance already exists, monitoring it...');
       return true;
     }
 
     const scriptPath = join('scripts', 'launch-civ5.cmd');
 
     try {
-      console.log(`Launching Civilization V with script: ${luaName}`);
+      logger.info(`Launching Civilization V with script: ${luaName}`);
 
       // Launch the cmd script and wait for it to complete
       await new Promise<void>((resolve, reject) => {
@@ -138,7 +140,7 @@ export class VoxCivilization {
 
         cmdProcess.on('exit', (code) => {
           if (code === 0) {
-            console.log('Launch script completed successfully');
+            logger.info('Launch script completed successfully');
             resolve();
           } else {
             reject(new Error(`Launch script exited with code ${code}`));
@@ -152,13 +154,13 @@ export class VoxCivilization {
 
       // Wait an additional 5s after the cmd finishes
       // Note that Civ5 would start a process, end it, and then start another one
-      console.log('Waiting 5 seconds for game to fully initialize...');
+      logger.info('Waiting 5 seconds for game to fully initialize...');
       await setTimeout(5000);
 
       // Find and bind to the actual CivilizationV.exe process
       return await this.bindToExistingProcess();
     } catch (error) {
-      console.error('Failed to launch game:', error);
+      logger.error('Failed to launch game:', error);
       return false;
     }
   }
@@ -198,7 +200,7 @@ export class VoxCivilization {
   private handleGameExit(code: number | null): void {
     if (!this.monitoring) return;
     
-    console.log(`Game exited with code: ${code}`);
+    logger.info(`Game exited with code: ${code}`);
     this.monitoring = false;
     this.externalProcessPid = null;
     this.stopProcessMonitoring();
@@ -208,7 +210,7 @@ export class VoxCivilization {
       try {
         callback(code);
       } catch (error) {
-        console.error('Error in exit callback:', error);
+        logger.error('Error in exit callback:', error);
       }
     });
   }
@@ -218,12 +220,12 @@ export class VoxCivilization {
    */
   async killGame(): Promise<boolean> {
     if (!this.externalProcessPid) {
-      console.log('No game process to kill');
-      return false;
+      logger.info('No game process to kill');
+      return true;
     }
 
     try {
-      console.log(`Killing game process with PID: ${this.externalProcessPid}`);
+      logger.info(`Killing game process with PID: ${this.externalProcessPid}`);
       await execAsync(`taskkill /F /PID ${this.externalProcessPid}`);
 
       // Wait a bit for the process to terminate
@@ -233,7 +235,7 @@ export class VoxCivilization {
       this.handleGameExit(-1);
       return true;
     } catch (error) {
-      console.error('Failed to kill game process:', error);
+      logger.error('Failed to kill game process:', error);
       return false;
     }
   }

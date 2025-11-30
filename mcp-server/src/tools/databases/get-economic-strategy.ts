@@ -5,6 +5,9 @@ import * as z from "zod";
 import * as changeCase from "change-case";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { createLogger } from "../../utils/logger.js";
+
+const logger = createLogger('GetEconomicStrategyTool');
 
 /**
  * Schema for economic strategy information
@@ -100,7 +103,7 @@ class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, Econom
     } catch (error: any) {
       // File doesn't exist or is invalid, will create it below
       if (error.code !== 'ENOENT') {
-        console.warn(`Warning reading economic.json: ${error.message}`);
+        logger.warn(`Warning reading economic.json: ${error.message}`);
       }
     }
 
@@ -133,7 +136,7 @@ class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, Econom
       await fs.mkdir(path.dirname(jsonPath), { recursive: true });
       await fs.writeFile(jsonPath, JSON.stringify(results, null, 2), 'utf-8');
     } catch (error: any) {
-      console.warn(`Warning writing economic.json: ${error.message}`);
+      logger.warn(`Warning writing economic.json: ${error.message}`);
     }
 
     return results;

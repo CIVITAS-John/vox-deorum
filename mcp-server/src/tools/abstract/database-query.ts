@@ -3,6 +3,9 @@ import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { search } from "fast-fuzzy";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { createLogger } from "../../utils/logger.js";
+
+const logger = createLogger('DatabaseQueryTool');
 
 /**
  * Base class for database query tools that provides common functionality
@@ -157,7 +160,7 @@ export abstract class DatabaseQueryTool<
           }
         } catch (error) {
           // Fall back to summary if full info fetch fails
-          console.error("Failed to fetch full info:", error);
+          logger.error("Failed to fetch full info:", error);
         }
       }
       

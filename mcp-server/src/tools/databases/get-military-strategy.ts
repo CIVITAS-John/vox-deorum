@@ -5,6 +5,9 @@ import * as z from "zod";
 import * as changeCase from "change-case";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { createLogger } from "../../utils/logger.js";
+
+const logger = createLogger('GetMilitaryStrategyTool');
 
 /**
  * Schema for military strategy information
@@ -100,7 +103,7 @@ class GetMilitaryStrategyTool extends DatabaseQueryTool<MilitaryStrategy, Milita
     } catch (error: any) {
       // File doesn't exist or is invalid, will create it below
       if (error.code !== 'ENOENT') {
-        console.warn(`Warning reading military.json: ${error.message}`);
+        logger.warn(`Warning reading military.json: ${error.message}`);
       }
     }
 
@@ -133,7 +136,7 @@ class GetMilitaryStrategyTool extends DatabaseQueryTool<MilitaryStrategy, Milita
       await fs.mkdir(path.dirname(jsonPath), { recursive: true });
       await fs.writeFile(jsonPath, JSON.stringify(results, null, 2), 'utf-8');
     } catch (error: any) {
-      console.warn(`Warning writing military.json: ${error.message}`);
+      logger.warn(`Warning writing military.json: ${error.message}`);
     }
 
     return results;
