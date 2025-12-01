@@ -2,3 +2,4 @@ logs
 coverage
 .nyc_output
 *.lcov
+docs/api

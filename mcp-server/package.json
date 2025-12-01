@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "inspect": "npx @modelcontextprotocol/inspector",
-    "codegen": "kysely-codegen --dialect sqlite --singularize --out-file ./src/database/localization.d.ts"
+    "codegen": "kysely-codegen --dialect sqlite --singularize --out-file ./src/database/localization.d.ts",
+    "docs": "typedoc"
   },
   "keywords": [
     "civilization",
@@ -60,6 +61,8 @@
     "kysely-codegen": "^0.18.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.6.2",
+    "typedoc": "^0.28.15",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.9.2",
     "vitest": "^2.0.5"
   },

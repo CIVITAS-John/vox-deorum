@@ -37,7 +37,8 @@
       "Bash(git ls-remote:*)",
       "Bash(git log:*)",
       "Bash(git tag:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(npm run docs:*)"
     ],
     "deny": [],
     "ask": []

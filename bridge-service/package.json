@@ -16,7 +16,8 @@
     "test:coverage": "vitest run --coverage",
     "test:mock": "cross-env USE_MOCK=true vitest run",
     "test:real": "cross-env USE_MOCK=false vitest run",
-    "test:mock-watch": "cross-env USE_MOCK=true vitest"
+    "test:mock-watch": "cross-env USE_MOCK=true vitest",
+    "docs": "typedoc"
   },
   "keywords": [
     "civilization",
@@ -55,6 +56,8 @@
     "rimraf": "^5.0.5",
     "supertest": "^7.1.4",
     "tsx": "^4.6.2",
+    "typedoc": "^0.28.15",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.3.2",
     "vitest": "^2.0.5"
   },

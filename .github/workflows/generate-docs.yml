@@ -1,0 +1,73 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'bridge-service/src/**'
+      - 'mcp-server/src/**'
+      - 'vox-agents/src/**'
+      - 'bridge-service/typedoc.json'
+      - 'mcp-server/typedoc.json'
+      - 'vox-agents/typedoc.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            bridge-service/package-lock.json
+            mcp-server/package-lock.json
+            vox-agents/package-lock.json
+
+      - name: Install dependencies for bridge-service
+        run: |
+          cd bridge-service
+          npm ci
+
+      - name: Install dependencies for mcp-server
+        run: |
+          cd mcp-server
+          npm ci
+
+      - name: Install dependencies for vox-agents
+        run: |
+          cd vox-agents
+          npm ci
+
+      - name: Generate documentation
+        run: |
+          chmod +x scripts/generate-docs.sh
+          ./scripts/generate-docs.sh
+
+      - name: Check for documentation changes
+        id: check_changes
+        run: |
+          git diff --exit-code || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push documentation
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -f bridge-service/docs/api/ mcp-server/docs/api/ vox-agents/docs/api/
+          git commit -m "docs: auto-generate TypeDoc documentation
+
+          🤖 Generated with GitHub Actions"
+          git push
