@@ -320,7 +320,6 @@ export class BridgeManager extends EventEmitter {
       logger.info('Event pipe connection established');
       this.eventPipeConnected = true;
       this.connectionMethod = 'eventPipe';
-      this.eventPipeSocket?.setTimeout(300000); // 5 minutes timeout
       this.emit('connected');
       this.clearRetryTimeout();
     });
@@ -349,11 +348,6 @@ export class BridgeManager extends EventEmitter {
       });
 
       logger.debug(`Pipe message handled: ${messages.length}, remaining ${this.eventPipeBuffer.length}`);
-    });
-
-    this.eventPipeSocket.on('timeout', () => {
-      logger.warn('Event pipe connection timeout - no data received within timeout period');
-      this.eventPipeSocket?.destroy();
     });
 
     this.eventPipeSocket.on('end', () => {
