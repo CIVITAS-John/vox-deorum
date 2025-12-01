@@ -1,5 +1,23 @@
 /**
- * Configuration loader for the Bridge Service
+ * Configuration Utility
+ *
+ * @module bridge-service/utils/config
+ *
+ * @description
+ * Configuration loader for the Bridge Service. Loads configuration from:
+ * 1. config.json file (if exists)
+ * 2. Environment variables (override file settings)
+ * 3. Default values (fallback)
+ *
+ * Configuration precedence: Environment Variables > config.json > Defaults
+ *
+ * @example
+ * ```typescript
+ * import { config } from './utils/config.js';
+ *
+ * console.log('REST port:', config.rest.port);
+ * console.log('DLL pipe:', config.gamepipe.id);
+ * ```
  */
 
 import fs from 'fs';
@@ -8,6 +26,23 @@ import { createLogger } from './logger.js';
 
 /**
  * Service configuration structure
+ *
+ * @interface ServiceConfig
+ *
+ * @description
+ * Complete configuration structure for the Bridge Service.
+ *
+ * @property rest - REST API server configuration
+ * @property rest.port - HTTP server port
+ * @property rest.host - HTTP server bind address
+ * @property gamepipe - DLL IPC connection configuration
+ * @property gamepipe.id - Named pipe identifier for DLL connection
+ * @property gamepipe.retry - Reconnection retry interval in milliseconds
+ * @property eventpipe - Event broadcasting configuration
+ * @property eventpipe.enabled - Whether event pipe is enabled
+ * @property eventpipe.name - Named pipe identifier for event broadcasting
+ * @property logging - Logging configuration
+ * @property logging.level - Log level (error, warn, info, debug)
  */
 export interface ServiceConfig {
   rest: {
@@ -52,6 +87,20 @@ const defaultConfig: ServiceConfig = {
 
 /**
  * Load configuration from file and environment variables
+ *
+ * @function loadConfig
+ *
+ * @description
+ * Loads and merges configuration from multiple sources with proper precedence.
+ * The configuration is loaded once at startup and cached.
+ *
+ * @returns Complete service configuration object
+ *
+ * @example
+ * ```typescript
+ * const config = loadConfig();
+ * // Use config.rest.port, config.gamepipe.id, etc.
+ * ```
  */
 export function loadConfig(): ServiceConfig {
   const configPath = path.join(process.cwd(), 'config.json');

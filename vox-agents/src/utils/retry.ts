@@ -1,5 +1,8 @@
 /**
- * Utility function for exponential retry logic
+ * @module utils/retry
+ *
+ * Utility function for exponential retry logic with jitter.
+ * Implements retry strategies to handle transient failures in async operations.
  */
 
 import { Logger } from "winston";

@@ -1,3 +1,11 @@
+/**
+ * @module utils/models/tool-rescue
+ *
+ * Tool rescue middleware for AI SDK.
+ * Detects and transforms JSON tool calls embedded in text responses into proper tool-call format.
+ * Handles cases where LLMs output tool calls as JSON text instead of using the native tool-calling API.
+ */
+
 import type {
   LanguageModelV2Content,
 } from '@ai-sdk/provider';

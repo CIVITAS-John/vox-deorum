@@ -1,9 +1,12 @@
 /**
- * Utility for transforming JSON objects into markdown format with configurable heading levels
+ * @module utils/tools/json-to-markdown
+ *
+ * Utility for transforming JSON objects into markdown format with configurable heading levels.
+ * Supports custom formatters, heading levels, and nested list generation for complex data structures.
  */
 
 /**
- * Configuration for formatting a specific heading level
+ * Configuration for formatting a specific heading level.
  */
 export interface HeadingConfig {
   /** Format string with {key} or {0} placeholder, e.g., "Player {0}" */

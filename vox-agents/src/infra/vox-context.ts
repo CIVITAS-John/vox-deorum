@@ -1,3 +1,11 @@
+/**
+ * @module infra/vox-context
+ *
+ * Runtime context for executing Vox Agents.
+ * Manages agent registration, tool availability, and agent execution with observability.
+ * Implements the agentic loop with tool calling, step preparation, and stop conditions.
+ */
+
 import { generateText, Output, Tool } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
@@ -62,7 +70,9 @@ export class VoxContext<TParameters extends AgentParameters> {
   }
 
   /**
-   * Register an agent in the context
+   * Register an agent in the context.
+   * Registered agents become available for execution and as tools for other agents.
+   *
    * @param agent - The agent to register
    */
   public registerAgent(agent: VoxAgent<unknown, TParameters>): void {
@@ -81,7 +91,8 @@ export class VoxContext<TParameters extends AgentParameters> {
   }
 
   /**
-   * Register all MCP client tools
+   * Register all MCP client tools.
+   * Fetches available tools from the MCP server and wraps them for use with AI SDK.
    */
   public async registerMCP() {
     var mcpTools = wrapMCPTools(await mcpClient.getTools());
@@ -92,8 +103,9 @@ export class VoxContext<TParameters extends AgentParameters> {
   }
 
   /**
-   * Abort the current generation if one is in progress
-   * Creates a new AbortController after aborting for future operations
+   * Abort the current generation if one is in progress.
+   * Creates a new AbortController after aborting for future operations.
+   *
    * @param successful - Whether the abort is due to successful completion
    */
   public abort(successful: boolean = false): void {
@@ -104,11 +116,13 @@ export class VoxContext<TParameters extends AgentParameters> {
   }
 
   /**
-   * Call a tool by name with the given arguments
+   * Call a tool by name with the given arguments.
+   * Allows manual tool invocation outside of agent execution loop.
+   *
    * @param name - The name of the tool to call
    * @param args - The arguments to pass to the tool
-   * @returns The result of the tool execution
-   * @throws Error if the tool is not found
+   * @param parameters - Agent parameters to pass as experimental_context
+   * @returns The result of the tool execution, or undefined if tool not found or execution fails
    */
   public async callTool<T = any>(
     name: string,
@@ -134,12 +148,15 @@ export class VoxContext<TParameters extends AgentParameters> {
   }
 
   /**
-   * Execute an agent with the given parameters
+   * Execute an agent with the given parameters.
+   * Runs the agent's system prompt, tools, and lifecycle hooks in an iterative loop
+   * until the stop condition is met. Tracks token usage and provides observability.
+   *
    * @param agentName - The name of the agent to execute
    * @param parameters - The parameters to pass to the agent
    * @param outputSchema - Optional output schema for structured generation
-   * @returns The generated text response
-   * @throws Error if the agent is not found or if aborted
+   * @returns The generated text response from the agent
+   * @throws Error if the agent is not found
    */
   public async execute(
     agentName: string,

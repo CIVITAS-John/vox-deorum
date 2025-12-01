@@ -1,5 +1,11 @@
 /**
- * Type definitions for Lua-related operations
+ * Lua Operation Types
+ *
+ * @module bridge-service/types/lua
+ *
+ * @description
+ * Type definitions for Lua function calls, script execution, and registry management.
+ * These types are used for communication between the Bridge Service and the Community Patch DLL.
  */
 
 import { APIResponse } from "./api.js";
@@ -7,6 +13,19 @@ import { IPCMessage } from "./event.js";
 
 /**
  * Request to call a Lua function
+ *
+ * @interface LuaCallRequest
+ *
+ * @property function - Name of the Lua function to call
+ * @property args - Arguments to pass to the function
+ *
+ * @example
+ * ```typescript
+ * const request: LuaCallRequest = {
+ *   function: 'Game.GetGameTurn',
+ *   args: {}
+ * };
+ * ```
  */
 export interface LuaCallRequest {
   function: string;

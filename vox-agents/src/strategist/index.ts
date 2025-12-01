@@ -1,3 +1,12 @@
+/**
+ * @module strategist/index
+ *
+ * Entry point for the Strategist workflow.
+ * Manages command-line argument parsing, session configuration,
+ * and graceful shutdown with keyboard input handling (Ctrl+A, Ctrl+C).
+ * Supports both interactive and automated game sessions with configurable strategists.
+ */
+
 import { langfuseSpanProcessor } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
 import config, { loadConfigFromFile } from "../utils/config.js";
@@ -98,7 +107,12 @@ if (sessionConfig.llms)
 let session: StrategistSession | null = null;
 let rl: readline.Interface | null = null;
 
-// Graceful shutdown handler
+/**
+ * Graceful shutdown handler.
+ * Flushes telemetry and cleans up resources before exiting.
+ *
+ * @param signal - The signal that triggered the shutdown
+ */
 let shuttingdown = false;
 let shuttingdownAfter = false;
 async function shutdown(signal: string) {
@@ -176,7 +190,10 @@ process.on('unhandledRejection', (reason, promise) => {
   // shutdown('unhandledRejection');
 });
 
-// Start the session
+/**
+ * Main entry point.
+ * Runs configured number of game sessions with the selected strategist.
+ */
 async function main() {
   logger.info(`Starting in ${sessionConfig.gameMode} mode`);
   try {

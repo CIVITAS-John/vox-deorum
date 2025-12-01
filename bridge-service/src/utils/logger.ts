@@ -1,5 +1,27 @@
 /**
- * Winston logger configuration for the Bridge Service
+ * Logger Utility
+ *
+ * @module bridge-service/utils/logger
+ *
+ * @description
+ * Winston-based logging configuration for the Bridge Service.
+ * Provides structured logging with color-coded console output and file rotation.
+ *
+ * Features:
+ * - Color-coded console output for development
+ * - JSON format for production logs
+ * - Separate error log file
+ * - Combined log file with rotation (10MB max, 10 files)
+ * - Context-aware child loggers
+ *
+ * @example
+ * ```typescript
+ * import { createLogger } from './utils/logger.js';
+ *
+ * const logger = createLogger('MyComponent');
+ * logger.info('Service started');
+ * logger.error('Connection failed', new Error('Timeout'));
+ * ```
  */
 
 import winston from 'winston';
@@ -153,6 +175,22 @@ export const logger = winston.createLogger({
 
 /**
  * Create a child logger with context
+ *
+ * @function createLogger
+ *
+ * @description
+ * Creates a Winston child logger with a specific context label.
+ * The context is included in all log messages for easy filtering and debugging.
+ *
+ * @param context - Context label for the logger (e.g., component name)
+ * @returns Winston logger instance with context
+ *
+ * @example
+ * ```typescript
+ * const logger = createLogger('DLLConnector');
+ * logger.info('Connected to DLL');
+ * // Output: [2025-11-30 12:00:00.000] INFO [DLLConnector] Connected to DLL
+ * ```
  */
 export function createLogger(context: string): winston.Logger {
   return logger.child({ context });

@@ -1,9 +1,20 @@
+/**
+ * @module strategist/simple-strategist
+ *
+ * Simple strategist agent implementation.
+ * Provides high-level strategic decision-making for Civilization V gameplay,
+ * including diplomatic persona, technology research, policy adoption, and grand strategy selection.
+ */
+
 import { ModelMessage, StepResult, Tool } from "ai";
 import { Strategist, StrategistParameters } from "./strategist.js";
 import { VoxContext } from "../infra/vox-context.js";
 
 /**
- * A simple strategist agent that analyzes the game state and sets an appropriate strategy
+ * A simple strategist agent that analyzes the game state and sets an appropriate strategy.
+ * Makes high-level decisions and delegates tactical execution to the in-game AI.
+ *
+ * @class
  */
 export class SimpleStrategist extends Strategist {
   /**

@@ -1,5 +1,29 @@
 /**
- * Lua Manager - Handles Lua function execution and registry management
+ * Lua Manager Service
+ *
+ * @module bridge-service/services/lua-manager
+ *
+ * @description
+ * Manages Lua function execution and registry. Handles single calls, batch operations,
+ * and raw script execution. Maintains a local registry of available Lua functions
+ * synchronized with the DLL.
+ *
+ * @example
+ * ```typescript
+ * import { luaManager } from './services/lua-manager.js';
+ *
+ * // Call a Lua function
+ * const result = await luaManager.callFunction({
+ *   function: 'Game.GetGameTurn',
+ *   args: {}
+ * });
+ *
+ * // Execute batch of calls
+ * const results = await luaManager.callBatch([
+ *   { function: 'Game.GetGameTurn', args: {} },
+ *   { function: 'Game.GetCurrentEra', args: {} }
+ * ]);
+ * ```
  */
 
 import { createLogger } from '../utils/logger.js';
@@ -21,6 +45,13 @@ const logger = createLogger('LuaManager');
 
 /**
  * Lua Manager class for handling Lua operations
+ *
+ * @class LuaManager
+ *
+ * @description
+ * Service class that manages all Lua-related operations including function calls,
+ * batch execution, script execution, and function registry management.
+ * Listens to DLL events for registry updates.
  */
 export class LuaManager {
   private registeredFunctions: Map<string, LuaFunction> = new Map();
@@ -42,6 +73,18 @@ export class LuaManager {
 
   /**
    * Call a Lua function
+   *
+   * @template T - Type of the expected response data
+   * @param request - Lua function call request
+   * @returns Promise resolving to Lua response
+   *
+   * @example
+   * ```typescript
+   * const response = await luaManager.callFunction({
+   *   function: 'Players[0]:GetCivilizationShortDescription',
+   *   args: {}
+   * });
+   * ```
    */
   public async callFunction<T>(request: LuaCallRequest): Promise<LuaResponse<T>> {
     logger.debug(`Calling Lua function: ${request.function}`);
@@ -59,6 +102,23 @@ export class LuaManager {
 
   /**
    * Execute a batch of Lua function calls
+   *
+   * @description
+   * Executes multiple Lua function calls in a single batch operation.
+   * This is more efficient than individual calls when you need to execute
+   * multiple functions (reduces IPC overhead).
+   *
+   * @param requests - Array of Lua function call requests
+   * @returns Promise resolving to array of Lua responses
+   *
+   * @example
+   * ```typescript
+   * const results = await luaManager.callBatch([
+   *   { function: 'Game.GetGameTurn', args: {} },
+   *   { function: 'Game.GetCurrentEra', args: {} },
+   *   { function: 'Players[0]:GetGold', args: {} }
+   * ]);
+   * ```
    */
   public async callBatch(requests: LuaBatchRequest): Promise<LuaBatchResponse> {
     logger.info(`Executing batch of ${requests.length} Lua calls`);

@@ -1,5 +1,19 @@
 /**
- * Auto-generated from YieldTypes enum
+ * @module database/enums/YieldTypes
+ * @description YieldTypes enumeration mapping
+ *
+ * Maps numeric yield type identifiers to their string names in Civilization V.
+ * Yields represent the various types of resources and output that cities and tiles produce.
+ *
+ * Auto-generated from the game's YieldTypes enum.
+ *
+ * @example
+ * ```typescript
+ * import { YieldTypes } from './database/enums/YieldTypes.js';
+ *
+ * console.log(YieldTypes[0]); // "Food"
+ * console.log(YieldTypes[3]); // "Science"
+ * ```
  */
 export const YieldTypes: Record<number, string> = {
   '-1': 'None',

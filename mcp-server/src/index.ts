@@ -1,6 +1,19 @@
 /**
- * Main entry point for Vox Deorum MCP Server
- * Initializes and starts the MCP server with transport selection
+ * @module index
+ * @description Main entry point for Vox Deorum MCP Server
+ *
+ * This module initializes and starts the MCP (Model Context Protocol) server with
+ * the configured transport mechanism (stdio or HTTP). The transport type is determined
+ * by the configuration loaded from environment variables or config files.
+ *
+ * @example
+ * ```bash
+ * # Start with stdio transport (default)
+ * npm run dev
+ *
+ * # Start with HTTP transport
+ * TRANSPORT_TYPE=http npm run dev
+ * ```
  */
 
 import { config } from './utils/config.js';
@@ -12,6 +25,12 @@ const logger = createLogger('index');
 
 /**
  * Main function - Initialize and start the MCP server with selected transport
+ *
+ * Starts the MCP server using either stdio or HTTP transport based on configuration.
+ * The server will expose game state tools and resources to MCP-compatible clients.
+ *
+ * @returns Promise that resolves when the server is started
+ * @throws {Error} If an unknown transport type is configured
  */
 async function main(): Promise<void> {
   logger.info(`Starting MCP server with ${config.transport.type} transport`);

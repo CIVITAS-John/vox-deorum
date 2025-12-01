@@ -1,9 +1,19 @@
+/**
+ * @module strategist/none-strategist
+ *
+ * No-op strategist agent implementation.
+ * Used for testing or running games without LLM-based decision making.
+ */
+
 import { ModelMessage, StepResult, Tool } from "ai";
 import { Strategist, StrategistParameters } from "./strategist.js";
 import { VoxContext } from "../infra/vox-context.js";
 
 /**
- * A do-nothing strategist agent that literally does nothing
+ * A do-nothing strategist agent that fetches game state but takes no actions.
+ * Used as a baseline for performance comparison or testing infrastructure.
+ *
+ * @class
  */
 export class NoneStrategist extends Strategist {
   /**

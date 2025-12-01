@@ -1,5 +1,19 @@
 /**
- * Auto-generated from UnitAITypes enum
+ * @module database/enums/UnitAITypes
+ * @description UnitAITypes enumeration mapping
+ *
+ * Maps numeric unit AI type identifiers to their string names.
+ * Unit AI types determine the strategic behavior and mission assignment for units.
+ *
+ * Auto-generated from the game's UnitAITypes enum.
+ *
+ * @example
+ * ```typescript
+ * import { UnitAITypes } from './database/enums/UnitAITypes.js';
+ *
+ * console.log(UnitAITypes[0]); // "Unknown"
+ * console.log(UnitAITypes[1]); // "Settle"
+ * ```
  */
 export const UnitAITypes: Record<number, string> = {
   '-1': 'None',

@@ -1,5 +1,17 @@
 /**
- * Lua execution endpoints for the Bridge Service
+ * Lua Execution Routes
+ *
+ * @module bridge-service/routes/lua
+ *
+ * @description
+ * Express router providing Lua-related endpoints for the Bridge Service.
+ * Handles Lua function calls, batch operations, script execution, and function registry.
+ *
+ * Available endpoints:
+ * - POST /lua/call - Execute a single Lua function
+ * - POST /lua/batch - Execute multiple Lua functions in batch
+ * - POST /lua/execute - Execute raw Lua script
+ * - GET /lua/functions - List available Lua functions
  */
 
 import { Router, Request, Response } from 'express';

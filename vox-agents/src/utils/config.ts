@@ -1,5 +1,9 @@
 /**
- * Configuration loader for the Vox Agents
+ * @module utils/config
+ *
+ * Configuration loader for Vox Agents.
+ * Handles loading configuration from JSON files and environment variables,
+ * with support for version information from git and version.json.
  */
 
 import fs from 'fs';
@@ -117,7 +121,10 @@ export function loadConfigFromFile<T extends object>(
 }
 
 /**
- * Load version information from version.json and git
+ * Load version information from version.json and git.
+ * Combines major.minor.revision from version.json with git commit hash.
+ *
+ * @returns Version information object or undefined if loading fails
  */
 function loadVersionInfo(): VersionInfo | undefined {
   try {
@@ -161,7 +168,11 @@ function loadVersionInfo(): VersionInfo | undefined {
 }
 
 /**
- * Load configuration from file and environment variables
+ * Load configuration from file and environment variables.
+ * Environment variables override file configuration values.
+ * Supports both file-based and environment-based transport configuration.
+ *
+ * @returns Complete configuration object with all settings merged
  */
 function loadConfig(): VoxAgentsConfig {
   dotenv.config();
@@ -211,7 +222,14 @@ function loadConfig(): VoxAgentsConfig {
 }
 
 /**
- * Singleton configuration instance
+ * Singleton configuration instance.
+ * Loaded once at module initialization and reused throughout the application.
+ *
+ * @example
+ * ```typescript
+ * import { config } from './utils/config.js';
+ * console.log(config.agent.name); // 'vox-agents'
+ * ```
  */
 export const config = loadConfig();
 

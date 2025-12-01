@@ -1,5 +1,19 @@
 /**
- * DLL Connector - Manages Windows Socket connection to Community Patch DLL using node-ipc
+ * DLL Connector Service
+ *
+ * @module bridge-service/services/dll-connector
+ *
+ * @description
+ * Manages Windows Named Pipe IPC connection to the Community Patch DLL using node-ipc.
+ * Handles message batching, automatic reconnection, and request/response tracking.
+ *
+ * Communication protocol:
+ * - Messages are JSON-encoded and delimited with "!@#$%^!"
+ * - Supports batch sending to reduce IPC overhead
+ * - Implements exponential backoff for reconnection (capped at 5 seconds)
+ * - Tracks pending requests with timeout handling
+ *
+ * @see {@link https://github.com/yourusername/vox-deorum/blob/main/protocol.md Protocol Documentation}
  */
 
 import ipc from 'node-ipc';
@@ -13,7 +27,10 @@ import { APIResponse, ErrorCode, respondError, respondSuccess } from '../types/a
 const logger = createLogger('DLLConnector');
 
 /**
- * Pending request tracking
+ * Pending request tracking interface
+ *
+ * @interface PendingRequest
+ * @template T - Type of the expected response data
  */
 interface PendingRequest<T = any> {
   id: string;
@@ -25,6 +42,42 @@ interface PendingRequest<T = any> {
 
 /**
  * DLL Connector class for managing IPC communication
+ *
+ * @class DLLConnector
+ * @extends EventEmitter
+ *
+ * @description
+ * Manages bidirectional communication with the Community Patch DLL through Windows Named Pipes.
+ * Implements automatic reconnection, message batching, and request timeout handling.
+ *
+ * @fires DLLConnector#connected - Emitted when connection to DLL is established
+ * @fires DLLConnector#disconnected - Emitted when connection to DLL is lost
+ * @fires DLLConnector#game_event - Emitted when game event received from DLL
+ * @fires DLLConnector#lua_register - Emitted when Lua function is registered
+ * @fires DLLConnector#lua_unregister - Emitted when Lua function is unregistered
+ * @fires DLLConnector#lua_clear - Emitted when Lua registry is cleared
+ * @fires DLLConnector#external_call - Emitted when external function is called from Lua
+ * @fires DLLConnector#ipc_send - Emitted for testing purposes when message is sent
+ *
+ * @example
+ * ```typescript
+ * import { dllConnector } from './services/dll-connector.js';
+ *
+ * // Connect to DLL
+ * await dllConnector.connect();
+ *
+ * // Send a message
+ * const response = await dllConnector.send({
+ *   type: 'lua_call',
+ *   function: 'Game.GetGameTurn',
+ *   args: {}
+ * });
+ *
+ * // Listen for game events
+ * dllConnector.on('game_event', (event) => {
+ *   console.log('Game event:', event.event);
+ * });
+ * ```
  */
 export class DLLConnector extends EventEmitter {
   private connected: boolean = false;
@@ -187,6 +240,27 @@ export class DLLConnector extends EventEmitter {
 
   /**
    * Send multiple messages to the DLL in batch
+   *
+   * @description
+   * Sends multiple IPC messages to the DLL in a single batch operation.
+   * This reduces IPC overhead compared to sending messages individually.
+   * All messages are sent together using the "!@#$%^!" delimiter.
+   *
+   * @template T - Type of expected response data
+   * @param messages - Array of IPC messages to send
+   * @param timeout - Timeout in milliseconds for each message (default: 120000ms)
+   * @returns Promise resolving to array of API responses, one per message
+   *
+   * @example
+   * ```typescript
+   * const messages = [
+   *   { type: 'lua_call', function: 'Game.GetGameTurn', args: {} },
+   *   { type: 'lua_call', function: 'Game.GetCurrentEra', args: {} }
+   * ];
+   * const responses = await dllConnector.sendBatch(messages);
+   * console.log('Turn:', responses[0].result);
+   * console.log('Era:', responses[1].result);
+   * ```
    */
   public async sendBatch<T>(messages: IPCMessage[], timeout: number = 120000): Promise<APIResponse<T>[]> {
     if (!this.connected) {
@@ -236,7 +310,28 @@ export class DLLConnector extends EventEmitter {
   }
 
   /**
-   * Send a message to the DLL
+   * Send a single message to the DLL
+   *
+   * @description
+   * Sends a single IPC message to the DLL and waits for a response.
+   * This is a convenience wrapper around sendBatch for single messages.
+   *
+   * @template T - Type of expected response data
+   * @param message - IPC message to send
+   * @param timeout - Timeout in milliseconds (default: 120000ms)
+   * @returns Promise resolving to API response
+   *
+   * @example
+   * ```typescript
+   * const response = await dllConnector.send({
+   *   type: 'lua_call',
+   *   function: 'Game.GetGameTurn',
+   *   args: {}
+   * });
+   * if (response.success) {
+   *   console.log('Current turn:', response.result);
+   * }
+   * ```
    */
   public async send<T>(message: IPCMessage, timeout: number = 120000): Promise<APIResponse<T>> {
     const results = await this.sendBatch<T>([message], timeout);

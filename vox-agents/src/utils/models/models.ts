@@ -1,5 +1,9 @@
 /**
- * LLM model instance management utilities
+ * @module utils/models/models
+ *
+ * LLM model instance management utilities.
+ * Handles creation and configuration of language models from various providers
+ * (OpenRouter, OpenAI, Google, Jetstream2, Chutes) with middleware support.
  */
 
 import { LanguageModel, wrapLanguageModel } from 'ai';
@@ -15,9 +19,17 @@ import { toolRescueMiddleware } from './tool-rescue.js';
 dotenv.config();
 
 /**
- * Get a LLM model config by name
- * @param modelName - Name of the model configuration (default: "default")
- * @returns Model configuration or undefined if not found
+ * Get a LLM model config by name.
+ * Supports model aliasing and reasoning effort configuration.
+ *
+ * @param name - Name of the model configuration (default: "default")
+ * @param reasoning - Optional reasoning effort level for reasoning models
+ * @returns Model configuration object
+ *
+ * @example
+ * ```typescript
+ * const model = getModelConfig('default', 'high');
+ * ```
  */
 export function getModelConfig(name: string = 'default', reasoning?: 'minimal' | 'low' | 'medium' | 'high'): Model {
   const model = config.llms[name];
@@ -31,7 +43,19 @@ export function getModelConfig(name: string = 'default', reasoning?: 'minimal' |
 }
 
 /**
- * Get a LLM model instance by name
+ * Get a LLM model instance by name.
+ * Creates a language model from the specified provider and wraps it with
+ * appropriate middleware (gemmaToolMiddleware for Gemma models, toolRescueMiddleware for others).
+ *
+ * @param config - Model configuration object
+ * @returns Wrapped LanguageModel instance ready for use
+ * @throws Error if the provider is not supported
+ *
+ * @example
+ * ```typescript
+ * const modelConfig = getModelConfig('default');
+ * const model = getModel(modelConfig);
+ * ```
  */
 export function getModel(config: Model): LanguageModel {
   var result: LanguageModel;

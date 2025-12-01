@@ -1,3 +1,11 @@
+/**
+ * @module strategist/vox-player
+ *
+ * Individual player management for strategist sessions.
+ * Each VoxPlayer manages one player's agent execution, context, and telemetry.
+ * Handles turn notifications, agent execution loop, and token usage tracking.
+ */
+
 import { VoxContext } from "../infra/vox-context.js";
 import { startActiveObservation, updateActiveTrace } from "@langfuse/tracing";
 import { StrategistParameters } from "./strategist.js";
@@ -11,7 +19,10 @@ import { config } from "../utils/config.js";
 
 /**
  * Manages a single player's strategist execution within a game session.
- * Each player gets its own VoxContext and observation span.
+ * Each player gets its own VoxContext, observation span, and execution loop.
+ * Tracks token usage and reports telemetry to Langfuse.
+ *
+ * @class
  */
 export class VoxPlayer {
   private context: VoxContext<StrategistParameters>;
@@ -44,7 +55,12 @@ export class VoxPlayer {
   }
 
   /**
-   * Queue a turn notification for processing
+   * Queue a turn notification for processing.
+   * Notifications are queued if the agent is still processing the previous turn.
+   *
+   * @param turn - The turn number
+   * @param latestID - Latest event ID from the game
+   * @returns True if this is a new turn notification, false if duplicate
    */
   notifyTurn(turn: number, latestID: number): boolean {
     if (this.parameters.running) {
@@ -58,7 +74,9 @@ export class VoxPlayer {
   }
 
   /**
-   * Main execution loop with observation span
+   * Main execution loop with observation span.
+   * Processes turn notifications and executes the strategist agent for each turn.
+   * Tracks telemetry and token usage throughout the game.
    */
   async execute(): Promise<void> {
     // Run the agent
@@ -190,7 +208,10 @@ export class VoxPlayer {
   }
 
   /**
-   * Abort this player's execution
+   * Abort this player's execution.
+   * Stops the execution loop and marks the session as completed.
+   *
+   * @param successful - Whether the abort is due to successful completion (e.g., victory)
    */
   abort(successful: boolean = false) {
     if (this.aborted) return;
@@ -201,7 +222,9 @@ export class VoxPlayer {
   }
 
   /**
-   * Get the underlying VoxContext
+   * Get the underlying VoxContext.
+   *
+   * @returns The VoxContext instance for this player
    */
   getContext() {
     return this.context;

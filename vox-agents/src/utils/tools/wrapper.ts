@@ -1,3 +1,11 @@
+/**
+ * @module utils/tools/wrapper
+ *
+ * Tool wrapper utilities for integrating agents and MCP tools with Vercel AI SDK.
+ * Provides functions to wrap VoxAgents and MCP tools as AI SDK CoreTools,
+ * handling schema transformation, parameter injection, and observability.
+ */
+
 import { z } from "zod";
 import { AgentParameters, VoxAgent } from "../../infra/vox-agent.js";
 import { VoxContext } from "../../infra/vox-context.js";
@@ -11,11 +19,19 @@ import { jsonToMarkdown } from "./json-to-markdown.js";
 import { config } from "../config.js";
 
 /**
- * Creates a dynamic tool wrapper for an agent using Vercel AI SDK's dynamicTool
+ * Creates a dynamic tool wrapper for an agent using Vercel AI SDK's dynamicTool.
+ * Allows agents to call other agents as tools, enabling hierarchical agent architectures.
+ *
  * @param agent - The agent to wrap as a tool
  * @param context - The VoxContext for executing the agent
  * @param baseParameters - Base parameters to merge with tool invocation parameters
  * @returns A CoreTool that can be used with AI SDK
+ *
+ * @example
+ * ```typescript
+ * const strategistAgent = new SimpleStrategist();
+ * const tool = createAgentTool(strategistAgent, context, { playerID: 0 });
+ * ```
  */
 export function createAgentTool<T, TParameters extends AgentParameters, TInput = unknown, TOutput = unknown>(
   agent: VoxAgent<T, TParameters, TInput, TOutput>,
@@ -72,7 +88,18 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
 }
 
 /**
- * Wrap a MCP tool for Vercel AI.
+ * Wrap a MCP tool for Vercel AI SDK.
+ * Handles schema filtering (removes autoComplete fields), parameter injection,
+ * and markdown conversion of results.
+ *
+ * @param tool - MCP tool definition
+ * @returns Vercel AI SDK CoreTool
+ *
+ * @example
+ * ```typescript
+ * const tools = await mcpClient.getTools();
+ * const wrapped = wrapMCPTool(tools[0]);
+ * ```
  */
 export function wrapMCPTool(tool: Tool): VercelTool {
   const logger = createLogger(`MCPTool-${tool.name}`);
@@ -151,7 +178,17 @@ export function wrapMCPTool(tool: Tool): VercelTool {
   });
 }
 /**
- * Wrap a MCP tool for Vercel AI.
+ * Wrap multiple MCP tools for Vercel AI SDK.
+ * Convenience function to batch-wrap an array of MCP tools.
+ *
+ * @param tools - Array of MCP tool definitions
+ * @returns ToolSet object mapping tool names to wrapped tools
+ *
+ * @example
+ * ```typescript
+ * const tools = await mcpClient.getTools();
+ * const toolSet = wrapMCPTools(tools);
+ * ```
  */
 export function wrapMCPTools(tools: Tool[]): ToolSet {
   var results: Record<string, VercelTool> = {};

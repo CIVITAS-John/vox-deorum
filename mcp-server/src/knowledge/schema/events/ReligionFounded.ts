@@ -1,9 +1,33 @@
+/**
+ * @module knowledge/schema/events/ReligionFounded
+ * @description ReligionFounded event schema
+ */
+
 import { z } from 'zod';
 
 /**
- * Event triggered when a player successfully founds a religion.
+ * Event triggered when a player successfully founds a religion
+ *
  * This transforms a civilization's pantheon into a full religion with additional beliefs,
- * a holy city, and enhanced religious spread and influence.
+ * a holy city, and enhanced religious spread and influence. Founding a religion is a
+ * significant milestone that provides permanent bonuses and strategic advantages.
+ *
+ * @example
+ * ```typescript
+ * import { ReligionFounded } from './knowledge/schema/events/ReligionFounded.js';
+ *
+ * // Validate event data
+ * const eventData = ReligionFounded.parse({
+ *   PlayerID: 0,
+ *   HolyCityID: 3,
+ *   ReligionID: 2,
+ *   PantheonBelief: 5,
+ *   FounderBelief1: 10,
+ *   FounderBelief2: 11,
+ *   FollowerBelief1: 20,
+ *   FollowerBelief2: 21
+ * });
+ * ```
  */
 export const ReligionFounded = z.object({
   /** The unique identifier of the player founding the religion */

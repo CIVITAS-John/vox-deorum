@@ -1,3 +1,11 @@
+/**
+ * @module infra/vox-agent
+ *
+ * Base agent infrastructure for Vox Agents.
+ * Defines the abstract VoxAgent class and AgentParameters interface that all agents must implement.
+ * Provides lifecycle hooks and execution control for agent behavior.
+ */
+
 import { LanguageModel, Tool, StepResult, ModelMessage } from "ai";
 import { createLogger } from "../utils/logger.js";
 import { z } from "zod";

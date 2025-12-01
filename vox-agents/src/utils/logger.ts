@@ -1,5 +1,9 @@
 /**
- * Winston logger configuration for the Bridge Service
+ * @module utils/logger
+ *
+ * Winston logger configuration for Vox Agents.
+ * Provides structured logging with color-coded console output for development
+ * and JSON output for production. Includes file-based logging for errors and all logs.
  */
 
 import winston from 'winston';
@@ -34,7 +38,10 @@ const colors = {
 };
 
 /**
- * Get level-specific styling
+ * Get level-specific styling for log messages.
+ *
+ * @param level - The log level (ERROR, WARN, INFO, DEBUG)
+ * @returns Object containing color, background, and icon for the level
  */
 const getLevelStyle = (level: string) => {
   const upperLevel = level.toUpperCase();
@@ -152,14 +159,34 @@ export const logger = winston.createLogger({
 });
 
 /**
- * Create a child logger with context
+ * Create a child logger with context.
+ * The context is automatically included in all log messages from the returned logger.
+ *
+ * @param context - The context identifier for this logger (e.g., component name)
+ * @returns A Winston logger instance with the context attached
+ *
+ * @example
+ * ```typescript
+ * const logger = createLogger('MyComponent');
+ * logger.info('Component started'); // Logs with [MyComponent] prefix
+ * ```
  */
 export function createLogger(context: string): winston.Logger {
   return logger.child({ context });
 }
 
 /**
- * Log a visual separator for better readability
+ * Log a visual separator for better readability.
+ * Useful for clearly dividing sections in log output.
+ *
+ * @param title - Optional title to display in the separator
+ * @param level - Log level to use (default: 'info')
+ *
+ * @example
+ * ```typescript
+ * logSeparator('Startup Phase');
+ * // Logs: ─────── Startup Phase ───────
+ * ```
  */
 export function logSeparator(title?: string, level: 'info' | 'debug' = 'info'): void {
   const separator = '─'.repeat(60);
@@ -176,7 +203,17 @@ export function logSeparator(title?: string, level: 'info' | 'debug' = 'info'): 
 }
 
 /**
- * Log startup information with enhanced formatting
+ * Log startup information with enhanced formatting.
+ * Displays service name, version, environment, and optional port information.
+ *
+ * @param serviceName - Name of the service being started
+ * @param version - Version string of the service
+ * @param port - Optional port number the service will listen on
+ *
+ * @example
+ * ```typescript
+ * logStartup('Vox Agents', '1.0.0', 3000);
+ * ```
  */
 export function logStartup(serviceName: string, version: string, port?: number): void {
   logSeparator(`${serviceName} v${version}`, 'info');

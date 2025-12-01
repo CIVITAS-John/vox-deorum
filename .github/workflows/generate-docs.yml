@@ -51,10 +51,20 @@ jobs:
           cd vox-agents
           npm ci
 
-      - name: Generate documentation
+      - name: Generate documentation for bridge-service
         run: |
-          chmod +x scripts/generate-docs.sh
-          ./scripts/generate-docs.sh
+          cd bridge-service
+          npm run docs
+
+      - name: Generate documentation for mcp-server
+        run: |
+          cd mcp-server
+          npm run docs
+
+      - name: Generate documentation for vox-agents
+        run: |
+          cd vox-agents
+          npm run docs
 
       - name: Check for documentation changes
         id: check_changes

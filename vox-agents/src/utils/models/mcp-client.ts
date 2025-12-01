@@ -1,6 +1,9 @@
 /**
- * MCP Client wrapper for Vox Agents
- * Handles connection to MCP server and notification subscriptions
+ * @module utils/models/mcp-client
+ *
+ * MCP Client wrapper for Vox Agents.
+ * Provides a high-level interface for connecting to the MCP server via stdio or HTTP transport,
+ * handling game event notifications, and calling MCP tools with retry logic.
  */
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -40,7 +43,25 @@ export interface GameStateNotification {
 }
 
 /**
- * MCP Client wrapper with notification support
+ * MCP Client wrapper with notification support.
+ * Manages connection to MCP server and provides event-driven access to game state changes.
+ * Implements automatic reconnection and retry logic for resilient communication.
+ *
+ * @class
+ * @extends EventEmitter
+ *
+ * @example
+ * ```typescript
+ * import { mcpClient } from './utils/models/mcp-client.js';
+ *
+ * await mcpClient.connect();
+ * mcpClient.onNotification((data) => {
+ *   console.log(`Turn ${data.Turn} for Player ${data.PlayerID}`);
+ * });
+ *
+ * const tools = await mcpClient.getTools();
+ * const result = await mcpClient.callTool('get-players', {});
+ * ```
  */
 export class MCPClient extends EventEmitter {
   private client: Client;
@@ -57,7 +78,10 @@ export class MCPClient extends EventEmitter {
   }
 
   /**
-   * Initialize client based on config
+   * Initialize client based on config.
+   * Creates transport (stdio or HTTP) and sets up the MCP client with capabilities.
+   *
+   * @private
    */
   private initializeClient() {
     this.client = new Client(
@@ -136,7 +160,10 @@ export class MCPClient extends EventEmitter {
   }
 
   /**
-   * Set up error handlers for transport layer
+   * Set up error handlers for transport layer.
+   * Handles server restart scenarios by reconnecting automatically.
+   *
+   * @private
    */
   private setupErrorHandlers(): void {
     this.transport.onerror = async (error: Error) => {
@@ -153,7 +180,10 @@ export class MCPClient extends EventEmitter {
   }
 
   /**
-   * Set up handlers for server-side notifications
+   * Set up handlers for server-side notifications.
+   * Listens for vox-deorum/game-event notifications and emits them as events.
+   *
+   * @private
    */
   private setupNotificationHandlers(): void {
     // Handle vox-deorum/game-event notifications from the server
@@ -176,7 +206,10 @@ export class MCPClient extends EventEmitter {
   }
 
   /**
-   * Connect to the MCP server
+   * Connect to the MCP server.
+   * Uses configured transport (stdio or HTTP) with retry logic.
+   *
+   * @throws Error if connection fails after retries
    */
   async connect(): Promise<void> {
     if (this.isConnected) return;
@@ -193,7 +226,10 @@ export class MCPClient extends EventEmitter {
     }
   }
   /**
-   * Disconnect from the MCP server
+   * Disconnect from the MCP server.
+   * Closes the connection and reinitializes the client for future connections.
+   *
+   * @throws Error if disconnection fails
    */
   async disconnect(): Promise<void> {
     if (!this.isConnected) return;
@@ -209,14 +245,19 @@ export class MCPClient extends EventEmitter {
     }
   }
   /**
-   * Check if client is connected
+   * Check if client is connected to the MCP server.
+   *
+   * @returns True if connected, false otherwise
    */
   get connected(): boolean {
     return this.isConnected;
   }
 
   /**
-   * Register a handler for server-side notification (PlayerID/Turn notifications)
+   * Register a handler for server-side notification (PlayerID/Turn notifications).
+   * Handler will be called whenever a game event notification is received.
+   *
+   * @param handler - Callback function to handle game state notifications
    */
   onNotification(handler: (data: GameStateNotification) => void): void {
     this.on('notification', handler);
@@ -224,7 +265,10 @@ export class MCPClient extends EventEmitter {
   }
 
   /**
-   * Register a handler for tool errors
+   * Register a handler for tool errors.
+   * Handler will be called when tool execution fails.
+   *
+   * @param handler - Callback function to handle tool errors
    */
   onToolError(handler: (error: { toolName: string, error: any }) => void): void {
     this.on('toolError', handler);
@@ -232,7 +276,13 @@ export class MCPClient extends EventEmitter {
   }
 
   /**
-   * Call a tool on the MCP server
+   * Call a tool on the MCP server.
+   * Implements retry logic (up to 3 attempts) for transient failures.
+   *
+   * @param name - Tool name to execute
+   * @param args - Arguments to pass to the tool
+   * @returns Tool execution result
+   * @throws Error if the tool call fails after retries or if arguments are invalid
    */
   async callTool(name: string, args: any = {}): Promise<any> {
     if (!this.isConnected) {
@@ -264,7 +314,10 @@ export class MCPClient extends EventEmitter {
 
   private cachedTools?: Tool[] = undefined;
   /**
-   * List available tools
+   * List available tools from the MCP server.
+   * Results are cached after the first call for performance.
+   *
+   * @returns Array of available MCP tools
    */
   async getTools(): Promise<Tool[]> {
     // Get all tools
@@ -275,6 +328,13 @@ export class MCPClient extends EventEmitter {
 }
 
 /**
- * Create and export a singleton instance
+ * Singleton MCP client instance.
+ * This is the primary interface for interacting with the MCP server.
+ *
+ * @example
+ * ```typescript
+ * import { mcpClient } from './utils/models/mcp-client.js';
+ * await mcpClient.connect();
+ * ```
  */
 export const mcpClient = new MCPClient();

@@ -1,5 +1,10 @@
 /**
- * Manages Civilization V game process lifecycle
+ * @module infra/vox-civilization
+ *
+ * Manages Civilization V game process lifecycle.
+ * Handles game launching, process monitoring, and exit callback management
+ * for the Windows environment. Supports binding to existing processes and
+ * crash recovery scenarios.
  */
 
 import { spawn, exec } from 'child_process';
@@ -13,7 +18,21 @@ const execAsync = promisify(exec);
 type ExitCallback = (code: number | null) => void;
 
 /**
- * Controls Civilization V game instance
+ * Controls Civilization V game instance.
+ * Manages game process lifecycle including launching, monitoring, and shutdown.
+ *
+ * @class
+ *
+ * @example
+ * ```typescript
+ * import { voxCivilization } from './infra/vox-civilization.js';
+ *
+ * voxCivilization.onGameExit((code) => {
+ *   console.log(`Game exited with code: ${code}`);
+ * });
+ *
+ * await voxCivilization.startGame('StartGame.lua');
+ * ```
  */
 export class VoxCivilization {
   private exitCallbacks: Set<ExitCallback> = new Set();
@@ -22,7 +41,10 @@ export class VoxCivilization {
   private pollInterval: NodeJS.Timeout | null = null;
 
   /**
-   * Finds and binds to an existing CivilizationV.exe process
+   * Finds and binds to an existing CivilizationV.exe process.
+   *
+   * @private
+   * @returns True if found and bound successfully, false otherwise
    */
   private async bindToExistingProcess(): Promise<boolean> {
     const pid = await this.findCivilizationProcess();
@@ -38,7 +60,9 @@ export class VoxCivilization {
   }
 
   /**
-   * Finds CivilizationV.exe process using Windows tasklist
+   * Finds CivilizationV.exe process using Windows tasklist.
+   *
+   * @private
    * @returns Process ID if found, null otherwise
    */
   private async findCivilizationProcess(): Promise<number | null> {
@@ -63,7 +87,10 @@ export class VoxCivilization {
   }
 
   /**
-   * Starts polling to monitor an external process
+   * Starts polling to monitor an external process.
+   * Checks every 5 seconds if the process is still running.
+   *
+   * @private
    */
   private startProcessMonitoring(): void {
     if (this.pollInterval) {
@@ -114,9 +141,11 @@ export class VoxCivilization {
   }
 
   /**
-   * Starts a Civilization V game with the specified Lua script
-   * @param luaName Name of the Lua script to run (e.g., 'StartGame.lua')
-   * @returns true if game started, false if already running
+   * Starts a Civilization V game with the specified Lua script.
+   * Waits for the game process to fully initialize before returning.
+   *
+   * @param luaName - Name of the Lua script to run (default: 'LoadMods.lua')
+   * @returns True if game started successfully, false if already running
    */
   async startGame(luaName: string = 'LoadMods.lua'): Promise<boolean> {
     // Check if game is already running
@@ -216,7 +245,9 @@ export class VoxCivilization {
   }
 
   /**
-   * Forcefully kill the game process
+   * Forcefully kill the game process using Windows taskkill.
+   *
+   * @returns True if kill command succeeded, false otherwise
    */
   async killGame(): Promise<boolean> {
     if (!this.externalProcessPid) {
@@ -241,7 +272,8 @@ export class VoxCivilization {
   }
 
   /**
-   * Cleanup resources
+   * Cleanup resources.
+   * Stops monitoring and clears all callbacks.
    */
   destroy(): void {
     this.stopProcessMonitoring();
@@ -249,5 +281,13 @@ export class VoxCivilization {
   }
 }
 
-// Export singleton instance for convenience
+/**
+ * Singleton VoxCivilization instance for managing the game process.
+ *
+ * @example
+ * ```typescript
+ * import { voxCivilization } from './infra/vox-civilization.js';
+ * await voxCivilization.startGame('LoadGame.lua');
+ * ```
+ */
 export const voxCivilization = new VoxCivilization();

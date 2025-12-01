@@ -1,5 +1,22 @@
 /**
- * Winston logger configuration for the Bridge Service
+ * @module utils/logger
+ * @description Winston logger configuration for the MCP Server
+ *
+ * Provides a centralized logging infrastructure with:
+ * - Colored console output for development
+ * - JSON format for production logs
+ * - File-based persistence with rotation
+ * - Context-aware child loggers
+ * - Visual separators and startup banners
+ *
+ * @example
+ * ```typescript
+ * import { createLogger } from './utils/logger.js';
+ *
+ * const logger = createLogger('MyComponent');
+ * logger.info('Application started');
+ * logger.error('Operation failed', { error: err });
+ * ```
  */
 
 import winston from 'winston';
@@ -13,7 +30,8 @@ if (!fs.existsSync(logsDir)) {
 }
 
 /**
- * Color codes for different log levels
+ * ANSI color codes for terminal styling
+ * Used to colorize log output in development mode
  */
 const colors = {
   reset: '\x1b[0m',
@@ -34,7 +52,12 @@ const colors = {
 };
 
 /**
- * Get level-specific styling
+ * Get level-specific styling for log messages
+ *
+ * Returns color, background color, and icon for a given log level.
+ *
+ * @param level - The log level (error, warn, info, debug)
+ * @returns Styling object with color, background, and icon properties
  */
 const getLevelStyle = (level: string) => {
   const upperLevel = level.toUpperCase();
@@ -74,6 +97,13 @@ const getLevelStyle = (level: string) => {
 
 /**
  * Enhanced custom log format with improved visual formatting and colors
+ *
+ * Provides colorized console output in development mode with:
+ * - Timestamps with millisecond precision
+ * - Color-coded log levels with icons
+ * - Context information in brackets
+ * - Pretty-printed metadata objects
+ * - Simplified format for production
  */
 const customFormat = winston.format.combine(
   winston.format.timestamp({
@@ -113,6 +143,9 @@ const customFormat = winston.format.combine(
 
 /**
  * JSON format for production logs
+ *
+ * Structured logging format suitable for log aggregation and analysis tools.
+ * Includes timestamps, error stack traces, and all metadata.
  */
 const jsonFormat = winston.format.combine(
   winston.format.timestamp(),
@@ -121,7 +154,14 @@ const jsonFormat = winston.format.combine(
 );
 
 /**
- * Create and configure the logger instance
+ * The root Winston logger instance
+ *
+ * Configured with:
+ * - Console transport for immediate feedback
+ * - File transport for error logs (10MB, 5 files)
+ * - File transport for combined logs (10MB, 10 files)
+ * - Log level from LOG_LEVEL environment variable (default: info)
+ * - Format based on NODE_ENV (development uses colors, production uses JSON)
  */
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
@@ -153,6 +193,18 @@ export const logger = winston.createLogger({
 
 /**
  * Create a child logger with context
+ *
+ * Creates a Winston child logger that automatically includes a context identifier
+ * in all log messages, making it easier to trace log messages to their source.
+ *
+ * @param context - The context identifier (e.g., component name, module name)
+ * @returns A Winston logger instance with the context attached
+ *
+ * @example
+ * ```typescript
+ * const logger = createLogger('DatabaseManager');
+ * logger.info('Connection established'); // [DatabaseManager] Connection established
+ * ```
  */
 export function createLogger(context: string): winston.Logger {
   return logger.child({ context });
@@ -160,6 +212,18 @@ export function createLogger(context: string): winston.Logger {
 
 /**
  * Log a visual separator for better readability
+ *
+ * Outputs a horizontal line separator, optionally with a centered title.
+ * Useful for visually grouping related log messages.
+ *
+ * @param title - Optional title to center in the separator
+ * @param level - Log level to use (info or debug), defaults to info
+ *
+ * @example
+ * ```typescript
+ * logSeparator('Initialization'); // ─────── Initialization ───────
+ * logSeparator();                 // ────────────────────────────────
+ * ```
  */
 export function logSeparator(title?: string, level: 'info' | 'debug' = 'info'): void {
   const separator = '─'.repeat(60);
@@ -177,6 +241,24 @@ export function logSeparator(title?: string, level: 'info' | 'debug' = 'info'): 
 
 /**
  * Log startup information with enhanced formatting
+ *
+ * Displays a formatted startup banner with service information including
+ * name, version, port, log level, and environment.
+ *
+ * @param serviceName - The name of the service being started
+ * @param version - The version number of the service
+ * @param port - Optional port number the service will listen on
+ *
+ * @example
+ * ```typescript
+ * logStartup('MCP Server', '1.0.0', 3000);
+ * // ──────── MCP Server v1.0.0 ────────
+ * // 🚀 Service starting up...
+ * // 🌐 Server will listen on port 3000
+ * // 📊 Log level: info
+ * // 🏗️  Environment: development
+ * // ────────────────────────────────────
+ * ```
  */
 export function logStartup(serviceName: string, version: string, port?: number): void {
   logSeparator(`${serviceName} v${version}`, 'info');

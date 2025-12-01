@@ -1,5 +1,20 @@
 /**
- * Bridge Service Entry Point - Express server for Vox Deorum communication layer
+ * Bridge Service Entry Point
+ *
+ * @module bridge-service
+ *
+ * @description
+ * Express server for Vox Deorum communication layer. This is the main entry point
+ * for the Bridge Service, which acts as an IPC bridge between the Community Patch DLL
+ * and external services (MCP server, Vox Agents, etc.).
+ *
+ * The service provides:
+ * - REST API for Lua function calls and script execution
+ * - External function registration and management
+ * - Server-Sent Events (SSE) for real-time game event streaming
+ * - Health monitoring and statistics endpoints
+ *
+ * @see {@link https://github.com/yourusername/vox-deorum/blob/main/protocol.md Protocol Documentation}
  */
 
 import express, { Request, Response, NextFunction } from 'express';
@@ -157,7 +172,24 @@ app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 /**
- * Start the server
+ * Start the Bridge Service server
+ *
+ * @description
+ * Initializes and starts the HTTP server with graceful shutdown handlers.
+ * This function:
+ * 1. Starts the Bridge Service (DLL connection, event pipe)
+ * 2. Creates HTTP server with keep-alive timeout
+ * 3. Sets up graceful shutdown on SIGTERM, SIGINT, and SIGBREAK
+ * 4. Handles uncaught exceptions and unhandled promise rejections
+ *
+ * @returns Promise that resolves when the server is successfully started
+ * @throws Error if the server fails to start
+ *
+ * @example
+ * ```typescript
+ * await startServer();
+ * // Server is now listening on configured host:port
+ * ```
  */
 async function startServer(): Promise<void> {
   try {

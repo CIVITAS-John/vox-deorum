@@ -1,3 +1,11 @@
+/**
+ * @module strategist/strategist-session
+ *
+ * Strategist session management.
+ * Orchestrates game lifecycle, player management, crash recovery, and event handling
+ * for a single game session. Manages multiple VoxPlayers and handles game state transitions.
+ */
+
 import { createLogger } from "../utils/logger.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
 import { VoxPlayer } from "./vox-player.js";
@@ -26,7 +34,10 @@ export interface StrategistSessionConfig {
 }
 
 /**
- * Manages a game session for the strategist system
+ * Manages a game session for the strategist system.
+ * Handles game startup, player coordination, crash recovery, and graceful shutdown.
+ *
+ * @class
  */
 export class StrategistSession {
   private activePlayers = new Map<number, VoxPlayer>();
@@ -46,8 +57,8 @@ export class StrategistSession {
   }
 
   /**
-   * Starts the session and plays until PlayerVictory
-   * @param gameMode - Override the default game mode from config
+   * Starts the session and plays until PlayerVictory.
+   * Launches the game, connects to MCP server, and waits for completion.
    */
   async start(): Promise<void> {
     const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' : 'LoadGame.lua';
@@ -108,7 +119,8 @@ export class StrategistSession {
   }
 
   /**
-   * Shuts down the session gracefully
+   * Shuts down the session gracefully.
+   * Aborts all players, disconnects from MCP, and cleans up resources.
    */
   async shutdown(): Promise<void> {
     logger.info('Shutting down strategist session...');
@@ -224,7 +236,11 @@ Game.SetAIAutoPlay(2000, -1);`
   }
 
   /**
-   * Handles game process exit events (crashes or normal exits)
+   * Handles game process exit events (crashes or normal exits).
+   * Implements bounded crash recovery with automatic game restart.
+   *
+   * @private
+   * @param exitCode - Exit code from the game process
    */
   private async handleGameExit(exitCode: number | null): Promise<void> {
     // Don't attempt recovery if we're shutting down or victory was achieved

@@ -1,5 +1,9 @@
 /**
- * Simple strategist agent that executes the set-strategy tool
+ * @module strategist/strategist
+ *
+ * Base strategist agent implementation.
+ * Defines the abstract Strategist class that fetches game state and provides it
+ * to concrete strategist implementations. All strategists inherit from this class.
  */
 
 import { ModelMessage } from "ai";
@@ -17,11 +21,23 @@ export interface StrategistParameters extends AgentParameters {
 }
 
 /**
- * A simple strategist agent that analyzes the game state and sets an appropriate strategy
+ * Base strategist agent that analyzes the game state and sets an appropriate strategy.
+ * Fetches game data (players, events, cities, victory progress, military reports) and
+ * stores it in parameters for use by concrete strategist implementations.
+ *
+ * @abstract
+ * @class
+ * @template T - Additional agent-specific data
  */
 export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistParameters> {
   /**
-   * Gets the initial messages for the conversation
+   * Gets the initial messages for the conversation.
+   * Fetches all required game state data and stores it in parameters.store.
+   *
+   * @param parameters - Strategist execution parameters
+   * @param context - Execution context
+   * @returns Empty array (concrete implementations add user messages)
+   * @throws Error if any required data fetch fails
    */
   public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     // Get the information
@@ -52,14 +68,22 @@ export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistPara
   }
 
   /**
-   * Check if a CallToolResult contains an error
+   * Check if a CallToolResult contains an error.
+   *
+   * @private
+   * @param result - Tool call result to check
+   * @returns True if result is undefined or contains an error
    */
   private isErrorResult(result: CallToolResult | undefined): boolean {
     return result === undefined || result.isError === true;
   }
 
   /**
-   * Extract error text from a CallToolResult
+   * Extract error text from a CallToolResult.
+   *
+   * @private
+   * @param result - Tool call result containing error
+   * @returns Error message text, or 'Unknown error' if not found
    */
   private extractErrorText(result: CallToolResult): string {
     if (result.content && result.content.length > 0) {
