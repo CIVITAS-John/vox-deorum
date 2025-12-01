@@ -19,6 +19,7 @@
 import ipc from 'node-ipc';
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
+import guardTimeout from 'guard-timeout';
 import { createLogger } from '../utils/logger.js';
 import { config } from '../utils/config.js';
 import { IPCMessage } from '../types/event.js';
@@ -123,7 +124,7 @@ export class DLLConnector extends EventEmitter {
           this.emit('connected');
           
           // Wait for 100ms for Windows Named Pipe to work
-          setTimeout(() => {
+          guardTimeout(() => {
             resolve(true);
           }, 100);
         }).on('disconnect', () => {
@@ -229,7 +230,7 @@ export class DLLConnector extends EventEmitter {
     
     logger.debug(`Attempting reconnection ${this.reconnectAttempts} in ${delay}ms`);
     
-    this.reconnectTimer = setTimeout(() => {
+    this.reconnectTimer = guardTimeout(() => {
       this.reconnectTimer = undefined; // Clear the timer reference before attempting
       if (this.shuttingDown) return; // Don't reconnect if shutting down
       this.connect().catch((error) => {
@@ -282,7 +283,7 @@ export class DLLConnector extends EventEmitter {
           resolve,
           reject: resolve,
           timestamp: new Date(),
-          timeout: setTimeout(() => {
+          timeout: guardTimeout(() => {
             this.pendingRequests.delete(messageWithId.id);
             logger.error('Message timeout: ' + messageWithId.id);
             resolve(respondError(ErrorCode.CALL_TIMEOUT));
@@ -393,7 +394,7 @@ export class DLLConnector extends EventEmitter {
 
     // Create a promise that resolves when disconnected event is emitted
     const disconnectedPromise = new Promise<void>((resolve) => {
-      const timeout = setTimeout(() => {
+      const timeout = guardTimeout(() => {
         // If disconnected event doesn't fire within 2 seconds, resolve anyway
         logger.warn('Disconnect timeout - resolving without event');
         resolve();
@@ -401,7 +402,7 @@ export class DLLConnector extends EventEmitter {
 
       this.once('disconnected', () => {
         clearTimeout(timeout);
-        setTimeout(() => {
+        guardTimeout(() => {
           resolve();
         }, 200);
       });

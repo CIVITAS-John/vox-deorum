@@ -33,6 +33,7 @@
     "better-sse": "^0.15.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "guard-timeout": "^2.0.0",
     "helmet": "^7.1.0",
     "node-ipc": "^9.2.1",
     "uuid": "^9.0.1",
