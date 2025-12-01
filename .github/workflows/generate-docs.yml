@@ -69,7 +69,10 @@ jobs:
       - name: Check for documentation changes
         id: check_changes
         run: |
-          git diff --exit-code || echo "has_changes=true" >> $GITHUB_OUTPUT
+          # Check for both modified and untracked files in docs directories
+          if git status --porcelain | grep -E '(bridge-service/docs/api/|mcp-server/docs/api/|vox-agents/docs/api/)'; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Commit and push documentation
         if: steps.check_changes.outputs.has_changes == 'true'

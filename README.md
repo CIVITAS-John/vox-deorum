@@ -1,12 +1,14 @@
 # Vox Deorum
 
-LLM-enhanced AI system for Civilization V upon the [Community Patch + Vox Populi](https://github.com/LoneGazebo/Community-Patch-DLL).
+Vox Deorum brings modern AI capabilities to your Civilization V games, allowing you to play alongside or against AI opponents powered by large language models (LLMs) like GPT-5. Built upon the [Community Patch + Vox Populi](https://github.com/LoneGazebo/Community-Patch-DLL).
 
-**Version 0.1.0 - Alpha (Last Updated: 9/30/25)**
+**Version 0.1.9 - Alpha (Last Updated: 11/30/25)**
+
+Designed to work with the [Vox Deorum Replayer](https://github.com/CIVITAS-John/vox-deorum-replay), a web-based review player that also demonstrates how LLMs play Civilization V.
+
+![Replay Viewer in Action](examples/replay-demo.gif)
 
 ## For Players
-
-Vox Deorum brings modern AI capabilities to your Civilization V games, allowing you to play alongside or against AI opponents powered by large language models (LLMs) like GPT-5.
 
 ### What You Need
 
@@ -92,26 +94,6 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
          (Named Pipe)         (REST/SSE)       (MCP/HTTP)   (LLMs)
 ```
 
-### Quick Start
-
-1. **Clone the repository**:
-   ```cmd
-   git clone https://github.com/CIVITAS-John/vox-deorum.git
-   cd vox-deorum
-   ```
-
-2. **Install dependencies**:
-   ```cmd
-   scripts\install.cmd
-   ```
-
-3. **Build the DLL** (optional, prebuilt binaries included):
-   ```cmd
-   scripts\update-dlls.cmd
-   ```
-
-4. **Configure and run**: See player instructions above
-
 ### Components
 
 #### [Community Patch DLL](civ5-dll/)
@@ -156,23 +138,34 @@ Game integration scripts
 
 #### Prerequisites
 - Node.js ≥20.0.0
-- Windows (for DLL compilation)
-- Visual Studio Build Tools or SDK
-- Git with submodules support
+- Windows 10/11 (for DLL compilation)
+- Python 3.x (for DLL build scripts)
+- Visual Studio Build Tools or Windows SDK
+- Git with LFS support
 
 #### Building from Source
 
 ```bash
 # Clone with submodules
 git clone --recursive https://github.com/CIVITAS-John/vox-deorum.git
-
-# Install all dependencies
 cd vox-deorum
+
+# Initialize and update submodules
+git submodule update --init --recursive
+
+# Install all dependencies for TypeScript modules
 npm install --workspaces
 
-# Build the DLL
+# Build the Community Patch DLL (Windows only)
 cd civ5-dll
 python build_vp_clang_sdk.py
+# Or use the build-and-copy script to also deploy
+powershell -Command "& .\build-and-copy.bat"
+
+# Build TypeScript modules
+cd ../bridge-service && npm run build
+cd ../mcp-server && npm run build
+cd ../vox-agents && npm run build
 
 # Run tests
 npm test --workspaces
@@ -228,30 +221,13 @@ cd vox-agents && npm test      # Agent workflow tests
 ### Documentation
 
 - [CLAUDE.md](CLAUDE.md) - AI development guidelines
-- [protocol.md](protocol.md) - Communication protocol spec
+- [PROTOCOL.md](bridge-service/PROTOCOL.md) - IPC communication protocol specification
 - Component READMEs in each subdirectory
-- API documentation in source files
-
-## Project Structure
-
-```
-vox-deorum/
-├── civ5-dll/          # Community Patch DLL (submodule)
-├── civ5-mod/          # Game mod files
-├── bridge-service/    # Communication layer
-├── mcp-server/        # MCP game state server
-├── vox-agents/        # LLM agent workflows
-├── CLAUDE.md          # AI assistant instructions
-└── README.md          # This file
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes following the existing code conventions
-4. Test your changes thoroughly
-5. Submit a pull request
+- TypeScript API Documentation (auto-generated):
+  - [Bridge Service API](bridge-service/docs/api/README.md) - REST endpoints, SSE, and IPC services
+  - [MCP Server API](mcp-server/docs/api/README.md) - MCP tools and game state interfaces
+  - [Vox Agents API](vox-agents/docs/api/README.md) - Agent classes and workflow types
+- [Database Schema](civ5-dll/docs/db.md) - Civ V database documentation
 
 ## License
 
