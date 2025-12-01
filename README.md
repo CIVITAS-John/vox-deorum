@@ -6,7 +6,7 @@ Vox Deorum brings modern AI capabilities to your Civilization V games, allowing 
 
 Designed to work with the [Vox Deorum Replayer](https://github.com/CIVITAS-John/vox-deorum-replay), a web-based review player that also demonstrates how LLMs play Civilization V.
 
-![Replay Viewer in Action](examples/replay-demo.gif)
+![Replay Viewer in Action](https://github.com/CIVITAS-John/vox-deorum-replay/blob/gh-pages/examples/replay-demo.gif)
 
 ## For Players
 
@@ -187,23 +187,14 @@ cd mcp-server && npm test      # MCP tool tests
 cd vox-agents && npm test      # Agent workflow tests
 ```
 
-### Architecture Details
-
-#### Communication Flow
+### Communication Flow
 1. **Game → DLL**: Lua callbacks trigger C++ functions
 2. **DLL → Bridge**: Named pipe messages (JSON protocol)
 3. **Bridge → MCP**: REST API calls and SSE events
 4. **MCP → Agents**: MCP protocol (tools and resources)
 5. **Agents → LLM**: Provider-specific API calls
 
-#### Key Design Patterns
-- **Singleton Services**: Export instances, not classes
-- **Factory Pattern**: Lazy loading for performance
-- **Event-Driven**: SSE for real-time updates
-- **Retry Logic**: Exponential backoff with jitter
-- **Batch Operations**: Reduce IPC overhead
-
-#### Performance Optimizations
+### Performance Optimizations
 - Message batching (50 Lua calls per batch)
 - Connection pooling (standard vs fast)
 - Multi-level caching (tool, manager, knowledge)
