@@ -42,20 +42,3 @@ const tracerProvider = new NodeTracerProvider({
 });
 
 tracerProvider.register();
-
-// Handle graceful shutdown
-process.on('SIGINT', async () => {
-  logger.info('Shutting down telemetry...');
-  await spanProcessor.forceFlush();
-  await parquetExporter.shutdown();
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  logger.info('Shutting down telemetry...');
-  await spanProcessor.forceFlush();
-  await parquetExporter.shutdown();
-  process.exit(0);
-});
-
-logger.info('Telemetry initialized with Parquet exporter');

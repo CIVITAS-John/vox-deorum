@@ -41,33 +41,15 @@ const traceSchema = new parquet.ParquetSchema({
 const writers = new Map<string, parquet.ParquetWriter>();
 
 /**
- * Map of context IDs to row buffers for batching
- */
-const buffers = new Map<string, any[]>();
-
-/**
- * Batch size for writing to Parquet files
- */
-const BATCH_SIZE = 100;
-
-/**
  * Custom OpenTelemetry span exporter that writes to Parquet files.
  * Groups trace data by VoxContext ID for easier analysis.
  */
 export class ParquetSpanExporter implements SpanExporter {
   private dataDir: string;
-  private flushTimer: NodeJS.Timeout | null = null;
 
   constructor(dataDir: string = 'telemetry') {
     this.dataDir = dataDir;
     this.ensureDataDirectory();
-
-    // Set up periodic flush every 5 seconds
-    this.flushTimer = setInterval(() => {
-      this.flushAllBuffers().catch(error => {
-        logger.error('Error during periodic flush', error);
-      });
-    }, 5000);
   }
 
   /**
@@ -94,7 +76,6 @@ export class ParquetSpanExporter implements SpanExporter {
 
       const writer = await parquet.ParquetWriter.openFile(traceSchema, filename);
       writers.set(contextId, writer);
-      buffers.set(contextId, []);
 
       logger.info(`Created Parquet writer for context ${contextId}`);
     }
@@ -106,7 +87,10 @@ export class ParquetSpanExporter implements SpanExporter {
    * Convert a ReadableSpan to a Parquet row
    */
   private spanToRow(span: ReadableSpan): any {
-    const contextId = span.attributes['vox.context.id'] as string || 'unknown';
+    const contextId = span.attributes['vox.context.id'] as string || span.attributes['ai.telemetry.metadata.vox.context.id'] as string || 'unknown';
+    if (contextId == "unknown") {
+      logger.warn(`Unknown span: ${JSON.stringify(span.attributes)}`)
+    }
     const traceId = span.spanContext().traceId;
     const spanId = span.spanContext().spanId;
     const parentSpanId = (span as any).parentSpanId || null;
@@ -132,34 +116,6 @@ export class ParquetSpanExporter implements SpanExporter {
     };
   }
 
-  /**
-   * Flush a specific context's buffer to disk
-   */
-  private async flushBuffer(contextId: string): Promise<void> {
-    const buffer = buffers.get(contextId);
-    if (!buffer || buffer.length === 0) {
-      return;
-    }
-
-    const writer = await this.getWriter(contextId);
-    for (const row of buffer) {
-      await writer.appendRow(row);
-    }
-
-    buffers.set(contextId, []);
-    logger.debug(`Flushed ${buffer.length} spans for context ${contextId}`);
-  }
-
-  /**
-   * Flush all buffers to disk
-   */
-  private async flushAllBuffers(): Promise<void> {
-    const promises: Promise<void>[] = [];
-    for (const contextId of buffers.keys()) {
-      promises.push(this.flushBuffer(contextId));
-    }
-    await Promise.all(promises);
-  }
 
   /**
    * Export spans to Parquet files
@@ -179,18 +135,13 @@ export class ParquetSpanExporter implements SpanExporter {
         spansByContext.get(contextId)!.push(row);
       }
 
-      // Add to buffers
+      // Write directly to Parquet files
       for (const [contextId, rows] of spansByContext) {
-        if (!buffers.has(contextId)) {
-          buffers.set(contextId, []);
+        const writer = await this.getWriter(contextId);
+        for (const row of rows) {
+          await writer.appendRow(row);
         }
-        const buffer = buffers.get(contextId)!;
-        buffer.push(...rows);
-
-        // Flush if buffer exceeds batch size
-        if (buffer.length >= BATCH_SIZE) {
-          await this.flushBuffer(contextId);
-        }
+        logger.debug(`Wrote ${rows.length} spans for context ${contextId}`);
       }
 
       resultCallback({ code: ExportResultCode.SUCCESS });
@@ -208,8 +159,6 @@ export class ParquetSpanExporter implements SpanExporter {
    */
   async forceFlush(): Promise<void> {
     try {
-      await this.flushAllBuffers();
-
       // Close all writers to ensure data is written
       for (const writer of writers.values()) {
         await writer.close();
@@ -228,12 +177,6 @@ export class ParquetSpanExporter implements SpanExporter {
    */
   async shutdown(): Promise<void> {
     try {
-      // Clear the flush timer
-      if (this.flushTimer) {
-        clearInterval(this.flushTimer);
-        this.flushTimer = null;
-      }
-
       // Force flush and close everything
       await this.forceFlush();
 

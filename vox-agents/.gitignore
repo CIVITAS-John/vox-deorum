@@ -52,3 +52,5 @@ temp/
 configs/*.json
 !configs/observe-*.json
 !configs/play-*.json
+
+/telemetry/
