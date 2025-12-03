@@ -38,7 +38,9 @@
       "Bash(git log:*)",
       "Bash(git tag:*)",
       "Bash(powershell:*)",
-      "Bash(npm run docs:*)"
+      "Bash(npm run docs:*)",
+      "Bash(npm view:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []

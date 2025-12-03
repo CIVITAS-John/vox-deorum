@@ -12,19 +12,25 @@ import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
 import { getModel, buildProviderOptions } from "../utils/models/models.js";
-import { startActiveObservation } from "@langfuse/tracing";
 import { ZodObject } from "zod/v4/index.js";
 import { Model } from "../utils/config.js";
 import { exponentialRetry } from "../utils/retry.js";
+import { v4 as uuidv4 } from 'uuid';
+import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
 
 /**
  * Runtime context for executing Vox Agents.
  * Manages agent registration, tool availability, and execution flow.
- * 
+ *
  * @template TParameters - The type of parameters that agents will receive
  */
 export class VoxContext<TParameters extends AgentParameters> {
   private logger = createLogger('VoxContext');
+
+  /**
+   * Unique identifier for this context instance
+   */
+  public readonly id: string;
 
   /**
    * Registry of available agents indexed by name
@@ -45,7 +51,7 @@ export class VoxContext<TParameters extends AgentParameters> {
    * AbortController for managing generation cancellation
    */
   private abortController: AbortController;
-  
+
   /**
    * Total input tokens
    */
@@ -62,11 +68,19 @@ export class VoxContext<TParameters extends AgentParameters> {
   /**
    * Constructor for VoxContext
    * @param defaultModel - The default language model to use
+   * @param id - Optional context ID, generates a UUID if not provided
    */
-  constructor(defaultModel: Model) {
+  constructor(defaultModel: Model, id?: string) {
+    this.id = id || uuidv4();
     this.defaultModel = defaultModel;
     this.abortController = new AbortController();
-    this.logger.info('VoxContext initialized');
+    this.logger.info(`VoxContext initialized with ID: ${this.id}`);
+
+    // Set the context ID as a span attribute for all traces in this context
+    const tracer = trace.getTracer('vox-context');
+    const span = tracer.startSpan('context.init');
+    span.setAttribute('vox.context.id', this.id);
+    span.end();
   }
 
   /**
@@ -95,7 +109,7 @@ export class VoxContext<TParameters extends AgentParameters> {
    * Fetches available tools from the MCP server and wraps them for use with AI SDK.
    */
   public async registerMCP() {
-    var mcpTools = wrapMCPTools(await mcpClient.getTools());
+    var mcpTools = wrapMCPTools(await mcpClient.getTools(), this.id);
     for (var tool of Object.keys(mcpTools)) {
       this.tools[tool] = mcpTools[tool];
     }
@@ -173,10 +187,17 @@ export class VoxContext<TParameters extends AgentParameters> {
     parameters.store = parameters.store ?? {};
     parameters.running = agentName;
 
-    return await startActiveObservation(agentName, async (observation) => {
-      observation.update({
-        input: parameters
-      });
+    const tracer = trace.getTracer('vox-agents');
+    const span = tracer.startSpan(`agent.${agentName}`, {
+      kind: SpanKind.INTERNAL,
+      attributes: {
+        'vox.context.id': this.id,
+        'agent.name': agentName,
+        'agent.parameters': JSON.stringify(parameters).substring(0, 1000)
+      }
+    });
+
+    return await context.with(trace.setSpan(context.active(), span), async () => {
       try {
         // Dynamically create agent tools for handoff capability
         let allTools = { ...this.tools };
@@ -271,25 +292,33 @@ export class VoxContext<TParameters extends AgentParameters> {
 
           response = response!;
           // Log the conclusion
-          observation.update({
-            output: response.steps[response.steps.length - 1]?.toolCalls ?? response.text,
-            metadata: {
-              model: `${model.name}@${model.provider}`,
-              stepCount: response.steps.length,
-              stepTools: response.steps.reduce((list, current) => list.concat(current.toolCalls.map(call => call.toolName)), [] as string[]),
-              steps: response.steps.map(step => step.content),
-            }
+          span.setAttributes({
+            'agent.output': response.text.substring(0, 1000),
+            'agent.model': `${model.name}@${model.provider}`,
+            'agent.step_count': response.steps.length,
+            'agent.tools_used': response.steps.reduce((list, current) => list.concat(current.toolCalls.map(call => call.toolName)), [] as string[]).join(','),
+            'agent.total_tokens.input': this.inputTokens,
+            'agent.total_tokens.reasoning': this.reasoningTokens,
+            'agent.total_tokens.output': this.outputTokens,
           });
+          span.setStatus({ code: SpanStatusCode.OK });
           return response.text;
-        } else return "[nothing]";
+        } else {
+          span.setStatus({ code: SpanStatusCode.OK, message: 'No system prompt' });
+          return "[nothing]";
+        }
       } catch (error) {
         this.logger.error(`Error executing agent ${agentName}!`, error);
+        span.recordException(error as Error);
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error)
+        });
         return "[nothing]";
       } finally {
         parameters.running = undefined;
+        span.end();
       }
-    }, {
-      asType: "agent"
     });
   }
 }

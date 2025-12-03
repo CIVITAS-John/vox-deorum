@@ -21,7 +21,7 @@ After completing the installation below, you can play Civilization V with AI age
    ```
 
 3. Play normally - AI agents will take over when it's their turn
-4. Watch AI decision-making in the console output (or the optional Langfuse dashboard)
+4. Watch AI decision-making in the console output
 
 ### Creating Custom AI Agents
 To create your own AI strategy:
@@ -189,14 +189,6 @@ To use a different model, edit `vox-agents/config.json`:
 ```
 
 ### Optional Configuration
-
-#### Langfuse Observability (Optional)
-For monitoring LLM usage and debugging:
-```cmd
-setx LANGFUSE_PUBLIC_KEY "pk-lf-..."
-setx LANGFUSE_SECRET_KEY "sk-lf-..."
-setx LANGFUSE_HOST "..."
-```
 
 #### Custom Ports (Advanced)
 Edit the configuration files if you need different ports:

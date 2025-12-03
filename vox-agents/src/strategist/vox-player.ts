@@ -7,20 +7,20 @@
  */
 
 import { VoxContext } from "../infra/vox-context.js";
-import { startActiveObservation, updateActiveTrace } from "@langfuse/tracing";
+import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
 import { StrategistParameters } from "./strategist.js";
 import { createLogger } from "../utils/logger.js";
 import { getModelConfig } from "../utils/models/models.js";
 import { SimpleStrategist } from "./simple-strategist.js";
 import { setTimeout } from 'node:timers/promises';
-import { langfuseSpanProcessor } from "../instrumentation.js";
+import { spanProcessor } from "../instrumentation.js";
 import { NoneStrategist } from "./none-strategist.js";
 import { config } from "../utils/config.js";
 
 /**
  * Manages a single player's strategist execution within a game session.
  * Each player gets its own VoxContext, observation span, and execution loop.
- * Tracks token usage and reports telemetry to Langfuse.
+ * Tracks token usage and reports telemetry via OpenTelemetry.
  *
  * @class
  */
@@ -40,7 +40,7 @@ export class VoxPlayer {
   ) {
     this.logger = createLogger(`VoxPlayer-${playerID}`);
 
-    this.context = new VoxContext(getModelConfig("default"));
+    this.context = new VoxContext(getModelConfig("default"), `${gameID}-player-${playerID}`);
     this.context.registerAgent(new SimpleStrategist());
     this.context.registerAgent(new NoneStrategist());
 
@@ -79,68 +79,64 @@ export class VoxPlayer {
    * Tracks telemetry and token usage throughout the game.
    */
   async execute(): Promise<void> {
-    // Run the agent
-    return await startActiveObservation(
-      `${this.parameters.gameID}-${this.playerID}`,
-      async (observation) => {
-        observation.update({
-          input: {
-            playerID: this.playerID,
-            gameID: this.parameters.gameID,
-            strategist: this.strategistType
-          },
-          output: {
-            completed: false,
-            turns: this.parameters.turn,
+    const tracer = trace.getTracer('vox-player');
+    const span = tracer.startSpan(`player.${this.parameters.gameID}.${this.playerID}`, {
+      kind: SpanKind.INTERNAL,
+      attributes: {
+        'vox.context.id': this.context.id,
+        'player.id': this.playerID,
+        'game.id': this.parameters.gameID,
+        'strategist.type': this.strategistType,
+        'config.version': config.versionInfo?.version || "unknown"
+      }
+    });
+
+    return await context.with(trace.setSpan(context.active(), span), async () => {
+      try {
+        // Flush initial span data
+        await spanProcessor.forceFlush();
+
+        await this.context.registerMCP();
+
+        // Get the game metadata as a prerequisite
+        this.parameters.store!.metadata =
+          this.parameters.store!.metadata ??
+            await this.context.callTool("get-metadata", { PlayerID: this.playerID }, this.parameters);
+
+        // Set the player's AI type
+        await this.context.callTool("set-metadata", { Key: `experiment`, Value: this.strategistType }, this.parameters);
+        await this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.strategistType }, this.parameters);
+
+        // Resume the game in case the vox agent was aborted
+        await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
+
+        while (!this.aborted) {
+          const turnData = this.pendingTurn;
+          if (!turnData) {
+            await setTimeout(10);
+            continue;
           }
-        });
-        updateActiveTrace({
-          input: {
-            playerID: this.playerID,
-            gameID: this.parameters.gameID,
-            strategist: this.strategistType
-          },
-          output: {
-            completed: false,
-            turns: this.parameters.turn,
-          },
-          sessionId: this.parameters.gameID ?? "Unknown",
-          environment: this.strategistType,
-          version: config.versionInfo?.version || "unknown"
-        })
-        await langfuseSpanProcessor.forceFlush();
 
-        try {
-          await this.context.registerMCP();
+          // Initializing
+          this.pendingTurn = undefined;
+          this.parameters.turn = turnData.turn;
+          this.parameters.before = turnData.latestID;
+          this.parameters.running = this.strategistType;
 
-          // Get the game metadata as a prerequisite
-          this.parameters.store!.metadata = 
-            this.parameters.store!.metadata ?? 
-              await this.context.callTool("get-metadata", { PlayerID: this.playerID }, this.parameters);
+          this.logger.warn(`Running ${this.strategistType} on ${this.parameters.turn}, with events ${this.parameters.after}~${this.parameters.before}`);
 
-          // Set the player's AI type
-          await this.context.callTool("set-metadata", { Key: `experiment`, Value: this.strategistType }, this.parameters);
-          await this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.strategistType }, this.parameters);
-
-          // Resume the game in case the vox agent was aborted
-          await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
-
-          while (!this.aborted) {
-            const turnData = this.pendingTurn;
-            if (!turnData) {
-              await setTimeout(10);
-              continue;
+          const turnSpan = tracer.startSpan(`turn.${this.parameters.turn}`, {
+            kind: SpanKind.INTERNAL,
+            attributes: {
+              'vox.context.id': this.context.id,
+              'turn.number': this.parameters.turn,
+              'event.range.start': this.parameters.after,
+              'event.range.end': this.parameters.before
             }
+          });
 
-            // Initializing
-            this.pendingTurn = undefined;
-            this.parameters.turn = turnData.turn;
-            this.parameters.before = turnData.latestID;
-            this.parameters.running = this.strategistType;
-
-            this.logger.warn(`Running ${this.strategistType} on ${this.parameters.turn}, with events ${this.parameters.after}~${this.parameters.before}`);
-
-            try {
+          try {
+            await context.with(trace.setSpan(context.active(), turnSpan), async () => {
               await this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
 
               // Without strategists, we just fake one
@@ -157,76 +153,74 @@ export class VoxPlayer {
               // Recording the tokens and resume the game
               await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
 
-              observation.update({
-                output: {
-                  completed: false,
-                  turns: this.parameters.turn,
-                }
+              turnSpan.setAttributes({
+                'turn.completed': true,
+                'turn.tokens.input': this.context.inputTokens,
+                'turn.tokens.reasoning': this.context.reasoningTokens,
+                'turn.tokens.output': this.context.outputTokens
               });
-              updateActiveTrace({
-                output: {
-                  completed: false,
-                  turns: this.parameters.turn,
-                }
-              });
-            } catch (error) {
-              this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) execution error:`, error);
-            } finally {
-              this.parameters.running = undefined;
-            }
+              turnSpan.setStatus({ code: SpanStatusCode.OK });
+            });
+          } catch (error) {
+            this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) execution error:`, error);
+            turnSpan.recordException(error as Error);
+            turnSpan.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: error instanceof Error ? error.message : String(error)
+            });
+          } finally {
+            this.parameters.running = undefined;
+            turnSpan.end();
           }
-        } catch (error) {
-          this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) initializing error:`, error);
-          observation.update({ output: { error: error instanceof Error ? error.message : String(error) } });
-        } finally {
-          this.logger.info(`Player ${this.playerID} (${this.parameters.gameID}) completion: ${this.aborted} (successful: ${this.successful})`);
-          observation.update({
-            output: {
-              completed: true,
-              successful: this.successful,
-              turns: this.parameters.turn
-            }
-          });
-          updateActiveTrace({
-            output: {
-              completed: true,
-              successful: this.successful,
-              turns: this.parameters.turn,
-            }
-          });
-          await Promise.all([
-            this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: String(this.context.inputTokens) }, this.parameters),
-            this.context.callTool("set-metadata", { Key: `reasoningTokens-${this.playerID}`, Value: String(this.context.reasoningTokens) }, this.parameters),
-            this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: String(this.context.outputTokens) }, this.parameters),
-            langfuseSpanProcessor.forceFlush()
-          ]);
-          await setTimeout(5000);
         }
-      }, {
-      asType: "agent"
+
+        this.successful = true;
+      } catch (error) {
+        this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) initializing error:`, error);
+        span.recordException(error as Error);
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error)
+        });
+      } finally {
+        this.logger.info(`Player ${this.playerID} (${this.parameters.gameID}) completion: ${this.aborted} (successful: ${this.successful})`);
+
+        span.setAttributes({
+          'player.completed': true,
+          'player.successful': this.successful,
+          'player.turns_processed': this.parameters.turn,
+          'player.total_tokens.input': this.context.inputTokens,
+          'player.total_tokens.reasoning': this.context.reasoningTokens,
+          'player.total_tokens.output': this.context.outputTokens
+        });
+
+        if (this.successful) {
+          span.setStatus({ code: SpanStatusCode.OK });
+        }
+
+        await Promise.all([
+          this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: String(this.context.inputTokens) }, this.parameters),
+          this.context.callTool("set-metadata", { Key: `reasoningTokens-${this.playerID}`, Value: String(this.context.reasoningTokens) }, this.parameters),
+          this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: String(this.context.outputTokens) }, this.parameters),
+          spanProcessor.forceFlush()
+        ]);
+
+        span.end();
+        await setTimeout(5000);
+      }
     });
   }
 
   /**
-   * Abort this player's execution.
-   * Stops the execution loop and marks the session as completed.
+   * Abort the player's execution.
+   * Sets the abort flag and notifies the context to stop any running generation.
    *
-   * @param successful - Whether the abort is due to successful completion (e.g., victory)
+   * @param successful - Whether the abort is due to successful game completion
    */
-  abort(successful: boolean = false) {
-    if (this.aborted) return;
-    this.logger.info(`Aborting player ${this.playerID}`);
+  abort(successful = false): void {
+    this.logger.info(`Aborting player ${this.playerID} (successful: ${successful})`);
     this.aborted = true;
     this.successful = successful;
     this.context.abort(successful);
-  }
-
-  /**
-   * Get the underlying VoxContext.
-   *
-   * @returns The VoxContext instance for this player
-   */
-  getContext() {
-    return this.context;
   }
 }

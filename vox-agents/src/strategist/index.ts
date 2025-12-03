@@ -7,7 +7,7 @@
  * Supports both interactive and automated game sessions with configurable strategists.
  */
 
-import { langfuseSpanProcessor } from "../instrumentation.js";
+import { spanProcessor, parquetExporter } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
 import config, { loadConfigFromFile } from "../utils/config.js";
 import { StrategistSession, StrategistSessionConfig } from "./strategist-session.js";
@@ -137,7 +137,8 @@ async function shutdown(signal: string) {
   }
 
   // Flush telemetry
-  await langfuseSpanProcessor.forceFlush();
+  await spanProcessor.forceFlush();
+  await parquetExporter.forceFlush();
   await setTimeout(1000);
 
   process.exit(0);

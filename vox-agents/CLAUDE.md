@@ -276,26 +276,6 @@ export function wrapMCPTool(tool: Tool): VercelTool {
 ```
 **Each workflow has dedicated entry point** with shared instrumentation.
 
-### Signal Handling
-```typescript
-async function shutdown(signal: string) {
-  if (shuttingdown) return;
-  shuttingdown = true;
-
-  if (session) await session.shutdown();
-  await langfuseSpanProcessor.forceFlush();
-  await setTimeout(1000);
-  process.exit(0);
-}
-
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught exception:', error);
-  shutdown('uncaughtException');
-});
-```
-**Centralized shutdown** with telemetry flushing.
-
 ## Build & Development
 
 ### Commands
@@ -343,25 +323,6 @@ export interface VoxAgentsConfig {
 **Interface-driven configuration** with environment overrides.
 
 ## Observability
-
-### Langfuse Integration
-```typescript
-import { startActiveObservation } from "./utils/observation.js";
-
-// Wrap operations with tracing
-const observation = startActiveObservation({
-  name: "agent-execution",
-  input: parameters
-});
-
-try {
-  // Operation code
-  observation.end({ output: result });
-} catch (error) {
-  observation.end({ error });
-}
-```
-**Always wrap key operations** with observability for tracing.
 
 ## Development Guidelines
 

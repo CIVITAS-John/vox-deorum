@@ -13,10 +13,12 @@ import { createLogger } from "../logger.js";
 import { Tool as VercelTool, dynamicTool, ToolSet, jsonSchema } from 'ai';
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { mcpClient } from "../models/mcp-client.js";
-import { startActiveObservation } from "@langfuse/tracing";
+import { trace, SpanStatusCode, SpanKind } from '@opentelemetry/api';
 import { camelCase } from "change-case";
 import { jsonToMarkdown } from "./json-to-markdown.js";
 import { config } from "../config.js";
+
+const tracer = trace.getTracer('vox-tools');
 
 /**
  * Creates a dynamic tool wrapper for an agent using Vercel AI SDK's dynamicTool.
@@ -39,50 +41,64 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
   baseParameters: TParameters
 ): VercelTool {
   const logger = createLogger(`AgentTool-${agent.name}`);
-  
+
   // Use a simpler approach to avoid deep type instantiation issues
   const description = agent.toolDescription || `Execute the ${agent.name} agent to handle specialized tasks`;
   const inputSchema = agent.inputSchema || z.object({
     Prompt: z.string().describe("The prompt or task to give to the agent")
   });
-  
+
   return dynamicTool({
     description,
     inputSchema: inputSchema as any,
     execute: async (input) => {
-      return await startActiveObservation("agent-tool: " + agent.name, async(observation) => {
-        logger.info(`Executing agent-tool: ${agent.name}`);
-        observation.update({
-          input: input
-        });
-        try {
-          let parameters = baseParameters;
-          let currentAgent = parameters.running;
-          parameters.store!.input = input as any;
-          
-          // Execute the agent through the context
-          const result = await context.execute(agent.name, parameters);
-          parameters.running = currentAgent;
-          
-          logger.info(`Agent-tool execution completed: ${agent.name}`);
-          
-          observation.update({
-            output: result
-          });
-
-          // Apply output schema if defined
-          if (agent.outputSchema) {
-            return agent.outputSchema.parse(result);
-          }
-          
-          return { result };
-        } catch (error) {
-          logger.error(`Error in agent-tool ${agent.name}:`, error);
-          throw error;
+      const span = tracer.startSpan(`agent-tool.${agent.name}`, {
+        kind: SpanKind.INTERNAL,
+        attributes: {
+          'vox.context.id': context.id,
+          'tool.name': agent.name,
+          'tool.type': 'agent',
         }
-      }, {
-        asType: "tool"
       });
+
+      try {
+        logger.info(`Executing agent-tool: ${agent.name}`);
+        span.setAttributes({
+          'tool.input': JSON.stringify(input)
+        });
+
+        let parameters = baseParameters;
+        let currentAgent = parameters.running;
+        parameters.store!.input = input as any;
+
+        // Execute the agent through the context
+        const result = await context.execute(agent.name, parameters);
+        parameters.running = currentAgent;
+
+        logger.info(`Agent-tool execution completed: ${agent.name}`);
+
+        span.setAttributes({
+          'tool.output': JSON.stringify(result).substring(0, 1000) // Truncate for large outputs
+        });
+        span.setStatus({ code: SpanStatusCode.OK });
+
+        // Apply output schema if defined
+        if (agent.outputSchema) {
+          return agent.outputSchema.parse(result);
+        }
+
+        return { result };
+      } catch (error) {
+        logger.error(`Error in agent-tool ${agent.name}:`, error);
+        span.recordException(error as Error);
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error)
+        });
+        throw error;
+      } finally {
+        span.end();
+      }
     }
   });
 }
@@ -93,6 +109,7 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
  * and markdown conversion of results.
  *
  * @param tool - MCP tool definition
+ * @param contextId - Optional VoxContext ID for tracing
  * @returns Vercel AI SDK CoreTool
  *
  * @example
@@ -101,35 +118,50 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
  * const wrapped = wrapMCPTool(tools[0]);
  * ```
  */
-export function wrapMCPTool(tool: Tool): VercelTool {
+export function wrapMCPTool(tool: Tool, contextId?: string): VercelTool {
   const logger = createLogger(`MCPTool-${tool.name}`);
-  
+
   // Remove autoComplete fields from input schema
   const filteredSchema = { ...tool.inputSchema };
   if (filteredSchema.properties && tool.annotations?.autoComplete) {
     const autoCompleteFields = tool.annotations.autoComplete as string[];
     const filteredProperties = { ...filteredSchema.properties };
-    
+
     // Remove autoComplete fields from properties
     autoCompleteFields.forEach(field => {
       delete filteredProperties[field];
     });
-    
+
     // Remove autoComplete fields from required array if present
     if (filteredSchema.required) {
       filteredSchema.required = filteredSchema.required.filter(
         (field: string) => !autoCompleteFields.includes(field)
       );
     }
-    
+
     filteredSchema.properties = filteredProperties;
   }
-  
+
   return dynamicTool({
     description: tool.description || `MCP tool: ${tool.name}`,
     inputSchema: jsonSchema(filteredSchema),
     execute: async (args: any, options) => {
-      return await startActiveObservation("mcp-tool: " + tool.name, async(observation) => {
+      const span = tracer.startSpan(`mcp-tool.${tool.name}`, {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          'tool.name': tool.name,
+          'tool.type': 'mcp',
+        }
+      });
+
+      // Add context ID if available
+      if (contextId) {
+        span.setAttribute('vox.context.id', contextId);
+      } else if ((options.experimental_context as any)?.id) {
+        span.setAttribute('vox.context.id', (options.experimental_context as any).id);
+      }
+
+      try {
         // Autocomplete support - add the fields back for execution
         if (tool.annotations?.autoComplete) {
           (tool.annotations?.autoComplete as string[]).forEach(
@@ -146,8 +178,8 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         delete args["Markdown"];
 
         // Log inputs
-        observation.update({
-          input: args
+        span.setAttributes({
+          'tool.input': JSON.stringify(args)
         });
         logger.info(`Calling tool ${tool.name}...`, args);
 
@@ -156,9 +188,10 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         const structuredResult = result.structuredContent;
         logger.info(`Tool call completed: ${tool.name}`);
 
-        observation.update({
-          output: structuredResult ?? result
+        span.setAttributes({
+          'tool.output': JSON.stringify(structuredResult ?? result).substring(0, 1000)
         });
+        span.setStatus({ code: SpanStatusCode.OK });
 
         // Return results
         if (convertMarkdown && structuredResult) {
@@ -171,17 +204,27 @@ export function wrapMCPTool(tool: Tool): VercelTool {
         } else {
           return structuredResult ?? result;
         }
-      }, {
-        asType: "tool"
-      });
+      } catch (error) {
+        logger.error(`Error calling MCP tool ${tool.name}:`, error);
+        span.recordException(error as Error);
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error)
+        });
+        throw error;
+      } finally {
+        span.end();
+      }
     }
   });
 }
+
 /**
  * Wrap multiple MCP tools for Vercel AI SDK.
  * Convenience function to batch-wrap an array of MCP tools.
  *
  * @param tools - Array of MCP tool definitions
+ * @param contextId - Optional VoxContext ID for tracing
  * @returns ToolSet object mapping tool names to wrapped tools
  *
  * @example
@@ -190,8 +233,8 @@ export function wrapMCPTool(tool: Tool): VercelTool {
  * const toolSet = wrapMCPTools(tools);
  * ```
  */
-export function wrapMCPTools(tools: Tool[]): ToolSet {
+export function wrapMCPTools(tools: Tool[], contextId?: string): ToolSet {
   var results: Record<string, VercelTool> = {};
-  tools.forEach(tool => results[tool.name] = wrapMCPTool(tool));
+  tools.forEach(tool => results[tool.name] = wrapMCPTool(tool, contextId));
   return results;
 }

@@ -126,7 +126,7 @@ LLM-powered strategic AI framework
 - Turn-based decision engine
 - Multi-LLM provider support
 - Session management with recovery
-- Langfuse observability integration
+- Local observability integration
 
 #### [Civ 5 Mod](civ5-mod/)
 Game integration scripts

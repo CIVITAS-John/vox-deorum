@@ -10,7 +10,7 @@ LLM-powered strategic AI agents for Civilization V. This module implements sophi
 - **Tool Integration** - Dynamic tool wrapping and composition for game actions
 - **Multi-LLM Support** - OpenAI, OpenRouter, and Google AI providers
 - **Session Management** - Persistent session tracking for game continuity
-- **Observability** - Langfuse tracing for monitoring agent behavior
+- **Observability** - Local parquet-based tracing for monitoring agent behavior
 
 ## Architecture
 
@@ -57,10 +57,6 @@ OPENAI_API_KEY=sk-...        # OpenAI API
 ANTHROPIC_API_KEY=sk-ant-... # Anthropic API
 OPENROUTER_API_KEY=sk-or-... # OpenRouter API (default model uses this)
 GOOGLE_GENERATIVE_AI_API_KEY=... # Google AI
-
-# Optional
-LANGFUSE_PUBLIC_KEY=...       # Telemetry
-LANGFUSE_SECRET_KEY=...       # Telemetry
 ```
 
 See `.env.default` for all available options and documentation.
@@ -304,7 +300,7 @@ this.agentRegistry.set("my-agent", new MyAgent());
 ## Development Tips
 
 ### Debugging
-- Check Langfuse dashboard for traces
+- Check parquet-based log data
 - Monitor MCP server logs
 - Use breakpoints in VS Code
 
