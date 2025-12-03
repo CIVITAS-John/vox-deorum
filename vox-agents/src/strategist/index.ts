@@ -7,7 +7,7 @@
  * Supports both interactive and automated game sessions with configurable strategists.
  */
 
-import { spanProcessor, parquetExporter } from "../instrumentation.js";
+import { spanProcessor, sqliteExporter } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
 import config, { loadConfigFromFile } from "../utils/config.js";
 import { StrategistSession, StrategistSessionConfig } from "./strategist-session.js";
@@ -137,8 +137,7 @@ async function shutdown(signal: string) {
   }
 
   // Flush telemetry
-  await spanProcessor.forceFlush();
-  await parquetExporter.forceFlush();
+  await sqliteExporter.forceFlush();
   await setTimeout(1000);
 
   process.exit(0);

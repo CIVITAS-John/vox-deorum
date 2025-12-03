@@ -13,7 +13,7 @@ import { createLogger } from "../utils/logger.js";
 import { getModelConfig } from "../utils/models/models.js";
 import { SimpleStrategist } from "./simple-strategist.js";
 import { setTimeout } from 'node:timers/promises';
-import { spanProcessor } from "../instrumentation.js";
+import { sqliteExporter, spanProcessor } from "../instrumentation.js";
 import { NoneStrategist } from "./none-strategist.js";
 import { config } from "../utils/config.js";
 
@@ -93,9 +93,6 @@ export class VoxPlayer {
 
     return await context.with(trace.setSpan(context.active(), span), async () => {
       try {
-        // Flush initial span data
-        await spanProcessor.forceFlush();
-
         await this.context.registerMCP();
 
         // Get the game metadata as a prerequisite
@@ -168,6 +165,7 @@ export class VoxPlayer {
           } finally {
             this.parameters.running = undefined;
             turnSpan.end();
+            await spanProcessor.forceFlush();
           }
         }
 
@@ -199,7 +197,7 @@ export class VoxPlayer {
           this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: String(this.context.inputTokens) }, this.parameters),
           this.context.callTool("set-metadata", { Key: `reasoningTokens-${this.playerID}`, Value: String(this.context.reasoningTokens) }, this.parameters),
           this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: String(this.context.outputTokens) }, this.parameters),
-          spanProcessor.forceFlush()
+          sqliteExporter.forceFlush()
         ]);
 
         span.end();
