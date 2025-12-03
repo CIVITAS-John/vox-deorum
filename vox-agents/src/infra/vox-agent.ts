@@ -6,12 +6,11 @@
  * Provides lifecycle hooks and execution control for agent behavior.
  */
 
-import { LanguageModel, Tool, StepResult, ModelMessage } from "ai";
+import { Tool, StepResult, ModelMessage } from "ai";
 import { createLogger } from "../utils/logger.js";
 import { z } from "zod";
 import { Model } from "../utils/config.js";
 import { VoxContext } from "./vox-context.js";
-import { buildProviderOptions } from "../utils/models/models.js";
 
 /**
  * Parameters for configuring agent execution.
@@ -71,6 +70,11 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * Whether we will remove used tools from the active list
    */
   public removeUsedTools: boolean = false;
+  
+  /**
+   * Whether we want to force the LLM to call tools (only works when activeTools exist)
+   */
+  public toolChoice: string = "required";
 
   /**
    * Whether we will only keep the last round of agent-tool exchanges (i.e. system + user + last reasoning (if any) + last text (if any) + last tool call + last tool result)
@@ -148,17 +152,17 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    */
   public async prepareStep(
     parameters: TParameters,
-    _lastStep: StepResult<Record<string, Tool>>,
+    lastStep: StepResult<Record<string, Tool>> | null,
     allSteps: StepResult<Record<string, Tool>>[],
     messages: ModelMessage[],
-    _context: VoxContext<TParameters>
-  ): Promise<{
-    model?: LanguageModel;
-    toolChoice?: any;
-    activeTools?: string[];
-    messages?: ModelMessage[];
-  }> {
-    const config: any = {};
+    context: VoxContext<TParameters>
+  ) {
+    const config: {
+      model?: Model;
+      toolChoice?: any;
+      activeTools?: string[];
+      messages?: ModelMessage[];
+    } = {};
 
     // Check for removeUsedTools option
     if (this.removeUsedTools) {
@@ -179,8 +183,10 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
       }
     }
 
-    // Check for onlyLastRound option
-    if (this.onlyLastRound) {
+    // Handle messages
+    if (lastStep === null) {
+      config.messages = await this.getInitialMessages(parameters, context);
+    } else if (this.onlyLastRound) {
       // Keep all system and user messages, but only the last round of assistant/tool messages
       const filteredMessages: ModelMessage[] = [];
       let lastUserIndex = -1;
@@ -204,11 +210,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
       config.messages = filteredMessages;
     }
 
-    const model = this.getModel(parameters);
-    if (model) {
-      config.model = model;
-      config.providerOptions = buildProviderOptions(model)
-    }
+    config.model = this.getModel(parameters);
 
     return config;
   }

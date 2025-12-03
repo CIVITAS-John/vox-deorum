@@ -88,12 +88,11 @@ export class ParquetSpanExporter implements SpanExporter {
    */
   private spanToRow(span: ReadableSpan): any {
     const contextId = span.attributes['vox.context.id'] as string || span.attributes['ai.telemetry.metadata.vox.context.id'] as string || 'unknown';
-    if (contextId == "unknown") {
-      logger.warn(`Unknown span: ${JSON.stringify(span.attributes)}`)
-    }
+    if (contextId == "unknown") return; // only care about the telemetry we need
     const traceId = span.spanContext().traceId;
     const spanId = span.spanContext().spanId;
-    const parentSpanId = (span as any).parentSpanId || null;
+    // Properly access parent span ID from parentSpanContext
+    const parentSpanId = span.parentSpanContext ? span.parentSpanContext.spanId : null;
 
     delete span.attributes['vox.context.id'];
 

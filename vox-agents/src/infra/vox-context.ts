@@ -6,7 +6,7 @@
  * Implements the agentic loop with tool calling, step preparation, and stop conditions.
  */
 
-import { generateText, Output, Tool } from "ai";
+import { generateText, Output, Tool, StepResult, ToolSet, ModelMessage, LanguageModel } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
@@ -16,7 +16,7 @@ import { ZodObject } from "zod/v4/index.js";
 import { Model } from "../utils/config.js";
 import { exponentialRetry } from "../utils/retry.js";
 import { v4 as uuidv4 } from 'uuid';
-import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
+import { trace, SpanStatusCode, SpanKind, context, Span } from '@opentelemetry/api';
 
 /**
  * Runtime context for executing Vox Agents.
@@ -26,6 +26,7 @@ import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
  */
 export class VoxContext<TParameters extends AgentParameters> {
   private logger = createLogger('VoxContext');
+  private tracer = trace.getTracer('vox-agents');
 
   /**
    * Unique identifier for this context instance
@@ -183,12 +184,10 @@ export class VoxContext<TParameters extends AgentParameters> {
       throw new Error(`Agent '${agentName}' not found in context`);
     }
 
-    this.logger.info(`Executing agent: ${agentName}`);
     parameters.store = parameters.store ?? {};
     parameters.running = agentName;
 
-    const tracer = trace.getTracer('vox-agents');
-    const span = tracer.startSpan(`agent.${agentName}`, {
+    const span = this.tracer.startSpan(`agent.${agentName}`, {
       kind: SpanKind.INTERNAL,
       attributes: {
         'vox.context.id': this.id,
@@ -216,93 +215,48 @@ export class VoxContext<TParameters extends AgentParameters> {
         // Execute the agent using generateText
         var model = agent.getModel(parameters) ?? this.defaultModel;
         var system = await agent.getSystem(parameters, this);
-        var initialMessages = await agent.getInitialMessages(parameters, this);
         if (system != "") {
-          var response;
-          var retry = 0;
           var shouldStop = false;
-          var messages = initialMessages;
-          const LLM = getModel(model);
-          // Vercel AI may stop an agent prematurely if no valid tool call is issued.
-          // Therefore, we have to make the agent realize that...
-          while (!shouldStop && retry < 3) {
-            response = await exponentialRetry(async () => {
-              return await generateText({
-                // Model settings
-                model: LLM,
-                providerOptions: buildProviderOptions(model),
-                // Abort signal for cancellation
-                abortSignal: this.abortController.signal,
-                // Initial messages
-                messages: [{
-                  role: "system",
-                  content: system
-                }, ...messages],
-                // Initial tools
-                tools: allTools,
-                activeTools: agent.getActiveTools(parameters),
-                toolChoice: "required",
-                // Telemetry support
-                experimental_telemetry: {
-                  isEnabled: true,
-                  metadata: {
-                    "vox.context.id": this.id
-                  }
-                },
-                experimental_context: parameters,
-                // Output schema for tool as agent
-                experimental_output: outputSchema ? Output.object({
-                  schema: outputSchema
-                }) : undefined,
-                // Checks each step's result and deciding to stop or not
-                stopWhen: (context) => {
-                  const lastStep = context.steps[context.steps.length - 1];
-                  shouldStop = this.abortController.signal.aborted || agent.stopCheck(parameters, lastStep, context.steps);
-                  this.logger.info(`Stop check for ${agentName}: ${shouldStop}`, {
-                    stepCount: context.steps.length
-                  });
-                  return shouldStop;
-                },
-                // Preparing for the next step
-                prepareStep: async (context) => {
-                  const lastStep = context.steps[context.steps.length - 1];
-                  this.logger.debug(`Preparing step ${context.steps.length + 1} for ${agentName}`);
-                  return await agent.prepareStep(parameters, lastStep, context.steps, context.messages, this);
-                },
-              });
-            }, this.logger);
-            // Count the token usage here
-            this.inputTokens += response.totalUsage.inputTokens ?? 0;
-            this.reasoningTokens += response.totalUsage.reasoningTokens ?? 0;
-            this.outputTokens += response.totalUsage.outputTokens ?? 0;
-            // If we stop unexpectedly, check with the agent again. If not, we should try to resume...
-            if (!shouldStop) {
-              if (response.steps.length !== 0) {
-                shouldStop = this.abortController.signal.aborted || agent.stopCheck(parameters, response.steps[response.steps.length - 1], response.steps, true);
-              }
-              if (!shouldStop) {
-                messages = initialMessages.concat(response.response.messages).concat({
-                  role: "user",
-                  content: "Execute the tool call appropriately with your interim reasoning/generation output. Do not repeat existing calls."
-                });
-                this.logger.warn(`Agent execution unexpectedly finished: ${agentName} with ${response.steps.length} steps. Resuming ${++retry}/3...`);
-              }
-            }
+          var messages: ModelMessage[] = [{
+            role: "system",
+            content: system
+          }];
+          var allSteps: StepResult<ToolSet>[] = [];
+          var finalText = "";
+
+          // Execute steps in a loop, one at a time
+          for (let stepCount = 0; !shouldStop; stepCount++) {
+            this.logger.info(`Executing ${agentName}'s step ${stepCount + 1} for ${this.id}`);
+
+            // Execute the step with proper tracing
+            const stepResult = await this.executeAgentStep(
+              agent,
+              parameters,
+              allSteps,
+              stepCount,
+              messages,
+              model,
+              allTools,
+              outputSchema
+            );
+
+            // Update state from step results
+            messages = stepResult.messages;
+            shouldStop = stepResult.shouldStop;
+            finalText = stepResult.finalText ?? "";
           }
 
-          this.logger.info(`Agent execution completed: ${agentName}`);
+          this.logger.info(`Agent execution completed: ${agentName} with ${allSteps.length} steps`);
 
-          response = response!;
           // Log the conclusion
           span.setAttributes({
             'agent.model': `${model.name}@${model.provider}`,
-            'agent.steps.all': response.steps.map(step => { return JSON.stringify({ input: step.sources, output: step.content }) }),
             'agent.tokens.input': this.inputTokens,
             'agent.tokens.reasoning': this.reasoningTokens,
             'agent.tokens.output': this.outputTokens,
           });
           span.setStatus({ code: SpanStatusCode.OK });
-          return response.text;
+          return finalText;
         } else {
           span.setStatus({ code: SpanStatusCode.OK, message: 'No system prompt' });
           return "[nothing]";
@@ -318,6 +272,142 @@ export class VoxContext<TParameters extends AgentParameters> {
       } finally {
         parameters.running = undefined;
         span.end();
+      }
+    });
+  }
+
+  /**
+   * Execute a single agent step with proper tracing and error handling.
+   * This method encapsulates the logic for preparing, executing, and processing
+   * a single step in an agent's execution flow.
+   *
+   * @private
+   * @param stepSpan - The OpenTelemetry span for this step
+   * @param agent - The agent being executed
+   * @param agentName - The name of the agent
+   * @param parameters - The parameters for the agent
+   * @param allSteps - All steps executed so far
+   * @param messages - The current message history
+   * @param model - The model identifier
+   * @param system - The system prompt
+   * @param allTools - All available tools including agent handoff tools
+   * @param outputSchema - Optional output schema for structured generation
+   * @param stepCount - The current step number
+   * @returns Updated messages, stop condition, and optional final text
+   */
+  private async executeAgentStep(
+    agent: VoxAgent<any, TParameters>,
+    parameters: TParameters,
+    allSteps: StepResult<ToolSet>[],
+    stepCount: number,
+    messages: ModelMessage[],
+    model: Model,
+    allTools: ToolSet,
+    outputSchema: ZodObject | undefined,
+  ): Promise<{ messages: ModelMessage[], shouldStop: boolean, finalText?: string }> {
+    const stepSpan = this.tracer.startSpan(`agent.${agent.name}.step.${stepCount + 1}`, {
+      kind: SpanKind.INTERNAL,
+      attributes: {
+        'vox.context.id': this.id,
+        'agent.name': agent.name,
+        'step.number': stepCount + 1
+      }
+    });
+
+    return await context.with(trace.setSpan(context.active(), stepSpan), async () => {
+      try {
+        // Prepare configuration for this step
+        const stepConfig = await agent.prepareStep(parameters,
+          allSteps.length === 0 ? null : allSteps[allSteps.length - 1], allSteps, messages, this);
+
+        // Apply prepared configuration
+        messages = stepConfig.messages || messages;
+        const stepModel = getModel(stepConfig.model || model);
+        const stepProviderOptions = buildProviderOptions(stepConfig.model || model);
+        const stepActiveTools = stepConfig.activeTools || agent.getActiveTools(parameters);
+        const stepToolChoice = stepConfig.toolChoice || (stepActiveTools && stepActiveTools.length > 0 ? agent.toolChoice : "auto");
+
+        // Record step configuration in span
+        stepSpan.setAttributes({
+          'step.tools': JSON.stringify(stepActiveTools),
+          'step.tools.choice': stepToolChoice,
+          'step.messages': JSON.stringify(messages)
+        });
+
+        // Execute a single step
+        const stepResponse = await exponentialRetry(async () => {
+          return await generateText({
+            // Model settings
+            model: stepModel,
+            providerOptions: stepProviderOptions,
+            // Abort signal for cancellation
+            abortSignal: this.abortController.signal,
+            // Current messages
+            messages: messages,
+            // Tools
+            tools: allTools,
+            activeTools: stepActiveTools,
+            toolChoice: stepToolChoice,
+            experimental_context: parameters,
+            // Output schema for tool as agent
+            experimental_output: outputSchema ? Output.object({
+              schema: outputSchema
+            }) : undefined,
+            // Stop after one step
+            stopWhen: () => true
+          });
+        }, this.logger);
+
+        // Update token usage
+        this.inputTokens += stepResponse.totalUsage.inputTokens ?? 0;
+        this.reasoningTokens += stepResponse.totalUsage.reasoningTokens ?? 0;
+        this.outputTokens += stepResponse.totalUsage.outputTokens ?? 0;
+
+        // Record step results in span
+        stepSpan.setAttributes({
+          'step.tokens.input': stepResponse.totalUsage.inputTokens ?? 0,
+          'step.tokens.reasoning': stepResponse.totalUsage.reasoningTokens ?? 0,
+          'step.tokens.output': stepResponse.totalUsage.outputTokens ?? 0,
+          'step.responses': JSON.stringify(stepResponse.response.messages)
+        });
+
+        // Add the step to our collection
+        let shouldStop = false;
+        let finalText: string | undefined;
+
+        if (stepResponse.steps.length > 0) {
+          allSteps.push(...stepResponse.steps);
+          finalText = stepResponse.text;
+
+          // Update messages with the response
+          messages = messages.concat(stepResponse.response.messages);
+
+          // Check stop condition
+          shouldStop = this.abortController.signal.aborted ||
+            agent.stopCheck(parameters, stepResponse.steps[0], allSteps);
+
+          this.logger.info(`Stop check for ${agent.name}: ${shouldStop}`, {
+            stepNumber: stepCount + 1,
+            totalSteps: allSteps.length
+          });
+        } else {
+          this.logger.warn(`Agent execution produced no steps: ${agent.name} at step ${stepCount + 1}.`);
+          shouldStop = this.abortController.signal.aborted;
+        }
+
+        stepSpan.setAttribute('step.should_stop', shouldStop);
+        stepSpan.setStatus({ code: SpanStatusCode.OK });
+
+        return { messages, shouldStop, finalText };
+      } catch (error) {
+        stepSpan.recordException(error as Error);
+        stepSpan.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error)
+        });
+        throw error; // Re-throw to be handled by outer try-catch
+      } finally {
+        stepSpan.end();
       }
     });
   }

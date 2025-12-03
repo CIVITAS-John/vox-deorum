@@ -6,7 +6,7 @@
  * (OpenRouter, OpenAI, Google, Jetstream2, Chutes) with middleware support.
  */
 
-import { LanguageModel, wrapLanguageModel } from 'ai';
+import { LanguageModel, ProviderMetadata, wrapLanguageModel } from 'ai';
 import { config, type Model } from '../config.js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createOpenAI } from '@ai-sdk/openai';
@@ -129,7 +129,7 @@ export function getModel(config: Model): LanguageModel {
  * })
  * // Returns: { openrouter: { reasoning: { effort: 'medium' } } }
  */
-export function buildProviderOptions(model: Model): Record<string, any> {
+export function buildProviderOptions(model: Model): ProviderMetadata {
   if (!model.options) {
     return { [model.provider]: {} };
   }
