@@ -170,13 +170,13 @@ export class VoxPlayer {
                 }
               });
             } catch (error) {
-              this.logger.error(`${this.strategistType} error:`, error);
+              this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) execution error:`, error);
             } finally {
               this.parameters.running = undefined;
             }
           }
         } catch (error) {
-          this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) execution error:`, error);
+          this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) initializing error:`, error);
           observation.update({ output: { error: error instanceof Error ? error.message : String(error) } });
         } finally {
           this.logger.info(`Player ${this.playerID} (${this.parameters.gameID}) completion: ${this.aborted} (successful: ${this.successful})`);
