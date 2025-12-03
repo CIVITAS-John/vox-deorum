@@ -284,9 +284,10 @@ export class DLLConnector extends EventEmitter {
           reject: resolve,
           timestamp: new Date(),
           timeout: guardTimeout(() => {
-            this.pendingRequests.delete(messageWithId.id);
-            logger.error('Message timeout: ' + messageWithId.id);
-            resolve(respondError(ErrorCode.CALL_TIMEOUT));
+            if (this.pendingRequests.delete(messageWithId.id)) {
+              logger.error('Message timeout: ' + messageWithId.id);
+              resolve(respondError(ErrorCode.CALL_TIMEOUT));
+            }
           }, timeout)
         };
 
