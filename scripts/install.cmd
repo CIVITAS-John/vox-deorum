@@ -604,24 +604,7 @@ if !errorlevel! equ 0 (
                     echo.
                     echo   Setting up environment configuration...
                     echo.
-                    echo   Vox Deorum can collect anonymous telemetry data to help improve the project.
-                    echo   This data is sent to the Jetstream2 cluster with the support from the NSF-funded ACCESS project.
-                    echo.
-                    set /p "TELEMETRY_CONSENT=Would you like to enable anonymous data collection? (Y/N): "
-
-                    :: Copy .env.default to .env
                     copy /Y ".env.default" ".env" >nul 2>&1
-
-                    if /i "!TELEMETRY_CONSENT!"=="Y" (
-                        echo   [OK] .env file created with telemetry enabled
-                        echo   [INFO] Anonymous data collection is enabled
-                    ) else (
-                        :: Comment out the telemetry lines for users who opt out
-                        echo   Disabling telemetry in .env file...
-                        powershell -Command "(Get-Content '.env') -replace '^(LANGFUSE_PUBLIC_KEY=)', '# $1' -replace '^(LANGFUSE_SECRET_KEY=)', '# $1' -replace '^(LANGFUSE_HOST=)', '# $1' | Set-Content '.env'"
-                        echo   [OK] .env file created with telemetry disabled
-                        echo   [INFO] Anonymous data collection is disabled
-                    )
                     set "ENV_CREATED=1"
                 ) else (
                     echo   [OK] .env file already exists
