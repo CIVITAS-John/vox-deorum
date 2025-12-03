@@ -193,7 +193,7 @@ export class VoxContext<TParameters extends AgentParameters> {
       attributes: {
         'vox.context.id': this.id,
         'agent.name': agentName,
-        'agent.parameters': JSON.stringify(parameters).substring(0, 1000)
+        'agent.parameters': JSON.stringify(parameters)
       }
     });
 
@@ -245,7 +245,9 @@ export class VoxContext<TParameters extends AgentParameters> {
                 // Telemetry support
                 experimental_telemetry: {
                   isEnabled: true,
-                  functionId: agentName
+                  metadata: {
+                    "vox.context.id": this.id
+                  }
                 },
                 experimental_context: parameters,
                 // Output schema for tool as agent
@@ -293,13 +295,11 @@ export class VoxContext<TParameters extends AgentParameters> {
           response = response!;
           // Log the conclusion
           span.setAttributes({
-            'agent.output': response.text.substring(0, 1000),
             'agent.model': `${model.name}@${model.provider}`,
-            'agent.step_count': response.steps.length,
-            'agent.tools_used': response.steps.reduce((list, current) => list.concat(current.toolCalls.map(call => call.toolName)), [] as string[]).join(','),
-            'agent.total_tokens.input': this.inputTokens,
-            'agent.total_tokens.reasoning': this.reasoningTokens,
-            'agent.total_tokens.output': this.outputTokens,
+            'agent.steps.all': response.steps.map(step => { return JSON.stringify({ input: step.sources, output: step.content }) }),
+            'agent.tokens.input': this.inputTokens,
+            'agent.tokens.reasoning': this.reasoningTokens,
+            'agent.tokens.output': this.outputTokens,
           });
           span.setStatus({ code: SpanStatusCode.OK });
           return response.text;

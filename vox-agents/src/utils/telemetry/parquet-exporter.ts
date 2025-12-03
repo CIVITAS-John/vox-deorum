@@ -85,7 +85,7 @@ export class ParquetSpanExporter implements SpanExporter {
    */
   private async getWriter(contextId: string): Promise<parquet.ParquetWriter> {
     if (!writers.has(contextId)) {
-      const contextDir = path.join(this.dataDir, contextId);
+      const contextDir = path.join(this.dataDir, contextId.split("-")[0]);
       if (!fs.existsSync(contextDir)) {
         fs.mkdirSync(contextDir, { recursive: true });
       }
@@ -96,7 +96,7 @@ export class ParquetSpanExporter implements SpanExporter {
       writers.set(contextId, writer);
       buffers.set(contextId, []);
 
-      logger.info(`Created Parquet writer for context ${contextId}: ${filename}`);
+      logger.info(`Created Parquet writer for context ${contextId}`);
     }
 
     return writers.get(contextId)!;
@@ -110,6 +110,8 @@ export class ParquetSpanExporter implements SpanExporter {
     const traceId = span.spanContext().traceId;
     const spanId = span.spanContext().spanId;
     const parentSpanId = (span as any).parentSpanId || null;
+
+    delete span.attributes['vox.context.id'];
 
     return {
       context_id: contextId,

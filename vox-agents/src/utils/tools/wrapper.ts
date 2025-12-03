@@ -78,7 +78,7 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
         logger.info(`Agent-tool execution completed: ${agent.name}`);
 
         span.setAttributes({
-          'tool.output': JSON.stringify(result).substring(0, 1000) // Truncate for large outputs
+          'tool.output': JSON.stringify(result)
         });
         span.setStatus({ code: SpanStatusCode.OK });
 
@@ -118,7 +118,7 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
  * const wrapped = wrapMCPTool(tools[0]);
  * ```
  */
-export function wrapMCPTool(tool: Tool, contextId?: string): VercelTool {
+export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
   const logger = createLogger(`MCPTool-${tool.name}`);
 
   // Remove autoComplete fields from input schema
@@ -151,15 +151,9 @@ export function wrapMCPTool(tool: Tool, contextId?: string): VercelTool {
         attributes: {
           'tool.name': tool.name,
           'tool.type': 'mcp',
+          'vox.context.id': contextId,
         }
       });
-
-      // Add context ID if available
-      if (contextId) {
-        span.setAttribute('vox.context.id', contextId);
-      } else if ((options.experimental_context as any)?.id) {
-        span.setAttribute('vox.context.id', (options.experimental_context as any).id);
-      }
 
       try {
         // Autocomplete support - add the fields back for execution
@@ -233,7 +227,7 @@ export function wrapMCPTool(tool: Tool, contextId?: string): VercelTool {
  * const toolSet = wrapMCPTools(tools);
  * ```
  */
-export function wrapMCPTools(tools: Tool[], contextId?: string): ToolSet {
+export function wrapMCPTools(tools: Tool[], contextId: string): ToolSet {
   var results: Record<string, VercelTool> = {};
   tools.forEach(tool => results[tool.name] = wrapMCPTool(tool, contextId));
   return results;

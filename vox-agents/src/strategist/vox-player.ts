@@ -154,10 +154,7 @@ export class VoxPlayer {
               await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
 
               turnSpan.setAttributes({
-                'turn.completed': true,
-                'turn.tokens.input': this.context.inputTokens,
-                'turn.tokens.reasoning': this.context.reasoningTokens,
-                'turn.tokens.output': this.context.outputTokens
+                'turn.completed': true
               });
               turnSpan.setStatus({ code: SpanStatusCode.OK });
             });
@@ -188,10 +185,10 @@ export class VoxPlayer {
         span.setAttributes({
           'player.completed': true,
           'player.successful': this.successful,
-          'player.turns_processed': this.parameters.turn,
-          'player.total_tokens.input': this.context.inputTokens,
-          'player.total_tokens.reasoning': this.context.reasoningTokens,
-          'player.total_tokens.output': this.context.outputTokens
+          'player.turns': this.parameters.turn,
+          'player.tokens.input': this.context.inputTokens,
+          'player.tokens.reasoning': this.context.reasoningTokens,
+          'player.tokens.output': this.context.outputTokens
         });
 
         if (this.successful) {
