@@ -200,7 +200,7 @@ export class VoxPlayer {
             this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: String(this.context.outputTokens) }, this.parameters),
             langfuseSpanProcessor.forceFlush()
           ]);
-          await setTimeout(1000);
+          await setTimeout(5000);
         }
       }, {
       asType: "agent"
