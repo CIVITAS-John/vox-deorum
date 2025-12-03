@@ -124,7 +124,7 @@ export class DLLConnector extends EventEmitter {
           this.emit('connected');
           
           // Wait for 100ms for Windows Named Pipe to work
-          guardTimeout(() => {
+          setTimeout(() => {
             resolve(true);
           }, 100);
         }).on('disconnect', () => {
@@ -230,7 +230,7 @@ export class DLLConnector extends EventEmitter {
     
     logger.debug(`Attempting reconnection ${this.reconnectAttempts} in ${delay}ms`);
     
-    this.reconnectTimer = guardTimeout(() => {
+    this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined; // Clear the timer reference before attempting
       if (this.shuttingDown) return; // Don't reconnect if shutting down
       this.connect().catch((error) => {
@@ -395,7 +395,7 @@ export class DLLConnector extends EventEmitter {
 
     // Create a promise that resolves when disconnected event is emitted
     const disconnectedPromise = new Promise<void>((resolve) => {
-      const timeout = guardTimeout(() => {
+      const timeout = setTimeout(() => {
         // If disconnected event doesn't fire within 2 seconds, resolve anyway
         logger.warn('Disconnect timeout - resolving without event');
         resolve();
@@ -403,7 +403,7 @@ export class DLLConnector extends EventEmitter {
 
       this.once('disconnected', () => {
         clearTimeout(timeout);
-        guardTimeout(() => {
+        setTimeout(() => {
           resolve();
         }, 200);
       });
