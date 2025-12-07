@@ -185,7 +185,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
 
     // Handle messages
     if (lastStep === null) {
-      config.messages = await this.getInitialMessages(parameters, context);
+      config.messages = [...messages, ...await this.getInitialMessages(parameters, context)];
     } else if (this.onlyLastRound) {
       // Keep all system and user messages, but only the last round of assistant/tool messages
       const filteredMessages: ModelMessage[] = [];

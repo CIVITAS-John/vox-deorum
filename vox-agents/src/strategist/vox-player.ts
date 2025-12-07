@@ -110,6 +110,7 @@ export class VoxPlayer {
         while (!this.aborted) {
           const turnData = this.pendingTurn;
           if (!turnData) {
+            this.parameters.running = undefined;
             await setTimeout(10);
             continue;
           }
