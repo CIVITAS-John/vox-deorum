@@ -1,0 +1,116 @@
+name: Release Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update version files
+        id: version
+        run: |
+          # Read current version
+          VERSION_JSON=$(cat version.json)
+          MAJOR=$(echo "$VERSION_JSON" | jq -r .major)
+          MINOR=$(echo "$VERSION_JSON" | jq -r .minor)
+          REVISION=$(echo "$VERSION_JSON" | jq -r .revision)
+
+          # Bump version based on input
+          if [ "${{ github.event.inputs.version_type }}" == "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            REVISION=0
+          elif [ "${{ github.event.inputs.version_type }}" == "minor" ]; then
+            MINOR=$((MINOR + 1))
+            REVISION=0
+          else
+            REVISION=$((REVISION + 1))
+          fi
+
+          # Create new version string
+          VERSION="v${MAJOR}.${MINOR}.${REVISION}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "MAJOR=$MAJOR" >> $GITHUB_OUTPUT
+          echo "MINOR=$MINOR" >> $GITHUB_OUTPUT
+          echo "REVISION=$REVISION" >> $GITHUB_OUTPUT
+
+          # Update version.json
+          echo "{
+            \"major\": $MAJOR,
+            \"minor\": $MINOR,
+            \"revision\": $REVISION
+          }" > version.json
+
+          # Update release.txt
+          echo "$VERSION" > release.txt
+
+          # Update README.md version badge if it exists
+          if grep -q "img.shields.io/badge/version-" README.md 2>/dev/null; then
+            sed -i "s/version-v[0-9]\+\.[0-9]\+\.[0-9]\+/version-${VERSION}/" README.md
+          fi
+
+          # Update bootstrap.cmd with new tag
+          if [ -f scripts/bootstrap.cmd ]; then
+            sed -i "s/defaulting to v[0-9]\+\.[0-9]\+\.[0-9]\+/defaulting to ${VERSION}/" scripts/bootstrap.cmd
+          fi
+
+      - name: Get latest commit message
+        id: commit_msg
+        run: |
+          # Get the latest commit message (excluding any auto-commits)
+          MSG=$(git log -1 --pretty=%B --no-merges | head -1)
+          echo "MESSAGE=$MSG" >> $GITHUB_OUTPUT
+
+      - name: Commit version updates
+        run: |
+          git add version.json release.txt README.md scripts/bootstrap.cmd
+          git commit -m "Release ${{ steps.version.outputs.VERSION }}"
+          git push origin main
+
+      - name: Create and push tag
+        run: |
+          git tag -a "${{ steps.version.outputs.VERSION }}" -m "${{ steps.commit_msg.outputs.MESSAGE }}"
+          git push origin "${{ steps.version.outputs.VERSION }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## ${{ steps.commit_msg.outputs.MESSAGE }}
+
+            ### Quick Install
+            Download `bootstrap.cmd` and run it to automatically set up Vox Deorum.
+
+            ### What's Changed
+            See [commit history](https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.VERSION }}) for detailed changes.
+          files: scripts/bootstrap.cmd
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

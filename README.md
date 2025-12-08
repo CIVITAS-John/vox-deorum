@@ -2,7 +2,7 @@
 
 Vox Deorum brings modern AI capabilities to your Civilization V games, allowing you to play alongside or against AI opponents powered by large language models (LLMs) like GPT-5. Built upon the [Community Patch + Vox Populi](https://github.com/LoneGazebo/Community-Patch-DLL).
 
-**Version 0.1.9 - Alpha (Last Updated: 11/30/25)**
+**Version 0.2.1 - Alpha (Last Updated: 12/07/25)**
 
 Designed to work with the [Vox Deorum Replayer](https://github.com/CIVITAS-John/vox-deorum-replay), a web-based review player that also demonstrates how LLMs play Civilization V.
 
