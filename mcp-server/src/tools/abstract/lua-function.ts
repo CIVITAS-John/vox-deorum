@@ -5,11 +5,11 @@ import * as z from "zod";
 /**
  * Tool for executing a pre-defined Lua function in the game context via Bridge Service
  */
-export abstract class LuaFunctionTool extends ToolBase {
+export abstract class LuaFunctionTool<TResult = any> extends ToolBase {
   /**
    * Schema for the result data returned by the Lua function
    */
-  protected abstract readonly resultSchema: z.ZodTypeAny;
+  protected abstract readonly resultSchema: z.ZodSchema<TResult>;
 
   /**
    * The Lua function arguments in the signature
@@ -49,7 +49,15 @@ export abstract class LuaFunctionTool extends ToolBase {
   /**
    * Execute the Lua script using BridgeManager
    */
-  protected async call(...args: any[]): Promise<z.infer<typeof this.outputSchema>> {
+  protected async call(...args: any[]): Promise<{
+    Success: boolean;
+    Result?: TResult;
+    Error?: {
+      Code: string;
+      Message: string;
+      Details?: string;
+    };
+  }> {
     // Initialize function if not already done
     if (!this.function) {
       if (this.scriptFile) {

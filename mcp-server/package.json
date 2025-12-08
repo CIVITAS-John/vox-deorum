@@ -6,9 +6,9 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "npx tsc",
     "start": "npm run build && node --inspect dist/index.js",
-    "type-check": "tsc --noEmit",
+    "type-check": "npx tsc --noEmit",
     "lint": "eslint src/**/*.ts",
     "clean": "rimraf dist",
     "test": "vitest run",

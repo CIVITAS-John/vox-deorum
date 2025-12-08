@@ -2,15 +2,7 @@
 ; This script bundles all necessary files including portable Node.js
 
 ; Read version from release.txt
-#define VersionFile SourcePath + "\..\release.txt"
-#if FileExists(VersionFile)
-  #define FileHandle FileOpen(VersionFile)
-  #define FileContent FileRead(FileHandle)
-  #expr FileClose(FileHandle)
-  #define MyAppVersion Trim(StringChange(FileContent, 'v', ''))
-#else
-  #error "release.txt not found"
-#endif
+#define MyAppVersion "0.2.1"
 
 #define MyAppName "Vox Deorum"
 #define MyAppPublisher "John Chen"

@@ -1,6 +1,6 @@
 import { RegisteredTool } from "@modelcontextprotocol/sdk/server/mcp";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types";
 import * as z from "zod";
+import { ExtendedToolAnnotations } from "./types/tool-annotations.js";
 
 /**
  * Base class for MCP server tools
@@ -36,7 +36,7 @@ export abstract class ToolBase {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations?: ToolAnnotations;
+  readonly annotations?: ExtendedToolAnnotations;
 
   /**
    * Registered tool instance after registration with MCP server

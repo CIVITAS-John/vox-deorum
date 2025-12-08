@@ -1,7 +1,7 @@
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { enumMappings } from "../../utils/knowledge/enum.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
 import { createLogger } from "../../utils/logger.js";
 
 const logger = createLogger("summarize-units");
@@ -24,12 +24,17 @@ const UnitOverviewResultSchema = z.record(
 );
 
 /**
+ * Type for the unit overview result schema
+ */
+type UnitOverviewResultType = z.infer<typeof UnitOverviewResultSchema>;
+
+/**
  * Tool for getting an overview of all visible units for a given player
  * Groups units by civilization owner and AI type
  * Military units include Strength, RangedStrength, and Count
  * Non-military units have simple counts
  */
-class SummarizeUnitsTool extends LuaFunctionTool {
+class SummarizeUnitsTool extends LuaFunctionTool<UnitOverviewResultType> {
   /**
    * Unique identifier for the summarize units tool
    */
@@ -65,7 +70,7 @@ class SummarizeUnitsTool extends LuaFunctionTool {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ToolAnnotations = {
+  readonly annotations: ExtendedToolAnnotations = {
     autoComplete: ["PlayerID"],
     markdownConfig: [
       { format: "{key}" },
@@ -92,7 +97,7 @@ class SummarizeUnitsTool extends LuaFunctionTool {
       if (!aiTypes) logger.warn("AIType does not exist!");
 
       for (const civName in result.Result) {
-        const unitsByAIType = result.Result[civName];
+        const unitsByAIType: Record<string, Record<string, number | z.infer<typeof MilitaryUnitSchema>>> = result.Result[civName];
         const convertedAITypes: Record<string, Record<string, number | z.infer<typeof MilitaryUnitSchema>>> = {};
 
         for (const [aiTypeNum, units] of Object.entries(unitsByAIType)) {

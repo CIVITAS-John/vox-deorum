@@ -299,7 +299,7 @@ export class KnowledgeStore {
         }
       } else {
         logger.warn(`Invalid ${type} event:`, {
-          errors: result.error.errors,
+          errors: result.error,
           payload
         });
       }

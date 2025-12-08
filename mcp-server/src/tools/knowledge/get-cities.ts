@@ -7,7 +7,7 @@ import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { getCityInformations } from "../../knowledge/getters/city-information.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
 import { cleanEventData } from "./get-events.js";
 import { CityInformation } from "../../knowledge/schema/timed.js";
 
@@ -83,7 +83,7 @@ class GetCitiesTool extends ToolBase {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ToolAnnotations = {
+  readonly annotations: ExtendedToolAnnotations = {
     autoComplete: ["PlayerID", "Owner"],
     markdownConfig: [
       { format: "Player: {key}" }

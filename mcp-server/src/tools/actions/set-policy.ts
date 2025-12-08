@@ -6,15 +6,28 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+
+/**
+ * Schema for the result returned by the Lua script
+ */
+const SetPolicyResultSchema = z.object({
+  PreviousPolicy: z.number().optional(),
+  PreviousBranch: z.number().optional(),
+  // These properties are added by the execute method
+  Previous: z.string().optional(),
+  IsBranch: z.boolean().optional()
+});
+
+type SetPolicyResultType = z.infer<typeof SetPolicyResultSchema>;
 
 /**
  * Tool that sets a player's next policy selection using a Lua function
  * Can accept either a PolicyBranchType or PolicyID
  */
-class SetPolicyTool extends LuaFunctionTool {
+class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
   name = "set-policy";
   description = "Set a player's next policy selection by name. The in-game AI will be forced to select this policy or policy branch when making its next policy choice.";
 
@@ -30,7 +43,7 @@ class SetPolicyTool extends LuaFunctionTool {
   /**
    * Result schema - returns the previous policy selection
    */
-  protected resultSchema = z.undefined();
+  protected resultSchema = SetPolicyResultSchema;
 
   /**
    * The Lua function arguments
@@ -40,7 +53,7 @@ class SetPolicyTool extends LuaFunctionTool {
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations: ToolAnnotations = {
+  readonly annotations: ExtendedToolAnnotations = {
     autoComplete: ["PlayerID"],
     readOnlyHint: false
   }

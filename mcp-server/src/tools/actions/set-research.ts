@@ -6,14 +6,25 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
 /**
+ * Schema for the result returned by the Lua script
+ */
+const SetResearchResultSchema = z.object({
+  Previous: z.number().optional(),
+  // This property is added by the execute method
+  PreviousTech: z.string().optional()
+});
+
+type SetResearchResultType = z.infer<typeof SetResearchResultSchema>;
+
+/**
  * Tool that sets a player's next research technology using a Lua function
  */
-class SetResearchTool extends LuaFunctionTool {
+class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
   name = "set-research";
   description = "Set a player's next research technology by name. The in-game AI will be forced to select this technology when making its next tech choice.";
 
@@ -29,7 +40,7 @@ class SetResearchTool extends LuaFunctionTool {
   /**
    * Result schema - returns the previous technology selection
    */
-  protected resultSchema = z.undefined();
+  protected resultSchema = SetResearchResultSchema;
 
   /**
    * The Lua function arguments
@@ -39,7 +50,7 @@ class SetResearchTool extends LuaFunctionTool {
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations: ToolAnnotations = {
+  readonly annotations: ExtendedToolAnnotations = {
     autoComplete: ["PlayerID"],
     readOnlyHint: false
   }
@@ -86,10 +97,13 @@ class SetResearchTool extends LuaFunctionTool {
       if (result.Result?.Previous !== undefined) {
         const previousTechName = retrieveEnumName("TechID", result.Result.Previous);
         if (previousTechName) {
-          result.Result.Previous = previousTechName;
+          result.Result.PreviousTech = previousTechName;
         } else if (result.Result.Previous === -1) {
-          result.Result.Previous = "None";
+          result.Result.PreviousTech = "None";
+        } else {
+          result.Result.PreviousTech = "Unknown";
         }
+        delete result.Result.Previous;
       }
 
       // Store the research decision in the knowledge database
@@ -103,7 +117,7 @@ class SetResearchTool extends LuaFunctionTool {
       );
 
       // Send replay message if the technology actually changed
-      const previousTech = result.Result?.Previous;
+      const previousTech = result.Result?.PreviousTech;
       if (Technology !== previousTech) {
         const beforeDesc = previousTech || "None";
         const afterDesc = Technology;

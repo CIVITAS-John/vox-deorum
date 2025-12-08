@@ -4,8 +4,8 @@
 
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
-import { enumMappings, retrieveEnumValue, convertStrategyToNames } from "../../utils/knowledge/enum.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { retrieveEnumValue, convertStrategyToNames } from "../../utils/knowledge/enum.js";
+import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
@@ -13,9 +13,21 @@ import { detectChanges } from "../../utils/knowledge/changes.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
 /**
+ * Schema for the result returned by the Lua script
+ */
+const SetStrategyResultSchema = z.object({
+  Changed: z.boolean(),
+  GrandStrategy: z.number(),
+  EconomicStrategies: z.union([z.array(z.number()), z.record(z.string(), z.number())]),
+  MilitaryStrategies: z.union([z.array(z.number()), z.record(z.string(), z.number())])
+});
+
+type SetStrategyResultType = z.infer<typeof SetStrategyResultSchema>;
+
+/**
  * Tool that sets the player's grand strategy using a Lua function
  */
-class SetStrategyTool extends LuaFunctionTool {
+class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
   name = "set-strategy";
   description = "Set a player's in-game strategy by names. Inputs must match exact values in the provided options.";
 
@@ -24,16 +36,16 @@ class SetStrategyTool extends LuaFunctionTool {
    */
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
-    GrandStrategy: z.nativeEnum(enumMappings["GrandStrategy"]).optional().describe("The grand strategy name to set (and override)"),
+    GrandStrategy: z.string().optional().describe("The grand strategy name to set (and override)"),
     EconomicStrategies: z.array(z.string()).optional().describe("The economic strategy names to set (and override)"),
     MilitaryStrategies: z.array(z.string()).optional().describe("The military strategy names to set (and override)"),
     Rationale: z.string().describe("Explain your rationale behind choosing this strategy set")
   });
 
   /**
-   * Result schema - returns nothing (to avoid confusing LLMs)
+   * Result schema - returns strategy change information
    */
-  protected resultSchema = z.undefined();
+  protected resultSchema = SetStrategyResultSchema;
 
   /**
    * The Lua function arguments
@@ -43,7 +55,7 @@ class SetStrategyTool extends LuaFunctionTool {
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations: ToolAnnotations = {
+  readonly annotations: ExtendedToolAnnotations = {
     autoComplete: ["PlayerID"],
     readOnlyHint: false
   }
@@ -91,28 +103,36 @@ class SetStrategyTool extends LuaFunctionTool {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Find the strategy ID from the string name
-    let grandStrategy = retrieveEnumValue("GrandStrategy", args.GrandStrategy)
-    let economicStrategies = args.EconomicStrategies?.
+    let grandStrategyId = retrieveEnumValue("GrandStrategy", args.GrandStrategy)
+    let economicStrategyIds = args.EconomicStrategies?.
       map(s => retrieveEnumValue("EconomicStrategy", s)).filter(s => s !== -1);
-    let militaryStrategies = args.MilitaryStrategies?.
+    let militaryStrategyIds = args.MilitaryStrategies?.
       map(s => retrieveEnumValue("MilitaryStrategy", s)).filter(s => s !== -1);
 
     // Call the parent execute with the strategy ID
-    var result = await super.call(args.PlayerID, grandStrategy, economicStrategies, militaryStrategies);
+    var result = await super.call(args.PlayerID, grandStrategyId, economicStrategyIds, militaryStrategyIds);
     if (result.Success) {
       const store = knowledgeManager.getStore();
       const lastRationale = (await store.getMutableKnowledge("StrategyChanges", args.PlayerID))?.Rationale ?? "Unknown";
 
       // Store the previous strategy with reason "Tweaked by In-Game AI"
-      const previous = result.Result as { GrandStrategy: number, EconomicStrategies: number[], MilitaryStrategies: number[] };
-      // Postprocessing
-      if (Object.keys(previous.EconomicStrategies).length === 0)
-        previous.EconomicStrategies = [];
-      if (Object.keys(previous.MilitaryStrategies).length === 0)
-        previous.MilitaryStrategies = [];
+      const previous = result.Result!;
+      // Postprocessing - handle both array and object formats from Lua
+      const economicStrategies = Array.isArray(previous.EconomicStrategies)
+        ? previous.EconomicStrategies
+        : Object.keys(previous.EconomicStrategies).length === 0 ? [] : Object.values(previous.EconomicStrategies);
+      const militaryStrategies = Array.isArray(previous.MilitaryStrategies)
+        ? previous.MilitaryStrategies
+        : Object.keys(previous.MilitaryStrategies).length === 0 ? [] : Object.values(previous.MilitaryStrategies);
+
+      const normalizedPrevious = {
+        GrandStrategy: previous.GrandStrategy,
+        EconomicStrategies: economicStrategies,
+        MilitaryStrategies: militaryStrategies
+      };
 
       // Store the strategy
-      const before = convertStrategyToNames(previous);
+      const before = convertStrategyToNames(normalizedPrevious);
       await store.storeMutableKnowledge(
         'StrategyChanges',
         args.PlayerID,
@@ -128,9 +148,9 @@ class SetStrategyTool extends LuaFunctionTool {
 
       // Convert the numeric values back to string names for the response
       const after = convertStrategyToNames({
-        GrandStrategy: grandStrategy === -1 ? previous.GrandStrategy : grandStrategy,
-        EconomicStrategies: (economicStrategies ?? previous.EconomicStrategies),
-        MilitaryStrategies: (militaryStrategies ?? previous.MilitaryStrategies),
+        GrandStrategy: grandStrategyId === -1 ? normalizedPrevious.GrandStrategy : grandStrategyId,
+        EconomicStrategies: economicStrategyIds ?? economicStrategies,
+        MilitaryStrategies: militaryStrategyIds ?? militaryStrategies,
       });
 
       // Store the new strategy change in the database

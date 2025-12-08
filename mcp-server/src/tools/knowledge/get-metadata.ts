@@ -2,7 +2,7 @@
  * Tool for retrieving static game metadata that doesn't change during gameplay
  */
 
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
@@ -29,9 +29,14 @@ const MetadataSchema = z.object({
 });
 
 /**
+ * Type for the metadata result schema
+ */
+type MetadataType = z.infer<typeof MetadataSchema>;
+
+/**
  * Tool for retrieving static game metadata
  */
-class GetMetadataTool extends LuaFunctionTool {
+class GetMetadataTool extends LuaFunctionTool<MetadataType> {
   /**
    * Unique identifier for the tool
    */
@@ -67,7 +72,7 @@ class GetMetadataTool extends LuaFunctionTool {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ToolAnnotations = {
+  readonly annotations: ExtendedToolAnnotations = {
     readOnlyHint: true,
     destructiveHint: false
   };
