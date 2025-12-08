@@ -2,45 +2,6 @@
 
 This guide provides essential patterns and conventions for Vox Agents that aren't covered in the README.
 
-## Agent Architecture
-
-### Core Agent Pattern
-All agents extend the abstract `VoxAgent` base class:
-```typescript
-export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = unknown, TOutput = unknown> {
-  abstract readonly name: string;
-  abstract getSystem(parameters: TParameters, context: VoxContext<TParameters>): Promise<string>;
-  abstract getActiveTools(parameters: TParameters): string[] | undefined;
-
-  // Lifecycle hooks
-  public stopCheck(parameters: TParameters, lastStep: StepResult, allSteps: StepResult[]): boolean
-  public async prepareStep(...): Promise<{model?: LanguageModel; toolChoice?: any; activeTools?: string[]; messages?: ModelMessage[]}>
-}
-```
-**Pattern**: Agents are self-contained units with well-defined interfaces for system prompts, tool selection, and execution control.
-
-### Generic Type System
-```typescript
-export abstract class VoxAgent<
-  T,                                    // Implementation-specific data
-  TParameters extends AgentParameters,  // Execution context
-  TInput = unknown,                     // Tool input type
-  TOutput = unknown                     // Tool output type
->
-```
-**Four-level generic typing** for maximum flexibility and type safety.
-
-### Session Management
-```typescript
-export class StrategistSession {
-  private activePlayers = new Map<number, VoxPlayer>();
-  private abortController = new AbortController();
-  private crashRecoveryAttempts = 0;
-  private readonly MAX_RECOVERY_ATTEMPTS = 3;
-}
-```
-**Pattern**: Map-based player management, AbortController for shutdown, bounded crash recovery.
-
 ## LLM Integration
 
 ### Model Configuration

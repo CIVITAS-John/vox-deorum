@@ -50,6 +50,7 @@ export class NoneStrategist extends Strategist {
    */
   public stopCheck(
     _parameters: StrategistParameters,
+    _input: unknown,
     _lastStep: StepResult<Record<string, Tool>>,
     _allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {

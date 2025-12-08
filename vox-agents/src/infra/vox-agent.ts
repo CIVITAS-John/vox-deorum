@@ -8,29 +8,21 @@
 
 import { Tool, StepResult, ModelMessage } from "ai";
 import { createLogger } from "../utils/logger.js";
-import { z } from "zod";
+import { z, ZodObject } from "zod";
 import { Model } from "../utils/config.js";
 import { VoxContext } from "./vox-context.js";
 
 /**
  * Parameters for configuring agent execution.
  * Provides context about the game state and timing for agent decision-making.
- * 
- * @template T - Additional custom parameters specific to each agent implementation
  */
 export interface AgentParameters {
-  /** Additional custom stores specific to the agent implementation */
-  store?: Record<string, unknown>;
-  /** ID of the player for whom the agent is serving */
-  playerID?: number;
+  /** ID of the player for whom the agent is serving, -1 for none */
+  playerID: number;
   /** ID of the game for whom the agent is serving */
-  gameID?: string;
+  gameID: string;
   /** Current game turn number */
-  turn?: number;
-  /** Fetch events after this ID */
-  after?: number;
-  /** Fetch events equals to or before this ID */
-  before?: number;
+  turn: number;
   /** Identifier for the currently running agent or process */
   running?: string;
 }
@@ -43,7 +35,7 @@ export interface AgentParameters {
  * @template TInput - The type of input this agent accepts when called as a tool
  * @template TOutput - The type of output this agent produces when called as a tool
  */
-export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = unknown, TOutput = unknown> {
+export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unknown, TOutput = unknown> {
   protected logger = createLogger(this.constructor.name);
   
   /**
@@ -88,7 +80,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * @param parameters - The execution parameters
    * @returns The language model to use, or undefined for default
    */
-  public getModel(_parameters: TParameters): Model | undefined {
+  public getModel(_parameters: TParameters, _input: TInput): Model | undefined {
     return undefined;
   }
   
@@ -99,7 +91,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * @param parameters - The execution parameters
    * @returns The system prompt string
    */
-  public abstract getSystem(parameters: TParameters, _context: VoxContext<TParameters>): Promise<string>;
+  public abstract getSystem(parameters: TParameters, _input: TInput, _context: VoxContext<TParameters>): Promise<string>;
   
   /**
    * Gets the list of active tools for this agent execution.
@@ -117,18 +109,34 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    * @param parameters - The execution parameters
    * @param lastStep - The most recent step result
    * @param allSteps - All steps executed so far
-   * @param lastCheck - Whether we are checking after the agent has stopped
    * @returns True if the agent should stop, false to continue
    */
   public stopCheck(
     _parameters: TParameters,
+    _input: TInput,
     _lastStep: StepResult<Record<string, Tool>>,
-    _allSteps: StepResult<Record<string, Tool>>[],
-    _lastCheck: boolean = false
+    _allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {
     return _allSteps.length >= 10;
   }
   
+  /**
+   * Manually post-process LLM results and send back the output.
+   * 
+   * @param parameters - The execution parameters
+   * @param lastStep - The most recent step result
+   * @param allSteps - All steps executed so far
+   * @returns True if the agent should stop, false to continue
+   */
+  public getOutput(
+    _parameters: TParameters,
+    _input: TInput,
+    _lastStep: StepResult<Record<string, Tool>>,
+    _allSteps: StepResult<Record<string, Tool>>[]
+  ): TOutput {
+    return JSON.parse(_lastStep.text);
+  }
+
   /**
    * Gets the initial messages to include in the conversation.
    * These messages will be added after the system prompt.
@@ -152,6 +160,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
    */
   public async prepareStep(
     parameters: TParameters,
+    input: TInput,
     lastStep: StepResult<Record<string, Tool>> | null,
     allSteps: StepResult<Record<string, Tool>>[],
     messages: ModelMessage[],
@@ -162,6 +171,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
       toolChoice?: any;
       activeTools?: string[];
       messages?: ModelMessage[];
+      outputSchema?: ZodObject;
     } = {};
 
     // Check for removeUsedTools option
@@ -210,7 +220,7 @@ export abstract class VoxAgent<T, TParameters extends AgentParameters, TInput = 
       config.messages = filteredMessages;
     }
 
-    config.model = this.getModel(parameters);
+    config.model = this.getModel(parameters, input);
 
     return config;
   }

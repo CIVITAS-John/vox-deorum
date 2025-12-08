@@ -49,8 +49,7 @@ export class VoxPlayer {
       gameID,
       turn: -1,
       after: initialTurn * 1000000,
-      before: 0,
-      store: {}
+      before: 0
     };
   }
 
@@ -95,14 +94,11 @@ export class VoxPlayer {
       try {
         await this.context.registerMCP();
 
-        // Get the game metadata as a prerequisite
-        this.parameters.store!.metadata =
-          this.parameters.store!.metadata ??
-            await this.context.callTool("get-metadata", { PlayerID: this.playerID }, this.parameters);
-
         // Set the player's AI type
-        await this.context.callTool("set-metadata", { Key: `experiment`, Value: this.strategistType }, this.parameters);
-        await this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.strategistType }, this.parameters);
+        await Promise.all([
+          this.context.callTool("set-metadata", { Key: `experiment`, Value: this.strategistType }, this.parameters),
+          this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.strategistType }, this.parameters)
+        ]);
 
         // Resume the game in case the vox agent was aborted
         await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
@@ -121,17 +117,21 @@ export class VoxPlayer {
           this.parameters.before = turnData.latestID;
           this.parameters.running = this.strategistType;
 
-          this.logger.warn(`Running ${this.strategistType} on ${this.parameters.turn}, with events ${this.parameters.after}~${this.parameters.before}`);
+          this.logger.warn(`Running ${this.strategistType} on ${this.parameters.turn} (${this.parameters.playerID}), ${this.parameters.after}~${this.parameters.before}`);
 
           const turnSpan = tracer.startSpan(`turn.${this.parameters.turn}`, {
             kind: SpanKind.INTERNAL,
             attributes: {
               'vox.context.id': this.context.id,
-              'turn.number': this.parameters.turn,
-              'event.range.start': this.parameters.after,
-              'event.range.end': this.parameters.before
+              'parameters': JSON.stringify(this.parameters)
             }
           });
+
+          // Get metadata for the turn
+          // Get the game metadata as a prerequisite
+          this.parameters.metadata =
+            this.parameters.metadata ??
+              await this.context.callTool("get-metadata", { PlayerID: this.playerID }, this.parameters);
 
           try {
             await context.with(trace.setSpan(context.active(), turnSpan), async () => {
@@ -141,7 +141,7 @@ export class VoxPlayer {
               if (this.strategistType == "none") {
                 await setTimeout(2000);
               } else {
-                await this.context.execute(this.strategistType, this.parameters);
+                await this.context.execute(this.strategistType, this.parameters, undefined);
               }
 
               // Finalizing

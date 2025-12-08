@@ -15,9 +15,26 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
  * Parameters for the strategist agent
  */
 export interface StrategistParameters extends AgentParameters {
-  playerID: number;
-  turn: number;
+  /** Fetch events after this ID */
   after: number;
+  /** Fetch events equals to or before this ID */
+  before: number;
+  /** Players report. */
+  players?: string;
+  /** Events data */
+  events?: any;
+  /** Cities data */
+  cities?: any;
+  /** Options data */
+  options?: any;
+  /** Military report */
+  military?: any;
+  /** Victory progress */
+  victory?: any;
+  /** Metadata storage */
+  metadata?: any;
+  /** Generic storage for additional data */
+  store?: Record<string, unknown>;
 }
 
 /**
@@ -29,10 +46,10 @@ export interface StrategistParameters extends AgentParameters {
  * @class
  * @template T - Additional agent-specific data
  */
-export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistParameters> {
+export abstract class Strategist extends VoxAgent<StrategistParameters> {
   /**
    * Gets the initial messages for the conversation.
-   * Fetches all required game state data and stores it in parameters.store.
+   * Fetches all required game state data and stores it directly in parameters.
    *
    * @param parameters - Strategist execution parameters
    * @param context - Execution context
@@ -58,12 +75,12 @@ export abstract class Strategist<T = unknown> extends VoxAgent<T, StrategistPara
     if (this.isErrorResult(victory)) throw new Error(`Failed to fetch victory: ${this.extractErrorText(victory)}`);
     if (this.isErrorResult(military)) throw new Error(`Failed to fetch military: ${this.extractErrorText(military)}`);
 
-    parameters.store!.players = players;
-    parameters.store!.events = events;
-    parameters.store!.cities = cities;
-    parameters.store!.options = options;
-    parameters.store!.military = military;
-    parameters.store!.victory = victory;
+    parameters.players = players;
+    parameters.events = events;
+    parameters.cities = cities;
+    parameters.options = options;
+    parameters.military = military;
+    parameters.victory = victory;
     return [];
   }
 

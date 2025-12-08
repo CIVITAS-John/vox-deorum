@@ -36,7 +36,7 @@ export class VoxContext<TParameters extends AgentParameters> {
   /**
    * Registry of available agents indexed by name
    */
-  public agents: Record<string, VoxAgent<unknown, TParameters>> = {};
+  public agents: Record<string, VoxAgent<TParameters>> = {};
 
   /**
    * Registry of available tools indexed by name
@@ -90,7 +90,7 @@ export class VoxContext<TParameters extends AgentParameters> {
    *
    * @param agent - The agent to register
    */
-  public registerAgent(agent: VoxAgent<unknown, TParameters>): void {
+  public registerAgent(agent: VoxAgent<TParameters>): void {
     this.agents[agent.name] = agent;
     this.logger.info(`Agent registered: ${agent.name}`);
   }
@@ -176,7 +176,7 @@ export class VoxContext<TParameters extends AgentParameters> {
   public async execute(
     agentName: string,
     parameters: TParameters,
-    outputSchema?: ZodObject
+    input: unknown
   ): Promise<string> {
     const agent = this.agents[agentName];
     if (!agent) {
@@ -184,7 +184,7 @@ export class VoxContext<TParameters extends AgentParameters> {
       throw new Error(`Agent '${agentName}' not found in context`);
     }
 
-    parameters.store = parameters.store ?? {};
+    let currentAgent = parameters.running;
     parameters.running = agentName;
 
     const span = this.tracer.startSpan(`agent.${agentName}`, {
@@ -192,7 +192,7 @@ export class VoxContext<TParameters extends AgentParameters> {
       attributes: {
         'vox.context.id': this.id,
         'agent.name': agentName,
-        'agent.parameters': JSON.stringify(parameters)
+        'agent.input': input ? JSON.stringify(input) : undefined
       }
     });
 
@@ -213,8 +213,8 @@ export class VoxContext<TParameters extends AgentParameters> {
         }
 
         // Execute the agent using generateText
-        var model = agent.getModel(parameters) ?? this.defaultModel;
-        var system = await agent.getSystem(parameters, this);
+        var model = agent.getModel(parameters, input) ?? this.defaultModel;
+        var system = await agent.getSystem(parameters, input, this);
         if (system != "") {
           var shouldStop = false;
           var messages: ModelMessage[] = [{
@@ -232,12 +232,12 @@ export class VoxContext<TParameters extends AgentParameters> {
             const stepResult = await this.executeAgentStep(
               agent,
               parameters,
+              input,
               allSteps,
               stepCount,
               messages,
               model,
-              allTools,
-              outputSchema
+              allTools
             );
 
             // Update state from step results
@@ -270,7 +270,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         });
         return "[nothing]";
       } finally {
-        parameters.running = undefined;
+        parameters.running = currentAgent;
         span.end();
       }
     });
@@ -291,19 +291,18 @@ export class VoxContext<TParameters extends AgentParameters> {
    * @param model - The model identifier
    * @param system - The system prompt
    * @param allTools - All available tools including agent handoff tools
-   * @param outputSchema - Optional output schema for structured generation
    * @param stepCount - The current step number
    * @returns Updated messages, stop condition, and optional final text
    */
   private async executeAgentStep(
-    agent: VoxAgent<any, TParameters>,
+    agent: VoxAgent<TParameters>,
     parameters: TParameters,
+    input: unknown,
     allSteps: StepResult<ToolSet>[],
     stepCount: number,
     messages: ModelMessage[],
     model: Model,
-    allTools: ToolSet,
-    outputSchema: ZodObject | undefined,
+    allTools: ToolSet
   ): Promise<{ messages: ModelMessage[], shouldStop: boolean, finalText?: string }> {
     const stepSpan = this.tracer.startSpan(`agent.${agent.name}.step.${stepCount + 1}`, {
       kind: SpanKind.INTERNAL,
@@ -317,7 +316,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     return await context.with(trace.setSpan(context.active(), stepSpan), async () => {
       try {
         // Prepare configuration for this step
-        const stepConfig = await agent.prepareStep(parameters,
+        const stepConfig = await agent.prepareStep(parameters, input,
           allSteps.length === 0 ? null : allSteps[allSteps.length - 1], allSteps, messages, this);
 
         // Apply prepared configuration
@@ -326,6 +325,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         const stepProviderOptions = buildProviderOptions(stepConfig.model || model);
         const stepActiveTools = stepConfig.activeTools || agent.getActiveTools(parameters);
         const stepToolChoice = stepConfig.toolChoice || (stepActiveTools && stepActiveTools.length > 0 ? agent.toolChoice : "auto");
+        const stepOutputSchema = stepConfig.outputSchema;
 
         // Record step configuration in span
         stepSpan.setAttributes({
@@ -350,9 +350,7 @@ export class VoxContext<TParameters extends AgentParameters> {
             toolChoice: stepToolChoice,
             experimental_context: parameters,
             // Output schema for tool as agent
-            experimental_output: outputSchema ? Output.object({
-              schema: outputSchema
-            }) : undefined,
+            experimental_output: stepOutputSchema ? Output.object({ schema: stepOutputSchema }) : undefined,
             // Stop after one step
             stopWhen: () => true
           });
@@ -384,7 +382,7 @@ export class VoxContext<TParameters extends AgentParameters> {
 
           // Check stop condition
           shouldStop = this.abortController.signal.aborted ||
-            agent.stopCheck(parameters, stepResponse.steps[0], allSteps);
+            agent.stopCheck(parameters, input, stepResponse.steps[0], allSteps);
 
           this.logger.info(`Stop check for ${agent.name}: ${shouldStop}`, {
             stepNumber: stepCount + 1,

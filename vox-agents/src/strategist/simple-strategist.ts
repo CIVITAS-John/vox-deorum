@@ -93,7 +93,7 @@ You will receive the following reports:
       content: `
 # Situation
 You are Player ${parameters.playerID ?? 0}.
-${parameters.store!.metadata}`.trim()
+${parameters.metadata}`.trim()
     }, {
       role: "user",
       content: `
@@ -101,27 +101,27 @@ You, Player ${parameters.playerID ?? 0}, are making strategic decisions after tu
 
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
-${parameters.store!.victory}
+${parameters.victory}
 
 # Strategies
 Strategies: existing strategic decisions and available options for you.
-${parameters.store!.options}
+${parameters.options}
 
 # Players
 Players: summary reports about visible players in the world.
-${parameters.store!.players}
+${parameters.players}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
-${parameters.store!.cities}
+${parameters.cities}
 
 # Military
 Military: summary reports about tactical zones and visible units.
-${parameters.store!.military}
+${parameters.military}
 
 # Events
 Events: events since you last made a decision.
-${parameters.store!.events}
+${parameters.events}
 `.trim()
     }];
   }
@@ -146,17 +146,13 @@ ${parameters.store!.events}
    */
   public stopCheck(
     _parameters: StrategistParameters,
+    _input: unknown,
     _lastStep: StepResult<Record<string, Tool>>,
-    allSteps: StepResult<Record<string, Tool>>[],
-    lastCheck: boolean
+    allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {
     // Stop if we've executed set-strategy tool
     for (var step of allSteps) {
       for (const result of step.toolResults) {
-        if (lastCheck && result.toolName.startsWith("set-")) {
-          this.logger.info("The agent has called non-passive tools, stopping agent");
-          return true;
-        }
         if (result.toolName === "set-strategy" && result.output) {
           this.logger.info("Set-strategy tool executed, stopping agent");
           return true;

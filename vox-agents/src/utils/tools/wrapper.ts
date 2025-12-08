@@ -34,8 +34,8 @@ const tracer = trace.getTracer('vox-tools');
  * const tool = createAgentTool(strategistAgent, context, { playerID: 0 });
  * ```
  */
-export function createAgentTool<T, TParameters extends AgentParameters, TInput = unknown, TOutput = unknown>(
-  agent: VoxAgent<T, TParameters, TInput, TOutput>,
+export function createAgentTool<TParameters extends AgentParameters, TInput = unknown, TOutput = unknown>(
+  agent: VoxAgent<TParameters, TInput, TOutput>,
   context: VoxContext<TParameters>,
   baseParameters: TParameters
 ): VercelTool {
@@ -67,13 +67,9 @@ export function createAgentTool<T, TParameters extends AgentParameters, TInput =
         });
 
         let parameters = baseParameters;
-        let currentAgent = parameters.running;
-        parameters.store!.input = input as any;
 
         // Execute the agent through the context
-        const result = await context.execute(agent.name, parameters);
-        parameters.running = currentAgent;
-
+        const result = await context.execute(agent.name, parameters, input);
         logger.info(`Agent-tool execution completed: ${agent.name}`);
 
         span.setAttributes({
