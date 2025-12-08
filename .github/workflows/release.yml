@@ -11,6 +11,7 @@ on:
           - patch
           - minor
           - major
+          - none
 
 jobs:
   release:
@@ -47,9 +48,10 @@ jobs:
           elif [ "${{ github.event.inputs.version_type }}" == "minor" ]; then
             MINOR=$((MINOR + 1))
             REVISION=0
-          else
+          elif [ "${{ github.event.inputs.version_type }}" == "patch" ]; then
             REVISION=$((REVISION + 1))
           fi
+          # "none" keeps the version as-is
 
           # Create new version string
           VERSION="v${MAJOR}.${MINOR}.${REVISION}"
