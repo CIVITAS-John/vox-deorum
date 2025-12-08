@@ -31,25 +31,10 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            bridge-service/package-lock.json
-            mcp-server/package-lock.json
-            vox-agents/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Install dependencies for bridge-service
-        run: |
-          cd bridge-service
-          npm ci
-
-      - name: Install dependencies for mcp-server
-        run: |
-          cd mcp-server
-          npm ci
-
-      - name: Install dependencies for vox-agents
-        run: |
-          cd vox-agents
-          npm ci
+      - name: Install dependencies
+        run: npm ci
 
       - name: Generate documentation for bridge-service
         run: |
