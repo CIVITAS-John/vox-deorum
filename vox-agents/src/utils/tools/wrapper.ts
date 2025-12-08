@@ -16,7 +16,6 @@ import { mcpClient } from "../models/mcp-client.js";
 import { trace, SpanStatusCode, SpanKind } from '@opentelemetry/api';
 import { camelCase } from "change-case";
 import { jsonToMarkdown } from "./json-to-markdown.js";
-import { config } from "../config.js";
 
 const tracer = trace.getTracer('vox-tools');
 
@@ -123,8 +122,8 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
 
   // Remove autoComplete fields from input schema
   const filteredSchema = { ...tool.inputSchema };
-  if (filteredSchema.properties && tool.annotations?.autoComplete) {
-    const autoCompleteFields = tool.annotations.autoComplete as string[];
+  if (filteredSchema.properties && (tool.annotations as any)?.autoComplete) {
+    const autoCompleteFields = (tool.annotations as any).autoComplete as string[];
     const filteredProperties = { ...filteredSchema.properties };
 
     // Remove autoComplete fields from properties
@@ -157,8 +156,8 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
 
       try {
         // Autocomplete support - add the fields back for execution
-        if (tool.annotations?.autoComplete) {
-          (tool.annotations?.autoComplete as string[]).forEach(
+        if ((tool.annotations as any)?.autoComplete) {
+          ((tool.annotations as any)?.autoComplete as string[]).forEach(
             key => {
               var camelKey = camelCase(key);
               if (camelKey.endsWith("Id")) camelKey = camelKey.substring(0, camelKey.length - 2) + "ID";
@@ -191,7 +190,7 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
         if (convertMarkdown && structuredResult) {
           result = result?.Result ?? structuredResult.Result ?? structuredResult;
           const markdown = jsonToMarkdown(result, {
-            configs: tool.annotations?.markdownConfig as any,
+            configs: (tool.annotations as any)?.markdownConfig,
             startingLevel: 2,
           });
           return markdown;

@@ -558,65 +558,64 @@ if !errorlevel! neq 0 (
 :: Final check before installing dependencies
 where node >nul 2>&1
 if !errorlevel! equ 0 (
-    :: Install dependencies for bridge-service
-    if exist "!PROJECT_ROOT!\bridge-service\package.json" (
-        echo   Installing bridge-service dependencies...
-        pushd "!PROJECT_ROOT!\bridge-service"
+    :: Install dependencies using workspaces from root package.json
+    if exist "!PROJECT_ROOT!\package.json" (
+        echo   Installing all dependencies via npm workspaces...
+        pushd "!PROJECT_ROOT!"
         call npm install
         if !errorlevel! equ 0 (
-            echo   [OK] bridge-service dependencies installed
+            echo   [OK] All dependencies installed via workspaces
         ) else (
-            echo   [WARN] Failed to install bridge-service dependencies
+            echo   [WARN] Failed to install dependencies
             echo   Error level: !errorlevel!
         )
         popd
-    ) else (
-        echo   [WARN] bridge-service package.json not found at !PROJECT_ROOT!\bridge-service
-    )
 
-    :: Install dependencies for mcp-server
-    if exist "!PROJECT_ROOT!\mcp-server\package.json" (
-        echo   Installing mcp-server dependencies...
-        pushd "!PROJECT_ROOT!\mcp-server"
-        call npm install
-        if !errorlevel! equ 0 (
-            echo   [OK] mcp-server dependencies installed
-        ) else (
-            echo   [WARN] Failed to install mcp-server dependencies
-            echo   Error level: !errorlevel!
+        :: Setup .env file if it doesn't exist
+        if exist "!PROJECT_ROOT!\vox-agents\.env.default" (
+            if not exist "!PROJECT_ROOT!\vox-agents\.env" (
+                echo.
+                echo   Setting up environment configuration...
+                echo.
+                copy /Y "!PROJECT_ROOT!\vox-agents\.env.default" "!PROJECT_ROOT!\vox-agents\.env" >nul 2>&1
+                set "ENV_CREATED=1"
+            ) else (
+                echo   [OK] .env file already exists
+            )
         )
-        popd
     ) else (
-        echo   [WARN] mcp-server package.json not found at !PROJECT_ROOT!\mcp-server
-    )
+        echo   [WARN] Root package.json not found at !PROJECT_ROOT!
+        echo   Attempting legacy installation method...
 
-    :: Install dependencies for vox-agents
-    if exist "!PROJECT_ROOT!\vox-agents\package.json" (
-        echo   Installing vox-agents dependencies...
-        pushd "!PROJECT_ROOT!\vox-agents"
-        call npm install
-        if !errorlevel! equ 0 (
-            echo   [OK] vox-agents dependencies installed
+        :: Fallback to individual installations if root package.json doesn't exist
+        if exist "!PROJECT_ROOT!\bridge-service\package.json" (
+            echo   Installing bridge-service dependencies...
+            pushd "!PROJECT_ROOT!\bridge-service"
+            call npm install
+            popd
+        )
+
+        if exist "!PROJECT_ROOT!\mcp-server\package.json" (
+            echo   Installing mcp-server dependencies...
+            pushd "!PROJECT_ROOT!\mcp-server"
+            call npm install
+            popd
+        )
+
+        if exist "!PROJECT_ROOT!\vox-agents\package.json" (
+            echo   Installing vox-agents dependencies...
+            pushd "!PROJECT_ROOT!\vox-agents"
+            call npm install
 
             :: Setup .env file if it doesn't exist
             if exist ".env.default" (
                 if not exist ".env" (
-                    echo.
-                    echo   Setting up environment configuration...
-                    echo.
                     copy /Y ".env.default" ".env" >nul 2>&1
                     set "ENV_CREATED=1"
-                ) else (
-                    echo   [OK] .env file already exists
                 )
             )
-        ) else (
-            echo   [WARN] Failed to install vox-agents dependencies
-            echo   Error level: !errorlevel!
+            popd
         )
-        popd
-    ) else (
-        echo   [WARN] vox-agents package.json not found at !PROJECT_ROOT!\vox-agents
     )
 )
 

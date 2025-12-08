@@ -91,7 +91,6 @@ export class MCPClient extends EventEmitter {
       },
       {
         capabilities: {
-          tools: {},
           elicitation: {}
         }
       }

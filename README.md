@@ -144,6 +144,7 @@ Game integration scripts
 - Git with LFS support
 
 #### Building from Source
+- Note that all node_modules are installed at the root level.
 
 ```bash
 # Clone with submodules
@@ -154,7 +155,7 @@ cd vox-deorum
 git submodule update --init --recursive
 
 # Install all dependencies for TypeScript modules
-npm install --workspaces
+npm install
 
 # Build the Community Patch DLL (Windows only)
 cd civ5-dll

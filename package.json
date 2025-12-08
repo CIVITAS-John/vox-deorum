@@ -1,0 +1,89 @@
+{
+  "name": "vox-deorum",
+  "version": "1.0.0",
+  "description": "Vox Deorum - LLM-enhanced AI system for Civilization V using the Community Patch framework",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "bridge-service",
+    "mcp-server",
+    "vox-agents"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "build:all": "npm run build -ws",
+    "test:all": "npm run test -ws",
+    "clean:all": "npm run clean -ws"
+  },
+  "author": "John Chen",
+  "license": "CC-BY-NC-SA-4.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@ai-sdk-tool/parser": "^2.1.7",
+    "@ai-sdk/google": "^2.0.13",
+    "@ai-sdk/openai": "^2.0.27",
+    "@ai-sdk/openai-compatible": "^1.0.18",
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^2.2.0",
+    "@opentelemetry/instrumentation": "^0.204.0",
+    "@opentelemetry/resources": "^2.2.0",
+    "@opentelemetry/sdk-trace-base": "^2.2.0",
+    "@opentelemetry/sdk-trace-node": "^2.1.0",
+    "@opentelemetry/semantic-conventions": "^1.38.0",
+    "ai": "^5.0.108",
+    "axios": "^1.6.2",
+    "better-sqlite3": "^12.5.0",
+    "better-sse": "^0.15.1",
+    "change-case": "^5.4.4",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "eventsource": "^4.0.0",
+    "express": "^4.21.2",
+    "fast-fuzzy": "^1.12.0",
+    "guard-timeout": "^2.0.0",
+    "helmet": "^7.1.0",
+    "kysely": "^0.28.5",
+    "mathjs": "^14.6.0",
+    "node-ipc": "^9.2.1",
+    "p-queue": "^9.0.0",
+    "pluralize-esm": "^9.0.5",
+    "undici": "^7.16.0",
+    "uuid": "^13.0.0",
+    "windows-mutex-prebuilt": "^0.5.0",
+    "winston": "^3.17.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/cors": "^2.8.19",
+    "@types/eventsource": "^1.1.15",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.3.1",
+    "@types/node-ipc": "^9.2.3",
+    "@types/supertest": "^6.0.3",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "cross-env": "^10.1.0",
+    "eslint": "^8.54.0",
+    "kysely-codegen": "^0.18.5",
+    "rimraf": "^5.0.5",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.5",
+    "typedoc": "^0.28.15",
+    "typedoc-plugin-markdown": "^4.9.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "kysely-codegen": {
+      "better-sqlite3": "^12.5.0"
+    }
+  }
+}

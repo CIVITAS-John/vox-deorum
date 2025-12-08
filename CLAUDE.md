@@ -62,6 +62,13 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 - **Always use `.js` extensions in imports**, even for `.ts` files
 - This applies to ALL submodules (bridge-service, mcp-server, vox-agents)
 
+### Dependency Management
+- **Consider using a root-level package.json** with npm workspaces for shared dependencies
+- This centralizes version management and reduces duplication
+- Individual submodules keep their scripts and configs but dependencies move to root
+- Use `npm install --workspaces` to install all dependencies
+- Run commands across workspaces: `npm run build -ws` or `npm test --workspaces`
+
 ### Testing Framework
 - **Use Vitest** for all TypeScript testing
 - Test files: `tests/*.test.ts`
