@@ -11,6 +11,7 @@ import { createLogger } from "../utils/logger.js";
 import { z, ZodObject } from "zod";
 import { Model } from "../utils/config.js";
 import { VoxContext } from "./vox-context.js";
+import { getModelConfig } from "../utils/models/models.js";
 
 /**
  * Parameters for configuring agent execution.
@@ -80,8 +81,8 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
    * @param parameters - The execution parameters
    * @returns The language model to use, or undefined for default
    */
-  public getModel(_parameters: TParameters, _input: TInput): Model | undefined {
-    return undefined;
+  public getModel(_parameters: TParameters, _input: TInput, overrides: Record<string, Model | string>): Model {
+    return getModelConfig(this.name, undefined, overrides);
   }
   
   /**
@@ -220,7 +221,7 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
       config.messages = filteredMessages;
     }
 
-    config.model = this.getModel(parameters, input);
+    config.model = this.getModel(parameters, input, context.modelOverrides);
 
     return config;
   }

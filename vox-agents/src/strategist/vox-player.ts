@@ -17,6 +17,7 @@ import { NoneStrategist } from "./none-strategist.js";
 import { config } from "../utils/config.js";
 import { refreshGameState, StrategistParameters } from "./strategy-parameters.js";
 import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";
+import { PlayerConfig } from "./strategist-session.js";
 
 /**
  * Manages a single player's strategist execution within a game session.
@@ -35,15 +36,17 @@ export class VoxPlayer {
 
   constructor(
     public readonly playerID: number,
-    private readonly strategistType: string,
+    private readonly playerConfig: PlayerConfig,
     gameID: string,
     initialTurn: number
   ) {
     this.logger = createLogger(`VoxPlayer-${playerID}`);
 
     const id = `${gameID}-player-${playerID}`
-    VoxSpanExporter.getInstance().createContext(id, strategistType);
-    this.context = new VoxContext(getModelConfig("default"), id);
+    VoxSpanExporter.getInstance().createContext(id, this.playerConfig.strategist);
+
+    // Pass model overrides to VoxContext
+    this.context = new VoxContext(playerConfig.models || {}, id);
     this.context.registerAgent(new SimpleStrategist());
     this.context.registerAgent(new NoneStrategist());
 
@@ -67,7 +70,7 @@ export class VoxPlayer {
    */
   notifyTurn(turn: number, latestID: number): boolean {
     if (this.parameters.running) {
-      this.logger.warn(`The ${this.strategistType} is still working on turn ${this.parameters.turn}. Skipping turn ${turn}...`);
+      this.logger.warn(`The ${this.playerConfig.strategist} is still working on turn ${this.parameters.turn}. Skipping turn ${turn}...`);
       return this.pendingTurn?.turn !== turn;
     }
 
@@ -89,7 +92,7 @@ export class VoxPlayer {
         'vox.context.id': this.context.id,
         'player.id': this.playerID,
         'game.id': this.parameters.gameID,
-        'strategist.type': this.strategistType,
+        'strategist.type': this.playerConfig.strategist,
         'config.version': config.versionInfo?.version || "unknown"
       }
     });
@@ -100,8 +103,8 @@ export class VoxPlayer {
 
         // Set the player's AI type
         await Promise.all([
-          this.context.callTool("set-metadata", { Key: `experiment`, Value: this.strategistType }, this.parameters),
-          this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.strategistType }, this.parameters)
+          this.context.callTool("set-metadata", { Key: `experiment`, Value: this.playerConfig.strategist }, this.parameters),
+          this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.playerConfig.strategist }, this.parameters)
         ]);
 
         // Resume the game in case the vox agent was aborted
@@ -119,13 +122,13 @@ export class VoxPlayer {
           this.pendingTurn = undefined;
           this.parameters.turn = turnData.turn;
           this.parameters.before = turnData.latestID;
-          this.parameters.running = this.strategistType;
+          this.parameters.running = this.playerConfig.strategist;
 
           // Logging
           const startingInput = this.context.inputTokens;
           const startingReasoning = this.context.reasoningTokens;
           const startingOutput = this.context.outputTokens;
-          this.logger.warn(`Running ${this.strategistType} on ${this.parameters.turn} (${this.parameters.playerID}), ${this.parameters.after}~${this.parameters.before}`);
+          this.logger.warn(`Running ${this.playerConfig.strategist} on ${this.parameters.turn} (Player ${this.parameters.playerID}), ${this.parameters.after}~${this.parameters.before}`);
 
           const turnSpan = tracer.startSpan(`turn.${this.parameters.turn}`, {
             kind: SpanKind.INTERNAL,
@@ -147,10 +150,10 @@ export class VoxPlayer {
               await this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
 
               // Without strategists, we just fake one
-              if (this.strategistType == "none") {
+              if (this.playerConfig.strategist == "none") {
                 await setTimeout(2000);
               } else {
-                await this.context.execute(this.strategistType, this.parameters, undefined);
+                await this.context.execute(this.playerConfig.strategist, this.parameters, undefined);
               }
 
               // Finalizing

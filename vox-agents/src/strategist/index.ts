@@ -7,9 +7,9 @@
  * Supports both interactive and automated game sessions with configurable strategists.
  */
 
-import { spanProcessor, sqliteExporter } from "../instrumentation.js";
+import { sqliteExporter } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
-import config, { loadConfigFromFile } from "../utils/config.js";
+import { loadConfigFromFile } from "../utils/config.js";
 import { StrategistSession, StrategistSessionConfig } from "./strategist-session.js";
 import { setTimeout } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
@@ -28,6 +28,11 @@ const { values, positionals } = parseArgs({
     load: {
       type: 'boolean',
       short: 'l',
+      default: false
+    },
+    wait: {
+      type: 'boolean',
+      short: 'w',
       default: false
     },
     players: {
@@ -54,12 +59,14 @@ const { values, positionals } = parseArgs({
 
 const configFile = values.config as string;
 const isLoadMode = values.load as boolean;
+const isWaitMode = values.wait as boolean;
 
 // Default configuration (interactive mode)
 const defaultConfig: StrategistSessionConfig = {
-  llmPlayers: [1],
+  llmPlayers: {
+    1: { strategist: "simple-strategist" }
+  },
   autoPlay: false,
-  strategist: "simple-strategist",
   gameMode: 'start',
   repetition: 1
 };
@@ -69,17 +76,30 @@ const cmdOverrides: Partial<StrategistSessionConfig> = {};
 
 if (isLoadMode) {
   cmdOverrides.gameMode = 'load';
+} else if (isWaitMode) {
+  cmdOverrides.gameMode = 'wait';
 }
 
-if (values.players) {
-  const playerList = Array.isArray(values.players) ? values.players : [values.players];
-  cmdOverrides.llmPlayers = playerList.flatMap(p =>
-    (p as string).split(',').map(id => parseInt(id.trim()))
-  ).filter(id => !isNaN(id));
-}
+if (values.players || values.strategist) {
+  const strategist = (values.strategist as string) || "simple-strategist";
 
-if (values.strategist !== undefined) {
-  cmdOverrides.strategist = values.strategist as string;
+  if (values.players) {
+    const playerList = Array.isArray(values.players) ? values.players : [values.players];
+    const playerIds = playerList.flatMap(p =>
+      (p as string).split(',').map(id => parseInt(id.trim()))
+    ).filter(id => !isNaN(id));
+
+    // Build llmPlayers as a Record
+    cmdOverrides.llmPlayers = {};
+    for (const playerId of playerIds) {
+      cmdOverrides.llmPlayers[playerId] = { strategist };
+    }
+  } else if (values.strategist) {
+    // If only strategist is specified, update the default player
+    cmdOverrides.llmPlayers = {
+      1: { strategist }
+    };
+  }
 }
 
 if (values.autoPlay !== undefined) {
@@ -99,9 +119,6 @@ const sessionConfig: StrategistSessionConfig = loadConfigFromFile(
   defaultConfig,
   cmdOverrides
 );
-// Merge LLM configurations
-if (sessionConfig.llms)
-  Object.assign(config.llms, sessionConfig.llms);
 
 // Session instance
 let session: StrategistSession | null = null;

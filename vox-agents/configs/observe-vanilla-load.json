@@ -1,7 +1,10 @@
 {
-  "llmPlayers": [0],
+  "llmPlayers": {
+    "0": {
+      "strategist": "none-strategist"
+    }
+  },
   "autoPlay": true,
-  "strategist": "none-strategist",
   "gameMode": "load",
   "repetition": 1
 }

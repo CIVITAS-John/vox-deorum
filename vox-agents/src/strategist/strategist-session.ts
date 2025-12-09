@@ -16,21 +16,27 @@ import { Model } from "../utils/config.js";
 const logger = createLogger('StrategistSession');
 
 /**
+ * Player-specific configuration for LLM control
+ */
+export interface PlayerConfig {
+  /** Strategist type to use for this player */
+  strategist: string;
+  /** Optional LLM model overrides per voxcontext (e.g., per agent name) */
+  models?: Record<string, Model | string>;
+}
+
+/**
  * Configuration for a StrategistSession
  */
 export interface StrategistSessionConfig {
-  /** Player IDs to monitor and control with LLM */
-  llmPlayers: number[];
+  /** Players to monitor and control with LLM, mapped by player ID */
+  llmPlayers: Record<number, PlayerConfig>;
   /** Whether to automatically start playing when game switches */
   autoPlay: boolean;
-  /** Strategist type to use */
-  strategist: string;
-  /** Game mode - 'start' for new game, 'load' to load existing (default: 'load') */
-  gameMode: 'start' | 'load';
-  /** The number of repeated runs. After the first, all will be new games. */
+  /** Game mode - 'start' for new game, 'load' to load existing, 'wait' to wait for manual start (default: 'load') */
+  gameMode: 'start' | 'load' | 'wait';
+  /** The number of repeated runs. After the first, all will be new games */
   repetition?: number;
-  /** LLM model to use for the strategist - override the baseline config */
-  llms?: Record<string, Model | string>;
 }
 
 /**
@@ -61,9 +67,16 @@ export class StrategistSession {
    * Launches the game, connects to MCP server, and waits for completion.
    */
   async start(): Promise<void> {
-    const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' : 'LoadGame.lua';
+    const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' :
+                      this.config.gameMode === 'wait' ? undefined : 'LoadGame.lua';
 
     logger.info(`Starting strategist session in ${this.config.gameMode} mode`, this.config);
+
+    // In wait mode, prompt the user to start the game manually
+    if (this.config.gameMode === 'wait') {
+      logger.warn('WAIT MODE: Please start Civilization V manually and load your game.');
+      logger.warn('The session will automatically continue when the game is loaded.');
+    }
 
     // Register game exit handler for crash recovery
     await voxCivilization.startGame(luaScript);
@@ -163,6 +176,11 @@ export class StrategistSession {
   private async handleGameSwitched(params: any): Promise<void> {
     logger.warn(`Game context switching to ${params.gameID} at turn ${params.turn}`);
 
+    // If in wait mode and this is the initial game load, treat it like load mode
+    if (this.config.gameMode === 'wait' && this.lastGameState === 'initializing') {
+      this.lastGameState = 'running';
+    }
+
     // Abort all existing players
     for (const player of this.activePlayers.values()) {
       player.abort(false);
@@ -170,8 +188,9 @@ export class StrategistSession {
     this.activePlayers.clear();
 
     // Create new players for this game
-    for (const playerID of this.config.llmPlayers) {
-      const player = new VoxPlayer(playerID, this.config.strategist, params.gameID, params.turn);
+    for (const [playerIDStr, playerConfig] of Object.entries(this.config.llmPlayers)) {
+      const playerID = parseInt(playerIDStr);
+      const player = new VoxPlayer(playerID, playerConfig, params.gameID, params.turn);
       this.activePlayers.set(playerID, player);
       player.execute();
     }
@@ -253,8 +272,9 @@ Game.SetAIAutoPlay(2000, -1);`
       return;
     }
 
-    // If the game wasn't initialized, start it again
-    const luaScript = this.config.gameMode === 'start' && this.lastGameState === 'initializing' ? 'StartGame.lua' : 'LoadGame.lua';
+    // If the game wasn't initialized, use the appropriate script based on mode
+    const luaScript = this.config.gameMode === 'start' && this.lastGameState === 'initializing' ? 'StartGame.lua' :
+                      this.config.gameMode === 'wait' ? undefined : 'LoadGame.lua';
 
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
@@ -271,8 +291,13 @@ Game.SetAIAutoPlay(2000, -1);`
     this.crashRecoveryAttempts++;
     logger.info(`Attempting game recovery (attempt ${Math.ceil(this.crashRecoveryAttempts)}/${this.MAX_RECOVERY_ATTEMPTS})...`);
 
-    // Restart the game using LoadGame.lua to load the last save
-    logger.info(`Starting Civilization V with ${luaScript} to recover from crash...`);
+    // Restart the game using the appropriate script to recover from crash
+    if (this.config.gameMode === 'wait') {
+      logger.warn('RECOVERY: Please restart Civilization V manually and load your game.');
+      logger.warn('The session will automatically continue when the game is loaded.');
+    } else {
+      logger.info(`Starting Civilization V with ${luaScript} to recover from crash...`);
+    }
     const started = await voxCivilization.startGame(luaScript);
 
     if (!started) {

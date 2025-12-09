@@ -20,27 +20,53 @@ dotenv.config();
 
 /**
  * Get a LLM model config by name.
- * Supports model aliasing and reasoning effort configuration.
+ * Supports model aliasing, reasoning effort configuration, and config overrides.
  *
  * @param name - Name of the model configuration (default: "default")
  * @param reasoning - Optional reasoning effort level for reasoning models
+ * @param overrides - Optional model configuration overrides to replace config.json definitions
  * @returns Model configuration object
  *
  * @example
  * ```typescript
  * const model = getModelConfig('default', 'high');
+ * const model = getModelConfig('default', undefined, { 'default': { provider: 'openai', name: 'gpt-4' } });
  * ```
  */
-export function getModelConfig(name: string = 'default', reasoning?: 'minimal' | 'low' | 'medium' | 'high'): Model {
+export function getModelConfig(
+  name: string = 'default',
+  reasoning?: 'minimal' | 'low' | 'medium' | 'high',
+  overrides?: Record<string, Model | string>
+): Model {
+  // Check overrides first
+  if (overrides && overrides[name]) {
+    const override = overrides[name];
+    if (typeof override === 'string') {
+      return getModelConfig(override, reasoning, overrides);
+    }
+    // It's a Model object - apply reasoning if needed
+    if (reasoning) {
+      return {
+        ...override,
+        options: { ...override.options, reasoningEffort: reasoning }
+      };
+    }
+    return override;
+  }
+
+  // Fall back to config.llms
   const model = config.llms[name];
-  if (!model) return getModelConfig("default", reasoning);
+  if (!model) return getModelConfig("default", reasoning, overrides);
   if (typeof(model) === "string")
-    return getModelConfig(model, reasoning);
+    return getModelConfig(model, reasoning, overrides);
   else if (reasoning) {
-    model.options = { ...model.options, reasoningEffort: reasoning };
-    return model;
+    return {
+      ...model,
+      options: { ...model.options, reasoningEffort: reasoning }
+    };
   } else return model;
 }
+
 
 /**
  * Get a LLM model instance by name.

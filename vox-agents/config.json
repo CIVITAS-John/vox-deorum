@@ -13,7 +13,7 @@
     "level": "info"
   },
   "llms": {
-    "default": "gpt-oss-20b",
+    "default": "gpt-oss-120b",
     "gemma3-27b": {
       "provider": "openrouter",
       "name": "google/gemma-3-27b-it",
@@ -32,6 +32,13 @@
     "gpt-oss-20b": {
       "provider": "openrouter",
       "name": "openai/gpt-oss-20b",
+      "options": {
+        "toolMiddleware": "prompt"
+      }
+    },
+    "gpt-oss-120b": {
+      "provider": "openrouter",
+      "name": "openai/gpt-oss-120b",
       "options": {
         "toolMiddleware": "prompt"
       }

@@ -6,16 +6,16 @@
  * Implements the agentic loop with tool calling, step preparation, and stop conditions.
  */
 
-import { generateText, Output, Tool, StepResult, ToolSet, ModelMessage, LanguageModel } from "ai";
+import { generateText, Output, Tool, StepResult, ToolSet, ModelMessage } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
-import { getModel, buildProviderOptions } from "../utils/models/models.js";
+import { getModel, buildProviderOptions, getModelConfig } from "../utils/models/models.js";
 import { Model } from "../utils/config.js";
 import { exponentialRetry } from "../utils/retry.js";
 import { v4 as uuidv4 } from 'uuid';
-import { trace, SpanStatusCode, SpanKind, context, Span } from '@opentelemetry/api';
+import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
 import { spanProcessor } from '../instrumentation.js';
 import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
 
@@ -45,9 +45,9 @@ export class VoxContext<TParameters extends AgentParameters> {
   public tools: Record<string, Tool> = {};
 
   /**
-   * Default language model to use when agents don't specify one
+   * Model configuration overrides (replaces config.json definitions)
    */
-  public defaultModel: Model;
+  public modelOverrides: Record<string, Model | string>;
 
   /**
    * AbortController for managing generation cancellation
@@ -69,12 +69,12 @@ export class VoxContext<TParameters extends AgentParameters> {
 
   /**
    * Constructor for VoxContext
-   * @param defaultModel - The default language model to use
+   * @param modelOverrides - Model configuration overrides to replace config.json definitions
    * @param id - Optional context ID, generates a UUID if not provided
    */
-  constructor(defaultModel: Model, id?: string) {
+  constructor(modelOverrides: Record<string, Model | string> = {}, id?: string) {
     this.id = id || uuidv4();
-    this.defaultModel = defaultModel;
+    this.modelOverrides = modelOverrides;
     this.abortController = new AbortController();
     this.logger.info(`VoxContext initialized with ID: ${this.id}`);
 
@@ -214,7 +214,8 @@ export class VoxContext<TParameters extends AgentParameters> {
         }
 
         // Execute the agent using generateText
-        var model = agent.getModel(parameters, input) ?? this.defaultModel;
+        // Get model config - agent's model or default, with overrides applied
+        const modelConfig = agent.getModel(parameters, input, this.modelOverrides);
         var system = await agent.getSystem(parameters, input, this);
         if (system != "") {
           var shouldStop = false;
@@ -237,7 +238,7 @@ export class VoxContext<TParameters extends AgentParameters> {
               allSteps,
               stepCount,
               messages,
-              model,
+              modelConfig,
               allTools
             );
 
@@ -251,7 +252,7 @@ export class VoxContext<TParameters extends AgentParameters> {
 
           // Log the conclusion
           span.setAttributes({
-            'agent.model': `${model.name}@${model.provider}`,
+            'agent.model': `${modelConfig.name}@${modelConfig.provider}`,
             'agent.tokens.input': this.inputTokens,
             'agent.tokens.reasoning': this.reasoningTokens,
             'agent.tokens.output': this.outputTokens,

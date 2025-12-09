@@ -57,9 +57,8 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
   public getDatabase(contextId: string): Database.Database {
     if (!databases.has(contextId)) {
       // Use custom folder if specified, otherwise use default structure
-      const contextDir = customFolders.has(contextId)
-        ? customFolders.get(contextId)!
-        : path.join(this.dataDir, contextId.split("-")[0]);
+      const contextDir = path.join(this.dataDir, customFolders.has(contextId)
+        ? customFolders.get(contextId)! : contextId.split("-")[0]);
 
       if (!fs.existsSync(contextDir)) {
         fs.mkdirSync(contextDir, { recursive: true });
