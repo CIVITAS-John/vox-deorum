@@ -6,9 +6,9 @@
  */
 
 import { ModelMessage, StepResult, Tool } from "ai";
-import { Strategist } from "./strategist.js";
-import { VoxContext } from "../infra/vox-context.js";
-import { StrategistParameters } from "./strategy-parameters.js";
+import { Strategist } from "../strategist.js";
+import { VoxContext } from "../../infra/vox-context.js";
+import { StrategistParameters } from "../strategy-parameters.js";
 
 /**
  * A do-nothing strategist agent that fetches game state but takes no actions.

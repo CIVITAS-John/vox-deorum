@@ -205,7 +205,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         // Add other agents as tools (excluding the current agent to prevent recursion)
         for (const [otherAgentName, otherAgent] of Object.entries(this.agents)) {
           if (otherAgentName !== agentName) {
-            allTools[`call_${otherAgentName}`] = createAgentTool(
+            allTools[`call-${otherAgentName}`] = createAgentTool(
               otherAgent,
               this,
               parameters

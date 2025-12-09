@@ -9,11 +9,10 @@
 import { VoxContext } from "../infra/vox-context.js";
 import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
 import { createLogger } from "../utils/logger.js";
-import { getModelConfig } from "../utils/models/models.js";
-import { SimpleStrategist } from "./simple-strategist.js";
+import { SimpleStrategist } from "./agents/simple-strategist.js";
+import { NoneStrategist } from "./agents/none-strategist.js";
 import { setTimeout } from 'node:timers/promises';
 import { sqliteExporter, spanProcessor } from "../instrumentation.js";
-import { NoneStrategist } from "./none-strategist.js";
 import { config } from "../utils/config.js";
 import { refreshGameState, StrategistParameters } from "./strategy-parameters.js";
 import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";

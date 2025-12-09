@@ -6,10 +6,10 @@
  * including diplomatic persona, technology research, policy adoption, and grand strategy selection.
  */
 
-import { ModelMessage, StepResult, Tool } from "ai";
-import { Strategist } from "./strategist.js";
-import { VoxContext } from "../infra/vox-context.js";
-import { getRecentGameState, StrategistParameters } from "./strategy-parameters.js";
+import { ModelMessage } from "ai";
+import { SimpleStrategistBase } from "./simple-strategist-base.js";
+import { VoxContext } from "../../infra/vox-context.js";
+import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 
 /**
  * A simple strategist agent that analyzes the game state and sets an appropriate strategy.
@@ -17,16 +17,11 @@ import { getRecentGameState, StrategistParameters } from "./strategy-parameters.
  *
  * @class
  */
-export class SimpleStrategist extends Strategist {
+export class SimpleStrategist extends SimpleStrategistBase {
   /**
    * The name identifier for this agent
    */
   readonly name = "simple-strategist";
-  
-  /**
-   * Whether we will remove used tools from the active list
-   */
-  public removeUsedTools: boolean = true;
   
   /**
    * Gets the system prompt for the strategist
@@ -125,52 +120,5 @@ Events: events since you last made a decision.
 ${state.events}
 `.trim()
     }];
-  }
-  
-  /**
-   * Gets the list of active tools for this agent
-   */
-  public getActiveTools(_parameters: StrategistParameters): string[] | undefined {
-    // Return specific tools the strategist needs
-    return [
-      "get-civilization",
-      "set-strategy",
-      "set-persona",
-      "set-research",
-      "set-policy",
-      "keep-status-quo"
-    ];
-  }
-  
-  /**
-   * Determines whether the agent should stop execution
-   */
-  public stopCheck(
-    _parameters: StrategistParameters,
-    _input: unknown,
-    _lastStep: StepResult<Record<string, Tool>>,
-    allSteps: StepResult<Record<string, Tool>>[]
-  ): boolean {
-    // Stop if we've executed set-strategy tool
-    for (var step of allSteps) {
-      for (const result of step.toolResults) {
-        if (result.toolName === "set-strategy" && result.output) {
-          this.logger.info("Set-strategy tool executed, stopping agent");
-          return true;
-        }
-        if (result.toolName === "keep-status-quo" && result.output) {
-          this.logger.info("Keep-status-quo tool executed, stopping agent");
-          return true;
-        }
-      }
-    }
-    
-    // Also stop after 10 steps to prevent infinite loops
-    if (allSteps.length >= 10) {
-      this.logger.warn("Reached maximum step limit (10), stopping agent");
-      return true;
-    }
-    
-    return false;
   }
 }
