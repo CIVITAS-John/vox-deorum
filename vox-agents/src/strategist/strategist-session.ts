@@ -128,12 +128,17 @@ export class StrategistSession {
     // Signal abort to stop processing new events
     this.abortController.abort();
 
-    // Abort all active players
+    // Abort all active players and wait for their contexts to shutdown
+    const shutdownPromises: Promise<void>[] = [];
     for (const [playerID, player] of this.activePlayers.entries()) {
       logger.debug(`Aborting player ${playerID}`);
       player.abort(false);
+      // Note: VoxPlayer.execute() will call context.shutdown() in its finally block
     }
     this.activePlayers.clear();
+
+    // Wait briefly to ensure players have time to shutdown their contexts
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Disconnect from MCP server
     await mcpClient.disconnect();

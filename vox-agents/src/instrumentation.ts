@@ -8,6 +8,7 @@
 
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 import { SQLiteSpanExporter } from "./utils/telemetry/sqlite-exporter.js";
+import { VoxSpanExporter } from "./utils/telemetry/vox-exporter.js";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import dotenv from 'dotenv';
 import { createLogger } from "./utils/logger.js";
@@ -22,6 +23,9 @@ const logger = createLogger('Instrumentation');
  * Call `forceFlush()` before application shutdown to ensure all spans are exported.
  */
 export const sqliteExporter = new SQLiteSpanExporter();
+
+// Set the singleton instance for VoxSpanExporter
+VoxSpanExporter.setInstance(sqliteExporter);
 
 /**
  * Batch span processor for efficient span export

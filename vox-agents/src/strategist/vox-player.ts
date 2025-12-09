@@ -16,6 +16,7 @@ import { sqliteExporter, spanProcessor } from "../instrumentation.js";
 import { NoneStrategist } from "./none-strategist.js";
 import { config } from "../utils/config.js";
 import { refreshGameState, StrategistParameters } from "./strategy-parameters.js";
+import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";
 
 /**
  * Manages a single player's strategist execution within a game session.
@@ -40,7 +41,9 @@ export class VoxPlayer {
   ) {
     this.logger = createLogger(`VoxPlayer-${playerID}`);
 
-    this.context = new VoxContext(getModelConfig("default"), `${gameID}-player-${playerID}`);
+    const id = `${gameID}-player-${playerID}`
+    VoxSpanExporter.getInstance().createContext(id, strategistType);
+    this.context = new VoxContext(getModelConfig("default"), id);
     this.context.registerAgent(new SimpleStrategist());
     this.context.registerAgent(new NoneStrategist());
 
@@ -206,6 +209,9 @@ export class VoxPlayer {
           this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: String(this.context.outputTokens) }, this.parameters),
           sqliteExporter.forceFlush()
         ]);
+
+        // Shutdown the VoxContext to ensure all telemetry is flushed
+        await this.context.shutdown();
 
         span.end();
         await setTimeout(5000);

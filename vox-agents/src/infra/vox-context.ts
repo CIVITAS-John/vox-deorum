@@ -16,6 +16,8 @@ import { Model } from "../utils/config.js";
 import { exponentialRetry } from "../utils/retry.js";
 import { v4 as uuidv4 } from 'uuid';
 import { trace, SpanStatusCode, SpanKind, context, Span } from '@opentelemetry/api';
+import { spanProcessor } from '../instrumentation.js';
+import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
 
 /**
  * Runtime context for executing Vox Agents.
@@ -410,5 +412,29 @@ export class VoxContext<TParameters extends AgentParameters> {
         stepSpan.end();
       }
     });
+  }
+
+  /**
+   * Gracefully shutdown the VoxContext.
+   * Flushes telemetry data and closes SQLite databases.
+   */
+  public async shutdown(): Promise<void> {
+    this.logger.info(`Shutting down VoxContext ${this.id}`);
+
+    try {
+      // Abort any ongoing generation
+      this.abort(true);
+
+      // Force flush telemetry data to ensure all spans are written
+      await spanProcessor.forceFlush();
+
+      // Close the SQLite database for this specific context
+      await VoxSpanExporter.getInstance().closeContext(this.id);
+
+      this.logger.info(`VoxContext ${this.id} shutdown complete`);
+    } catch (error) {
+      this.logger.error(`Error during VoxContext shutdown for ${this.id}:`, error);
+      throw error;
+    }
   }
 }

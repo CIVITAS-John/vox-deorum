@@ -6,13 +6,14 @@
  * Uses WAL (Write-Ahead Logging) mode for better concurrent access.
  */
 
-import { SpanExporter, ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import Database from 'better-sqlite3';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createLogger } from '../logger.js';
 import { spanProcessor } from '../../instrumentation.js';
+import { VoxSpanExporter } from './vox-exporter.js';
 
 const logger = createLogger('SQLiteExporter');
 
@@ -22,13 +23,19 @@ const logger = createLogger('SQLiteExporter');
 const databases = new Map<string, Database.Database>();
 
 /**
+ * Map of context IDs to custom folders
+ */
+const customFolders = new Map<string, string>();
+
+/**
  * Custom OpenTelemetry span exporter that writes to SQLite databases.
  * Groups trace data by VoxContext ID for easier analysis.
  */
-export class SQLiteSpanExporter implements SpanExporter {
+export class SQLiteSpanExporter extends VoxSpanExporter {
   private dataDir: string;
 
   constructor(dataDir: string = 'telemetry') {
+    super();
     this.dataDir = dataDir;
     this.ensureDataDirectory();
   }
@@ -45,10 +52,15 @@ export class SQLiteSpanExporter implements SpanExporter {
 
   /**
    * Get or create a SQLite database for a specific context
+   * Overrides the optional method from VoxSpanExporter
    */
-  private getDatabase(contextId: string): Database.Database {
+  public getDatabase(contextId: string): Database.Database {
     if (!databases.has(contextId)) {
-      const contextDir = path.join(this.dataDir, contextId.split("-")[0]);
+      // Use custom folder if specified, otherwise use default structure
+      const contextDir = customFolders.has(contextId)
+        ? customFolders.get(contextId)!
+        : path.join(this.dataDir, contextId.split("-")[0]);
+
       if (!fs.existsSync(contextDir)) {
         fs.mkdirSync(contextDir, { recursive: true });
       }
@@ -213,6 +225,50 @@ export class SQLiteSpanExporter implements SpanExporter {
   }
 
   /**
+   * Create a context with a specific folder for its telemetry data
+   */
+  async createContext(contextId: string, folder: string): Promise<void> {
+    try {
+      // Ensure folder exists
+      if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, { recursive: true });
+      }
+
+      // Store the custom folder mapping
+      customFolders.set(contextId, folder);
+
+      logger.info(`Registered custom folder for context ${contextId}: ${folder}`);
+    } catch (error) {
+      logger.error(`Error creating context ${contextId} with folder ${folder}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Close the database for a specific context
+   */
+  async closeContext(contextId: string): Promise<void> {
+    try {
+      const db = databases.get(contextId);
+      if (db) {
+        // Checkpoint to ensure all data is written
+        db.pragma('wal_checkpoint(TRUNCATE)');
+        db.close();
+        databases.delete(contextId);
+        logger.info(`Closed SQLite database for context ${contextId}`);
+      }
+
+      // Clear custom folder mapping if exists
+      if (customFolders.has(contextId)) {
+        customFolders.delete(contextId);
+      }
+    } catch (error) {
+      logger.error(`Error closing database for context ${contextId}`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Shutdown the exporter
    */
   async shutdown(): Promise<void> {
@@ -220,11 +276,11 @@ export class SQLiteSpanExporter implements SpanExporter {
       // Force flush first
       await this.forceFlush();
 
-      // Close all databases
-      for (const db of databases.values()) {
-        db.close();
+      // Close all contexts properly
+      const contextIds = Array.from(databases.keys());
+      for (const contextId of contextIds) {
+        await this.closeContext(contextId);
       }
-      databases.clear();
 
       logger.info('SQLite exporter shut down');
     } catch (error) {
