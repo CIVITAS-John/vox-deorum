@@ -22,7 +22,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 ; Output settings
 OutputDir=dist
-OutputBaseFilename=VoxDeorumSetup_{#MyAppVersion}
+OutputBaseFilename=VoxDeorum-{#MyAppVersion}
 SetupIconFile=vox-deorum.ico
 Compression=lzma2/max
 SolidCompression=yes
@@ -31,8 +31,8 @@ WizardStyle=modern
 PrivilegesRequired=lowest
 ; Minimum Windows version (Windows 10)
 MinVersion=10.0
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\scripts\vox-deorum.ico
 
 [Languages]
@@ -49,15 +49,16 @@ Name: "configureapi"; Description: "Open API configuration after installation"; 
 ; Root-level package.json for centralized dependencies
 Source: "..\package.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\package-lock.json"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\version.json"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Core application files (without node_modules)
-Source: "..\bridge-service\*"; DestDir: "{app}\bridge-service"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,*.log,node_modules\*"
-Source: "..\mcp-server\*"; DestDir: "{app}\mcp-server"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,*.log,node_modules\*"
-Source: "..\vox-agents\*"; DestDir: "{app}\vox-agents"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,*.log,node_modules\*,.env"
+Source: "..\bridge-service\*"; DestDir: "{app}\bridge-service"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,*.log,node_modules\*,\data\*,logs\*,docs\*,\telemetry\*"
+Source: "..\mcp-server\*"; DestDir: "{app}\mcp-server"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,*.log,node_modules\*,\data\*,logs\*,docs\*,\telemetry\*"
+Source: "..\vox-agents\*"; DestDir: "{app}\vox-agents"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,*.log,node_modules\*,\data\*,logs\*,docs\*,\telemetry\*,.env"
 
 ; Civ5 mod files
 Source: "..\civ5-mod\*"; DestDir: "{app}\civ5-mod"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\civ5-dll\(1) Community Patch\*"; DestDir: "{app}\civ5-dll\(1) Community Patch"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\civ5-dll\(1) Community Patch\*"; DestDir: "{app}\civ5-dll\(1) Community Patch"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "CvGameCore_Expansion2.*"
 Source: "..\civ5-dll\(2) Vox Populi\*"; DestDir: "{app}\civ5-dll\(2) Vox Populi"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\civ5-dll\(3a) EUI Compatibility Files\*"; DestDir: "{app}\civ5-dll\(3a) EUI Compatibility Files"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\civ5-dll\VPUI\*"; DestDir: "{app}\civ5-dll\VPUI"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -81,7 +82,7 @@ Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 ; Portable Node.js (required - downloaded by build-installer.cmd)
 Source: "..\node\*"; DestDir: "{app}\node"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Node modules installed at root level with workspaces
-Source: "..\node_modules\*"; DestDir: "{app}\node_modules"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\node_modules\*"; DestDir: "{app}\node_modules"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "bridge-services\*,mcp-server\*,vox-agents\*"
 
 ; Default .env file for vox-agents
 Source: "..\vox-agents\.env.default"; DestDir: "{app}\vox-agents"; Flags: ignoreversion
@@ -110,7 +111,7 @@ Filename: "notepad.exe"; Parameters: "{app}\vox-agents\.env"; Description: "Conf
 
 [UninstallRun]
 ; Clean up mods on uninstall
-Filename: "{app}\scripts\uninstall-mods.cmd"; Flags: runhidden
+Filename: "{app}\scripts\uninstall-mods.cmd"; Flags: runhidden; RunOnceId: "UninstallMods"
 
 [Code]
 var
@@ -199,8 +200,11 @@ begin
                  '• Vox Populi (Bundled for now)' + #13#10 +
                  '• API key from OpenRouter, OpenAI, or Google AI' + #13#10#13#10 +
 
-                 'Built upon the Community Patch / Vox Populi.' +
-                 'LICENSE: GPL (Vox Populi) + CC BY-NC-SA 4.0 (Vox Deorum)';
+                 'Built upon the Community Patch / Vox Populi.' + #13#10 +
+                 '• LICENSE: GPL 3.0' + #13#10#13#10 +
+
+                 'Vox Deorum is authored by John Chen (University of Arizona)' + #13#10 +
+                 '• LICENSE: CC BY-NC-SA 4.0';
 
   InfoPage := CreateOutputMsgPage(wpWelcome,
     'About Vox Deorum',
@@ -308,7 +312,7 @@ begin
     // Set up .env file if it doesn't exist
     if not FileExists(ExpandConstant('{app}\vox-agents\.env')) then
     begin
-      FileCopy(ExpandConstant('{app}\vox-agents\.env.default'),
+      CopyFile(ExpandConstant('{app}\vox-agents\.env.default'),
                ExpandConstant('{app}\vox-agents\.env'), False);
       EnvFileCreated := True;
     end;
@@ -324,7 +328,7 @@ begin
       begin
         if FileExists(ExpandConstant('{app}\scripts\configs\config.ini')) then
         begin
-          FileCopy(ExpandConstant('{app}\scripts\configs\config.ini'),
+          CopyFile(ExpandConstant('{app}\scripts\configs\config.ini'),
                    GameSettingsPath + '\config.ini', False);
         end;
       end;
@@ -334,7 +338,7 @@ begin
       begin
         if FileExists(ExpandConstant('{app}\scripts\configs\UserSettings.ini')) then
         begin
-          FileCopy(ExpandConstant('{app}\scripts\configs\UserSettings.ini'),
+          CopyFile(ExpandConstant('{app}\scripts\configs\UserSettings.ini'),
                    GameSettingsPath + '\UserSettings.ini', False);
         end;
       end;
@@ -361,12 +365,12 @@ begin
            '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 
       // Copy DLL to Community Patch folder
-      FileCopy(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.dll'),
+      CopyFile(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.dll'),
                ModsPath + '\(1) Community Patch\CvGameCore_Expansion2.dll', True);
 
       // Copy debug symbols if present
       if FileExists(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.pdb')) then
-        FileCopy(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.pdb'),
+        CopyFile(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.pdb'),
                  ModsPath + '\(1) Community Patch\CvGameCore_Expansion2.pdb', True);
 
       // Copy UI mods to DLC folder
@@ -378,17 +382,17 @@ begin
       // Always copy Lua DLL - it's required for Vox Deorum
       if FileExists(ExpandConstant('{app}\scripts\release\lua51_win32.dll')) then
       begin
-        FileCopy(ExpandConstant('{app}\scripts\release\lua51_win32.dll'),
+        CopyFile(ExpandConstant('{app}\scripts\release\lua51_win32.dll'),
                  Civ5Path + '\lua51_win32.dll', True);
         // Also copy debug symbols if present
         if FileExists(ExpandConstant('{app}\scripts\release\lua51_win32.pdb')) then
-          FileCopy(ExpandConstant('{app}\scripts\release\lua51_win32.pdb'),
+          CopyFile(ExpandConstant('{app}\scripts\release\lua51_win32.pdb'),
                    Civ5Path + '\lua51_win32.pdb', True);
       end;
     end;
 
     // Show message about API configuration if .env was just created
-    if EnvFileCreated and not IsTaskSelected('configureapi') then
+    if EnvFileCreated and not WizardIsTaskSelected('configureapi') then
     begin
       MsgBox('IMPORTANT: You need to configure your LLM API keys!' + #13#10#13#10 +
              'Please edit the file:' + #13#10 +

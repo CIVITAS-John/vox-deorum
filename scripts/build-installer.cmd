@@ -58,10 +58,10 @@ set "PATH=%PROJECT_ROOT%\node;%PATH%"
 if exist "%PROJECT_ROOT%\package.json" (
     echo   Installing all dependencies via npm workspaces...
     pushd "%PROJECT_ROOT%"
-    call npm ci --production
+    call npm install --omit=dev
     if !errorlevel! equ 0 (
         echo   Pruning unused dependencies...
-        call npm prune --production
+        call npm prune --omit=dev
         echo   [OK] All workspace dependencies installed
     ) else (
         echo   [ERROR] Workspace dependency installation failed
@@ -121,7 +121,7 @@ if "!ISCC!"=="" (
 
 echo   Found Inno Setup at: !ISCC!
 echo   Compiling installer...
-"!ISCC!" /Q "%PROJECT_ROOT%\scripts\installer.iss"
+"!ISCC!" "%PROJECT_ROOT%\scripts\installer.iss"
 
 if !errorlevel! equ 0 (
     echo   [OK] Installer built successfully!
@@ -136,7 +136,7 @@ if !errorlevel! equ 0 (
     echo =========================================
     echo.
     echo   Installer created at:
-    echo   %PROJECT_ROOT%\dist\VoxDeorumSetup_!VERSION!.exe
+    echo   %PROJECT_ROOT%\dist\VoxDeorum-!VERSION!.exe
     echo.
     echo   You can now distribute this installer to users.
     echo   It includes everything needed to run Vox Deorum.
