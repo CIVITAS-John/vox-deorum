@@ -34,6 +34,13 @@ class PauseGameTool extends ToolBase {
   readonly outputSchema = z.boolean();
 
   /**
+   * Optional metadata
+   */
+  readonly metadata = {
+    autoComplete: ["PlayerID"]
+  }
+
+  /**
    * Execute the pause-game command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {

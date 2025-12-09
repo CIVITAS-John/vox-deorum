@@ -2,7 +2,7 @@ import { gameDatabase } from "../../server.js";
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { search } from "fast-fuzzy";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { createLogger } from "../../utils/logger.js";
 
 const logger = createLogger('DatabaseQueryTool');
@@ -31,13 +31,17 @@ export abstract class DatabaseQueryTool<
   protected abstract readonly fullSchema: z.ZodSchema<TFull>;
 
   /**
-   * Optional annotations for the get building tool
+   * Optional annotations for database query tools
    */
-  readonly annotations: ExtendedToolAnnotations = {
-    readOnlyHint: true,
-    markdownConfig: [
-      { format: "{key}" }
-    ]
+  readonly annotations: ToolAnnotations = {
+    readOnlyHint: true
+  };
+
+  /**
+   * Optional metadata for database query tools
+   */
+  readonly metadata = {
+    markdownConfig: ["{key}"]
   };
 
   /**

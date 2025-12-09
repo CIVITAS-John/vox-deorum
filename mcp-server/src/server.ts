@@ -111,6 +111,7 @@ export class MCPServer {
         inputSchema: tool.inputSchema.shape,
         outputSchema: (tool.getOutputSchema() as any).shape,
         annotations: tool.annotations,
+        _meta: tool.metadata
       },
       (async (args: z.infer<typeof tool.inputSchema>) => {
         logger.warn(`Handling tool request ${tool.name}`, args);

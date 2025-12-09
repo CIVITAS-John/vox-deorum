@@ -100,7 +100,7 @@ export function createAgentTool<TParameters extends AgentParameters, TInput = un
 
 /**
  * Wrap a MCP tool for Vercel AI SDK.
- * Handles schema filtering (removes autoComplete fields), parameter injection,
+ * Handles schema filtering and parameter injection,
  * and markdown conversion of results.
  *
  * @param tool - MCP tool definition
@@ -118,8 +118,8 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
 
   // Remove autoComplete fields from input schema
   const filteredSchema = { ...tool.inputSchema };
-  if (filteredSchema.properties && (tool.annotations as any)?.autoComplete) {
-    const autoCompleteFields = (tool.annotations as any).autoComplete as string[];
+  if (filteredSchema.properties && (tool._meta as any)?.autoComplete) {
+    const autoCompleteFields = (tool._meta as any).autoComplete as string[];
     const filteredProperties = { ...filteredSchema.properties };
 
     // Remove autoComplete fields from properties
@@ -152,14 +152,16 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
 
       try {
         // Autocomplete support - add the fields back for execution
-        if ((tool.annotations as any)?.autoComplete) {
-          ((tool.annotations as any)?.autoComplete as string[]).forEach(
+        if ((tool._meta as any)?.autoComplete) {
+          ((tool._meta as any)?.autoComplete as string[]).forEach(
             key => {
               var camelKey = camelCase(key);
               if (camelKey.endsWith("Id")) camelKey = camelKey.substring(0, camelKey.length - 2) + "ID";
               args[key] = (options.experimental_context as any)[camelKey];
+              // console.log(`${key} => ${camelKey} => ${(options.experimental_context as any)[camelKey]}`)
             }
           )
+          // console.log(options.experimental_context);
         }
 
         // Local arg: formatting
@@ -186,7 +188,7 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
         if (convertMarkdown && structuredResult) {
           result = result?.Result ?? structuredResult.Result ?? structuredResult;
           const markdown = jsonToMarkdown(result, {
-            configs: (tool.annotations as any)?.markdownConfig,
+            configs: (tool._meta as any)?.markdownConfig,
             startingLevel: 2,
           });
           return markdown;

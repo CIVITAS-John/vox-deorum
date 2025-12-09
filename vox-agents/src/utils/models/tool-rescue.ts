@@ -12,6 +12,9 @@ import type {
 import { LanguageModelMiddleware } from 'ai';
 import { createLogger } from '../logger.js';
 
+// @ts-ignore - jaison doesn't have type definitions
+import jaison from 'jaison';
+
 const logger = createLogger("tool-rescue");
 
 /**
@@ -55,10 +58,10 @@ export function toolRescueMiddleware(): LanguageModelMiddleware {
           continue;
         }
 
-        // Try to parse the text as JSON
+        // Try to parse the text as JSON using jaison
         let parsed: any;
         try {
-          parsed = JSON.parse(part.text);
+          parsed = jaison(part.text);
         } catch {
           // Not valid JSON, keep as text
           transformedContent.push(part);
@@ -132,5 +135,5 @@ export function toolRescueMiddleware(): LanguageModelMiddleware {
 
 // Simple ID generator
 function generateId(): string {
-  return `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `call_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 }

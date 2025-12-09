@@ -6,7 +6,7 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
@@ -52,8 +52,15 @@ const personaSchema = z.object({
  * Tool that sets a player's AI persona values using a Lua function
  */
 class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
-  name = "set-persona";
-  description = "Set a player's personality values (1-10). These values control the in-game AI's diplomatic patterns and decision-making.";
+  /**
+   * Unique identifier for the set-persona tool
+   */
+  readonly name = "set-persona";
+
+  /**
+   * Human-readable description of the tool
+   */
+  readonly description = "Set a player's personality values (1-10). These values control the in-game AI's diplomatic patterns and decision-making.";
 
   /**
    * Input schema for the set-persona tool
@@ -76,9 +83,15 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
-    autoComplete: ["PlayerID"],
+  readonly annotations: ToolAnnotations = {
     readOnlyHint: false
+  }
+
+  /**
+   * Optional metadata
+   */
+  readonly metadata = {
+    autoComplete: ["PlayerID"]
   }
 
   /**

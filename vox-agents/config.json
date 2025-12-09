@@ -14,9 +14,12 @@
   },
   "llms": {
     "default": "gpt-oss-20b",
-    "gemma3": {
+    "gemma3-27b": {
       "provider": "openrouter",
-      "name": "google/gemma-3-27b-it"
+      "name": "google/gemma-3-27b-it",
+      "options": {
+        "toolMiddleware": "gemma"
+      }
     },
     "gpt-5-mini-minimal": {
       "provider": "openai",
@@ -34,18 +37,25 @@
     },
     "gpt-oss-20b": {
       "provider": "openrouter",
-      "name": "openai/gpt-oss-20b"
+      "name": "openai/gpt-oss-20b",
+      "options": {
+        "toolMiddleware": "gemma"
+      }
     },
     "gpt-oss-20b-minimal": {
       "provider": "openrouter",
       "name": "openai/gpt-oss-20b",
       "options": {
-        "reasoningEffort": "minimal"
+        "reasoningEffort": "minimal",
+        "toolMiddleware": "gemma"
       }
     },
     "chutes/gpt-oss-120b": {
       "provider": "chutes",
-      "name": "openai/gpt-oss-120b"
+      "name": "openai/gpt-oss-120b",
+      "options": {
+        "toolMiddleware": "gemma"
+      }
     },
     "chutes/glm-4.6": {
       "provider": "chutes",
@@ -53,13 +63,17 @@
     },
     "jetstream2/gpt-oss-120b": {
       "provider": "jetstream2",
-      "name": "gpt-oss-120b"
+      "name": "gpt-oss-120b",
+      "options": {
+        "toolMiddleware": "gemma"
+      }
     },
     "jetstream2/gpt-oss-120b-minimal": {
       "provider": "jetstream2",
       "name": "gpt-oss-120b",
       "options": {
-        "reasoningEffort": "minimal"
+        "reasoningEffort": "minimal",
+        "toolMiddleware": "gemma"
       }
     }
   }

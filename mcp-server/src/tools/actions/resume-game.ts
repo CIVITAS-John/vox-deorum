@@ -34,6 +34,13 @@ class ResumeGameTool extends ToolBase {
   readonly outputSchema = z.boolean();
 
   /**
+   * Optional metadata
+   */
+  readonly metadata = {
+    autoComplete: ["PlayerID"]
+  }
+
+  /**
    * Execute the resume-game command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {

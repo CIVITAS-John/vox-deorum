@@ -6,7 +6,7 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Tool that refreshes the current strategies and records the decision to keep the status quo
@@ -43,9 +43,15 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
-    autoComplete: ["PlayerID"],
+  readonly annotations: ToolAnnotations = {
     readOnlyHint: false
+  }
+
+  /**
+   * Optional metadata
+   */
+  readonly metadata = {
+    autoComplete: ["PlayerID"]
   }
 
   /**

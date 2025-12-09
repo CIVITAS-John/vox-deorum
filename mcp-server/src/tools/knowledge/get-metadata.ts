@@ -2,7 +2,7 @@
  * Tool for retrieving static game metadata that doesn't change during gameplay
  */
 
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
@@ -72,7 +72,7 @@ class GetMetadataTool extends LuaFunctionTool<MetadataType> {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
+  readonly annotations: ToolAnnotations = {
     readOnlyHint: true,
     destructiveHint: false
   };

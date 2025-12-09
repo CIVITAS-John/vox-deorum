@@ -12,7 +12,7 @@ import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
 import { PlayerOpinions, PlayerSummary } from "../../knowledge/schema/timed.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
 import { cleanEventData } from "./get-events.js";
 import { getPlayerOpinions } from "../../knowledge/getters/player-opinions.js";
@@ -97,11 +97,16 @@ class GetPlayersTool extends ToolBase {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
+  readonly annotations: ToolAnnotations = {
+    readOnlyHint: true
+  }
+
+  /**
+   * Optional metadata for the tool
+   */
+  readonly metadata = {
     autoComplete: ["PlayerID"],
-    markdownConfig: [
-      { format: "Player {key}" }
-    ]
+    markdownConfig: ["Player {key}"]
   }
 
   /**

@@ -1,7 +1,7 @@
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { enumMappings } from "../../utils/knowledge/enum.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { createLogger } from "../../utils/logger.js";
 
 const logger = createLogger("summarize-units");
@@ -70,13 +70,16 @@ class SummarizeUnitsTool extends LuaFunctionTool<UnitOverviewResultType> {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
+  readonly annotations: ToolAnnotations = {
+    readOnlyHint: true
+  }
+
+  /**
+   * Optional metadata for the tool
+   */
+  readonly metadata = {
     autoComplete: ["PlayerID"],
-    markdownConfig: [
-      { format: "{key}" },
-      { format: "{key} Units" },
-      { format: "{key}" }
-    ]
+    markdownConfig: ["{key}", "{key} Units", "{key}"]
   }
   
   /**

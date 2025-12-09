@@ -9,7 +9,7 @@ import { getPlayerOptions } from "../../knowledge/getters/player-options.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { stripTimedKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
 import { PlayerOptions } from "../../knowledge/schema/timed.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { readPlayerKnowledge } from "../../utils/knowledge/cached.js";
 import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
 import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
@@ -85,13 +85,16 @@ class GetOptionsTool extends ToolBase {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
+  readonly annotations: ToolAnnotations = {
+    readOnlyHint: true
+  }
+
+  /**
+   * Optional metadata for the tool
+   */
+  readonly metadata = {
     autoComplete: ["PlayerID"],
-    markdownConfig: [
-      { format: "{key}" },
-      { format: "{key}" },
-      { format: "{key}" }
-    ]
+    markdownConfig: ["{key}", "{key}", "{key}"]
   }
 
   /**

@@ -5,42 +5,18 @@ This guide provides essential patterns and conventions for Vox Agents that aren'
 ## LLM Integration
 
 ### Model Configuration
-Provider-agnostic configuration with middleware support:
-```typescript
-export interface Model {
-  provider: string;  // "openrouter" | "openai" | "google"
-  name: string;
-  options?: Record<string, any>;
-}
-
-// Provider-specific middleware
-if (config.name.indexOf("gemma-3") !== -1) {
-  result = wrapLanguageModel({
-    model: result,
-    middleware: gemmaToolMiddleware
-  });
-}
-```
+- Provider-agnostic configuration supporting multiple LLM providers
+- Supported providers: openrouter, openai, google, and compatible services
+- Model names and options configurable per provider
+- Middleware support for provider-specific adaptations
+- Apply middleware based on model characteristics (e.g., gemma-3 models)
 
 ### Prompt Engineering Conventions
-Use markdown-style structured prompts:
-```typescript
-public async getSystem(): Promise<string> {
-  return `
-# Expectation
-Due to the complexity of the game...
-
-# Goals
-Your goal is to...
-
-# Resources
-You will receive the following:
-- Players: summary reports
-- Cities: summary reports
-`.trim()
-}
-```
-**Convention**: Use # headers for Expectation, Goals, Resources sections.
+- Use markdown-style structured prompts for clarity
+- **Convention**: Use # headers for major sections (Expectation, Goals, Resources)
+- Trim whitespace from prompt strings to avoid formatting issues
+- Include clear context about game state and available tools
+- Structure prompts to guide LLM behavior effectively
 
 ## State Management
 
@@ -48,37 +24,25 @@ You will receive the following:
 The system supports standalone and component modes:
 
 #### Standalone Mode
-```typescript
-// Entry point: src/strategist/index.ts
-const config: StrategistSessionConfig = {
-  llmPlayers: [0],
-  autoPlay: true,
-  strategist: "simple-strategist"
-};
-
-// Session loop with retry
-for (var I = 0; I < 10; I++) {
-  session = new StrategistSession(config);
-  await session.start();
-}
-```
+- Entry point: `src/strategist/index.ts`
+- Configure with StrategistSessionConfig
+- Specify LLM-controlled players via llmPlayers array
+- Enable autoPlay for autonomous game progression
+- Session loops with retry for crash recovery
 
 #### Component Mode
-Would integrate through VoxContext API for web UI usage.
+- Integrates through VoxContext API for web UI usage
+- Supports interactive control and monitoring
+- Allows manual intervention during gameplay
 
 ### Parameter System
-```typescript
-export interface AgentParameters {
-  store?: Record<string, unknown>;  // Persistent state
-  playerID?: number;
-  gameID?: string;
-  turn?: number;
-  after?: number;   // Event filtering
-  before?: number;
-  running?: string; // Currently executing agent
-}
-```
-**Pattern**: `store` provides persistent state across executions.
+- `store` - Persistent state across agent executions
+- `playerID` - Active player being controlled
+- `gameID` - Current game session identifier
+- `turn` - Current game turn number
+- `after`/`before` - Event filtering timestamps
+- `running` - Track currently executing agent
+- **Pattern**: `store` provides persistent state across executions
 
 ## Module System
 
@@ -96,48 +60,25 @@ export interface AgentParameters {
 ## Error Handling & Resilience
 
 ### Exponential Retry with Jitter
-```typescript
-export async function exponentialRetry<T>(
-  fn: () => Promise<T>,
-  logger: Logger,
-  maxRetries: number = 3,
-  initialDelay: number = 100,
-  maxDelay: number = 10000,
-  backoffFactor: number = 1.5
-): Promise<T> {
-  // Add jitter to prevent thundering herd
-  const jitter = Math.random() * 0.1 * currentDelay;
-  const totalDelay = currentDelay + jitter;
-}
-```
+- Implement exponential backoff with configurable parameters
+- Default: 3 retries, 100ms initial delay, 10s max delay, 1.5x backoff
+- Add jitter (10% random variation) to prevent thundering herd
+- Log retry attempts with appropriate log levels
+- Propagate final errors after exhausting retries
 
 ### Crash Recovery
-```typescript
-private async handleGameExit(exitCode: number | null): Promise<void> {
-  if (this.crashRecoveryAttempts >= this.MAX_RECOVERY_ATTEMPTS) {
-    logger.error(`Maximum recovery attempts exceeded`);
-    return;
-  }
-
-  this.crashRecoveryAttempts++;
-  await voxCivilization.startGame('LoadGame.lua');
-}
-```
-**Pattern**: Bounded retry with escalating recovery strategies.
+- Track crash recovery attempts to prevent infinite loops
+- Set maximum recovery attempts (configurable)
+- Increment counter on each recovery attempt
+- Load saved game state on recovery
+- **Pattern**: Bounded retry with escalating recovery strategies
 
 ### AbortController Usage
-```typescript
-export class VoxContext<TParameters extends AgentParameters> {
-  private abortController: AbortController;
-
-  public abort(): void {
-    this.abortController.abort();
-    // Fresh controller for future operations
-    this.abortController = new AbortController();
-  }
-}
-```
-**Pattern**: Refresh AbortController after abort for continued operation.
+- Create fresh AbortController for each operation sequence
+- Abort current operations when needed
+- **Critical**: Refresh AbortController after abort for future operations
+- Pass abort signal to all async operations
+- **Pattern**: Always refresh AbortController after abort for continued operation
 
 ## Testing with Vitest
 
@@ -151,91 +92,33 @@ export class VoxContext<TParameters extends AgentParameters> {
 - Test setup file: `tests/setup.ts` for global configuration
 
 ### Configuration
-```typescript
-// vitest.config.ts
-export default defineConfig({
-  test: {
-    testTimeout: 15000,
-    hookTimeout: 15000,
-    retry: process.env.CI ? 1 : 0,
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true  // Sequential for IPC tests
-      }
-    }
-  }
-})
-```
-**Extended timeouts and sequential execution** for game integration.
+- Extended timeouts: 15 seconds for tests and hooks
+- Retry on CI: 1 retry in CI environment, none locally
+- Pool type: forks for process isolation
+- Sequential execution: singleFork for IPC tests
+- **Extended timeouts and sequential execution** for game integration
 
 ### Test Organization
-```typescript
-describe('Feature Category', () => {
-  describe('sub-feature', () => {
-    it('should handle edge case', () => {
-      // Test implementation
-    });
-  });
-});
-```
-**Pattern**: Nested describe blocks for clear test organization.
+- Use nested describe blocks for clear structure
+- Group related tests under feature categories
+- Use descriptive test names with "should" convention
+- **Pattern**: Nested describe blocks for clear test organization
+- Keep test files focused on single components or features
 
 ## MCP Integration
 
-### Connection to MCP Server
 - **Always read `mcp-server/src/tools/index.ts`** to understand which tools actually exist
 - Connect via MCP protocol (stdio or HTTP transport)
 - Handle connection failures with retry logic
 
-### Event-Driven Communication
-```typescript
-export class MCPClient {
-  private notificationHandlers: Map<string, (data: any) => any> = new Map();
-
-  onElicitInput(handler: (params: any) => Promise<any> | any): void {
-    this.notificationHandlers.set('elicitInput', handler);
-  }
-}
-```
-
-### Tool Wrapping for AI SDK
-```typescript
-export function wrapMCPTool(tool: Tool): VercelTool {
-  // Filter autoComplete fields from schema
-  const filteredSchema = { ...tool.inputSchema };
-  if (tool.annotations?.autoComplete) {
-    autoCompleteFields.forEach(field =>
-      delete filteredProperties[field]
-    );
-  }
-
-  return dynamicTool({
-    inputSchema: jsonSchema(filteredSchema),
-    execute: async (args: any, options) => {
-      // Re-inject autoComplete fields at runtime
-      autoCompleteFields.forEach(key => {
-        args[key] = (options.experimental_context as any)[camelKey];
-      });
-    }
-  });
-}
-```
-**Pattern**: Schema transformation with runtime parameter injection.
-
 ## Entry Points & Workflows
 
 ### Multiple Entry Points
-```json
-{
-  "scripts": {
-    "dev": "tsx watch --import ./src/instrumentation.ts src/standalone.ts",
-    "strategist": "node --import ./dist/instrumentation.js dist/strategist/index.js",
-    "briefer": "node --import ./dist/instrumentation.js dist/briefer/index.js"
-  }
-}
-```
-**Each workflow has dedicated entry point** with shared instrumentation.
+- `npm run dev` - Development mode with hot reload
+- `npm run strategist` - Run strategist workflow
+- `npm run briefer` - Run briefing workflow
+- **Each workflow has dedicated entry point** with shared instrumentation
+- Instrumentation loaded via --import flag for telemetry
 
 ## Build & Development
 
@@ -248,40 +131,18 @@ export function wrapMCPTool(tool: Tool): VercelTool {
 ## Type Safety
 
 ### Zod Schema Integration
-```typescript
-export function createAgentTool(agent: VoxAgent): VercelTool {
-  const inputSchema = agent.inputSchema || z.object({
-    Prompt: z.string().describe("The prompt or task")
-  });
-
-  return dynamicTool({
-    inputSchema: inputSchema as any,
-    execute: async (input) => {
-      if (agent.outputSchema) {
-        return agent.outputSchema.parse(result);
-      }
-    }
-  });
-}
-```
-**Zod schemas provide TypeScript types and runtime validation**.
+- Create agent tools with Zod input/output schemas
+- Provide default schemas if not specified by agent
+- Use dynamicTool wrapper for Vercel AI SDK integration
+- Parse outputs through schema for validation
+- **Zod schemas provide TypeScript types and runtime validation**
 
 ### Configuration Types
-```typescript
-export interface VoxAgentsConfig {
-  agent: { name: string; version: string; };
-  mcpServer: {
-    transport: {
-      type: TransportType;
-      endpoint?: string;
-      command?: string;
-      args?: string[];
-    };
-  };
-  llms: Record<string, Model | string>;
-}
-```
-**Interface-driven configuration** with environment overrides.
+- Agent metadata: name and version information
+- MCP server transport configuration (stdio/HTTP)
+- LLM provider configurations with model mapping
+- Support for environment variable overrides
+- **Interface-driven configuration** with environment overrides
 
 ## Observability
 

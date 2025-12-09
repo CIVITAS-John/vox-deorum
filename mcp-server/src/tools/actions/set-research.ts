@@ -6,7 +6,7 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
@@ -25,8 +25,15 @@ type SetResearchResultType = z.infer<typeof SetResearchResultSchema>;
  * Tool that sets a player's next research technology using a Lua function
  */
 class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
-  name = "set-research";
-  description = "Set a player's next research technology by name. The in-game AI will be forced to select this technology when making its next tech choice.";
+  /**
+   * Unique identifier for the set-research tool
+   */
+  readonly name = "set-research";
+
+  /**
+   * Human-readable description of the tool
+   */
+  readonly description = "Set a player's next research technology by name. The in-game AI will be forced to select this technology when making its next tech choice.";
 
   /**
    * Input schema for the set-research tool
@@ -50,9 +57,15 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
-    autoComplete: ["PlayerID"],
+  readonly annotations: ToolAnnotations = {
     readOnlyHint: false
+  }
+
+  /**
+   * Optional metadata
+   */
+  readonly metadata = {
+    autoComplete: ["PlayerID"]
   }
 
   /**

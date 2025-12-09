@@ -5,156 +5,84 @@ This guide provides essential patterns and conventions for the Bridge Service th
 ## Architecture Patterns
 
 ### Singleton Services with Event Emitters
-All major components follow this pattern:
-```typescript
-export class ServiceName extends EventEmitter {
-  // implementation
-}
-export const serviceName = new ServiceName();
-```
-**Always export singleton instances** for consistent state management.
+All major components extend EventEmitter and are exported as singleton instances for consistent state management.
 
 ### Layered Architecture
-```
-src/
-  index.ts        # Express setup and middleware
-  service.ts      # Main orchestration (BridgeService class)
-  routes/         # HTTP endpoints
-  services/       # Core business logic (singletons)
-  utils/          # Shared utilities
-```
+- `src/index.ts` - Express setup and middleware
+- `src/service.ts` - Main orchestration (BridgeService class)
+- `src/routes/` - HTTP endpoints
+- `src/services/` - Core business logic (singletons)
+- `src/utils/` - Shared utilities
 
 ## Error Handling Patterns
 
 ### Standardized API Responses
-```typescript
-// Always use these helpers
-respondSuccess(result)
-respondError(ErrorCode.SPECIFIC_ERROR, message, details)
-
-// Wrap all route handlers
-await handleAPIError(res, url, async () => {
-  // route logic
-  return respondSuccess(data);
-});
-```
+- Use helper functions for consistent response format: `respondSuccess()` and `respondError()`
+- Wrap all route handlers with `handleAPIError()` for proper error handling
+- Include appropriate error codes and detailed messages for debugging
 
 ## SSE Implementation
 
 ### Client Management Pattern
-```typescript
-// Use Map for client registry
-const sseClients: Map<string, SSEClient> = new Map();
-
-// Auto-cleanup on disconnect
-req.on('close', () => {
-  sseClients.delete(clientId);
-  clearInterval(keepAlive);
-});
-```
+- Use Map for client registry to manage SSE connections efficiently
+- Implement auto-cleanup on disconnect to prevent memory leaks
+- Clear intervals and timers when connections close
 
 ### Resilient Broadcasting
-```typescript
-function broadcastEvent(event: GameEvent): void {
-  const disconnectedClients: string[] = [];
-
-  for (const [clientId, client] of sseClients) {
-    try {
-      if (client.response.destroyed) {
-        disconnectedClients.push(clientId);
-      } else {
-        sendSSEMessage(client.response, "message", event);
-      }
-    } catch (error) {
-      disconnectedClients.push(clientId);
-    }
-  }
-
-  // Cleanup after iteration
-  disconnectedClients.forEach(id => sseClients.delete(id));
-}
-```
+- Check connection state before sending messages
+- Track disconnected clients during broadcast iteration
+- Clean up disconnected clients after iteration completes
+- Handle errors gracefully without affecting other connections
 
 ### Keep-Alive Pattern
-Always implement 30-second keep-alive pings for SSE connections.
+Always implement 30-second keep-alive pings for SSE connections to prevent timeout.
 
 ## IPC Communication
 
 ### Message Batching Protocol
-```typescript
-// Batch delimiter: !@#$%^!
-const batch = messages.map(m => JSON.stringify(m)).join("!@#$%^!");
-ipc.emit(batch + "!@#$%^!");
-
-// Parsing
-const messages = data.toString().split("!@#$%^!")
-  .filter(m => m.trim() !== "")
-  .map(m => JSON.parse(m));
-```
+- Use delimiter `!@#$%^!` for message batching
+- Join messages with delimiter before sending
+- Split and parse messages using the same delimiter
+- Filter out empty messages during parsing
 
 ### Reconnection Strategy
-```typescript
-// Exponential backoff with cap
-const delay = Math.min(200 * Math.pow(1.5, attempts), 5000);
-
-// Always check shutdown state
-if (this.shuttingDown) return;
-```
+- Implement exponential backoff with maximum delay cap (5000ms)
+- Start with 200ms base delay, multiply by 1.5 per attempt
+- Always check shutdown state before reconnecting
+- Prevent reconnection during graceful shutdown
 
 ## State Management
 
 ### Game Mutex Pattern
-```typescript
-class GameMutexManager {
-  private pausedPlayerIds: Set<number> = new Set();
-  private externalPause = false; // Track manual vs auto
-
-  setActivePlayer(playerId: number): void {
-    // Auto-pause for registered players
-    // Auto-resume for unregistered players
-  }
-}
-```
-**Distinguish manual from automatic state changes** to prevent conflicts.
+- Track paused player IDs using a Set for efficient lookups
+- Distinguish between manual and automatic pauses with separate flags
+- Auto-pause for registered players when they become active
+- Auto-resume for unregistered players to maintain game flow
+- **Always distinguish manual from automatic state changes** to prevent conflicts
 
 ### Function Registry Pattern
-```typescript
-// Use Map for dynamic function management
-private functions: Map<string, Function> = new Map();
-
-// Listen to connector events for updates
-dllConnector.on('function_register', (msg) => {
-  this.functions.set(msg.name, msg.metadata);
-});
-```
+- Use Map for dynamic function registration and management
+- Listen to connector events for function updates
+- Store function metadata alongside implementations
+- Clear registry on disconnect to maintain consistency
 
 ## Performance Optimizations
 
 ### Batch Operations
-Always provide batch endpoints to reduce IPC overhead:
-```typescript
-// Single call
-POST /lua/call
-
-// Batch call (preferred for multiple operations)
-POST /lua/batch
-```
+- Always provide batch endpoints to reduce IPC overhead
+- Support both single and batch operations for flexibility
+- Prefer batch calls when performing multiple operations
+- Limit batch size to prevent timeout issues
 
 ### Connection Pooling
-```typescript
-// Separate pools for different priorities
-this.standardPool = new Pool(url, { connections: 50 });
-this.fastPool = new Pool(url, { connections: 5 }); // For pause/resume
-```
+- Use separate connection pools for different priority levels
+- Standard pool: Higher connection count for regular operations (50 connections)
+- Fast pool: Lower connection count for time-critical operations like pause/resume (5 connections)
 
 ### Queue Management
-```typescript
-// Auto-pause on overflow
-if (queue.length >= 50) {
-  await this.pauseGame();
-  this.queueOverflowing = true;
-}
-```
+- Auto-pause game when queue reaches threshold (50 items)
+- Track overflow state to trigger resume when queue drains
+- Implement backpressure to prevent memory issues
 
 ## Module System
 - **ESM imports**: When you see `import from '*.js'`, read the corresponding .ts file instead
@@ -168,23 +96,16 @@ if (queue.length >= 50) {
 - Test setup: `tests/setup.ts` for global configuration
 
 ### Mock DLL Server
-Create comprehensive mocks that implement the full protocol:
-```typescript
-export class MockDLLServer extends EventEmitter {
-  // Implement same IPC protocol
-  addLuaFunction(name: string, handler: Function)
-  simulateGameEvent(type: string, payload: any)
-}
-```
+- Create comprehensive mocks that implement the full IPC protocol
+- Extend EventEmitter for event simulation
+- Support adding Lua functions dynamically for testing
+- Enable game event simulation for integration tests
 
 ### Test Configuration
-```typescript
-const mockDLL = await createMockDLLServer({
-  simulateDelay: true,
-  responseDelay: 50,  // Fast for tests
-  autoEvents: false    // Manual control
-});
-```
+- Configure mock servers with adjustable response delays
+- Use faster delays for tests (e.g., 50ms)
+- Control automatic events generation (manual vs auto)
+- Support both delay simulation and instant responses
 
 ## Common Pitfalls
 

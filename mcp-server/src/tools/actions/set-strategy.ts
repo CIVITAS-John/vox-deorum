@@ -5,7 +5,7 @@
 import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { retrieveEnumValue, convertStrategyToNames } from "../../utils/knowledge/enum.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
@@ -28,8 +28,15 @@ type SetStrategyResultType = z.infer<typeof SetStrategyResultSchema>;
  * Tool that sets the player's grand strategy using a Lua function
  */
 class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
-  name = "set-strategy";
-  description = "Set a player's in-game strategy by names. Inputs must match exact values in the provided options.";
+  /**
+   * Unique identifier for the set-strategy tool
+   */
+  readonly name = "set-strategy";
+
+  /**
+   * Human-readable description of the tool
+   */
+  readonly description = "Set a player's in-game strategy by names. Inputs must match exact values in the provided options.";
 
   /**
    * Input schema for the set-strategy tool
@@ -55,9 +62,15 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
-    autoComplete: ["PlayerID"],
+  readonly annotations: ToolAnnotations = {
     readOnlyHint: false
+  }
+
+  /**
+   * Optional metadata
+   */
+  readonly metadata = {
+    autoComplete: ["PlayerID"]
   }
 
   /**

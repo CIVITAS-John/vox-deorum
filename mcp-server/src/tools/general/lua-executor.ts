@@ -1,4 +1,4 @@
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { bridgeManager } from "../../server.js";
 import { ToolBase } from "../base.js";
 import * as z from "zod";
@@ -41,7 +41,7 @@ class LuaExecutorTool extends ToolBase {
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
+  readonly annotations: ToolAnnotations = {
     readOnlyHint: false,
     destructiveHint: true
   }

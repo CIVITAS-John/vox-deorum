@@ -46,6 +46,7 @@
     "fast-fuzzy": "^1.12.0",
     "guard-timeout": "^2.0.0",
     "helmet": "^7.1.0",
+    "jaison": "^2.0.2",
     "kysely": "^0.28.5",
     "mathjs": "^14.6.0",
     "node-ipc": "^9.2.1",

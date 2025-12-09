@@ -134,13 +134,13 @@ export class VoxPlayer {
             }
           });
 
-          // Refresh all strategy parameters
-          turnSpan.setAttributes({
-            'game.state': JSON.stringify(await refreshGameState(this.context, this.parameters))
-          });
-
           try {
             await context.with(trace.setSpan(context.active(), turnSpan), async () => {
+              // Refresh all strategy parameters
+              turnSpan.setAttributes({
+                'game.state': JSON.stringify(await refreshGameState(this.context, this.parameters))
+              });
+              
               await this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
 
               // Without strategists, we just fake one

@@ -6,7 +6,7 @@ import { knowledgeManager } from "../../server.js";
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { isAfter, isAtTurn, isBeforeOrAt, isVisible } from "../../knowledge/expressions.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { parseVisibility } from "../../utils/knowledge/visibility.js";
 import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
@@ -65,12 +65,16 @@ class GetEventsTool extends ToolBase {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
+  readonly annotations: ToolAnnotations = {
+    readOnlyHint: true
+  }
+
+  /**
+   * Optional metadata for the tool
+   */
+  readonly metadata = {
     autoComplete: ["PlayerID", "Before", "After", "Original"],
-    markdownConfig: [
-      { format: "Turn {key}" },
-      { format: "{key}" }
-    ]
+    markdownConfig: ["Turn {key}", "{key}"]
   }
 
   /**

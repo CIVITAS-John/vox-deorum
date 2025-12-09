@@ -104,12 +104,12 @@ jobs:
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: ${{ steps.version.outputs.VERSION }}
           body: |
-            ## ${{ steps.commit_msg.outputs.MESSAGE }}
+            ${{ steps.commit_msg.outputs.MESSAGE }}
 
-            ### Quick Install
+            ## Quick Install
             Download `bootstrap.cmd` and run it to automatically set up Vox Deorum.
 
-            ### What's Changed
+            ## What's Changed
             See [commit history](https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.VERSION }}) for detailed changes.
           files: scripts/bootstrap.cmd
           draft: false

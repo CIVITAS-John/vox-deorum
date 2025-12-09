@@ -1,6 +1,6 @@
 import { RegisteredTool } from "@modelcontextprotocol/sdk/server/mcp";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import * as z from "zod";
-import { ExtendedToolAnnotations } from "./types/tool-annotations.js";
 
 /**
  * Base class for MCP server tools
@@ -27,6 +27,14 @@ export abstract class ToolBase {
   abstract readonly outputSchema: z.ZodObject<any> | z.ZodTypeAny;
 
   /**
+   * Additional metadata
+   */
+  readonly metadata: {
+    autoComplete?: string[],
+    markdownConfig?: string[]
+  } = {};
+
+  /**
    * Get the actual output schema.
    */
   getOutputSchema() {
@@ -36,7 +44,7 @@ export abstract class ToolBase {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations?: ExtendedToolAnnotations;
+  readonly annotations?: ToolAnnotations;
 
   /**
    * Registered tool instance after registration with MCP server

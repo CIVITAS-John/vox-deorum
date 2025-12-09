@@ -6,7 +6,7 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
@@ -28,8 +28,15 @@ type SetPolicyResultType = z.infer<typeof SetPolicyResultSchema>;
  * Can accept either a PolicyBranchType or PolicyID
  */
 class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
-  name = "set-policy";
-  description = "Set a player's next policy selection by name. The in-game AI will be forced to select this policy or policy branch when making its next policy choice.";
+  /**
+   * Unique identifier for the set-policy tool
+   */
+  readonly name = "set-policy";
+
+  /**
+   * Human-readable description of the tool
+   */
+  readonly description = "Set a player's next policy selection by name. The in-game AI will be forced to select this policy or policy branch when making its next policy choice.";
 
   /**
    * Input schema for the set-policy tool
@@ -53,9 +60,15 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
   /**
    * Optional annotations for the Lua executor tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
-    autoComplete: ["PlayerID"],
+  readonly annotations: ToolAnnotations = {
     readOnlyHint: false
+  }
+
+  /**
+   * Optional metadata
+   */
+  readonly metadata = {
+    autoComplete: ["PlayerID"]
   }
 
   /**

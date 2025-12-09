@@ -48,6 +48,7 @@ export function getModelConfig(name: string = 'default', reasoning?: 'minimal' |
  * appropriate middleware (gemmaToolMiddleware for Gemma models, toolRescueMiddleware for others).
  *
  * @param config - Model configuration object
+ * @param options - Additional options for model configuration
  * @returns Wrapped LanguageModel instance ready for use
  * @throws Error if the provider is not supported
  *
@@ -55,9 +56,11 @@ export function getModelConfig(name: string = 'default', reasoning?: 'minimal' |
  * ```typescript
  * const modelConfig = getModelConfig('default');
  * const model = getModel(modelConfig);
+ * // Or with tool prompt middleware:
+ * const model = getModel(modelConfig, { useToolPrompt: true });
  * ```
  */
-export function getModel(config: Model): LanguageModel {
+export function getModel(config: Model, options?: { useToolPrompt?: boolean }): LanguageModel {
   var result: LanguageModel;
   // Find providers
   switch (config.provider) {
@@ -88,16 +91,18 @@ export function getModel(config: Model): LanguageModel {
       throw new Error(`Unsupported provider: ${config.provider}`);
   }
   // Wrap it for tool calling
-  if (config.name.indexOf("gemma-3") !== -1) {
-    result = wrapLanguageModel({
-      model: result,
-      middleware: gemmaToolMiddleware
-    });
-  } else {
-    result = wrapLanguageModel({
-      model: result,
-      middleware: toolRescueMiddleware()
-    });
+  switch (config.options?.toolMiddleware) {
+    case "gemma":
+      result = wrapLanguageModel({
+        model: result,
+        middleware: gemmaToolMiddleware
+      });
+      break;
+    default:
+      result = wrapLanguageModel({
+        model: result,
+        middleware: toolRescueMiddleware()
+      });
   }
   return result;
 }

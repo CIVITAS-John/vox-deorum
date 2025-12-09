@@ -5,132 +5,76 @@ This guide provides essential patterns and conventions for the MCP Server that a
 ## MCP Protocol Implementation
 
 ### Singleton Server Architecture
-```typescript
-export class MCPServer {
-  private static instance: MCPServer;
-  private servers: Map<string, McpServer> = new Map();
-
-  public createServer(id: string): McpServer {
-    // One singleton manages multiple McpServer instances
-  }
-}
-```
-**Pattern**: Singleton manages concurrent client connections while sharing tools/managers.
+- One singleton MCPServer manages multiple McpServer instances
+- Each client connection gets its own McpServer instance
+- Tools and managers are shared across all connections
+- Centralized management of server lifecycle
 
 ### Transport Support
-The server supports both stdio and HTTP:
-```typescript
-switch (config.transport.type) {
-  case 'stdio': await startStdioServer(); break;
-  case 'http': await startHttpServer(); break;
-}
-```
-**Always test with both transports** using `TEST_TRANSPORT` environment variable.
+- Server supports both stdio and HTTP transports
+- Transport type determined by configuration
+- **Always test with both transports** using `TEST_TRANSPORT` environment variable
+- Each transport has specific initialization and cleanup requirements
 
 ### Event Notifications
-Use `elicitInput` for client notifications:
-```typescript
-rawServer.elicitInput({
-  message: event,
-  playerID: playerID,
-  turn: turn,
-  latestID: latestID,
-  requestedSchema: { type: "object", properties: {} }
-}, { timeout: 100 })
-```
+- Use `elicitInput` for client notifications
+- Include relevant game context (playerID, turn, latestID)
+- Set appropriate timeout values for responsiveness
+- Schema should match expected client response format
 
 ## Tool Development Patterns
 
 ### Tool Base Architecture
-All tools inherit from `ToolBase`:
-```typescript
-export abstract class ToolBase {
-  abstract readonly name: string;
-  abstract readonly description: string;
-  abstract readonly inputSchema: z.ZodObject<any>;
-  abstract readonly outputSchema: z.ZodObject<any> | z.ZodTypeAny;
-  abstract execute(args: z.infer<typeof this.inputSchema>): Promise<any>;
-}
-```
-**Resources and tools are both defined as "ToolBase"** to share the same infrastructure.
+- All tools inherit from `ToolBase` abstract class
+- Required properties: name, description, input/output schemas
+- Required method: execute() for tool logic
+- **Resources and tools both extend ToolBase** to share the same infrastructure
+- Use Zod schemas for validation and type safety
 
 ### Factory Pattern with Lazy Loading
-```typescript
-const toolFactories = {
-  calculator: createCalculatorTool,
-  luaExecutor: createLuaExecutorTool,
-};
-
-export const getTools = (): Tools => {
-  if (!toolsCache) {
-    toolsCache = Object.fromEntries(
-      Object.entries(toolFactories).map(([key, factory]) =>
-        [key, factory()]
-      )
-    ) as Tools;
-  }
-  return toolsCache;
-};
-```
-**Tools are instantiated lazily** on first server init, then shared across connections.
+- Tools are defined as factory functions returning ToolBase instances
+- Factory map contains all available tool constructors
+- **Tools are instantiated lazily** on first server init
+- Tool instances are cached and shared across connections
+- This pattern reduces startup time and memory usage
 
 ### Abstract Classes for Common Patterns
 
 #### Database Query Tools
-```typescript
-export abstract class DatabaseQueryTool<TSummary, TFull> extends ToolBase {
-  protected cachedSummaries: TSummary[] | null = null;
-  protected abstract fetchSummaries(): Promise<TSummary[]>;
-  protected abstract fetchFullInfo(identifier: string): Promise<TFull>;
-}
-```
-**Pattern**: Cache summaries, fetch full details only when needed.
+- Extend `DatabaseQueryTool` for database-backed tools
+- Generic types: TSummary for list items, TFull for detailed info
+- **Pattern**: Cache summaries, fetch full details only when needed
+- Implement `fetchSummaries()` and `fetchFullInfo()` methods
+- Automatic cache management for performance
 
 #### Lua Function Tools
-```typescript
-export abstract class LuaFunctionTool extends ToolBase {
-  protected readonly script?: string;      // Inline script
-  protected readonly scriptFile?: string;  // Or external file in lua/
-}
-```
+- Extend `LuaFunctionTool` for tools that execute Lua scripts
+- Support both inline scripts and external script files
+- Script files should be placed in the `lua/` directory
+- Automatic script loading and execution handling
 
 ### Zod Schema Validation
-```typescript
-readonly inputSchema = z.object({
-  Search: z.string().optional()
-    .describe("Fuzzy-matching search term"),
-  MaxResults: z.number().optional().default(20)
-});
-```
-**Always use `.describe()`** for MCP protocol documentation.
+- Define input/output schemas using Zod for type safety
+- **Always use `.describe()`** for MCP protocol documentation
+- Support optional fields with defaults
+- Use appropriate Zod types (string, number, object, array, etc.)
+- Schemas provide both TypeScript types and runtime validation
 
 ## Module System
 
 ### TypeScript & ESM
 - Project uses ESM modules ("type": "module" in package.json)
-- **Critical**: Always use `.js` extensions in imports, even for `.ts` files:
-```typescript
-import { ToolBase } from "../base.js";
-import { gameDatabase } from "../../server.js";
-```
+- **Critical**: Always use `.js` extensions in imports, even for `.ts` files
 - Follow strict TypeScript configuration for type safety
+- TypeScript compiles to ES modules for Node.js compatibility
 
 ### Logging
 - **Always use the project's logger** instead of console.log/console.error
-- Import and create a logger with context:
-```typescript
-import { createLogger } from '../utils/logger.js';
-
-const logger = createLogger('ComponentName');
-
-// Usage:
-logger.debug('Detailed debugging info');
-logger.info('General information');
-logger.warn('Warning messages');
-logger.error('Error messages', { error: errorObject });
-```
+- Import and create logger with component context
+- Available log levels: debug, info, warn, error
 - Logger automatically handles formatting, colors, and file output
 - Use structured logging with metadata objects for errors
+- Log files are rotated automatically (10MB max size)
 
 ### Code Structure
 - Source code in `src/` directory
@@ -151,32 +95,24 @@ logger.error('Error messages', { error: errorObject });
 - Test setup file: `tests/setup.ts` for global configuration
 
 ### Real MCP Client Integration
-```typescript
-let mcpClient: Client;
-
-beforeAll(async () => {
-  mcpClient = new Client({ name: "test-client", version: "1.0.0" });
-  await mcpClient.connect(transport);
-}, 15000);
-```
+- Create MCP client instances for integration testing
+- Connect client to server using appropriate transport
+- Set adequate timeouts for connection establishment (15 seconds)
+- Clean up connections in afterAll hooks
 
 ### Transport-Agnostic Testing
-```bash
-TEST_TRANSPORT=stdio npm test    # Test via stdio
-TEST_TRANSPORT=http npm test     # Test via HTTP (default)
-```
+- Test both stdio and HTTP transports
+- Use `TEST_TRANSPORT` environment variable to switch
+- Default to HTTP transport if not specified
+- Ensure tests pass with both transport types
 
 ### Tool Testing Pattern
-- Use `calculator.ts` tool as template
+- Use `calculator.ts` tool as template for new tools
 - Use `calculator.test.ts` as test template
-- **Always test through MCP client calls**, not direct method invocation:
-```typescript
-const result = await mcpClient.callTool({
-  name: "calculator",
-  arguments: { Expression: "2 + 3" }
-});
-```
+- **Always test through MCP client calls**, not direct method invocation
+- Test input validation, error handling, and expected outputs
 - Tool/resource tests should use the mcpClient object exported by setup.ts
+- Verify both successful operations and error cases
 
 ## Game State Management
 
@@ -186,27 +122,19 @@ const result = await mcpClient.callTool({
 3. **Knowledge Store**: SQLite databases per game in `data/{gameId}.db`
 
 ### Game Context Switching
-```typescript
-private async checkGameContext(): Promise<boolean> {
-  const gameIdentity = await syncGameIdentity();
-  if (gameIdentity?.gameId !== this.gameIdentity?.gameId) {
-    await this.switchGameContext(gameIdentity);
-    return true;
-  }
-}
-```
-**Each game gets its own SQLite database** with automatic migration.
+- Check game identity on each significant operation
+- Compare current gameId with stored gameId
+- Switch context when game changes
+- **Each game gets its own SQLite database** with automatic migration
+- Clean up old game data based on retention policy
 
 ### Knowledge Persistence
-```typescript
-export interface MutableKnowledge extends TimedKnowledge {
-  Key: number;
-  Version: number;
-  IsLatest: number;
-  Changes: JSONColumnType<string[]>;
-}
-```
-**Pattern**: Version tracking with player visibility and change detection.
+- Extend TimedKnowledge for versioned data
+- Track version numbers for change detection
+- Mark latest versions with IsLatest flag
+- Store change history in Changes array
+- **Pattern**: Version tracking with player visibility and change detection
+- Support rollback and audit trail functionality
 
 ## Database Development
 
@@ -216,24 +144,16 @@ export interface MutableKnowledge extends TimedKnowledge {
 - When you need a database table that's commented, uncomment it
 
 ### Type Patterns with Kysely
-```typescript
-export interface Knowledge {
-  ID: Generated<number>;  // Auto-managed fields
-}
-
-export interface PublicKnowledge extends Knowledge {
-  Data: JSONColumnType<Record<string, unknown>>;  // Complex data
-}
-```
+- Use `Generated<T>` for auto-managed database fields
+- Use `JSONColumnType<T>` for JSON data columns
+- Extend base interfaces for specialized knowledge types
+- Keep interfaces aligned with database schema
 
 ### Player Visibility
-```typescript
-export interface PlayerVisibility {
-  Player0: Generated<number>;
-  Player1: Generated<number>;
-  // ... up to Player21
-}
-```
+- Track visibility for up to 22 players (Player0-Player21)
+- Use Generated<number> for visibility flags (0 or 1)
+- Check visibility before exposing sensitive game data
+- Respect fog of war and player perspective
 
 ## Lua Script Development
 
@@ -254,48 +174,30 @@ Scripts are executed within the game context via BridgeManager
 ## Bridge Service Integration
 
 ### BridgeManager Usage
-**Always use BridgeManager** (`src/bridge/manager.ts`) for all Bridge Service communication:
-```typescript
-import { bridgeManager } from '../server.js';
-```
+- **Always use BridgeManager** for all Bridge Service communication
+- Located in `src/bridge/manager.ts`
 - **Do NOT use direct fetch/HTTP calls** to the Bridge Service
 - BridgeManager provides methods for Lua script execution, function calls, and SSE handling
 - Follow PROTOCOL.md specifications
 
 ### Queue-Based Request Management
-```typescript
-private async processBatch(): Promise<void> {
-  const batch = this.luaCallQueue.splice(0,
-    Math.min(50, this.luaCallQueue.length));
-
-  if (this.luaCallQueue.length >= 50) {
-    await this.pauseGame(); // Auto-pause on overflow
-    this.queueOverflowing = true;
-  }
-}
-```
-**Performance**: Batch up to 50 Lua calls, auto-pause during overflow.
+- Process batches of up to 50 Lua calls
+- Auto-pause game when queue reaches capacity
+- Track overflow state to manage resume
+- **Performance**: Batch operations to reduce IPC overhead
+- Implement backpressure to prevent memory issues
 
 ### Connection Pools
-```typescript
-constructor(baseUrl: string) {
-  this.standardPool = new Pool(baseUrl, { connections: 50 });
-  this.fastPool = new Pool(baseUrl, { connections: 5 });
-}
-```
-**Use `fast: true`** for low-latency operations (pause/resume).
+- Maintain separate pools for different operation types
+- Standard pool: 50 connections for regular operations
+- Fast pool: 5 connections for time-critical operations
+- **Use `fast: true`** for low-latency operations (pause/resume)
 
 ### SSE Event Processing
-```typescript
-this.sseConnection.onmessage = (event) => {
-  const data = JSON.parse(event.data) as GameEvent;
-  if (data.type == "dll_status") {
-    this.isDllConnected = data.payload.connected;
-    if (!this.dllConnected) this.resetFunctions();
-  }
-  this.emit('gameEvent', data);
-};
-```
+- Parse incoming events as GameEvent type
+- Handle dll_status events to track connection state
+- Reset functions when DLL disconnects
+- Emit events for other components to consume
 - Handle connection failures and retry logic gracefully
 
 ## Build & Development
@@ -320,13 +222,10 @@ this.sseConnection.onmessage = (event) => {
 - Event processing: Async with queue management
 
 ### Auto-Pause Management
-```typescript
-if (this.luaCallQueue.length >= 50) {
-  await this.pauseGame();
-} else if (this.queueOverflowing) {
-  await this.resumeGame();
-}
-```
+- Pause game when queue length exceeds threshold (50)
+- Resume game when queue drains below threshold
+- Track overflow state to prevent pause/resume thrashing
+- Coordinate with game mutex manager
 
 ### Memory Management
 - Auto-save every 30 seconds
@@ -345,28 +244,13 @@ if (this.luaCallQueue.length >= 50) {
 7. **Consider player visibility** for game data
 
 ### Adding New Fields to Knowledge Tables
-When adding a new field to an existing knowledge table (e.g., PlayerSummary), follow these steps:
+When adding a new field to an existing knowledge table (e.g., PlayerSummary):
 
-1. **Update TypeScript Schema** (`src/knowledge/schema/timed.ts` or appropriate schema file):
-   - Add the field to the interface with proper type and documentation
-   - Example: `Territory: number | null; // Number of plots owned (major civs only)`
-
-2. **Update Lua Data Collection** (`lua/` directory):
-   - Modify the corresponding Lua script to collect the new field
-   - Example: In `get-player-summary.lua`, add `Territory = player:GetNumPlots()`
-
-3. **Update Database Schema** (`src/knowledge/schema/setup.ts`):
-   - Add the column to the table creation in `setupKnowledgeDatabase()`
-   - Example: `.addColumn('Territory', 'integer')`
-   - **Note: No migration needed** - Tables use `ifNotExists`, and data is ephemeral per game session
-
-4. **Update Related Tools** (`src/tools/knowledge/` directory):
-   - Add the field to any Zod schemas in tools that expose this data
-   - Example: In `get-players.ts`, add `Territory: z.number().optional()` to PlayerDataSchema
-
-5. **Test the Changes**:
-   - Run `npm run type-check` to ensure TypeScript compilation
-   - The changes will take effect when a new game session starts
+1. **Update TypeScript Schema** - Add field to interface with proper type and documentation
+2. **Update Lua Data Collection** - Modify corresponding Lua script to collect the new field
+3. **Update Database Schema** - Add column to table creation (no migration needed - data is ephemeral)
+4. **Update Related Tools** - Add field to Zod schemas in tools that expose this data
+5. **Test the Changes** - Run type-check and verify in new game session
 
 ### Common Pitfalls
 1. **Forgetting `.js` extensions** in imports
@@ -396,17 +280,8 @@ When adding a new field to an existing knowledge table (e.g., PlayerSummary), fo
 - Event notifications via `elicitInput`
 
 ### Event System
-Each event has typed schema:
-```typescript
-export const GameSaveSchema = z.object({
-  GameName: z.string(),
-  Turn: z.number(),
-  Player: z.number()
-});
-```
-
-Events undergo visibility analysis:
-```typescript
-const visibility = await analyzeEventVisibility(eventType, args);
-// Results in PlayerVisibility flags
-```
+- Each event has typed Zod schema for validation
+- Common event types: GameSave, PlayerTurn, CityFounded, etc.
+- Events undergo visibility analysis before storage
+- Visibility analysis determines which players can see the event
+- Results stored as PlayerVisibility flags (0 or 1 per player)

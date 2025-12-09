@@ -63,11 +63,11 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 - This applies to ALL submodules (bridge-service, mcp-server, vox-agents)
 
 ### Dependency Management
-- **Consider using a root-level package.json** with npm workspaces for shared dependencies
-- This centralizes version management and reduces duplication
-- Individual submodules keep their scripts and configs but dependencies move to root
-- Use `npm install --workspaces` to install all dependencies
-- Run commands across workspaces: `npm run build -ws` or `npm test --workspaces`
+- **Root-level package.json with npm workspaces** manages shared dependencies
+- Centralized version management reduces duplication
+- Individual submodules keep their scripts and configs
+- Use `npm install` to install all workspace dependencies
+- Run commands across workspaces: `npm run build:all` or `npm test:all`
 
 ### Testing Framework
 - **Use Vitest** for all TypeScript testing
@@ -129,10 +129,10 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 ### Logging Conventions
 - **Use Winston logger** for all TypeScript modules (bridge-service, mcp-server, vox-agents)
 - **Never use console.log/error/warn** in production code - always use the logger utility
-- Import pattern: `import { createLogger } from '../utils/logger.js';`
-- Create logger instance: `const logger = createLogger('ComponentName');`
-- Log levels: `logger.debug()`, `logger.info()`, `logger.warn()`, `logger.error()`
-- For errors, pass error object as second parameter: `logger.error('Message', error)`
+- Import the logger utility from the appropriate utils directory
+- Create logger instance with component context
+- Use appropriate log levels: debug, info, warn, error
+- Pass error objects as metadata when logging errors
 - Test files may use console.log for debugging during test runs
 
 ### Database Conventions
@@ -141,11 +141,14 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 - Use transactions for batch operations
 - Implement proper indexing for performance
 
-### Comment Conventions
-- Top-level comments in each code file
-- Comments on all public/exported definitions
-- Comments within long functions
+### Documentation & Comment Conventions
+- **Always update documentation but never create unless prompted** - Avoid creating README.md or docs files proactively
+- Top-level comments in each code file describing the module's purpose
+- Comments on all public/exported definitions explaining their function
+- Comments within long functions for complex logic sections
 - Use `// Vox Deorum:` prefix for modifications in C++ code beyond CvConnectionService
+- Keep comments concise and focused on the "why" rather than the "what"
+- In the documentation, never bring concrete code as they can get outdated
 
 ### Integration Best Practices
 - **Use manager classes for all cross-service communication** (not direct HTTP calls)

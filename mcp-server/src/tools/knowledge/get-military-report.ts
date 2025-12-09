@@ -7,7 +7,7 @@ import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { getMilitaryReport } from "../../knowledge/getters/military-report.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Input schema for the GetMilitaryReport tool
@@ -43,11 +43,16 @@ class GetMilitaryReportTool extends ToolBase {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
+  readonly annotations: ToolAnnotations = {
+    readOnlyHint: true
+  }
+
+  /**
+   * Optional metadata for the tool
+   */
+  readonly metadata = {
     autoComplete: ["PlayerID"],
-    markdownConfig: [
-      { format: "{key}" }
-    ]
+    markdownConfig: ["{key}"]
   }
 
   /**

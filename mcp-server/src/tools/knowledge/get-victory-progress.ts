@@ -11,7 +11,7 @@ import { readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
 import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
 import { VictoryProgress, PlayerSummary } from "../../knowledge/schema/timed.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ExtendedToolAnnotations } from "../types/tool-annotations.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
 import { getPlayerVisibility } from "../../utils/knowledge/visibility.js";
@@ -71,7 +71,14 @@ class GetVictoryProgressTool extends ToolBase {
   /**
    * Optional annotations for the tool
    */
-  readonly annotations: ExtendedToolAnnotations = {
+  readonly annotations: ToolAnnotations = {
+    readOnlyHint: true
+  }
+
+  /**
+   * Optional metadata for the tool
+   */
+  readonly metadata = {
     autoComplete: ["PlayerID"]
   }
 
