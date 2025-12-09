@@ -125,6 +125,7 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 - Proper (not excessive) error handling - avoid redundant try-catch layers
 - DRY principles
 - Straightforward implementation focused on goals
+- Should never use any or unknown unless absolutely necessary
 
 ### Logging Conventions
 - **Use Winston logger** for all TypeScript modules (bridge-service, mcp-server, vox-agents)

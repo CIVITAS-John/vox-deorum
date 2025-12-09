@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { jsonToMarkdown, type HeadingConfig, type JsonToMarkdownConfig } from '../../src/utils/json-to-markdown.js';
+import { jsonToMarkdown, type JsonToMarkdownConfig } from '../../src/utils/tools/json-to-markdown.js';
 
 describe('jsonToMarkdown', () => {
   describe('primitive values', () => {

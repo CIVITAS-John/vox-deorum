@@ -98,6 +98,12 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
         middleware: gemmaToolMiddleware
       });
       break;
+    case "prompt":
+      result = wrapLanguageModel({
+        model: result,
+        middleware: toolRescueMiddleware({ prompt: true })
+      });
+      break;
     default:
       result = wrapLanguageModel({
         model: result,

@@ -40,7 +40,9 @@
       "Bash(powershell:*)",
       "Bash(npm run docs:*)",
       "Bash(npm view:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx vitest run:*)"
     ],
     "deny": [],
     "ask": []

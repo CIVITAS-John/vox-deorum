@@ -1,16 +1,13 @@
 /**
  * @module utils/models/tool-rescue
  *
- * Tool rescue middleware for AI SDK.
+ * Tool rescue utility for AI SDK.
  * Detects and transforms JSON tool calls embedded in text responses into proper tool-call format.
  * Handles cases where LLMs output tool calls as JSON text instead of using the native tool-calling API.
  */
-
-import type {
-  LanguageModelV2Content,
-} from '@ai-sdk/provider';
-import { LanguageModelMiddleware } from 'ai';
+import type { LanguageModelMiddleware, Tool } from 'ai';
 import { createLogger } from '../logger.js';
+import { LanguageModelV2FunctionTool, LanguageModelV2ProviderDefinedTool, LanguageModelV2Text, LanguageModelV2ToolCall, LanguageModelV2ToolChoice } from '@ai-sdk/provider';
 
 // @ts-ignore - jaison doesn't have type definitions
 import jaison from 'jaison';
@@ -18,20 +15,84 @@ import jaison from 'jaison';
 const logger = createLogger("tool-rescue");
 
 /**
- * Rescue tool calls from JSON in text responses and transform them into proper tool calls.
- * Detects when a text response contains valid JSON with tool name and parameters,
- * validates against available tools, and converts to tool-call format.
- *
- * Supports both single tool calls and arrays of multiple tool calls.
- * If multiple tool calls are provided as an array, all must be valid for the rescue to succeed.
- *
- * Automatically detects common field name patterns:
- * - name/parameters
- * - toolName/input
- * - tool/arguments
- * - function/args
+ * Configuration options for tool rescue
  */
-export function toolRescueMiddleware(): LanguageModelMiddleware {
+export interface ToolRescueOptions {
+  /**
+   * If true, instructs the model to respond in tool/arguments JSON format
+   * by adding a system prompt with instructions
+   */
+  prompt?: boolean;
+}
+
+export function createToolPrompt(tool: (LanguageModelV2FunctionTool | LanguageModelV2ProviderDefinedTool)) {
+  // We don't support provider tools this way
+  if (tool.type === "provider-defined") return;
+  let toolInfo = `### ${tool.name}`;
+  if (tool.description) {
+    toolInfo += `\n- Description: ${tool.description}`;
+  }
+  if (tool.inputSchema) {
+    toolInfo += `\n- Arguments: \n\`\`\`\n${JSON.stringify(tool.inputSchema, null, 2)}\n\`\`\``;
+  }
+  return toolInfo;
+}
+
+/**
+ * Creates a tool instruction prompt for models that don't support native tool calling
+ * @param tools Array of tool definitions with names and schemas
+ * @returns System prompt text instructing the model to use JSON format for tool calls
+ */
+export function createToolPrompts(tools: (LanguageModelV2FunctionTool | LanguageModelV2ProviderDefinedTool)[], 
+  choice: LanguageModelV2ToolChoice): string | undefined {
+  // Format tools with their schemas
+  const descriptions = tools.map(createToolPrompt).join('\n\n');
+
+  // Format the prompt
+  switch (choice.type) {
+    case "required":
+      return `## Tool Calling
+You must use one or more tools from the list below. Respond ONLY with a JSON array in this exact format:
+[
+  { "tool": "<tool_name>", "arguments": { <parameters> } },
+]
+
+## Available Tools
+${descriptions}`;
+    case "tool":
+      return `## Tool Calling
+You must use the tool defined below. Respond ONLY with a JSON object in this exact format:
+{ "tool": "<tool_name>", "arguments": { <parameters> } }
+
+${descriptions}`;
+    case "none":
+      return undefined;
+    default:
+      return `## Tool Calling
+You have access to tools. If you decide to invoke any of the tool(s), respond ONLY with a JSON array in this exact format:
+[
+  { "tool": "<tool_name>", "arguments": { <parameters> } },
+]
+
+## Available Tools
+${descriptions}`;
+  }
+}
+
+/**
+ * Rescues tool calls from JSON text and transforms them into proper tool call format.
+ * This function processes text that may contain JSON tool calls and converts them
+ * to the format expected by the AI SDK.
+ *
+ * @param text The text to process
+ * @param availableTools Set of available tool names for validation
+ * @returns Object containing rescued tool calls and remaining text (if any)
+ */
+export function rescueToolCallsFromText(
+  text: string,
+  availableTools: Set<string>,
+  verifyAll: boolean = true
+): { remainingText?: string, toolCalls: LanguageModelV2ToolCall[] } {
   // Define common field name patterns to check
   const fieldPatterns = [
     { nameField: 'name', parametersField: 'parameters' },
@@ -39,101 +100,182 @@ export function toolRescueMiddleware(): LanguageModelMiddleware {
     { nameField: 'tool', parametersField: 'arguments' }
   ];
 
-  return {
-    middlewareVersion: 'v2',
-    wrapGenerate: async ({ doGenerate, params }) => {
-      const { content, ...rest } = await doGenerate();
+  // First, try to extract the largest JSON block using regex
+  // This matches either an array [...] or object {...} with nested structures
+  // Using a simpler pattern that finds balanced brackets/braces
+  const jsonPatterns = [
+    /\[(?:[^\[\]]*|\[(?:[^\[\]]*|\[[^\[\]]*\])*\])*\]/g,  // Nested arrays
+    /\{(?:[^{}]*|\{(?:[^{}]*|\{[^{}]*\})*\})*\}/g         // Nested objects
+  ];
 
-      const transformedContent: LanguageModelV2Content[] = [];
-      let toolSeen = content.some(part => part.type === 'tool-call');
+  let largestBlock = '';
+  let largestBlockSize = 0;
+  let match;
 
-      // Get available tools from params
-      const availableTools = new Set(
-        params?.tools?.map(tool => tool.name) || [],
-      );
-
-      for (const part of content) {
-        if (part.type !== 'text') {
-          transformedContent.push(part);
-          continue;
-        }
-
-        // Try to parse the text as JSON using jaison
-        let parsed: any;
-        try {
-          parsed = jaison(part.text);
-        } catch {
-          // Not valid JSON, keep as text
-          transformedContent.push(part);
-          continue;
-        }
-
-        // Check if it's an array of tool calls
-        const toolCalls = Array.isArray(parsed) ? parsed : [parsed];
-        let allToolCallsValid = true;
-        const rescuedToolCalls: LanguageModelV2Content[] = [];
-
-        for (const toolCall of toolCalls) {
-          // Try each field pattern to find valid tool call structure
-          let toolName: string | undefined;
-          let toolParameters: any;
-          let patternFound = false;
-
-          for (const pattern of fieldPatterns) {
-            const candidateName = toolCall[pattern.nameField];
-            const candidateParams = toolCall[pattern.parametersField];
-
-            if (candidateName && candidateParams) {
-              toolName = candidateName?.replaceAll(/_/g, '-');
-              toolParameters = candidateParams;
-              patternFound = true;
-              break;
-            }
-          }
-
-          if (!patternFound) {
-            // Sometimes a false alarm - Jetstream2's response can have both text AND tool_calls. Those warnings can be safely ignored then.
-            if (!toolSeen)
-              logger.log("warn", `Failed to rescue tool call: no matching field pattern found`, toolCall);
-            // No matching pattern found for this tool call
-            allToolCallsValid = false;
-            continue;
-          }
-
-          // Check if the tool exists in available tools
-          if (!availableTools.has(toolName!)) {
-            logger.log("warn", `Failed to rescue tool call: non-existent tool ${toolName}`, toolParameters);
-            // Tool not available
-            allToolCallsValid = false;
-            continue;
-          }
-
-          logger.log("info", `Rescued tool call: ${toolName}`, toolParameters);
-
-          // Transform into a tool call
-          rescuedToolCalls.push({
-            type: 'tool-call',
-            toolCallId: generateId(),
-            toolName: toolName!,
-            input: JSON.stringify(toolParameters),
-          });
-        }
-
-        // Only add the rescued tool calls if all were valid
-        if (allToolCallsValid && rescuedToolCalls.length > 0) {
-          transformedContent.push(...rescuedToolCalls);
-        } else {
-          // Keep as text if any tool call was invalid
-          transformedContent.push(part);
-        }
+  // Find all potential JSON blocks and select the largest one
+  for (const pattern of jsonPatterns) {
+    pattern.lastIndex = 0; // Reset regex state
+    while ((match = pattern.exec(text)) !== null) {
+      if (match[0].length > largestBlockSize) {
+        largestBlock = match[0];
+        largestBlockSize = match[0].length;
       }
+    }
+  }
 
-      return { content: transformedContent, ...rest };
-    },
-  };
+  // If no JSON block found, try to parse the entire text
+  const jsonText = largestBlock || text;
+
+  // Try to parse the JSON using jaison
+  let parsed: any;
+  try {
+    parsed = jaison(jsonText);
+  } catch {
+    // Not valid JSON, return as text
+    return { toolCalls: [], remainingText: text };
+  }
+
+  // Check if it's an array of tool calls
+  const toolCalls = Array.isArray(parsed) ? parsed : [parsed];
+  let allToolCallsValid = true;
+  const rescuedToolCalls: LanguageModelV2ToolCall[] = [];
+
+  for (const toolCall of toolCalls) {
+    // Try each field pattern to find valid tool call structure
+    let toolName: string | undefined;
+    let toolParameters: Record<string, unknown> | undefined;
+    let patternFound = false;
+
+    for (const pattern of fieldPatterns) {
+      const candidateName = toolCall[pattern.nameField];
+      const candidateParams = toolCall[pattern.parametersField];
+
+      if (candidateName && candidateParams) {
+        toolName = candidateName?.replaceAll(/_/g, '-');
+        toolParameters = candidateParams;
+        patternFound = true;
+        break;
+      }
+    }
+
+    if (!patternFound) {
+      logger.log("warn", `Failed to rescue tool call: no matching field pattern found`, toolCall);
+      continue;
+    }
+
+    // Check if the tool exists in available tools
+    if (!availableTools.has(toolName!)) {
+      logger.log("warn", `Failed to rescue tool call: non-existent tool ${toolName}`, toolParameters);
+      continue;
+    }
+
+    logger.log("debug", `Rescued tool call: ${toolName}`, toolParameters!);
+
+    // Transform into a tool call
+    rescuedToolCalls.push({
+      type: 'tool-call',
+      toolCallId: generateId(),
+      toolName: toolName!,
+      input: JSON.stringify(toolParameters),
+    });
+  }
+
+  // Only return the rescued tool calls if all were valid
+  if (rescuedToolCalls.length > 0 && (!verifyAll || allToolCallsValid)) {
+    // If we extracted a JSON block, calculate remaining text
+    let remainingText: string | undefined;
+    if (largestBlock && largestBlock !== text) {
+      // Remove the JSON block from the original text
+      const blockIndex = text.indexOf(largestBlock);
+      const before = text.substring(0, blockIndex).trim();
+      const after = text.substring(blockIndex + largestBlock.length).trim();
+      remainingText = (before + ' ' + after).trim();
+      if (!remainingText) remainingText = undefined;
+    }
+    return { toolCalls: rescuedToolCalls, remainingText };
+  }
+
+  // If rescue failed, return original text
+  return { toolCalls: [], remainingText: text };
 }
 
 // Simple ID generator
 function generateId(): string {
   return `call_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+}
+
+/**
+ * Creates a tool rescue middleware for language models.
+ * This middleware intercepts generate operations to detect and transform
+ * JSON tool calls embedded in text responses into proper tool-call format.
+ *
+ * @param options Configuration options
+ * @returns A LanguageModelMiddleware that handles tool rescue
+ */
+export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModelMiddleware {
+  return {
+    middlewareVersion: 'v2',
+
+    // Transform params if prompt mode is enabled
+    transformParams: async ({ params }) => {
+      // Skip if prompt mode not enabled or no tools
+      if (!options?.prompt || !params?.tools || params.tools.length === 0) {
+        return params;
+      }
+
+      // Create tool instruction prompt with full tool schemas
+      const toolPrompt = createToolPrompts(params.tools, params.toolChoice ?? { type: "auto" });
+
+      // Modify the prompt to include tool instructions
+      const originalPrompt = params.prompt ?? [];
+      const modifiedPrompt: any = [
+        { role: 'system', content: toolPrompt },
+        ...originalPrompt
+      ];
+
+      // Return modified params without tools (since we're using JSON format)
+      return {
+        ...params,
+        tools: undefined,
+        originalTools: params.tools,
+        prompt: modifiedPrompt
+      };
+    },
+
+    wrapGenerate: async ({ doGenerate, params }) => {
+      // Execute the generation (params were already transformed if needed)
+      const result = await doGenerate();
+      params.tools = params.tools ?? (params as any).originalTools;
+
+      // Process the response to rescue tool calls from JSON text if we have tools but not tool calls
+      if (result.content.findIndex(content => content.type === "tool-call") === -1 && params.tools && params.tools.length > 0) {
+        // Extract tool names from the tool definitions
+        const toolNames = new Set(params.tools.map((tool) => tool.name));
+        const newContents: typeof result.content = [];
+
+        // Go through each text respose
+        result.content.forEach((content) => {
+          if (content.type === "text") {
+            const processed = rescueToolCallsFromText(content.text, toolNames);
+
+            // If tool calls were rescued, add them to the content array
+            if (processed.toolCalls.length > 0) {
+              // Remove the text that contained the tool calls if it was completely consumed
+              if (processed.remainingText) newContents.push({ type: 'text', text: processed.remainingText });
+              // Add the rescued tool calls to content
+              newContents.push(...processed.toolCalls);
+              result.finishReason = 'tool-calls';
+              return;
+            }
+          }
+          newContents.push(content);
+        });
+
+        // Update result with new contents
+        result.content = newContents;
+      }
+
+      return result;
+    }
+  };
 }
