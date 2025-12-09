@@ -129,7 +129,6 @@ export class StrategistSession {
     this.abortController.abort();
 
     // Abort all active players and wait for their contexts to shutdown
-    const shutdownPromises: Promise<void>[] = [];
     for (const [playerID, player] of this.activePlayers.entries()) {
       logger.debug(`Aborting player ${playerID}`);
       player.abort(false);
@@ -138,7 +137,7 @@ export class StrategistSession {
     this.activePlayers.clear();
 
     // Wait briefly to ensure players have time to shutdown their contexts
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await setTimeout(1000);
 
     // Disconnect from MCP server
     await mcpClient.disconnect();
