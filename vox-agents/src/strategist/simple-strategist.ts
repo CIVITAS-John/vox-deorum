@@ -7,8 +7,9 @@
  */
 
 import { ModelMessage, StepResult, Tool } from "ai";
-import { Strategist, StrategistParameters } from "./strategist.js";
+import { Strategist } from "./strategist.js";
 import { VoxContext } from "../infra/vox-context.js";
+import { getRecentGameState, StrategistParameters } from "./strategy-parameters.js";
 
 /**
  * A simple strategist agent that analyzes the game state and sets an appropriate strategy.
@@ -30,7 +31,7 @@ export class SimpleStrategist extends Strategist {
   /**
    * Gets the system prompt for the strategist
    */
-  public async getSystem(_parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<string> {
+  public async getSystem(_parameters: StrategistParameters, _context: VoxContext<StrategistParameters>): Promise<string> {
     return `
 You are a expert player playing Civilization V with the latest Vox Populi mod.
 
@@ -85,6 +86,7 @@ You will receive the following reports:
    * Gets the initial messages for the conversation
    */
   public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
+    var state = getRecentGameState(parameters)!;
     // Get the information
     await super.getInitialMessages(parameters, context);
     // Return the messages
@@ -101,27 +103,27 @@ You, Player ${parameters.playerID ?? 0}, are making strategic decisions after tu
 
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
-${parameters.victory}
+${state.victory}
 
 # Strategies
 Strategies: existing strategic decisions and available options for you.
-${parameters.options}
+${state.options}
 
 # Players
 Players: summary reports about visible players in the world.
-${parameters.players}
+${state.players}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
-${parameters.cities}
+${state.cities}
 
 # Military
 Military: summary reports about tactical zones and visible units.
-${parameters.military}
+${state.military}
 
 # Events
 Events: events since you last made a decision.
-${parameters.events}
+${state.events}
 `.trim()
     }];
   }

@@ -12,7 +12,6 @@ import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
 import { getModel, buildProviderOptions } from "../utils/models/models.js";
-import { ZodObject } from "zod/v4/index.js";
 import { Model } from "../utils/config.js";
 import { exponentialRetry } from "../utils/retry.js";
 import { v4 as uuidv4 } from 'uuid';
@@ -303,7 +302,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     messages: ModelMessage[],
     model: Model,
     allTools: ToolSet
-  ): Promise<{ messages: ModelMessage[], shouldStop: boolean, finalText?: string }> {
+  ): Promise<{ messages: ModelMessage[], shouldStop: boolean, finalText?: string, inputTokens: number, reasoningTokens: number, outputTokens: number }> {
     const stepSpan = this.tracer.startSpan(`agent.${agent.name}.step.${stepCount + 1}`, {
       kind: SpanKind.INTERNAL,
       attributes: {
@@ -357,15 +356,18 @@ export class VoxContext<TParameters extends AgentParameters> {
         }, this.logger);
 
         // Update token usage
-        this.inputTokens += stepResponse.totalUsage.inputTokens ?? 0;
-        this.reasoningTokens += stepResponse.totalUsage.reasoningTokens ?? 0;
-        this.outputTokens += stepResponse.totalUsage.outputTokens ?? 0;
+        const inputTokens = stepResponse.totalUsage.inputTokens ?? 0;
+        const reasoningTokens = stepResponse.totalUsage.reasoningTokens ?? 0;
+        const outputTokens = stepResponse.totalUsage.outputTokens ?? 0;
+        this.inputTokens += inputTokens;
+        this.reasoningTokens += reasoningTokens;
+        this.outputTokens += outputTokens;
 
         // Record step results in span
         stepSpan.setAttributes({
-          'step.tokens.input': stepResponse.totalUsage.inputTokens ?? 0,
-          'step.tokens.reasoning': stepResponse.totalUsage.reasoningTokens ?? 0,
-          'step.tokens.output': stepResponse.totalUsage.outputTokens ?? 0,
+          'step.tokens.input': inputTokens,
+          'step.tokens.reasoning': reasoningTokens,
+          'step.tokens.output': outputTokens,
           'step.responses': JSON.stringify(stepResponse.response.messages)
         });
 
@@ -396,7 +398,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         stepSpan.setAttribute('step.should_stop', shouldStop);
         stepSpan.setStatus({ code: SpanStatusCode.OK });
 
-        return { messages, shouldStop, finalText };
+        return { messages, shouldStop, finalText, inputTokens, reasoningTokens, outputTokens };
       } catch (error) {
         stepSpan.recordException(error as Error);
         stepSpan.setStatus({

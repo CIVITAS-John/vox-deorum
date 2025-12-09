@@ -8,7 +8,6 @@
 
 import { VoxContext } from "../infra/vox-context.js";
 import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
-import { StrategistParameters } from "./strategist.js";
 import { createLogger } from "../utils/logger.js";
 import { getModelConfig } from "../utils/models/models.js";
 import { SimpleStrategist } from "./simple-strategist.js";
@@ -16,6 +15,7 @@ import { setTimeout } from 'node:timers/promises';
 import { sqliteExporter, spanProcessor } from "../instrumentation.js";
 import { NoneStrategist } from "./none-strategist.js";
 import { config } from "../utils/config.js";
+import { refreshGameState, StrategistParameters } from "./strategy-parameters.js";
 
 /**
  * Manages a single player's strategist execution within a game session.
@@ -49,7 +49,8 @@ export class VoxPlayer {
       gameID,
       turn: -1,
       after: initialTurn * 1000000,
-      before: 0
+      before: 0,
+      gameStates: []
     };
   }
 
@@ -117,21 +118,26 @@ export class VoxPlayer {
           this.parameters.before = turnData.latestID;
           this.parameters.running = this.strategistType;
 
+          // Logging
+          const startingInput = this.context.inputTokens;
+          const startingReasoning = this.context.reasoningTokens;
+          const startingOutput = this.context.outputTokens;
           this.logger.warn(`Running ${this.strategistType} on ${this.parameters.turn} (${this.parameters.playerID}), ${this.parameters.after}~${this.parameters.before}`);
 
           const turnSpan = tracer.startSpan(`turn.${this.parameters.turn}`, {
             kind: SpanKind.INTERNAL,
             attributes: {
               'vox.context.id': this.context.id,
-              'parameters': JSON.stringify(this.parameters)
+              'turn.number': JSON.stringify(this.parameters.turn),
+              'event.before': JSON.stringify(this.parameters.before),
+              'event.after': JSON.stringify(this.parameters.after)
             }
           });
 
-          // Get metadata for the turn
-          // Get the game metadata as a prerequisite
-          this.parameters.metadata =
-            this.parameters.metadata ??
-              await this.context.callTool("get-metadata", { PlayerID: this.playerID }, this.parameters);
+          // Refresh all strategy parameters
+          turnSpan.setAttributes({
+            'game.state': JSON.stringify(await refreshGameState(this.context, this.parameters))
+          });
 
           try {
             await context.with(trace.setSpan(context.active(), turnSpan), async () => {
@@ -145,14 +151,18 @@ export class VoxPlayer {
               }
 
               // Finalizing
-              this.parameters.running = undefined;
               this.parameters.after = turnData.latestID;
 
               // Recording the tokens and resume the game
               await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
 
+              // Update the status
               turnSpan.setAttributes({
-                'turn.completed': true
+                'turn.completed': true,
+                'player.turns': this.parameters.turn,
+                'player.tokens.input': this.context.inputTokens - startingInput,
+                'player.tokens.reasoning': this.context.reasoningTokens - startingReasoning,
+                'player.tokens.output': this.context.outputTokens - startingOutput
               });
               turnSpan.setStatus({ code: SpanStatusCode.OK });
             });
@@ -171,6 +181,7 @@ export class VoxPlayer {
         }
 
         this.successful = true;
+        span.setStatus({ code: SpanStatusCode.OK });
       } catch (error) {
         this.logger.error(`Player ${this.playerID} (${this.parameters.gameID}) initializing error:`, error);
         span.recordException(error as Error);
@@ -184,15 +195,10 @@ export class VoxPlayer {
         span.setAttributes({
           'player.completed': true,
           'player.successful': this.successful,
-          'player.turns': this.parameters.turn,
           'player.tokens.input': this.context.inputTokens,
           'player.tokens.reasoning': this.context.reasoningTokens,
           'player.tokens.output': this.context.outputTokens
         });
-
-        if (this.successful) {
-          span.setStatus({ code: SpanStatusCode.OK });
-        }
 
         await Promise.all([
           this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: String(this.context.inputTokens) }, this.parameters),
