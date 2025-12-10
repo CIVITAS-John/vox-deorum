@@ -9,6 +9,8 @@ import { ModelMessage } from "ai";
 import { Briefer } from "./briefer.js";
 import { VoxContext } from "../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategist/strategy-parameters.js";
+import { getModelConfig } from "../utils/models/models.js";
+import { Model } from "../utils/config.js";
 
 /**
  * A simple briefer agent that analyzes the game state and produces a concise briefing.
@@ -67,7 +69,7 @@ You will receive the following reports:
 - Events: events since the last decision-making.
 
 # Output Format
-Write your briefing as a Markdown document.`.trim()
+Write your briefing as a simple Markdown document. Do not use table or HTML format.`.trim()
   }
 
   /**
@@ -79,9 +81,15 @@ Write your briefing as a Markdown document.`.trim()
     await super.getInitialMessages(parameters, context);
     // Return the messages
     return [{
+      role: "system",
+      content: `
+# Situation
+You are writing a strategic briefing for Player ${parameters.playerID ?? 0}.
+${parameters.metadata}`.trim()
+    }, {
       role: "user",
       content: `
-You are writing a strategic briefing for Player ${parameters.playerID ?? 0} at turn ${parameters.turn}.
+The game is at turn ${parameters.turn}.
 
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
@@ -107,5 +115,16 @@ ${state.military}
 Events: events since the last decision-making.
 ${state.events}`.trim()
     }];
+  }
+  
+  /**
+   * Gets the language model to use for this agent execution.
+   * Can return undefined to use the default model from VoxContext.
+   * 
+   * @param parameters - The execution parameters
+   * @returns The language model to use, or undefined for default
+   */
+  public getModel(_parameters: StrategistParameters, _input: unknown, overrides: Record<string, Model | string>): Model {
+    return getModelConfig(this.name, "low", overrides);
   }
 }

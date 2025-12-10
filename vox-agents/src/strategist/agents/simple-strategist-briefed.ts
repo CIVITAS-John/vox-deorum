@@ -10,6 +10,8 @@ import { ModelMessage } from "ai";
 import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
+import { getModelConfig } from "../../utils/models/models.js";
+import { Model } from "../../utils/config.js";
 
 /**
  * A briefed strategist agent that first requests a briefing before making strategic decisions.
@@ -93,5 +95,16 @@ ${briefing}
 # Strategies and Options
 ${state.options}`.trim()
     }];
+  }
+  
+  /**
+   * Gets the language model to use for this agent execution.
+   * Can return undefined to use the default model from VoxContext.
+   * 
+   * @param parameters - The execution parameters
+   * @returns The language model to use, or undefined for default
+   */
+  public getModel(_parameters: StrategistParameters, _input: unknown, overrides: Record<string, Model | string>): Model {
+    return getModelConfig(this.name, "high", overrides);
   }
 }
