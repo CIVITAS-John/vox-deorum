@@ -32,20 +32,6 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from dist-ui directory (production build)
 const staticPath = path.join(__dirname, '../../dist-ui');
 
-// Check if dist-ui exists and log the path
-if (fs.existsSync(staticPath)) {
-  webLogger.info(`Serving static files from: ${staticPath}`);
-  const indexPath = path.join(staticPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    webLogger.info('index.html found in dist-ui');
-  } else {
-    webLogger.warn('index.html not found in dist-ui - run "npm run build" in ui/ directory');
-  }
-} else {
-  webLogger.warn(`Static directory not found: ${staticPath}`);
-  webLogger.warn('Run "npm run build" in ui/ directory to create production build');
-}
-
 app.use(express.static(staticPath, {
   maxAge: '1d',
   setHeaders: (res, filePath) => {
@@ -62,9 +48,7 @@ app.use(express.static(staticPath, {
 
 // Health check endpoint - minimal API foundation
 app.get('/api/health', (req, res) => {
-  webLogger.info('Health check requested');
   res.json({
-    status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'vox-agents-webui',
     version: config.versionInfo?.version || '0.0.0',

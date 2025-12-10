@@ -1,7 +1,7 @@
 {
   "name": "vox-deorum",
   "version": "1.0.0",
-  "description": "Vox Deorum - LLM-enhanced AI system for Civilization V using the Community Patch framework",
+  "description": "Vox Deorum - LLM-Enhanced AI for Civilization V using the Community Patch framework",
   "private": true,
   "type": "module",
   "workspaces": [

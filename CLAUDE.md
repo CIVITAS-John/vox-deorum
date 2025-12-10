@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Always delegate to subagents when the task is complicated
 
 ## Project Overview
-This is Vox Deorum - an LLM-enhanced AI system for Civilization V using the Community Patch framework.
+This is Vox Deorum - an LLM-Enhanced AI for Civilization V using the Community Patch framework.
 
 ### Architecture Components
 Each component has its own README with setup instructions and CLAUDE.md with development patterns.

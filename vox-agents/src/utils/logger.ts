@@ -229,7 +229,7 @@ export function logSeparator(title?: string, level: 'info' | 'debug' = 'info'): 
  */
 export function logStartup(serviceName: string, version: string, port?: number): void {
   logSeparator(`${serviceName} v${version}`, 'info');
-  logger.info('🚀 Vox Deorum: LLM-Enhanced AI System for Civilization V');
+  logger.info('🚀 Vox Deorum: LLM-Enhanced AI for Civilization V');
   if (port) {
     logger.info(`🌐 Server will listen on port ${port}`);
   }
