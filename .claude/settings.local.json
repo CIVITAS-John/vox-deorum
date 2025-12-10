@@ -43,7 +43,11 @@
       "Bash(npm uninstall:*)",
       "Bash(npx tsx:*)",
       "Bash(npx vitest run:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(npm run web:dev:*)",
+      "Bash(curl:*)",
+      "Bash(del:*)",
+      "Bash(npm run start:dist:*)"
     ],
     "deny": [],
     "ask": []

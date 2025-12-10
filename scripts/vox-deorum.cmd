@@ -3,6 +3,8 @@ setlocal enabledelayedexpansion
 
 :: Vox Deorum Services Manager
 :: Usage: vox-deorum.cmd [vox-agents-mode] [additional-args...]
+:: Default mode: webui (launches web interface)
+:: Available modes: webui, briefer, strategist
 :: Example: vox-deorum.cmd --strategist --verbose --debug
 
 :: Check if npm is in PATH
@@ -33,10 +35,25 @@ if %errorlevel% neq 0 (
 )
 
 set "VOX_MODE=%~1"
-if "%VOX_MODE%"=="" set "VOX_MODE=strategist"
+if "%VOX_MODE%"=="" set "VOX_MODE=webui"
 
 :: Remove -- prefix if present
 set "VOX_MODE=%VOX_MODE:--=-%"
+
+:: Check if vox-agents/src exists to determine dev vs dist mode
+if not exist "%~dp0..\vox-agents\src\" (
+    echo [INFO] Source directory not found, using compiled distribution...
+
+    :: Map modes to dist commands
+    if "%VOX_MODE%"=="webui" set "VOX_MODE=start:dist"
+    if "%VOX_MODE%"=="briefer" set "VOX_MODE=briefer:dist"
+    if "%VOX_MODE%"=="strategist" set "VOX_MODE=strategist:dist"
+) else (
+    :: Map modes to dev commands
+    if "%VOX_MODE%"=="webui" set "VOX_MODE=start"
+    if "%VOX_MODE%"=="briefer" set "VOX_MODE=briefer"
+    if "%VOX_MODE%"=="strategist" set "VOX_MODE=strategist"
+)
 
 :: Capture all arguments after the first one
 set "ADDITIONAL_ARGS="
@@ -53,19 +70,31 @@ echo ========================================
 echo     Vox Deorum Services Manager
 echo ========================================
 echo.
-
+echo [INFO] Mode: %VOX_MODE%
 echo [INFO] Starting services in order...
 echo.
 
+:: Determine bridge-service command based on source availability
+set "BRIDGE_COMMAND=start"
+if not exist "%~dp0..\bridge-service\src\" (
+    set "BRIDGE_COMMAND=start:dist"
+)
+
+:: Determine mcp-server command based on source availability
+set "MCP_COMMAND=start"
+if not exist "%~dp0..\mcp-server\src\" (
+    set "MCP_COMMAND=start:dist"
+)
+
 :: Start Bridge Service and get PID
-echo [1/3] Starting Bridge Service...
-powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\bridge-service','&&','npm','run','start' -PassThru; $p.Id" > "%TEMP%\bridge.pid"
+echo [1/3] Starting Bridge Service (%BRIDGE_COMMAND%)...
+powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\bridge-service','&&','npm','run','%BRIDGE_COMMAND%' -PassThru; $p.Id" > "%TEMP%\bridge.pid"
 set /p BRIDGE_PID=<"%TEMP%\bridge.pid"
 echo        Started with PID: %BRIDGE_PID%
 
 :: Start MCP Server and get PID
-echo [2/3] Starting MCP Server...
-powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\mcp-server','&&','npm','run','start' -PassThru; $p.Id" > "%TEMP%\mcp.pid"
+echo [2/3] Starting MCP Server (%MCP_COMMAND%)...
+powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\mcp-server','&&','npm','run','%MCP_COMMAND%' -PassThru; $p.Id" > "%TEMP%\mcp.pid"
 set /p MCP_PID=<"%TEMP%\mcp.pid"
 echo        Started with PID: %MCP_PID%
 

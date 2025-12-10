@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "npm run build && node dist/index.js",
+    "start": "npm run build && npm run start:dist",
+    "start:dist": "node dist/index.js",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src/**/*.ts",
     "clean": "rimraf dist",
     "test": "vitest run",
     "test:watch": "vitest",

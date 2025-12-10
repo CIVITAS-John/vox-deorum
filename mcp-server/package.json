@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "npx tsc",
-    "start": "npm run build && node --inspect dist/index.js",
+    "start": "npm run build && npm run start:dist",
+    "start:dist": "node --inspect dist/index.js",
     "type-check": "npx tsc --noEmit",
-    "lint": "eslint src/**/*.ts",
     "clean": "rimraf dist",
     "test": "vitest run",
     "test:stdio": "cross-env TEST_TRANSPORT=stdio vitest run",

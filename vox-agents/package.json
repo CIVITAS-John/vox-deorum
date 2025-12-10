@@ -6,10 +6,15 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch --import ./src/instrumentation.ts src/standalone.ts",
-    "briefer": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/briefer/index.js",
-    "strategist": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js",
-    "strategist-load": "npm run build && node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js --load",
+    "dev": "tsx watch --import ./src/instrumentation.ts src/index.ts",
+    "start": "npm run build && npm run start:dist",
+    "start:dist": "node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/index.js",
+    "briefer": "npm run build && npm run briefer:dist",
+    "briefer:dist": "node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/briefer/index.js",
+    "strategist": "npm run build && npm run strategist:dist",
+    "strategist:dist": "node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js",
+    "strategist-load": "npm run build && npm run strategist-load:dist",
+    "strategist-load:dist": "node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js --load",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
@@ -18,5 +23,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "eventsource": "^4.1.0"
+  }
 }

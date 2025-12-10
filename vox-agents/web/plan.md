@@ -225,19 +225,52 @@ app.get('/api/configs', (req, res) => {
 ## Implementation Phases
 When implementing, always work on the minimal and wait for human verification to build up - don't overcomplicate things. 
 
-### Stage 1: Minimal API Foundation (1 hour)
+### Stage 1: Minimal API Foundation (1 hour) ✅ COMPLETED
 **Backend Only**:
-- Express server setup integrated with vox-agents process
-- Nominal API endpoint (/api/health) for verification
-- Winston logger configuration with prefixes
-- Basic middleware setup
-- Shared process initialization
+- ✅ Express server setup integrated with vox-agents process
+- ✅ Nominal API endpoint (/api/health) for verification
+- ✅ Winston logger configuration with prefixes
+- ✅ Basic middleware setup (cors, json, urlencoded)
+- ✅ Shared process initialization
 
 **Deliverables**:
-- Working Express server in shared process
-- Health check endpoint returning basic status
-- Logger configured with 'vox-agents' and 'webui' prefixes
-- No frontend work yet
+- ✅ Working Express server on port 3000
+- ✅ Health check endpoint at `/api/health` returning:
+  - status, timestamp, service name, version, uptime
+- ✅ Logger configured with 'vox-agents' and 'webui' prefixes
+- ✅ SSEManager class for future event streaming
+- ✅ StreamTransport class for Winston log interception
+
+**Implementation Details**:
+- Created modular architecture:
+  - `src/web/server.ts` - Main Express server
+  - `src/web/sse-manager.ts` - SSE client management with heartbeat
+  - `src/web/log-transport.ts` - Winston transport for log streaming
+- Integrated with existing VoxAgentsConfig:
+  - Added `webui` section to config interface (port, enabled)
+  - Server reads configuration from `config.json` via `loadConfig()`
+  - Port defaults to 5555 (unique to avoid conflicts)
+  - Version info loaded from `version.json` via `loadVersionInfo()`
+- Created `src/index.ts` as main entry point:
+  - Checks if webui is enabled in config
+  - Starts server with proper configuration
+  - Shows Vox Deorum banner and endpoints
+- Updated package.json scripts:
+  - `dev` - Development mode with watch (tsx)
+  - `start` - Production build and run
+  - `start:dist` - Run compiled version directly
+  - Added `:dist` variants for all modes (briefer, strategist)
+- Updated scripts/vox-deorum.cmd:
+  - Web UI is now the default mode
+  - Auto-detects source vs dist mode based on src/ directory
+  - Supports all submodules with dist fallback
+- API endpoints implemented:
+  - `/api/health` - Returns status, version, port, client count
+  - `/api/logs/stream` - SSE endpoint for real-time logs
+- Verified functionality:
+  - Health endpoint returns version from config (0.2.2)
+  - SSE heartbeat keeps connections alive
+  - Winston logs streamed with source prefixes
 
 ### Stage 2: Full UI/Server Foundation (3 hours)
 **Backend**:

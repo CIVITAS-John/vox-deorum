@@ -9,6 +9,7 @@
 import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
+import { sseManager } from '../web/sse-manager.js';
 
 // Ensure logs directory exists
 const logsDir = path.join(process.cwd(), 'logs');
@@ -158,21 +159,29 @@ export const logger = winston.createLogger({
   exitOnError: false
 });
 
+// Hijack the logs and stream to SSE
+logger.stream({ start: -1 }).on('log', function(log) {
+  sseManager.broadcast("log", log);
+});
+
 /**
- * Create a child logger with context.
+ * Create a child logger with context and optional web UI streaming.
  * The context is automatically included in all log messages from the returned logger.
+ * If webui is true, logs are also streamed to SSE clients.
  *
  * @param context - The context identifier for this logger (e.g., component name)
+ * @param webui - If true, creates a web UI logger that streams to SSE clients
  * @returns A Winston logger instance with the context attached
  *
  * @example
  * ```typescript
- * const logger = createLogger('MyComponent');
+ * const logger = createLogger('MyComponent'); // Vox agents logger
+ * const webLogger = createLogger('WebServer', true); // Web UI logger with SSE streaming
  * logger.info('Component started'); // Logs with [MyComponent] prefix
  * ```
  */
-export function createLogger(context: string): winston.Logger {
-  return logger.child({ context });
+export function createLogger(context: string, webui: boolean = false): winston.Logger {
+  return logger.child({ context, webui });
 }
 
 /**

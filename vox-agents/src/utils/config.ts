@@ -48,6 +48,10 @@ export interface VoxAgentsConfig {
     version: string;
   };
   versionInfo?: VersionInfo;
+  webui: {
+    port: number;
+    enabled: boolean;
+  };
   mcpServer: {
     transport: {
       type: TransportType;
@@ -69,6 +73,10 @@ const defaultConfig: VoxAgentsConfig = {
   agent: {
     name: 'vox-agents',
     version: '1.0.0'
+  },
+  webui: {
+    port: 5555,
+    enabled: true
   },
   mcpServer: {
     transport: {
@@ -126,7 +134,7 @@ export function loadConfigFromFile<T extends object>(
  *
  * @returns Version information object or undefined if loading fails
  */
-function loadVersionInfo(): VersionInfo | undefined {
+export function loadVersionInfo(): VersionInfo | undefined {
   try {
     // Load version.json from project root
     const versionPath = path.join(process.cwd(), '..', 'version.json');
@@ -194,6 +202,10 @@ function loadConfig(): VoxAgentsConfig {
       version: process.env.AGENT_VERSION || fileConfig.agent.version
     },
     versionInfo,
+    webui: {
+      port: process.env.WEBUI_PORT ? parseInt(process.env.WEBUI_PORT) : fileConfig.webui.port,
+      enabled: process.env.WEBUI_ENABLED ? process.env.WEBUI_ENABLED === 'true' : fileConfig.webui.enabled
+    },
     mcpServer: {
       transport: {
         type: transportType,

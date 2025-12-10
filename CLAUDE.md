@@ -121,12 +121,12 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 - Don't change test scripts unless explicitly asked
 
 ### Code Conventions
-- Production-ready code following existing patterns
-- Testable and maintainable architecture
-- Proper (not excessive) error handling - avoid redundant try-catch layers
-- DRY principles
 - Straightforward implementation focused on goals
-- Should never use any or unknown unless absolutely necessary
+- Production-ready code following existing patterns
+- DRY principles
+- Proper (not excessive) error handling - avoid redundant try-catch layers
+- Should never use any or unknown types unless absolutely necessary
+- Before creating new mechanisms, check if it already exists
 
 ### Logging Conventions
 - **Use Winston logger** for all TypeScript modules (bridge-service, mcp-server, vox-agents)
