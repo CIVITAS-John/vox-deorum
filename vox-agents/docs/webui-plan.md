@@ -297,16 +297,35 @@ When implementing, always work on the minimal and wait for human verification to
 - Router configured with all routes
 - Added `webui` and `webui:dev` scripts to package.json
 
-### Phase 3: Log Viewer (3 hours)
+### Phase 3: Log Viewer ✅ COMPLETED
 **Frontend**:
-- Source/level filter buttons (frontend-only)
-- Search with highlighting
-- Auto-scroll toggle
+- ✅ LogViewer component with real-time SSE streaming
+- ✅ Source/level filter buttons (frontend-only)
+- ✅ Search with highlighting
+- ✅ Auto-scroll toggle
+- ✅ Connection status indicator
 
 **Deliverables**:
-- Real-time log streaming from multiple sources
-- Frontend filtering by source and level
-- Search functionality
+- ✅ Real-time log streaming from multiple sources
+- ✅ Frontend filtering by source and level
+- ✅ Search functionality with highlighting
+- ✅ Pause/resume streaming
+- ✅ Virtual scrolling for performance
+
+**Implementation Details**:
+- Created comprehensive LogViewer component with:
+  - SSE client for real-time log streaming
+  - Frontend-only filtering (no server round-trips)
+  - Search highlighting with regex support
+  - Auto-scroll that pauses on user interaction
+  - Reconnection logic with exponential backoff
+  - 1000-line buffer with circular management
+- Used PrimeVue components throughout:
+  - DataTable for log display
+  - Button for controls
+  - InputText for search
+  - Tag for log levels
+- Clean integration with existing logger infrastructure
 
 ### Phase 4: Telemetry Viewer (4 hours)
 **Backend**:
@@ -457,6 +476,8 @@ SSE /api/agents/:name/stream    // Response stream
 3. **Stream-based logs** - Intercept Winston streams rather than reading files
 4. **Incremental delivery** - Each phase produces working functionality
 5. **Minimal first stage** - Stage 1 only creates a nominal API endpoint
+6. **PrimeVue-first approach** - Always use existing PrimeVue components before custom implementations
+7. **Stores for shared state** - Use Vue stores (like health.ts) for cross-component state
 
 ### File Locations
 - **Telemetry databases**: `telemetry/` directory (SQLiteSpanExporter default)
@@ -477,6 +498,20 @@ SSE /api/agents/:name/stream    // Response stream
 - SSE connection pooling and reconnection
 - SQLite connection reuse with readonly mode
 
+## Lessons Learned
+
+### Architecture Decisions That Worked
+1. **Shared process architecture** - Running web server in same process simplified deployment and state sharing
+2. **SSE over WebSockets** - Simpler implementation with built-in reconnection and event types
+3. **Frontend-only filtering** - Reduces server load and improves responsiveness
+4. **PrimeVue components** - Saved significant development time with professional UI components
+
+### Development Best Practices
+1. **Start with minimal API** - Health endpoint first validates entire stack
+2. **Use existing infrastructure** - Logger, config system already there to leverage
+3. **Component placeholders** - Create all views early even if empty
+4. **Type everything** - TypeScript interfaces for all API responses
+
 ## Future Enhancements
 - WebSocket upgrade for lower latency
 - Span analysis and aggregations
@@ -488,3 +523,6 @@ SSE /api/agents/:name/stream    // Response stream
 - Agent memory retrieval and visualization
 - Memory search and filtering capabilities
 - Cross-agent memory correlation
+- Keyboard shortcuts for power users
+- Customizable dashboard widgets
+- Performance profiling view
