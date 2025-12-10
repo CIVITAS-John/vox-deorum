@@ -164,34 +164,7 @@ app.get('/api/configs', (req, res) => {
 - Discover all registered agents dynamically
 - Stream responses via SSE
 - Display tool calls and reasoning
-- Read-only AgentParameters context display
-
-**Context Management**:
-```typescript
-// AgentParameters as read-only context
-interface ChatContext {
-  // Mirror AgentParameters but read-only in UI
-  readonly playerID: number;    // Display current player
-  readonly gameID: string;       // Display game ID
-  readonly turn: number;         // Display current turn
-  readonly running?: string;     // Display which agent is active
-}
-
-// Use for agent execution but don't allow UI modification
-const context: AgentParameters = {
-  playerID: currentGame?.playerID || -1,
-  gameID: currentGame?.id || 'test',
-  turn: currentGame?.turn || 0,
-  running: agent.name
-};
-
-// Execute agent with fixed context
-const result = await voxContext.executeAgent(
-  agent.name,
-  context,  // Read-only from UI perspective
-  userMessage
-);
-```
+- Read-only AgentParameters context integration
 
 ## Implementation Phases
 
