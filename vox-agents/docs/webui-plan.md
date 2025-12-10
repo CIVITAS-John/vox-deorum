@@ -273,30 +273,35 @@ When implementing, always work on the minimal and wait for human verification to
 ### Stage 2: Full UI/Server Foundation (3 hours)
 **Backend**:
 - Complete routing structure and middleware
-- SSE utility functions for streaming
 - Static file serving for Vue production build (dist-ui/)
-- CORS configuration for development
-- Log stream transport setup
 - Configure Express to serve static files from dist-ui/
 
 **Frontend**:
 - Vue 3 project already initialized at `ui/`
 - Configure Vite build output to `../dist-ui/`
-- Install and configure PrimeVue for data tables and UI components
-- Tailwind CSS with Civ5 theme variables (or scoped CSS)
+- Install and configure PrimeVue v4 for data tables and UI components
+- Aura preset with Civ5 theme variables (or scoped CSS)
 - Main layout with sidebar navigation using Vue Router
-- API client wrapper with SSE support
-- Routing setup for all views
 
 **Deliverables**:
 - Full dev environment with Vite HMR
 - Navigation between all planned views
 - Production build with `npm run build` in ui/ outputs to dist-ui/
 - Static files served from dist-ui/ by Express
-- Log streaming infrastructure
 - Civ5-themed UI shell
 
-### Phase 3: Telemetry Viewer (4 hours)
+### Phase 3: Log Viewer (3 hours)
+**Frontend**:
+- Source/level filter buttons (frontend-only)
+- Search with highlighting
+- Auto-scroll toggle
+
+**Deliverables**:
+- Real-time log streaming from multiple sources
+- Frontend filtering by source and level
+- Search functionality
+
+### Phase 4: Telemetry Viewer (4 hours)
 **Backend**:
 - Kysely setup for telemetry databases
 - Type-safe span queries with filtering
@@ -312,23 +317,6 @@ When implementing, always work on the minimal and wait for human verification to
 - List and select telemetry databases
 - View spans with type-safe queries
 - Trace hierarchy visualization
-
-### Phase 4: Log Viewer (3 hours)
-**Backend**:
-- Winston transport integration
-- SSE streaming with prefixed logs
-- Buffer management for streams
-
-**Frontend**:
-- Virtual scrolling for performance
-- Source/level filter buttons (frontend-only)
-- Search with highlighting
-- Auto-scroll toggle
-
-**Deliverables**:
-- Real-time log streaming from multiple sources
-- Frontend filtering by source and level
-- Search functionality
 
 ### Phase 5: Session Control (3 hours)
 **Backend**:
