@@ -40,13 +40,6 @@ export class NoneStrategist extends Strategist {
   }
   
   /**
-   * Gets the list of active tools for this agent
-   */
-  public getActiveTools(_parameters: StrategistParameters): string[] | undefined {
-    return [];
-  }
-  
-  /**
    * Determines whether the agent should stop execution
    */
   public stopCheck(

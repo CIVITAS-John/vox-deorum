@@ -1,9 +1,9 @@
 /**
- * @module strategist/simple-strategist
+ * @module strategist/simple-strategist-briefed
  *
- * Simple strategist agent implementation.
- * Provides high-level strategic decision-making for Civilization V gameplay,
- * including diplomatic persona, technology research, policy adoption, and grand strategy selection.
+ * Briefed strategist agent implementation.
+ * Uses a briefer agent to summarize game state before making strategic decisions,
+ * reducing context size and focusing on key strategic insights.
  */
 
 import { ModelMessage } from "ai";
@@ -12,17 +12,17 @@ import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 
 /**
- * A simple strategist agent that analyzes the game state and sets an appropriate strategy.
- * Makes high-level decisions and delegates tactical execution to the in-game AI.
+ * A briefed strategist agent that first requests a briefing before making strategic decisions.
+ * Delegates game state summarization to a briefer agent to focus on high-level strategy.
  *
  * @class
  */
-export class SimpleStrategist extends SimpleStrategistBase {
+export class SimpleStrategistBriefed extends SimpleStrategistBase {
   /**
    * The name identifier for this agent
    */
-  readonly name = "simple-strategist";
-  
+  readonly name = "simple-strategist-briefed";
+
   /**
    * Gets the system prompt for the strategist
    */
@@ -50,40 +50,32 @@ Your goal is to **call one or more tools** to make high-level decisions for the 
 - Always provide a rationale for each decision. You will be able to read the rationale next turn.
 
 # Resources
-You will receive the following reports:
-- Strategies: existing strategic decisions and available options for you.
+You will receive:
+- Strategies: current strategic decisions and available options for you.
  - You will receive strategies, persona, technology, and policy you set last time.
  - You will also receive the rationale you wrote.
  - It is typically preferable to finish existing policy branches before starting new ones.
  - You will receive options and short descriptions for each type of decision.
  - Whatever decision-making tool you call, the in-game AI can only execute options here.
  - You must choose options from the relevant lists. Double-check if your choices match.
-- Victory Progress: current progress towards each type of victory.
- - Domination Victory: Control or vassalize all original capitals.
- - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
- - Cultural Victory: Accumulate tourism (that outpaces other civilizations' culture) to influence all others.
- - Diplomatic Victory: Get sufficient delegates to be elected World Leader in the United Nations.
- - Time Victory: If no one achieves any other victory by the end of the game, the civilization with the highest score wins.
-- Players: summary reports about visible players in the world. Also:
- - You will receive in-game AI's diplomatic evaluations.
- - You will receive each player's publicly available relationships.
- - Pay attention to master/vassal relationships. If you are a vassal, you cannot achieve a conquest victory before independence.
-- Cities: summary reports about discovered cities in the world.
-- Military: summary reports about tactical zones and visible units.
- - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
- - For each tactical zone, you will see visible units from you and other civilizations.
-- Events: events since you last made a decision.
-`.trim()
+- A strategic briefing summarizing the current game situation.
+  - The briefing will highlight critical information for strategic decisions.`.trim()
   }
-  
+
   /**
    * Gets the initial messages for the conversation
    */
   public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
-    var state = getRecentGameState(parameters)!;
+    var state = getRecentGameState(parameters)!; 
+
+    // Get the briefing from the simple-briefer agent
+    const briefing = await context.callAgent<string>("simple-briefer", undefined, parameters);
+    if (!briefing) throw new Error("Failed to generate strategic briefings.");
+
     // Get the information
     await super.getInitialMessages(parameters, context);
-    // Return the messages
+
+    // Return the messages with briefing instead of full state
     return [{
       role: "system",
       content: `
@@ -95,30 +87,11 @@ ${parameters.metadata}`.trim()
       content: `
 You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
 
-# Victory Progress
-Victory Progress: current progress towards each type of victory.
-${state.victory}
+# Strategic Briefing
+${briefing}
 
-# Strategies
-Strategies: existing strategic decisions and available options for you.
-${state.options}
-
-# Players
-Players: summary reports about visible players in the world.
-${state.players}
-
-# Cities
-Cities: summary reports about discovered cities in the world.
-${state.cities}
-
-# Military
-Military: summary reports about tactical zones and visible units.
-${state.military}
-
-# Events
-Events: events since you last made a decision.
-${state.events}
-`.trim()
+# Strategies and Options
+${state.options}`.trim()
     }];
   }
 }

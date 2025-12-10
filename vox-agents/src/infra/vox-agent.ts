@@ -101,8 +101,9 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
    * @param parameters - The execution parameters
    * @returns Array of tool names that should be active, or undefined for all tools
    */
-  public abstract getActiveTools(parameters: TParameters): string[] | undefined;
-  
+  public getActiveTools(parameters: TParameters): string[] | undefined {
+    return [];
+  }
   /**
    * Determines whether the agent should stop execution.
    * Called after each step to check if the generation should continue.

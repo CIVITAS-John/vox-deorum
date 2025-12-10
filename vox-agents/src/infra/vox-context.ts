@@ -164,6 +164,41 @@ export class VoxContext<TParameters extends AgentParameters> {
   }
 
   /**
+   * Call an agent by name with the given input.
+   * Allows manual agent invocation outside of the main execution loop.
+   * This is useful for orchestrating multiple agents or calling agents programmatically.
+   *
+   * @param name - The name of the agent to call
+   * @param input - The input to pass to the agent
+   * @param parameters - The parameters to pass to the agent
+   * @returns The result of the agent execution, or undefined if agent not found or execution fails
+   */
+  public async callAgent<T = any>(
+    name: string,
+    input: any,
+    parameters: TParameters): Promise<T | undefined> {
+    const agent = this.agents[name];
+    if (!agent) {
+      this.logger.error(`Agent not found: ${name}`);
+      return undefined;
+    }
+
+    try {
+      const result = await this.execute(name, parameters, input);
+
+      // Apply output schema if the agent defines one
+      if (agent.outputSchema) {
+        return agent.outputSchema.parse(result) as T;
+      }
+
+      return result as T;
+    } catch (error) {
+      this.logger.error(`Error calling agent ${name}:`, error);
+      return undefined;
+    }
+  }
+
+  /**
    * Execute an agent with the given parameters.
    * Runs the agent's system prompt, tools, and lifecycle hooks in an iterative loop
    * until the stop condition is met. Tracks token usage and provides observability.

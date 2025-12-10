@@ -1,0 +1,111 @@
+/**
+ * @module briefer/simple-briefer
+ *
+ * Simple briefer agent that summarizes game state into a concise strategic briefing.
+ * Condenses full game reports into key insights for strategic decision-making.
+ */
+
+import { ModelMessage } from "ai";
+import { Briefer } from "./briefer.js";
+import { VoxContext } from "../infra/vox-context.js";
+import { getRecentGameState, StrategistParameters } from "../strategist/strategy-parameters.js";
+
+/**
+ * A simple briefer agent that analyzes the game state and produces a concise briefing.
+ * Summarizes key strategic information from detailed game reports.
+ *
+ * @class
+ */
+export class SimpleBriefer extends Briefer {
+  /**
+   * The name identifier for this agent
+   */
+  readonly name = "simple-briefer";
+
+  /**
+   * Gets the system prompt for the briefer
+   */
+  public async getSystem(_parameters: StrategistParameters, _input: string, _context: VoxContext<StrategistParameters>): Promise<string> {
+    return `
+You are an export strategic analyst for Civilization V with the latest Vox Populi mod.
+Your role is to analyze game state reports and produce a strategic briefing to help make the next round of strategic decisions.
+
+# Objective
+Summarize the full game state into a strategic briefing that highlights:
+- Critical threats and opportunities
+- Key diplomatic relationships and tensions
+- Economic and military position relative to opponents
+- Recommended strategic priorities
+- Important events since the last decision
+
+# Guidelines
+- Before writing, craft an outline to prioritize strategically-relevant information
+- Highlight changes, trends, and actionable intelligence, not static or raw information
+- The briefing should be objective and analytical
+- Do not stick to existing strategy or trajectories
+- Use clear, direct, efficient language
+- Length of the briefing should be proportionate to the situation
+
+# Resources
+You will receive the following reports:
+- Strategies: existing strategic decisions and available options for the player.
+ - Strategies, persona, technology, and policy of the player, as well as the current rationale.
+- Victory Progress: current progress towards each type of victory.
+ - Domination Victory: Control or vassalize all original capitals.
+ - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
+ - Cultural Victory: Accumulate tourism (that outpaces other civilizations' culture) to influence all others.
+ - Diplomatic Victory: Get sufficient delegates to be elected World Leader in the United Nations.
+ - Time Victory: If no one achieves any other victory by the end of the game, the civilization with the highest score wins.
+- Players: summary reports about visible players in the world. Also:
+ - You will receive in-game AI's diplomatic evaluations.
+ - You will receive each player's publicly available relationships.
+ - Pay attention to master/vassal relationships. Vassals cannot achieve a conquest victory before independence.
+- Cities: summary reports about discovered cities in the world.
+- Military: summary reports about tactical zones and visible units.
+ - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
+ - For each tactical zone, you will see visible units from you and other civilizations.
+- Events: events since the last decision-making.
+
+# Output Format
+Write your briefing as a Markdown document.`.trim()
+  }
+
+  /**
+   * Gets the initial messages for the conversation
+   */
+  public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
+    var state = getRecentGameState(parameters)!;
+    // Get the information
+    await super.getInitialMessages(parameters, context);
+    // Return the messages
+    return [{
+      role: "user",
+      content: `
+You are writing a strategic briefing for Player ${parameters.playerID ?? 0} at turn ${parameters.turn}.
+
+# Victory Progress
+Victory Progress: current progress towards each type of victory.
+${state.victory}
+
+# Strategies
+Strategies: existing strategic decisions and available options for the player.
+${state.options}
+
+# Players
+Players: summary reports about visible players in the world.
+${state.players}
+
+# Cities
+Cities: summary reports about discovered cities in the world.
+${state.cities}
+
+# Military
+Military: summary reports about tactical zones and visible units.
+${state.military}
+
+# Events
+Events: events since the last decision-making.
+${state.events}`.trim()
+    }];
+  }
+}

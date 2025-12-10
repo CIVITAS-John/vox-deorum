@@ -228,14 +228,7 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
    */
   async createContext(contextId: string, folder: string): Promise<void> {
     try {
-      // Ensure folder exists
-      if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder, { recursive: true });
-      }
-
-      // Store the custom folder mapping
       customFolders.set(contextId, folder);
-
       logger.info(`Registered custom folder for context ${contextId}: ${folder}`);
     } catch (error) {
       logger.error(`Error creating context ${contextId} with folder ${folder}`, error);
