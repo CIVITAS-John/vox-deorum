@@ -17,7 +17,7 @@
  */
 
 import { config } from './utils/config.js';
-import { createLogger } from './utils/logger.js';
+import { createLogger, logStartup } from './utils/logger.js';
 import { startStdioServer } from './stdio.js';
 import { startHttpServer } from './http.js';
 
@@ -33,8 +33,11 @@ const logger = createLogger('index');
  * @throws {Error} If an unknown transport type is configured
  */
 async function main(): Promise<void> {
-  logger.info(`Starting MCP server with ${config.transport.type} transport`);
-  
+  // Use the centralized logStartup utility
+  const port = config.transport.type === 'http' ? config.transport.port : undefined;
+  logStartup('MCP Server', '1.0.0', port);
+  logger.info(`Using ${config.transport.type} transport`);
+
   // Start server with appropriate transport
   switch (config.transport.type) {
     case 'stdio':

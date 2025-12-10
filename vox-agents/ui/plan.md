@@ -225,52 +225,45 @@ app.get('/api/configs', (req, res) => {
 ## Implementation Phases
 When implementing, always work on the minimal and wait for human verification to build up - don't overcomplicate things. 
 
-### Stage 1: Minimal API Foundation (1 hour) ✅ COMPLETED
+### Stage 1: Minimal API Foundation ✅ COMPLETED
 **Backend Only**:
 - ✅ Express server setup integrated with vox-agents process
 - ✅ Nominal API endpoint (/api/health) for verification
-- ✅ Winston logger configuration with prefixes
+- ✅ Winston logger configuration with SSE streaming integration
 - ✅ Basic middleware setup (cors, json, urlencoded)
 - ✅ Shared process initialization
 
 **Deliverables**:
-- ✅ Working Express server on port 3000
+- ✅ Working Express server on configurable port (default 5555)
 - ✅ Health check endpoint at `/api/health` returning:
-  - status, timestamp, service name, version, uptime
-- ✅ Logger configured with 'vox-agents' and 'webui' prefixes
-- ✅ SSEManager class for future event streaming
-- ✅ StreamTransport class for Winston log interception
+  - status, timestamp, service name, version, uptime, client count, port
+- ✅ Logger integrated with SSE broadcasting (no separate transport needed)
+- ✅ SSEManager class for event streaming with heartbeat
+- ✅ Log streaming endpoint at `/api/logs/stream`
 
 **Implementation Details**:
-- Created modular architecture:
-  - `src/web/server.ts` - Main Express server
-  - `src/web/sse-manager.ts` - SSE client management with heartbeat
-  - `src/web/log-transport.ts` - Winston transport for log streaming
-- Integrated with existing VoxAgentsConfig:
-  - Added `webui` section to config interface (port, enabled)
-  - Server reads configuration from `config.json` via `loadConfig()`
-  - Port defaults to 5555 (unique to avoid conflicts)
-  - Version info loaded from `version.json` via `loadVersionInfo()`
-- Created `src/index.ts` as main entry point:
-  - Checks if webui is enabled in config
-  - Starts server with proper configuration
-  - Shows Vox Deorum banner and endpoints
-- Updated package.json scripts:
-  - `dev` - Development mode with watch (tsx)
-  - `start` - Production build and run
-  - `start:dist` - Run compiled version directly
-  - Added `:dist` variants for all modes (briefer, strategist)
-- Updated scripts/vox-deorum.cmd:
-  - Web UI is now the default mode
-  - Auto-detects source vs dist mode based on src/ directory
-  - Supports all submodules with dist fallback
+- Created minimal web server architecture:
+  - `src/web/server.ts` - Express server with health and log endpoints
+  - `src/web/sse-manager.ts` - SSE client management with 30s heartbeat
+  - `src/index.ts` - Main entry point for web UI mode
+- Integrated Winston logger with SSE:
+  - Modified `src/utils/logger.ts` to stream logs via SSE
+  - Added `webui` parameter to `createLogger()` for component identification
+  - Uses `logger.stream()` to capture all logs and broadcast via SSE
+  - No separate transport class needed - direct integration
+- Configuration integration:
+  - Added `webui` section to VoxAgentsConfig (port, enabled)
+  - Server reads from `config.json` via unified config system
+  - Port configurable via config or WEBUI_PORT env var
+  - Version info from config.versionInfo
 - API endpoints implemented:
-  - `/api/health` - Returns status, version, port, client count
-  - `/api/logs/stream` - SSE endpoint for real-time logs
+  - `/api/health` - Returns server status and metrics
+  - `/api/logs/stream` - SSE endpoint for real-time log streaming
 - Verified functionality:
-  - Health endpoint returns version from config (0.2.2)
-  - SSE heartbeat keeps connections alive
-  - Winston logs streamed with source prefixes
+  - Server starts on configured port with proper logging
+  - Health endpoint returns accurate status information
+  - SSE connections maintained with periodic heartbeat
+  - Logs automatically streamed to connected SSE clients
 
 ### Stage 2: Full UI/Server Foundation (3 hours)
 **Backend**:

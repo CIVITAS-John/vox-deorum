@@ -14,6 +14,7 @@ import { StrategistSession, StrategistSessionConfig } from "./strategist-session
 import { setTimeout } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import * as readline from 'node:readline';
+import { startWebServer } from "../web/server.js";
 
 const logger = createLogger('Strategists');
 
@@ -165,6 +166,9 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGBREAK', () => shutdown('SIGBREAK'));
 process.on('SIGHUP', () => shutdown('SIGHUP'));
+
+// Web UI
+await startWebServer();
 
 // Setup readline interface for keyboard input
 rl = readline.createInterface({

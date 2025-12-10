@@ -46,7 +46,11 @@ app.get('/api/logs/stream', (req, res) => {
 export async function startWebServer(): Promise<void> {
   return new Promise((resolve) => {
     const server = app.listen(PORT, () => {
-      webLogger.info(`Web UI server started on port ${PORT}`);
+      webLogger.info(`🌐 Web UI available at: http://localhost:${config.webui.port}`);
+      webLogger.info('Available endpoints:');
+      webLogger.info('  • Health Check:  GET  /api/health');
+      webLogger.info('  • Log Stream:    GET  /api/logs/stream (SSE)');
+      webLogger.info('Press Ctrl+C to stop the server');
 
       // Start SSE heartbeat to keep connections alive
       const heartbeatInterval = sseManager.startHeartbeat();
