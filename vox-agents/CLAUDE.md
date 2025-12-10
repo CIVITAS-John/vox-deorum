@@ -1,6 +1,6 @@
 # CLAUDE.md - Vox Agents Development Guide
 
-This guide provides essential patterns and conventions for Vox Agents that aren't covered in the README.
+This guide provides essential patterns and conventions for developing Vox Agents.
 
 ## LLM Integration
 
@@ -114,9 +114,10 @@ The system supports standalone and component modes:
 ## Entry Points & Workflows
 
 ### Multiple Entry Points
-- `npm run dev` - Development mode with hot reload
-- `npm run strategist` - Run strategist workflow
-- `npm run briefer` - Run briefing workflow
+- `npm run dev` - Development mode with hot reload (standalone.ts)
+- `npm run strategist` - Run strategist workflow (strategist/index.ts)
+- `npm run briefer` - Run briefer workflow (briefer/index.ts)
+- `npm run strategist-load` - Load saved game with strategist
 - **Each workflow has dedicated entry point** with shared instrumentation
 - Instrumentation loaded via --import flag for telemetry
 
@@ -146,16 +147,43 @@ The system supports standalone and component modes:
 
 ## Observability
 
-## Development Guidelines
+### OpenTelemetry Integration
+- Instrumentation setup in `instrumentation.ts`
+- SQLite exporter for local trace storage
+- Vox exporter for custom telemetry handling
+- Automatic span creation for agent operations
+- Resource attributes for game context
+
+### Telemetry Patterns
+- Wrap key operations with spans
+- Include game state in span attributes
+- Flush telemetry on shutdown
+- Use appropriate span names and kinds
+
+## Agent Architecture
+
+### Agent Hierarchy
+```
+VoxAgent (Base)
+├── Briefer (Game state analysis)
+│   └── SimpleBriefer
+└── Strategist (Strategic decisions)
+    ├── NoneStrategist (Baseline)
+    ├── SimpleStrategist (Direct)
+    └── SimpleStrategistBriefed (Two-stage)
+```
 
 ### Creating New Agents
-1. **Extend `VoxAgent`** with appropriate generics
-2. **Implement all abstract methods**
-3. **Use Zod schemas** for input/output validation
-4. **Add to agent registry** in VoxContext
-5. **Provide factory function** if needed
-6. **Include observability** wrapping
-7. **Handle abort signals** properly
+1. Choose base class (Briefer or Strategist)
+2. Define parameter types (input, output, store)
+3. Implement abstract methods:
+   - `buildPrompt()` - Create LLM prompt
+   - `stopCheck()` - Determine when to stop
+   - `extractResult()` - Process agent output
+4. Register in appropriate factory/registry
+5. Add configuration support
+
+## Development Guidelines
 
 ### Common Patterns
 - **Use Map for registries** (players, handlers, etc.)

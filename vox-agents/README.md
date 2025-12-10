@@ -5,12 +5,16 @@ LLM-powered strategic AI agents for Civilization V. This module implements sophi
 ## What's Implemented
 
 - **Agent Framework** - Flexible base classes (`VoxAgent`/`VoxContext`) for building AI workflows
-- **Simple Strategist** - Turn-based decision agent with comprehensive game analysis
+- **Briefer Agents** - Game state summarization agents for strategic analysis
+- **Strategist Agents** - Turn-based decision agents with comprehensive game analysis
+  - `NoneStrategist` - Baseline agent for testing
+  - `SimpleStrategist` - Direct strategy implementation
+  - `SimpleStrategistBriefed` - Two-stage analysis with briefing
 - **MCP Client** - Robust HTTP/SSE client for MCP server communication
 - **Tool Integration** - Dynamic tool wrapping and composition for game actions
-- **Multi-LLM Support** - OpenAI, OpenRouter, and Google AI providers
+- **Multi-LLM Support** - OpenRouter, OpenAI, and Google AI providers
 - **Session Management** - Persistent session tracking for game continuity
-- **Observability** - Local parquet-based tracing for monitoring agent behavior
+- **Observability** - OpenTelemetry integration with SQLite export
 
 ## Architecture
 
@@ -25,7 +29,9 @@ LLM Providers ← Vox Agents → MCP Server → Bridge Service → Civ V
 
 - **VoxAgent** (`infra/vox-agent.ts`) - Base class with step execution and tool integration
 - **VoxContext** (`infra/vox-context.ts`) - Execution context with MCP client management
-- **SimpleStrategist** (`strategist/simple-strategist.ts`) - Production-ready strategy agent
+- **VoxCivilization** (`infra/vox-civilization.ts`) - Game process lifecycle management
+- **Briefer** (`briefer/briefer.ts`) - Base class for game state analysis
+- **Strategist** (`strategist/strategist.ts`) - Base class for strategic decisions
 - **MCP Client** (`utils/models/mcp-client.ts`) - Event-driven MCP communication
 - **Tool Wrapper** (`utils/tools/wrapper.ts`) - Dynamic tool adaptation for LLMs
 - **Session Manager** (`strategist/strategist-session.ts`) - Game session tracking
@@ -108,11 +114,16 @@ Example configuration:
 {
   "llmPlayers": [1],           // Array of player IDs to control with LLM
   "autoPlay": false,           // false = interactive (pauses), true = observe (auto)
-  "strategist": "simple-strategist", // Agent to use ("none-strategist", "simple-strategist", etc.)
+  "strategist": "simple-strategist", // Agent to use
   "gameMode": "start",         // Game mode ("start" for new game, "load" for saved game)
   "repetition": 1              // Number of games to play in sequence
 }
 ```
+
+Available strategists:
+- `"none-strategist"` - No strategy changes (baseline)
+- `"simple-strategist"` - Direct strategy implementation
+- `"simple-strategist-briefed"` - Two-stage with briefing first
 
 #### Command-Line Usage
 ```bash
@@ -282,16 +293,31 @@ Test categories:
 ```
 vox-agents/
 ├── src/
-│   ├── infra/           # Core framework
-│   │   ├── vox-agent.ts
-│   │   └── vox-context.ts
-│   ├── strategist/      # Strategy agents
-│   │   ├── none-strategist.ts
-│   │   └── simple-strategist.ts
-│   ├── utils/           # Utilities
-│   │   ├── models/      # LLM clients
-│   │   └── tools/       # Tool wrappers
-│   └── index.ts         # Entry points
-├── tests/               # Vitest suite
+│   ├── infra/                 # Core framework
+│   │   ├── vox-agent.ts       # Base agent class
+│   │   ├── vox-context.ts     # Execution context
+│   │   └── vox-civilization.ts # Game lifecycle
+│   ├── briefer/               # Briefing agents
+│   │   ├── briefer.ts         # Base briefer
+│   │   ├── simple-briefer.ts  # Simple implementation
+│   │   └── index.ts           # Entry point
+│   ├── strategist/            # Strategy agents
+│   │   ├── agents/            # Agent implementations
+│   │   │   ├── none-strategist.ts
+│   │   │   ├── simple-strategist.ts
+│   │   │   ├── simple-strategist-base.ts
+│   │   │   └── simple-strategist-briefed.ts
+│   │   ├── strategist.ts      # Base strategist
+│   │   ├── strategist-session.ts # Session management
+│   │   ├── strategy-parameters.ts # Parameters
+│   │   ├── vox-player.ts      # Player management
+│   │   └── index.ts           # Entry point
+│   ├── utils/                 # Utilities
+│   │   ├── models/            # LLM clients
+│   │   ├── telemetry/         # Observability
+│   │   └── tools/             # Tool wrappers
+│   └── instrumentation.ts     # OpenTelemetry setup
+├── tests/                     # Vitest suite
+├── configs/                   # Configuration files
 └── package.json
 ```

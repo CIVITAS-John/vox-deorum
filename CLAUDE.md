@@ -15,44 +15,45 @@ This is Vox Deorum - an LLM-enhanced AI system for Civilization V using the Comm
 Each component has its own README with setup instructions and CLAUDE.md with development patterns.
 
 1. **Community Patch DLL** (`civ5-dll/`) - Modified Community-Patch-DLL submodule
-   - Focus on `CvCoreDLL_Expansion2` and `CvGameCoreDLLUtil` only
-   - Make minimal changes to maintain compatibility
-   - Windows-only build: `python build_vp_clang_sdk.py`
-   - Build and deploy: `cd "F:\Minor Solutions\vox-deorum\civ5-dll" && powershell -Command "& .\build-and-copy.bat" 2>&1`
-   - Debug logs: `clang-output/Debug/build.log`
+   - Windows-only 32-bit build for external communication
+   - Named pipe IPC implementation
+   - Minimal changes to maintain compatibility
+   - Build: `python build_vp_clang_sdk.py`
+   - Deploy: `powershell -Command "& .\build-and-copy.bat"`
    - See `civ5-dll/CLAUDE.md` for C++ patterns and IPC protocol
 
-   **Exposing Lua APIs:**
-   - Add method declarations in `Lua/CvLuaPlayer.h` as static methods
-   - Implement methods in `Lua/CvLuaPlayer.cpp` with `lMethodName` naming
-   - Register methods using `Method(MethodName)` macro in CvLuaPlayer.cpp constructor area
-   - For serialized data, update `Serialize()`, constructor, and `Reset()` in the relevant class
+2. **Bridge Service** (`bridge-service/`) - Communication layer between Civ V and AI
+   - REST API + Server-Sent Events (SSE)
+   - Named pipe client with auto-reconnection
+   - Message batching for 10x performance boost
+   - Game pause control system
+   - Mock DLL server for testing
+   - See `bridge-service/CLAUDE.md` for patterns
 
-2. **Bridge Service** (`bridge-service/`) - IPC bridge between DLL and services
-   - REST API + SSE for real-time events
-   - Follow `protocol.md` for cross-module communication
-   - Singleton services with EventEmitter pattern
-   - See `bridge-service/CLAUDE.md` for error handling and SSE patterns
+3. **MCP Server** (`mcp-server/`) - Model Context Protocol server
+   - 17 MCP tools for game interaction
+   - Direct SQLite database access (Kysely ORM)
+   - Localization with TXT_KEY resolution
+   - Knowledge persistence with auto-save
+   - Multi-transport support (stdio/HTTP)
+   - See `mcp-server/CLAUDE.md` for patterns
 
-3. **MCP Server** (`mcp-server/`) - Game state exposure via MCP protocol
-   - Supports stdio and HTTP transports
-   - Tools use factory pattern with lazy loading
-   - Knowledge persisted in SQLite per game
-   - See `mcp-server/CLAUDE.md` for tool development and caching patterns
+4. **Vox Agents** (`vox-agents/`) - LLM-powered strategic AI framework
+   - Extensible agent base classes (VoxAgent, Briefer, Strategist)
+   - Turn-based decision engine with session management
+   - Multi-LLM provider support (OpenRouter, OpenAI, Google AI)
+   - OpenTelemetry observability integration
+   - See `vox-agents/CLAUDE.md` for patterns
 
-4. **Vox Agents** (`vox-agents/`) - LLM-powered strategic AI
-   - Vitest for all testing (sequential execution for IPC)
-   - Dual mode: Standalone (autonomous) or Component (web UI)
-   - Agent architecture with VoxAgent base class
-   - See `vox-agents/CLAUDE.md` for agent patterns and MCP integration
+5. **Civ 5 Mod** (`civ5-mod/`) - Game integration
+   - Lua hooks for external communication
+   - Custom UI elements
+   - Mod configuration files
 
 ### Communication Flow
 ```
-Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
-                                           ↕
-                                    MCP Server (game state)
-                                           ↕
-                                    Vox Agents → LLM
+Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents → LLM
+         (Named Pipe)         (REST/SSE)       (MCP/HTTP)   (LLMs)
 ```
 
 ## Top-Level Development Patterns
@@ -164,21 +165,29 @@ Civ 5 Mod ↔ Community Patch DLL ↔ Bridge Service (REST + SSE)
 
 ### Build Commands by Module
 ```bash
+# Root level (all workspaces)
+npm install         # Install all dependencies
+npm run build:all   # Build all TypeScript modules
+npm run test:all    # Run all tests
+
 # civ5-dll (Windows only)
+cd civ5-dll
+python build_vp_clang_sdk.py
 .\build-and-copy.bat
 
 # bridge-service
-npm run dev      # Development
+npm run dev      # Development with watch
 npm test         # Vitest tests
 npm run build    # Production build
 
 # mcp-server
-npm run dev      # Development
-npm test         # Vitest tests (TEST_TRANSPORT=stdio/http)
+npm run dev      # Development with watch
+npm test         # Vitest tests
 npm run build    # Production build
 
 # vox-agents
 npm run dev         # Standalone development
+npm run briefer     # Briefer workflow
 npm run strategist  # Strategist workflow
 npm test           # Vitest tests
 ```

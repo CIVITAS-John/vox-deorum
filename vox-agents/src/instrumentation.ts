@@ -15,8 +15,6 @@ import { createLogger } from "./utils/logger.js";
 
 dotenv.config();
 
-const logger = createLogger('Instrumentation');
-
 /**
  * SQLite span exporter for collecting and exporting telemetry data to local databases.
  * Used to track agent executions, tool calls, and performance metrics.

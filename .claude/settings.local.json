@@ -42,7 +42,8 @@
       "Bash(npm view:*)",
       "Bash(npm uninstall:*)",
       "Bash(npx tsx:*)",
-      "Bash(npx vitest run:*)"
+      "Bash(npx vitest run:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": [],
     "ask": []
