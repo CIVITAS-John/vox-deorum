@@ -88,23 +88,26 @@ const customFormat = winston.format.combine(
     format: 'YYYY-MM-DD HH:mm:ss.SSS'
   }),
   winston.format.errors({ stack: true }),
-  winston.format.printf(({ timestamp, level, message, context, ...meta }) => {
+  winston.format.printf(({ timestamp, level, message, context, webui, ...meta }) => {
     const style = getLevelStyle(level);
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
+    // Filter out webui field from metadata (it's only used for SSE streaming)
+    // webui is destructured above and not included in meta
+
     // Simplified format for production
     if (isProduction) {
       const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
       const contextStr = context ? ` [${context}]` : '';
       return `[${timestamp}] ${level.toUpperCase()}:${contextStr} ${message}${metaStr}`;
     }
-    
+
     // Enhanced format for development
     const coloredTimestamp = `${colors.dim}${timestamp}${colors.reset}`;
     const coloredLevel = `${colors.bright}${style.color}${colors.reset}`;
     const contextStr = context ? ` ${colors.cyan}[${context}]${colors.reset}` : '';
     const coloredMessage = `${style.color}${message}${colors.reset}`;
-    
+
     // Format metadata nicely
     let metaStr = '';
     if (Object.keys(meta).length > 0) {
@@ -114,7 +117,7 @@ const customFormat = winston.format.combine(
         .join('\n');
       metaStr = `\n  ${colors.gray}${formattedMeta}${colors.reset}`;
     }
-    
+
     return `${coloredTimestamp} ${coloredLevel}${style.icon}${contextStr} ${coloredMessage}${metaStr}`;
   })
 );
