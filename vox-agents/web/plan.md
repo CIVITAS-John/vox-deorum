@@ -5,11 +5,12 @@ A streamlined web interface for Vox Agents providing telemetry analysis, log vie
 
 ## Technology Stack
 - **Frontend**: SvelteKit 5 with TypeScript
-- **Backend**: Express.js integrated into existing TypeScript codebase
+- **Backend**: Express.js integrated into existing TypeScript codebase (shared process)
 - **UI Components**: SVAR Svelte (data grids), shadcn-svelte (modern components)
 - **Styling**: Tailwind CSS with Civ5-inspired theme
-- **Database**: Direct SQLite access via better-sqlite3 (no ORM needed)
+- **Database**: SQLite with Kysely ORM for type safety
 - **Real-time**: Server-Sent Events (SSE) for streaming
+- **Logging**: Winston with log stream handlers (prefixed for separation)
 
 ## Architecture
 
@@ -17,15 +18,21 @@ A streamlined web interface for Vox Agents providing telemetry analysis, log vie
 ```
 vox-agents/
 ├── src/
+│   ├── db/                   # Database utilities (shared across vox-agents)
+│   │   ├── kysely.ts         # Kysely instance and types
+│   │   ├── telemetry.ts      # Telemetry schema and queries
+│   │   └── memory.ts         # Agent memory schema and queries
 │   ├── web/                  # Web server integration
 │   │   ├── server.ts         # Express server with API routes
 │   │   ├── routes/           # Modular API route handlers
 │   │   │   ├── telemetry.ts  # Telemetry database queries
-│   │   │   ├── logs.ts       # Log file streaming
+│   │   │   ├── logs.ts       # Log stream handling
 │   │   │   ├── session.ts    # Session lifecycle control
 │   │   │   ├── config.ts     # Config file management
-│   │   │   └── agents.ts     # Agent chat and discovery
-│   │   └── chat-handler.ts   # SSE chat stream handler
+│   │   │   ├── agents.ts     # Agent chat and discovery
+│   │   │   └── memory.ts     # Agent memory retrieval
+│   │   ├── chat-handler.ts   # SSE chat stream handler
+│   │   └── log-handler.ts    # Winston log stream interceptor
 │   └── [existing code remains untouched]
 ├── ui/                        # SvelteKit frontend
 │   ├── src/
@@ -50,63 +57,112 @@ vox-agents/
 ## Core Features & Implementation
 
 ### 1. Telemetry Dashboard
-**Approach**: Interface directly with SQLiteSpanExporter to access telemetry databases.
+**Approach**: Interface with SQLiteSpanExporter using Kysely ORM for type-safe queries.
 
 **Features**:
 - Auto-discover databases in `telemetry/` directory (SQLiteSpanExporter's default)
 - List active connections from SQLiteSpanExporter's database map
-- Query spans directly using better-sqlite3 (simple schema, no ORM needed)
+- Query spans using Kysely with strong typing
 - Filter by context_id, trace_id, time range, and service name
 - Display span hierarchy and timing waterfall
 
 **Implementation**:
 ```typescript
-// Access SQLiteSpanExporter's database directory
-import { SQLiteSpanExporter } from '../utils/telemetry/sqlite-exporter.js';
+// Use CamelCasePlugin for automatic conversion
+// Define in camelCase, plugin converts to snake_case
+interface SpanTableCamelCase {
+  id: Generated<number>;
+  contextId: string;
+  traceId: string;
+  spanId: string;
+  parentSpanId: string | null;
+  name: string;
+  startTime: number;
+  endTime: number;
+  serviceName: string;
+  attributes: string; // JSON
+  status: string;
+  events: string; // JSON
+}
 
-// Get active databases (if exporter is running)
-const activeDbs = spanProcessor?.exporter?.databases || new Map();
+interface TelemetryDatabase {
+  spans: SpanTable; // Use snake_case version by default
+}
 
-// List all database files in telemetry directory
-const telemetryDir = 'telemetry';
-const dbFiles = fs.readdirSync(telemetryDir)
-  .filter(f => f.endsWith('.db'))
-  .map(f => ({
-    path: path.join(telemetryDir, f),
-    contextId: path.basename(f, '.db'),
-    active: activeDbs.has(contextId)
-  }));
+// Type-safe queries with Kysely
+import { Kysely, SqliteDialect, CamelCasePlugin } from 'kysely';
+import Database from 'better-sqlite3';
 
-// Direct SQLite queries - no ORM needed
-const db = new Database(dbPath, { readonly: true });
-const spans = db.prepare(`
-  SELECT * FROM spans
-  WHERE context_id = ?
-  ORDER BY start_time DESC
-  LIMIT 100
-`).all(contextId);
+// With CamelCasePlugin (use camelCase in queries, auto-converts)
+const dbCamelCase = new Kysely<{ spans: SpanTableCamelCase }>({
+  dialect: new SqliteDialect({
+    database: new Database(dbPath, { readonly: true })
+  }),
+  plugins: [new CamelCasePlugin()]
+});
+
+const spansCamel = await dbCamelCase
+  .selectFrom('spans')
+  .selectAll()
+  .where('contextId', '=', contextId)
+  .orderBy('startTime', 'desc')
+  .limit(100)
+  .execute();
 ```
 
 ### 2. Real-time Log Viewer
-**Approach**: Stream log file changes via SSE.
+**Approach**: Intercept Winston log streams and route to SSE with prefixed separation.
 
 **Features**:
-- Tail vox-agents.log with configurable buffer size
-- Real-time updates using fs.watch
-- Client-side filtering by log level
+- Multiple log streams (vox-agents, webui) with prefixes
+- Real-time streaming via Winston transport
+- Frontend-only filtering by log level and source
 - Search with highlighting
 - Pause/resume streaming
+- No file watching or server-side filtering needed
 
 **Implementation**:
 ```typescript
-// Watch log file and stream changes
-const logPath = 'vox-agents.log';
-const watcher = fs.watch(logPath, (eventType) => {
-  if (eventType === 'change') {
-    // Read new lines and send via SSE
-    const newLines = readNewLines(logPath, lastPosition);
-    sseClient.send({ type: 'log', data: newLines });
+// Custom Winston transport for log streaming
+import { createLogger, transports, format } from 'winston';
+import Transport from 'winston-transport';
+
+class StreamTransport extends Transport {
+  constructor(opts: { prefix: string; handler: (log: any) => void }) {
+    super(opts);
+    this.prefix = opts.prefix;
+    this.handler = opts.handler;
   }
+
+  log(info: any, callback: () => void) {
+    // Add prefix and forward to SSE handler
+    const prefixedLog = {
+      ...info,
+      source: this.prefix,
+      timestamp: new Date().toISOString()
+    };
+    this.handler(prefixedLog);
+    callback();
+  }
+}
+
+// Configure loggers with stream handlers
+const voxLogger = createLogger({
+  transports: [
+    new StreamTransport({
+      prefix: 'vox-agents',
+      handler: (log) => sseManager.broadcast('log', log)
+    })
+  ]
+});
+
+const webLogger = createLogger({
+  transports: [
+    new StreamTransport({
+      prefix: 'webui',
+      handler: (log) => sseManager.broadcast('log', log)
+    })
+  ]
 });
 ```
 
@@ -167,14 +223,29 @@ app.get('/api/configs', (req, res) => {
 - Read-only AgentParameters context integration
 
 ## Implementation Phases
+When implementing, always work on the minimal and wait for human verification to build up - don't overcomplicate things. 
 
-### Phase 1: UI/Server Foundation (3 hours)
+### Stage 1: Minimal API Foundation (1 hour)
+**Backend Only**:
+- Express server setup integrated with vox-agents process
+- Nominal API endpoint (/api/health) for verification
+- Winston logger configuration with prefixes
+- Basic middleware setup
+- Shared process initialization
+
+**Deliverables**:
+- Working Express server in shared process
+- Health check endpoint returning basic status
+- Logger configured with 'vox-agents' and 'webui' prefixes
+- No frontend work yet
+
+### Stage 2: Full UI/Server Foundation (3 hours)
 **Backend**:
-- Express server setup with TypeScript
-- Basic routing structure and middleware
+- Complete routing structure and middleware
 - SSE utility functions for streaming
 - Static file serving for built UI
 - CORS configuration for development
+- Log stream transport setup
 
 **Frontend**:
 - SvelteKit 5 project initialization
@@ -184,17 +255,16 @@ app.get('/api/configs', (req, res) => {
 - Basic routing for all pages
 
 **Deliverables**:
-- Working dev environment with hot reload
+- Full dev environment with hot reload
 - Navigation between all planned pages
-- Health check and version endpoints
+- Log streaming infrastructure
 - Civ5-themed UI shell
 
-### Phase 2: Telemetry Viewer (4 hours)
+### Phase 3: Telemetry Viewer (4 hours)
 **Backend**:
-- Interface with SQLiteSpanExporter to find databases
-- Direct SQLite queries for spans (no ORM)
-- Pagination and filtering logic
-- Trace reconstruction from spans
+- Kysely setup for telemetry databases
+- Type-safe span queries with filtering
+- Pagination and trace reconstruction
 
 **Frontend**:
 - Database selector dropdown
@@ -204,28 +274,27 @@ app.get('/api/configs', (req, res) => {
 
 **Deliverables**:
 - List and select telemetry databases
-- View spans with filtering
+- View spans with type-safe queries
 - Trace hierarchy visualization
 
-### Phase 3: Log Viewer (3 hours)
+### Phase 4: Log Viewer (3 hours)
 **Backend**:
-- File watcher for log changes
-- Tail implementation with buffer
-- SSE streaming of new lines
-- Log parsing for structured data
+- Winston transport integration
+- SSE streaming with prefixed logs
+- Buffer management for streams
 
 **Frontend**:
 - Virtual scrolling for performance
-- Log level filter buttons
+- Source/level filter buttons (frontend-only)
 - Search with highlighting
 - Auto-scroll toggle
 
 **Deliverables**:
-- Real-time log streaming
-- Client-side filtering
+- Real-time log streaming from multiple sources
+- Frontend filtering by source and level
 - Search functionality
 
-### Phase 4: Session Control (3 hours)
+### Phase 5: Session Control (3 hours)
 **Backend**:
 - Wrapper API around StrategistSession
 - Session state management
@@ -243,7 +312,7 @@ app.get('/api/configs', (req, res) => {
 - Live progress updates
 - Error handling
 
-### Phase 5: Configuration Management (2 hours)
+### Phase 6: Configuration Management (2 hours)
 **Backend**:
 - File-based config storage
 - CRUD operations for configs
@@ -260,7 +329,7 @@ app.get('/api/configs', (req, res) => {
 - Validation UI
 - Import/export
 
-### Phase 6: Agent Chat (4 hours)
+### Phase 7: Agent Chat (4 hours)
 **Backend**:
 - Agent registry endpoint
 - Chat message handler
@@ -293,8 +362,8 @@ GET /api/telemetry/trace/:id    // Get all spans for a trace
 
 ### Log Endpoints
 ```typescript
-GET /api/logs/tail?lines=100    // Get last N lines
-SSE /api/logs/stream            // Real-time log stream
+SSE /api/logs/stream             // Real-time log stream with all sources
+                                 // Frontend handles filtering by source/level
 ```
 
 ### Session Endpoints
@@ -352,15 +421,16 @@ SSE /api/agents/:name/stream    // Response stream
 ## Development Notes
 
 ### Key Principles
-1. **Less refactoring** - Try not change existing code structures unless necessary
-2. **Direct access** - Interface with SQLiteSpanExporter and better-sqlite3 directly
-3. **Simple queries** - Direct SQLite access, no ORM overhead
+1. **Shared process** - Web server runs in same process as vox-agents with prefix separation
+2. **Type safety** - Use Kysely ORM for strongly typed database queries
+3. **Stream-based logs** - Intercept Winston streams rather than reading files
 4. **Incremental delivery** - Each phase produces working functionality
+5. **Minimal first stage** - Stage 1 only creates a nominal API endpoint
 
 ### File Locations
 - **Telemetry databases**: `telemetry/` directory (SQLiteSpanExporter default)
 - **Config files**: `configs/` directory (JSON files)
-- **Log file**: `vox-agents.log` in root directory
+- **Log streams**: In-memory buffers (no file dependency)
 - **Web UI build**: `ui/dist/` directory
 
 ### Testing Approach
@@ -384,3 +454,6 @@ SSE /api/agents/:name/stream    // Response stream
 - Export capabilities
 - Bridge service integration
 - MCP server tool visualization
+- Agent memory retrieval and visualization
+- Memory search and filtering capabilities
+- Cross-agent memory correlation
