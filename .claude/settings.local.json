@@ -47,7 +47,8 @@
       "Bash(npm run web:dev:*)",
       "Bash(curl:*)",
       "Bash(del:*)",
-      "Bash(npm run start:dist:*)"
+      "Bash(npm run start:dist:*)",
+      "Bash(npx sv@latest create:*)"
     ],
     "deny": [],
     "ask": []

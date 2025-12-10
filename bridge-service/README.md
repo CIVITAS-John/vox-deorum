@@ -208,7 +208,6 @@ npm run dev   # Bridge service connects to mock
 ## Security Considerations
 
 - CORS configured for development (restrict for production)
-- Helmet security headers enabled
 - Function name validation against injection
 - URL validation for external endpoints
 - Request size limit: 10MB

@@ -52,9 +52,9 @@ Source: "..\package-lock.json"; DestDir: "{app}"; Flags: ignoreversion skipifsou
 Source: "..\version.json"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Core application files (without node_modules)
-Source: "..\bridge-service\*"; DestDir: "{app}\bridge-service"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,*.log,node_modules\*,\data\*,logs\*,docs\*,\telemetry\*"
-Source: "..\mcp-server\*"; DestDir: "{app}\mcp-server"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,*.log,node_modules\*,\data\*,logs\*,docs\*,\telemetry\*"
-Source: "..\vox-agents\*"; DestDir: "{app}\vox-agents"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,*.log,node_modules\*,\data\*,logs\*,docs\*,\telemetry\*,.env"
+Source: "..\bridge-service\*"; DestDir: "{app}\bridge-service"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,\src\*,node_modules\*,\data\*,\logs\*,docs\*,\telemetry\*"
+Source: "..\mcp-server\*"; DestDir: "{app}\mcp-server"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,\src\*,node_modules\*,\data\*,\logs\*,docs\*,\telemetry\*"
+Source: "..\vox-agents\*"; DestDir: "{app}\vox-agents"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,\src\*,\ui\*,node_modules\*,\data\*,logs\*,docs\*,\telemetry\*,.env"
 
 ; Civ5 mod files
 Source: "..\civ5-mod\*"; DestDir: "{app}\civ5-mod"; Flags: ignoreversion recursesubdirs createallsubdirs

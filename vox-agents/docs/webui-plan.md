@@ -4,10 +4,11 @@
 A streamlined web interface for Vox Agents providing telemetry analysis, log viewing, session control, configuration management, and an interactive agent chat system. The implementation follows a phased approach, delivering working functionality at each stage without modifying existing code.
 
 ## Technology Stack
-- **Frontend**: SvelteKit 5 with TypeScript
+- **Frontend**: Vue 3 with TypeScript (already initialized at `ui/`)
+- **Build Tool**: Vite for fast development and optimized production builds
 - **Backend**: Express.js integrated into existing TypeScript codebase (shared process)
-- **UI Components**: SVAR Svelte (data grids), shadcn-svelte (modern components)
-- **Styling**: Tailwind CSS with Civ5-inspired theme
+- **UI Components**: PrimeVue for data tables and UI components
+- **Styling**: Tailwind CSS with Civ5-inspired theme or Scoped CSS
 - **Database**: SQLite with Kysely ORM for type safety
 - **Real-time**: Server-Sent Events (SSE) for streaming
 - **Logging**: Winston with log stream handlers (prefixed for separation)
@@ -23,7 +24,7 @@ vox-agents/
 │   │   ├── telemetry.ts      # Telemetry schema and queries
 │   │   └── memory.ts         # Agent memory schema and queries
 │   ├── web/                  # Web server integration
-│   │   ├── server.ts         # Express server with API routes
+│   │   ├── server.ts         # Express server with API routes + static serving
 │   │   ├── routes/           # Modular API route handlers
 │   │   │   ├── telemetry.ts  # Telemetry database queries
 │   │   │   ├── logs.ts       # Log stream handling
@@ -34,23 +35,27 @@ vox-agents/
 │   │   ├── chat-handler.ts   # SSE chat stream handler
 │   │   └── log-handler.ts    # Winston log stream interceptor
 │   └── [existing code remains untouched]
-├── ui/                        # SvelteKit frontend
+├── ui/                        # Vue 3 frontend (already initialized)
 │   ├── src/
-│   │   ├── routes/
-│   │   │   ├── +layout.svelte       # Main navigation shell
-│   │   │   ├── +page.svelte         # Dashboard overview
-│   │   │   ├── telemetry/+page.svelte
-│   │   │   ├── logs/+page.svelte
-│   │   │   ├── session/+page.svelte
-│   │   │   ├── config/+page.svelte
-│   │   │   └── chat/[agent]/+page.svelte
-│   │   └── lib/
-│   │       ├── api.ts               # API client with SSE
-│   │       └── components/
-│   │           ├── ChatInterface.svelte
-│   │           ├── TelemetryGrid.svelte
-│   │           └── LogViewer.svelte
-│   └── [build configs]
+│   │   ├── App.vue           # Main application component
+│   │   ├── router/
+│   │   │   └── index.ts      # Vue Router configuration
+│   │   ├── views/
+│   │   │   ├── DashboardView.vue    # Overview dashboard
+│   │   │   ├── TelemetryView.vue    # Telemetry viewer
+│   │   │   ├── LogsView.vue         # Real-time logs
+│   │   │   ├── SessionView.vue      # Session control
+│   │   │   ├── ConfigView.vue       # Config management
+│   │   │   └── ChatView.vue         # Agent chat interface
+│   │   ├── components/
+│   │   │   ├── ChatInterface.vue    # Chat UI component
+│   │   │   ├── TelemetryGrid.vue    # PrimeVue DataTable for telemetry
+│   │   │   └── LogViewer.vue        # Log streaming component
+│   │   └── api/
+│   │       └── client.ts             # API client with SSE support
+│   └── [vite.config.ts, package.json, etc.]
+├── dist-ui/                   # Production build output
+│   └── [static files served by Express]
 └── package.json
 ```
 
@@ -269,20 +274,25 @@ When implementing, always work on the minimal and wait for human verification to
 **Backend**:
 - Complete routing structure and middleware
 - SSE utility functions for streaming
-- Static file serving for built UI
+- Static file serving for Vue production build (dist-ui/)
 - CORS configuration for development
 - Log stream transport setup
+- Configure Express to serve static files from dist-ui/
 
 **Frontend**:
-- SvelteKit 5 project initialization
-- Tailwind CSS with Civ5 theme variables
-- Main layout with collapsible sidebar navigation
+- Vue 3 project already initialized at `ui/`
+- Configure Vite build output to `../dist-ui/`
+- Install and configure PrimeVue for data tables and UI components
+- Tailwind CSS with Civ5 theme variables (or scoped CSS)
+- Main layout with sidebar navigation using Vue Router
 - API client wrapper with SSE support
-- Basic routing for all pages
+- Routing setup for all views
 
 **Deliverables**:
-- Full dev environment with hot reload
-- Navigation between all planned pages
+- Full dev environment with Vite HMR
+- Navigation between all planned views
+- Production build with `npm run build` in ui/ outputs to dist-ui/
+- Static files served from dist-ui/ by Express
 - Log streaming infrastructure
 - Civ5-themed UI shell
 
@@ -294,7 +304,7 @@ When implementing, always work on the minimal and wait for human verification to
 
 **Frontend**:
 - Database selector dropdown
-- SVAR DataGrid for span display
+- PrimeVue DataTable for span display with virtual scrolling
 - Filter controls (time, service, status)
 - Span detail modal
 
@@ -457,7 +467,7 @@ SSE /api/agents/:name/stream    // Response stream
 - **Telemetry databases**: `telemetry/` directory (SQLiteSpanExporter default)
 - **Config files**: `configs/` directory (JSON files)
 - **Log streams**: In-memory buffers (no file dependency)
-- **Web UI build**: `ui/dist/` directory
+- **Web UI build**: `dist-ui/` directory
 
 ### Testing Approach
 - Manual testing during development

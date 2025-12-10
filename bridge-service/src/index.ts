@@ -19,7 +19,6 @@
 
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
 import { createLogger } from './utils/logger.js';
 import { config } from './utils/config.js';
 import { bridgeService } from './service.js';
@@ -44,15 +43,6 @@ app.use(function(req, _res, next) {
   req.socket.setNoDelay(true);
   next();
 });
-
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "*"], // Allow SSE connections from any origin
-    }
-  }
-}));
 
 app.use(cors({
   origin: true, // Allow all origins for development
