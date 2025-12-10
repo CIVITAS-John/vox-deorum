@@ -48,7 +48,7 @@ class ApiClient {
    * @returns Cleanup function to close the connection
    */
   streamLogs(
-    onMessage: (log: LogEntry) => void,
+    onMessage: (log?: LogEntry) => void,
     onError?: (error: Event) => void
   ): () => void {
     // Close existing connection if any
@@ -62,6 +62,7 @@ class ApiClient {
 
         // Handle heartbeat messages
         if (data.type === 'heartbeat') {
+          onMessage();
           return;
         }
 
@@ -83,11 +84,7 @@ class ApiClient {
 
     eventSource.onerror = (error) => {
       console.error('SSE connection error:', error);
-      if (onError) {
-        onError(error);
-      }
-
-      // Auto-reconnect handled by browser for EventSource
+      if (onError) onError(error);
     };
 
     // Store connection for cleanup

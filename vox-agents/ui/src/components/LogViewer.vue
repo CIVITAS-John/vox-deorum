@@ -126,15 +126,12 @@ const togglePause = () => {
 const connectToStream = () => {
   cleanupSse = apiClient.streamLogs(
     (log) => {
-      addLog(log);
+      if (log) addLog(log);
+      isConnected.value = true;
     },
     (error) => {
       console.error('Log stream error:', error);
       isConnected.value = false;
-      // Browser will auto-reconnect EventSource
-      setTimeout(() => {
-        isConnected.value = true;
-      }, 1000);
     }
   );
   isConnected.value = true;

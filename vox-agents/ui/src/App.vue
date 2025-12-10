@@ -6,6 +6,7 @@ import Drawer from 'primevue/drawer'
 import Menu from 'primevue/menu'
 import { RouterView } from 'vue-router'
 import Tag from 'primevue/tag'
+import { healthStatus } from './stores/health'
 
 const router = useRouter()
 const route = useRoute()
@@ -122,11 +123,11 @@ const toggleDrawer = () => {
       <template #footer>
         <div class="flex flex-column gap-2">
           <div class="flex align-items-center justify-content-between mb-2">
-            <Tag severity="success" class="text-xs">
+            <Tag :severity="healthStatus?.status === 'error' ? 'danger' : 'success'" class="text-xs">
               <i class="pi pi-circle-fill mr-1" style="font-size: 0.5rem;"></i>
-              Connected
+              {{ healthStatus?.status === 'error' ? 'Disconnected' : 'Connected' }}
             </Tag>
-            <span class="text-sm text-500">v1.0.0</span>
+            <span class="text-sm text-500">v{{ healthStatus?.version || 'Unknown' }}</span>
           </div>
           <Button
             :icon="isDarkMode ? 'pi pi-sun' : 'pi pi-moon'"
