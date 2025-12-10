@@ -1,298 +1,413 @@
 # Vox Agents Web UI - Implementation Plan
 
 ## Overview
-A web-based interface for managing and monitoring Vox Agents, providing configuration management, real-time telemetry, logs viewing, and mode orchestration.
+A streamlined web interface for Vox Agents providing telemetry analysis, log viewing, session control, configuration management, and an interactive agent chat system. The implementation follows a phased approach, delivering working functionality at each stage without modifying existing code.
 
 ## Technology Stack
-- **Frontend**: SvelteKit 5 (latest)
-- **Backend**: Express.js with TypeScript
-- **UI Components**: SVAR Svelte (data grids, forms)
+- **Frontend**: SvelteKit 5 with TypeScript
+- **Backend**: Express.js integrated into existing TypeScript codebase
+- **UI Components**: SVAR Svelte (data grids), shadcn-svelte (modern components)
 - **Styling**: Tailwind CSS with Civ5-inspired theme
-- **Build**: Vite bundler with local dependencies
-- **Database**: SQLite (existing telemetry DB)
-- **Real-time**: Server-Sent Events (SSE) for lightweight streaming
+- **Database**: Direct SQLite access via better-sqlite3 (no ORM needed)
+- **Real-time**: Server-Sent Events (SSE) for streaming
 
 ## Architecture
 
 ### Directory Structure
 ```
 vox-agents/
-├── src/                       # Backend + existing strategist code
-│   ├── strategist/           # Existing strategist code (refactored)
-│   │   ├── index.ts          # CLI entry point
-│   │   ├── strategist-session.ts
-│   │   └── ...
-│   ├── api/                  # REST API routes
-│   │   ├── config.ts         # Config management endpoints
-│   │   ├── session.ts        # Session control endpoints
-│   │   ├── telemetry.ts      # Telemetry data endpoints
-│   │   └── logs.ts           # Log streaming endpoints (SSE)
-│   ├── services/             # Shared services
-│   │   ├── config-manager.ts        # Config file CRUD operations
-│   │   ├── session-manager.ts       # Core session management (from strategist)
-│   │   ├── telemetry-reader.ts      # SQLite telemetry reader
-│   │   └── log-watcher.ts           # Log file monitoring
-│   ├── web/                  # Web server entry point
-│   │   └── index.ts          # Express server setup
-│   ├── utils/
-│   │   └── sse.ts            # SSE helper utilities
-│   └── ...                   # Other existing code
-├── ui/                        # Svelte frontend
+├── src/
+│   ├── web/                  # Web server integration
+│   │   ├── server.ts         # Express server with API routes
+│   │   ├── routes/           # Modular API route handlers
+│   │   │   ├── telemetry.ts  # Telemetry database queries
+│   │   │   ├── logs.ts       # Log file streaming
+│   │   │   ├── session.ts    # Session lifecycle control
+│   │   │   ├── config.ts     # Config file management
+│   │   │   └── agents.ts     # Agent chat and discovery
+│   │   └── chat-handler.ts   # SSE chat stream handler
+│   └── [existing code remains untouched]
+├── ui/                        # SvelteKit frontend
 │   ├── src/
-│   │   ├── app.html
-│   │   ├── app.css           # Tailwind + Civ5 theme
 │   │   ├── routes/
-│   │   │   ├── +layout.svelte       # Main layout with sidebar
-│   │   │   ├── +page.svelte         # Dashboard/home
-│   │   │   ├── strategist/
-│   │   │   │   ├── +page.svelte     # Strategist mode UI
-│   │   │   │   └── config-dialog.svelte
-│   │   │   ├── telemetry/
-│   │   │   │   └── +page.svelte     # Telemetry viewer
-│   │   │   └── logs/
-│   │   │       └── +page.svelte     # Log viewer
-│   │   ├── lib/
-│   │   │   ├── stores/              # Svelte stores
-│   │   │   ├── components/          # Reusable components
-│   │   │   └── api.ts               # API client with SSE support
-│   │   └── theme/
-│   │       └── civ5.css            # Civ5 color palette
-│   ├── static/
-│   ├── dist/                  # Built frontend output
-│   ├── package.json
-│   └── vite.config.ts
-└── package.json               # Root package with workspaces
+│   │   │   ├── +layout.svelte       # Main navigation shell
+│   │   │   ├── +page.svelte         # Dashboard overview
+│   │   │   ├── telemetry/+page.svelte
+│   │   │   ├── logs/+page.svelte
+│   │   │   ├── session/+page.svelte
+│   │   │   ├── config/+page.svelte
+│   │   │   └── chat/[agent]/+page.svelte
+│   │   └── lib/
+│   │       ├── api.ts               # API client with SSE
+│   │       └── components/
+│   │           ├── ChatInterface.svelte
+│   │           ├── TelemetryGrid.svelte
+│   │           └── LogViewer.svelte
+│   └── [build configs]
+└── package.json
 ```
 
-## Core Features
+## Core Features & Implementation
 
-### 1. Mode Management (Initial: Strategist)
-- **Configuration UI**:
-  - Load/save local JSON configs
-  - Player selection (multi-select for LLM control)
-  - Strategist type selection per player
-  - Game mode selection (start/load/wait)
-  - Auto-play toggle
-  - Repetition count setting
-- **Session Control**:
-  - Start/stop sessions
-  - Live status indicators
-  - Graceful shutdown with Ctrl+A simulation
-  - Progress tracking for repetitions
+### 1. Telemetry Dashboard
+**Approach**: Interface directly with SQLiteSpanExporter to access telemetry databases.
 
-### 2. Telemetry Dashboard
-- **Database Selection**:
-  - Browse and select from previously stored telemetry database files
-  - Upload/import telemetry database files
-  - Real-time mode: Direct connection to active SQLiteSpanExporter
-  - Historical mode: Load and analyze past sessions
-- **SQLite Span Explorer**:
-  - SVAR DataGrid for span display
-  - Hierarchical trace view
-  - Filter by service, operation, time range
-  - Auto-refresh with SSE updates in real-time mode
-  - Performance metrics aggregation
-  - Session comparison tools
+**Features**:
+- Auto-discover databases in `telemetry/` directory (SQLiteSpanExporter's default)
+- List active connections from SQLiteSpanExporter's database map
+- Query spans directly using better-sqlite3 (simple schema, no ORM needed)
+- Filter by context_id, trace_id, time range, and service name
+- Display span hierarchy and timing waterfall
 
-### 3. Real-time Log Viewer
-- **Log Streaming**:
-  - Tail vox-agents logs in real-time
-  - Log level filtering (debug/info/warn/error)
-  - Search/grep functionality
-  - Component filtering
-  - Future: bridge-service and mcp-server logs
+**Implementation**:
+```typescript
+// Access SQLiteSpanExporter's database directory
+import { SQLiteSpanExporter } from '../utils/telemetry/sqlite-exporter.js';
 
-### 4. Version Management
-- **Update Checker**:
-  - Display current version from package.json
-  - Check GitHub releases API
-  - Show update notification badge
-  - One-click update trigger (future)
+// Get active databases (if exporter is running)
+const activeDbs = spanProcessor?.exporter?.databases || new Map();
 
-## UI Design
+// List all database files in telemetry directory
+const telemetryDir = 'telemetry';
+const dbFiles = fs.readdirSync(telemetryDir)
+  .filter(f => f.endsWith('.db'))
+  .map(f => ({
+    path: path.join(telemetryDir, f),
+    contextId: path.basename(f, '.db'),
+    active: activeDbs.has(contextId)
+  }));
 
-### Color Palette (Civ5-inspired)
+// Direct SQLite queries - no ORM needed
+const db = new Database(dbPath, { readonly: true });
+const spans = db.prepare(`
+  SELECT * FROM spans
+  WHERE context_id = ?
+  ORDER BY start_time DESC
+  LIMIT 100
+`).all(contextId);
+```
+
+### 2. Real-time Log Viewer
+**Approach**: Stream log file changes via SSE.
+
+**Features**:
+- Tail vox-agents.log with configurable buffer size
+- Real-time updates using fs.watch
+- Client-side filtering by log level
+- Search with highlighting
+- Pause/resume streaming
+
+**Implementation**:
+```typescript
+// Watch log file and stream changes
+const logPath = 'vox-agents.log';
+const watcher = fs.watch(logPath, (eventType) => {
+  if (eventType === 'change') {
+    // Read new lines and send via SSE
+    const newLines = readNewLines(logPath, lastPosition);
+    sseClient.send({ type: 'log', data: newLines });
+  }
+});
+```
+
+### 3. Session Control
+**Approach**: Web wrapper around existing StrategistSession without refactoring.
+
+**Features**:
+- Start/stop strategist sessions via API
+- Monitor session status and progress
+- Handle graceful shutdown
+- Display repetition count progress
+
+**Implementation**:
+```typescript
+// Reuse existing session management
+import { StrategistSession } from '../strategist/strategist-session.js';
+
+let currentSession: StrategistSession | null = null;
+
+// API endpoints wrap existing functionality
+app.post('/api/session/start', async (req, res) => {
+  const config = req.body;
+  currentSession = new StrategistSession(config);
+  await currentSession.start();
+  res.json({ status: 'started' });
+});
+```
+
+### 4. Configuration Management
+**Approach**: Simple JSON file CRUD operations.
+
+**Features**:
+- List/load/save/delete config files
+- Basic form-based editor
+- Validation using existing schemas
+- Recent configs tracking
+
+**Implementation**:
+```typescript
+// Config directory management
+const configDir = './configs';
+
+app.get('/api/configs', (req, res) => {
+  const configs = fs.readdirSync(configDir)
+    .filter(f => f.endsWith('.json'))
+    .map(f => ({ name: path.basename(f, '.json'), path: f }));
+  res.json(configs);
+});
+```
+
+### 5. Agent Chat Interface
+**Approach**: Execute agents with user messages as input via VoxContext.
+
+**Features**:
+- Discover all registered agents dynamically
+- Stream responses via SSE
+- Display tool calls and reasoning
+- Read-only AgentParameters context display
+
+**Context Management**:
+```typescript
+// AgentParameters as read-only context
+interface ChatContext {
+  // Mirror AgentParameters but read-only in UI
+  readonly playerID: number;    // Display current player
+  readonly gameID: string;       // Display game ID
+  readonly turn: number;         // Display current turn
+  readonly running?: string;     // Display which agent is active
+}
+
+// Use for agent execution but don't allow UI modification
+const context: AgentParameters = {
+  playerID: currentGame?.playerID || -1,
+  gameID: currentGame?.id || 'test',
+  turn: currentGame?.turn || 0,
+  running: agent.name
+};
+
+// Execute agent with fixed context
+const result = await voxContext.executeAgent(
+  agent.name,
+  context,  // Read-only from UI perspective
+  userMessage
+);
+```
+
+## Implementation Phases
+
+### Phase 1: UI/Server Foundation (3 hours)
+**Backend**:
+- Express server setup with TypeScript
+- Basic routing structure and middleware
+- SSE utility functions for streaming
+- Static file serving for built UI
+- CORS configuration for development
+
+**Frontend**:
+- SvelteKit 5 project initialization
+- Tailwind CSS with Civ5 theme variables
+- Main layout with collapsible sidebar navigation
+- API client wrapper with SSE support
+- Basic routing for all pages
+
+**Deliverables**:
+- Working dev environment with hot reload
+- Navigation between all planned pages
+- Health check and version endpoints
+- Civ5-themed UI shell
+
+### Phase 2: Telemetry Viewer (4 hours)
+**Backend**:
+- Interface with SQLiteSpanExporter to find databases
+- Direct SQLite queries for spans (no ORM)
+- Pagination and filtering logic
+- Trace reconstruction from spans
+
+**Frontend**:
+- Database selector dropdown
+- SVAR DataGrid for span display
+- Filter controls (time, service, status)
+- Span detail modal
+
+**Deliverables**:
+- List and select telemetry databases
+- View spans with filtering
+- Trace hierarchy visualization
+
+### Phase 3: Log Viewer (3 hours)
+**Backend**:
+- File watcher for log changes
+- Tail implementation with buffer
+- SSE streaming of new lines
+- Log parsing for structured data
+
+**Frontend**:
+- Virtual scrolling for performance
+- Log level filter buttons
+- Search with highlighting
+- Auto-scroll toggle
+
+**Deliverables**:
+- Real-time log streaming
+- Client-side filtering
+- Search functionality
+
+### Phase 4: Session Control (3 hours)
+**Backend**:
+- Wrapper API around StrategistSession
+- Session state management
+- Progress tracking
+- Graceful shutdown handling
+
+**Frontend**:
+- Session status card
+- Start/stop controls
+- Progress indicators
+- Config selector
+
+**Deliverables**:
+- Start/stop strategist sessions
+- Live progress updates
+- Error handling
+
+### Phase 5: Configuration Management (2 hours)
+**Backend**:
+- File-based config storage
+- CRUD operations for configs
+- Schema validation endpoint
+
+**Frontend**:
+- Config list view
+- JSON editor with syntax highlighting
+- Save/load/delete operations
+- Validation feedback
+
+**Deliverables**:
+- Full config CRUD
+- Validation UI
+- Import/export
+
+### Phase 6: Agent Chat (4 hours)
+**Backend**:
+- Agent registry endpoint
+- Chat message handler
+- VoxContext/AgentParameters integration (parameters should be read-only)
+- SSE response streaming
+
+**Frontend**:
+- Agent discovery and listing
+- Chat interface component
+- Message history
+
+**Deliverables**:
+- Chat with any agent
+- Tool call visualization
+- Context awareness
+
+## API Design
+
+### Telemetry Endpoints
+```typescript
+GET /api/telemetry/databases     // List all .db files in telemetry/
+GET /api/telemetry/active        // Get active connections from SQLiteSpanExporter
+GET /api/telemetry/spans         // Query spans with filters
+  ?db=<filename>                 // Which database to query
+  &context=<id>                  // Filter by context_id
+  &limit=100                     // Pagination
+  &offset=0
+GET /api/telemetry/trace/:id    // Get all spans for a trace
+```
+
+### Log Endpoints
+```typescript
+GET /api/logs/tail?lines=100    // Get last N lines
+SSE /api/logs/stream            // Real-time log stream
+```
+
+### Session Endpoints
+```typescript
+GET /api/session/status          // Current session state
+POST /api/session/start          // Start with config
+POST /api/session/stop           // Graceful shutdown
+SSE /api/session/events          // Status updates
+```
+
+### Config Endpoints
+```typescript
+GET /api/configs                 // List all configs
+GET /api/configs/:name           // Get specific config
+POST /api/configs/:name          // Save config
+DELETE /api/configs/:name        // Delete config
+POST /api/configs/validate       // Validate JSON schema
+```
+
+### Agent Endpoints
+```typescript
+GET /api/agents                  // List registered agents
+GET /api/agents/:name            // Agent details with tools
+POST /api/agents/:name/chat      // Send message
+  body: {
+    message: string,
+    // Context is read-only, provided by server
+  }
+SSE /api/agents/:name/stream    // Response stream
+```
+
+## UI/UX Design
+
+### Civ5 Theme
 ```css
 :root {
-  --civ-gold: #D4AF37;        /* Primary accent */
-  --civ-bronze: #8B6914;      /* Secondary accent */
-  --civ-dark-blue: #1A2332;   /* Background */
-  --civ-medium-blue: #2C3E50; /* Panels */
-  --civ-light-blue: #34495E;  /* Hover states */
-  --civ-cream: #F5E6D3;       /* Text primary */
-  --civ-gray: #7F8C8D;        /* Text secondary */
-  --civ-green: #27AE60;       /* Success */
-  --civ-red: #C0392B;         /* Error */
+  --civ-gold: #D4AF37;
+  --civ-bronze: #8B6914;
+  --civ-dark: #1A2332;
+  --civ-panel: #2C3E50;
+  --civ-hover: #34495E;
+  --civ-text: #F5E6D3;
+  --civ-muted: #7F8C8D;
+  --civ-success: #27AE60;
+  --civ-error: #C0392B;
 }
 ```
 
-### Layout Components
-- **Sidebar Navigation** (collapsible):
-  - Logo/title
-  - Mode list (Strategist, future modes)
-  - Version display
-  - Update badge
-- **Main Content Area**:
-  - Tab-based or route-based navigation
-  - Responsive grid layouts
-  - Card-based information panels
+### Layout
+- Fixed sidebar with navigation
+- Main content area with page routing
+- Status bar showing active session/context
+- Responsive breakpoints for mobile
 
-## Implementation Steps
+## Development Notes
 
-### Phase 1: Refactoring Existing Code (Priority)
-1. **Extract Shared Services**:
-   - Move StrategistSession core logic to `src/services/session-manager.ts`
-   - Create `src/services/config-manager.ts` for config CRUD operations
-   - Extract config validation to config-manager
-   - Keep session lifecycle management independent of CLI
-2. **Refactor strategist/index.ts**:
-   - Import and use shared services
-   - Keep only CLI-specific logic (readline, keyboard handling)
-   - Add support for `--web` flag to start in headless mode
-   - Maintain backward compatibility
-3. **Prepare for Web Integration**:
-   - Create programmatic session control API
-   - Add event emitters for session state changes
-   - Implement proper cleanup and resource management
-   - Ensure thread-safe session management
+### Key Principles
+1. **Less refactoring** - Try not change existing code structures unless necessary
+2. **Direct access** - Interface with SQLiteSpanExporter and better-sqlite3 directly
+3. **Simple queries** - Direct SQLite access, no ORM overhead
+4. **Incremental delivery** - Each phase produces working functionality
 
-### Phase 2: Web Backend Infrastructure
-1. Create web server entry point in `src/web/index.ts`
-2. Setup Express server with TypeScript
-3. **Additional Services**:
-   - `src/services/session-controller.ts`: Web wrapper for session-manager
-   - `src/services/telemetry-reader.ts`: Read from SQLite files or active exporter
-   - `src/services/log-watcher.ts`: Monitor log files with tail functionality
-4. **API Layer** (`src/api/`):
-   - REST endpoints for config, session, telemetry
-   - SSE endpoints for real-time streaming
-   - File upload endpoint for telemetry databases
-   - Mount routes in Express server
+### File Locations
+- **Telemetry databases**: `telemetry/` directory (SQLiteSpanExporter default)
+- **Config files**: `configs/` directory (JSON files)
+- **Log file**: `vox-agents.log` in root directory
+- **Web UI build**: `ui/dist/` directory
 
-### Phase 3: Frontend Setup
-1. Create `ui/` directory with SvelteKit
-2. Configure Vite for local bundling (no CDN deps)
-3. Setup Tailwind with Civ5 color palette
-4. Install SVAR Svelte components
+### Testing Approach
+- Manual testing during development
+- Mock data for UI component development
+- Real game session testing for integration
+- Graceful handling of missing/empty data
 
-### Phase 4: Frontend Implementation
-1. **Layout & Navigation**:
-   - Sidebar with mode selection
-   - Version display and update checker
-   - Responsive collapsible menu
-2. **Strategist Mode**:
-   - Config editor with live validation
-   - Player selection grid
-   - Session control panel
-   - Progress indicators
-3. **Telemetry Dashboard**:
-   - Database file selector/uploader
-   - Real-time/historical mode toggle
-   - SVAR DataGrid for span data
-   - Trace hierarchy viewer
-   - Performance metrics charts
-4. **Log Viewer**:
-   - Virtual scrolling log display
-   - Log level filtering
-   - Search functionality
-   - Clear/export options
-
-### Phase 5: Integration & Launch
-1. **Update package.json scripts**:
-   - Add web server scripts
-   - Modify existing scripts to support web mode
-2. **Update vox-deorum.cmd**:
-   - Detect no parameters → launch web UI
-   - Parameters present → start web server without popup + execute mode
-   - Add web server to service startup sequence
-3. **Integration Testing**:
-   - Test CLI mode still works
-   - Verify web control of sessions
-   - Test SSE streaming reliability
-   - Validate telemetry database switching
-
-### Phase 6: Polish & Documentation
-1. Error handling and loading states
-2. Responsive design breakpoints
-3. Keyboard shortcuts
-4. User documentation
-5. Basic E2E tests
-
-## API Endpoints
-
-### Configuration Management
-- `GET /api/config/list` - List available configs
-- `GET /api/config/:name` - Get config content
-- `POST /api/config/:name` - Save config
-- `DELETE /api/config/:name` - Delete config
-
-### Session Management
-- `GET /api/session/status` - Get current session status
-- `POST /api/session/start` - Start new session
-- `POST /api/session/stop` - Stop current session
-- `GET /api/session/progress` - Get repetition progress
-
-### Telemetry
-- `GET /api/telemetry/databases` - List available database files
-- `POST /api/telemetry/upload` - Upload telemetry database file
-- `GET /api/telemetry/spans` - Get spans with pagination (query param: db file)
-- `GET /api/telemetry/traces/:traceId` - Get full trace (query param: db file)
-- `SSE /api/telemetry/stream` - Real-time span updates from active exporter
-
-### Logs
-- `GET /api/logs/tail` - Get last N lines
-- `SSE /api/logs/stream` - Real-time log streaming
-
-### System
-- `GET /api/version` - Get current version
-- `GET /api/version/check` - Check for updates
-
-## SSE Event Streams
-
-### Event Types
-- **Log Events** (`/api/logs/vox-agents/stream`):
-  - `log` - New log entry
-  - `clear` - Log cleared signal
-
-- **Telemetry Events** (`/api/telemetry/stream`):
-  - `span` - New span data
-  - `trace` - Complete trace update
-
-## Build Configuration
-
-### Vite Config (Local Bundling)
-```js
-// All dependencies bundled locally
-// No external CDN references
-// Service worker for offline capability
-```
-
-### Package Scripts
-```json
-{
-  "scripts": {
-    "dev": "concurrently \"npm:dev:*\"",
-    "dev:web": "tsx watch src/web/index.ts",
-    "dev:ui": "cd ui && vite dev",
-    "build": "npm run build:src && npm run build:ui",
-    "build:ui": "cd ui && vite build",
-    "build:src": "tsc",
-    "web": "node dist/web/index.js",
-    "strategist": "node --import ./dist/instrumentation.js dist/strategist/index.js",
-    "strategist:web": "node --import ./dist/instrumentation.js dist/strategist/index.js --web"
-  }
-}
-```
-
-## Security Considerations
-- Local-only binding (127.0.0.1)
-- No authentication (local use only)
-- Input validation for config files
-- Safe path handling for file operations
-- Rate limiting on API endpoints
+### Performance Considerations
+- Pagination for large span datasets (100 per page)
+- Virtual scrolling for log viewer (1000 line buffer)
+- Debounced search/filter inputs (300ms)
+- SSE connection pooling and reconnection
+- SQLite connection reuse with readonly mode
 
 ## Future Enhancements
-- Bridge-service and mcp-server log integration
-- Performance profiling tools
-- Export telemetry reports
-- Internationalization support
+- WebSocket upgrade for lower latency
+- Span analysis and aggregations
+- Multi-agent conversations
+- Chat history persistence
+- Export capabilities
+- Bridge service integration
+- MCP server tool visualization
