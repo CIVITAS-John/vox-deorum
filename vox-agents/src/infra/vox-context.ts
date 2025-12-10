@@ -260,6 +260,11 @@ export class VoxContext<TParameters extends AgentParameters> {
           }];
           var allSteps: StepResult<ToolSet>[] = [];
           var finalText = "";
+          
+          // Count tokens
+          var inputTokens = 0;
+          var reasoningTokens = 0;
+          var outputTokens = 0;
 
           // Execute steps in a loop, one at a time
           for (let stepCount = 0; !shouldStop; stepCount++) {
@@ -281,16 +286,22 @@ export class VoxContext<TParameters extends AgentParameters> {
             messages = stepResult.messages;
             shouldStop = stepResult.shouldStop;
             finalText = stepResult.finalText ?? "";
+            inputTokens += stepResult.inputTokens;
+            reasoningTokens += stepResult.reasoningTokens;
+            outputTokens += stepResult.outputTokens;
           }
 
           this.logger.info(`Agent execution completed: ${agentName} with ${allSteps.length} steps`);
 
           // Log the conclusion
+          this.inputTokens += inputTokens;
+          this.reasoningTokens += reasoningTokens;
+          this.outputTokens += outputTokens;
           span.setAttributes({
             'agent.model': `${modelConfig.name}@${modelConfig.provider}`,
-            'agent.tokens.input': this.inputTokens,
-            'agent.tokens.reasoning': this.reasoningTokens,
-            'agent.tokens.output': this.outputTokens,
+            'agent.tokens.input': inputTokens,
+            'agent.tokens.reasoning': reasoningTokens,
+            'agent.tokens.output': outputTokens,
           });
           span.setStatus({ code: SpanStatusCode.OK });
           return finalText;
@@ -397,9 +408,6 @@ export class VoxContext<TParameters extends AgentParameters> {
         const inputTokens = stepResponse.totalUsage.inputTokens ?? 0;
         const reasoningTokens = stepResponse.totalUsage.reasoningTokens ?? 0;
         const outputTokens = stepResponse.totalUsage.outputTokens ?? 0;
-        this.inputTokens += inputTokens;
-        this.reasoningTokens += reasoningTokens;
-        this.outputTokens += outputTokens;
 
         // Record step results in span
         stepSpan.setAttributes({
