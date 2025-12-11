@@ -18,7 +18,7 @@ export class SSEManager {
     res.setHeader('X-Accel-Buffering', 'no'); // Disable proxy buffering
 
     // Send initial connection message
-    res.write(':ok\n\n');
+    res.write('event: heartbeat\n\n');
 
     this.clients.add(res);
 
@@ -49,7 +49,7 @@ export class SSEManager {
    * Send a heartbeat to keep connections alive
    */
   sendHeartbeat(): void {
-    const heartbeat = ':heartbeat\n\n';
+    const heartbeat = 'event: heartbeat\n\n';
     for (const client of this.clients) {
       try {
         client.write(heartbeat);
@@ -69,7 +69,7 @@ export class SSEManager {
   /**
    * Start periodic heartbeat
    */
-  startHeartbeat(intervalMs: number = 30000): NodeJS.Timeout {
+  startHeartbeat(intervalMs: number = 5000): NodeJS.Timeout {
     return setInterval(() => {
       this.sendHeartbeat();
     }, intervalMs);

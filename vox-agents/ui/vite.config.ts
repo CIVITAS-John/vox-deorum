@@ -18,9 +18,15 @@ export default defineConfig({
   build: {
     outDir: '../dist-ui',
     emptyOutDir: true,
+    minify: false,
   },
   server: {
     port: 5173,
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:5555',

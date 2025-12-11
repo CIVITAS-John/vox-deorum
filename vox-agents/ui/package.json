@@ -17,6 +17,7 @@
   "dependencies": {
     "@primeuix/themes": "^2.0.2",
     "@primevue/themes": "^4.5.3",
+    "@revolist/revogrid": "^4.19.4",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.5.3",

@@ -200,17 +200,6 @@ process.stdin.on('data', (key) => {
   }
 });
 
-// Handle uncaught errors
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught exception:', error);
-  // shutdown('uncaughtException');
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled rejection at:', promise, 'reason:', reason);
-  // shutdown('unhandledRejection');
-});
-
 /**
  * Main entry point.
  * Runs configured number of game sessions with the selected strategist.

@@ -1,158 +1,157 @@
+<template>
+  <Card class="h-full">
+    <template #title>
+      <div class="flex align-items-center gap-2">
+        <h3>Real-time Logs</h3>
+        <Tag :severity="isConnected ? 'success' : 'warn'">
+          {{ isConnected ? 'Connected' : 'Disconnected' }}
+        </Tag>
+        <Tag severity="info">{{ filteredLogs.length }}/{{ logs.length }} logs</Tag>
+      </div>
+    </template>
+
+    <template #content>
+      <div class="flex gap-2 mb-3 align-items-center">
+        <SelectButton
+          v-model="selectedLevel"
+          :options="[
+            { label: 'Debug', value: 'debug' },
+            { label: 'Info', value: 'info' },
+            { label: 'Warn', value: 'warn' },
+            { label: 'Error', value: 'error' }
+          ]"
+          optionLabel="label"
+          optionValue="value"
+          size="small"
+        />
+        <div class="mx-2">
+          <ToggleButton
+            v-model="hideWebUI"
+            on-label="Hide WebUI"
+            off-label="Show WebUI"
+            on-icon="pi pi-eye-slash"
+            off-icon="pi pi-eye"
+            size="small"
+          />
+        </div>
+        <Button
+          :icon="isPaused ? 'pi pi-play' : 'pi pi-pause'"
+          @click="togglePause"
+          :label="isPaused ? 'Resume' : 'Pause'"
+          severity="secondary"
+          size="small"
+        />
+        <Button
+          :icon="autoscroll ? 'pi pi-lock' : 'pi pi-lock-open'"
+          @click="autoscroll = !autoscroll"
+          label="Auto-scroll"
+          severity="secondary"
+          size="small"
+        />
+        <Button
+          icon="pi pi-trash"
+          @click="clearLogs"
+          label="Clear"
+          severity="danger"
+          size="small"
+        />
+      </div>
+
+      <div class="log-table-container">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th class="col-time">Time</th>
+              <th class="col-level">Level</th>
+              <th class="col-message">Message</th>
+            </tr>
+          </thead>
+        </table>
+
+        <VirtualScroller
+          :items="filteredLogs"
+          :itemSize="40"
+          scrollHeight="600px"
+          ref="virtualScroller"
+          class="log-scroller"
+        >
+          <template v-slot:item="{ item }">
+            <table class="log-table">
+              <tbody>
+                <tr :class="`log-row log-${item.level}`">
+                  <td class="col-time">{{ formatTimestamp(item.timestamp) }}</td>
+                  <td class="col-level">
+                    <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
+                    <span class="level-source">{{ item.context }}</span>
+                  </td>
+                  <td class="col-message">{{ item.message }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+        </VirtualScroller>
+      </div>
+
+      <div class="flex align-items-center justify-content-end mt-2">
+        <Tag v-if="isPaused" severity="warn">Paused</Tag>
+      </div>
+    </template>
+  </Card>
+</template>
+
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue';
 import { apiClient, type LogEntry } from '../api/client';
+import VirtualScroller from 'primevue/virtualscroller';
 import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import SelectButton from 'primevue/selectbutton';
 import Card from 'primevue/card';
-import Toolbar from 'primevue/toolbar';
 import Tag from 'primevue/tag';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
-import ScrollPanel from 'primevue/scrollpanel';
+import ToggleButton from 'primevue/togglebutton';
+import SelectButton from 'primevue/selectbutton';
 
-// Log storage and display
+// State
 const logs = ref<LogEntry[]>([]);
-const maxLogs = 1000; // Buffer limit
-
-// Filtering
-const searchQuery = ref('');
-const selectedLevel = ref<string | null>(null);
-const selectedSource = ref<string | null>(null);
-
-// UI state
-const autoscroll = ref(true);
 const isPaused = ref(false);
 const isConnected = ref(false);
-const logContainer = ref<any>();
+const autoscroll = ref(true);
+const hideWebUI = ref(true);
+const selectedLevel = ref('info');
+const virtualScroller = ref<any>();
 
-// SSE cleanup function
 let cleanupSse: (() => void) | null = null;
+const MAX_LOGS = 1000;
 
-// Log level options
-const logLevels = [
-  { label: 'All', value: null },
-  { label: 'Error', value: 'error' },
-  { label: 'Warn', value: 'warn' },
-  { label: 'Info', value: 'info' },
-  { label: 'Debug', value: 'debug' }
-];
+// Log level hierarchy
+const levelHierarchy: Record<string, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3
+};
 
-// Source filter options (dynamically populated)
-const sourcesSet = ref(new Set<string>());
-const sourceOptions = computed(() => {
-  const options: Array<{ label: string; value: string | null }> = [
-    { label: 'All Sources', value: null }
-  ];
-  for (const source of sourcesSet.value) {
-    options.push({ label: source, value: source });
-  }
-  return options;
-});
-
-// Filtered logs
+// Filtered logs based on level and source
 const filteredLogs = computed(() => {
   return logs.value.filter(log => {
-    // Level filter
-    if (selectedLevel.value && log.level !== selectedLevel.value) {
-      return false;
-    }
+    // Filter by level hierarchy
+    const logLevel = levelHierarchy[log.level] ?? 0;
+    const minLevel = levelHierarchy[selectedLevel.value] ?? 0;
+    if (logLevel < minLevel) return false;
 
-    // Source filter
-    if (selectedSource.value && log.source !== selectedSource.value) {
-      return false;
-    }
-
-    // Search filter
-    if (searchQuery.value) {
-      const query = searchQuery.value.toLowerCase();
-      return (
-        log.message.toLowerCase().includes(query) ||
-        (log.source && log.source.toLowerCase().includes(query))
-      );
-    }
+    // Filter out webui if needed
+    if (hideWebUI.value && log.webui) return false;
 
     return true;
   });
 });
 
-// Add new log entry
-const addLog = (log: LogEntry) => {
-  if (isPaused.value) return;
+// Helper functions
+const getLevelEmoji = (level: string) => ({
+  error: '❌',
+  warn: '⚠️',
+  info: 'ℹ️',
+  debug: '🐛'
+}[level] || '📝');
 
-  // Add source to set
-  if (log.source) {
-    sourcesSet.value.add(log.source);
-  }
-
-  // Add to logs array
-  logs.value.push(log);
-
-  // Trim if exceeds max
-  if (logs.value.length > maxLogs) {
-    logs.value.shift();
-  }
-
-  // Auto-scroll if enabled
-  if (autoscroll.value) {
-    nextTick(() => {
-      scrollToBottom();
-    });
-  }
-};
-
-// Scroll to bottom
-const scrollToBottom = () => {
-  if (logContainer.value?.$el) {
-    const scrollContent = logContainer.value.$el.querySelector('.p-scrollpanel-content');
-    if (scrollContent) {
-      scrollContent.scrollTop = scrollContent.scrollHeight;
-    }
-  }
-};
-
-// Clear logs
-const clearLogs = () => {
-  logs.value = [];
-  sourcesSet.value.clear();
-};
-
-// Toggle pause
-const togglePause = () => {
-  isPaused.value = !isPaused.value;
-};
-
-// Connect to SSE stream
-const connectToStream = () => {
-  cleanupSse = apiClient.streamLogs(
-    (log) => {
-      if (log) addLog(log);
-      isConnected.value = true;
-    },
-    (error) => {
-      console.error('Log stream error:', error);
-      isConnected.value = false;
-    }
-  );
-  isConnected.value = true;
-};
-
-// Get log severity for PrimeVue Tag
-const getLogSeverity = (level: string): 'danger' | 'warn' | 'info' | 'secondary' => {
-  switch (level) {
-    case 'error':
-      return 'danger';
-    case 'warn':
-      return 'warn';
-    case 'info':
-      return 'info';
-    case 'debug':
-    default:
-      return 'secondary';
-  }
-};
-
-// Format timestamp
 const formatTimestamp = (timestamp: string) => {
   try {
     const date = new Date(timestamp);
@@ -169,134 +168,151 @@ const formatTimestamp = (timestamp: string) => {
   }
 };
 
-// Highlight search term in text
-const highlightText = (text: string) => {
-  if (!searchQuery.value) return text;
+// Log management
+const addLog = (log: LogEntry) => {
+  if (isPaused.value) return;
 
-  const query = searchQuery.value;
-  const regex = new RegExp(`(${query})`, 'gi');
-  return text.replace(regex, '<mark style="background: var(--primary-color); color: var(--primary-color-text);">$1</mark>');
+  logs.value.push(log);
+  if (logs.value.length > MAX_LOGS) {
+    logs.value = logs.value.slice(-MAX_LOGS);
+  }
+
+  if (autoscroll.value && virtualScroller.value) {
+    nextTick(() => {
+      const scrollElement = virtualScroller.value.$el;
+      if (scrollElement) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
+    });
+  }
 };
 
-onMounted(() => {
-  connectToStream();
-});
+const clearLogs = () => logs.value = [];
+const togglePause = () => isPaused.value = !isPaused.value;
 
-onUnmounted(() => {
-  if (cleanupSse) {
-    cleanupSse();
-  }
-});
+// SSE connection
+const connectToStream = () => {
+  cleanupSse = apiClient.streamLogs(
+    (log) => {
+      addLog(log);
+      isConnected.value = true;
+    },
+    (error) => {
+      console.error('Log stream error:', error);
+      isConnected.value = false;
+    },
+    () => isConnected.value = true
+  );
+};
+
+onMounted(connectToStream);
+onUnmounted(() => cleanupSse?.());
 </script>
 
-<template>
-  <Card class="h-full">
-    <template #title>
-      <div class="flex align-items-center justify-content-between">
-        <div class="flex align-items-center gap-2">
-          <h3>Real-time Logs</h3>
-          <Tag
-            :severity="isConnected ? 'success' : 'warn'"
-            :icon="isConnected ? 'pi pi-circle-fill' : 'pi pi-circle'"
-          >
-            {{ isConnected ? 'Connected' : 'Disconnected' }}
-          </Tag>
-        </div>
-      </div>
-    </template>
+<style scoped>
+.log-table-container {
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
 
-    <template #content>
-      <!-- Controls Toolbar -->
-      <Toolbar class="mb-3">
-        <template #start>
-          <!-- Search -->
-          <IconField iconPosition="left" class="mr-2">
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText
-              v-model="searchQuery"
-              placeholder="Search logs..."
-              style="width: 15rem"
-            />
-          </IconField>
+.log-table {
+  width: 100%;
+  line-height: 150%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
 
-          <!-- Level Filter -->
-          <SelectButton
-            v-model="selectedLevel"
-            :options="logLevels"
-            optionLabel="label"
-            optionValue="value"
-            class="mr-2"
-          />
+.log-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--surface-section);
+}
 
-          <!-- Source Filter -->
-          <SelectButton
-            v-model="selectedSource"
-            :options="sourceOptions"
-            optionLabel="label"
-            optionValue="value"
-            v-if="sourcesSet.size > 0"
-          />
-        </template>
+.log-table th {
+  padding: 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-bottom: 2px solid var(--surface-border);
+  background: var(--surface-card);
+}
 
-        <template #end>
-          <!-- Action Buttons -->
-          <Button
-            :icon="isPaused ? 'pi pi-play' : 'pi pi-pause'"
-            @click="togglePause"
-            :label="isPaused ? 'Resume' : 'Pause'"
-            severity="secondary"
-            class="mr-2"
-          />
+.log-table td {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.813rem;
+  vertical-align: top;
+  border-bottom: 1px solid var(--surface-border);
+}
 
-          <Button
-            :icon="autoscroll ? 'pi pi-lock' : 'pi pi-lock-open'"
-            @click="autoscroll = !autoscroll"
-            :label="autoscroll ? 'Auto' : 'Manual'"
-            severity="secondary"
-            class="mr-2"
-          />
+.col-time {
+  width: 120px;
+  font-family: monospace;
+  color: var(--text-color-secondary);
+  white-space: nowrap;
+}
 
-          <Button
-            icon="pi pi-trash"
-            @click="clearLogs"
-            label="Clear"
-            severity="danger"
-          />
-        </template>
-      </Toolbar>
+.col-level {
+  width: 150px;
+  white-space: nowrap;
+}
 
-      <!-- Logs Container -->
-      <ScrollPanel ref="logContainer" style="height: 500px" class="border-1 surface-border border-round">
-        <div v-if="filteredLogs.length === 0" class="text-center p-5 text-500">
-          <i class="pi pi-inbox text-4xl mb-3 block" />
-          <p>{{ logs.length === 0 ? 'No logs yet' : 'No logs match filters' }}</p>
-        </div>
-        <div v-else class="p-2">
-          <div
-            v-for="(log, index) in filteredLogs"
-            :key="index"
-            class="flex gap-2 p-1 border-bottom-1 surface-border"
-            style="font-family: monospace; font-size: 0.875rem;"
-          >
-            <span class="text-500 white-space-nowrap">{{ formatTimestamp(log.timestamp) }}</span>
-            <Tag :severity="getLogSeverity(log.level)" style="min-width: 60px; text-align: center;">
-              {{ log.level.toUpperCase() }}
-            </Tag>
-            <span class="text-orange-500" v-if="log.source">[{{ log.source }}]</span>
-            <span class="flex-1 text-color" style="word-break: break-word;" v-html="highlightText(log.message)"></span>
-          </div>
-        </div>
-      </ScrollPanel>
+.col-message {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 
-      <!-- Status Bar -->
-      <div class="flex justify-content-between align-items-center mt-2 p-2 surface-ground border-round">
-        <span class="text-500 text-sm">{{ filteredLogs.length }} / {{ logs.length }} logs</span>
-        <Tag v-if="isPaused" severity="warn" icon="pi pi-pause">
-          Paused
-        </Tag>
-      </div>
-    </template>
-  </Card>
-</template>
+.level-emoji {
+  margin-right: 0.25rem;
+  font-size: 1rem;
+}
+
+.level-source {
+  color: var(--text-color-secondary);
+  font-size: 0.75rem;
+}
+
+.log-scroller {
+  background: var(--surface-ground);
+}
+
+/* Log level row colors - using PrimeVue theme variables */
+.log-row {
+  transition: background-color 0.1s;
+}
+
+.log-row:hover {
+  background: var(--surface-hover);
+}
+
+.log-debug {
+  background: color-mix(in srgb, var(--gray-500) 5%, transparent);
+}
+
+.log-info {
+  background: transparent;
+}
+
+.log-warn {
+  background: color-mix(in srgb, var(--yellow-500) 10%, transparent);
+}
+
+.log-error {
+  background: color-mix(in srgb, var(--red-500) 10%, transparent);
+}
+
+/* Override PrimeVue VirtualScroller styles */
+:deep(.p-virtualscroller) {
+  border: none;
+}
+
+:deep(.p-virtualscroller-content) {
+  background: var(--surface-ground);
+}
+
+:deep(.p-virtualscroller-item) {
+  padding: 0;
+}
+</style>

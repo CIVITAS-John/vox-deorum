@@ -212,6 +212,29 @@ VoxAgent (Base)
 - Middleware for model compatibility
 - Structured prompts with markdown sections
 
+## UI Development
+
+### Vue 3 + PrimeVue
+- Use Vue 3 Composition API with `<script setup>` syntax
+- PrimeVue for UI components with Aura theme
+- **Always use PrimeVue theme CSS variables** instead of hardcoded colors:
+  - `var(--primary-color)`, `var(--surface-ground)`, `var(--text-color)`
+  - `var(--red-500)`, `var(--yellow-500)`, `var(--gray-500)` for semantic colors
+  - Use `color-mix()` for transparency: `color-mix(in srgb, var(--red-500) 10%, transparent)`
+- VirtualScroller for large data sets (logs, tables)
+- Avoid external heavy dependencies when PrimeVue provides alternatives
+
+### Development Server
+- Vite for fast development and bundling
+- Configure cache headers to prevent stale content:
+  ```typescript
+  headers: {
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  }
+  ```
+
 ## Common Pitfalls
 
 1. **Not refreshing AbortController** after abort
@@ -222,3 +245,4 @@ VoxAgent (Base)
 6. **Not using proper shutdown handlers**
 7. **Missing telemetry flushing** on exit
 8. **Forgetting `.js` extensions** in imports
+9. **Using hardcoded colors** instead of PrimeVue theme variables

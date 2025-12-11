@@ -33,8 +33,14 @@ app.use(express.urlencoded({ extended: true }));
 const staticPath = path.join(__dirname, '../../dist-ui');
 
 app.use(express.static(staticPath, {
-  maxAge: '1d',
+  maxAge: 0,
+  etag: false,
   setHeaders: (res, filePath) => {
+    // Prevent caching for development
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     // Set proper content types for specific file extensions
     if (filePath.endsWith('.js')) {
       res.setHeader('Content-Type', 'application/javascript');

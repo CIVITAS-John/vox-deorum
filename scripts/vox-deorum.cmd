@@ -109,15 +109,20 @@ if "!ADDITIONAL_ARGS!"=="" (
 set /p VOX_PID=<"%TEMP%\vox.pid"
 echo        Started with PID: %VOX_PID%
 
-echo.
+echo [INFO] Waiting for Vox Agents to initialize...
+timeout /t 10 /nobreak >nul
+
+echo [INFO] Opening GUI at http://localhost:5555...
+start http://localhost:5555
+
 echo ========================================
 echo All services started successfully!
-echo ========================================
+echo ========================================"
 echo.
 echo Services running:
 echo   - Bridge Service (Port 5000, PID: %BRIDGE_PID%)
 echo   - MCP Server (Port 4000, PID: %MCP_PID%)
-echo   - Vox Agents (Mode: %VOX_MODE%, PID: %VOX_PID%)
+echo   - Vox Agents (Port 5555, Mode: %VOX_MODE%, PID: %VOX_PID%)
 echo.
 echo Press ENTER to STOP all services...
 set /p "STOP_CONFIRM="
