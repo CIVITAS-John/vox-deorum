@@ -268,7 +268,10 @@ export class VoxContext<TParameters extends AgentParameters> {
 
           // Execute steps in a loop, one at a time
           for (let stepCount = 0; !shouldStop; stepCount++) {
-            this.logger.info(`Executing ${agentName}'s step ${stepCount + 1} for ${this.id}`);
+            this.logger.info(`Executing ${agentName}'s step ${stepCount + 1}`, {
+              GameID: this.id,
+              PlayerID: parameters.playerID
+            });
 
             // Execute the step with proper tracing
             const stepResult = await this.executeAgentStep(
@@ -432,7 +435,7 @@ export class VoxContext<TParameters extends AgentParameters> {
           shouldStop = this.abortController.signal.aborted ||
             agent.stopCheck(parameters, input, stepResponse.steps[0], allSteps);
 
-          this.logger.info(`Stop check for ${agent.name}: ${shouldStop}`, {
+          this.logger.debug(`Stop check for ${agent.name}: ${shouldStop}`, {
             stepNumber: stepCount + 1,
             totalSteps: allSteps.length
           });

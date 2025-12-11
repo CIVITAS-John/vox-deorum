@@ -61,7 +61,7 @@ export function createAgentTool<TParameters extends AgentParameters, TInput = un
       });
 
       try {
-        logger.info(`Executing agent-tool: ${agent.name}`);
+        logger.debug(`Executing agent-tool: ${agent.name}`);
         span.setAttributes({
           'tool.input': JSON.stringify(input)
         });
@@ -70,7 +70,7 @@ export function createAgentTool<TParameters extends AgentParameters, TInput = un
 
         // Execute the agent through the context
         const result = await context.execute(agent.name, parameters, input);
-        logger.info(`Agent-tool execution completed: ${agent.name}`);
+        logger.debug(`Agent-tool execution completed: ${agent.name}`);
 
         span.setAttributes({
           'tool.output': JSON.stringify(result)
@@ -172,12 +172,12 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
         span.setAttributes({
           'tool.input': JSON.stringify(args)
         });
-        logger.info(`Calling tool ${tool.name}...`, args);
+        logger.debug(`Calling tool ${tool.name}...`, args);
 
         // Call the tool
         var result = await mcpClient.callTool(tool.name, args);
         const structuredResult = result.structuredContent;
-        logger.info(`Tool call completed: ${tool.name}`);
+        logger.debug(`Tool call completed: ${tool.name}`);
 
         span.setAttributes({
           'tool.output': JSON.stringify(structuredResult ?? result).substring(0, 1000)

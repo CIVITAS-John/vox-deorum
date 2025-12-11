@@ -29,7 +29,7 @@ export abstract class Briefer extends VoxAgent<StrategistParameters, string, str
     for (var step of allSteps) {
       for (const result of step.content) {
         if (result.type === "text" && result.text.length >= 10) {
-          this.logger.info(`Briefing produced (length ${result.text.length}), stopping agent`);
+          this.logger.info(`Briefing produced (length ${result.text.length}), stopping agent`, result.text.substring(0, 150) + "...");
           return true;
         }
       }

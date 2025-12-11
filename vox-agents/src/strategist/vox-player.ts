@@ -131,7 +131,11 @@ export class VoxPlayer {
           const startingInput = this.context.inputTokens;
           const startingReasoning = this.context.reasoningTokens;
           const startingOutput = this.context.outputTokens;
-          this.logger.warn(`Running ${this.playerConfig.strategist} on ${this.parameters.turn} (Player ${this.parameters.playerID}), ${this.parameters.after}~${this.parameters.before}`);
+          this.logger.warn(`Running ${this.playerConfig.strategist}`, {
+              GameID: this.parameters.playerID,
+              PlayerID: this.parameters.playerID,
+              Turn: this.parameters.turn
+            });
 
           const turnSpan = tracer.startSpan(`turn.${this.parameters.turn}`, {
             kind: SpanKind.INTERNAL,

@@ -1,15 +1,13 @@
 <template>
-  <Card class="h-full">
-    <template #title>
-      <div class="flex align-items-center gap-2">
-        <h3>Real-time Logs</h3>
-        <Tag :severity="isConnected ? 'success' : 'warn'">
-          {{ isConnected ? 'Connected' : 'Disconnected' }}
-        </Tag>
-        <Tag severity="info">{{ filteredLogs.length }}/{{ logs.length }} logs</Tag>
-      </div>
-    </template>
+  <div class="flex align-items-center gap-2">
+    <h1>Real-time Logs</h1>
+    <Tag :severity="isConnected ? 'success' : 'warn'">
+      {{ isConnected ? 'Connected' : 'Disconnected' }}
+    </Tag>
+    <Tag severity="info">{{ filteredLogs.length }}/{{ logs.length }} logs</Tag>
+  </div>
 
+  <Card class="h-full">
     <template #content>
       <div class="flex gap-2 mb-3 align-items-center">
         <SelectButton
@@ -73,7 +71,12 @@
                 <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
                 <span class="level-source">{{ item.context }}</span>
               </div>
-              <div class="col-message">{{ item.message }}</div>
+              <div class="col-message">
+                {{ item.message }}
+                <div v-if="hasParams(item)" class="params-list">
+                  <ParamsList :params="item.params" :depth="0" />
+                </div>
+              </div>
             </div>
           </template>
         </VirtualScroller>
@@ -83,27 +86,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue';
-import { apiClient, type LogEntry } from '../api/client';
+import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue';
+import { logs, isConnected, clearLogs as clearLogsStore } from '../stores/logs';
+import { hasParams, getLevelEmoji, formatTimestamp, levelHierarchy } from '../api/log-utils';
 import VirtualScroller from 'primevue/virtualscroller';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Tag from 'primevue/tag';
 import ToggleButton from 'primevue/togglebutton';
 import SelectButton from 'primevue/selectbutton';
+import ParamsList from './ParamsList.vue';
 import '/node_modules/primeflex/primeflex.css'
 
 // State
-const logs = ref<LogEntry[]>([]);
-const isConnected = ref(false);
 const autoscroll = ref(true);
 const hideWebUI = ref(true);
 const selectedLevel = ref('info');
 const virtualScroller = ref<any>();
 const scrollerHeight = ref('600px');
-
-let cleanupSse: (() => void) | null = null;
-const MAX_LOGS = 1000;
 
 // Calculate adaptive scroll height
 const calculateScrollerHeight = () => {
@@ -117,14 +117,6 @@ const calculateScrollerHeight = () => {
 // Update height on window resize
 const handleResize = () => {
   calculateScrollerHeight();
-};
-
-// Log level hierarchy
-const levelHierarchy: Record<string, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3
 };
 
 // Filtered logs based on level and source
@@ -142,72 +134,30 @@ const filteredLogs = computed(() => {
   });
 });
 
-// Helper functions
-const getLevelEmoji = (level: string) => ({
-  error: '❌',
-  warn: '⚠️',
-  info: 'ℹ️',
-  debug: '🐛'
-}[level] || '📝');
-
-const formatTimestamp = (timestamp: string) => {
-  try {
-    const date = new Date(timestamp);
-    const time = date.toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-    const ms = date.getMilliseconds().toString().padStart(3, '0');
-    return `${time}.${ms}`;
-  } catch {
-    return timestamp;
-  }
-};
-
-// Log management
-const addLog = (log: LogEntry) => {
-  logs.value.push(log);
-  if (logs.value.length > MAX_LOGS) {
-    logs.value = logs.value.slice(-MAX_LOGS);
-  }
-
-  if (autoscroll.value && virtualScroller.value) {
+// Watch for new logs to handle autoscroll
+watch(filteredLogs, (newLogs, oldLogs) => {
+  // Only autoscroll if there are new logs
+  if (autoscroll.value && virtualScroller.value && newLogs.length > oldLogs?.length) {
     nextTick(() => {
-      const scrollElement = virtualScroller.value.$el;
-      if (scrollElement) {
-        scrollElement.scrollTop = scrollElement.scrollHeight;
+      const targetIndex = newLogs.length - 1;
+      if (targetIndex >= 0) {
+        requestAnimationFrame(() => {
+          virtualScroller.value.scrollToIndex(targetIndex, 'auto');
+        });
       }
     });
   }
-};
+});
 
-const clearLogs = () => logs.value = [];
-
-// SSE connection
-const connectToStream = () => {
-  cleanupSse = apiClient.streamLogs(
-    (log) => {
-      addLog(log);
-      isConnected.value = true;
-    },
-    (error) => {
-      console.error('Log stream error:', error);
-      isConnected.value = false;
-    },
-    () => isConnected.value = true
-  );
-};
+// Use the store's clear function
+const clearLogs = () => clearLogsStore();
 
 onMounted(() => {
-  connectToStream();
   calculateScrollerHeight();
   window.addEventListener('resize', handleResize);
 });
 
 onUnmounted(() => {
-  cleanupSse?.();
   window.removeEventListener('resize', handleResize);
 });
 </script>
@@ -319,5 +269,12 @@ onUnmounted(() => {
 
 .log-scroller {
   background: var(--p-surface-50);
+}
+
+/* Params container styling */
+.params-list {
+  color: var(--p-text-muted-color);
+  display: block;
+  font-size: 0.75rem;
 }
 </style>

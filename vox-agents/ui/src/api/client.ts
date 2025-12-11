@@ -3,13 +3,10 @@
  * Provides methods for REST endpoints and SSE streaming
  */
 
-export interface LogEntry {
-  timestamp: string;
-  level: string;
-  message: string;
-  source?: string;
-  webui?: boolean;
-}
+import { extractLogParams } from './log-utils';
+import type { LogEntry } from './log-utils';
+
+export type { LogEntry };
 
 export interface HealthStatus {
   status: string;
@@ -73,7 +70,9 @@ class ApiClient {
     eventSource.addEventListener("log", (data) => {
       try {
         console.log(data.data);
-        onMessage(JSON.parse(data.data));
+        const rawLog = JSON.parse(data.data);
+        const processedLog = extractLogParams(rawLog);
+        onMessage(processedLog);
       } catch (error) {
         console.error('Failed to parse log message:', error);
       }
