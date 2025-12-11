@@ -30,7 +30,7 @@ export class SimpleBriefer extends Briefer {
   public async getSystem(_parameters: StrategistParameters, _input: string, _context: VoxContext<StrategistParameters>): Promise<string> {
     return `
 You are an export briefing writer for Civilization V with the latest Vox Populi mod.
-Your role is to produce a concise briefing based on the current game state to support the next round of strategic decisions.
+Your role is to produce a concise briefing based on the current game state.
 
 # Objective
 Summarize the full game state into a strategic briefing that highlights:
@@ -42,7 +42,7 @@ Summarize the full game state into a strategic briefing that highlights:
 # Guidelines
 - Highlight important changes, trends, and intelligence, not raw or verbose information
 - The briefing should be objective and analytical, do not stick to existing strategy
-- Focus on strategic situation, not suggestions (which is the job of the strategist)
+- Focus on summarizing strategic situation, do not propose suggestions
 - Use clear, direct, concise language
 
 # Resources
@@ -66,7 +66,7 @@ You will receive the following reports:
 - Events: events since the last decision-making.
 
 # Output Format
-Write your briefing as a simple Markdown document. Do not use table or HTML format.`.trim()
+Write your concise briefing as a simple Markdown document. Do not use table or HTML format.`.trim()
   }
 
   /**

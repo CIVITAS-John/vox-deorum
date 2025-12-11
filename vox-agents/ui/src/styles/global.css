@@ -4,6 +4,7 @@
 * {
   margin: 0;
   padding: 0;
+  line-height: 150%;
   font-family: Lato, Segoe UI, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
@@ -14,11 +15,6 @@ html, body, #app {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'EB Garamond', Georgia, 'Times New Roman', Times, serif;
-  line-height: 150%;
-}
-
-p, li {
-  line-height: 150%;
 }
 
 /* Dark mode support */
@@ -40,14 +36,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--p-surface-100);
+  background: var(--p-surface-section);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--p-surface-400);
+  background: var(--p-surface-border);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--p-surface-500);
+  background: var(--p-surface-hover);
 }

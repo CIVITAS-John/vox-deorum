@@ -354,6 +354,12 @@ begin
       if not DirExists(ModsPath) then
         CreateDir(ModsPath);
 
+      // Delete existing mod folders first (similar to robocopy /mir), but continue even if deletion fails
+      DelTree(ModsPath + '\(1) Community Patch', True, True, True);
+      DelTree(ModsPath + '\(1b) Vox Deorum', True, True, True);
+      DelTree(ModsPath + '\(2) Vox Populi', True, True, True);
+      DelTree(ModsPath + '\(3a) EUI Compatibility Files', True, True, True);
+
       // Copy mods using xcopy for reliability
       Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-dll\(1) Community Patch') + '" "' + ModsPath + '\(1) Community Patch"',
            '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
@@ -372,6 +378,10 @@ begin
       if FileExists(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.pdb')) then
         CopyFile(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.pdb'),
                  ModsPath + '\(1) Community Patch\CvGameCore_Expansion2.pdb', True);
+
+      // Delete existing UI mods first (similar to robocopy /mir), but continue even if deletion fails
+      DelTree(Civ5Path + '\Assets\DLC\VPUI', True, True, True);
+      DelTree(Civ5Path + '\Assets\DLC\UI_bc1', True, True, True);
 
       // Copy UI mods to DLC folder
       Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-dll\VPUI') + '" "' + Civ5Path + '\Assets\DLC\VPUI"',

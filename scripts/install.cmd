@@ -323,6 +323,13 @@ if "%VP_INSTALLED%"=="0" (
     set "SOURCE_EUI=%SCRIPT_DIR%\..\civ5-dll\(3a) EUI Compatibility Files"
 
     if exist "!SOURCE_CP!" (
+        echo   Removing old mod folders if they exist...
+        :: Delete existing mod folders first (similar to robocopy /mir), but continue even if deletion fails
+        if exist "!CP_PATH!" rmdir /S /Q "!CP_PATH!" 2>nul
+        if exist "!VD_PATH!" rmdir /S /Q "!VD_PATH!" 2>nul
+        if exist "!VP_PATH!" rmdir /S /Q "!VP_PATH!" 2>nul
+        if exist "!EUI_PATH!" rmdir /S /Q "!EUI_PATH!" 2>nul
+
         echo   Copying ^(1^) Community Patch...
         xcopy /E /I /Y "!SOURCE_CP!" "!CP_PATH!" >nul 2>&1
 

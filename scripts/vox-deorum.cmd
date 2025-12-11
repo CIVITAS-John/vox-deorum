@@ -103,7 +103,7 @@ echo [3/3] Starting Vox Agents (mode: %VOX_MODE%!ADDITIONAL_ARGS!)...
 if "!ADDITIONAL_ARGS!"=="" (
     powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\vox-agents','&&','npm','run','%VOX_MODE%' -PassThru; $p.Id" > "%TEMP%\vox.pid"
 ) else (
-    set "NPM_COMMAND=npm run %VOX_MODE% --!ADDITIONAL_ARGS!"
+    set "NPM_COMMAND=npm run %VOX_MODE% -- !ADDITIONAL_ARGS!"
     powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\vox-agents','&&','!NPM_COMMAND!' -PassThru; $p.Id" > "%TEMP%\vox.pid"
 )
 set /p VOX_PID=<"%TEMP%\vox.pid"

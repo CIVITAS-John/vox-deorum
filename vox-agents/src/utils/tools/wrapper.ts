@@ -114,7 +114,7 @@ export function createAgentTool<TParameters extends AgentParameters, TInput = un
  * ```
  */
 export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
-  const logger = createLogger(`MCPTool-${tool.name}`);
+  const logger = createLogger(`tool-${tool.name}`);
 
   // Remove autoComplete fields from input schema
   const filteredSchema = { ...tool.inputSchema };

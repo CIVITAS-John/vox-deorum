@@ -35,13 +35,6 @@
           />
         </div>
         <Button
-          :icon="isPaused ? 'pi pi-play' : 'pi pi-pause'"
-          @click="togglePause"
-          :label="isPaused ? 'Resume' : 'Pause'"
-          severity="secondary"
-          size="small"
-        />
-        <Button
           :icon="autoscroll ? 'pi pi-lock' : 'pi pi-lock-open'"
           @click="autoscroll = !autoscroll"
           label="Auto-scroll"
@@ -57,43 +50,33 @@
         />
       </div>
 
-      <div class="log-table-container">
-        <table class="log-table">
-          <thead>
-            <tr>
-              <th class="col-time">Time</th>
-              <th class="col-level">Level</th>
-              <th class="col-message">Message</th>
-            </tr>
-          </thead>
-        </table>
+      <div class="log-container">
+        <!-- Header row -->
+        <div class="log-header">
+          <div class="col-time">Time</div>
+          <div class="col-level">Level</div>
+          <div class="col-message">Message</div>
+        </div>
 
+        <!-- Log entries -->
         <VirtualScroller
           :items="filteredLogs"
           :itemSize="40"
-          scrollHeight="600px"
+          :scrollHeight="scrollerHeight"
           ref="virtualScroller"
           class="log-scroller"
         >
           <template v-slot:item="{ item }">
-            <table class="log-table">
-              <tbody>
-                <tr :class="`log-row log-${item.level}`">
-                  <td class="col-time">{{ formatTimestamp(item.timestamp) }}</td>
-                  <td class="col-level">
-                    <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
-                    <span class="level-source">{{ item.context }}</span>
-                  </td>
-                  <td class="col-message">{{ item.message }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div :class="`log-row log-${item.level}`">
+              <div class="col-time">{{ formatTimestamp(item.timestamp) }}</div>
+              <div class="col-level">
+                <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
+                <span class="level-source">{{ item.context }}</span>
+              </div>
+              <div class="col-message">{{ item.message }}</div>
+            </div>
           </template>
         </VirtualScroller>
-      </div>
-
-      <div class="flex align-items-center justify-content-end mt-2">
-        <Tag v-if="isPaused" severity="warn">Paused</Tag>
       </div>
     </template>
   </Card>
@@ -108,18 +91,33 @@ import Card from 'primevue/card';
 import Tag from 'primevue/tag';
 import ToggleButton from 'primevue/togglebutton';
 import SelectButton from 'primevue/selectbutton';
+import '/node_modules/primeflex/primeflex.css'
 
 // State
 const logs = ref<LogEntry[]>([]);
-const isPaused = ref(false);
 const isConnected = ref(false);
 const autoscroll = ref(true);
 const hideWebUI = ref(true);
 const selectedLevel = ref('info');
 const virtualScroller = ref<any>();
+const scrollerHeight = ref('600px');
 
 let cleanupSse: (() => void) | null = null;
 const MAX_LOGS = 1000;
+
+// Calculate adaptive scroll height
+const calculateScrollerHeight = () => {
+  // Get viewport height and subtract approximate space for header, controls, padding
+  const viewportHeight = window.innerHeight;
+  const headerAndControlsHeight = 250; // Approximate height for header, controls, and padding
+  const calculatedHeight = Math.max(400, viewportHeight - headerAndControlsHeight); // Minimum 400px
+  scrollerHeight.value = `${calculatedHeight}px`;
+};
+
+// Update height on window resize
+const handleResize = () => {
+  calculateScrollerHeight();
+};
 
 // Log level hierarchy
 const levelHierarchy: Record<string, number> = {
@@ -170,8 +168,6 @@ const formatTimestamp = (timestamp: string) => {
 
 // Log management
 const addLog = (log: LogEntry) => {
-  if (isPaused.value) return;
-
   logs.value.push(log);
   if (logs.value.length > MAX_LOGS) {
     logs.value = logs.value.slice(-MAX_LOGS);
@@ -188,7 +184,6 @@ const addLog = (log: LogEntry) => {
 };
 
 const clearLogs = () => logs.value = [];
-const togglePause = () => isPaused.value = !isPaused.value;
 
 // SSE connection
 const connectToStream = () => {
@@ -205,114 +200,124 @@ const connectToStream = () => {
   );
 };
 
-onMounted(connectToStream);
-onUnmounted(() => cleanupSse?.());
+onMounted(() => {
+  connectToStream();
+  calculateScrollerHeight();
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  cleanupSse?.();
+  window.removeEventListener('resize', handleResize);
+});
 </script>
 
 <style scoped>
-.log-table-container {
-  border: 1px solid var(--surface-border);
-  border-radius: var(--border-radius);
+.log-container {
+  border: 1px solid var(--p-surface-200);
+  border-radius: var(--p-border-radius-md);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.log-table {
-  width: 100%;
-  line-height: 150%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.log-table thead {
+.log-header {
+  display: flex;
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--surface-section);
-}
-
-.log-table th {
-  padding: 0.5rem;
-  text-align: left;
+  background: var(--p-surface-100);
+  border-bottom: 2px solid var(--p-surface-200);
   font-weight: 600;
   font-size: 0.875rem;
-  border-bottom: 2px solid var(--surface-border);
-  background: var(--surface-card);
+  color: var(--p-text-color);
 }
 
-.log-table td {
+.log-header > div {
+  padding: 0.5rem;
+}
+
+.log-row {
+  display: flex;
+  align-items: flex-start;
+  transition: background-color 0.1s;
+  border-bottom: 1px solid var(--p-surface-200);
+  background: var(--p-surface-0);
+}
+
+.log-row > div {
   padding: 0.25rem 0.5rem;
-  font-size: 0.813rem;
-  vertical-align: top;
-  border-bottom: 1px solid var(--surface-border);
+  font-size: 0.8rem;
 }
 
+/* Log level specific colors using extended PrimeVue color palette */
+.log-debug {
+  color: var(--p-slate-600);
+  background: var(--p-slate-50);
+}
+
+.log-debug:hover {
+  background: var(--p-slate-100);
+}
+
+.log-info:hover {
+  background: var(--p-primary-100);
+}
+
+.log-warn {
+  color: var(--p-amber-700);
+  background: var(--p-amber-50);
+}
+
+.log-warn:hover {
+  background: var(--p-amber-100);
+}
+
+.log-error {
+  color: var(--p-red-700);
+  background: var(--p-red-50);
+}
+
+.log-error:hover {
+  background: var(--p-red-100);
+}
+
+/* Column widths */
 .col-time {
-  width: 120px;
-  font-family: monospace;
-  color: var(--text-color-secondary);
+  flex: 0 0 100px;
   white-space: nowrap;
 }
 
 .col-level {
-  width: 150px;
+  flex: 0 0 150px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .col-message {
+  flex: 1;
   word-wrap: break-word;
   white-space: pre-wrap;
   word-break: break-word;
+  min-width: 0; /* Allow flex item to shrink below content size */
 }
 
 .level-emoji {
   margin-right: 0.25rem;
-  font-size: 1rem;
 }
 
 .level-source {
-  color: var(--text-color-secondary);
   font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .log-scroller {
-  background: var(--surface-ground);
-}
-
-/* Log level row colors - using PrimeVue theme variables */
-.log-row {
-  transition: background-color 0.1s;
-}
-
-.log-row:hover {
-  background: var(--surface-hover);
-}
-
-.log-debug {
-  background: color-mix(in srgb, var(--gray-500) 5%, transparent);
-}
-
-.log-info {
-  background: transparent;
-}
-
-.log-warn {
-  background: color-mix(in srgb, var(--yellow-500) 10%, transparent);
-}
-
-.log-error {
-  background: color-mix(in srgb, var(--red-500) 10%, transparent);
-}
-
-/* Override PrimeVue VirtualScroller styles */
-:deep(.p-virtualscroller) {
-  border: none;
-}
-
-:deep(.p-virtualscroller-content) {
-  background: var(--surface-ground);
-}
-
-:deep(.p-virtualscroller-item) {
-  padding: 0;
+  background: var(--p-surface-50);
 }
 </style>

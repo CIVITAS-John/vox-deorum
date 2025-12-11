@@ -7,6 +7,7 @@ import Menu from 'primevue/menu'
 import { RouterView } from 'vue-router'
 import Tag from 'primevue/tag'
 import { healthStatus } from './stores/health'
+import '/node_modules/primeflex/primeflex.css'
 
 const router = useRouter()
 const route = useRoute()

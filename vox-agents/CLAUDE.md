@@ -117,7 +117,6 @@ The system supports standalone and component modes:
 - `npm run dev` - Development mode with hot reload (standalone.ts)
 - `npm run strategist` - Run strategist workflow (strategist/index.ts)
 - `npm run briefer` - Run briefer workflow (briefer/index.ts)
-- `npm run strategist-load` - Load saved game with strategist
 - **Each workflow has dedicated entry point** with shared instrumentation
 - Instrumentation loaded via --import flag for telemetry
 
@@ -216,13 +215,84 @@ VoxAgent (Base)
 
 ### Vue 3 + PrimeVue
 - Use Vue 3 Composition API with `<script setup>` syntax
-- PrimeVue for UI components with Aura theme
-- **Always use PrimeVue theme CSS variables** instead of hardcoded colors:
-  - `var(--primary-color)`, `var(--surface-ground)`, `var(--text-color)`
-  - `var(--red-500)`, `var(--yellow-500)`, `var(--gray-500)` for semantic colors
-  - Use `color-mix()` for transparency: `color-mix(in srgb, var(--red-500) 10%, transparent)`
+- PrimeVue 3 for UI components with Aura theme
 - VirtualScroller for large data sets (logs, tables)
 - Avoid external heavy dependencies when PrimeVue provides alternatives
+
+### PrimeVue 3 Color System
+**IMPORTANT**: Always use PrimeVue's actual CSS variables, not guessed color names.
+
+#### Core Color Variables
+- `var(--p-text-color)` - Primary text color (#334155)
+- `var(--p-text-muted-color)` - Muted/secondary text color (#64748b)
+- `var(--p-text-hover-color)` - Text hover color (#1e293b)
+- `var(--p-primary-color)` - Theme's primary color (#f59e0b - amber)
+- `var(--p-primary-contrast-color)` - Text color on primary background (#ffffff)
+- `var(--p-highlight-background)` - Background for highlighted elements (#fffbeb)
+- `var(--p-highlight-color)` - Text color for highlighted elements (#b45309)
+
+#### Surface Color System
+Surface colors for different UI layers (0-950 scale):
+- `var(--p-surface-0)` through `var(--p-surface-950)` - Full surface scale
+- `var(--p-surface-0)` - Pure white (#ffffff)
+- `var(--p-surface-50)` - Lightest gray (#f8fafc)
+- `var(--p-surface-100)` - Very light gray (#f1f5f9)
+- `var(--p-surface-200)` - Light gray (#e2e8f0)
+- `var(--p-surface-900)` - Dark gray (#0f172a)
+- `var(--p-content-background)` - Content background (#ffffff)
+- `var(--p-content-border-color)` - Content borders (#e2e8f0)
+
+#### Complete Color Palette
+PrimeVue includes full color scales (50-950) for all colors:
+
+**Primary Colors:**
+- Amber (primary): `var(--p-amber-50)` to `var(--p-amber-950)`
+- Blue: `var(--p-blue-50)` to `var(--p-blue-950)`
+- Red: `var(--p-red-50)` to `var(--p-red-950)`
+- Green: `var(--p-green-50)` to `var(--p-green-950)`
+- Yellow: `var(--p-yellow-50)` to `var(--p-yellow-950)`
+- Orange: `var(--p-orange-50)` to `var(--p-orange-950)`
+
+**Extended Palette:**
+- Slate: `var(--p-slate-50)` to `var(--p-slate-950)`
+- Gray: `var(--p-gray-50)` to `var(--p-gray-950)`
+- Zinc: `var(--p-zinc-50)` to `var(--p-zinc-950)`
+- Neutral: `var(--p-neutral-50)` to `var(--p-neutral-950)`
+- Stone: `var(--p-stone-50)` to `var(--p-stone-950)`
+- Cyan: `var(--p-cyan-50)` to `var(--p-cyan-950)`
+- Teal: `var(--p-teal-50)` to `var(--p-teal-950)`
+- Emerald: `var(--p-emerald-50)` to `var(--p-emerald-950)`
+- Lime: `var(--p-lime-50)` to `var(--p-lime-950)`
+- Purple: `var(--p-purple-50)` to `var(--p-purple-950)`
+- Violet: `var(--p-violet-50)` to `var(--p-violet-950)`
+- Indigo: `var(--p-indigo-50)` to `var(--p-indigo-950)`
+- Sky: `var(--p-sky-50)` to `var(--p-sky-950)`
+- Pink: `var(--p-pink-50)` to `var(--p-pink-950)`
+- Rose: `var(--p-rose-50)` to `var(--p-rose-950)`
+- Fuchsia: `var(--p-fuchsia-50)` to `var(--p-fuchsia-950)`
+
+#### Usage Examples
+```css
+/* Correct - using actual PrimeVue variables */
+.log-header {
+  background: var(--p-surface-100);
+  color: var(--p-text-color);
+  border: 1px solid var(--p-surface-200);
+}
+
+.log-row:hover {
+  background: var(--p-surface-50);
+}
+
+.log-error {
+  color: var(--p-red-700);
+  background: var(--p-red-50);
+}
+
+/* Incorrect - these don't exist in PrimeVue 3 */
+/* var(--p-surface-hover) ❌ - use specific surface values */
+/* var(--p-surface-border) ❌ - use var(--p-surface-200) or var(--p-content-border-color) */
+```
 
 ### Development Server
 - Vite for fast development and bundling
