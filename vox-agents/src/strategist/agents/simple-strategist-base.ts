@@ -50,11 +50,11 @@ export abstract class SimpleStrategistBase extends Strategist {
     for (var step of allSteps) {
       for (const result of step.toolResults) {
         if (result.toolName === "set-strategy" && result.output) {
-          this.logger.info("Set-strategy tool executed, stopping agent");
+          this.logger.debug("Set-strategy tool executed, stopping agent");
           return true;
         }
         if (result.toolName === "keep-status-quo" && result.output) {
-          this.logger.info("Keep-status-quo tool executed, stopping agent");
+          this.logger.debug("Keep-status-quo tool executed, stopping agent");
           return true;
         }
       }

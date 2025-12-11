@@ -172,7 +172,7 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
         span.setAttributes({
           'tool.input': JSON.stringify(args)
         });
-        logger.debug(`Calling tool ${tool.name}...`, args);
+        logger.info(`Calling tool ${tool.name}...`, args);
 
         // Call the tool
         var result = await mcpClient.callTool(tool.name, args);

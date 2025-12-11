@@ -176,8 +176,8 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--p-surface-100);
-  border-bottom: 2px solid var(--p-surface-200);
+  background: var(--p-content-hover-background);
+  border-bottom: 2px solid var(--p-content-border-color);
   font-weight: 600;
   font-size: 0.875rem;
   color: var(--p-text-color);
@@ -191,9 +191,14 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
   transition: background-color 0.1s;
-  border-bottom: 1px solid var(--p-surface-200);
-  background: var(--p-surface-0);
+  border-bottom: 1px solid var(--p-content-border-color);
+  background: var(--p-content-background);
 }
+
+.log-row:hover {
+  background: var(--p-content-hover-background);
+}
+
 
 .log-row > div {
   padding: 0.25rem 0.5rem;
@@ -202,16 +207,7 @@ onUnmounted(() => {
 
 /* Log level specific colors using extended PrimeVue color palette */
 .log-debug {
-  color: var(--p-slate-600);
-  background: var(--p-slate-50);
-}
-
-.log-debug:hover {
-  background: var(--p-slate-100);
-}
-
-.log-info:hover {
-  background: var(--p-primary-100);
+  color: var(--p-text-muted-color);
 }
 
 .log-warn {
@@ -230,6 +226,25 @@ onUnmounted(() => {
 
 .log-error:hover {
   background: var(--p-red-100);
+}
+
+/* Dark mode versions */
+.dark-mode .log-warn {
+  color: var(--p-amber-300);
+  background: var(--p-amber-950);
+}
+
+.dark-mode .log-warn:hover {
+  background: var(--p-amber-900);
+}
+
+.dark-mode .log-error {
+  color: var(--p-red-300);
+  background: var(--p-red-950);
+}
+
+.dark-mode .log-error:hover {
+  background: var(--p-red-900);
 }
 
 /* Column widths */
