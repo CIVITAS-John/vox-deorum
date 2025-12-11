@@ -6,7 +6,7 @@ export interface LogEntry {
   timestamp: string;
   level: string;
   message: string;
-  webui?: boolean;
+  source?: string;
   context?: string;
   params?: Record<string, any>;
 }
@@ -17,7 +17,7 @@ const FIXED_LOG_FIELDS = [
   'level',
   'message',
   'context',
-  'webui',
+  'source',
   'transport' // Excluded from params display
 ] as const;
 
@@ -33,7 +33,7 @@ export function extractLogParams(rawLog: any): LogEntry {
     level: rawLog.level,
     message: rawLog.message,
     context: rawLog.context,
-    webui: rawLog.webui
+    source: rawLog.source
   };
 
   // Extract all non-fixed fields as params
@@ -100,13 +100,13 @@ export const levelHierarchy: Record<string, number> = {
  * Filter logs based on level and source
  * @param logs - Array of log entries
  * @param minLevel - Minimum level to show
- * @param hideWebUI - Whether to hide webui logs
+ * @param selectedSources - Array of sources to show (empty means show all)
  * @returns Filtered log entries
  */
 export function filterLogs(
   logs: LogEntry[],
   minLevel: string,
-  hideWebUI: boolean
+  selectedSources: string[]
 ): LogEntry[] {
   return logs.filter(log => {
     // Filter by level hierarchy
@@ -114,8 +114,11 @@ export function filterLogs(
     const minLevelValue = levelHierarchy[minLevel] ?? 0;
     if (logLevel < minLevelValue) return false;
 
-    // Filter out webui if needed
-    if (hideWebUI && log.webui) return false;
+    // Filter by source if specific sources are selected
+    if (selectedSources.length > 0) {
+      const logSource = log.source || 'agents'; // Default to 'agents' if no source
+      if (!selectedSources.includes(logSource)) return false;
+    }
 
     return true;
   });

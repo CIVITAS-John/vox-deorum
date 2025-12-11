@@ -23,13 +23,16 @@
           size="small"
         />
         <div class="mx-2">
-          <ToggleButton
-            v-model="hideWebUI"
-            on-label="Hide WebUI"
-            off-label="Show WebUI"
-            on-icon="pi pi-eye-slash"
-            off-icon="pi pi-eye"
+          <MultiSelect
+            v-model="selectedSources"
+            :options="sourceOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="All Sources"
+            display="chip"
             size="small"
+            :showToggleAll="false"
+            class="source-filter"
           />
         </div>
         <Button
@@ -91,15 +94,21 @@ import { VList } from 'virtua/vue';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Tag from 'primevue/tag';
-import ToggleButton from 'primevue/togglebutton';
+import MultiSelect from 'primevue/multiselect';
 import SelectButton from 'primevue/selectbutton';
 import ParamsList from './ParamsList.vue';
 import '/node_modules/primeflex/primeflex.css'
 
 // State
 const autoscroll = ref(true);
-const hideWebUI = ref(true);
+const selectedSources = ref<string[]>(['agents', 'webui']); // Show all sources by default
 const selectedLevel = ref('info');
+
+// Source options for the multi-select
+const sourceOptions = [
+  { label: 'Agents', value: 'agents' },
+  { label: 'WebUI', value: 'webui' }
+];
 const virtualScroller = ref<any>();
 const logContainer = ref<HTMLElement>();
 const scrollerHeight = ref('600px');
@@ -142,8 +151,11 @@ const filteredLogs = computed(() => {
     const minLevel = levelHierarchy[selectedLevel.value] ?? 0;
     if (logLevel < minLevel) return false;
 
-    // Filter out webui if needed
-    if (hideWebUI.value && log.webui) return false;
+    // Filter by source if specific sources are selected
+    if (selectedSources.value.length > 0) {
+      const logSource = log.source || 'agents'; // Default to 'agents' if no source
+      if (!selectedSources.value.includes(logSource)) return false;
+    }
 
     return true;
   });
@@ -323,5 +335,16 @@ onUnmounted(() => {
   will-change: scroll-position; /* Hint browser for optimization */
   transform: translateZ(0); /* Enable hardware acceleration */
   backface-visibility: hidden; /* Prevent flickering */
+}
+
+/* Multi-select source filter styling */
+.source-filter {
+  min-width: 150px;
+  max-width: 250px;
+}
+
+.source-filter :deep(.p-multiselect-label) {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
 }
 </style>

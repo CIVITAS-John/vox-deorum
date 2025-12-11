@@ -88,12 +88,12 @@ const customFormat = winston.format.combine(
     format: 'YYYY-MM-DD HH:mm:ss.SSS'
   }),
   winston.format.errors({ stack: true }),
-  winston.format.printf(({ timestamp, level, message, context, webui, ...meta }) => {
+  winston.format.printf(({ timestamp, level, message, context, source, ...meta }) => {
     const style = getLevelStyle(level);
     const isProduction = process.env.NODE_ENV === 'production';
 
-    // Filter out webui field from metadata (it's only used for SSE streaming)
-    // webui is destructured above and not included in meta
+    // Filter out source field from metadata (it's only used for SSE streaming)
+    // source is destructured above and not included in meta
 
     // Simplified format for production
     if (isProduction) {
@@ -168,23 +168,23 @@ logger.stream({ start: -1 }).on('log', function(log) {
 });
 
 /**
- * Create a child logger with context and optional web UI streaming.
+ * Create a child logger with context and optional source designation.
  * The context is automatically included in all log messages from the returned logger.
- * If webui is true, logs are also streamed to SSE clients.
+ * The source field is used for filtering logs in the web UI.
  *
  * @param context - The context identifier for this logger (e.g., component name)
- * @param webui - If true, creates a web UI logger that streams to SSE clients
+ * @param source - Optional source identifier ('webui' or 'agents', defaults to 'agents')
  * @returns A Winston logger instance with the context attached
  *
  * @example
  * ```typescript
- * const logger = createLogger('MyComponent'); // Vox agents logger
- * const webLogger = createLogger('WebServer', true); // Web UI logger with SSE streaming
+ * const logger = createLogger('MyComponent'); // Vox agents logger (default source: 'agents')
+ * const webLogger = createLogger('WebServer', 'webui'); // Web UI logger with source: 'webui'
  * logger.info('Component started'); // Logs with [MyComponent] prefix
  * ```
  */
-export function createLogger(context: string, webui: boolean = false): winston.Logger {
-  return logger.child({ context, webui });
+export function createLogger(context: string, source: string = 'agents'): winston.Logger {
+  return logger.child({ context, source });
 }
 
 /**

@@ -22,7 +22,7 @@ const PORT = config.webui.port;
 
 // Create loggers using the unified logger utility
 // These will automatically stream to SSE when available
-const webLogger = createLogger('WebUI', true);       // Web UI logger
+const webLogger = createLogger('WebUI', 'webui');    // Web UI logger with source: 'webui'
 
 // Middleware setup
 app.use(cors());
