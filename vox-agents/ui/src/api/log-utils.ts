@@ -53,19 +53,6 @@ export function extractLogParams(rawLog: any): LogEntry {
 }
 
 /**
- * Check if a log entry has params to display
- * @param log - The log entry to check
- * @returns True if the log has displayable params
- */
-export function hasParams(log: LogEntry): boolean {
-  return (
-    log.params !== undefined &&
-    log.params !== null &&
-    (typeof log.params !== 'object' || Object.keys(log.params).length > 0)
-  );
-}
-
-/**
  * Get emoji icon for log level
  * @param level - The log level
  * @returns Emoji representing the log level
@@ -132,4 +119,84 @@ export function filterLogs(
 
     return true;
   });
+}
+
+
+const LINE_HEIGHT = 22; // Height per line with margin
+/**
+ * Calculate height for params object
+ * @param params - The params object to calculate height for
+ * @param availableWidth - Available width in characters
+ * @returns Total height in rows for the params display
+ */
+export function calculateParamsHeight(params: Record<string, any>, availableWidth: number): number {
+  let totalHeight = 0;
+
+  for (const [key, value] of Object.entries(params)) {
+    const keyDisplay = `${key}: `;
+
+    // Simple values fit on one line
+    if (typeof value !== 'object' || value === null) {
+      const valueStr = typeof value === 'string' ? `"${value}"` : String(value);
+      const totalLength = keyDisplay.length + valueStr.length;
+      const lines = Math.ceil(totalLength / availableWidth);
+      totalHeight += lines;
+    } else {
+      // Objects and arrays need recursive calculation
+      totalHeight += 1; // For the key line
+
+      // Add height for nested structure (simplified estimation)
+      const itemCount = Array.isArray(value) ? value.length : Object.keys(value).length;
+      totalHeight += itemCount;
+    }
+  }
+
+  return totalHeight;
+}
+
+/**
+ * Estimate the pixel height needed for a log entry row
+ * @param log - The log entry to estimate height for
+ * @param availableWidth - Approximate width of the message field in characters
+ * @returns Estimated height in pixels
+ */
+export function estimateLogRowHeight(log: LogEntry, availableWidth: number = 100): number {
+  const BASE_ROW_HEIGHT = 32; // Base height for single-line log
+
+  let height = BASE_ROW_HEIGHT;
+
+  // Estimate message lines
+  if (log.message) {
+    const estimatedLines = Math.ceil(log.message.length / availableWidth);
+    const explicitNewlines = (log.message.match(/\n/g) || []).length;
+    const totalLines = Math.max(estimatedLines, explicitNewlines + 1);
+
+    if (totalLines > 1) {
+      height += (totalLines - 1) * LINE_HEIGHT;
+    }
+  }
+
+  // Add params height if present
+  if (log.params) height += calculateParamsHeight(log.params, availableWidth) * LINE_HEIGHT;
+
+  return height;
+}
+
+/**
+ * Calculate the approximate character width based on container pixel width
+ * @param containerWidth - The container width in pixels
+ * @returns Approximate character width for the message field
+ */
+export function calculateMessageCharWidth(containerWidth: number): number {
+  // Fixed columns take up approximately 250px (100px time + 150px level)
+  const fixedColumnsWidth = 250;
+  // Account for padding and borders
+  const padding = 40;
+
+  const messageFieldPixels = Math.max(200, containerWidth - fixedColumnsWidth - padding);
+
+  // Rough estimation: ~8 pixels per character in monospace font at 0.8rem
+  const charsPerLine = Math.floor(messageFieldPixels / 8);
+
+  return charsPerLine;
 }

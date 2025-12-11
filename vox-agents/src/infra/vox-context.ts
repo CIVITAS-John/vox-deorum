@@ -269,7 +269,7 @@ export class VoxContext<TParameters extends AgentParameters> {
           // Execute steps in a loop, one at a time
           for (let stepCount = 0; !shouldStop; stepCount++) {
             this.logger.info(`Executing ${agentName}'s step ${stepCount + 1}`, {
-              GameID: this.id,
+              GameID: parameters.gameID,
               PlayerID: parameters.playerID
             });
 

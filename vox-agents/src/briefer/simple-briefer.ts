@@ -40,7 +40,7 @@ Summarize the full game state into a strategic briefing that highlights:
 - Important events since the last decision
 
 # Guidelines
-- Highlight important changes, trends, and intelligence, not raw or verbose information
+- Highlight important changes and intelligence, not raw information (e.g. coordinates)
 - The briefing should be objective and analytical, do not stick to existing strategy
 - Focus on summarizing strategic situation, do not propose suggestions
 - Use clear, direct, concise language
@@ -66,7 +66,7 @@ You will receive the following reports:
 - Events: events since the last decision-making.
 
 # Output Format
-Write your concise briefing as a simple Markdown document. Do not use table or HTML format.`.trim()
+Write your concise briefing as a text document.`.trim()
   }
 
   /**

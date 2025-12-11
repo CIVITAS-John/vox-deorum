@@ -48,7 +48,7 @@
         />
       </div>
 
-      <div class="log-container">
+      <div class="log-container" ref="logContainer">
         <!-- Header row -->
         <div class="log-header">
           <div class="col-time">Time</div>
@@ -56,30 +56,28 @@
           <div class="col-message">Message</div>
         </div>
 
-        <!-- Log entries -->
-        <VirtualScroller
-          :items="filteredLogs"
-          :itemSize="40"
-          :scrollHeight="scrollerHeight"
+        <!-- Log entries using Virtua VList -->
+        <VList
+          :data="filteredLogs"
+          :style="{ height: scrollerHeight }"
           ref="virtualScroller"
           class="log-scroller"
+          #default="{ item, index }"
         >
-          <template v-slot:item="{ item }">
-            <div :class="`log-row log-${item.level}`">
-              <div class="col-time">{{ formatTimestamp(item.timestamp) }}</div>
-              <div class="col-level">
-                <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
-                <span class="level-source">{{ item.context }}</span>
-              </div>
-              <div class="col-message">
-                {{ item.message }}
-                <div v-if="hasParams(item)" class="params-list">
-                  <ParamsList :params="item.params" :depth="0" />
-                </div>
+          <div :key="`${item.timestamp}-${index}`" :class="`log-row log-${item.level}`">
+            <div class="col-time">{{ formatTimestamp(item.timestamp) }}</div>
+            <div class="col-level">
+              <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
+              <span class="level-source">{{ item.context }}</span>
+            </div>
+            <div class="col-message">
+              {{ item.message }}
+              <div v-if="item.params" class="params-list">
+                <ParamsList :params="item.params" :depth="0" />
               </div>
             </div>
-          </template>
-        </VirtualScroller>
+          </div>
+        </VList>
       </div>
     </template>
   </Card>
@@ -88,8 +86,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue';
 import { logs, isConnected, clearLogs as clearLogsStore } from '../stores/logs';
-import { hasParams, getLevelEmoji, formatTimestamp, levelHierarchy } from '../api/log-utils';
-import VirtualScroller from 'primevue/virtualscroller';
+import { getLevelEmoji, formatTimestamp, levelHierarchy, calculateMessageCharWidth } from '../api/log-utils';
+import { VList } from 'virtua/vue';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Tag from 'primevue/tag';
@@ -103,7 +101,9 @@ const autoscroll = ref(true);
 const hideWebUI = ref(true);
 const selectedLevel = ref('info');
 const virtualScroller = ref<any>();
+const logContainer = ref<HTMLElement>();
 const scrollerHeight = ref('600px');
+const messageFieldWidth = ref(100);
 
 // Calculate adaptive scroll height
 const calculateScrollerHeight = () => {
@@ -114,9 +114,24 @@ const calculateScrollerHeight = () => {
   scrollerHeight.value = `${calculatedHeight}px`;
 };
 
-// Update height on window resize
+// Update message field width based on container
+const updateMessageFieldWidth = () => {
+  if (logContainer.value) {
+    const containerWidth = logContainer.value.offsetWidth;
+    messageFieldWidth.value = calculateMessageCharWidth(containerWidth);
+  }
+};
+
+// Debounce timer
+let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+
+// Update dimensions on window resize with debounce
 const handleResize = () => {
-  calculateScrollerHeight();
+  if (resizeTimer) clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    calculateScrollerHeight();
+    updateMessageFieldWidth();
+  }, 150); // Debounce for 150ms
 };
 
 // Filtered logs based on level and source
@@ -142,9 +157,17 @@ watch(filteredLogs, (newLogs, oldLogs) => {
       const targetIndex = newLogs.length - 1;
       if (targetIndex >= 0) {
         requestAnimationFrame(() => {
-          virtualScroller.value.scrollToIndex(targetIndex, 'auto');
+          // Virtua uses scrollToIndex method directly on the ref
+          virtualScroller.value.scrollToIndex(targetIndex);
         });
       }
+    });
+  }
+
+  // Update width calculation when logs change (container might resize)
+  if (newLogs.length !== oldLogs?.length) {
+    nextTick(() => {
+      updateMessageFieldWidth();
     });
   }
 });
@@ -154,6 +177,10 @@ const clearLogs = () => clearLogsStore();
 
 onMounted(() => {
   calculateScrollerHeight();
+  // Wait for next tick to ensure container is rendered
+  nextTick(() => {
+    updateMessageFieldWidth();
+  });
   window.addEventListener('resize', handleResize);
 });
 
@@ -193,6 +220,8 @@ onUnmounted(() => {
   transition: background-color 0.1s;
   border-bottom: 1px solid var(--p-content-border-color);
   background: var(--p-content-background);
+  min-height: 32px; /* Ensure minimum height */
+  box-sizing: border-box; /* Include padding in height calculation */
 }
 
 .log-row:hover {
@@ -282,14 +311,17 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.log-scroller {
-  background: var(--p-surface-50);
-}
-
 /* Params container styling */
 .params-list {
   color: var(--p-text-muted-color);
   display: block;
   font-size: 0.75rem;
+}
+
+/* Virtua VList optimization */
+.log-scroller {
+  will-change: scroll-position; /* Hint browser for optimization */
+  transform: translateZ(0); /* Enable hardware acceleration */
+  backface-visibility: hidden; /* Prevent flickering */
 }
 </style>
