@@ -1,7 +1,11 @@
-# Vox Agents Web UI - Implementation Plan
+# Vox Agents Web UI - Implementation Status & Plan
 
 ## Overview
-A streamlined web interface for Vox Agents providing telemetry analysis, log viewing, session control, configuration management, and an interactive agent chat system. The implementation follows a phased approach, delivering working functionality at each stage without modifying existing code.
+A streamlined web interface for Vox Agents providing telemetry analysis, log viewing, session control, configuration management, and an interactive agent chat system.
+
+## Current Status
+- ✅ **Stage 1-3 Complete**: API foundation, full UI framework, and real-time log viewer fully implemented
+- 🔄 **Stage 4-7 Pending**: Telemetry viewer, session control, config management, and agent chat
 
 ## Technology Stack
 - **Frontend**: Vue 3 with TypeScript (already initialized at `ui/`)
@@ -15,175 +19,65 @@ A streamlined web interface for Vox Agents providing telemetry analysis, log vie
 
 ## Architecture
 
-### Directory Structure
+### Current Directory Structure
 ```
 vox-agents/
 ├── src/
-│   ├── db/                   # Database utilities (shared across vox-agents)
-│   │   ├── kysely.ts         # Kysely instance and types
-│   │   ├── telemetry.ts      # Telemetry schema and queries
-│   │   └── memory.ts         # Agent memory schema and queries
-│   ├── web/                  # Web server integration
+│   ├── web/                  # Web server integration ✅
 │   │   ├── server.ts         # Express server with API routes + static serving
-│   │   ├── routes/           # Modular API route handlers
-│   │   │   ├── telemetry.ts  # Telemetry database queries
-│   │   │   ├── logs.ts       # Log stream handling
-│   │   │   ├── session.ts    # Session lifecycle control
-│   │   │   ├── config.ts     # Config file management
-│   │   │   ├── agents.ts     # Agent chat and discovery
-│   │   │   └── memory.ts     # Agent memory retrieval
-│   │   ├── chat-handler.ts   # SSE chat stream handler
-│   │   └── log-handler.ts    # Winston log stream interceptor
+│   │   └── sse-manager.ts    # SSE client management with heartbeat
+│   ├── utils/
+│   │   └── logger.ts         # Modified to stream logs via SSE
 │   └── [existing code remains untouched]
-├── ui/                        # Vue 3 frontend (already initialized)
+├── ui/                        # Vue 3 frontend ✅
 │   ├── src/
-│   │   ├── App.vue           # Main application component
-│   │   ├── router/
-│   │   │   └── index.ts      # Vue Router configuration
-│   │   ├── views/
+│   │   ├── App.vue           # Main application with router
+│   │   ├── router/           # Vue Router configuration
+│   │   ├── views/            # All views created
 │   │   │   ├── DashboardView.vue    # Overview dashboard
-│   │   │   ├── TelemetryView.vue    # Telemetry viewer
-│   │   │   ├── LogsView.vue         # Real-time logs
-│   │   │   ├── SessionView.vue      # Session control
-│   │   │   ├── ConfigView.vue       # Config management
-│   │   │   └── ChatView.vue         # Agent chat interface
+│   │   │   ├── TelemetryView.vue    # Telemetry viewer (placeholder)
+│   │   │   ├── LogsView.vue         # Real-time logs ✅
+│   │   │   ├── SessionView.vue      # Session control (placeholder)
+│   │   │   ├── ConfigView.vue       # Config management (placeholder)
+│   │   │   └── ChatView.vue         # Agent chat interface (placeholder)
 │   │   ├── components/
-│   │   │   ├── ChatInterface.vue    # Chat UI component
-│   │   │   ├── TelemetryGrid.vue    # PrimeVue DataTable for telemetry
-│   │   │   └── LogViewer.vue        # Log streaming component
+│   │   │   ├── LogViewer.vue        # Log streaming component ✅
+│   │   │   └── ParamsList.vue       # Parameter display component ✅
+│   │   ├── stores/
+│   │   │   ├── health.ts            # Health status store ✅
+│   │   │   └── logs.ts              # Log management store ✅
 │   │   └── api/
-│   │       └── client.ts             # API client with SSE support
+│   │       ├── client.ts             # API client with SSE support ✅
+│   │       └── log-utils.ts         # Log formatting utilities ✅
 │   └── [vite.config.ts, package.json, etc.]
 ├── dist-ui/                   # Production build output
 │   └── [static files served by Express]
 └── package.json
+
+### Planned Additions (Phases 4-7)
+- src/web/routes/ - Modular API route handlers for each feature
+- src/db/ - Database utilities with Kysely for telemetry
+- Additional UI components for remaining features
 ```
 
-## Core Features & Implementation
+## Core Features Overview
 
 ### 1. Telemetry Dashboard
-**Approach**: Interface with SQLiteSpanExporter using Kysely ORM for type-safe queries.
+Interface with SQLiteSpanExporter using Kysely ORM for type-safe queries. Auto-discover databases and display span hierarchy with timing waterfall.
 
-**Features**:
-- Auto-discover databases in `telemetry/` directory (SQLiteSpanExporter's default)
-- List active connections from SQLiteSpanExporter's database map
-- Query spans using Kysely with strong typing
-- Filter by context_id, trace_id, time range, and service name
-- Display span hierarchy and timing waterfall
-
-**Implementation**:
-```typescript
-// Use CamelCasePlugin for automatic conversion
-// Define in camelCase, plugin converts to snake_case
-interface SpanTableCamelCase {
-  id: Generated<number>;
-  contextId: string;
-  traceId: string;
-  spanId: string;
-  parentSpanId: string | null;
-  name: string;
-  startTime: number;
-  endTime: number;
-  serviceName: string;
-  attributes: string; // JSON
-  status: string;
-  events: string; // JSON
-}
-
-interface TelemetryDatabase {
-  spans: SpanTable; // Use snake_case version by default
-}
-
-// Type-safe queries with Kysely
-import { Kysely, SqliteDialect, CamelCasePlugin } from 'kysely';
-import Database from 'better-sqlite3';
-
-// With CamelCasePlugin (use camelCase in queries, auto-converts)
-const dbCamelCase = new Kysely<{ spans: SpanTableCamelCase }>({
-  dialect: new SqliteDialect({
-    database: new Database(dbPath, { readonly: true })
-  }),
-  plugins: [new CamelCasePlugin()]
-});
-
-const spansCamel = await dbCamelCase
-  .selectFrom('spans')
-  .selectAll()
-  .where('contextId', '=', contextId)
-  .orderBy('startTime', 'desc')
-  .limit(100)
-  .execute();
-```
-
-### 2. Real-time Log Viewer
-**Approach**: Intercept Winston log streams and route to SSE with prefixed separation.
-
-**Features**:
-- Multiple log streams (vox-agents, webui) with prefixes
-- Real-time streaming via Winston transport
-- Frontend-only filtering by log level and source
-- Search with highlighting
-- Pause/resume streaming
-- No file watching or server-side filtering needed
+### 2. Real-time Log Viewer ✅ IMPLEMENTED
+Intercept Winston log streams and route to SSE. Frontend filtering by log level and source with virtual scrolling.
 
 ### 3. Session Control
-**Approach**: Web wrapper around existing StrategistSession without refactoring.
-
-**Features**:
-- Start/stop strategist sessions via API
-- Monitor session status and progress
-- Handle graceful shutdown
-- Display repetition count progress
-
-**Implementation**:
-```typescript
-// Reuse existing session management
-import { StrategistSession } from '../strategist/strategist-session.js';
-
-let currentSession: StrategistSession | null = null;
-
-// API endpoints wrap existing functionality
-app.post('/api/session/start', async (req, res) => {
-  const config = req.body;
-  currentSession = new StrategistSession(config);
-  await currentSession.start();
-  res.json({ status: 'started' });
-});
-```
+Web wrapper around existing StrategistSession. Start/stop sessions, monitor progress, handle graceful shutdown.
 
 ### 4. Configuration Management
-**Approach**: Simple JSON file CRUD operations.
-
-**Features**:
-- List/load/save/delete config files
-- Basic form-based editor
-- Validation using existing schemas
-- Recent configs tracking
-
-**Implementation**:
-```typescript
-// Config directory management
-const configDir = './configs';
-
-app.get('/api/configs', (req, res) => {
-  const configs = fs.readdirSync(configDir)
-    .filter(f => f.endsWith('.json'))
-    .map(f => ({ name: path.basename(f, '.json'), path: f }));
-  res.json(configs);
-});
-```
+Simple JSON file CRUD operations. List/load/save/delete config files with validation.
 
 ### 5. Agent Chat Interface
-**Approach**: Execute agents with user messages as input via VoxContext.
+Execute agents with user messages via VoxContext. Stream responses via SSE, display tool calls.
 
-**Features**:
-- Discover all registered agents dynamically
-- Stream responses via SSE
-- Display tool calls and reasoning
-- Read-only AgentParameters context integration
-
-## Implementation Phases
-When implementing, always work on the minimal and wait for human verification to build up - don't overcomplicate things. Use PrimeVue components if there is one; don't build customized components or custom CSS unless asked.
+## Completed Implementation
 
 ### Stage 1: Minimal API Foundation ✅ COMPLETED
 **Backend Only**:
@@ -252,104 +146,85 @@ When implementing, always work on the minimal and wait for human verification to
 - Router configured with all routes
 - Added `webui` and `webui:dev` scripts to package.json
 
-### Phase 3: Log Viewer ✅ COMPLETED
-**Frontend**:
+### Stage 3: Log Viewer ✅ COMPLETED
+**Features Implemented**:
 - ✅ LogViewer component with real-time SSE streaming
-- ✅ Source/level filter buttons (frontend-only)
-- ✅ Search with highlighting
-- ✅ Auto-scroll toggle
+- ✅ Virtual scrolling using Virtua library for performance
+- ✅ Multi-source filtering (vox-agents, webui, etc.)
+- ✅ Level-based filtering (debug, info, warn, error)
+- ✅ Auto-scroll with manual pause
 - ✅ Connection status indicator
+- ✅ Clear logs functionality
+- ✅ Timestamp formatting and level emoji indicators
+- ✅ Parameter display for structured logs
 
-**Deliverables**:
-- ✅ Real-time log streaming from multiple sources
-- ✅ Frontend filtering by source and level
-- ✅ Search functionality with highlighting
-- ✅ Pause/resume streaming
-- ✅ Virtual scrolling for performance
+**Technical Details**:
+- Uses Virtua VList for efficient virtual scrolling
+- Frontend-only filtering reduces server load
+- Stores manage log state and SSE connections
+- PrimeVue components for UI (Button, Card, Tag, MultiSelect, SelectButton)
 
-**Implementation Details**:
-- Created comprehensive LogViewer component with:
-  - SSE client for real-time log streaming
-  - Frontend-only filtering (no server round-trips)
-  - Search highlighting with regex support
-  - Auto-scroll that pauses on user interaction
-  - Reconnection logic with exponential backoff
-  - 1000-line buffer with circular management
-- Used PrimeVue components throughout:
-  - DataTable for log display
-  - Button for controls
-  - InputText for search
-  - Tag for log levels
-- Clean integration with existing logger infrastructure
+## Remaining Implementation Phases
 
-### Phase 4: Telemetry Viewer (4 hours)
-**Backend**:
+### Phase 4: Telemetry Viewer
+**Status**: 🔄 Not Started
+
+**Backend Requirements**:
 - Kysely setup for telemetry databases
 - Type-safe span queries with filtering
 - Pagination and trace reconstruction
+- Database discovery in `telemetry/` directory
 
-**Frontend**:
+**Frontend Requirements**:
 - Database selector dropdown
 - PrimeVue DataTable for span display with virtual scrolling
 - Filter controls (time, service, status)
 - Span detail modal
-
-**Deliverables**:
-- List and select telemetry databases
-- View spans with type-safe queries
 - Trace hierarchy visualization
 
-### Phase 5: Session Control (3 hours)
-**Backend**:
+### Phase 5: Session Control
+**Status**: 🔄 Not Started
+
+**Backend Requirements**:
 - Wrapper API around StrategistSession
 - Session state management
-- Progress tracking
+- Progress tracking via SSE
 - Graceful shutdown handling
 
-**Frontend**:
+**Frontend Requirements**:
 - Session status card
 - Start/stop controls
 - Progress indicators
-- Config selector
+- Config selector from available files
 
-**Deliverables**:
-- Start/stop strategist sessions
-- Live progress updates
-- Error handling
+### Phase 6: Configuration Management
+**Status**: 🔄 Not Started (ConfigView.vue has placeholder)
 
-### Phase 6: Configuration Management (2 hours)
-**Backend**:
+**Backend Requirements**:
 - File-based config storage
 - CRUD operations for configs
 - Schema validation endpoint
 
-**Frontend**:
+**Frontend Requirements**:
 - Config list view
 - JSON editor with syntax highlighting
 - Save/load/delete operations
 - Validation feedback
 
-**Deliverables**:
-- Full config CRUD
-- Validation UI
-- Import/export
+### Phase 7: Agent Chat
+**Status**: 🔄 Not Started
 
-### Phase 7: Agent Chat (4 hours)
-**Backend**:
+**Backend Requirements**:
 - Agent registry endpoint
 - Chat message handler
-- VoxContext/AgentParameters integration (parameters should be read-only)
+- VoxContext/AgentParameters integration (read-only)
 - SSE response streaming
 
-**Frontend**:
+**Frontend Requirements**:
 - Agent discovery and listing
 - Chat interface component
 - Message history
-
-**Deliverables**:
-- Chat with any agent
 - Tool call visualization
-- Context awareness
 
 ## API Design
 
@@ -425,59 +300,26 @@ SSE /api/agents/:name/stream    // Response stream
 
 ## Development Notes
 
-### Key Principles
-1. **Shared process** - Web server runs in same process as vox-agents with prefix separation
-2. **Type safety** - Use Kysely ORM for strongly typed database queries
-3. **Stream-based logs** - Intercept Winston streams rather than reading files
-4. **Incremental delivery** - Each phase produces working functionality
-5. **Minimal first stage** - Stage 1 only creates a nominal API endpoint
-6. **PrimeVue-first approach** - Always use existing PrimeVue components before custom implementations
-7. **Stores for shared state** - Use Vue stores (like health.ts) for cross-component state
-
 ### File Locations
 - **Telemetry databases**: `telemetry/` directory (SQLiteSpanExporter default)
 - **Config files**: `configs/` directory (JSON files)
 - **Log streams**: In-memory buffers (no file dependency)
 - **Web UI build**: `dist-ui/` directory
 
-### Testing Approach
-- Manual testing during development
-- Mock data for UI component development
-- Real game session testing for integration
-- Graceful handling of missing/empty data
-
 ### Performance Considerations
 - Pagination for large span datasets (100 per page)
-- Virtual scrolling for log viewer (1000 line buffer)
-- Debounced search/filter inputs (300ms)
-- SSE connection pooling and reconnection
+- Virtual scrolling for log viewer (using Virtua library)
+- SSE connection pooling and reconnection with heartbeat
 - SQLite connection reuse with readonly mode
 
-## Lessons Learned
+## Implementation Guidelines
 
-### Architecture Decisions That Worked
-1. **Shared process architecture** - Running web server in same process simplified deployment and state sharing
-2. **SSE over WebSockets** - Simpler implementation with built-in reconnection and event types
-3. **Frontend-only filtering** - Reduces server load and improves responsiveness
-4. **PrimeVue components** - Saved significant development time with professional UI components
+### Key Principles
+1. **Shared process** - Web server runs in same process as vox-agents
+2. **Type safety** - Use Kysely ORM for strongly typed database queries
+3. **Stream-based logs** - Intercept Winston streams rather than reading files
+4. **Incremental delivery** - Each phase produces working functionality
+5. **PrimeVue-first approach** - Always use existing PrimeVue components before custom implementations
 
-### Development Best Practices
-1. **Start with minimal API** - Health endpoint first validates entire stack
-2. **Use existing infrastructure** - Logger, config system already there to leverage
-3. **Component placeholders** - Create all views early even if empty
-4. **Type everything** - TypeScript interfaces for all API responses
-
-## Future Enhancements
-- WebSocket upgrade for lower latency
-- Span analysis and aggregations
-- Multi-agent conversations
-- Chat history persistence
-- Export capabilities
-- Bridge service integration
-- MCP server tool visualization
-- Agent memory retrieval and visualization
-- Memory search and filtering capabilities
-- Cross-agent memory correlation
-- Keyboard shortcuts for power users
-- Customizable dashboard widgets
-- Performance profiling view
+### Next Steps
+Continue with Phase 4 (Telemetry Viewer) following the established patterns from the completed phases.
