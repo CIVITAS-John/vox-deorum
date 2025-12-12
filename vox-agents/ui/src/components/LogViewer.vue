@@ -68,7 +68,7 @@
         <!-- Log entries using Virtua VList -->
         <VList
           :data="filteredLogs"
-          :style="{ min-height: scrollerHeight }"
+          :style="{ minHeight: scrollerHeight }"
           ref="virtualScroller"
           class="table-body log-scroller"
           #default="{ item, index }"
