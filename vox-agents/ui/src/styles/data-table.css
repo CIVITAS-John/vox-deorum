@@ -115,6 +115,12 @@
   padding-right: 0.5rem;
 }
 
+.col-fixed-250 {
+  flex: 0 0 250px;
+  width: 250px;
+  padding-right: 0.5rem;
+}
+
 /* Text utilities */
 .monospace {
   font-family: 'Courier New', Courier, monospace;

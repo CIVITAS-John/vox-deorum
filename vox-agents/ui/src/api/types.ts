@@ -47,7 +47,7 @@ export interface LogEntry {
 /**
  * Metadata for a telemetry database file containing game session data
  */
-export interface TelemetryDatabase {
+export interface TelemetryMetadata {
   /** Folder path containing the database */
   folder: string;
   /** Database filename */
@@ -67,7 +67,7 @@ export interface TelemetryDatabase {
  */
 export interface TelemetryDatabasesResponse {
   /** Array of telemetry database metadata */
-  databases: TelemetryDatabase[];
+  databases: TelemetryMetadata[];
 }
 
 /**

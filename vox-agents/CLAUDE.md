@@ -219,6 +219,37 @@ VoxAgent (Base)
 - VirtualScroller for large data sets (logs, tables)
 - Avoid external heavy dependencies when PrimeVue provides alternatives
 
+### Style Reuse Guidelines
+**IMPORTANT**: Always reuse existing styles `src/styles` rather than creating duplicate definitions.
+
+#### Shared Style Files
+- `src/styles/global.css` - Application-wide styles and section layouts
+- `src/styles/data-table.css` - Common table styles for consistent appearance
+
+#### Style Reuse Patterns
+1. **Always check existing shared styles** before creating new ones
+
+2. **Use shared CSS classes from global.css**:
+   - `.section-container` - Container for multiple card sections with gap
+   - `.section-header` - Card title header with icon and text alignment
+
+3. **Use shared CSS classes from data-table.css**:
+   - `.data-table` - Container for tables
+   - `.table-header` - Table header row
+   - `.table-body` - Table body container
+   - `.table-row` - Individual table rows
+   - `.table-empty` - Empty state for tables
+   - `.col-fixed-*` - Fixed width columns (50, 60, 80, 100, 120, 150, 200, 250)
+   - `.col-expand` - Expanding column that fills available space
+   - Text utilities: `.monospace`, `.text-truncate`, `.text-wrap`, `.text-muted`, `.text-small`
+
+4. **Empty States**: Use `.table-empty` class for all empty states to maintain consistency
+5. **Section Layouts**: Use `.section-container` for views with multiple card sections
+6. **If you must create a new style**:
+   - First check if it can be added to shared styles
+   - Ensure all similar components use the new style
+   - Avoid creating splintered/duplicate styles across components
+
 ### PrimeVue 3 Color System
 **IMPORTANT**: Always use PrimeVue's actual CSS variables, not guessed color names.
 

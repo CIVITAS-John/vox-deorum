@@ -47,3 +47,17 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--p-surface-hover);
 }
+
+/* Section layout styles */
+.section-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Section header for card titles */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

@@ -17,7 +17,10 @@ const formatUptime = (seconds?: number) => {
 
     <Card class="mb-3">
       <template #title>
-        <i class="pi pi-heart-fill" /> System Health
+        <div class="section-header">
+          <i class="pi pi-heart-fill" />
+          <span>System Health</span>
+        </div>
       </template>
       <template #content>
         <div v-if="!healthStatus" class="loading">
@@ -49,3 +52,7 @@ const formatUptime = (seconds?: number) => {
     </Card>
   </div>
 </template>
+
+<style scoped>
+@import '@/styles/global.css';
+</style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
@@ -7,7 +7,8 @@ import FileUpload from 'primevue/fileupload';
 import Tag from 'primevue/tag';
 import ProgressSpinner from 'primevue/progressspinner';
 import { api } from '@/api/client';
-import type { TelemetryDatabase } from '@/api/types';
+import { activeSessions, databases, loading, fetchTelemetryData } from '@/stores/telemetry';
+import type { TelemetryMetadata } from '@/api/types';
 
 interface ActiveSession {
   contextId: string;
@@ -16,12 +17,8 @@ interface ActiveSession {
 }
 
 const router = useRouter();
-const activeSessions = ref<string[]>([]);
-const databases = ref<TelemetryDatabase[]>([]);
-const loading = ref(true);
 const uploadProgress = ref(false);
 const fileUploadRef = ref<any>(null);
-let refreshInterval: number | null = null;
 
 /**
  * Format file size for display
@@ -54,24 +51,6 @@ function parseSessionId(sessionId: string): ActiveSession {
   return { contextId: sessionId };
 }
 
-/**
- * Load active sessions and databases
- */
-async function loadTelemetryData() {
-  try {
-    // Load active sessions with typed response
-    const sessionsResponse = await api.getTelemetrySessions();
-    activeSessions.value = sessionsResponse.sessions || [];
-
-    // Load databases with typed response
-    const dbResponse = await api.getTelemetryDatabases();
-    databases.value = dbResponse.databases || [];
-  } catch (error) {
-    console.error('Failed to load telemetry data:', error);
-  } finally {
-    loading.value = false;
-  }
-}
 
 /**
  * Navigate to active session view
@@ -83,7 +62,7 @@ function viewActiveSession(sessionId: string) {
 /**
  * Navigate to database view
  */
-function viewDatabase(db: TelemetryDatabase) {
+function viewDatabase(db: TelemetryMetadata) {
   // Encode the full path (folder/filename) for the route
   const fullPath = db.folder === 'telemetry' ? db.filename : `${db.folder}/${db.filename}`;
   router.push({
@@ -106,7 +85,7 @@ async function onUpload(event: any) {
 
     if (result.success) {
       // Refresh database list after successful upload
-      await loadTelemetryData();
+      await fetchTelemetryData();
       // Clear the upload queue
       if (fileUploadRef.value) {
         fileUploadRef.value.clear();
@@ -120,20 +99,8 @@ async function onUpload(event: any) {
 }
 
 onMounted(() => {
-  loadTelemetryData();
-
-  // Refresh active sessions every 5 seconds with typed API
-  refreshInterval = window.setInterval(() => {
-    api.getTelemetrySessions().then(response => {
-      activeSessions.value = response.sessions || [];
-    }).catch(console.error);
-  }, 5000);
-});
-
-onUnmounted(() => {
-  if (refreshInterval) {
-    clearInterval(refreshInterval);
-  }
+  // Initial load of telemetry data
+  fetchTelemetryData();
 });
 </script>
 
@@ -146,7 +113,7 @@ onUnmounted(() => {
       <p>Loading telemetry data...</p>
     </div>
 
-    <div v-else class="telemetry-sections">
+    <div v-else class="section-container">
       <!-- Active Sessions Section -->
       <Card class="active-sessions-section">
         <template #title>
@@ -157,7 +124,7 @@ onUnmounted(() => {
         </template>
 
         <template #content>
-          <div v-if="activeSessions.length === 0" class="empty-state">
+          <div v-if="activeSessions.length === 0" class="table-empty">
             <i class="pi pi-info-circle"></i>
             <p>No active telemetry sessions</p>
           </div>
@@ -227,10 +194,10 @@ onUnmounted(() => {
         </template>
 
         <template #content>
-          <div v-if="databases.length === 0" class="empty-state">
+          <div v-if="databases.length === 0" class="table-empty">
             <i class="pi pi-database"></i>
             <p>No telemetry databases found</p>
-            <p class="hint">Upload a database file or wait for active sessions to complete</p>
+            <p class="text-small text-muted">Upload a database file or wait for active sessions to complete</p>
           </div>
 
           <div v-else class="data-table">
@@ -250,14 +217,17 @@ onUnmounted(() => {
               <div v-for="db in databases" :key="`${db.folder}/${db.filename}`"
                    class="table-row clickable"
                    @click="viewDatabase(db)">
+                <div class="col-expand">
+                  <span class="monospace">{{ db.filename }}</span>
+                </div>
                 <div class="col-fixed-150">
+                  <Tag :value="db.folder" severity="secondary" />
+                </div>
+                <div class="col-fixed-200">
                   {{ db.gameId }}
                 </div>
                 <div class="col-fixed-100">
                   {{ db.playerId }}
-                </div>
-                <div class="col-fixed-100">
-                  <Tag :value="db.folder" severity="secondary" />
                 </div>
                 <div class="col-fixed-80">
                   {{ formatSize(db.size) }}
@@ -279,17 +249,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+@import '@/styles/global.css';
 @import '@/styles/data-table.css';
 
-.telemetry-view {
-  padding: 1rem;
-}
-
-h1 {
-  margin-bottom: 1.5rem;
-  color: var(--text-color);
-}
-
+/* Telemetry-specific styles only */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -299,46 +262,8 @@ h1 {
   gap: 1rem;
 }
 
-.telemetry-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .upload-area {
   padding: 1rem;
   border-bottom: 1px solid var(--surface-border);
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: var(--text-color-secondary);
-}
-
-.empty-state i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.empty-state .hint {
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-  opacity: 0.7;
 }
 </style>

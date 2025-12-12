@@ -51,7 +51,13 @@
         />
       </div>
 
-      <div class="data-table log-container" ref="logContainer">
+      <div v-if="filteredLogs.length === 0" class="table-empty">
+        <i class="pi pi-inbox"></i>
+        <p>No log entries to display</p>
+        <p class="text-small text-muted">Logs will appear here as the application runs</p>
+      </div>
+
+      <div v-else class="data-table log-container" ref="logContainer">
         <!-- Header row -->
         <div class="table-header">
           <div class="col-fixed-100">Time</div>
