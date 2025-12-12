@@ -62,7 +62,7 @@ router.get('/databases', async (req, res) => {
           const nameWithoutExt = path.basename(entry.name, '.db');
           const parts = nameWithoutExt.split('-');
           const playerId = parts[parts.length - 1] || 'unknown';
-          const gameId = parts.slice(0, -1).join('-') || 'unknown';
+          const gameId = parts.slice(0, -2).join('-') || 'unknown';
 
           databases.push({
             folder: folderPath,

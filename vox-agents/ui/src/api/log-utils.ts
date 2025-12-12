@@ -25,16 +25,12 @@ export function extractLogParams(rawLog: any): LogEntry {
     timestamp: rawLog.timestamp,
     level: rawLog.level,
     message: rawLog.message,
-    source: rawLog.source
+    source: rawLog.source,
+    context: rawLog.context
   };
 
   // Extract all non-fixed fields as params, including context if present
   const params: Record<string, any> = {};
-
-  // Add context to params if present
-  if (rawLog.context) {
-    params.context = rawLog.context;
-  }
 
   for (const [key, value] of Object.entries(rawLog)) {
     if (!FIXED_LOG_FIELDS.includes(key as any)) {

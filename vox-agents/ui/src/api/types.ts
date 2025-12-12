@@ -36,8 +36,10 @@ export interface LogEntry {
   level: 'debug' | 'info' | 'warn' | 'error';
   /** The log message content */
   message: string;
-  /** Optional source component that generated the log */
-  source?: string;
+  /** Source component that generated the log */
+  context: string;
+  /** Source that generated the log */
+  source: string;
   /** Additional structured parameters associated with the log */
   params?: Record<string, any>;
 }

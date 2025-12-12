@@ -133,9 +133,8 @@ onMounted(() => {
             <!-- Table Header -->
             <div class="table-header">
               <div class="col-expand">Session ID</div>
-              <div class="col-fixed-150">Game</div>
+              <div class="col-expand">Game ID</div>
               <div class="col-fixed-100">Player</div>
-              <div class="col-fixed-100">Status</div>
               <div class="col-fixed-80">Actions</div>
             </div>
 
@@ -152,9 +151,6 @@ onMounted(() => {
                 </div>
                 <div class="col-fixed-100">
                   {{ parseSessionId(sessionId).playerId || '-' }}
-                </div>
-                <div class="col-fixed-100">
-                  <Tag value="Live" severity="success" />
                 </div>
                 <div class="col-fixed-80">
                   <Button icon="pi pi-eye" text rounded size="small"
@@ -203,12 +199,11 @@ onMounted(() => {
           <div v-else class="data-table">
             <!-- Table Header -->
             <div class="table-header">
-              <div class="col-expand">Filename</div>
-              <div class="col-fixed-150">Folder</div>
-              <div class="col-fixed-250">Game ID</div>
+              <div class="col-fixed-200">Folder</div>
+              <div class="col-expand">Game ID</div>
               <div class="col-fixed-100">Player</div>
               <div class="col-fixed-80">Size</div>
-              <div class="col-fixed-150">Last Modified</div>
+              <div class="col-fixed-200">Last Modified</div>
               <div class="col-fixed-100">Actions</div>
             </div>
 
@@ -217,13 +212,10 @@ onMounted(() => {
               <div v-for="db in databases" :key="`${db.folder}/${db.filename}`"
                    class="table-row clickable"
                    @click="viewDatabase(db)">
-                <div class="col-expand">
-                  <span class="monospace">{{ db.filename }}</span>
-                </div>
-                <div class="col-fixed-150">
+                <div class="col-fixed-200">
                   <Tag :value="db.folder" severity="secondary" />
                 </div>
-                <div class="col-fixed-200">
+                <div class="col-expand">
                   {{ db.gameId }}
                 </div>
                 <div class="col-fixed-100">
@@ -232,7 +224,7 @@ onMounted(() => {
                 <div class="col-fixed-80">
                   {{ formatSize(db.size) }}
                 </div>
-                <div class="col-fixed-150">
+                <div class="col-fixed-200">
                   {{ formatDate(db.lastModified) }}
                 </div>
                 <div class="col-fixed-100">

@@ -68,7 +68,7 @@
         <!-- Log entries using Virtua VList -->
         <VList
           :data="filteredLogs"
-          :style="{ height: scrollerHeight }"
+          :style="{ min-height: scrollerHeight }"
           ref="virtualScroller"
           class="table-body log-scroller"
           #default="{ item, index }"
@@ -78,7 +78,7 @@
             <div class="col-fixed-100">{{ formatTimestamp(item.timestamp) }}</div>
             <div class="col-fixed-150">
               <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
-              <span class="level-source text-muted text-small">{{ item.context }}</span>
+              <span class="level-context text-muted text-small">{{ item.context }}</span>
             </div>
             <div class="col-expand text-wrap">
               {{ item.message }}
@@ -224,21 +224,12 @@ onUnmounted(() => {
 <style scoped>
 @import '@/styles/data-table.css';
 
-/* LogViewer specific overrides */
-.log-container {
-  /* Override max-height from data-table.css for adaptive height */
-}
-
-.log-container .table-body {
-  max-height: none; /* Remove max-height as we control it via scrollerHeight */
-}
-
 /* Log-specific styling */
 .level-emoji {
   margin-right: 0.25rem;
 }
 
-.level-source {
+.level-context {
   margin-left: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
