@@ -105,10 +105,6 @@ function formatJson(data: any): string {
   gap: 0.75rem;
 }
 
-.message {
-  padding-left: 0.5rem;
-}
-
 .message--system {
   border-left: 3px solid var(--p-gray-500);
 }
@@ -129,6 +125,7 @@ function formatJson(data: any): string {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-left: 0.5rem;
   margin-bottom: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
