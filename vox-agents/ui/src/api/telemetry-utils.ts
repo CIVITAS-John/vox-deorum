@@ -197,11 +197,18 @@ export function buildSpanTree(spans: Span[]): SpanNode[] {
     if (span.parentSpanId && spanMap.has(span.parentSpanId)) {
       const parent = spanMap.get(span.parentSpanId)!;
       parent.children.push(node);
-      node.depth = parent.depth + 1;
     } else {
       roots.push(node);
     }
   });
+
+  // Third pass: calculate depths recursively
+  const calculateDepth = (node: SpanNode, depth: number = 0) => {
+    node.depth = depth;
+    node.children.forEach(child => calculateDepth(child, depth + 1));
+  };
+
+  roots.forEach(root => calculateDepth(root, 0));
 
   // Sort children by start time
   const sortChildren = (node: SpanNode) => {

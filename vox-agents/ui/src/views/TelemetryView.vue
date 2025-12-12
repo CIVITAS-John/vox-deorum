@@ -207,6 +207,5 @@ onMounted(() => {
 /* Telemetry-specific styles only */
 .upload-area {
   padding: 1rem;
-  border-bottom: 1px solid var(--surface-border);
 }
 </style>

@@ -9,9 +9,9 @@
   flex-direction: column;
   width: 100%;
   font-size: 0.875rem;
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--p-content-border-color);
   border-radius: var(--border-radius);
-  background: var(--surface-ground);
+  background: var(--p-content-background);
   overflow: hidden;
 }
 
@@ -20,8 +20,8 @@
   display: flex;
   align-items: center;
   padding: 0.75rem 1rem;
-  background: var(--surface-hover);
-  border-bottom: 2px solid var(--surface-border);
+  background: var(--content-hover-background);
+  border-bottom: 2px solid var(--p-content-border-color);
   font-weight: 600;
   color: var(--text-color);
   user-select: none;
@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--surface-border);
+  border-bottom: 1px solid var(--content-border-color);
   transition: background-color 0.2s;
   min-height: 2.5rem;
 }
@@ -48,17 +48,12 @@
 }
 
 .table-row:hover {
-  background: var(--surface-hover);
+  background: var(--p-content-hover-background);
 }
 
 /* Clickable row style */
 .table-row.clickable {
   cursor: pointer;
-}
-
-.table-row.clickable:hover {
-  background: var(--primary-color-text);
-  background: rgba(var(--primary-500-rgb), 0.08);
 }
 
 /* Column sizing utilities */
@@ -137,7 +132,7 @@
 }
 
 .text-muted {
-  color: var(--text-color-secondary);
+  color: var(--p-text-muted-color);
 }
 
 .text-small {
@@ -161,19 +156,19 @@
 
 /* Special row states */
 .table-row.selected {
-  background: rgba(var(--primary-500-rgb), 0.12);
+  background: rgba(var(--p-primary-500), 0.12);
 }
 
 .table-row.error {
-  background: rgba(var(--red-500-rgb), 0.05);
+  background: rgba(var(--p-red-500), 0.05);
 }
 
 .table-row.warning {
-  background: rgba(var(--yellow-500-rgb), 0.05);
+  background: rgba(var(--p-yellow-500), 0.05);
 }
 
 .table-row.success {
-  background: rgba(var(--green-500-rgb), 0.05);
+  background: rgba(var(--p-green-500), 0.05);
 }
 
 /* Empty state for tables */
@@ -183,7 +178,7 @@
   align-items: center;
   justify-content: center;
   padding: 3rem;
-  color: var(--text-color-secondary);
+  color: var(--p-text-muted-color);
   text-align: center;
 }
 
@@ -203,7 +198,7 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: var(--text-color-secondary);
+  color: var(--p-text-muted-color);
 }
 
 /* Responsive adjustments */

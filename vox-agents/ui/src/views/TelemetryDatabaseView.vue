@@ -271,7 +271,7 @@ onMounted(() => {
 }
 
 .traces-paginator {
-  border-top: 1px solid var(--surface-border);
+  border-top: 1px solid var(--p-surface-border);
 }
 
 /* Responsive adjustments */
