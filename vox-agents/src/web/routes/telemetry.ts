@@ -12,7 +12,7 @@ import multer from 'multer';
 import { createLogger } from '../../utils/logger.js';
 import { sqliteExporter } from '../../instrumentation.js';
 
-const logger = createLogger('telemetry-api', 'webui');
+const logger = createLogger('telemetry', 'webui');
 const router = Router();
 
 // Configure multer for file uploads

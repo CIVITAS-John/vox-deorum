@@ -5,7 +5,8 @@ A streamlined web interface for Vox Agents providing telemetry analysis, log vie
 
 ## Current Status
 - ✅ **Stage 1-3 Complete**: API foundation, full UI framework, and real-time log viewer fully implemented
-- 🔄 **Stage 4-7 Pending**: Telemetry viewer, session control, config management, and agent chat
+- ✅ **Stage 4 Backend Complete**: Telemetry API endpoints fully operational, frontend pending
+- 🔄 **Stage 4 Frontend & 5-7 Pending**: Telemetry UI, session control, config management, and agent chat
 
 ## Technology Stack
 - **Frontend**: Vue 3 with TypeScript (already initialized at `ui/`)
@@ -54,10 +55,13 @@ vox-agents/
 │   └── [static files served by Express]
 └── package.json
 
-### Planned Additions (Phases 4-7)
-- src/web/routes/ - Modular API route handlers for each feature
-- src/db/ - Database utilities with Kysely for telemetry
-- Additional UI components for remaining features
+### Implemented & Planned Additions
+- src/web/routes/ - Modular API route handlers ✅
+  - telemetry.ts ✅ - Complete telemetry API implementation
+  - session.ts (planned) - Session control endpoints
+  - config.ts (planned) - Configuration management
+  - agent.ts (planned) - Agent chat endpoints
+- Additional UI components for remaining features (planned)
 ```
 
 ## Core Features Overview
@@ -166,20 +170,20 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 
 ## Remaining Implementation Phases
 
-### Phase 4: Telemetry Viewer
-**Status**: 🔄 Backend Complete, Frontend Pending
+### Stage 4: Telemetry Viewer ✅ BACKEND COMPLETED
+**Status**: Backend Complete, Frontend Pending
 
-**Backend Requirements**: ✅ COMPLETED
-- ✅ Database discovery in `telemetry/` with recursive scanning
+**Backend Implementation**: ✅ COMPLETED
+- ✅ Database discovery with recursive scanning in `telemetry/` directory
 - ✅ Parse database filenames (format: `gameid-playerid.db`)
-- ✅ Kysely setup for telemetry databases with type-safe queries
+- ✅ Kysely integration for type-safe database queries
 - ✅ Active sessions API via `sqliteExporter.getActiveConnections()`
-- ✅ Span streaming via SSE for active sessions with event listeners
-- ✅ Trace listing (spans without parent_span_id)
-- ✅ File upload support with multer middleware
+- ✅ Real-time span streaming via SSE with event listeners
+- ✅ Trace listing (root spans without parent_span_id)
+- ✅ File upload support with multer middleware (100MB limit)
 - ✅ All API endpoints implemented in `src/web/routes/telemetry.ts`
 
-**Frontend Requirements**:
+**Frontend Requirements** (Not Started):
 - Main telemetry page with two sections:
   - Active Sessions list (same as LogViewer)
   - Existing Databases list with simple card layout showing folder, game ID, player ID
@@ -199,7 +203,7 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
   - Expandable spans with overlay panel showing full attributes
   - Parent-child hierarchy visualization
 
-### Phase 5: Session Control
+### Stage 5: Session Control
 **Status**: 🔄 Not Started
 
 **Backend Requirements**:
@@ -214,7 +218,7 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - Progress indicators
 - Config selector from available files
 
-### Phase 6: Configuration Management
+### Stage 6: Configuration Management
 **Status**: 🔄 Not Started (ConfigView.vue has placeholder)
 
 **Backend Requirements**:
@@ -228,7 +232,7 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - Save/load/delete operations
 - Validation feedback
 
-### Phase 7: Agent Chat
+### Stage 7: Agent Chat
 **Status**: 🔄 Not Started
 
 **Backend Requirements**:
@@ -394,4 +398,4 @@ SSE /api/agents/:name/stream    // Response stream
 5. **PrimeVue-first approach** - Always use existing PrimeVue components before custom implementations
 
 ### Next Steps
-Continue with Phase 4 (Telemetry Viewer) following the established patterns from the completed phases.
+Complete Stage 4 frontend (Telemetry Viewer UI) following the established LogViewer patterns, then proceed with Stage 5 (Session Control).
