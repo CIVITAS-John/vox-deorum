@@ -82,12 +82,6 @@ export class VoxContext<TParameters extends AgentParameters> {
     this.modelOverrides = modelOverrides;
     this.abortController = new AbortController();
     this.logger.info(`VoxContext initialized with ID: ${this.id}`);
-
-    // Set the context ID as a span attribute for all traces in this context
-    const tracer = trace.getTracer('vox-context');
-    const span = tracer.startSpan('context.init');
-    span.setAttribute('vox.context.id', this.id);
-    span.end();
   }
 
   /**
@@ -230,10 +224,9 @@ export class VoxContext<TParameters extends AgentParameters> {
     parameters.running = agentName;
 
     const span = this.tracer.startSpan(`agent.${agentName}`, {
-      kind: SpanKind.INTERNAL,
       attributes: {
         'vox.context.id': this.id,
-        'game.turn': JSON.stringify(parameters.turn),
+        'game.turn': String(parameters.turn),
         'agent.name': agentName,
         'agent.input': input ? JSON.stringify(input) : undefined
       }
@@ -366,7 +359,7 @@ export class VoxContext<TParameters extends AgentParameters> {
       kind: SpanKind.INTERNAL,
       attributes: {
         'vox.context.id': this.id,
-        'game.turn': JSON.stringify(parameters.turn),
+        'game.turn': String(parameters.turn),
         'agent.name': agent.name,
         'step.number': stepCount + 1
       }

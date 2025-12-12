@@ -140,9 +140,10 @@ export class VoxPlayer {
             kind: SpanKind.INTERNAL,
             attributes: {
               'vox.context.id': this.context.id,
-              'game.turn': JSON.stringify(this.parameters.turn),
-              'event.before': JSON.stringify(this.parameters.before),
-              'event.after': JSON.stringify(this.parameters.after)
+              'player.id': String(this.playerID),
+              'game.turn': String(this.parameters.turn),
+              'event.before': String(this.parameters.before),
+              'event.after': String(this.parameters.after)
             }
           });
 
