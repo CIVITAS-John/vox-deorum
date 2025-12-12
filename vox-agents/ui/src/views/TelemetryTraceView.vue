@@ -66,6 +66,8 @@ function toggleSpan(span: SpanNode) {
  * Show span details dialog
  */
 function showDetails(span: Span) {
+  if (typeof(span.attributes) === "string")
+    span.attributes = JSON.parse(span.attributes);
   selectedSpan.value = span;
   showSpanDetails.value = true;
 }
@@ -138,7 +140,7 @@ onMounted(() => {
         rounded
         @click="goBack"
       />
-      <h1>Trace {{traceId}}</h1>
+      <h1>Trace {{ rootSpan!.name }}</h1>
     </div>
 
     <!-- Loading State -->
@@ -156,15 +158,18 @@ onMounted(() => {
 
     <!-- Trace Content -->
     <div v-else class="trace-content">
-      <!-- Root Span Summary -->
-      <Card v-if="rootSpan" class="root-span-card">
+      <!-- Span Tree -->
+      <Card class="spans-tree-card">
         <template #header>
           <Toolbar>
             <template #start>
-              <h2>{{ rootSpan.name }}</h2>
+              <Tag 
+                :value="`Turn ${rootSpan!.turn}`" 
+                class="mr-2" />
               <Tag
-                :value="getStatusText(rootSpan.statusCode)"
-                :severity="getStatusSeverity(rootSpan.statusCode)"
+                :value="getStatusText(rootSpan!.statusCode)"
+                :severity="getStatusSeverity(rootSpan!.statusCode)"
+                class="mr-2"
               />
               <Tag :value="`${spans.length} spans`" />
             </template>
@@ -186,36 +191,15 @@ onMounted(() => {
             </template>
           </Toolbar>
         </template>
-        
-        <template #content>
-          <div class="root-span-details">
-            <div v-if="rootSpan.turn !== null" class="detail-item">
-              <strong>Game Turn:</strong>
-              <span>{{ rootSpan.turn }}</span>
-            </div>
-            <div class="detail-item">
-              <strong>Start Time:</strong>
-              <span>{{ formatTimestamp(rootSpan.startTime) }}</span>
-            </div>
-            <div class="detail-item">
-              <strong>Duration:</strong>
-              <span>{{ formatDuration(rootSpan.durationMs) }}</span>
-            </div>
-          </div>
-        </template>
-      </Card>
 
-      <!-- Span Tree -->
-      <Card class="spans-tree-card">
         <template #content>
           <div class="data-table">
             <!-- Table Header -->
             <div class="table-header">
               <div class="col-expand">Name</div>
-              <div class="col-fixed-100">Status</div>
-              <div class="col-fixed-200">Start Time</div>
+              <div class="col-fixed-80">Status</div>
+              <div class="col-fixed-80">Start Time</div>
               <div class="col-fixed-100">Duration</div>
-              <div class="col-fixed-150">Service</div>
               <div class="col-fixed-80">Actions</div>
             </div>
 
@@ -240,26 +224,17 @@ onMounted(() => {
                   <span v-else style="display: inline-block; width: 24px;"></span>
                   {{ span.name }}
                 </div>
-                <div class="col-fixed-100">
+                <div class="col-fixed-80">
                   <Tag
-                    v-if="span.statusCode !== 0"
-                    value="ERROR"
-                    severity="danger"
-                  />
-                  <Tag
-                    v-else
-                    value="OK"
-                    severity="success"
+                    :value="getStatusText(span.statusCode)"
+                    :severity="getStatusSeverity(span.statusCode)"
                   />
                 </div>
-                <div class="col-fixed-200 monospace">
+                <div class="col-fixed-80">
                   {{ formatTimestamp(span.startTime) }}
                 </div>
                 <div class="col-fixed-100">
                   {{ formatDuration(span.durationMs) }}
-                </div>
-                <div class="col-fixed-150">
-                  {{ span.attributes?.service_name || '-' }}
                 </div>
                 <div class="col-fixed-80">
                   <Button
@@ -290,15 +265,7 @@ onMounted(() => {
           <h3>Basic Information</h3>
           <div class="detail-row">
             <strong>Span ID:</strong>
-            <span class="monospace">{{ selectedSpan.spanId }}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Trace ID:</strong>
-            <span class="monospace">{{ selectedSpan.traceId }}</span>
-          </div>
-          <div v-if="selectedSpan.parentSpanId" class="detail-row">
-            <strong>Parent Span ID:</strong>
-            <span class="monospace">{{ selectedSpan.parentSpanId }}</span>
+            <span>{{ selectedSpan.spanId }}</span>
           </div>
           <div class="detail-row">
             <strong>Start Time:</strong>
@@ -348,43 +315,9 @@ onMounted(() => {
 @import '@/styles/states.css';
 @import '@/styles/data-table.css';
 
-.telemetry-trace-view {
-  padding: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
 .trace-content {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-.root-span-card {
-  background: var(--surface-card);
-}
-
-.root-span-title {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.root-span-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.monospace {
-  font-family: monospace;
-  font-size: 0.9rem;
 }
 
 .spans-tree-card {
@@ -456,7 +389,6 @@ onMounted(() => {
 .attribute-row span {
   flex: 1;
   color: var(--text-color);
-  font-family: monospace;
   font-size: 0.9rem;
   white-space: pre-wrap;
 }

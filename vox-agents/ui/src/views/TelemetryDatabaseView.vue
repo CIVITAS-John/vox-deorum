@@ -159,7 +159,7 @@ onMounted(() => {
       <template #header>
         <Toolbar>
           <template #start>
-            <h2>${filteredTraces.length} Traces</h2>
+            <Tag :value="`${filteredTraces.length} traces`" />
           </template>
           <template #end>
             <span class="p-input-icon-left search-box">
@@ -261,16 +261,6 @@ onMounted(() => {
 <style scoped>
 @import '@/styles/states.css';
 @import '@/styles/data-table.css';
-
-.telemetry-database-view {
-  padding: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.traces-container {
-  background: var(--surface-card);
-}
 
 .search-box {
   width: 300px;

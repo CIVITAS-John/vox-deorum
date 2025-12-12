@@ -241,7 +241,7 @@ VoxAgent (Base)
    - `.table-empty` - Empty state for tables
    - `.col-fixed-*` - Fixed width columns (50, 60, 80, 100, 120, 150, 200, 250)
    - `.col-expand` - Expanding column that fills available space
-   - Text utilities: `.monospace`, `.text-truncate`, `.text-wrap`, `.text-muted`, `.text-small`
+   - Text utilities: `.text-truncate`, `.text-wrap`, `.text-muted`, `.text-small`
 
 4. **Empty States**: Use `.table-empty` class for all empty states to maintain consistency
 5. **Section Layouts**: Use `.section-container` for views with multiple card sections

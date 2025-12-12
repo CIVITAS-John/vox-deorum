@@ -291,12 +291,6 @@ onUnmounted(() => {
 <style scoped>
 @import '@/styles/states.css';
 
-.telemetry-session-view {
-  padding: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
 .info-separator {
   color: var(--surface-border);
 }
@@ -319,12 +313,6 @@ onUnmounted(() => {
   border: 1px solid var(--surface-border);
   border-radius: 4px;
   overflow: hidden;
-}
-
-.virtua-scroller {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 0.9rem;
-  padding: 0.5rem;
 }
 
 .span-row {
