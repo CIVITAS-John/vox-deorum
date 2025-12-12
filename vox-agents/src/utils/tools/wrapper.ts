@@ -52,7 +52,6 @@ export function createAgentTool<TParameters extends AgentParameters, TInput = un
     inputSchema: inputSchema as any,
     execute: async (input) => {
       const span = tracer.startSpan(`agent-tool.${agent.name}`, {
-        kind: SpanKind.INTERNAL,
         attributes: {
           'vox.context.id': context.id,
           'tool.name': agent.name,

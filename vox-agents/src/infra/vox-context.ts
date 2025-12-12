@@ -356,7 +356,6 @@ export class VoxContext<TParameters extends AgentParameters> {
     allTools: ToolSet
   ): Promise<{ messages: ModelMessage[], shouldStop: boolean, finalText?: string, inputTokens: number, reasoningTokens: number, outputTokens: number }> {
     const stepSpan = this.tracer.startSpan(`agent.${agent.name}.step.${stepCount + 1}`, {
-      kind: SpanKind.INTERNAL,
       attributes: {
         'vox.context.id': this.id,
         'game.turn': String(parameters.turn),

@@ -90,7 +90,6 @@ export class VoxPlayer {
   async execute(): Promise<void> {
     const tracer = trace.getTracer('vox-player');
     const span = tracer.startSpan(`player.${this.parameters.gameID}.${this.playerID}`, {
-      kind: SpanKind.INTERNAL,
       attributes: {
         'vox.context.id': this.context.id,
         'player.id': this.playerID,
@@ -132,22 +131,25 @@ export class VoxPlayer {
           const startingReasoning = this.context.reasoningTokens;
           const startingOutput = this.context.outputTokens;
           this.logger.warn(`Running ${this.playerConfig.strategist} on Turn ${this.parameters.turn}`, {
-              GameID: this.parameters.playerID,
+              GameID: this.parameters.gameID,
               PlayerID: this.parameters.playerID
             });
 
-          const turnSpan = tracer.startSpan(`strategist.turn`, {
-            kind: SpanKind.INTERNAL,
+          // Start a new trace for each turn (no parent)
+          const turnSpan = tracer.startSpan(`strategist.turn.${this.parameters.turn}`, {
+            root: true, // This makes it a new trace
             attributes: {
               'vox.context.id': this.context.id,
               'player.id': String(this.playerID),
               'game.turn': String(this.parameters.turn),
               'event.before': String(this.parameters.before),
-              'event.after': String(this.parameters.after)
+              'event.after': String(this.parameters.after),
+              'strategist.type': this.playerConfig.strategist
             }
           });
 
           try {
+            // Create a new root context for this turn's trace
             await context.with(trace.setSpan(context.active(), turnSpan), async () => {
               // Refresh all strategy parameters
               turnSpan.setAttributes({
