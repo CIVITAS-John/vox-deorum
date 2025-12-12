@@ -23,12 +23,13 @@ const formatUptime = (seconds?: number) => {
         </div>
       </template>
       <template #content>
-        <div v-if="!healthStatus" class="loading">
-          <i class="pi pi-spin pi-spinner" />
+        <div v-if="!healthStatus" class="loading-container">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem;" />
+          <p>Loading health status...</p>
         </div>
-        <div v-else-if="healthStatus.status === 'error'" class="error">
+        <div v-else-if="healthStatus.status === 'error'" class="error-container">
           <i class="pi pi-exclamation-triangle" />
-          Failed to connect to service
+          <p>Failed to connect to service</p>
         </div>
         <div v-else class="health-info">
           <div class="health-item">
@@ -55,4 +56,5 @@ const formatUptime = (seconds?: number) => {
 
 <style scoped>
 @import '@/styles/global.css';
+@import '@/styles/states.css';
 </style>

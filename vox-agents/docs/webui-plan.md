@@ -170,8 +170,8 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 
 ## Remaining Implementation Phases
 
-### Stage 4: Telemetry Viewer ✅ BACKEND COMPLETED
-**Status**: Backend Complete, Frontend Pending
+### Stage 4: Telemetry Viewer 🔄 IN PROGRESS
+**Status**: Backend Complete, Frontend In Development
 
 **Backend Implementation**: ✅ COMPLETED
 - ✅ Database discovery with recursive scanning in `telemetry/` directory
@@ -183,7 +183,19 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - ✅ File upload support with multer middleware (100MB limit)
 - ✅ All API endpoints implemented in `src/web/routes/telemetry.ts`
 
-**Frontend Requirements** (Not Started):
+**Frontend Implementation** (In Progress):
+- ✅ Main telemetry page with two sections (Active Sessions & Existing Databases)
+- ✅ Active Sessions list showing live telemetry connections
+- ✅ Existing Databases grid with parsed game/player info
+- ✅ Database upload functionality with drag-and-drop support
+- ✅ Active session view with real-time span streaming
+- ✅ SpanViewer component with virtual scrolling (1,000 span window)
+- ✅ Auto-scroll toggle and connection status indicators
+- 🔄 Database session view with traces list (In Development)
+- 🔄 Frontend search for traces
+- 🔄 Trace detail view with span hierarchy
+
+**Frontend Requirements** (Original Plan):
 - Main telemetry page with two sections:
   - Active Sessions list (same as LogViewer)
   - Existing Databases list with simple card layout showing folder, game ID, player ID

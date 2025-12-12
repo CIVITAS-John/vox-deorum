@@ -173,7 +173,7 @@ router.get('/sessions/:id/spans', async (req, res) => {
     .limit(100)
     .execute();
 
-  res.json({ spans: spans });
+  res.json({ spans: spans.reverse() });
   return;
 });
 

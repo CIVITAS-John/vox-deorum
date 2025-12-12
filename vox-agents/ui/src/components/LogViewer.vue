@@ -223,6 +223,7 @@ onUnmounted(() => {
 
 <style scoped>
 @import '@/styles/data-table.css';
+@import '@/styles/states.css';
 
 /* Log-specific styling */
 .level-emoji {

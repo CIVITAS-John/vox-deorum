@@ -9,27 +9,11 @@ import ProgressSpinner from 'primevue/progressspinner';
 import { api } from '@/api/client';
 import { activeSessions, databases, loading, fetchTelemetryData } from '@/stores/telemetry';
 import type { TelemetryMetadata } from '@/api/types';
+import { formatFileSize, formatISODate } from '@/api/telemetry-utils';
 
 const router = useRouter();
 const uploadProgress = ref(false);
 const fileUploadRef = ref<any>(null);
-
-/**
- * Format file size for display
- */
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-}
-
-/**
- * Format date for display
- */
-function formatDate(isoString: string): string {
-  const date = new Date(isoString);
-  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-}
 
 /**
  * Navigate to active session view
@@ -197,10 +181,10 @@ onMounted(() => {
                   {{ db.playerId }}
                 </div>
                 <div class="col-fixed-80">
-                  {{ formatSize(db.size) }}
+                  {{ formatFileSize(db.size) }}
                 </div>
                 <div class="col-fixed-200">
-                  {{ formatDate(db.lastModified) }}
+                  {{ formatISODate(db.lastModified) }}
                 </div>
                 <div class="col-fixed-100">
                   <Button label="View" icon="pi pi-chart-line" text size="small"
@@ -218,17 +202,9 @@ onMounted(() => {
 <style scoped>
 @import '@/styles/global.css';
 @import '@/styles/data-table.css';
+@import '@/styles/states.css';
 
 /* Telemetry-specific styles only */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
-}
-
 .upload-area {
   padding: 1rem;
   border-bottom: 1px solid var(--surface-border);
