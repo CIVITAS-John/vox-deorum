@@ -301,10 +301,10 @@ export class VoxContext<TParameters extends AgentParameters> {
           this.reasoningTokens += reasoningTokens;
           this.outputTokens += outputTokens;
           span.setAttributes({
-            'agent.model': `${modelConfig.name}@${modelConfig.provider}`,
-            'agent.tokens.input': inputTokens,
-            'agent.tokens.reasoning': reasoningTokens,
-            'agent.tokens.output': outputTokens,
+            'model': `${modelConfig.name}@${modelConfig.provider}`,
+            'tokens.input': inputTokens,
+            'tokens.reasoning': reasoningTokens,
+            'tokens.output': outputTokens,
           });
           span.setStatus({ code: SpanStatusCode.OK });
           return finalText;
@@ -372,7 +372,7 @@ export class VoxContext<TParameters extends AgentParameters> {
 
         // Apply prepared configuration
         messages = stepConfig.messages || messages;
-        const stepModel = getModel(stepConfig.model || model);
+        const stepModel = stepConfig.model || model;
         const stepProviderOptions = buildProviderOptions(stepConfig.model || model);
         const stepActiveTools = stepConfig.activeTools || agent.getActiveTools(parameters);
         const stepToolChoice = stepConfig.toolChoice || (stepActiveTools && stepActiveTools.length > 0 ? agent.toolChoice : "auto");
@@ -389,7 +389,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         const stepResponse = await exponentialRetry(async () => {
           return await generateText({
             // Model settings
-            model: stepModel,
+            model: getModel(stepModel),
             providerOptions: stepProviderOptions,
             // Abort signal for cancellation
             abortSignal: this.abortController.signal,
@@ -414,9 +414,10 @@ export class VoxContext<TParameters extends AgentParameters> {
 
         // Record step results in span
         stepSpan.setAttributes({
-          'step.tokens.input': inputTokens,
-          'step.tokens.reasoning': reasoningTokens,
-          'step.tokens.output': outputTokens,
+          'model': `${stepModel.name}@${stepModel.provider}`,
+          'tokens.input': inputTokens,
+          'tokens.reasoning': reasoningTokens,
+          'tokens.output': outputTokens,
           'step.responses': JSON.stringify(stepResponse.response.messages)
         });
 

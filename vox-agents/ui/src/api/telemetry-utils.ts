@@ -268,3 +268,11 @@ export function getSpanRowClass(span: Span): string {
 
   return classes.join(' ');
 }
+
+/**
+ * Format token count with thousands separator
+ */
+export function formatTokenCount(count: number | undefined): string {
+  if (count === undefined || count === null) return '-';
+  return count.toLocaleString('en-US');
+}

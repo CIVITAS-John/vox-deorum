@@ -173,11 +173,10 @@ export class VoxPlayer {
 
               // Update the status
               turnSpan.setAttributes({
-                'turn.completed': true,
-                'player.turns': this.parameters.turn,
-                'player.tokens.input': this.context.inputTokens - startingInput,
-                'player.tokens.reasoning': this.context.reasoningTokens - startingReasoning,
-                'player.tokens.output': this.context.outputTokens - startingOutput
+                'completed': true,
+                'tokens.input': this.context.inputTokens - startingInput,
+                'tokens.reasoning': this.context.reasoningTokens - startingReasoning,
+                'tokens.output': this.context.outputTokens - startingOutput
               });
               turnSpan.setStatus({ code: SpanStatusCode.OK });
             });
@@ -208,11 +207,10 @@ export class VoxPlayer {
         this.logger.info(`Player ${this.playerID} (${this.parameters.gameID}) completion: ${this.aborted} (successful: ${this.successful})`);
 
         span.setAttributes({
-          'player.completed': true,
-          'player.successful': this.successful,
-          'player.tokens.input': this.context.inputTokens,
-          'player.tokens.reasoning': this.context.reasoningTokens,
-          'player.tokens.output': this.context.outputTokens
+          'completed': this.successful,
+          'tokens.input': this.context.inputTokens,
+          'tokens.reasoning': this.context.reasoningTokens,
+          'tokens.output': this.context.outputTokens
         });
 
         await Promise.all([

@@ -6,7 +6,6 @@
 
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import Card from 'primevue/card';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Tag from 'primevue/tag';
@@ -18,6 +17,7 @@ import type { Span } from '@/api/types';
 import {
   formatDuration,
   formatTimestamp,
+  formatTokenCount,
   getStatusSeverity,
   getStatusText,
   getDisplayAttributes
@@ -155,26 +155,24 @@ onMounted(() => {
     </div>
 
     <!-- Traces List -->
-    <Card v-else class="traces-container">
-      <template #header>
-        <Toolbar>
-          <template #start>
-            <Tag :value="`${filteredTraces.length} traces`" />
-          </template>
-          <template #end>
-            <span class="p-input-icon-left search-box">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="searchQuery"
-                placeholder="Search traces..."
-                class="search-input"
-              />
-            </span>
-          </template>
-        </Toolbar>
-      </template>
+    <div v-else class="panel-container">
+      <Toolbar>
+        <template #start>
+          <Tag :value="`${filteredTraces.length} traces`" />
+        </template>
+        <template #end>
+          <span class="p-input-icon-left search-box">
+            <i class="pi pi-search" />
+            <InputText
+              v-model="searchQuery"
+              placeholder="Search traces..."
+              class="search-input"
+            />
+          </span>
+        </template>
+      </Toolbar>
 
-      <template #content>
+      <div class="traces-content">
         <!-- Empty State -->
         <div v-if="traces.length === 0" class="empty-state">
           <i class="pi pi-inbox"></i>
@@ -200,7 +198,10 @@ onMounted(() => {
             <div class="col-fixed-80">Turn</div>
             <div class="col-fixed-80">Status</div>
             <div class="col-fixed-80">Timestamp</div>
-            <div class="col-fixed-80">Duration</div>
+            <div class="col-fixed-100">Duration</div>
+            <div class="col-fixed-80">Input</div>
+            <div class="col-fixed-80">Reasoning</div>
+            <div class="col-fixed-80">Output</div>
             <div class="col-fixed-80">Actions</div>
           </div>
 
@@ -227,8 +228,17 @@ onMounted(() => {
               <div class="col-fixed-80">
                 {{ formatTimestamp(trace.startTime) }}
               </div>
-              <div class="col-fixed-80">
+              <div class="col-fixed-100">
                 {{ formatDuration(trace.durationMs) }}
+              </div>
+              <div class="col-fixed-80">
+                {{ formatTokenCount(trace.attributes?.tokens?.input) }}
+              </div>
+              <div class="col-fixed-80">
+                {{ formatTokenCount(trace.attributes?.tokens?.reasoning) }}
+              </div>
+              <div class="col-fixed-80">
+                {{ formatTokenCount(trace.attributes?.tokens?.output) }}
               </div>
               <div class="col-fixed-80">
                 <Button
@@ -253,14 +263,20 @@ onMounted(() => {
           :rowsPerPageOptions="[10, 20, 50]"
           class="traces-paginator"
         />
-      </template>
-    </Card>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
 @import '@/styles/states.css';
 @import '@/styles/data-table.css';
+@import '@/styles/panel.css';
+
+.traces-content {
+  flex: 1;
+  overflow: hidden;
+}
 
 .search-box {
   width: 300px;

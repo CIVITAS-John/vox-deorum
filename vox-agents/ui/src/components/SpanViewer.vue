@@ -1,38 +1,36 @@
 <template>
-  <Card class="spans-tree-card">
-    <template #header>
-      <Toolbar>
-        <template #start>
-          <Tag
-            :value="`Turn ${rootSpan.turn}`"
-            class="mr-2" />
-          <Tag
-            :value="getStatusText(rootSpan.statusCode)"
-            :severity="getStatusSeverity(rootSpan.statusCode)"
-            class="mr-2"
-          />
-          <Tag :value="`${spans.length} spans`" />
-        </template>
-        <template #end>
-          <Button
-            icon="pi pi-plus"
-            label="Expand All"
-            text
-            size="small"
-            @click="toggleAllSpans(true)"
-          />
-          <Button
-            icon="pi pi-minus"
-            label="Collapse All"
-            text
-            size="small"
-            @click="toggleAllSpans(false)"
-          />
-        </template>
-      </Toolbar>
-    </template>
+  <div class="panel-container">
+    <Toolbar>
+      <template #start>
+        <Tag
+          :value="`Turn ${rootSpan.turn}`"
+          class="mr-2" />
+        <Tag
+          :value="getStatusText(rootSpan.statusCode)"
+          :severity="getStatusSeverity(rootSpan.statusCode)"
+          class="mr-2"
+        />
+        <Tag :value="`${spans.length} spans`" />
+      </template>
+      <template #end>
+        <Button
+          icon="pi pi-plus"
+          label="Expand All"
+          text
+          size="small"
+          @click="toggleAllSpans(true)"
+        />
+        <Button
+          icon="pi pi-minus"
+          label="Collapse All"
+          text
+          size="small"
+          @click="toggleAllSpans(false)"
+        />
+      </template>
+    </Toolbar>
 
-    <template #content>
+    <div class="spans-content">
       <div v-if="flattenedSpans.length === 0" class="table-empty">
         <i class="pi pi-inbox"></i>
         <p>No spans to display</p>
@@ -46,6 +44,9 @@
           <div class="col-fixed-80">Status</div>
           <div class="col-fixed-80">Start Time</div>
           <div class="col-fixed-100">Duration</div>
+          <div class="col-fixed-80">Input</div>
+          <div class="col-fixed-80">Reasoning</div>
+          <div class="col-fixed-80">Output</div>
           <div class="col-fixed-80">Actions</div>
         </div>
 
@@ -88,6 +89,15 @@
               {{ formatDuration(span.durationMs) }}
             </div>
             <div class="col-fixed-80">
+              {{ formatTokenCount(span.attributes?.tokens?.input) }}
+            </div>
+            <div class="col-fixed-80">
+              {{ formatTokenCount(span.attributes?.tokens?.reasoning) }}
+            </div>
+            <div class="col-fixed-80">
+              {{ formatTokenCount(span.attributes?.tokens?.output) }}
+            </div>
+            <div class="col-fixed-80">
               <Button
                 icon="pi pi-info-circle"
                 text
@@ -99,8 +109,8 @@
           </div>
         </VList>
       </div>
-    </template>
-  </Card>
+    </div>
+  </div>
 
   <!-- Span Details Dialog -->
   <Dialog
@@ -143,8 +153,8 @@
         class="detail-row"
       >
         <strong>{{ key }}:</strong>
-        <span v-if="typeof value === 'string'">{{ value }}</span>
-        <span v-else>{{ JSON.stringify(value, null, 2) }}</span>
+        <span v-if="typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'">{{ value }}</span>
+        <pre v-else class="json-value">{{ JSON.stringify(value, null, 2) }}</pre>
       </div>
     </div>
   </Dialog>
@@ -167,6 +177,7 @@ import type { Span } from '../api/types';
 import {
   formatDuration,
   formatTimestamp,
+  formatTokenCount,
   getStatusSeverity,
   getStatusText,
   buildSpanTree,
@@ -230,8 +241,25 @@ function toggleSpan(span: SpanNode) {
  * Show span details dialog
  */
 function showDetails(span: Span) {
-  if (typeof(span.attributes) === "string")
+  // Parse attributes if they're a string
+  if (typeof(span.attributes) === "string") {
     span.attributes = JSON.parse(span.attributes);
+  }
+
+  // Pre-process all string attributes to parse JSON where possible
+  if (span.attributes && typeof span.attributes === 'object') {
+    const processed: Record<string, any> = {};
+    for (const [key, value] of Object.entries(span.attributes)) {
+      if (typeof value === 'string') {
+        const parsed = tryParseJSON(value);
+        processed[key] = parsed !== null ? parsed : value;
+      } else {
+        processed[key] = value;
+      }
+    }
+    span.attributes = processed;
+  }
+
   selectedSpan.value = span;
   showSpanDetails.value = true;
 }
@@ -253,6 +281,23 @@ function toggleAllSpans(expand: boolean) {
   }
 }
 
+/**
+ * Try to parse a string as JSON
+ * Returns the parsed object if successful, null otherwise
+ */
+function tryParseJSON(str: string): any {
+  try {
+    const parsed = JSON.parse(str);
+    // Only return parsed if it's an object or array (not primitive)
+    if (typeof parsed === 'object' && parsed !== null) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 onMounted(() => {
   calculateScrollerHeight();
   // Auto-expand first level
@@ -270,6 +315,12 @@ onUnmounted(() => {
 <style scoped>
 @import '@/styles/data-table.css';
 @import '@/styles/states.css';
+@import '@/styles/panel.css';
+
+.spans-content {
+  flex: 1;
+  overflow: hidden;
+}
 
 .span-details-content {
   display: flex;
@@ -291,6 +342,19 @@ onUnmounted(() => {
   flex: 1;
   word-break: break-word;
   white-space: pre-wrap;
+}
+
+.json-value {
+  flex: 1;
+  margin: 0;
+  padding: 0.5rem;
+  background: var(--p-content-highlight-color);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.875rem;
+  overflow-x: auto;
+  white-space: pre;
 }
 
 .error-message {

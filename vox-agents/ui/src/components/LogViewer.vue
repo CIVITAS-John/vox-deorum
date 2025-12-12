@@ -7,56 +7,54 @@
     <Tag severity="info">{{ filteredLogs.length }}/{{ logs.length }} Logs</Tag>
   </div>
 
-  <Card class="h-full">
-    <template #header>
-      <Toolbar>
-        <template #start>
-          <SelectButton
-            v-model="selectedLevel"
-            :options="[
-              { label: 'Debug', value: 'debug' },
-              { label: 'Info', value: 'info' },
-              { label: 'Warn', value: 'warn' },
-              { label: 'Error', value: 'error' }
-            ]"
-            optionLabel="label"
-            optionValue="value"
-            size="small"
-            class="mr-2"
-          />
-          <MultiSelect
-            v-model="selectedSources"
-            :options="sourceOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="All Sources"
-            display="chip"
-            size="small"
-            :showToggleAll="false"
-            class="source-filter"
-          />
-        </template>
-        <template #end>
-          <Button
-            :icon="autoscroll ? 'pi pi-lock' : 'pi pi-lock-open'"
-            @click="autoscroll = !autoscroll"
-            label="Auto-scroll"
-            severity="secondary"
-            size="small"
-            class="mr-2"
-          />
-          <Button
-            icon="pi pi-trash"
-            @click="clearLogs"
-            label="Clear"
-            severity="danger"
-            size="small"
-          />
-        </template>
-      </Toolbar>
-    </template>
+  <div class="panel-container">
+    <Toolbar>
+      <template #start>
+        <SelectButton
+          v-model="selectedLevel"
+          :options="[
+            { label: 'Debug', value: 'debug' },
+            { label: 'Info', value: 'info' },
+            { label: 'Warn', value: 'warn' },
+            { label: 'Error', value: 'error' }
+          ]"
+          optionLabel="label"
+          optionValue="value"
+          size="small"
+          class="mr-2"
+        />
+        <MultiSelect
+          v-model="selectedSources"
+          :options="sourceOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="All Sources"
+          display="chip"
+          size="small"
+          :showToggleAll="false"
+          class="source-filter"
+        />
+      </template>
+      <template #end>
+        <Button
+          :icon="autoscroll ? 'pi pi-lock' : 'pi pi-lock-open'"
+          @click="autoscroll = !autoscroll"
+          label="Auto-scroll"
+          severity="secondary"
+          size="small"
+          class="mr-2"
+        />
+        <Button
+          icon="pi pi-trash"
+          @click="clearLogs"
+          label="Clear"
+          severity="danger"
+          size="small"
+        />
+      </template>
+    </Toolbar>
 
-    <template #content>
+    <div class="log-content">
 
       <div v-if="filteredLogs.length === 0" class="table-empty">
         <i class="pi pi-inbox"></i>
@@ -96,8 +94,8 @@
           </div>
         </VList>
       </div>
-    </template>
-  </Card>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -232,6 +230,12 @@ onUnmounted(() => {
 <style scoped>
 @import '@/styles/data-table.css';
 @import '@/styles/states.css';
+@import '@/styles/panel.css';
+
+.log-content {
+  flex: 1;
+  overflow: hidden;
+}
 
 /* Log-specific styling */
 .level-emoji {
