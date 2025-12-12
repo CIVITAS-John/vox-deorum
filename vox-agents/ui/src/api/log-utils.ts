@@ -2,14 +2,7 @@
  * Log data structures and preprocessing utilities
  */
 
-export interface LogEntry {
-  timestamp: string;
-  level: string;
-  message: string;
-  source?: string;
-  context?: string;
-  params?: Record<string, any>;
-}
+import type { LogEntry } from './types.js';
 
 /** Fixed fields that are not considered params */
 const FIXED_LOG_FIELDS = [
@@ -32,12 +25,17 @@ export function extractLogParams(rawLog: any): LogEntry {
     timestamp: rawLog.timestamp,
     level: rawLog.level,
     message: rawLog.message,
-    context: rawLog.context,
     source: rawLog.source
   };
 
-  // Extract all non-fixed fields as params
+  // Extract all non-fixed fields as params, including context if present
   const params: Record<string, any> = {};
+
+  // Add context to params if present
+  if (rawLog.context) {
+    params.context = rawLog.context;
+  }
+
   for (const [key, value] of Object.entries(rawLog)) {
     if (!FIXED_LOG_FIELDS.includes(key as any)) {
       params[key] = value;

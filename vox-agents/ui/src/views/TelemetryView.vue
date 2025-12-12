@@ -237,9 +237,9 @@ onUnmounted(() => {
             <!-- Table Header -->
             <div class="table-header">
               <div class="col-expand">Filename</div>
-              <div class="col-fixed-100">Folder</div>
-              <div class="col-fixed-150">Game ID</div>
-              <div class="col-fixed-100">Player ID</div>
+              <div class="col-fixed-150">Folder</div>
+              <div class="col-fixed-250">Game ID</div>
+              <div class="col-fixed-100">Player</div>
               <div class="col-fixed-80">Size</div>
               <div class="col-fixed-150">Last Modified</div>
               <div class="col-fixed-100">Actions</div>
@@ -250,17 +250,14 @@ onUnmounted(() => {
               <div v-for="db in databases" :key="`${db.folder}/${db.filename}`"
                    class="table-row clickable"
                    @click="viewDatabase(db)">
-                <div class="col-expand">
-                  <span class="monospace">{{ db.filename }}</span>
-                </div>
-                <div class="col-fixed-100">
-                  <Tag :value="db.folder" severity="secondary" />
-                </div>
                 <div class="col-fixed-150">
                   {{ db.gameId }}
                 </div>
                 <div class="col-fixed-100">
                   {{ db.playerId }}
+                </div>
+                <div class="col-fixed-100">
+                  <Tag :value="db.folder" severity="secondary" />
                 </div>
                 <div class="col-fixed-80">
                   {{ formatSize(db.size) }}

@@ -20,21 +20,6 @@ const router = createRouter({
       component: TelemetryView
     },
     {
-      path: '/telemetry/session/:sessionId',
-      name: 'telemetry-session',
-      component: () => import('../views/TelemetrySessionView.vue')
-    },
-    {
-      path: '/telemetry/database/:filename+',
-      name: 'telemetry-database',
-      component: () => import('../views/TelemetryDatabaseView.vue')
-    },
-    {
-      path: '/telemetry/trace/:filename+/:traceId',
-      name: 'telemetry-trace',
-      component: () => import('../views/TelemetryTraceView.vue')
-    },
-    {
       path: '/logs',
       name: 'logs',
       component: LogsView

@@ -18,24 +18,9 @@ import type {
   ConfigListResponse,
   Agent,
   AgentListResponse,
-  ChatMessage,
   ChatResponse,
   ErrorResponse,
   UploadResponse
-} from './types';
-
-// Re-export commonly used types
-export type {
-  HealthStatus,
-  LogEntry,
-  TelemetryDatabase,
-  Span,
-  SpanAttributes,
-  SessionStatus,
-  ConfigFile,
-  Agent,
-  ChatMessage,
-  ChatResponse
 } from './types';
 
 /**
