@@ -166,7 +166,7 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
       durationMs: Math.floor((span.endTime[0] - span.startTime[0]) * 1000 +
                               (span.endTime[1] - span.startTime[1]) / 1e6),
       // JSONColumnType handles serialization automatically
-      attributes: Object.keys(attributes).length > 0 ? attributes as any : null,
+      attributes: Object.keys(attributes).length > 0 ? JSON.stringify(attributes) : null,
       statusCode: span.status.code,
       statusMessage: span.status.message || null,
     };
