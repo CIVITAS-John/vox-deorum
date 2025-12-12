@@ -8,21 +8,21 @@
   </div>
 
   <Card class="h-full">
-    <template #content>
-      <div class="flex gap-2 mb-3 align-items-center">
-        <SelectButton
-          v-model="selectedLevel"
-          :options="[
-            { label: 'Debug', value: 'debug' },
-            { label: 'Info', value: 'info' },
-            { label: 'Warn', value: 'warn' },
-            { label: 'Error', value: 'error' }
-          ]"
-          optionLabel="label"
-          optionValue="value"
-          size="small"
-        />
-        <div class="mx-2">
+    <template #header>
+      <Toolbar>
+        <template #start>
+          <SelectButton
+            v-model="selectedLevel"
+            :options="[
+              { label: 'Debug', value: 'debug' },
+              { label: 'Info', value: 'info' },
+              { label: 'Warn', value: 'warn' },
+              { label: 'Error', value: 'error' }
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            size="small"
+          />
           <MultiSelect
             v-model="selectedSources"
             :options="sourceOptions"
@@ -34,22 +34,27 @@
             :showToggleAll="false"
             class="source-filter"
           />
-        </div>
-        <Button
-          :icon="autoscroll ? 'pi pi-lock' : 'pi pi-lock-open'"
-          @click="autoscroll = !autoscroll"
-          label="Auto-scroll"
-          severity="secondary"
-          size="small"
-        />
-        <Button
-          icon="pi pi-trash"
-          @click="clearLogs"
-          label="Clear"
-          severity="danger"
-          size="small"
-        />
-      </div>
+        </template>
+        <template #end>
+          <Button
+            :icon="autoscroll ? 'pi pi-lock' : 'pi pi-lock-open'"
+            @click="autoscroll = !autoscroll"
+            label="Auto-scroll"
+            severity="secondary"
+            size="small"
+          />
+          <Button
+            icon="pi pi-trash"
+            @click="clearLogs"
+            label="Clear"
+            severity="danger"
+            size="small"
+          />
+        </template>
+      </Toolbar>
+    </template>
+
+    <template #content>
 
       <div v-if="filteredLogs.length === 0" class="table-empty">
         <i class="pi pi-inbox"></i>
@@ -70,7 +75,7 @@
           :data="filteredLogs"
           :style="{ minHeight: scrollerHeight }"
           ref="virtualScroller"
-          class="table-body log-scroller"
+          class="table-body"
           #default="{ item, index }"
         >
           <div :key="`${item.timestamp}-${index}`"
@@ -103,6 +108,7 @@ import Card from 'primevue/card';
 import Tag from 'primevue/tag';
 import MultiSelect from 'primevue/multiselect';
 import SelectButton from 'primevue/selectbutton';
+import Toolbar from 'primevue/toolbar';
 import ParamsList from './ParamsList.vue';
 import '/node_modules/primeflex/primeflex.css'
 
@@ -243,13 +249,6 @@ onUnmounted(() => {
   display: block;
   font-size: 0.75rem;
   margin-top: 0.25rem;
-}
-
-/* Virtua VList optimization */
-.log-scroller {
-  will-change: scroll-position; /* Hint browser for optimization */
-  transform: translateZ(0); /* Enable hardware acceleration */
-  backface-visibility: hidden; /* Prevent flickering */
 }
 
 /* Multi-select source filter styling */

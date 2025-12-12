@@ -48,6 +48,18 @@ body {
   background: var(--p-surface-hover);
 }
 
+/* Simple page header with back button */
+.simple-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.simple-header h1 {
+  margin: 0;
+}
+
 /* Section layout styles */
 .section-container {
   display: flex;
@@ -60,4 +72,11 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* Virtua VList optimization */
+.virtua-scroller {
+  will-change: scroll-position; /* Hint browser for optimization */
+  transform: translateZ(0); /* Enable hardware acceleration */
+  backface-visibility: hidden; /* Prevent flickering */
 }

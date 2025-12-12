@@ -12,6 +12,7 @@ import Button from 'primevue/button';
 import ToggleButton from 'primevue/togglebutton';
 import Tag from 'primevue/tag';
 import ProgressSpinner from 'primevue/progressspinner';
+import Toolbar from 'primevue/toolbar';
 import { api } from '@/api/client';
 import type { Span, SpanStreamEvent } from '@/api/types';
 import {
@@ -174,17 +175,14 @@ onUnmounted(() => {
 <template>
   <div class="telemetry-session-view">
     <!-- Header with navigation -->
-    <div class="view-header">
+    <div class="simple-header">
       <Button
         icon="pi pi-arrow-left"
         text
         rounded
         @click="goBack"
-        class="back-button"
       />
-      <div class="header-info">
-        <h1>Session {{ sessionId }}</h1>
-      </div>
+      <h1>Session {{ sessionId }}</h1>
     </div>
 
     <!-- Loading State -->
@@ -203,8 +201,8 @@ onUnmounted(() => {
     <!-- Span Viewer -->
     <Card v-else class="span-viewer-container">
       <template #header>
-        <div class="card-header">
-          <div class="header-left">
+        <Toolbar>
+          <template #start>
             <h2>Live Spans</h2>
             <Tag :value="`${spans.length} spans`" />
             <Tag
@@ -212,8 +210,8 @@ onUnmounted(() => {
               value="Window Full"
               severity="warning"
             />
-          </div>
-          <div class="header-right">
+          </template>
+          <template #end>
             <ToggleButton
               v-model="autoScroll"
               onLabel="Auto-scroll"
@@ -229,8 +227,8 @@ onUnmounted(() => {
               severity="secondary"
               @click="clearSpans"
             />
-          </div>
-        </div>
+          </template>
+        </Toolbar>
       </template>
 
       <template #content>
@@ -299,65 +297,12 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-.view-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.back-button {
-  flex-shrink: 0;
-}
-
-.header-info {
-  flex: 1;
-}
-
-.header-info h1 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.8rem;
-  color: var(--text-color);
-}
-
-.session-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-color-secondary);
-}
-
 .info-separator {
   color: var(--surface-border);
 }
 
 .span-viewer-container {
   background: var(--surface-card);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--surface-border);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header-left h2 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
 }
 
 .auto-scroll-toggle {
@@ -469,17 +414,6 @@ onUnmounted(() => {
   .view-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .header-right {
-    width: 100%;
-    justify-content: flex-end;
   }
 }
 </style>

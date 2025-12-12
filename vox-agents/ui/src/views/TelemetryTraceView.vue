@@ -11,6 +11,7 @@ import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import ProgressSpinner from 'primevue/progressspinner';
 import Dialog from 'primevue/dialog';
+import Toolbar from 'primevue/toolbar';
 import { api } from '@/api/client';
 import type { Span } from '@/api/types';
 import {
@@ -130,17 +131,14 @@ onMounted(() => {
 <template>
   <div class="telemetry-trace-view">
     <!-- Header with navigation -->
-    <div class="view-header">
+    <div class="simple-header">
       <Button
         icon="pi pi-arrow-left"
         text
         rounded
         @click="goBack"
-        class="back-button"
       />
-      <div class="header-info">
-        <h1>Trace {{traceId}}</h1>
-      </div>
+      <h1>Trace {{traceId}}</h1>
     </div>
 
     <!-- Loading State -->
@@ -198,12 +196,12 @@ onMounted(() => {
       <!-- Span Tree -->
       <Card class="spans-tree-card">
         <template #header>
-          <div class="card-header">
-            <div class="header-left">
+          <Toolbar>
+            <template #start>
               <h2>Span Hierarchy</h2>
               <Tag :value="`${spans.length} spans`" />
-            </div>
-            <div class="header-right">
+            </template>
+            <template #end>
               <Button
                 icon="pi pi-plus"
                 label="Expand All"
@@ -218,59 +216,74 @@ onMounted(() => {
                 size="small"
                 @click="toggleAllSpans(false)"
               />
-            </div>
-          </div>
+            </template>
+          </Toolbar>
         </template>
 
         <template #content>
-          <div class="spans-tree">
-            <div
-              v-for="(span, index) in flattenedSpans"
-              :key="`${span.spanId}-${index}`"
-              class="span-item"
-              :style="{ paddingLeft: `${span.depth * 24}px` }"
-            >
-              <!-- Expand/Collapse Toggle -->
-              <Button
-                v-if="span.children && span.children.length > 0"
-                :icon="expandedSpans.has(span.spanId) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-                text
-                rounded
-                size="small"
-                class="expand-button"
-                @click="toggleSpan(span)"
-              />
-              <div v-else class="expand-placeholder"></div>
+          <div class="data-table">
+            <!-- Table Header -->
+            <div class="table-header">
+              <div class="col-expand">Name</div>
+              <div class="col-fixed-100">Status</div>
+              <div class="col-fixed-200">Start Time</div>
+              <div class="col-fixed-100">Duration</div>
+              <div class="col-fixed-150">Service</div>
+              <div class="col-fixed-80">Actions</div>
+            </div>
 
-              <!-- Span Info -->
-              <div class="span-info" @click="showDetails(span)">
-                <div class="span-main">
-                  <span class="span-name">{{ span.name }}</span>
+            <!-- Table Body -->
+            <div class="table-body" style="max-height: 600px; overflow-y: auto;">
+              <div
+                v-for="(span, index) in flattenedSpans"
+                :key="`${span.spanId}-${index}`"
+                class="table-row clickable"
+                @click="showDetails(span)"
+              >
+                <div class="col-expand" :style="{ paddingLeft: `${span.depth * 24 + 8}px` }">
+                  <Button
+                    v-if="span.children && span.children.length > 0"
+                    :icon="expandedSpans.has(span.spanId) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                    text
+                    rounded
+                    size="small"
+                    style="width: 20px; height: 20px; margin-right: 4px;"
+                    @click.stop="toggleSpan(span)"
+                  />
+                  <span v-else style="display: inline-block; width: 24px;"></span>
+                  {{ span.name }}
+                </div>
+                <div class="col-fixed-100">
                   <Tag
                     v-if="span.statusCode !== 0"
                     value="ERROR"
                     severity="danger"
-                    class="span-status"
+                  />
+                  <Tag
+                    v-else
+                    value="OK"
+                    severity="success"
                   />
                 </div>
-                <div class="span-meta">
-                  <span class="span-time">{{ formatTimestamp(span.startTime) }}</span>
-                  <span class="span-duration">{{ formatDuration(span.durationMs) }}</span>
-                  <span v-if="span.attributes?.service_name" class="span-service">
-                    {{ span.attributes.service_name }}
-                  </span>
+                <div class="col-fixed-200 monospace">
+                  {{ formatTimestamp(span.startTime) }}
+                </div>
+                <div class="col-fixed-100">
+                  {{ formatDuration(span.durationMs) }}
+                </div>
+                <div class="col-fixed-150">
+                  {{ span.attributes?.service_name || '-' }}
+                </div>
+                <div class="col-fixed-80">
+                  <Button
+                    icon="pi pi-info-circle"
+                    text
+                    rounded
+                    size="small"
+                    @click.stop="showDetails(span)"
+                  />
                 </div>
               </div>
-
-              <!-- View Details Button -->
-              <Button
-                icon="pi pi-info-circle"
-                text
-                rounded
-                size="small"
-                class="details-button"
-                @click="showDetails(span)"
-              />
             </div>
           </div>
         </template>
@@ -346,43 +359,12 @@ onMounted(() => {
 
 <style scoped>
 @import '@/styles/states.css';
+@import '@/styles/data-table.css';
 
 .telemetry-trace-view {
   padding: 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.view-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.back-button {
-  flex-shrink: 0;
-}
-
-.header-info {
-  flex: 1;
-}
-
-.header-info h1 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.8rem;
-  color: var(--text-color);
-}
-
-.trace-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-color-secondary);
-}
-
-.info-separator {
-  color: var(--surface-border);
 }
 
 .trace-content {
@@ -429,106 +411,6 @@ onMounted(() => {
 
 .spans-tree-card {
   background: var(--surface-card);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--surface-border);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header-left h2 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.header-right {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.spans-tree {
-  max-height: 600px;
-  overflow-y: auto;
-  background: var(--surface-ground);
-  border: 1px solid var(--surface-border);
-  border-radius: 4px;
-}
-
-.span-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid var(--surface-border);
-  transition: background-color 0.2s;
-}
-
-.span-item:hover {
-  background-color: var(--surface-hover);
-}
-
-.expand-button {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.expand-placeholder {
-  width: 24px;
-  flex-shrink: 0;
-}
-
-.span-info {
-  flex: 1;
-  cursor: pointer;
-}
-
-.span-main {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.span-name {
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.span-status {
-  font-size: 0.75rem;
-}
-
-.span-meta {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: var(--text-color-secondary);
-}
-
-.span-time {
-  font-family: monospace;
-}
-
-.span-duration {
-  color: var(--primary-color);
-}
-
-.span-service {
-  font-style: italic;
-}
-
-.details-button {
-  flex-shrink: 0;
 }
 
 .span-details-content {
@@ -610,12 +492,6 @@ onMounted(() => {
 
   .root-span-details {
     grid-template-columns: 1fr;
-  }
-
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
   }
 
   .detail-row,
