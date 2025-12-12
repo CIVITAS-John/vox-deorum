@@ -138,7 +138,7 @@ onMounted(() => {
         rounded
         @click="goBack"
       />
-      <h1>Traces in {{ filename }}</h1>
+      <h1>{{ filename }}</h1>
     </div>
 
     <!-- Loading State -->
@@ -159,8 +159,7 @@ onMounted(() => {
       <template #header>
         <Toolbar>
           <template #start>
-            <h2>Traces</h2>
-            <Tag :value="`${filteredTraces.length} traces`" />
+            <h2>${filteredTraces.length} Traces</h2>
           </template>
           <template #end>
             <span class="p-input-icon-left search-box">
@@ -197,11 +196,11 @@ onMounted(() => {
         <div v-else class="data-table">
           <!-- Table Header -->
           <div class="table-header">
-            <div class="col-fixed-150">Name</div>
+            <div class="col-expand">Name</div>
+            <div class="col-fixed-80">Turn</div>
             <div class="col-fixed-80">Status</div>
-            <div class="col-fixed-100">Timestamp</div>
+            <div class="col-fixed-80">Timestamp</div>
             <div class="col-fixed-80">Duration</div>
-            <div class="col-expand">Trace ID</div>
             <div class="col-fixed-80">Actions</div>
           </div>
 
@@ -213,8 +212,11 @@ onMounted(() => {
               class="table-row clickable"
               @click="viewTrace(trace)"
             >
-              <div class="col-fixed-150">
+              <div class="col-expand">
                 {{ trace.name }}
+              </div>
+              <div class="col-fixed-80">
+                {{ trace.turn }}
               </div>
               <div class="col-fixed-80">
                 <Tag
@@ -222,14 +224,11 @@ onMounted(() => {
                   :severity="getStatusSeverity(trace.statusCode)"
                 />
               </div>
-              <div class="col-fixed-100">
+              <div class="col-fixed-80">
                 {{ formatTimestamp(trace.startTime) }}
               </div>
               <div class="col-fixed-80">
                 {{ formatDuration(trace.durationMs) }}
-              </div>
-              <div class="col-expand">
-                {{ trace.traceId }}
               </div>
               <div class="col-fixed-80">
                 <Button

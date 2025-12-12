@@ -22,6 +22,7 @@
             optionLabel="label"
             optionValue="value"
             size="small"
+            class="mr-2"
           />
           <MultiSelect
             v-model="selectedSources"
@@ -42,6 +43,7 @@
             label="Auto-scroll"
             severity="secondary"
             size="small"
+            class="mr-2"
           />
           <Button
             icon="pi pi-trash"

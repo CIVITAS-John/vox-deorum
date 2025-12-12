@@ -158,47 +158,14 @@ onMounted(() => {
     <div v-else class="trace-content">
       <!-- Root Span Summary -->
       <Card v-if="rootSpan" class="root-span-card">
-        <template #title>
-          <div class="root-span-title">
-            <span>{{ rootSpan.name }}</span>
-            <Tag
-              :value="getStatusText(rootSpan.statusCode)"
-              :severity="getStatusSeverity(rootSpan.statusCode)"
-            />
-          </div>
-        </template>
-        <template #content>
-          <div class="root-span-details">
-            <div class="detail-item">
-              <strong>Trace ID:</strong>
-              <span class="monospace">{{ traceId }}</span>
-            </div>
-            <div class="detail-item">
-              <strong>Start Time:</strong>
-              <span>{{ formatTimestamp(rootSpan.startTime) }}</span>
-            </div>
-            <div class="detail-item">
-              <strong>Duration:</strong>
-              <span>{{ formatDuration(rootSpan.durationMs) }}</span>
-            </div>
-            <div class="detail-item">
-              <strong>Total Spans:</strong>
-              <span>{{ spans.length }}</span>
-            </div>
-            <div v-if="rootSpan.turn !== null" class="detail-item">
-              <strong>Turn:</strong>
-              <span>{{ rootSpan.turn }}</span>
-            </div>
-          </div>
-        </template>
-      </Card>
-
-      <!-- Span Tree -->
-      <Card class="spans-tree-card">
         <template #header>
           <Toolbar>
             <template #start>
-              <h2>Span Hierarchy</h2>
+              <h2>{{ rootSpan.name }}</h2>
+              <Tag
+                :value="getStatusText(rootSpan.statusCode)"
+                :severity="getStatusSeverity(rootSpan.statusCode)"
+              />
               <Tag :value="`${spans.length} spans`" />
             </template>
             <template #end>
@@ -219,7 +186,27 @@ onMounted(() => {
             </template>
           </Toolbar>
         </template>
+        
+        <template #content>
+          <div class="root-span-details">
+            <div v-if="rootSpan.turn !== null" class="detail-item">
+              <strong>Game Turn:</strong>
+              <span>{{ rootSpan.turn }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Start Time:</strong>
+              <span>{{ formatTimestamp(rootSpan.startTime) }}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Duration:</strong>
+              <span>{{ formatDuration(rootSpan.durationMs) }}</span>
+            </div>
+          </div>
+        </template>
+      </Card>
 
+      <!-- Span Tree -->
+      <Card class="spans-tree-card">
         <template #content>
           <div class="data-table">
             <!-- Table Header -->
@@ -393,15 +380,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-}
-
-.detail-item strong {
-  color: var(--text-color-secondary);
-  font-size: 0.9rem;
-}
-
-.detail-item span {
-  color: var(--text-color);
 }
 
 .monospace {

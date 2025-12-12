@@ -80,3 +80,38 @@ body {
   transform: translateZ(0); /* Enable hardware acceleration */
   backface-visibility: hidden; /* Prevent flickering */
 }
+
+/* PrimeVue input icon positioning fix */
+.p-input-icon-left {
+  position: relative;
+}
+
+.p-input-icon-left > i:first-child {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--p-text-color-secondary);
+  z-index: 1;
+}
+
+.p-input-icon-left > .p-inputtext {
+  padding-left: 2.5rem;
+}
+
+.p-input-icon-right {
+  position: relative;
+}
+
+.p-input-icon-right > i:last-child {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--p-text-color-secondary);
+  z-index: 1;
+}
+
+.p-input-icon-right > .p-inputtext {
+  padding-right: 2.5rem;
+}

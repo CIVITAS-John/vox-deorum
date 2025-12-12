@@ -48,23 +48,52 @@ export function formatISODate(isoString: string): string {
 
 /**
  * Get status severity for PrimeVue Tag component
+ * Based on OpenTelemetry StatusCode enum:
+ * 0 = UNSET, 1 = OK, 2 = ERROR
  */
 export function getStatusSeverity(statusCode: number): 'success' | 'danger' | 'warning' {
-  return statusCode === 0 ? 'success' : 'danger';
+  switch (statusCode) {
+    case 1: // OK
+      return 'success';
+    case 2: // ERROR
+      return 'danger';
+    default: // UNSET (0) or unknown
+      return 'warning';
+  }
 }
 
 /**
  * Get status text label
+ * Based on OpenTelemetry StatusCode enum:
+ * 0 = UNSET, 1 = OK, 2 = ERROR
  */
 export function getStatusText(statusCode: number): string {
-  return statusCode === 0 ? 'OK' : 'ERROR';
+  switch (statusCode) {
+    case 0:
+      return 'UNSET';
+    case 1:
+      return 'OK';
+    case 2:
+      return 'ERROR';
+    default:
+      return 'UNKNOWN';
+  }
 }
 
 /**
  * Get status emoji for inline display
+ * Based on OpenTelemetry StatusCode enum:
+ * 0 = UNSET, 1 = OK, 2 = ERROR
  */
 export function getStatusEmoji(statusCode: number): string {
-  return statusCode === 0 ? '✅' : '❌';
+  switch (statusCode) {
+    case 1: // OK
+      return '✅';
+    case 2: // ERROR
+      return '❌';
+    default: // UNSET (0) or unknown
+      return '⚪';
+  }
 }
 
 /**
@@ -221,7 +250,8 @@ export function formatSpanLine(span: Span): string {
 export function getSpanRowClass(span: Span): string {
   const classes = ['span-row'];
 
-  if (span.statusCode !== 0) {
+  // OpenTelemetry StatusCode: 0 = UNSET, 1 = OK, 2 = ERROR
+  if (span.statusCode === 2) {
     classes.push('span-error');
   }
 
