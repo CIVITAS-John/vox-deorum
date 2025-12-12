@@ -68,6 +68,11 @@ export class VoxContext<TParameters extends AgentParameters> {
   public outputTokens: number = 0;
 
   /**
+   * Current game turn
+   */
+  public turn: number = 0
+
+  /**
    * Constructor for VoxContext
    * @param modelOverrides - Model configuration overrides to replace config.json definitions
    * @param id - Optional context ID, generates a UUID if not provided
@@ -111,7 +116,7 @@ export class VoxContext<TParameters extends AgentParameters> {
    * Fetches available tools from the MCP server and wraps them for use with AI SDK.
    */
   public async registerMCP() {
-    var mcpTools = wrapMCPTools(await mcpClient.getTools(), this.id);
+    var mcpTools = wrapMCPTools(await mcpClient.getTools(), this);
     for (var tool of Object.keys(mcpTools)) {
       this.tools[tool] = mcpTools[tool];
     }
@@ -221,12 +226,14 @@ export class VoxContext<TParameters extends AgentParameters> {
     }
 
     let currentAgent = parameters.running;
+    this.turn = parameters.turn;
     parameters.running = agentName;
 
     const span = this.tracer.startSpan(`agent.${agentName}`, {
       kind: SpanKind.INTERNAL,
       attributes: {
         'vox.context.id': this.id,
+        'game.turn': JSON.stringify(parameters.turn),
         'agent.name': agentName,
         'agent.input': input ? JSON.stringify(input) : undefined
       }
@@ -359,6 +366,7 @@ export class VoxContext<TParameters extends AgentParameters> {
       kind: SpanKind.INTERNAL,
       attributes: {
         'vox.context.id': this.id,
+        'game.turn': JSON.stringify(parameters.turn),
         'agent.name': agent.name,
         'step.number': stepCount + 1
       }

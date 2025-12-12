@@ -136,11 +136,11 @@ export class VoxPlayer {
               PlayerID: this.parameters.playerID
             });
 
-          const turnSpan = tracer.startSpan(`turn.${this.parameters.turn}`, {
+          const turnSpan = tracer.startSpan(`strategist.turn`, {
             kind: SpanKind.INTERNAL,
             attributes: {
               'vox.context.id': this.context.id,
-              'turn.number': JSON.stringify(this.parameters.turn),
+              'game.turn': JSON.stringify(this.parameters.turn),
               'event.before': JSON.stringify(this.parameters.before),
               'event.after': JSON.stringify(this.parameters.after)
             }

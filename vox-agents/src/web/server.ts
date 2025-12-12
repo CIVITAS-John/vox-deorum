@@ -11,6 +11,7 @@ import fs from 'fs';
 import { createLogger } from '../utils/logger.js';
 import { sseManager } from './sse-manager.js';
 import config from '../utils/config.js';
+import telemetryRoutes from './routes/telemetry.js';
 
 // Get __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -52,6 +53,9 @@ app.use(express.static(staticPath, {
 
 // API routes should come before the catch-all route
 
+// Mount telemetry routes
+app.use('/api/telemetry', telemetryRoutes);
+
 // Health check endpoint - minimal API foundation
 app.get('/api/health', (req, res) => {
   res.json({
@@ -89,8 +93,12 @@ export async function startWebServer(): Promise<void> {
     const server = app.listen(PORT, () => {
       webLogger.info(`🌐 Web UI available at: http://localhost:${config.webui.port}`);
       webLogger.info('Available endpoints:');
-      webLogger.info('  • Health Check:  GET  /api/health');
-      webLogger.info('  • Log Stream:    GET  /api/logs/stream (SSE)');
+      webLogger.info('  • Health Check:       GET  /api/health');
+      webLogger.info('  • Log Stream:         GET  /api/logs/stream (SSE)');
+      webLogger.info('  • Telemetry DBs:      GET  /api/telemetry/databases');
+      webLogger.info('  • Query Spans:        GET  /api/telemetry/spans');
+      webLogger.info('  • Get Trace:          GET  /api/telemetry/trace/:id');
+      webLogger.info('  • Database Stats:     GET  /api/telemetry/stats');
       webLogger.info('Press Ctrl+C to stop the server');
 
       // Start SSE heartbeat to keep connections alive

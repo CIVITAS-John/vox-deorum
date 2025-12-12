@@ -113,7 +113,7 @@ export function createAgentTool<TParameters extends AgentParameters, TInput = un
  * const wrapped = wrapMCPTool(tools[0]);
  * ```
  */
-export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
+export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): VercelTool {
   const logger = createLogger(`tool-${tool.name}`);
 
   // Remove autoComplete fields from input schema
@@ -146,7 +146,8 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
         attributes: {
           'tool.name': tool.name,
           'tool.type': 'mcp',
-          'vox.context.id': contextId,
+          'vox.context.id': context.id,
+          'game.turn': context.turn
         }
       });
 
@@ -224,8 +225,8 @@ export function wrapMCPTool(tool: Tool, contextId: string): VercelTool {
  * const toolSet = wrapMCPTools(tools);
  * ```
  */
-export function wrapMCPTools(tools: Tool[], contextId: string): ToolSet {
+export function wrapMCPTools(tools: Tool[], context: VoxContext<AgentParameters>): ToolSet {
   var results: Record<string, VercelTool> = {};
-  tools.forEach(tool => results[tool.name] = wrapMCPTool(tool, contextId));
+  tools.forEach(tool => results[tool.name] = wrapMCPTool(tool, context));
   return results;
 }

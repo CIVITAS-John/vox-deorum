@@ -277,21 +277,6 @@ SSE /api/agents/:name/stream    // Response stream
 
 ## UI/UX Design
 
-### Civ5 Theme
-```css
-:root {
-  --civ-gold: #D4AF37;
-  --civ-bronze: #8B6914;
-  --civ-dark: #1A2332;
-  --civ-panel: #2C3E50;
-  --civ-hover: #34495E;
-  --civ-text: #F5E6D3;
-  --civ-muted: #7F8C8D;
-  --civ-success: #27AE60;
-  --civ-error: #C0392B;
-}
-```
-
 ### Layout
 - Fixed sidebar with navigation
 - Main content area with page routing
