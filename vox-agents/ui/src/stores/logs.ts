@@ -18,7 +18,6 @@ const MAX_LOGS = 1000;
 
 // Internal state
 let cleanupSse: (() => void) | null = null;
-let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   
 /**
  * Add a new log entry to the store
@@ -49,12 +48,6 @@ export function clearLogs() {
  * Connect to the log stream
  */
 function connect() {
-  // Clear any existing reconnect timeout
-  if (reconnectTimeout) {
-    clearTimeout(reconnectTimeout);
-    reconnectTimeout = null;
-  }
-
   // Clean up existing connection if any
   if (cleanupSse) {
     cleanupSse();
@@ -86,11 +79,6 @@ function connect() {
  * Disconnect from the log stream
  */
 export function disconnect() {
-  if (reconnectTimeout) {
-    clearTimeout(reconnectTimeout);
-    reconnectTimeout = null;
-  }
-
   if (cleanupSse) {
     cleanupSse();
     cleanupSse = null;

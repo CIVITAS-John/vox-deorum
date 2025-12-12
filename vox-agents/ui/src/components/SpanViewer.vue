@@ -117,8 +117,9 @@
     v-model:visible="showSpanDetails"
     :header="selectedSpan?.name"
     modal
-    :style="{ width: '50rem' }"
-    :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+    :style="{ width: '80rem' }"
+    :breakpoints="{ '1400px': '90vw', '960px': '95vw', '640px': '100vw' }"
+    :closeOnEscape="true"
   >
     <div v-if="selectedSpan" class="span-details-content">
       <div class="detail-row">
@@ -154,6 +155,10 @@
       >
         <strong>{{ key }}:</strong>
         <span v-if="typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'">{{ value }}</span>
+        <!-- Use AIMessagesViewer for AI message-like data -->
+        <div v-else-if="isAIMessageData(value)" class="ai-messages-container">
+          <AIMessagesViewer :messages="value" />
+        </div>
         <div v-else class="json-container">
           <VueJsonPretty
             :data="value"
@@ -187,6 +192,7 @@ import Toolbar from 'primevue/toolbar';
 import Dialog from 'primevue/dialog';
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
+import AIMessagesViewer from './AIMessagesViewer.vue';
 import type { Span } from '../api/types';
 import {
   formatDuration,
@@ -324,6 +330,13 @@ function tryParseJSON(str: string): any {
   }
 }
 
+/**
+ * Check if the value contains AI message data
+ */
+function isAIMessageData(value: any): boolean {
+  return Array.isArray(value) && value.length > 0 && value[0]?.role !== undefined;
+}
+
 onMounted(() => {
   calculateScrollerHeight();
   // Auto-expand all spans by default
@@ -375,6 +388,14 @@ onUnmounted(() => {
   border: 1px solid var(--p-content-border-color);
   border-radius: 4px;
   overflow-x: auto;
+}
+
+.ai-messages-container {
+  flex: 1;
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 4px;
 }
 
 .json-pretty {

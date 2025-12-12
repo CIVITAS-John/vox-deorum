@@ -215,7 +215,7 @@ VoxAgent (Base)
 
 ### Vue 3 + PrimeVue
 - Use Vue 3 Composition API with `<script setup>` syntax
-- PrimeVue 3 for UI components with Aura theme
+- PrimeVue 4 for UI components with Aura theme
 - VirtualScroller for large data sets (logs, tables)
 - Avoid external heavy dependencies when PrimeVue provides alternatives
 
@@ -250,8 +250,11 @@ VoxAgent (Base)
    - Ensure all similar components use the new style
    - Avoid creating splintered/duplicate styles across components
 
-### PrimeVue 3 Color System
-**IMPORTANT**: Always use PrimeVue's actual CSS variables, not guessed color names.
+### Font Conventions
+**IMPORTANT**: Never use monospace fonts in the UI. All text should use the default system fonts provided by PrimeVue. Code display is an exception where monospace may be appropriate.
+
+### PrimeVue 4 Color System
+**IMPORTANT**: Always use PrimeVue 4's actual CSS variables, not guessed color names.
 
 #### Core Color Variables
 - `var(--p-text-color)` - Primary text color (#334155)
@@ -320,9 +323,33 @@ PrimeVue includes full color scales (50-950) for all colors:
   background: var(--p-red-50);
 }
 
-/* Incorrect - these don't exist in PrimeVue 3 */
+/* Dark mode adjustments - use data-theme attribute */
+:root[data-theme="dark"] .message {
+  background: var(--p-surface-900);
+}
+
+/* Common component-specific colors */
+.message--system {
+  border-left: 3px solid var(--p-gray-500);
+}
+
+.message--user {
+  border-left: 3px solid var(--p-blue-500);
+}
+
+.message--assistant {
+  border-left: 3px solid var(--p-green-500);
+}
+
+.tool-label {
+  color: var(--p-purple-500);
+}
+
+/* Incorrect - these don't exist in PrimeVue 4 */
 /* var(--p-surface-hover) ❌ - use specific surface values */
 /* var(--p-surface-border) ❌ - use var(--p-surface-200) or var(--p-content-border-color) */
+/* var(--vp-c-*) ❌ - VitePress variables, not available in PrimeVue */
+/* var(--vp-font-family-mono) ❌ - use 'Courier New', Courier, monospace */
 ```
 
 ### Development Server

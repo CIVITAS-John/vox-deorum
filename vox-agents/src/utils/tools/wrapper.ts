@@ -180,7 +180,7 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
         logger.debug(`Tool call completed: ${tool.name}`);
 
         span.setAttributes({
-          'tool.output': JSON.stringify(structuredResult ?? result).substring(0, 1000)
+          'tool.output': JSON.stringify(structuredResult ?? result)
         });
         span.setStatus({ code: SpanStatusCode.OK });
 

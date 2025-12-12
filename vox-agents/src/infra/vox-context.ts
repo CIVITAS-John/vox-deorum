@@ -410,9 +410,11 @@ export class VoxContext<TParameters extends AgentParameters> {
         // Update token usage
         const inputTokens = stepResponse.totalUsage.inputTokens ?? 0;
         const reasoningTokens = stepResponse.totalUsage.reasoningTokens ?? 0;
-        const outputTokens = stepResponse.totalUsage.outputTokens ?? 0;
+        const outputTokens = (stepResponse.totalUsage.outputTokens ?? 0) - reasoningTokens;
 
         // Record step results in span
+        const responses = stepResponse.response.messages;
+        responses.forEach(response => delete response.providerOptions);
         stepSpan.setAttributes({
           'model': `${stepModel.name}@${stepModel.provider}`,
           'tokens.input': inputTokens,
