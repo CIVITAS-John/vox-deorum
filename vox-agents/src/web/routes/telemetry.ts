@@ -56,7 +56,7 @@ router.get('/databases', async (req, res) => {
 
           // Get relative folder path from telemetry directory
           const relativePath = path.relative(baseDir, dir);
-          const folderPath = relativePath === '' ? 'telemetry' : path.join('telemetry', relativePath).replace(/\\/g, '/');
+          const folderPath = relativePath.replace(/\\/g, '/');
 
           // Parse filename (gameid-playerid.db format)
           const nameWithoutExt = path.basename(entry.name, '.db');
