@@ -155,13 +155,7 @@ router.get('/sessions/:id/spans', async (req, res) => {
     .limit(100)
     .execute();
 
-  // Parse attributes
-  const spansWithAttributes = spans.map(span => ({
-    ...span,
-    attributes: span.attributes ? JSON.parse(span.attributes as any) : {}
-  }));
-
-  res.json({ spans: spansWithAttributes });
+  res.json({ spans: spans });
   return;
 });
 
@@ -192,15 +186,9 @@ router.get('/sessions/:id/stream', (req, res) => {
   // Set up event listener for new spans
   const spanListener = (spans: any[]) => {
     try {
-      // Parse attributes and send
-      const spansWithAttributes = spans.map(span => ({
-        ...span,
-        attributes: span.attributes ? JSON.parse(span.attributes as string) : {}
-      }));
-
       res.write(`data: ${JSON.stringify({
         type: 'spans',
-        spans: spansWithAttributes
+        spans: spans
       })}\n\n`);
     } catch (error) {
       logger.error('Error streaming spans', error);
@@ -249,15 +237,7 @@ router.get('/db/:filename(*)/traces', async (req, res) => {
         .offset(parseInt(offset as string))
         .execute();
 
-      // Parse attributes for each trace
-      const tracesWithAttributes = traces.map(trace => {
-        return {
-          ...trace,
-          attributes: trace.attributes ? JSON.parse(trace.attributes as any) : {}
-        };
-      });
-
-      res.json({ traces: tracesWithAttributes });
+      res.json({ traces: traces });
     } finally {
       await db.destroy();
     }
@@ -296,13 +276,7 @@ router.get('/db/:filename(*)/trace/:traceId/spans', async (req, res) => {
         return res.status(404).json({ error: 'Trace not found' });
       }
 
-      // Parse attributes
-      const spansWithAttributes = spans.map(span => ({
-        ...span,
-        attributes: span.attributes ? JSON.parse(span.attributes as any) : {}
-      }));
-
-      res.json({ spans: spansWithAttributes });
+      res.json({ spans: spans });
     } finally {
       await db.destroy();
     }
