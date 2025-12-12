@@ -24,5 +24,9 @@
   "license": "ISC",
   "devDependencies": {
     "eventsource": "^4.1.0"
+  },
+  "dependencies": {
+    "@types/multer": "^2.0.0",
+    "multer": "^2.0.2"
   }
 }

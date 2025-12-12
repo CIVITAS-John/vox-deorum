@@ -167,20 +167,37 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 ## Remaining Implementation Phases
 
 ### Phase 4: Telemetry Viewer
-**Status**: 🔄 Not Started
+**Status**: 🔄 Backend Complete, Frontend Pending
 
-**Backend Requirements**:
-- Kysely setup for telemetry databases
-- Type-safe span queries with filtering
-- Pagination and trace reconstruction
-- Database discovery in `telemetry/` directory
+**Backend Requirements**: ✅ COMPLETED
+- ✅ Database discovery in `telemetry/` with recursive scanning
+- ✅ Parse database filenames (format: `gameid-playerid.db`)
+- ✅ Kysely setup for telemetry databases with type-safe queries
+- ✅ Active sessions API via `sqliteExporter.getActiveConnections()`
+- ✅ Span streaming via SSE for active sessions with event listeners
+- ✅ Trace listing (spans without parent_span_id)
+- ✅ File upload support with multer middleware
+- ✅ All API endpoints implemented in `src/web/routes/telemetry.ts`
 
 **Frontend Requirements**:
-- Database selector dropdown
-- PrimeVue DataTable for span display with virtual scrolling
-- Filter controls (time, service, status)
-- Span detail modal
-- Trace hierarchy visualization
+- Main telemetry page with two sections:
+  - Active Sessions list (same as LogViewer)
+  - Existing Databases list with simple card layout showing folder, game ID, player ID
+  - Upload database functionality (stores to `telemetry/uploaded/`)
+- Active session view:
+  - Fetch initial 100 latest spans on entry
+  - Stream incoming spans via SSE
+  - Sort by timestamp, maintain rolling window of 1,000 spans
+  - Virtual scrolling using Virtua (same as LogViewer)
+- Database session view:
+  - Simple list of trace cards showing key attributes
+  - Frontend search (with a searchbox)
+  - Click trace card to enter trace detail view
+- Trace detail view:
+  - Share the span viewer component (but not rolling)
+  - Show all spans sorted by time
+  - Expandable spans with overlay panel showing full attributes
+  - Parent-child hierarchy visualization
 
 ### Phase 5: Session Control
 **Status**: 🔄 Not Started
@@ -230,14 +247,48 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 
 ### Telemetry Endpoints
 ```typescript
-GET /api/telemetry/databases     // List all .db files in telemetry/
-GET /api/telemetry/active        // Get active connections from SQLiteSpanExporter
-GET /api/telemetry/spans         // Query spans with filters
-  ?db=<filename>                 // Which database to query
-  &context=<id>                  // Filter by context_id
-  &limit=100                     // Pagination
+// Main telemetry page
+GET /api/telemetry/sessions/active  // List active telemetry sessions
+GET /api/telemetry/databases        // List existing databases with parsed info
+  Response: {
+    databases: [{
+      path: string,              // Full path
+      folder: string,            // "telemetry" or "uploaded"
+      filename: string,          // Database filename
+      gameId: string,           // Parsed from filename
+      playerId: string,         // Parsed from filename
+      size: number,             // File size in bytes
+      lastModified: string      // ISO timestamp
+    }]
+  }
+POST /api/telemetry/upload         // Upload database file
+  Content-Type: multipart/form-data
+  Response: { success: boolean, filename: string }
+
+// Active session view
+GET /api/telemetry/sessions/:id/spans  // Get latest 100 spans for active session
+  Response: { spans: Span[] }
+SSE /api/telemetry/sessions/:id/stream // Stream new spans for active session
+
+// Database session view
+GET /api/telemetry/db/:filename/traces // Get all root spans (traces)
+  ?limit=100
   &offset=0
-GET /api/telemetry/trace/:id    // Get all spans for a trace
+  Response: {
+    traces: [{
+      span_id: string,
+      name: string,
+      service_name: string,
+      start_time: number,
+      end_time: number,
+      status_code: number,
+      attributes: Record<string, any>
+    }]
+  }
+
+// Trace detail view
+GET /api/telemetry/db/:filename/trace/:traceId/spans  // Get all spans in a trace
+  Response: { spans: Span[] }  // Sorted by start_time
 ```
 
 ### Log Endpoints
@@ -282,6 +333,42 @@ SSE /api/agents/:name/stream    // Response stream
 - Main content area with page routing
 - Status bar showing active session/context
 - Responsive breakpoints for mobile
+
+### Telemetry Components (LogViewer-style Implementation)
+
+#### Main Telemetry View
+- Two-section layout using PrimeVue Cards:
+  - Active Sessions: Simple list of session cards (similar to log entries)
+  - Existing Databases: Card grid showing folder, game ID, player ID, size
+- Upload button using PrimeVue FileUpload component
+- Click handlers for navigation using Vue Router
+
+#### Active Session View (SpanViewer Component)
+- Header with session info using PrimeVue Card
+- Span list implementation (based on LogViewer pattern):
+  - Virtua VList for virtual scrolling
+  - Real-time SSE updates appended to array
+  - Simple div-based rows with flexbox layout
+  - Format: `[timestamp] [service] operation (duration) [status]`
+  - Maintains 1,000 span rolling window with array.slice()
+  - Auto-scroll toggle using PrimeVue ToggleButton
+
+#### Database Session View (Traces List)
+- Simple card list (no DataTable):
+  - Each trace as a PrimeVue Card component
+  - Shows key attributes in card body
+  - Frontend search using computed filtered list
+  - Manual pagination with slice() and page controls
+- Click card to navigate to trace detail
+
+#### Trace Detail View
+- Header card with trace summary
+- Reuses SpanViewer component from active session
+- Expandable spans using PrimeVue Accordion or custom divs:
+  - Basic info always visible
+  - Click row to toggle PrimeVue Dialog/Sidebar with full attributes
+  - Parent-child indicators using CSS indentation
+- No complex timeline - simple list with time sorting
 
 ## Development Notes
 

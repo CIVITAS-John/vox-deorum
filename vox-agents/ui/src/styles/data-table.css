@@ -1,0 +1,236 @@
+/**
+ * Shared data table styles for consistent flex-based table appearance
+ * Used across LogViewer, TelemetryView, and other table-like components
+ */
+
+/* Container for the entire table */
+.data-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-size: 0.875rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius);
+  background: var(--surface-ground);
+  overflow: hidden;
+}
+
+/* Table header row */
+.table-header {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--surface-hover);
+  border-bottom: 2px solid var(--surface-border);
+  font-weight: 600;
+  color: var(--text-color);
+  user-select: none;
+}
+
+/* Table body container */
+.table-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 200px;
+  max-height: 600px;
+}
+
+/* Individual table row */
+.table-row {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--surface-border);
+  transition: background-color 0.2s;
+  min-height: 2.5rem;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-row:hover {
+  background: var(--surface-hover);
+}
+
+/* Clickable row style */
+.table-row.clickable {
+  cursor: pointer;
+}
+
+.table-row.clickable:hover {
+  background: var(--primary-color-text);
+  background: rgba(var(--primary-500-rgb), 0.08);
+}
+
+/* Column sizing utilities */
+.col-expand {
+  flex: 1;
+  min-width: 0;
+  padding-right: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-fixed-50 {
+  flex: 0 0 50px;
+  width: 50px;
+  padding-right: 0.5rem;
+}
+
+.col-fixed-60 {
+  flex: 0 0 60px;
+  width: 60px;
+  padding-right: 0.5rem;
+}
+
+.col-fixed-80 {
+  flex: 0 0 80px;
+  width: 80px;
+  padding-right: 0.5rem;
+}
+
+.col-fixed-100 {
+  flex: 0 0 100px;
+  width: 100px;
+  padding-right: 0.5rem;
+}
+
+.col-fixed-120 {
+  flex: 0 0 120px;
+  width: 120px;
+  padding-right: 0.5rem;
+}
+
+.col-fixed-150 {
+  flex: 0 0 150px;
+  width: 150px;
+  padding-right: 0.5rem;
+}
+
+.col-fixed-200 {
+  flex: 0 0 200px;
+  width: 200px;
+  padding-right: 0.5rem;
+}
+
+/* Text utilities */
+.monospace {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-wrap {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.text-muted {
+  color: var(--text-color-secondary);
+}
+
+.text-small {
+  font-size: 0.75rem;
+}
+
+/* Alignment utilities */
+.text-left {
+  text-align: left;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+  padding-right: 0;
+  padding-left: 0.5rem;
+}
+
+/* Special row states */
+.table-row.selected {
+  background: rgba(var(--primary-500-rgb), 0.12);
+}
+
+.table-row.error {
+  background: rgba(var(--red-500-rgb), 0.05);
+}
+
+.table-row.warning {
+  background: rgba(var(--yellow-500-rgb), 0.05);
+}
+
+.table-row.success {
+  background: rgba(var(--green-500-rgb), 0.05);
+}
+
+/* Empty state for tables */
+.table-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-color-secondary);
+  text-align: center;
+}
+
+.table-empty i {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.table-empty p {
+  margin: 0;
+}
+
+/* Loading state */
+.table-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-color-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .table-header,
+  .table-row {
+    padding: 0.5rem;
+  }
+
+  .col-fixed-150,
+  .col-fixed-200 {
+    flex: 0 0 100px;
+    width: 100px;
+  }
+
+  .table-header {
+    font-size: 0.8rem;
+  }
+
+  .table-row {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide some columns on very small screens */
+  .hide-mobile {
+    display: none;
+  }
+
+  .col-expand {
+    flex: 2;
+  }
+}

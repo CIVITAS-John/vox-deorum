@@ -4,7 +4,7 @@
     <Tag :severity="isConnected ? 'success' : 'warn'">
       {{ isConnected ? 'Connected' : 'Disconnected' }}
     </Tag>
-    <Tag severity="info">{{ filteredLogs.length }}/{{ logs.length }} logs</Tag>
+    <Tag severity="info">{{ filteredLogs.length }}/{{ logs.length }} Logs</Tag>
   </div>
 
   <Card class="h-full">
@@ -51,12 +51,12 @@
         />
       </div>
 
-      <div class="log-container" ref="logContainer">
+      <div class="data-table log-container" ref="logContainer">
         <!-- Header row -->
-        <div class="log-header">
-          <div class="col-time">Time</div>
-          <div class="col-level">Level</div>
-          <div class="col-message">Message</div>
+        <div class="table-header">
+          <div class="col-fixed-100">Time</div>
+          <div class="col-fixed-150">Level</div>
+          <div class="col-expand">Message</div>
         </div>
 
         <!-- Log entries using Virtua VList -->
@@ -64,16 +64,17 @@
           :data="filteredLogs"
           :style="{ height: scrollerHeight }"
           ref="virtualScroller"
-          class="log-scroller"
+          class="table-body log-scroller"
           #default="{ item, index }"
         >
-          <div :key="`${item.timestamp}-${index}`" :class="`log-row log-${item.level}`">
-            <div class="col-time">{{ formatTimestamp(item.timestamp) }}</div>
-            <div class="col-level">
+          <div :key="`${item.timestamp}-${index}`"
+               :class="getLogRowClass(item.level)">
+            <div class="col-fixed-100">{{ formatTimestamp(item.timestamp) }}</div>
+            <div class="col-fixed-150">
               <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
-              <span class="level-source">{{ item.context }}</span>
+              <span class="level-source text-muted text-small">{{ item.context }}</span>
             </div>
-            <div class="col-message">
+            <div class="col-expand text-wrap">
               {{ item.message }}
               <div v-if="item.params" class="params-list">
                 <ParamsList :params="item.params" :depth="0" />
@@ -128,6 +129,19 @@ const updateMessageFieldWidth = () => {
   if (logContainer.value) {
     const containerWidth = logContainer.value.offsetWidth;
     messageFieldWidth.value = calculateMessageCharWidth(containerWidth);
+  }
+};
+
+// Get appropriate row class based on log level
+const getLogRowClass = (level: string) => {
+  const baseClass = 'table-row';
+  switch(level) {
+    case 'error':
+      return `${baseClass} error`;
+    case 'warn':
+      return `${baseClass} warning`;
+    default:
+      return baseClass;
   }
 };
 
@@ -202,122 +216,24 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@import '@/styles/data-table.css';
+
+/* LogViewer specific overrides */
 .log-container {
-  border: 1px solid var(--p-surface-200);
-  border-radius: var(--p-border-radius-md);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  /* Override max-height from data-table.css for adaptive height */
 }
 
-.log-header {
-  display: flex;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--p-content-hover-background);
-  border-bottom: 2px solid var(--p-content-border-color);
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--p-text-color);
+.log-container .table-body {
+  max-height: none; /* Remove max-height as we control it via scrollerHeight */
 }
 
-.log-header > div {
-  padding: 0.5rem;
-}
-
-.log-row {
-  display: flex;
-  align-items: flex-start;
-  transition: background-color 0.1s;
-  border-bottom: 1px solid var(--p-content-border-color);
-  background: var(--p-content-background);
-  min-height: 32px; /* Ensure minimum height */
-  box-sizing: border-box; /* Include padding in height calculation */
-}
-
-.log-row:hover {
-  background: var(--p-content-hover-background);
-}
-
-
-.log-row > div {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
-}
-
-/* Log level specific colors using extended PrimeVue color palette */
-.log-debug {
-  color: var(--p-text-muted-color);
-}
-
-.log-warn {
-  color: var(--p-amber-700);
-  background: var(--p-amber-50);
-}
-
-.log-warn:hover {
-  background: var(--p-amber-100);
-}
-
-.log-error {
-  color: var(--p-red-700);
-  background: var(--p-red-50);
-}
-
-.log-error:hover {
-  background: var(--p-red-100);
-}
-
-/* Dark mode versions */
-.dark-mode .log-warn {
-  color: var(--p-amber-300);
-  background: var(--p-amber-950);
-}
-
-.dark-mode .log-warn:hover {
-  background: var(--p-amber-900);
-}
-
-.dark-mode .log-error {
-  color: var(--p-red-300);
-  background: var(--p-red-950);
-}
-
-.dark-mode .log-error:hover {
-  background: var(--p-red-900);
-}
-
-/* Column widths */
-.col-time {
-  flex: 0 0 100px;
-  white-space: nowrap;
-}
-
-.col-level {
-  flex: 0 0 150px;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.col-message {
-  flex: 1;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-  word-break: break-word;
-  min-width: 0; /* Allow flex item to shrink below content size */
-}
-
+/* Log-specific styling */
 .level-emoji {
   margin-right: 0.25rem;
 }
 
 .level-source {
-  font-size: 0.75rem;
-  color: var(--p-text-muted-color);
+  margin-left: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -325,9 +241,10 @@ onUnmounted(() => {
 
 /* Params container styling */
 .params-list {
-  color: var(--p-text-muted-color);
+  color: var(--text-color-secondary);
   display: block;
   font-size: 0.75rem;
+  margin-top: 0.25rem;
 }
 
 /* Virtua VList optimization */
@@ -346,5 +263,25 @@ onUnmounted(() => {
 .source-filter :deep(.p-multiselect-label) {
   padding: 0.375rem 0.5rem;
   font-size: 0.875rem;
+}
+
+/* Log level specific text colors */
+.table-row.error {
+  color: var(--red-700);
+}
+
+.table-row.warning {
+  color: var(--yellow-700);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .table-row.error {
+    color: var(--red-300);
+  }
+
+  .table-row.warning {
+    color: var(--yellow-300);
+  }
 }
 </style>

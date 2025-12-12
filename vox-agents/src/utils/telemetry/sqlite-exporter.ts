@@ -12,6 +12,7 @@ import { Kysely, SqliteDialect } from 'kysely';
 import Database from 'better-sqlite3';
 import * as fs from 'fs';
 import * as path from 'path';
+import { EventEmitter } from 'events';
 import { createLogger } from '../logger.js';
 import { spanProcessor } from '../../instrumentation.js';
 import { VoxSpanExporter } from './vox-exporter.js';
@@ -30,15 +31,26 @@ const databases = new Map<string, Kysely<TelemetryDatabase>>();
 const customFolders = new Map<string, string>();
 
 /**
+ * Events emitted by SQLiteSpanExporter:
+ * - 'spans-exported': Emitted when new spans are exported with { contextId, spans }
+ */
+export interface SQLiteSpanExporterEvents {
+  'spans-exported': (data: { contextId: string; spans: NewSpan[] }) => void;
+}
+
+/**
  * Custom OpenTelemetry span exporter that writes to SQLite databases using Kysely.
  * Groups trace data by VoxContext ID for easier analysis.
+ * Emits events when new spans are exported for real-time streaming.
  */
 export class SQLiteSpanExporter extends VoxSpanExporter {
   private dataDir: string;
+  private eventEmitter: EventEmitter;
 
   constructor(dataDir: string = 'telemetry') {
     super();
     this.dataDir = dataDir;
+    this.eventEmitter = new EventEmitter();
     this.ensureDataDirectory();
   }
 
@@ -153,7 +165,7 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
     delete attributes['vox.context.id'];
     delete attributes['game.turn'];
 
-    // Return object matching NewSpan type (Insertable<SpanTable>)
+    // Return object matching NewSpan type (Insertable<SpanRecord>)
     return {
       contextId,
       turn,
@@ -170,6 +182,20 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
       statusCode: span.status.code,
       statusMessage: span.status.message || null,
     };
+  }
+
+  /**
+   * Subscribe to span export events for a specific context
+   */
+  public onSpansExported(contextId: string, listener: (spans: NewSpan[]) => void): void {
+    this.eventEmitter.on(`spans-exported:${contextId}`, listener);
+  }
+
+  /**
+   * Unsubscribe from span export events for a specific context
+   */
+  public offSpansExported(contextId: string, listener: (spans: NewSpan[]) => void): void {
+    this.eventEmitter.off(`spans-exported:${contextId}`, listener);
   }
 
   /**
@@ -200,6 +226,9 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
           await db.insertInto('spans')
             .values(contextSpans)
             .execute();
+
+          // Emit event for real-time streaming
+          this.eventEmitter.emit(`spans-exported:${contextId}`, contextSpans);
         }
       }
 
@@ -313,7 +342,7 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
   getActiveConnections(): string[] {
     return Array.from(databases.keys());
   }
-
+  
   /**
    * Open a specific database file for querying (read-only)
    */

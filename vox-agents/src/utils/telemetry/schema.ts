@@ -17,7 +17,7 @@ export interface SpanAttributes {
 /**
  * Represents a telemetry span record in the database
  */
-export interface SpanTable {
+export interface SpanRecord {
   /**
    * Auto-incrementing primary key
    */
@@ -88,20 +88,20 @@ export interface SpanTable {
  * Database schema with all tables
  */
 export interface TelemetryDatabase {
-  spans: SpanTable;
+  spans: SpanRecord;
 }
 
 /**
  * Type-safe insertable span data
  */
-export type NewSpan = Insertable<SpanTable>;
+export type NewSpan = Insertable<SpanRecord>;
 
 /**
  * Type-safe selectable span data
  */
-export type Span = Selectable<SpanTable>;
+export type Span = Selectable<SpanRecord>;
 
 /**
  * Type-safe updateable span data
  */
-export type SpanUpdate = Updateable<SpanTable>;
+export type SpanUpdate = Updateable<SpanRecord>;

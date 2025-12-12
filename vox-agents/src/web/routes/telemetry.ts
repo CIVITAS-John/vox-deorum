@@ -1,171 +1,291 @@
 /**
  * @module web/routes/telemetry
  *
- * API endpoints for telemetry data access.
- * Provides routes for listing databases, querying spans, and trace reconstruction.
+ * Telemetry API endpoints for viewing active sessions and stored databases.
+ * Provides routes for session tracking, database discovery, span streaming, and trace analysis.
  */
 
 import { Router } from 'express';
-import { Kysely } from 'kysely';
+import fs from 'fs/promises';
+import path from 'path';
+import multer from 'multer';
 import { createLogger } from '../../utils/logger.js';
-import { SQLiteSpanExporter, type TelemetryDatabase, type Span } from '../../utils/telemetry/sqlite-exporter.js';
 import { sqliteExporter } from '../../instrumentation.js';
 
-const logger = createLogger('TelemetryAPI');
+const logger = createLogger('telemetry-api', 'webui');
 const router = Router();
 
+// Configure multer for file uploads
+const upload = multer({
+  dest: 'temp/',
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB max
+  fileFilter: (_req: any, file: any, cb: any) => {
+    if (path.extname(file.originalname).toLowerCase() === '.db') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only .db files are allowed'));
+    }
+  }
+});
+
 /**
- * Get list of all telemetry database files
+ * List existing database files with parsed metadata
  */
 router.get('/databases', async (req, res) => {
   try {
-    if (!(sqliteExporter instanceof SQLiteSpanExporter)) {
-      return res.status(501).json({ error: 'SQLite telemetry not configured' });
+    const databases: any[] = [];
+
+    // Check main telemetry folder
+    const telemetryDir = path.join(process.cwd(), 'telemetry');
+
+    // Ensure directories exist
+    await fs.mkdir(telemetryDir, { recursive: true });
+
+    // Recursive function to scan directories
+    async function scanDirectory(dir: string, baseDir: string) {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+
+        if (entry.isDirectory()) {
+          // Recursively scan subdirectories
+          await scanDirectory(fullPath, baseDir);
+        } else if (entry.isFile() && entry.name.endsWith('.db')) {
+          const stats = await fs.stat(fullPath);
+
+          // Get relative folder path from telemetry directory
+          const relativePath = path.relative(baseDir, dir);
+          const folderPath = relativePath === '' ? 'telemetry' : path.join('telemetry', relativePath).replace(/\\/g, '/');
+
+          // Parse filename (gameid-playerid.db format)
+          const nameWithoutExt = path.basename(entry.name, '.db');
+          const parts = nameWithoutExt.split('-');
+          const playerId = parts[parts.length - 1] || 'unknown';
+          const gameId = parts.slice(0, -1).join('-') || 'unknown';
+
+          databases.push({
+            folder: folderPath,
+            filename: entry.name,
+            gameId,
+            playerId,
+            size: stats.size,
+            lastModified: stats.mtime.toISOString()
+          });
+        }
+      }
     }
 
-    const databases = await sqliteExporter.getDatabaseFiles();
-    return res.json({ databases });
+    // Start recursive scan from telemetry directory
+    await scanDirectory(telemetryDir, telemetryDir);
+
+    res.json({ databases });
   } catch (error) {
-    logger.error('Error listing database files', error);
-    return res.status(500).json({ error: 'Failed to list database files' });
+    logger.error('Error listing databases', error);
+    res.status(500).json({ error: 'Failed to list databases' });
   }
 });
 
 /**
- * Get list of active database connections
+ * Upload a database file
  */
-router.get('/active', async (req, res) => {
+router.post('/upload', upload.single('database'), async (req: any, res) => {
   try {
-    if (!(sqliteExporter instanceof SQLiteSpanExporter)) {
-      return res.status(501).json({ error: 'SQLite telemetry not configured' });
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const connections = sqliteExporter.getActiveConnections();
-    return res.json({ connections });
+    const uploadedDir = path.join(process.cwd(), 'telemetry', 'uploaded');
+    await fs.mkdir(uploadedDir, { recursive: true });
+
+    // Use original filename if valid, otherwise generate one
+    const originalName = req.file.originalname;
+    const targetPath = path.join(uploadedDir, originalName);
+
+    // Move file from temp to uploaded directory
+    await fs.rename(req.file.path, targetPath);
+
+    res.json({
+      success: true,
+      filename: originalName,
+      path: targetPath
+    });
   } catch (error) {
-    logger.error('Error getting active connections', error);
-    return res.status(500).json({ error: 'Failed to get active connections' });
+    logger.error('Error uploading database', error);
+
+    // Clean up temp file on error
+    if (req.file?.path) {
+      await fs.unlink(req.file.path).catch(() => {});
+    }
+
+    res.status(500).json({ error: 'Failed to upload database' });
   }
+  return;
 });
 
 /**
- * Query spans from a specific database with filters
+ * List active telemetry sessions from SQLiteSpanExporter
  */
-router.get('/spans', async (req, res) => {
+router.get('/sessions/active', async (req, res) => {
+  // Get active connections (context IDs) from the exporter
+  res.json({ sessions: sqliteExporter.getActiveConnections() });
+  return;
+});
+
+/**
+ * Get latest 100 spans for an active session (context)
+ */
+router.get('/sessions/:id/spans', async (req, res) => {
+  const { id: contextId } = req.params;
+
+  // Check if this is an active context
+  const activeContexts = sqliteExporter.getActiveConnections();
+  if (!activeContexts.includes(contextId)) {
+    res.status(404).json({ error: 'Session not found or not active' });
+    return;
+  }
+
+  // Use the existing connection from getDatabase
+  const db = sqliteExporter.getDatabase(contextId);
+
+  // Get latest 100 spans
+  const spans = await db.selectFrom('spans')
+    .selectAll()
+    .orderBy('startTime', 'desc')
+    .limit(100)
+    .execute();
+
+  // Parse attributes
+  const spansWithAttributes = spans.map(span => ({
+    ...span,
+    attributes: span.attributes ? JSON.parse(span.attributes as any) : {}
+  }));
+
+  res.json({ spans: spansWithAttributes });
+  return;
+});
+
+/**
+ * Stream new spans for an active session via SSE
+ */
+router.get('/sessions/:id/stream', (req, res) => {
+  const { id: contextId } = req.params;
+
+  // Check if this is an active context
+  const activeContexts = sqliteExporter.getActiveConnections();
+  if (!activeContexts.includes(contextId)) {
+    res.status(404).json({ error: 'Session not found or not active' });
+    return;
+  }
+
+  // Set up SSE
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no'
+  });
+
+  // Send initial connection message
+  res.write('event: heartbeat\n\n');
+
+  // Set up event listener for new spans
+  const spanListener = (spans: any[]) => {
+    try {
+      // Parse attributes and send
+      const spansWithAttributes = spans.map(span => ({
+        ...span,
+        attributes: span.attributes ? JSON.parse(span.attributes as string) : {}
+      }));
+
+      res.write(`data: ${JSON.stringify({
+        type: 'spans',
+        spans: spansWithAttributes
+      })}\n\n`);
+    } catch (error) {
+      logger.error('Error streaming spans', error);
+    }
+  };
+
+  // Subscribe to span export events for this context
+  sqliteExporter.onSpansExported(contextId, spanListener);
+
+  // Set up keep-alive ping every 30 seconds
+  const keepAliveId = setInterval(() => {
+    res.write(`event:heartbeat\n\n`);
+  }, 30000);
+
+  // Clean up on disconnect
+  req.on('close', () => {
+    clearInterval(keepAliveId);
+    sqliteExporter.offSpansExported(contextId, spanListener);
+  });
+});
+
+/**
+ * Get all traces (root spans) from a database
+ * Accepts either:
+ * - Direct filename (e.g., "game123-player1.db")
+ * - Folder path + filename (e.g., "telemetry/game123-player1.db" or "telemetry/uploaded/game123-player1.db")
+ */
+router.get('/db/:filename(*)/traces', async (req, res) => {
   try {
-    if (!(sqliteExporter instanceof SQLiteSpanExporter)) {
-      return res.status(501).json({ error: 'SQLite telemetry not configured' });
-    }
+    const { filename } = req.params;
+    const { limit = '100', offset = '0' } = req.query;
 
-    const {
-      db: dbFile,
-      contextId,
-      turn,
-      limit = '100',
-      offset = '0',
-      sortBy = 'startTime',
-      sortOrder = 'desc'
-    } = req.query;
-
-    if (!dbFile) {
-      return res.status(400).json({ error: 'Database file parameter is required' });
-    }
-
-    const db = sqliteExporter.openDatabaseFile(dbFile as string);
+    // Parse the path - it might be just a filename or include folder path
+    const db = sqliteExporter.openDatabaseFile(filename);
     if (!db) {
-      return res.status(404).json({ error: 'Database file not found' });
+      return res.status(404).json({ error: 'Database not found' });
     }
 
     try {
-      let query = db.selectFrom('spans')
-        .selectAll();
+      // Get root spans (traces - spans without parent)
+      const traces = await db.selectFrom('spans')
+        .selectAll()
+        .where('parentSpanId', 'is', null)
+        .orderBy('startTime', 'desc')
+        .limit(parseInt(limit as string))
+        .offset(parseInt(offset as string))
+        .execute();
 
-      // Apply filters
-      if (contextId) {
-        query = query.where('contextId', '=', contextId as string);
-      }
-
-      if (turn) {
-        query = query.where('turn', '=', parseInt(turn as string));
-      }
-
-      // Apply sorting
-      const validSortColumns = ['startTime', 'endTime', 'durationMs', 'name', 'turn'];
-      const sortColumn = validSortColumns.includes(sortBy as string) ? sortBy as string : 'startTime';
-      const order = sortOrder === 'asc' ? 'asc' : 'desc';
-
-      query = query.orderBy(sortColumn as any, order);
-
-      // Apply pagination
-      const limitNum = Math.min(parseInt(limit as string), 1000);
-      const offsetNum = parseInt(offset as string);
-
-      query = query.limit(limitNum).offset(offsetNum);
-
-      // Execute query
-      const spans = await query.execute();
-
-      // Get total count for pagination
-      let countQuery = db.selectFrom('spans')
-        .select(db.fn.count<number>('id').as('count'));
-
-      if (contextId) {
-        countQuery = countQuery.where('contextId', '=', contextId as string);
-      }
-
-      if (turn) {
-        countQuery = countQuery.where('turn', '=', parseInt(turn as string));
-      }
-
-      const countResult = await countQuery.executeTakeFirst();
-      const total = countResult?.count || 0;
-
-      // Parse attributes JSON for each span
-      const spansWithParsedAttributes = spans.map(span => ({
-        ...span,
-        attributes: span.attributes ? JSON.parse(span.attributes as any) : null
-      }));
-
-      return res.json({
-        spans: spansWithParsedAttributes,
-        pagination: {
-          total,
-          limit: limitNum,
-          offset: offsetNum,
-          hasMore: offsetNum + limitNum < total
-        }
+      // Parse attributes for each trace
+      const tracesWithAttributes = traces.map(trace => {
+        return {
+          ...trace,
+          attributes: trace.attributes ? JSON.parse(trace.attributes as any) : {}
+        };
       });
+
+      res.json({ traces: tracesWithAttributes });
     } finally {
       await db.destroy();
     }
   } catch (error) {
-    logger.error('Error querying spans', error);
-    return res.status(500).json({ error: 'Failed to query spans' });
+    logger.error('Error getting traces', error);
+    res.status(500).json({ error: 'Failed to get traces' });
   }
+  return;
 });
 
 /**
- * Get all spans for a specific trace
+ * Get all spans in a trace
+ * Accepts either:
+ * - Direct filename (e.g., "game123-player1.db")
+ * - Folder path + filename (e.g., "telemetry/game123-player1.db" or "telemetry/uploaded/game123-player1.db")
  */
-router.get('/trace/:traceId', async (req, res) => {
+router.get('/db/:filename(*)/trace/:traceId/spans', async (req, res) => {
   try {
-    if (!(sqliteExporter instanceof SQLiteSpanExporter)) {
-      return res.status(501).json({ error: 'SQLite telemetry not configured' });
-    }
+    const { filename, traceId } = req.params;
 
-    const { traceId } = req.params;
-    const { db: dbFile } = req.query;
-
-    if (!dbFile) {
-      return res.status(400).json({ error: 'Database file parameter is required' });
-    }
-
-    const db = sqliteExporter.openDatabaseFile(dbFile as string);
+    // Parse the path - it might be just a filename or include folder path
+    const db = sqliteExporter.openDatabaseFile(filename);
     if (!db) {
-      return res.status(404).json({ error: 'Database file not found' });
+      return res.status(404).json({ error: 'Database not found' });
     }
 
     try {
+      // Get all spans in the trace
       const spans = await db.selectFrom('spans')
         .selectAll()
         .where('traceId', '=', traceId)
@@ -176,144 +296,21 @@ router.get('/trace/:traceId', async (req, res) => {
         return res.status(404).json({ error: 'Trace not found' });
       }
 
-      // Parse attributes and build hierarchy
-      const spansWithParsedAttributes = spans.map(span => ({
+      // Parse attributes
+      const spansWithAttributes = spans.map(span => ({
         ...span,
-        attributes: span.attributes ? JSON.parse(span.attributes as any) : null
+        attributes: span.attributes ? JSON.parse(span.attributes as any) : {}
       }));
 
-      // Build span hierarchy
-      const spanMap = new Map<string, any>();
-      const rootSpans: any[] = [];
-
-      // First pass: create all span objects
-      spansWithParsedAttributes.forEach(span => {
-        spanMap.set(span.spanId, {
-          ...span,
-          children: []
-        });
-      });
-
-      // Second pass: build hierarchy
-      spansWithParsedAttributes.forEach(span => {
-        const spanObj = spanMap.get(span.spanId);
-        if (span.parentSpanId && spanMap.has(span.parentSpanId)) {
-          const parent = spanMap.get(span.parentSpanId);
-          parent.children.push(spanObj);
-        } else {
-          rootSpans.push(spanObj);
-        }
-      });
-
-      return res.json({
-        traceId,
-        spans: spansWithParsedAttributes,
-        hierarchy: rootSpans,
-        spanCount: spans.length
-      });
+      res.json({ spans: spansWithAttributes });
     } finally {
       await db.destroy();
     }
   } catch (error) {
-    logger.error('Error getting trace', error);
-    return res.status(500).json({ error: 'Failed to get trace' });
+    logger.error('Error getting trace spans', error);
+    res.status(500).json({ error: 'Failed to get trace spans' });
   }
-});
-
-/**
- * Get summary statistics for a database
- */
-router.get('/stats', async (req, res) => {
-  try {
-    if (!(sqliteExporter instanceof SQLiteSpanExporter)) {
-      return res.status(501).json({ error: 'SQLite telemetry not configured' });
-    }
-
-    const { db: dbFile } = req.query;
-
-    if (!dbFile) {
-      return res.status(400).json({ error: 'Database file parameter is required' });
-    }
-
-    const db = sqliteExporter.openDatabaseFile(dbFile as string);
-    if (!db) {
-      return res.status(404).json({ error: 'Database file not found' });
-    }
-
-    try {
-      // Get total spans
-      const totalResult = await db.selectFrom('spans')
-        .select(db.fn.count<number>('id').as('count'))
-        .executeTakeFirst();
-
-      // Get unique contexts
-      const contextsResult = await db.selectFrom('spans')
-        .select(db.fn.countAll<number>().distinct().as('count'))
-        .select('contextId')
-        .groupBy('contextId')
-        .execute();
-
-      // Get unique traces
-      const tracesResult = await db.selectFrom('spans')
-        .select(db.fn.countAll<number>().distinct().as('count'))
-        .select('traceId')
-        .groupBy('traceId')
-        .execute();
-
-      // Get turn range
-      const turnRangeResult = await db.selectFrom('spans')
-        .select([
-          db.fn.min<number>('turn').as('minTurn'),
-          db.fn.max<number>('turn').as('maxTurn')
-        ])
-        .executeTakeFirst();
-
-      // Get time range
-      const timeRangeResult = await db.selectFrom('spans')
-        .select([
-          db.fn.min<number>('startTime').as('minTime'),
-          db.fn.max<number>('startTime').as('maxTime')
-        ])
-        .executeTakeFirst();
-
-      // Get average duration
-      const avgDurationResult = await db.selectFrom('spans')
-        .select(db.fn.avg<number>('durationMs').as('avgDuration'))
-        .executeTakeFirst();
-
-      // Get status code distribution
-      const statusDistribution = await db.selectFrom('spans')
-        .select(['statusCode', db.fn.count<number>('id').as('count')])
-        .groupBy('statusCode')
-        .execute();
-
-      return res.json({
-        totalSpans: totalResult?.count || 0,
-        uniqueContexts: contextsResult.length,
-        uniqueTraces: tracesResult.length,
-        turnRange: {
-          min: turnRangeResult?.minTurn || null,
-          max: turnRangeResult?.maxTurn || null
-        },
-        timeRange: {
-          min: timeRangeResult?.minTime || null,
-          max: timeRangeResult?.maxTime || null
-        },
-        averageDuration: avgDurationResult?.avgDuration || 0,
-        statusDistribution: statusDistribution.reduce((acc, item) => {
-          const statusName = item.statusCode === 0 ? 'UNSET' :
-                           item.statusCode === 1 ? 'OK' : 'ERROR';
-          acc[statusName] = item.count;
-          return acc;
-        }, {} as Record<string, number>)
-      });
-    } finally {
-      await db.destroy();
-    }
-  } catch (error) {
-    logger.error('Error getting database stats', error);
-    return res.status(500).json({ error: 'Failed to get database statistics' });
-  }
+  return;
 });
 
 export default router;

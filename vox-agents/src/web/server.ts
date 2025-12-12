@@ -93,12 +93,15 @@ export async function startWebServer(): Promise<void> {
     const server = app.listen(PORT, () => {
       webLogger.info(`🌐 Web UI available at: http://localhost:${config.webui.port}`);
       webLogger.info('Available endpoints:');
-      webLogger.info('  • Health Check:       GET  /api/health');
-      webLogger.info('  • Log Stream:         GET  /api/logs/stream (SSE)');
-      webLogger.info('  • Telemetry DBs:      GET  /api/telemetry/databases');
-      webLogger.info('  • Query Spans:        GET  /api/telemetry/spans');
-      webLogger.info('  • Get Trace:          GET  /api/telemetry/trace/:id');
-      webLogger.info('  • Database Stats:     GET  /api/telemetry/stats');
+      webLogger.info('  • Health Check:            GET  /api/health');
+      webLogger.info('  • Log Stream:              GET  /api/logs/stream (SSE)');
+      webLogger.info('  • Active Sessions:         GET  /api/telemetry/sessions/active');
+      webLogger.info('  • Database List:           GET  /api/telemetry/databases');
+      webLogger.info('  • Upload Database:         POST /api/telemetry/upload');
+      webLogger.info('  • Session Spans:           GET  /api/telemetry/sessions/:id/spans');
+      webLogger.info('  • Session Stream:          GET  /api/telemetry/sessions/:id/stream (SSE)');
+      webLogger.info('  • Database Traces:         GET  /api/telemetry/db/:filename/traces');
+      webLogger.info('  • Trace Spans:             GET  /api/telemetry/db/:filename/trace/:traceId/spans');
       webLogger.info('Press Ctrl+C to stop the server');
 
       // Start SSE heartbeat to keep connections alive
