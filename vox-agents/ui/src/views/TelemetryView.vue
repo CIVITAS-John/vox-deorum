@@ -10,12 +10,6 @@ import { api } from '@/api/client';
 import { activeSessions, databases, loading, fetchTelemetryData } from '@/stores/telemetry';
 import type { TelemetryMetadata } from '@/api/types';
 
-interface ActiveSession {
-  contextId: string;
-  gameId?: string;
-  playerId?: string;
-}
-
 const router = useRouter();
 const uploadProgress = ref(false);
 const fileUploadRef = ref<any>(null);
@@ -36,21 +30,6 @@ function formatDate(isoString: string): string {
   const date = new Date(isoString);
   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 }
-
-/**
- * Parse session ID to extract game and player info
- */
-function parseSessionId(sessionId: string): ActiveSession {
-  // Format is typically: gameId-playerId-timestamp
-  const parts = sessionId.split('-');
-  if (parts.length >= 2) {
-    const playerId = parts[parts.length - 1];
-    const gameId = parts.slice(0, -1).join('-');
-    return { contextId: sessionId, gameId, playerId };
-  }
-  return { contextId: sessionId };
-}
-
 
 /**
  * Navigate to active session view
@@ -132,29 +111,25 @@ onMounted(() => {
           <div v-else class="data-table">
             <!-- Table Header -->
             <div class="table-header">
-              <div class="col-expand">Session ID</div>
               <div class="col-expand">Game ID</div>
-              <div class="col-fixed-100">Player</div>
+              <div class="col-fixed-80">Player</div>
               <div class="col-fixed-80">Actions</div>
             </div>
 
             <!-- Table Body -->
             <div class="table-body">
-              <div v-for="sessionId in activeSessions" :key="sessionId"
+              <div v-for="session in activeSessions" :key="session.sessionId"
                    class="table-row clickable"
-                   @click="viewActiveSession(sessionId)">
+                   @click="viewActiveSession(session.sessionId)">
                 <div class="col-expand">
-                  <span class="monospace">{{ parseSessionId(sessionId).contextId }}</span>
+                  {{ session.gameId || '-' }}
                 </div>
-                <div class="col-fixed-150">
-                  {{ parseSessionId(sessionId).gameId || '-' }}
-                </div>
-                <div class="col-fixed-100">
-                  {{ parseSessionId(sessionId).playerId || '-' }}
+                <div class="col-fixed-80">
+                  {{ session.playerId || '-' }}
                 </div>
                 <div class="col-fixed-80">
                   <Button icon="pi pi-eye" text rounded size="small"
-                          @click.stop="viewActiveSession(sessionId)" />
+                          @click.stop="viewActiveSession(session.sessionId)" />
                 </div>
               </div>
             </div>
@@ -201,7 +176,7 @@ onMounted(() => {
             <div class="table-header">
               <div class="col-fixed-200">Folder</div>
               <div class="col-expand">Game ID</div>
-              <div class="col-fixed-100">Player</div>
+              <div class="col-fixed-80">Player</div>
               <div class="col-fixed-80">Size</div>
               <div class="col-fixed-200">Last Modified</div>
               <div class="col-fixed-100">Actions</div>
@@ -218,7 +193,7 @@ onMounted(() => {
                 <div class="col-expand">
                   {{ db.gameId }}
                 </div>
-                <div class="col-fixed-100">
+                <div class="col-fixed-80">
                   {{ db.playerId }}
                 </div>
                 <div class="col-fixed-80">

@@ -73,11 +73,23 @@ export interface TelemetryDatabasesResponse {
 }
 
 /**
- * Response containing a list of session IDs for a specific database
+ * Represents an active telemetry session
+ */
+export interface TelemetrySession {
+  /** The session identifier */
+  sessionId: string;
+  /** Extracted game ID if available */
+  gameId?: string;
+  /** Extracted player ID if available */
+  playerId?: string;
+}
+
+/**
+ * Response containing a list of active telemetry sessions
  */
 export interface TelemetrySessionsResponse {
-  /** Array of unique session identifiers */
-  sessions: string[];
+  /** Array of active sessions with parsed metadata */
+  sessions: TelemetrySession[];
 }
 
 /**

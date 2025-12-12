@@ -128,7 +128,25 @@ router.post('/upload', upload.single('database'), async (req: any, res) => {
  */
 router.get('/sessions/active', async (req, res) => {
   // Get active connections (context IDs) from the exporter
-  res.json({ sessions: sqliteExporter.getActiveConnections() });
+  const sessionIds = sqliteExporter.getActiveConnections();
+
+  // Parse session IDs to extract game and player info
+  const sessions = sessionIds.map(sessionId => {
+    // Format is typically: gameId-playerId-timestamp
+    const parts = sessionId.split('-');
+    if (parts.length >= 2) {
+      const playerId = parts[parts.length - 1];
+      const gameId = parts.slice(0, -2).join('-');
+      return {
+        sessionId,
+        gameId: gameId || undefined,
+        playerId: playerId || undefined
+      };
+    }
+    return { sessionId };
+  });
+
+  res.json({ sessions });
   return;
 });
 

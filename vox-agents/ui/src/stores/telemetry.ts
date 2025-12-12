@@ -1,12 +1,12 @@
 import { ref } from 'vue';
 import { api } from '../api/client';
-import type { TelemetryMetadata } from '@/api/types';
+import type { TelemetryMetadata, TelemetrySession } from '@/api/types';
 
 /**
  * Store for telemetry data with auto-refresh functionality
  */
 
-export const activeSessions = ref<string[]>([]);
+export const activeSessions = ref<TelemetrySession[]>([]);
 export const databases = ref<TelemetryMetadata[]>([]);
 export const loading = ref(false);
 
