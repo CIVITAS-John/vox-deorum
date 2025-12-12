@@ -31,7 +31,7 @@
           <!-- Tool result -->
           <div v-else-if="part.type === 'tool-result'" class="tool-content">
             <div class="tool-header">
-              <span class="tool-label">From {{ part.toolName }}</span>
+              <span class="tool-label">Output from {{ part.toolName }}</span>
               <span class="tool-id">{{ part.toolCallId }}</span>
             </div>
             <pre class="json-content">{{ formatJson(part.output) }}</pre>
@@ -105,6 +105,10 @@ function formatJson(data: any): string {
   gap: 0.75rem;
 }
 
+.message {
+  padding-left: 0.5rem;
+}
+
 .message--system {
   border-left: 3px solid var(--p-gray-500);
 }
@@ -115,6 +119,10 @@ function formatJson(data: any): string {
 
 .message--assistant {
   border-left: 3px solid var(--p-green-500);
+}
+
+.message--tool {
+  border-left: 3px solid var(--p-yellow-500);
 }
 
 .message__header {
@@ -142,7 +150,7 @@ function formatJson(data: any): string {
 .text-content,
 .json-content {
   padding: 0.5rem;
-  background: var(--p-surface-100);
+  background: var(--p-content-background);
   border-radius: 0.25rem;
   font-size: 0.875rem;
   white-space: pre-wrap;
@@ -169,7 +177,7 @@ function formatJson(data: any): string {
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.25rem 0.5rem;
-  background: var(--p-surface-50);
+  background: var(--p-content-hover-background);
   border-bottom: 1px solid var(--p-content-border-color);
   font-size: 0.75rem;
 }
@@ -191,16 +199,5 @@ function formatJson(data: any): string {
 .tool-content .json-content {
   border-radius: 0;
   margin: 0;
-}
-
-/* Dark mode adjustments */
-.data-mode .message {
-  background: var(--p-surface-900);
-}
-
-.data-mode .text-content,
-.data-mode .json-content,
-.data-mode .tool-header {
-  background: var(--p-surface-800);
 }
 </style>

@@ -384,7 +384,7 @@ onUnmounted(() => {
 .json-container {
   flex: 1;
   padding: 0.5rem;
-  background: var(--p-content-highlight-color);
+  background: var(--p-content-hover-background);
   border: 1px solid var(--p-content-border-color);
   border-radius: 4px;
   overflow-x: auto;
