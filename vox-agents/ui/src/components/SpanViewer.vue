@@ -89,13 +89,13 @@
               {{ formatDuration(span.durationMs) }}
             </div>
             <div class="col-fixed-80">
-              {{ formatTokenCount(span.attributes?.tokens?.input) }}
+              {{ formatTokenCount(span.attributes?.['tokens.input']) }}
             </div>
             <div class="col-fixed-80">
-              {{ formatTokenCount(span.attributes?.tokens?.reasoning) }}
+              {{ formatTokenCount(span.attributes?.['tokens.reasoning']) }}
             </div>
             <div class="col-fixed-80">
-              {{ formatTokenCount(span.attributes?.tokens?.output) }}
+              {{ formatTokenCount(span.attributes?.['tokens.output']) }}
             </div>
             <div class="col-fixed-80">
               <Button
@@ -154,7 +154,19 @@
       >
         <strong>{{ key }}:</strong>
         <span v-if="typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'">{{ value }}</span>
-        <pre v-else class="json-value">{{ JSON.stringify(value, null, 2) }}</pre>
+        <div v-else class="json-container">
+          <VueJsonPretty
+            :data="value"
+            :show-icon="true"
+            :show-line-number="false"
+            :deep="3"
+            :collapsed-on-click-brackets="true"
+            :show-double-quotes="true"
+            :virtual="false"
+            :highlight-selected-node="false"
+            class="json-pretty"
+          />
+        </div>
       </div>
     </div>
   </Dialog>
@@ -173,6 +185,8 @@ import Card from 'primevue/card';
 import Tag from 'primevue/tag';
 import Toolbar from 'primevue/toolbar';
 import Dialog from 'primevue/dialog';
+import VueJsonPretty from 'vue-json-pretty';
+import 'vue-json-pretty/lib/styles.css';
 import type { Span } from '../api/types';
 import {
   formatDuration,
@@ -200,8 +214,22 @@ const virtualScroller = ref<any>();
 const spanContainer = ref<HTMLElement>();
 const scrollerHeight = ref('600px');
 
+// Parse attributes for all spans upfront
+const parsedSpans = computed(() => {
+  return props.spans.map(span => {
+    if (typeof span.attributes === 'string') {
+      try {
+        span.attributes = JSON.parse(span.attributes);
+      } catch {
+        // Keep as string if parsing fails
+      }
+    }
+    return span;
+  });
+});
+
 // Build span tree using utility
-const spanTree = computed(() => buildSpanTree(props.spans));
+const spanTree = computed(() => buildSpanTree(parsedSpans.value));
 
 // Flatten the tree for display using utility
 const flattenedSpans = computed(() => flattenSpanTree(spanTree.value, expandedSpans.value));
@@ -241,11 +269,6 @@ function toggleSpan(span: SpanNode) {
  * Show span details dialog
  */
 function showDetails(span: Span) {
-  // Parse attributes if they're a string
-  if (typeof(span.attributes) === "string") {
-    span.attributes = JSON.parse(span.attributes);
-  }
-
   // Pre-process all string attributes to parse JSON where possible
   if (span.attributes && typeof span.attributes === 'object') {
     const processed: Record<string, any> = {};
@@ -257,25 +280,28 @@ function showDetails(span: Span) {
         processed[key] = value;
       }
     }
-    span.attributes = processed;
+    selectedSpan.value = { ...span, attributes: processed };
+  } else {
+    selectedSpan.value = span;
   }
-
-  selectedSpan.value = span;
   showSpanDetails.value = true;
 }
 
 /**
- * Expand or collapse all spans
+ * Expand or collapse all spans recursively
  */
 function toggleAllSpans(expand: boolean) {
   if (expand) {
-    props.spans.forEach(span => {
-      // Check if span has children in the tree structure
-      const node = spanTree.value.find(n => n.spanId === span.spanId);
-      if (node && node.children && node.children.length > 0) {
-        expandedSpans.value.add(span.spanId);
-      }
-    });
+    // Recursively add all parent spans to expanded set
+    const addAllParents = (nodes: SpanNode[]) => {
+      nodes.forEach(node => {
+        if (node.children && node.children.length > 0) {
+          expandedSpans.value.add(node.spanId);
+          addAllParents(node.children);
+        }
+      });
+    };
+    addAllParents(spanTree.value);
   } else {
     expandedSpans.value.clear();
   }
@@ -300,10 +326,8 @@ function tryParseJSON(str: string): any {
 
 onMounted(() => {
   calculateScrollerHeight();
-  // Auto-expand first level
-  if (props.rootSpan) {
-    expandedSpans.value.add(props.rootSpan.spanId);
-  }
+  // Auto-expand all spans by default
+  toggleAllSpans(true);
   window.addEventListener('resize', handleResize);
 });
 
@@ -344,17 +368,47 @@ onUnmounted(() => {
   white-space: pre-wrap;
 }
 
-.json-value {
+.json-container {
   flex: 1;
-  margin: 0;
   padding: 0.5rem;
   background: var(--p-content-highlight-color);
   border: 1px solid var(--p-content-border-color);
   border-radius: 4px;
+  overflow-x: auto;
+}
+
+.json-pretty {
   font-family: monospace;
   font-size: 0.875rem;
-  overflow-x: auto;
-  white-space: pre;
+}
+
+/* Override vue-json-pretty default colors for better integration with PrimeVue themes */
+:deep(.vjs-tree) {
+  color: var(--p-text-color) !important;
+}
+
+:deep(.vjs-key) {
+  color: var(--p-primary-color) !important;
+}
+
+:deep(.vjs-value__string) {
+  color: var(--p-green-500) !important;
+}
+
+:deep(.vjs-value__number) {
+  color: var(--p-blue-500) !important;
+}
+
+:deep(.vjs-value__boolean) {
+  color: var(--p-orange-500) !important;
+}
+
+:deep(.vjs-value__null) {
+  color: var(--p-gray-500) !important;
+}
+
+:deep(.vjs-tree__brackets) {
+  color: var(--p-text-muted-color) !important;
 }
 
 .error-message {

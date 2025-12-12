@@ -52,13 +52,20 @@ const filteredTraces = computed(() => {
 
   const query = searchQuery.value.toLowerCase();
   return traces.value.filter(trace => {
-    // Search in name, service name, and attributes
+    // Search in name
     if (trace.name.toLowerCase().includes(query)) return true;
-    if (trace.attributes?.service_name?.toLowerCase()?.includes(query)) return true;
 
-    // Search in stringified attributes
-    const attrStr = JSON.stringify(trace.attributes).toLowerCase();
-    return attrStr.includes(query);
+    // Search in service name attribute
+    if (typeof trace.attributes === 'object' && trace.attributes) {
+      const serviceName = trace.attributes['service_name'] || trace.attributes['service.name'];
+      if (serviceName && String(serviceName).toLowerCase().includes(query)) return true;
+
+      // Search in all attributes
+      const attrStr = JSON.stringify(trace.attributes).toLowerCase();
+      return attrStr.includes(query);
+    }
+
+    return false;
   });
 });
 
@@ -109,7 +116,18 @@ async function loadTraces() {
     // Load all traces (root spans) from the database
     // Using a high limit to get all traces for frontend filtering
     const response = await api.getDatabaseTraces(filename.value, 1000, 0);
-    traces.value = response.traces;
+
+    // Parse attributes for all traces upfront
+    traces.value = response.traces.map(trace => {
+      if (typeof trace.attributes === 'string') {
+        try {
+          trace.attributes = JSON.parse(trace.attributes);
+        } catch {
+          // Keep as string if parsing fails
+        }
+      }
+      return trace;
+    });
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load traces';
     console.error('Error loading traces:', err);
@@ -232,13 +250,13 @@ onMounted(() => {
                 {{ formatDuration(trace.durationMs) }}
               </div>
               <div class="col-fixed-80">
-                {{ formatTokenCount(trace.attributes?.tokens?.input) }}
+                {{ formatTokenCount(trace.attributes?.['tokens.input']) }}
               </div>
               <div class="col-fixed-80">
-                {{ formatTokenCount(trace.attributes?.tokens?.reasoning) }}
+                {{ formatTokenCount(trace.attributes?.['tokens.reasoning']) }}
               </div>
               <div class="col-fixed-80">
-                {{ formatTokenCount(trace.attributes?.tokens?.output) }}
+                {{ formatTokenCount(trace.attributes?.['tokens.output']) }}
               </div>
               <div class="col-fixed-80">
                 <Button
