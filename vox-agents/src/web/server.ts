@@ -12,6 +12,7 @@ import { createLogger } from '../utils/logger.js';
 import { sseManager } from './sse-manager.js';
 import config from '../utils/config.js';
 import telemetryRoutes from './routes/telemetry.js';
+import configRoutes from './routes/config.js';
 
 // Get __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -55,6 +56,9 @@ app.use(express.static(staticPath, {
 
 // Mount telemetry routes
 app.use('/api/telemetry', telemetryRoutes);
+
+// Mount config routes
+app.use('/api/config', configRoutes);
 
 // Health check endpoint - minimal API foundation
 app.get('/api/health', (req, res) => {
@@ -102,6 +106,8 @@ export async function startWebServer(): Promise<void> {
       webLogger.info('  • Session Stream:          GET  /api/telemetry/sessions/:id/stream (SSE)');
       webLogger.info('  • Database Traces:         GET  /api/telemetry/db/:filename/traces');
       webLogger.info('  • Trace Spans:             GET  /api/telemetry/db/:filename/trace/:traceId/spans');
+      webLogger.info('  • Get Configuration:       GET  /api/config');
+      webLogger.info('  • Update Configuration:    POST /api/config');
       webLogger.info('Press Ctrl+C to stop the server');
 
       // Start SSE heartbeat to keep connections alive

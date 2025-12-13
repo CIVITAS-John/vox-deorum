@@ -209,13 +209,21 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 9. **Performance Optimization**: Implemented pagination, lazy loading, and computed properties for large datasets
 
 ### Stage 5: Configuration Management
-**Status**: 🔄 Not Started
+**Status**: 🔄 In Progress (Backend Implementation)
 
-**Backend Requirements**:
-- Read/write operations for root `config.json` and `.env` files
-- API endpoints for getting/setting configuration values
-- Validation for API keys and LLM provider settings
-- Constant store for config access across the application
+**Backend Implementation Plan**:
+- Create minimal configuration API in `src/web/routes/config.ts`
+- **GET /api/config** - Return merged configuration from config.json and .env
+  - Read both files using existing utilities
+  - Return full configuration object (no masking needed - local use only)
+  - Use existing `VoxAgentsConfig` interface
+- **POST /api/config** - Update configuration
+  - Accept partial updates for API keys and LLM settings
+  - Write API keys to .env file (maintain key=value format)
+  - Write other settings to config.json
+  - No validation endpoints (frontend handles validation)
+- Mount routes in `src/web/server.ts` at `/api/config`
+- Reuse all existing types and utilities
 
 **Frontend Requirements**:
 - Simple form interface for editing configuration
@@ -227,8 +235,8 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 **Scope**:
 - Focus on user-facing configuration only (API keys, LLM settings)
 - Read from existing `config.json` and `.env` files at root
-- Maintain a constant config store for other components to reference
-- No need for multiple config file management or fancy features
+- Direct file operations in route handlers (no separate manager)
+- No reload/validate endpoints needed
 
 ### Stage 6: Session Control
 **Status**: 🔄 Not Started
