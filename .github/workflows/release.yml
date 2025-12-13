@@ -19,20 +19,26 @@ on:
         default: false
 
 jobs:
-  # Build the Windows installer
-  build-installer:
+  # Build installer and create release
+  build-and-release:
     runs-on: windows-latest
-    outputs:
-      version: ${{ steps.version.outputs.VERSION }}
-      installer_name: ${{ steps.version.outputs.INSTALLER_NAME }}
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Read version files
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update version files
         id: version
         shell: pwsh
         run: |
@@ -42,7 +48,7 @@ jobs:
           $minor = $versionJson.minor
           $revision = $versionJson.revision
 
-          # Bump version based on input (for display purposes)
+          # Bump version based on input
           if ("${{ github.event.inputs.version_type }}" -eq "major") {
             $major++
             $minor = 0
@@ -55,13 +61,52 @@ jobs:
           }
 
           $version = "v$major.$minor.$revision"
+          $versionNoV = "$major.$minor.$revision"
           $installerName = "VoxDeorum-$major.$minor.$revision.exe"
+
+          # Update version.json
+          $newVersionJson = @{
+            major = $major
+            minor = $minor
+            revision = $revision
+          }
+          $newVersionJson | ConvertTo-Json | Set-Content version.json
+
+          # Update release.txt
+          $version | Set-Content release.txt
+
+          # Update installer.iss version
+          if (Test-Path "scripts\installer.iss") {
+            $issContent = Get-Content "scripts\installer.iss" -Raw
+            $issContent = $issContent -replace '#define MyAppVersion "[0-9]+\.[0-9]+\.[0-9]+"', "#define MyAppVersion `"$versionNoV`""
+            $issContent | Set-Content "scripts\installer.iss" -NoNewline
+          }
+
+          # Update README.md version badge if it exists
+          if (Select-String -Path "README.md" -Pattern "img.shields.io/badge/version-" -Quiet) {
+            $readmeContent = Get-Content "README.md" -Raw
+            $readmeContent = $readmeContent -replace "version-v[0-9]+\.[0-9]+\.[0-9]+", "version-$version"
+            $readmeContent | Set-Content "README.md" -NoNewline
+          }
+
+          # Update bootstrap.cmd with new tag
+          if (Test-Path "scripts\bootstrap.cmd") {
+            $bootstrapContent = Get-Content "scripts\bootstrap.cmd" -Raw
+            $bootstrapContent = $bootstrapContent -replace "defaulting to v[0-9]+\.[0-9]+\.[0-9]+", "defaulting to $version"
+            $bootstrapContent | Set-Content "scripts\bootstrap.cmd" -NoNewline
+          }
 
           Write-Host "VERSION=$version" >> $env:GITHUB_OUTPUT
           Write-Host "INSTALLER_NAME=$installerName" >> $env:GITHUB_OUTPUT
 
           Write-Host "Building version: $version"
           Write-Host "Installer will be: $installerName"
+
+      - name: Commit version updates (without pushing)
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          git add version.json release.txt README.md scripts/bootstrap.cmd scripts/installer.iss
+          git commit -m "Release ${{ steps.version.outputs.VERSION }}"
 
       - name: Install Inno Setup
         run: |
@@ -86,6 +131,7 @@ jobs:
       - name: Verify installer
         shell: pwsh
         run: |
+          # The build script creates the installer in the root dist folder
           $installerPath = "dist\${{ steps.version.outputs.INSTALLER_NAME }}"
 
           if (Test-Path $installerPath) {
@@ -97,113 +143,24 @@ jobs:
               exit 1
           }
 
-      - name: Upload installer artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: installer
-          path: dist/${{ steps.version.outputs.INSTALLER_NAME }}
-          retention-days: 5
-
-  release:
-    runs-on: ubuntu-latest
-    needs: build-installer
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Update version files
-        id: version
-        run: |
-          # Read current version
-          VERSION_JSON=$(cat version.json)
-          MAJOR=$(echo "$VERSION_JSON" | jq -r .major)
-          MINOR=$(echo "$VERSION_JSON" | jq -r .minor)
-          REVISION=$(echo "$VERSION_JSON" | jq -r .revision)
-
-          # Bump version based on input
-          if [ "${{ github.event.inputs.version_type }}" == "major" ]; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            REVISION=0
-          elif [ "${{ github.event.inputs.version_type }}" == "minor" ]; then
-            MINOR=$((MINOR + 1))
-            REVISION=0
-          elif [ "${{ github.event.inputs.version_type }}" == "patch" ]; then
-            REVISION=$((REVISION + 1))
-          fi
-          # "none" keeps the version as-is
-
-          # Create new version string
-          VERSION="v${MAJOR}.${MINOR}.${REVISION}"
-          VERSION_NO_V="${MAJOR}.${MINOR}.${REVISION}"
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "MAJOR=$MAJOR" >> $GITHUB_OUTPUT
-          echo "MINOR=$MINOR" >> $GITHUB_OUTPUT
-          echo "REVISION=$REVISION" >> $GITHUB_OUTPUT
-
-          # Update version.json
-          echo "{
-            \"major\": $MAJOR,
-            \"minor\": $MINOR,
-            \"revision\": $REVISION
-          }" > version.json
-
-          # Update release.txt
-          echo "$VERSION" > release.txt
-
-          # Update README.md version badge if it exists
-          if grep -q "img.shields.io/badge/version-" README.md 2>/dev/null; then
-            sed -i "s/version-v[0-9]\+\.[0-9]\+\.[0-9]\+/version-${VERSION}/" README.md
-          fi
-
-          # Update bootstrap.cmd with new tag
-          if [ -f scripts/bootstrap.cmd ]; then
-            sed -i "s/defaulting to v[0-9]\+\.[0-9]\+\.[0-9]\+/defaulting to ${VERSION}/" scripts/bootstrap.cmd
-          fi
-
-          # Update installer.iss version
-          if [ -f scripts/installer.iss ]; then
-            sed -i "s/^#define MyAppVersion \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/#define MyAppVersion \"${VERSION_NO_V}\"/" scripts/installer.iss
-          fi
-
       - name: Get latest commit message
         id: commit_msg
+        shell: pwsh
         run: |
           # Get the full commit message (excluding any auto-commits)
-          # Use EOF delimiter to handle multi-line commit messages
-          {
-            echo 'MESSAGE<<EOF'
-            git log -1 --pretty=%B --no-merges
-            echo 'EOF'
-          } >> $GITHUB_OUTPUT
+          $message = git log -1 --pretty=%B --no-merges
 
-      - name: Download installer artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: installer
-          path: dist/
+          # Output using GitHub Actions multiline format
+          @"
+MESSAGE<<EOF
+$message
+EOF
+"@ | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding UTF8
 
-      - name: Commit version updates
+      - name: Push commit and tag
         if: ${{ github.event.inputs.dry_run != 'true' }}
         run: |
-          git add version.json release.txt README.md scripts/bootstrap.cmd scripts/installer.iss
-          git commit -m "Release ${{ steps.version.outputs.VERSION }}"
           git push origin main
-
-      - name: Create and push tag
-        if: ${{ github.event.inputs.dry_run != 'true' }}
-        run: |
           git tag -a "${{ steps.version.outputs.VERSION }}" -m "${{ steps.commit_msg.outputs.MESSAGE }}"
           git push origin "${{ steps.version.outputs.VERSION }}"
 
@@ -217,13 +174,13 @@ jobs:
             ${{ steps.commit_msg.outputs.MESSAGE }}
 
             ## Quick Install
-            Download the installer `${{ needs.build-installer.outputs.installer_name }}` or use `bootstrap.cmd` to automatically set up Vox Deorum.
+            Download the installer `${{ steps.version.outputs.INSTALLER_NAME }}` or use `bootstrap.cmd` to automatically set up Vox Deorum.
 
             ## What's Changed
             See [commit history](https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.VERSION }}) for detailed changes.
           files: |
             scripts/bootstrap.cmd
-            dist/${{ needs.build-installer.outputs.installer_name }}
+            dist/${{ steps.version.outputs.INSTALLER_NAME }}
           draft: false
           prerelease: false
         env:
@@ -231,19 +188,20 @@ jobs:
 
       - name: Dry run summary
         if: ${{ github.event.inputs.dry_run == 'true' }}
+        shell: pwsh
         run: |
-          echo "=== DRY RUN SUMMARY ==="
-          echo "Version: ${{ steps.version.outputs.VERSION }}"
-          echo "Installer: ${{ needs.build-installer.outputs.installer_name }}"
-          echo ""
-          echo "The following changes would be made (but were skipped):"
-          echo "- Update version.json, release.txt, README.md, scripts/bootstrap.cmd, and scripts/installer.iss"
-          echo "- Commit version updates to main branch"
-          echo "- Create and push tag: ${{ steps.version.outputs.VERSION }}"
-          echo "- Create GitHub release with installer and bootstrap.cmd"
-          echo ""
-          echo "Files that would be modified:"
+          Write-Host "=== DRY RUN SUMMARY ==="
+          Write-Host "Version: ${{ steps.version.outputs.VERSION }}"
+          Write-Host "Installer: ${{ steps.version.outputs.INSTALLER_NAME }}"
+          Write-Host ""
+          Write-Host "The following changes would be made (but were skipped):"
+          Write-Host "- Update version.json, release.txt, README.md, scripts/bootstrap.cmd, and scripts/installer.iss"
+          Write-Host "- Commit version updates to main branch"
+          Write-Host "- Create and push tag: ${{ steps.version.outputs.VERSION }}"
+          Write-Host "- Create GitHub release with installer and bootstrap.cmd"
+          Write-Host ""
+          Write-Host "Files that would be modified:"
           git diff --name-only
-          echo ""
-          echo "Version changes:"
+          Write-Host ""
+          Write-Host "Version changes:"
           git diff version.json release.txt scripts/installer.iss

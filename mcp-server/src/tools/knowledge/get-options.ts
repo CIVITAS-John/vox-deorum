@@ -143,6 +143,12 @@ class GetOptionsTool extends ToolBase {
 
     // Strip metadata from the options
     const cleanOptions = stripTimedKnowledgeMetadata<PlayerOptions>(playerOptions as any);
+    // Format policy help info.
+    const formatPolicyHelp = (help: string, name: string) => {
+      const lines = help.split(/\n+/g).map(line => line.trim()).filter(line => line !== "" && line !== name);
+      if (lines.length === 0) return "";
+      return lines.length > 1 ? lines : lines[0];
+    }
 
     // Chime in more data
     const result = {
@@ -211,11 +217,9 @@ class GetOptionsTool extends ToolBase {
             cleanOptions.Policies.map(policyName => {
               const current = policies.find(s => s.Name === policyName)!;
               var Help = current?.Help ?? "";
-              if (policy?.Policy !== undefined && policy?.Policy !== "None") 
-                Help = Help.replaceAll(/\n+/g, " ");
               return [
-                policyName + ` (Policy in ${current?.Branch})`,
-                Help
+                policyName + ` (Continuing ${current?.Branch} Branch)`,
+                formatPolicyHelp(Help, policyName)
               ];
             }).concat(cleanOptions.PolicyBranches.map(policyName => {
               const current = policies.find(s => s.Name === policyName)!;
@@ -224,7 +228,7 @@ class GetOptionsTool extends ToolBase {
                 Help = Help.replaceAll(/\n+/g, " ");
               return [
                 policyName + " (New Branch)",
-                Help
+                formatPolicyHelp(Help, policyName)
               ];
             }))
           ) : cleanOptions.Policies
