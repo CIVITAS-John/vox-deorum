@@ -155,7 +155,7 @@ cd vox-deorum
 git submodule update --init --recursive
 
 # Install all dependencies for TypeScript modules
-npm install
+npm install --include=dev
 
 # Build the Community Patch DLL (Windows only)
 cd civ5-dll
