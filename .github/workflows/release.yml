@@ -146,6 +146,7 @@ jobs:
 
           # Create new version string
           VERSION="v${MAJOR}.${MINOR}.${REVISION}"
+          VERSION_NO_V="${MAJOR}.${MINOR}.${REVISION}"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "MAJOR=$MAJOR" >> $GITHUB_OUTPUT
           echo "MINOR=$MINOR" >> $GITHUB_OUTPUT
@@ -171,6 +172,11 @@ jobs:
             sed -i "s/defaulting to v[0-9]\+\.[0-9]\+\.[0-9]\+/defaulting to ${VERSION}/" scripts/bootstrap.cmd
           fi
 
+          # Update installer.iss version
+          if [ -f scripts/installer.iss ]; then
+            sed -i "s/^#define MyAppVersion \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/#define MyAppVersion \"${VERSION_NO_V}\"/" scripts/installer.iss
+          fi
+
       - name: Get latest commit message
         id: commit_msg
         run: |
@@ -191,7 +197,7 @@ jobs:
       - name: Commit version updates
         if: ${{ github.event.inputs.dry_run != 'true' }}
         run: |
-          git add version.json release.txt README.md scripts/bootstrap.cmd
+          git add version.json release.txt README.md scripts/bootstrap.cmd scripts/installer.iss
           git commit -m "Release ${{ steps.version.outputs.VERSION }}"
           git push origin main
 
@@ -231,7 +237,7 @@ jobs:
           echo "Installer: ${{ needs.build-installer.outputs.installer_name }}"
           echo ""
           echo "The following changes would be made (but were skipped):"
-          echo "- Update version.json, release.txt, README.md, and scripts/bootstrap.cmd"
+          echo "- Update version.json, release.txt, README.md, scripts/bootstrap.cmd, and scripts/installer.iss"
           echo "- Commit version updates to main branch"
           echo "- Create and push tag: ${{ steps.version.outputs.VERSION }}"
           echo "- Create GitHub release with installer and bootstrap.cmd"
@@ -240,4 +246,4 @@ jobs:
           git diff --name-only
           echo ""
           echo "Version changes:"
-          git diff version.json release.txt
+          git diff version.json release.txt scripts/installer.iss

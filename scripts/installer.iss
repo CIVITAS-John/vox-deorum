@@ -1,8 +1,7 @@
 ; Vox Deorum Installer Script for Inno Setup
 ; This script bundles all necessary files including portable Node.js
 
-; Read version from release.txt
-#define MyAppVersion "0.2.1"
+#define MyAppVersion "0.2.2"
 
 #define MyAppName "Vox Deorum"
 #define MyAppPublisher "John Chen"
