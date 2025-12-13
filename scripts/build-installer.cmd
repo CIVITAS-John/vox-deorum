@@ -15,7 +15,7 @@ echo.
 set "PROJECT_ROOT=%~dp0.."
 
 :: Step 1: Download portable Node.js if not present
-echo [1/5] Checking for portable Node.js...
+echo [1/6] Checking for portable Node.js...
 if not exist "%PROJECT_ROOT%\node" (
     echo   Downloading portable Node.js v22.12.0...
     mkdir "%PROJECT_ROOT%\node" 2>nul
@@ -49,31 +49,47 @@ if not exist "%PROJECT_ROOT%\node" (
     echo   [OK] Portable Node.js found
 )
 
-:: Step 2: Install npm dependencies for production
+:: Step 2: Install ALL npm dependencies (including dev) for compilation
 echo.
-echo [2/5] Installing production dependencies...
+echo [2/6] Installing all dependencies...
 set "PATH=%PROJECT_ROOT%\node;%PATH%"
 
 :: Install all dependencies using workspaces from root package.json
 if exist "%PROJECT_ROOT%\package.json" (
     echo   Installing all dependencies via npm workspaces...
     pushd "%PROJECT_ROOT%"
-    call npm install --omit=dev
-    if !errorlevel! equ 0 (
-        echo   Pruning unused dependencies...
-        call npm prune --omit=dev
-        echo   [OK] All workspace dependencies installed
-    ) else (
-        echo   [ERROR] Workspace dependency installation failed
+    call npm install
+    if !errorlevel! neq 0 (
+        echo   [ERROR] Dependency installation failed
         pause
         exit /b 1
     )
+    echo   [OK] All workspace dependencies installed
     popd
 )
 
-:: Step 3: Download pre-built DLLs if needed
+:: Step 3: Build all TypeScript projects
 echo.
-echo [3/5] Checking pre-built DLLs...
+echo [3/6] Building TypeScript projects...
+pushd "%PROJECT_ROOT%"
+call npm run build:all
+if !errorlevel! neq 0 (
+    echo   [ERROR] Build failed
+    pause
+    exit /b 1
+)
+echo   [OK] All projects built
+
+:: Prune to production dependencies after build
+echo   Pruning to production dependencies...
+call npm install --omit=dev
+call npm prune --omit=dev
+echo   [OK] Production dependencies ready
+popd
+
+:: Step 4: Download pre-built DLLs if needed
+echo.
+echo [4/6] Checking pre-built DLLs...
 if not exist "%PROJECT_ROOT%\scripts\release\CvGameCore_Expansion2.dll" (
     echo   Downloading pre-built DLLs...
     call "%PROJECT_ROOT%\scripts\download-dll.cmd"
@@ -86,17 +102,17 @@ if not exist "%PROJECT_ROOT%\scripts\release\CvGameCore_Expansion2.dll" (
     echo   [OK] Pre-built DLLs found
 )
 
-:: Step 4: Create dist directory
+:: Step 5: Create dist directory
 echo.
-echo [4/5] Preparing output directory...
+echo [5/6] Preparing output directory...
 if not exist "%PROJECT_ROOT%\dist" (
     mkdir "%PROJECT_ROOT%\dist"
 )
 echo   [OK] Output directory ready
 
-:: Step 5: Check for Inno Setup and build installer
+:: Step 6: Check for Inno Setup and build installer
 echo.
-echo [5/5] Building installer...
+echo [6/6] Building installer...
 
 :: Common Inno Setup locations
 set "ISCC="

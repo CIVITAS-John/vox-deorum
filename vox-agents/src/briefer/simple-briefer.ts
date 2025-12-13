@@ -42,9 +42,9 @@ Summarize the full game state into a strategic briefing that highlights:
 # Guidelines
 - Highlight important strategic changes and intelligence
 - The briefing should be objective and analytical, do not bias towards existing strategy
-- Do not provide raw, excessive, or tactical information (e.g. coordinates, IDs)
-- Suggestions or considerations will be provided elsewhere
-- Do not send out verbatim from # Strategies
+- Never provide raw, excessive, or tactical information (e.g. coordinates, IDs)
+- Never give suggestions or considerations, not your responsibilities
+- Never send out verbatim from Strategies
 
 # Resources
 You will receive the following reports:
@@ -66,8 +66,8 @@ You will receive the following reports:
  - For each tactical zone, you will see visible units from you and other civilizations.
 - Events: events since the last decision-making.
 
-# Output Format
-Write your briefing as a text document in a clear, direct, concise language.`.trim()
+# Instruction
+Reason briefly. Write your briefing as a text document in a clear, direct, concise language.`.trim()
   }
 
   /**

@@ -45,8 +45,8 @@ async function loadSessionSpans() {
     const response = await api.getSessionSpans(sessionId.value);
     spans.value = response.spans;
 
-    // Find root span or use first span
-    rootSpan.value = spans.value.find(s => !s.parentSpanId) || spans.value[0] || null;
+    // Use the last span to show correct turn number/status code
+    rootSpan.value = spans.value[spans.value.length - 1]!;
 
     // Start streaming if the session is still active
     startStreaming();
@@ -86,10 +86,8 @@ function startStreaming() {
       // Sort spans by start time
       spans.value.sort((a, b) => a.startTime - b.startTime);
 
-      // Update root span if needed
-      if (!rootSpan.value) {
-        rootSpan.value = spans.value.find(s => !s.parentSpanId) || spans.value[0] || null;
-      }
+      // Use the last span to show correct turn number/status code
+      rootSpan.value = spans.value[spans.value.length - 1]!;
     },
     (error: Event) => {
       console.error('Stream error:', error);

@@ -50,6 +50,7 @@ tmp/
 temp/
 
 # Custom configuration files
+config.json
 configs/*.json
 !configs/observe-*.json
 !configs/play-*.json

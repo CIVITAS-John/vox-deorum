@@ -288,7 +288,7 @@ watch([autoscroll, () => flattenedSpans.value], ([autoScroll, spans]) => {
 const calculateScrollerHeight = () => {
   // Get viewport height and subtract approximate space for header, controls, padding
   const viewportHeight = window.innerHeight;
-  const headerAndControlsHeight = 350; // More space needed due to page header
+  const headerAndControlsHeight = 250; // More space needed due to page header
   const calculatedHeight = Math.max(400, viewportHeight - headerAndControlsHeight);
   scrollerHeight.value = `${calculatedHeight}px`;
 };

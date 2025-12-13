@@ -45,7 +45,6 @@ export interface VersionInfo {
 export interface VoxAgentsConfig {
   agent: {
     name: string;
-    version: string;
   };
   versionInfo?: VersionInfo;
   webui: {
@@ -69,10 +68,9 @@ export interface VoxAgentsConfig {
 /**
  * Default configuration values
  */
-const defaultConfig: VoxAgentsConfig = {
+export const defaultConfig: VoxAgentsConfig = {
   agent: {
-    name: 'vox-agents',
-    version: '1.0.0'
+    name: 'vox-agents'
   },
   webui: {
     port: 5555,
@@ -88,9 +86,53 @@ const defaultConfig: VoxAgentsConfig = {
     level: 'info'
   },
   llms: {
-    default: {
+    default: 'gpt-oss-120b',
+    'gemma3-27b': {
+      provider: 'openrouter',
+      name: 'google/gemma-3-27b-it',
+      options: {
+        toolMiddleware: 'gemma'
+      }
+    },
+    'gpt-5-mini': {
       provider: 'openai',
       name: 'gpt-5-mini'
+    },
+    'gpt-5-nano': {
+      provider: 'openai',
+      name: 'gpt-5-nano'
+    },
+    'gpt-oss-20b': {
+      provider: 'openrouter',
+      name: 'openai/gpt-oss-20b',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
+    'gpt-oss-120b': {
+      provider: 'openrouter',
+      name: 'openai/gpt-oss-120b',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
+    'chutes/gpt-oss-120b': {
+      provider: 'chutes',
+      name: 'openai/gpt-oss-120b',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
+    'chutes/glm-4.6': {
+      provider: 'chutes',
+      name: 'zai-org/GLM-4.6-FP8'
+    },
+    'jetstream2/gpt-oss-120b': {
+      provider: 'jetstream2',
+      name: 'gpt-oss-120b',
+      options: {
+        toolMiddleware: 'prompt'
+      }
     }
   }
 };
@@ -199,7 +241,6 @@ function loadConfig(): VoxAgentsConfig {
   const config: VoxAgentsConfig = {
     agent: {
       name: process.env.AGENT_NAME || fileConfig.agent.name,
-      version: process.env.AGENT_VERSION || fileConfig.agent.version
     },
     versionInfo,
     webui: {

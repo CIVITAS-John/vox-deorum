@@ -12,10 +12,101 @@ on:
           - minor
           - major
           - none
+      dry_run:
+        description: 'Dry run (no commits, tags, or releases)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
+  # Build the Windows installer
+  build-installer:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+      installer_name: ${{ steps.version.outputs.INSTALLER_NAME }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Read version files
+        id: version
+        shell: pwsh
+        run: |
+          # Read current version
+          $versionJson = Get-Content version.json | ConvertFrom-Json
+          $major = $versionJson.major
+          $minor = $versionJson.minor
+          $revision = $versionJson.revision
+
+          # Bump version based on input (for display purposes)
+          if ("${{ github.event.inputs.version_type }}" -eq "major") {
+            $major++
+            $minor = 0
+            $revision = 0
+          } elseif ("${{ github.event.inputs.version_type }}" -eq "minor") {
+            $minor++
+            $revision = 0
+          } elseif ("${{ github.event.inputs.version_type }}" -eq "patch") {
+            $revision++
+          }
+
+          $version = "v$major.$minor.$revision"
+          $installerName = "VoxDeorum-$major.$minor.$revision.exe"
+
+          Write-Host "VERSION=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "INSTALLER_NAME=$installerName" >> $env:GITHUB_OUTPUT
+
+          Write-Host "Building version: $version"
+          Write-Host "Installer will be: $installerName"
+
+      - name: Install Inno Setup
+        run: |
+          Write-Host "Downloading Inno Setup 6..."
+          $installerPath = "$env:TEMP\innosetup.exe"
+          Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/is.exe" -OutFile $installerPath
+
+          Write-Host "Installing Inno Setup 6 silently..."
+          Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-" -Wait
+
+          Write-Host "Inno Setup installed successfully"
+
+      - name: Build installer
+        shell: cmd
+        run: |
+          echo Running build-installer.cmd script...
+          cd scripts
+          call build-installer.cmd
+          echo Build script completed with exit code: %ERRORLEVEL%
+          exit /b %ERRORLEVEL%
+
+      - name: Verify installer
+        shell: pwsh
+        run: |
+          $installerPath = "dist\${{ steps.version.outputs.INSTALLER_NAME }}"
+
+          if (Test-Path $installerPath) {
+              Write-Host "Installer successfully created at: $installerPath"
+              $fileSize = (Get-Item $installerPath).Length / 1MB
+              Write-Host "File size: $([math]::Round($fileSize, 2)) MB"
+          } else {
+              Write-Error "Installer file not found at expected path: $installerPath"
+              exit 1
+          }
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer
+          path: dist/${{ steps.version.outputs.INSTALLER_NAME }}
+          retention-days: 5
+
   release:
     runs-on: ubuntu-latest
+    needs: build-installer
     permissions:
       contents: write
 
@@ -91,18 +182,27 @@ jobs:
             echo 'EOF'
           } >> $GITHUB_OUTPUT
 
+      - name: Download installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: installer
+          path: dist/
+
       - name: Commit version updates
+        if: ${{ github.event.inputs.dry_run != 'true' }}
         run: |
           git add version.json release.txt README.md scripts/bootstrap.cmd
           git commit -m "Release ${{ steps.version.outputs.VERSION }}"
           git push origin main
 
       - name: Create and push tag
+        if: ${{ github.event.inputs.dry_run != 'true' }}
         run: |
           git tag -a "${{ steps.version.outputs.VERSION }}" -m "${{ steps.commit_msg.outputs.MESSAGE }}"
           git push origin "${{ steps.version.outputs.VERSION }}"
 
       - name: Create GitHub Release
+        if: ${{ github.event.inputs.dry_run != 'true' }}
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
@@ -111,12 +211,33 @@ jobs:
             ${{ steps.commit_msg.outputs.MESSAGE }}
 
             ## Quick Install
-            Download `bootstrap.cmd` and run it to automatically set up Vox Deorum.
+            Download the installer `${{ needs.build-installer.outputs.installer_name }}` or use `bootstrap.cmd` to automatically set up Vox Deorum.
 
             ## What's Changed
             See [commit history](https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.VERSION }}) for detailed changes.
-          files: scripts/bootstrap.cmd
+          files: |
+            scripts/bootstrap.cmd
+            dist/${{ needs.build-installer.outputs.installer_name }}
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dry run summary
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        run: |
+          echo "=== DRY RUN SUMMARY ==="
+          echo "Version: ${{ steps.version.outputs.VERSION }}"
+          echo "Installer: ${{ needs.build-installer.outputs.installer_name }}"
+          echo ""
+          echo "The following changes would be made (but were skipped):"
+          echo "- Update version.json, release.txt, README.md, and scripts/bootstrap.cmd"
+          echo "- Commit version updates to main branch"
+          echo "- Create and push tag: ${{ steps.version.outputs.VERSION }}"
+          echo "- Create GitHub release with installer and bootstrap.cmd"
+          echo ""
+          echo "Files that would be modified:"
+          git diff --name-only
+          echo ""
+          echo "Version changes:"
+          git diff version.json release.txt

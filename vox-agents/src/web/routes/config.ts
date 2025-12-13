@@ -8,39 +8,11 @@
 import { Router } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
-import dotenv from 'dotenv';
 import { createLogger } from '../../utils/logger.js';
-import { loadConfigFromFile, type VoxAgentsConfig } from '../../utils/config.js';
+import { defaultConfig, loadConfigFromFile, type VoxAgentsConfig } from '../../utils/config.js';
 
 const logger = createLogger('config', 'webui');
 const router = Router();
-
-// Default config structure for reference
-const defaultConfig: VoxAgentsConfig = {
-  agent: {
-    name: 'vox-agents',
-    version: '1.0.0'
-  },
-  webui: {
-    port: 5555,
-    enabled: true
-  },
-  mcpServer: {
-    transport: {
-      type: 'http',
-      endpoint: 'http://127.0.0.1:4000/mcp'
-    }
-  },
-  logging: {
-    level: 'info'
-  },
-  llms: {
-    default: {
-      provider: 'openai',
-      name: 'gpt-5-mini'
-    }
-  }
-};
 
 /**
  * Parse .env file content into a key-value object

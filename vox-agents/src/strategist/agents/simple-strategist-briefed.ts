@@ -60,8 +60,8 @@ You will receive:
  - You will receive options and short descriptions for each type of decision.
  - Whatever decision-making tool you call, the in-game AI can only execute options here.
  - You must choose options from the relevant lists. Double-check if your choices match.
-- A strategic briefing summarizing the current game situation.
-  - The briefing will highlight critical information for strategic decisions.`.trim()
+- You will receive a strategic briefing from your secretary, summarizing the current game situation.
+  - You will make independent and wise judgment.`.trim()
   }
 
   /**
@@ -89,11 +89,12 @@ ${parameters.metadata}`.trim()
       content: `
 You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
 
+# Strategies and Options
+${state.options}
+
 # Strategic Briefing
 ${briefing}
-
-# Strategies and Options
-${state.options}`.trim()
+`.trim()
     }];
   }
   
