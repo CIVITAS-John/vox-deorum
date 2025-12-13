@@ -1,0 +1,150 @@
+name: Build Installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Version to build (e.g., 0.2.1)'
+        required: true
+        default: '0.2.1'
+        type: string
+
+jobs:
+  build-installer:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Inno Setup
+        run: |
+          Write-Host "Downloading Inno Setup 6..."
+          $installerPath = "$env:TEMP\innosetup.exe"
+          Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/is.exe" -OutFile $installerPath
+
+          Write-Host "Installing Inno Setup 6 silently..."
+          Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-" -Wait
+
+          Write-Host "Inno Setup installed successfully"
+
+      - name: Update version in installer script
+        run: |
+          $version = "${{ github.event.inputs.release_version }}"
+          $issPath = "scripts\installer.iss"
+
+          Write-Host "Updating version to $version in $issPath"
+
+          # Read the file content
+          $content = Get-Content -Path $issPath -Raw
+
+          # Replace the version definition
+          $content = $content -replace '#define MyAppVersion "[\d\.]+"', "#define MyAppVersion `"$version`""
+
+          # Write back the updated content
+          Set-Content -Path $issPath -Value $content
+
+          Write-Host "Version updated successfully"
+
+      - name: Create release.txt
+        run: |
+          $version = "v${{ github.event.inputs.release_version }}"
+          Set-Content -Path "release.txt" -Value $version
+          Write-Host "Created release.txt with version: $version"
+
+      - name: Create dll-release-info.txt if needed
+        run: |
+          # Create dll-release-info.txt if it doesn't exist
+          if (-not (Test-Path "scripts\dll-release-info.txt")) {
+              Write-Host "Creating dll-release-info.txt..."
+              @"
+RELEASE_TAG=dll-v0.1.0
+COMMIT=latest
+REPO=CIVITAS-John/vox-deorum
+"@ | Set-Content -Path "scripts\dll-release-info.txt"
+          } else {
+              Write-Host "dll-release-info.txt already exists"
+          }
+
+      - name: Build installer using build-installer.cmd
+        shell: cmd
+        run: |
+          echo Running build-installer.cmd script...
+          cd scripts
+          call build-installer.cmd
+          echo Build script completed with exit code: %ERRORLEVEL%
+          exit /b %ERRORLEVEL%
+
+      - name: Verify installer was created
+        run: |
+          $version = "${{ github.event.inputs.release_version }}"
+          $installerPath = "dist\VoxDeorum-$version.exe"
+
+          if (Test-Path $installerPath) {
+              Write-Host "Installer successfully created at: $installerPath"
+
+              # Get file size
+              $fileSize = (Get-Item $installerPath).Length / 1MB
+              Write-Host "Installer size: $([math]::Round($fileSize, 2)) MB"
+          } else {
+              Write-Error "Installer file not found at expected path: $installerPath"
+              exit 1
+          }
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoxDeorum-Installer-${{ github.event.inputs.release_version }}
+          path: dist/VoxDeorum-${{ github.event.inputs.release_version }}.exe
+          retention-days: 30
+
+      - name: Create release notes
+        run: |
+          $version = "${{ github.event.inputs.release_version }}"
+          $notes = @"
+## Vox Deorum v$version Installer
+
+This installer includes:
+- All Vox Deorum components (bridge-service, mcp-server, vox-agents)
+- Portable Node.js v22.12.0
+- Pre-built Community Patch DLL with Vox Deorum modifications
+- Vox Populi mod files
+- UI components (VPUI, UI_bc1)
+
+### Installation Requirements
+- Windows 10 or later (64-bit)
+- Civilization V (Complete Edition recommended)
+- At least 500 MB free disk space
+- API key from OpenRouter, OpenAI, or Google AI
+
+### What's Included
+- ✅ Automatic Civilization V detection
+- ✅ Mod installation to Documents folder
+- ✅ DLL installation with proper placement
+- ✅ Configuration wizard for API keys
+- ✅ Desktop shortcuts for easy access
+
+### Post-Installation
+After installation, configure your API keys in the `.env` file or use the configuration shortcut on your desktop.
+
+---
+Built on: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC" -AsUTC)
+"@
+
+          Set-Content -Path "dist\release-notes.md" -Value $notes
+          Write-Host "Release notes created"
+
+      - name: Display summary
+        run: |
+          Write-Host "========================================="
+          Write-Host "     Build Summary"
+          Write-Host "========================================="
+          Write-Host "Version: ${{ github.event.inputs.release_version }}"
+          Write-Host "Installer: dist\VoxDeorum-${{ github.event.inputs.release_version }}.exe"
+          Write-Host ""
+          Write-Host "The installer has been built successfully and"
+          Write-Host "uploaded as an artifact. You can download it"
+          Write-Host "from the workflow run page."
+          Write-Host "========================================="
