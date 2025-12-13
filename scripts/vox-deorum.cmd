@@ -41,7 +41,7 @@ if "%VOX_MODE%"=="" set "VOX_MODE=webui"
 set "VOX_MODE=%VOX_MODE:--=-%"
 
 :: Check if vox-agents/src exists to determine dev vs dist mode
-if not exist "%~dp0..\vox-agents\src\" (
+if not exist "%~dp0..\vox-agents\src\index.ts" (
     echo [INFO] Source directory not found, using compiled distribution...
 
     :: Map modes to dist commands
@@ -76,13 +76,13 @@ echo.
 
 :: Determine bridge-service command based on source availability
 set "BRIDGE_COMMAND=start"
-if not exist "%~dp0..\bridge-service\src\" (
+if not exist "%~dp0..\bridge-service\src\index.ts" (
     set "BRIDGE_COMMAND=start:dist"
 )
 
 :: Determine mcp-server command based on source availability
 set "MCP_COMMAND=start"
-if not exist "%~dp0..\mcp-server\src\" (
+if not exist "%~dp0..\mcp-server\src\index.ts" (
     set "MCP_COMMAND=start:dist"
 )
 

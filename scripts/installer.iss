@@ -68,13 +68,9 @@ Source: "release\CvGameCore_Expansion2.dll"; DestDir: "{app}\scripts\release"; F
 Source: "release\CvGameCore_Expansion2.pdb"; DestDir: "{app}\scripts\release"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "release\lua51_win32.dll"; DestDir: "{app}\scripts\release"; Flags: ignoreversion
 Source: "release\lua51_win32.pdb"; DestDir: "{app}\scripts\release"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "debug\CvGameCore_Expansion2.dll"; DestDir: "{app}\scripts\debug"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "debug\CvGameCore_Expansion2.pdb"; DestDir: "{app}\scripts\debug"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "debug\lua51_win32.dll"; DestDir: "{app}\scripts\debug"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "debug\lua51_win32.pdb"; DestDir: "{app}\scripts\debug"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; Scripts and configuration (excluding installer files)
-Source: "*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "installer.iss,build-installer.cmd,post-install.cmd"
+Source: "*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "installer.iss,build-installer.cmd,post-install.cmd,\dist\*,\release\*,\debug\*"
 Source: "..\release.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 
@@ -103,10 +99,6 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\scripts\vox-deorum.cmd"; Ic
 Name: "{autodesktop}\{#MyAppName} Configuration"; Filename: "notepad.exe"; Parameters: "{app}\vox-agents\.env"; IconFilename: "{app}\scripts\vox-deorum.ico"; Tasks: desktopicon
 
 ; [Registry] section removed - no PATH modification needed since we use portable Node.js
-
-[Run]
-; Open configuration file if task selected
-Filename: "notepad.exe"; Parameters: "{app}\vox-agents\.env"; Description: "Configure API keys"; Flags: postinstall nowait skipifsilent; Tasks: configureapi
 
 [UninstallRun]
 ; Clean up mods on uninstall
