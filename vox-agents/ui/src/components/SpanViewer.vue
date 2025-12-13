@@ -10,15 +10,29 @@
           :severity="getStatusSeverity(rootSpan.statusCode)"
           class="mr-2"
         />
-        <Tag :value="`${spans.length} spans`" />
+        <Tag :value="`${spans.length} spans`" class="mr-2" />
+        <Tag v-if="isStreaming" severity="info">
+          <i class="pi pi-spin pi-spinner mr-1"></i>
+          Streaming
+        </Tag>
       </template>
       <template #end>
+        <Button
+          :icon="autoscroll ? 'pi pi-lock' : 'pi pi-lock-open'"
+          @click="autoscroll = !autoscroll"
+          label="Auto-scroll"
+          severity="secondary"
+          size="small"
+          class="mr-2"
+          v-if="isStreaming"
+        />
         <Button
           icon="pi pi-plus"
           label="Expand All"
           text
           size="small"
           @click="toggleAllSpans(true)"
+          class="mr-2"
         />
         <Button
           icon="pi pi-minus"
@@ -180,10 +194,10 @@
 <script setup lang="ts">
 /**
  * SpanViewer - Component for viewing trace spans in a hierarchical tree structure
- * Similar to LogViewer, displays spans with virtualization and filtering
+ * Similar to LogViewer, displays spans with virtualization, filtering, and streaming support
  */
 
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue';
 import { VList } from 'virtua/vue';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -210,6 +224,7 @@ import '/node_modules/primeflex/primeflex.css';
 const props = defineProps<{
   spans: Span[];
   rootSpan: Span;
+  isStreaming?: boolean;
 }>();
 
 // State
@@ -219,6 +234,7 @@ const expandedSpans = ref<Set<string>>(new Set());
 const virtualScroller = ref<any>();
 const spanContainer = ref<HTMLElement>();
 const scrollerHeight = ref('600px');
+const autoscroll = ref(true); // Local autoscroll state, default to true
 
 // Parse attributes for all spans upfront
 const parsedSpans = computed(() => {
@@ -239,6 +255,38 @@ const spanTree = computed(() => buildSpanTree(parsedSpans.value));
 
 // Flatten the tree for display using utility
 const flattenedSpans = computed(() => flattenSpanTree(spanTree.value, expandedSpans.value));
+
+// Watch for new spans to handle autoscroll when streaming
+watch(() => props.spans, (newSpans, oldSpans) => {
+  // Auto-expand all when streaming
+  if (props.isStreaming && newSpans.length > (oldSpans?.length ?? 0)) {
+    toggleAllSpans(true);
+  }
+
+  // Only autoscroll if streaming and enabled
+  if (props.isStreaming && autoscroll.value && virtualScroller.value && newSpans.length > (oldSpans?.length ?? 0)) {
+    nextTick(() => {
+      const targetIndex = flattenedSpans.value.length - 1;
+      if (targetIndex >= 0) {
+        requestAnimationFrame(() => {
+          virtualScroller.value.scrollToIndex(targetIndex, { align: 'end' });
+        });
+      }
+    });
+  }
+});
+
+// Watch for initial load and when autoscroll is enabled
+watch([autoscroll, () => flattenedSpans.value], ([autoScroll, spans]) => {
+  if (autoScroll && spans.length > 0 && virtualScroller.value) {
+    nextTick(() => {
+      const targetIndex = spans.length - 1;
+      requestAnimationFrame(() => {
+        virtualScroller.value.scrollToIndex(targetIndex, { align: 'end' });
+      });
+    });
+  }
+}, { immediate: true });
 
 // Calculate adaptive scroll height
 const calculateScrollerHeight = () => {
@@ -341,6 +389,19 @@ onMounted(() => {
   calculateScrollerHeight();
   // Auto-expand all spans by default
   toggleAllSpans(true);
+
+  // Initial scroll to end if autoscroll is enabled
+  if (autoscroll.value && flattenedSpans.value.length > 0) {
+    nextTick(() => {
+      if (virtualScroller.value) {
+        const targetIndex = flattenedSpans.value.length - 1;
+        requestAnimationFrame(() => {
+          virtualScroller.value.scrollToIndex(targetIndex, { align: 'end' });
+        });
+      }
+    });
+  }
+
   window.addEventListener('resize', handleResize);
 });
 
@@ -440,5 +501,25 @@ onUnmounted(() => {
   border: none;
   border-top: 1px solid var(--p-content-border-color);
   margin: 0.5rem 0;
+}
+
+.autoscroll-indicator {
+  display: inline-flex;
+  align-items: center;
+  color: var(--p-primary-500);
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--p-primary-50);
+  border-radius: 4px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 </style>

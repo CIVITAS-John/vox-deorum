@@ -12,7 +12,6 @@ import type {
   SessionSpansResponse,
   DatabaseTracesResponse,
   TraceSpansResponse,
-  SpanStreamEvent,
   SessionStatus,
   ConfigFile,
   ConfigListResponse,
@@ -20,7 +19,8 @@ import type {
   AgentListResponse,
   ChatResponse,
   ErrorResponse,
-  UploadResponse
+  UploadResponse,
+  Span
 } from './types';
 
 /**
@@ -157,7 +157,7 @@ class ApiClient {
    */
   streamSessionSpans(
     sessionId: string,
-    onMessage: (data: SpanStreamEvent) => void,
+    onMessage: (data: Span[]) => void,
     onError?: (error: Event) => void,
     onHeartbeat?: () => void
   ): () => void {
@@ -168,14 +168,13 @@ class ApiClient {
       `${this.baseUrl}/api/telemetry/sessions/${encodeURIComponent(sessionId)}/stream`
     );
 
-    eventSource.onmessage = (event) => {
+    eventSource.addEventListener("span", (event) => {
       try {
-        const data: SpanStreamEvent = JSON.parse(event.data);
-        onMessage(data);
+        onMessage(JSON.parse(event.data));
       } catch (error) {
         console.error('Failed to parse span data:', error);
       }
-    };
+    });
 
     eventSource.addEventListener("heartbeat", () => {
       onHeartbeat?.();

@@ -14,7 +14,7 @@
           <pre v-if="part.type === 'text'" class="text-content">{{ part.text }}</pre>
 
           <!-- Reasoning content -->
-          <pre v-else-if="part.type === 'reasoning'" class="text-content"><em>Reasoning:</em> {{ part.text }}</pre>
+          <pre v-else-if="part.type === 'reasoning'" class="reasoning-content"><em>Reasoning:</em> {{ part.text }}</pre>
 
           <!-- Image content -->
           <img v-else-if="part.type === 'image'" :src="part.image || part.url" class="image-content" />
@@ -145,7 +145,8 @@ function formatJson(data: any): string {
 }
 
 .text-content,
-.json-content {
+.json-content,
+.reasoning-content {
   padding: 0.5rem;
   background: var(--p-content-background);
   border-radius: 0.25rem;
@@ -153,6 +154,10 @@ function formatJson(data: any): string {
   white-space: pre-wrap;
   word-break: break-word;
   overflow-x: auto;
+}
+
+.reasoning-content {
+  background: var(--p-content-hover-background);
 }
 
 .image-content {

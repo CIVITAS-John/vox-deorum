@@ -168,18 +168,6 @@ export interface UploadResponse {
   path?: string;
 }
 
-// SSE Event Types
-
-/**
- * Server-Sent Event containing telemetry span data
- */
-export interface SpanStreamEvent {
-  /** Event type identifier for SSE stream */
-  type: 'spans';
-  /** Array of spans in this event batch */
-  spans: Span[];
-}
-
 // Session API Types (for future implementation)
 
 /**

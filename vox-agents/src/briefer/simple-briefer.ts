@@ -44,6 +44,7 @@ Summarize the full game state into a strategic briefing that highlights:
 - The briefing should be objective and analytical, do not bias towards existing strategy
 - Do not provide raw, excessive, or tactical information (e.g. coordinates, IDs)
 - Suggestions or considerations will be provided elsewhere
+- Do not send out verbatim from # Strategies
 
 # Resources
 You will receive the following reports:

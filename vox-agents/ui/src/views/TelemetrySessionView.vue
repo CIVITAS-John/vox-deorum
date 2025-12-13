@@ -1,13 +1,14 @@
 <script setup lang="ts">
 /**
  * TelemetrySessionView - View spans from a telemetry session
- * Shows session spans with simple display
+ * Shows session spans with support for streaming and auto-scrolling
  */
 
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
+import Tag from 'primevue/tag';
 import SpanViewer from '@/components/SpanViewer.vue';
 import { api } from '@/api/client';
 import type { Span } from '@/api/types';
@@ -20,6 +21,8 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const spans = ref<Span[]>([]);
 const rootSpan = ref<Span | null>(null);
+const isStreaming = ref(false);
+const streamCleanup = ref<(() => void) | null>(null);
 
 // Extract session ID from route
 const sessionId = computed(() => route.params.sessionId as string);
@@ -44,6 +47,9 @@ async function loadSessionSpans() {
 
     // Find root span or use first span
     rootSpan.value = spans.value.find(s => !s.parentSpanId) || spans.value[0] || null;
+
+    // Start streaming if the session is still active
+    startStreaming();
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load session spans';
     console.error('Error loading session:', err);
@@ -52,26 +58,116 @@ async function loadSessionSpans() {
   }
 }
 
+/**
+ * Start streaming new spans via SSE
+ */
+function startStreaming() {
+  if (streamCleanup.value) return;
+
+  isStreaming.value = true;
+
+  // Connect to SSE stream for this session
+  streamCleanup.value = api.streamSessionSpans(
+    sessionId.value,
+    (allSpans: Span[]) => {
+      // Add new spans to the list
+      for (const span of allSpans) {
+        // Check if span already exists
+        const existingIndex = spans.value.findIndex(s => s.spanId === span.spanId);
+        if (existingIndex >= 0) {
+          // Update existing span
+          spans.value[existingIndex] = span;
+        } else {
+          // Add new span
+          spans.value.push(span);
+        }
+      }
+
+      // Sort spans by start time
+      spans.value.sort((a, b) => a.startTime - b.startTime);
+
+      // Update root span if needed
+      if (!rootSpan.value) {
+        rootSpan.value = spans.value.find(s => !s.parentSpanId) || spans.value[0] || null;
+      }
+    },
+    (error: Event) => {
+      console.error('Stream error:', error);
+      stopStreaming();
+    }
+  );
+}
+
+/**
+ * Stop streaming spans
+ */
+function stopStreaming() {
+  if (streamCleanup.value) {
+    streamCleanup.value();
+    streamCleanup.value = null;
+  }
+  isStreaming.value = false;
+}
+
+/**
+ * Toggle streaming mode manually
+ */
+function toggleStreaming() {
+  if (isStreaming.value) {
+    stopStreaming();
+  } else {
+    startStreaming();
+  }
+}
+
 onMounted(() => {
   loadSessionSpans();
+});
+
+onUnmounted(() => {
+  stopStreaming();
 });
 </script>
 
 <template>
   <div class="telemetry-session-view">
-    <!-- Header with navigation -->
-    <div class="simple-header">
-      <Button
-        icon="pi pi-arrow-left"
-        text
-        rounded
-        @click="goBack"
-      />
-      <h1>Session {{ sessionId }}</h1>
+    <!-- Header with navigation and controls -->
+    <div class="session-header">
+      <div class="header-left">
+        <Button
+          icon="pi pi-arrow-left"
+          text
+          rounded
+          @click="goBack"
+        />
+        <h1>Session {{ sessionId }}</h1>
+        <Tag v-if="isStreaming" severity="info" class="streaming-tag">
+          <i class="pi pi-spin pi-spinner mr-1"></i>
+          Streaming
+        </Tag>
+      </div>
+      <div class="header-controls">
+        <Button
+          :icon="isStreaming ? 'pi pi-pause' : 'pi pi-play'"
+          @click="toggleStreaming"
+          :label="isStreaming ? 'Pause' : 'Resume'"
+          severity="secondary"
+          size="small"
+          class="mr-2"
+        />
+        <Button
+          icon="pi pi-refresh"
+          @click="loadSessionSpans"
+          label="Refresh"
+          severity="secondary"
+          size="small"
+          :loading="loading"
+        />
+      </div>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="loading-container">
+    <div v-if="loading && !spans.length" class="loading-container">
       <ProgressSpinner />
       <p>Loading session spans...</p>
     </div>
@@ -90,15 +186,53 @@ onMounted(() => {
       <Button label="Go Back" @click="goBack" />
     </div>
 
-    <!-- Use SpanViewer component -->
+    <!-- Use SpanViewer component with streaming props -->
     <SpanViewer
       v-else-if="rootSpan"
       :spans="spans"
       :root-span="rootSpan"
+      :is-streaming="isStreaming"
     />
   </div>
 </template>
 
 <style scoped>
 @import '@/styles/states.css';
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-left h1 {
+  margin: 0;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.streaming-tag {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
 </style>

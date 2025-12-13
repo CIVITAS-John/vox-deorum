@@ -204,10 +204,7 @@ router.get('/sessions/:id/stream', (req, res) => {
   // Set up event listener for new spans
   const spanListener = (spans: any[]) => {
     try {
-      res.write(`data: ${JSON.stringify({
-        type: 'spans',
-        spans: spans
-      })}\n\n`);
+      res.write(`event: span\ndata: ${JSON.stringify(spans)}\n\n`);
     } catch (error) {
       logger.error('Error streaming spans', error);
     }

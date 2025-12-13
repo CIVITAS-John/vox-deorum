@@ -170,8 +170,8 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 
 ## Remaining Implementation Phases
 
-### Stage 4: Telemetry Viewer 🔄 IN PROGRESS
-**Status**: Backend Complete, Frontend In Development
+### Stage 4: Telemetry Viewer ✅ COMPLETED
+**Status**: Fully Implemented
 
 **Backend Implementation**: ✅ COMPLETED
 - ✅ Database discovery with recursive scanning in `telemetry/` directory
@@ -183,7 +183,7 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - ✅ File upload support with multer middleware (100MB limit)
 - ✅ All API endpoints implemented in `src/web/routes/telemetry.ts`
 
-**Frontend Implementation** (In Progress):
+**Frontend Implementation**: ✅ COMPLETED
 - ✅ Main telemetry page with two sections (Active Sessions & Existing Databases)
 - ✅ Active Sessions list showing live telemetry connections
 - ✅ Existing Databases grid with parsed game/player info
@@ -191,31 +191,46 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - ✅ Active session view with real-time span streaming
 - ✅ SpanViewer component with virtual scrolling (1,000 span window)
 - ✅ Auto-scroll toggle and connection status indicators
-- 🔄 Database session view with traces list (In Development)
-- 🔄 Frontend search for traces
-- 🔄 Trace detail view with span hierarchy
+- ✅ Database session view with traces list and pagination
+- ✅ Frontend search for traces with real-time filtering
+- ✅ Trace detail view with span hierarchy and attributes
+- ✅ AI Message viewer component for LLM interactions
+- ✅ Dedicated telemetry session view combining traces and spans
 
-**Frontend Requirements** (Original Plan):
-- Main telemetry page with two sections:
-  - Active Sessions list (same as LogViewer)
-  - Existing Databases list with simple card layout showing folder, game ID, player ID
-  - Upload database functionality (stores to `telemetry/uploaded/`)
-- Active session view:
-  - Fetch initial 100 latest spans on entry
-  - Stream incoming spans via SSE
-  - Sort by timestamp, maintain rolling window of 1,000 spans
-  - Virtual scrolling using Virtua (same as LogViewer)
-- Database session view:
-  - Simple list of trace cards showing key attributes
-  - Frontend search (with a searchbox)
-  - Click trace card to enter trace detail view
-- Trace detail view:
-  - Share the span viewer component (but not rolling)
-  - Show all spans sorted by time
-  - Expandable spans with overlay panel showing full attributes
-  - Parent-child hierarchy visualization
+**Lessons Learned & Implementation Notes**:
+1. **Component Reusability**: Created a shared SpanViewer component that works for both live streaming (active sessions) and static display (trace details)
+2. **Virtual Scrolling**: Virtua library proved essential for handling thousands of spans without performance degradation
+3. **SSE Event Handling**: Implemented proper event listener cleanup and connection management to prevent memory leaks
+4. **Database Access Pattern**: Using Kysely with readonly mode and connection pooling improved query performance significantly
+5. **UI/UX Simplification**: Opted for card-based layouts over complex data tables for better readability and mobile responsiveness
+6. **AI Message Display**: Created dedicated component for rendering structured LLM messages with proper formatting
+7. **State Management**: Pinia stores effectively managed complex state for telemetry data and real-time updates
+8. **Error Boundaries**: Added comprehensive error handling for database access failures and SSE disconnections
+9. **Performance Optimization**: Implemented pagination, lazy loading, and computed properties for large datasets
 
-### Stage 5: Session Control
+### Stage 5: Configuration Management
+**Status**: 🔄 Not Started
+
+**Backend Requirements**:
+- Read/write operations for root `config.json` and `.env` files
+- API endpoints for getting/setting configuration values
+- Validation for API keys and LLM provider settings
+- Constant store for config access across the application
+
+**Frontend Requirements**:
+- Simple form interface for editing configuration
+- API key input fields with masking for security
+- LLM provider configuration (model selection, endpoints)
+- Export/import/reset functionality
+- No complex UI - focus on essential settings for players
+
+**Scope**:
+- Focus on user-facing configuration only (API keys, LLM settings)
+- Read from existing `config.json` and `.env` files at root
+- Maintain a constant config store for other components to reference
+- No need for multiple config file management or fancy features
+
+### Stage 6: Session Control
 **Status**: 🔄 Not Started
 
 **Backend Requirements**:
@@ -229,20 +244,6 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - Start/stop controls
 - Progress indicators
 - Config selector from available files
-
-### Stage 6: Configuration Management
-**Status**: 🔄 Not Started (ConfigView.vue has placeholder)
-
-**Backend Requirements**:
-- File-based config storage
-- CRUD operations for configs
-- Schema validation endpoint
-
-**Frontend Requirements**:
-- Config list view
-- JSON editor with syntax highlighting
-- Save/load/delete operations
-- Validation feedback
 
 ### Stage 7: Agent Chat
 **Status**: 🔄 Not Started
@@ -313,21 +314,33 @@ SSE /api/logs/stream             // Real-time log stream with all sources
                                  // Frontend handles filtering by source/level
 ```
 
+### Config Endpoints
+```typescript
+GET /api/config                  // Get current configuration (config.json + .env)
+POST /api/config                 // Update configuration
+  body: {
+    apiKeys?: {
+      openai?: string,
+      openrouter?: string,
+      googleai?: string
+    },
+    llmProviders?: {
+      default?: string,
+      models?: Record<string, any>
+    }
+  }
+POST /api/config/reload          // Reload config from files
+POST /api/config/validate        // Validate configuration
+  body: { config: any }
+  Response: { valid: boolean, errors?: string[] }
+```
+
 ### Session Endpoints
 ```typescript
 GET /api/session/status          // Current session state
 POST /api/session/start          // Start with config
 POST /api/session/stop           // Graceful shutdown
 SSE /api/session/events          // Status updates
-```
-
-### Config Endpoints
-```typescript
-GET /api/configs                 // List all configs
-GET /api/configs/:name           // Get specific config
-POST /api/configs/:name          // Save config
-DELETE /api/configs/:name        // Delete config
-POST /api/configs/validate       // Validate JSON schema
 ```
 
 ### Agent Endpoints
@@ -410,4 +423,4 @@ SSE /api/agents/:name/stream    // Response stream
 5. **PrimeVue-first approach** - Always use existing PrimeVue components before custom implementations
 
 ### Next Steps
-Complete Stage 4 frontend (Telemetry Viewer UI) following the established LogViewer patterns, then proceed with Stage 5 (Session Control).
+Proceed with Stage 5 (Configuration Management) to provide essential user configuration for API keys and LLM settings, then implement Stage 6 (Session Control) followed by Stage 7 (Agent Chat).
