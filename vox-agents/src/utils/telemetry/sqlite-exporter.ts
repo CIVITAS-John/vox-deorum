@@ -21,9 +21,17 @@ import type { TelemetryDatabase, NewSpan } from './schema.js';
 const logger = createLogger('SQLiteExporter');
 
 /**
- * Map of context IDs to Kysely database instances
+ * Database connection info storing both Kysely and SQLite instances
  */
-const databases = new Map<string, Kysely<TelemetryDatabase>>();
+interface DatabaseConnection {
+  kysely: Kysely<TelemetryDatabase>;
+  sqlite: Database.Database;
+}
+
+/**
+ * Map of context IDs to database connections
+ */
+const databases = new Map<string, DatabaseConnection>();
 
 /**
  * Map of context IDs to custom folders
@@ -86,7 +94,7 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
       sqliteDb.pragma('synchronous = NORMAL');
 
       // Create Kysely instance
-      const db = new Kysely<TelemetryDatabase>({
+      const kyselyDb = new Kysely<TelemetryDatabase>({
         dialect: new SqliteDialect({
           database: sqliteDb,
         }),
@@ -118,11 +126,12 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
         CREATE INDEX IF NOT EXISTS idx_spans_startTime ON spans(startTime);
       `);
 
-      databases.set(contextId, db);
+      // Store both Kysely and SQLite instances
+      databases.set(contextId, { kysely: kyselyDb, sqlite: sqliteDb });
       logger.info(`Created Kysely database for context ${contextId}`);
     }
 
-    return databases.get(contextId)!;
+    return databases.get(contextId)!.kysely;
   }
 
   /**
@@ -250,9 +259,8 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
       await spanProcessor.forceFlush();
 
       // Checkpoint all databases to ensure data is written
-      for (const [contextId, db] of databases) {
-        const sqliteDb = (db as any).executor.adapter.db as Database.Database;
-        sqliteDb.pragma('wal_checkpoint(TRUNCATE)');
+      for (const [contextId, connection] of databases) {
+        connection.sqlite.pragma('wal_checkpoint(TRUNCATE)');
       }
 
       logger.info('Force flushed all telemetry data');
@@ -280,14 +288,14 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
    */
   async closeContext(contextId: string): Promise<void> {
     try {
-      const db = databases.get(contextId);
-      if (db) {
-        // Get the underlying SQLite database and checkpoint
-        const sqliteDb = (db as any).executor.adapter.db as Database.Database;
-        sqliteDb.pragma('wal_checkpoint(TRUNCATE)');
+      const connection = databases.get(contextId);
+      if (connection) {
+        // Checkpoint the SQLite database
+        connection.sqlite.pragma('wal_checkpoint(TRUNCATE)');
 
         // Destroy Kysely instance and close SQLite database
-        await db.destroy();
+        await connection.kysely.destroy();
+        connection.sqlite.close();
 
         databases.delete(contextId);
         logger.info(`Closed Kysely database for context ${contextId}`);

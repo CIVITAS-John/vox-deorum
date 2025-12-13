@@ -47,7 +47,7 @@ export class VoxPlayer {
     VoxSpanExporter.getInstance().createContext(id, this.playerConfig.strategist);
 
     // Pass model overrides to VoxContext
-    this.context = new VoxContext(playerConfig.models || {}, id);
+    this.context = new VoxContext(playerConfig.llms || {}, id);
     this.context.registerAgent(new SimpleStrategist());
     this.context.registerAgent(new SimpleStrategistBriefed());
     this.context.registerAgent(new SimpleBriefer());

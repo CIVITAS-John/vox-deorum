@@ -22,7 +22,7 @@ export interface PlayerConfig {
   /** Strategist type to use for this player */
   strategist: string;
   /** Optional LLM model overrides per voxcontext (e.g., per agent name) */
-  models?: Record<string, Model | string>;
+  llms?: Record<string, Model | string>;
 }
 
 /**
