@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
 import { spanProcessor } from '../instrumentation.js';
 import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
+import { countMessagesTokens } from "../utils/token-counter.js";
 
 /**
  * Runtime context for executing Vox Agents.
@@ -408,9 +409,12 @@ export class VoxContext<TParameters extends AgentParameters> {
         }, this.logger);
 
         // Update token usage
-        const inputTokens = stepResponse.totalUsage.inputTokens ?? 0;
+        /* const inputTokens = stepResponse.totalUsage.inputTokens ?? 0;
         const reasoningTokens = stepResponse.totalUsage.reasoningTokens ?? 0;
-        const outputTokens = (stepResponse.totalUsage.outputTokens ?? 0) - reasoningTokens;
+        const outputTokens = (stepResponse.totalUsage.outputTokens ?? 0) - reasoningTokens; */
+        const inputTokens = countMessagesTokens(messages, false);
+        const reasoningTokens = countMessagesTokens(stepResponse.response.messages, true);
+        const outputTokens = countMessagesTokens(stepResponse.response.messages, false);
 
         // Record step results in span
         const responses = stepResponse.response.messages;
