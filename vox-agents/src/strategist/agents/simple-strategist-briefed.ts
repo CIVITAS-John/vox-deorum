@@ -106,6 +106,6 @@ ${briefing}
    * @returns The language model to use, or undefined for default
    */
   public getModel(_parameters: StrategistParameters, _input: unknown, overrides: Record<string, Model | string>): Model {
-    return getModelConfig(this.name, "high", overrides);
+    return getModelConfig(this.name, "medium", overrides);
   }
 }

@@ -302,7 +302,7 @@ export class VoxContext<TParameters extends AgentParameters> {
           this.reasoningTokens += reasoningTokens;
           this.outputTokens += outputTokens;
           span.setAttributes({
-            'model': `${modelConfig.name}@${modelConfig.provider}`,
+            'model': `${modelConfig.provider}/${modelConfig.name}@${modelConfig.options?.["reasoningEffort"] ?? ""}`,
             'tokens.input': inputTokens,
             'tokens.reasoning': reasoningTokens,
             'tokens.output': outputTokens,
@@ -420,7 +420,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         const responses = stepResponse.response.messages;
         responses.forEach(response => delete response.providerOptions);
         stepSpan.setAttributes({
-          'model': `${stepModel.name}@${stepModel.provider}`,
+          'model': `${stepModel.provider}/${stepModel.name}@${stepModel.options?.["reasoningEffort"] ?? ""}`,
           'tokens.input': inputTokens,
           'tokens.reasoning': reasoningTokens,
           'tokens.output': outputTokens,
