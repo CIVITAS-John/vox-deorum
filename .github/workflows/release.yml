@@ -131,8 +131,7 @@ jobs:
       - name: Verify installer
         shell: pwsh
         run: |
-          # The build script creates the installer in the root dist folder
-          $installerPath = "${{ github.workspace }}\dist\${{ steps.version.outputs.INSTALLER_NAME }}"
+          $installerPath = "${{ github.workspace }}\scripts\dist\${{ steps.version.outputs.INSTALLER_NAME }}"
 
           if (Test-Path $installerPath) {
               Write-Host "Installer successfully created at: $installerPath"
@@ -178,7 +177,7 @@ jobs:
             See [commit history](https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.VERSION }}) for detailed changes.
           files: |
             scripts/bootstrap.cmd
-            dist/${{ steps.version.outputs.INSTALLER_NAME }}
+            scripts/dist/${{ steps.version.outputs.INSTALLER_NAME }}
           draft: false
           prerelease: false
         env:
