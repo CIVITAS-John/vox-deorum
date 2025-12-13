@@ -58,8 +58,8 @@ vox-agents/
 ### Implemented & Planned Additions
 - src/web/routes/ - Modular API route handlers ✅
   - telemetry.ts ✅ - Complete telemetry API implementation
+  - config.ts ✅ - Configuration management endpoints
   - session.ts (planned) - Session control endpoints
-  - config.ts (planned) - Configuration management
   - agent.ts (planned) - Agent chat endpoints
 - Additional UI components for remaining features (planned)
 ```
@@ -209,34 +209,36 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 9. **Performance Optimization**: Implemented pagination, lazy loading, and computed properties for large datasets
 
 ### Stage 5: Configuration Management
-**Status**: 🔄 In Progress (Backend Implementation)
+**Status**: ✅ Backend Complete, 🔄 Frontend Pending
 
-**Backend Implementation Plan**:
-- Create minimal configuration API in `src/web/routes/config.ts`
-- **GET /api/config** - Return merged configuration from config.json and .env
-  - Read both files using existing utilities
-  - Return full configuration object (no masking needed - local use only)
-  - Use existing `VoxAgentsConfig` interface
-- **POST /api/config** - Update configuration
-  - Accept partial updates for API keys and LLM settings
-  - Write API keys to .env file (maintain key=value format)
-  - Write other settings to config.json
-  - No validation endpoints (frontend handles validation)
-- Mount routes in `src/web/server.ts` at `/api/config`
-- Reuse all existing types and utilities
+**Backend Implementation**: ✅ COMPLETED
+- Created minimal configuration API in `src/web/routes/config.ts`
+- **GET /api/config** - Returns merged configuration
+  - Reads config.json using existing `loadConfigFromFile` utility
+  - Reads .env file and extracts API keys
+  - Returns both config and apiKeys objects
+  - No masking (local use only)
+- **POST /api/config** - Updates configuration
+  - Accepts `{ config, apiKeys }` in request body
+  - Deep merges config updates with existing config.json
+  - Merges API key updates with existing .env file
+  - Maintains proper formatting for both files
+- Routes mounted in `src/web/server.ts` at `/api/config`
+- Reuses existing `VoxAgentsConfig` interface and utilities
 
-**Frontend Requirements**:
+**Implementation Details**:
+- Direct file operations in route handlers (no separate manager)
+- Parses .env file format properly (handles comments and empty lines)
+- Deep merge logic for nested config objects
+- No validation/reload endpoints (handled by frontend)
+- Uses existing logger utility with 'webui' source
+
+**Frontend Requirements**: 🔄 Pending
 - Simple form interface for editing configuration
 - API key input fields with masking for security
 - LLM provider configuration (model selection, endpoints)
 - Export/import/reset functionality
 - No complex UI - focus on essential settings for players
-
-**Scope**:
-- Focus on user-facing configuration only (API keys, LLM settings)
-- Read from existing `config.json` and `.env` files at root
-- Direct file operations in route handlers (no separate manager)
-- No reload/validate endpoints needed
 
 ### Stage 6: Session Control
 **Status**: 🔄 Not Started
@@ -322,25 +324,22 @@ SSE /api/logs/stream             // Real-time log stream with all sources
                                  // Frontend handles filtering by source/level
 ```
 
-### Config Endpoints
+### Config Endpoints ✅ IMPLEMENTED
 ```typescript
-GET /api/config                  // Get current configuration (config.json + .env)
+GET /api/config                  // Get current configuration
+  Response: {
+    config: VoxAgentsConfig,     // From config.json
+    apiKeys: Record<string, string>  // From .env (API_KEY entries)
+  }
+
 POST /api/config                 // Update configuration
   body: {
-    apiKeys?: {
-      openai?: string,
-      openrouter?: string,
-      googleai?: string
-    },
-    llmProviders?: {
-      default?: string,
-      models?: Record<string, any>
-    }
+    config?: Partial<VoxAgentsConfig>,  // Updates to config.json
+    apiKeys?: Record<string, string>     // Updates to .env
   }
-POST /api/config/reload          // Reload config from files
-POST /api/config/validate        // Validate configuration
-  body: { config: any }
-  Response: { valid: boolean, errors?: string[] }
+  Response: { success: boolean }
+
+// Note: No reload/validate endpoints - handled by frontend
 ```
 
 ### Session Endpoints
