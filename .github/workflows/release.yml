@@ -132,7 +132,7 @@ jobs:
         shell: pwsh
         run: |
           # The build script creates the installer in the root dist folder
-          $installerPath = "dist\${{ steps.version.outputs.INSTALLER_NAME }}"
+          $installerPath = "${{ github.workspace }}\dist\${{ steps.version.outputs.INSTALLER_NAME }}"
 
           if (Test-Path $installerPath) {
               Write-Host "Installer successfully created at: $installerPath"
