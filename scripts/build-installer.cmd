@@ -59,13 +59,24 @@ if exist "%PROJECT_ROOT%\package.json" (
     echo   Installing all dependencies via npm workspaces...
     pushd "%PROJECT_ROOT%"
     call npm install --include=dev
-    call npm install --workspaces --include=dev
     if !errorlevel! neq 0 (
         echo   [ERROR] Dependency installation failed
         pause
         exit /b 1
     )
     echo   [OK] All workspace dependencies installed
+
+    :: Install vox-agents/ui dependencies
+    echo   Installing vox-agents/ui dependencies...
+    cd vox-agents\ui
+    call npm install --include=dev
+    if !errorlevel! neq 0 (
+        echo   [ERROR] vox-agents/ui dependency installation failed
+        pause
+        exit /b 1
+    )
+    echo   [OK] vox-agents/ui dependencies installed
+    cd ..\..
     popd
 )
 
@@ -83,8 +94,8 @@ echo   [OK] All projects built
 
 :: Prune to production dependencies after build
 echo   Pruning to production dependencies...
-call npm install --workspaces --omit=dev
-call npm prune --workspaces --omit=dev
+call npm install --omit=dev
+call npm prune --omit=dev
 echo   [OK] Production dependencies ready
 popd
 

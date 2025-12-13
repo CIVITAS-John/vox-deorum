@@ -212,7 +212,7 @@ class GetOptionsTool extends ToolBase {
               const current = policies.find(s => s.Name === policyName)!;
               var Help = current?.Help ?? "";
               if (policy?.Policy !== undefined && policy?.Policy !== "None") 
-                Help = Help.substring(0, Help.indexOf("\n")).trim();
+                Help = Help.replaceAll(/\n+/g, " ");
               return [
                 policyName + ` (Policy in ${current?.Branch})`,
                 Help
@@ -221,7 +221,7 @@ class GetOptionsTool extends ToolBase {
               const current = policies.find(s => s.Name === policyName)!;
               var Help = current?.Help ?? "";
               if (policy?.Policy !== undefined && policy?.Policy !== "None") 
-                Help = Help.substring(0, Help.indexOf("\n")).trim();
+                Help = Help.replaceAll(/\n+/g, " ");
               return [
                 policyName + " (New Branch)",
                 Help

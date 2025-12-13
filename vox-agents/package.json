@@ -18,8 +18,5 @@
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
     "docs": "typedoc"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  }
 }
