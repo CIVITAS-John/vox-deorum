@@ -32,7 +32,7 @@ if "%TAG%"=="" (
         del "%TEMP%\vox_tag.txt" >nul 2>&1
     )
     if "!TAG!"=="" (
-        echo [WARN] Could not fetch release tag, defaulting to v0.2.2
+        echo [WARN] Could not fetch release tag, defaulting to v0.4.0
     )
 )
 if not "!TAG!"=="" (
