@@ -58,7 +58,7 @@ set "PATH=%PROJECT_ROOT%\node;%PATH%"
 if exist "%PROJECT_ROOT%\package.json" (
     echo   Installing all dependencies via npm workspaces...
     pushd "%PROJECT_ROOT%"
-    call npm install --workspaces
+    call npm install --workspaces --include=dev
     if !errorlevel! neq 0 (
         echo   [ERROR] Dependency installation failed
         pause
