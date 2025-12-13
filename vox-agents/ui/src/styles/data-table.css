@@ -37,7 +37,7 @@
 .table-row {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 0.1rem 0.5rem;
   border-bottom: 1px solid var(--content-border-color);
   transition: background-color 0.2s;
   min-height: 2.5rem;
