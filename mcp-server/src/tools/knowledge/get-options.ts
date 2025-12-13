@@ -212,7 +212,7 @@ class GetOptionsTool extends ToolBase {
       Policies: {
         Next: policy?.Policy ? `${policy.Policy} (${policy.IsBranch ? "New Branch" : "Policy"})` : "None",
         Rationale: policy?.Rationale,
-        Options: policies && cleanOptions.Policies.length > 0 ?
+        Options: policies ?
           Object.fromEntries(
             cleanOptions.Policies.map(policyName => {
               const current = policies.find(s => s.Name === policyName)!;
@@ -231,7 +231,7 @@ class GetOptionsTool extends ToolBase {
                 formatPolicyHelp(Help, policyName)
               ];
             }))
-          ) : cleanOptions.Policies
+          ) : cleanOptions.Policies.concat(cleanOptions.PolicyBranches)
       }
     };
     return result;

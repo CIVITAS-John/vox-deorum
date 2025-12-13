@@ -31,9 +31,6 @@ if "%TAG%"=="" (
         set /p TAG=<"%TEMP%\vox_tag.txt"
         del "%TEMP%\vox_tag.txt" >nul 2>&1
     )
-    if "!TAG!"=="" (
-        echo [WARN] Could not fetch release tag, defaulting to v0.4.0
-    )
 )
 if not "!TAG!"=="" (
     echo [OK] Using release tag: !TAG!
