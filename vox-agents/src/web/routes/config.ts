@@ -8,6 +8,7 @@
 import { Router } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
+import dotenv from 'dotenv';
 import { createLogger } from '../../utils/logger.js';
 import { defaultConfig, loadConfigFromFile, type VoxAgentsConfig } from '../../utils/config.js';
 
@@ -15,31 +16,24 @@ const logger = createLogger('config', 'webui');
 const router = Router();
 
 /**
- * Parse .env file content into a key-value object
- */
-function parseEnvFile(content: string): Record<string, string> {
-  const env: Record<string, string> = {};
-  const lines = content.split('\n');
-
-  for (const line of lines) {
-    // Skip comments and empty lines
-    if (line.trim().startsWith('#') || !line.trim()) continue;
-
-    const [key, ...valueParts] = line.split('=');
-    if (key && valueParts.length > 0) {
-      env[key.trim()] = valueParts.join('=').trim();
-    }
-  }
-
-  return env;
-}
-
-/**
  * Format environment variables into .env file content
+ * Properly handles multi-line values by using double quotes and escaping
  */
 function formatEnvFile(env: Record<string, string>): string {
   return Object.entries(env)
-    .map(([key, value]) => `${key}=${value}`)
+    .map(([key, value]) => {
+      // Check if value contains newlines or needs quoting
+      if (value.includes('\n') || value.includes('"')) {
+        // Escape existing backslashes and quotes, then quote the value
+        const escaped = value
+          .replace(/\\/g, '\\\\')
+          .replace(/"/g, '\\"')
+          .replace(/\n/g, '\\n');
+        return `${key}="${escaped}"`;
+      }
+      // Simple values don't need quotes
+      return `${key}=${value}`;
+    })
     .join('\n') + '\n';
 }
 
@@ -50,7 +44,6 @@ function formatEnvFile(env: Record<string, string>): string {
 router.get('/', async (req, res) => {
   try {
     // Load config.json
-    const configPath = path.join(process.cwd(), 'config.json');
     const config = loadConfigFromFile<VoxAgentsConfig>('config.json', defaultConfig);
 
     // Load .env file
@@ -59,7 +52,7 @@ router.get('/', async (req, res) => {
 
     try {
       const envContent = await fs.readFile(envPath, 'utf-8');
-      const env = parseEnvFile(envContent);
+      const env = dotenv.parse(envContent);
 
       // Extract API keys
       apiKeys = Object.entries(env)
@@ -91,25 +84,10 @@ router.post('/', async (req, res) => {
     if (config) {
       const configPath = path.join(process.cwd(), 'config.json');
 
-      // Load existing config
-      const existingConfig = loadConfigFromFile<VoxAgentsConfig>('config.json', defaultConfig);
-
-      // Merge with updates (deep merge for nested objects)
+      // Override with the provided config (no merging)
       const updatedConfig: VoxAgentsConfig = {
-        ...existingConfig,
-        ...config,
-        agent: { ...existingConfig.agent, ...(config.agent || {}) },
-        webui: { ...existingConfig.webui, ...(config.webui || {}) },
-        mcpServer: {
-          ...existingConfig.mcpServer,
-          ...(config.mcpServer || {}),
-          transport: {
-            ...existingConfig.mcpServer.transport,
-            ...(config.mcpServer?.transport || {})
-          }
-        },
-        logging: { ...existingConfig.logging, ...(config.logging || {}) },
-        llms: { ...existingConfig.llms, ...(config.llms || {}) }
+        ...defaultConfig,  // Start with defaults
+        ...config          // Override with provided config
       };
 
       // Write updated config
@@ -121,23 +99,9 @@ router.post('/', async (req, res) => {
     if (apiKeys) {
       const envPath = path.join(process.cwd(), '.env');
 
-      // Load existing .env
-      let existingEnv: Record<string, string> = {};
-      try {
-        const envContent = await fs.readFile(envPath, 'utf-8');
-        existingEnv = parseEnvFile(envContent);
-      } catch (error) {
-        logger.debug('Creating new .env file');
-      }
-
-      // Merge with updates
-      const updatedEnv = {
-        ...existingEnv,
-        ...apiKeys
-      };
-
+      // Override with the provided API keys (no merging)
       // Write updated .env
-      await fs.writeFile(envPath, formatEnvFile(updatedEnv));
+      await fs.writeFile(envPath, formatEnvFile(apiKeys));
       logger.info('Updated .env file');
     }
 
