@@ -220,16 +220,17 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
   - No masking (local use only)
 - **POST /api/config** - Updates configuration
   - Accepts `{ config, apiKeys }` in request body
-  - Deep merges config updates with existing config.json
-  - Merges API key updates with existing .env file
-  - Maintains proper formatting for both files
+  - **OVERRIDES** entire config.json with provided config (no merging)
+  - **OVERRIDES** entire .env with provided API keys (no merging)
+  - Properly handles multi-line values (e.g., private keys) with escaping
 - Routes mounted in `src/web/server.ts` at `/api/config`
 - Reuses existing `VoxAgentsConfig` interface and utilities
 
 **Implementation Details**:
 - Direct file operations in route handlers (no separate manager)
 - Parses .env file format properly (handles comments and empty lines)
-- Deep merge logic for nested config objects
+- **Override behavior** - POST completely replaces configs (no merging)
+- **Multi-line support** - Properly escapes and quotes values with newlines
 - No validation/reload endpoints (handled by frontend)
 - Uses existing logger utility with 'webui' source
 
@@ -334,12 +335,14 @@ GET /api/config                  // Get current configuration
 
 POST /api/config                 // Update configuration
   body: {
-    config?: Partial<VoxAgentsConfig>,  // Updates to config.json
-    apiKeys?: Record<string, string>     // Updates to .env
+    config?: Partial<VoxAgentsConfig>,  // REPLACES entire config.json
+    apiKeys?: Record<string, string>     // REPLACES entire .env
   }
   Response: { success: boolean }
 
-// Note: No reload/validate endpoints - handled by frontend
+// Note: POST does full replacement, not merging
+// Supports multi-line values (e.g., private keys) with proper escaping
+// No reload/validate endpoints - handled by frontend
 ```
 
 ### Session Endpoints
