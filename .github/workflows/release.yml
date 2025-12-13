@@ -173,10 +173,10 @@ EOF
           body: |
             ${{ steps.commit_msg.outputs.MESSAGE }}
 
-            ## Quick Install
+            \#\# Quick Install
             Download the installer `${{ steps.version.outputs.INSTALLER_NAME }}` or use `bootstrap.cmd` to automatically set up Vox Deorum.
 
-            ## What's Changed
+            \#\# What's Changed
             See [commit history](https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.VERSION }}) for detailed changes.
           files: |
             scripts/bootstrap.cmd
