@@ -42,7 +42,6 @@ BeveledLabel={#MyAppName} {#MyAppVersion} - LLM-Enhanced AI for Civilization V
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "configureapi"; Description: "Open API configuration after installation"; GroupDescription: "Configuration"
 
 [Files]
 ; Root-level package.json for centralized dependencies
@@ -390,16 +389,6 @@ begin
           CopyFile(ExpandConstant('{app}\scripts\release\lua51_win32.pdb'),
                    Civ5Path + '\lua51_win32.pdb', True);
       end;
-    end;
-
-    // Show message about API configuration if .env was just created
-    if EnvFileCreated and not WizardIsTaskSelected('configureapi') then
-    begin
-      MsgBox('IMPORTANT: You need to configure your LLM API keys!' + #13#10#13#10 +
-             'Please edit the file:' + #13#10 +
-             ExpandConstant('{app}\vox-agents\.env') + #13#10#13#10 +
-             'Add your API keys before running Vox Deorum.',
-             mbInformation, MB_OK);
     end;
   end;
 end;
