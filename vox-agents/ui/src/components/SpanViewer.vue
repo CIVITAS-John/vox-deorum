@@ -11,10 +11,6 @@
           class="mr-2"
         />
         <Tag :value="`${spans.length} spans`" class="mr-2" />
-        <Tag v-if="isStreaming" severity="info">
-          <i class="pi pi-spin pi-spinner mr-1"></i>
-          Streaming
-        </Tag>
       </template>
       <template #end>
         <Button
