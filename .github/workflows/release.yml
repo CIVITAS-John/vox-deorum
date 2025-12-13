@@ -151,11 +151,9 @@ jobs:
           $message = git log -1 --pretty=%B --no-merges
 
           # Output using GitHub Actions multiline format
-          @"
-MESSAGE<<EOF
-$message
-EOF
-"@ | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding UTF8
+          echo "MESSAGE<<EOF" >> $env:GITHUB_OUTPUT
+          echo $message >> $env:GITHUB_OUTPUT
+          echo "EOF" >> $env:GITHUB_OUTPUT
 
       - name: Push commit and tag
         if: ${{ github.event.inputs.dry_run != 'true' }}
