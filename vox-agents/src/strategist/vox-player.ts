@@ -212,6 +212,7 @@ export class VoxPlayer {
           'tokens.reasoning': this.context.reasoningTokens,
           'tokens.output': this.context.outputTokens
         });
+        span.end();
 
         await Promise.all([
           this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: String(this.context.inputTokens) }, this.parameters),
@@ -222,8 +223,6 @@ export class VoxPlayer {
 
         // Shutdown the VoxContext to ensure all telemetry is flushed
         await this.context.shutdown();
-
-        span.end();
         await setTimeout(5000);
       }
     });

@@ -78,7 +78,7 @@ function transformValue(
     return `${parentIndent}- ${(key ? `${key}: ` : '')}${formatPrimitive(value, parentIndent)}`;
   } else {
     // Handle objects
-    return transformObject(value, depth, config, parentIndent);
+    return transformObject(value, depth, config, parentIndent, Array.isArray(value));
   }
 }
 
@@ -104,7 +104,8 @@ function transformObject(
   obj: Record<string, any>,
   depth: number,
   config: JsonToMarkdownConfig,
-  parentIndent: string
+  parentIndent: string,
+  isArray: boolean
 ): string {
   const currentLevel = config.startingLevel + depth;
   const headingConfig = config.configs[depth];
@@ -133,14 +134,18 @@ function transformObject(
       const formatString = headingConfig.format ?? "{key}";
       const heading = "\n" + "#".repeat(currentLevel) + " " +
         formatString.replace(/\{(key|0)\}/g, key);
-      results.push(heading);
-      results.push(transformValue(
+      const exported = transformValue(
         value,
         depth + 1,
         config,
         "",
         undefined
-      ));
+      );
+      // Ignore headings with an empty object/array - avoid confusion
+      if (exported !== "") {
+        results.push(heading);
+        results.push(exported);
+      }
     } else {
       // Use nested lists when heading level exceeded
       if (typeof value === "object" && value !== null) {
@@ -151,10 +156,13 @@ function transformObject(
           parentIndent + config.indentString,
           undefined
         );
-        results.push(`${parentIndent}- ${key}${transformed === "" ? "" : ":"}`);
-        results.push(transformed);
+        // Ignore list items with an empty object/array - also avoid confusion
+        if (transformed !== "") {
+          results.push(`${parentIndent}- ${isArray ? "#" : ""}${key}:`);
+          results.push(transformed);
+        }
       } else {
-        results.push(`${parentIndent}- ${key}: ${formatPrimitive(value, parentIndent + config.indentString)}`);
+        results.push(`${parentIndent}- ${isArray ? "" : key + ": "}${formatPrimitive(value, parentIndent + config.indentString)}`);
       }
     }
   }

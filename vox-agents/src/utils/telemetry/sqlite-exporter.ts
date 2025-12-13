@@ -300,11 +300,6 @@ export class SQLiteSpanExporter extends VoxSpanExporter {
         databases.delete(contextId);
         logger.info(`Closed Kysely database for context ${contextId}`);
       }
-
-      // Clear custom folder mapping if exists
-      if (customFolders.has(contextId)) {
-        customFolders.delete(contextId);
-      }
     } catch (error) {
       logger.error(`Error closing database for context ${contextId}`, error);
       throw error;

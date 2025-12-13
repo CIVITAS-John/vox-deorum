@@ -21,13 +21,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "eventsource": "^4.1.0"
-  },
-  "dependencies": {
-    "@types/multer": "^2.0.0",
-    "multer": "^2.0.2",
-    "tiktoken": "^1.0.22"
-  }
+  "license": "ISC"
 }
