@@ -42,9 +42,8 @@ export function getModelConfig(
   // Check overrides first
   if (overrides && overrides[name]) {
     const override = overrides[name];
-    if (typeof override === 'string') {
+    if (typeof override === 'string')
       return getModelConfig(override, reasoning, overrides);
-    }
     // It's a Model object - apply reasoning if needed
     if (reasoning) {
       return {
@@ -57,9 +56,12 @@ export function getModelConfig(
 
   // Fall back to config.llms
   const model = config.llms[name];
-  if (!model) return getModelConfig("default", reasoning, overrides);
+  if (!model) {
+    if (name === "default") throw new Error("The model assignment for `default` is not found. Please check your settings!")
+    return getModelConfig("default", reasoning);
+  }
   if (typeof(model) === "string")
-    return getModelConfig(model, reasoning, overrides);
+    return getModelConfig(model, reasoning);
   else if (reasoning) {
     return {
       ...model,

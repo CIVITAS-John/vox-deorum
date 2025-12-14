@@ -16,7 +16,8 @@ import {
   buildLLMConfig,
   updateModelId,
   getAgentsUsingModel,
-  validateMappings
+  validateMappings,
+  agentTypes
 } from '../utils/config-utils';
 
 // State
@@ -80,7 +81,7 @@ async function loadConfig() {
 // LLM Configuration Functions
 function addMapping() {
   agentMappings.value.push({
-    agent: '',
+    agent: 'default',
     model: availableModels.value[0]?.value || ''
   });
 }
@@ -176,7 +177,7 @@ async function saveConfig() {
     <!-- Page Header with Title and Actions -->
     <div class="page-header">
       <div class="page-header-left">
-        <h1>Configuration Management</h1>
+        <h1>System Settings</h1>
         <!-- Loading Spinner Icon -->
         <ProgressSpinner v-if="loading" style="width: 24px; height: 24px" />
       </div>
@@ -215,7 +216,7 @@ async function saveConfig() {
     <!-- LLM API Keys Section -->
     <Card class="config-card">
       <template #title>
-        <i class="pi pi-key" /> API Keys
+        <i class="pi pi-key" /> LLM API Keys
       </template>
       <template #subtitle>
         API keys are stored locally in your .env file
@@ -269,9 +270,12 @@ async function saveConfig() {
       <template #content>
         <div class="mappings-list">
           <div v-for="(mapping, index) in agentMappings" :key="index" class="mapping-row">
-            <InputText
+            <Dropdown
               v-model="mapping.agent"
-              placeholder="Agent name (e.g., default)"
+              :options="agentTypes"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select agent type"
               class="agent-input"
             />
             <Dropdown
@@ -353,22 +357,14 @@ async function saveConfig() {
 /* Import shared state styles */
 @import '@/styles/states.css';
 
-.status-messages {
-  margin-bottom: 1rem;
+.status-messages,
+.config-card {
+  margin-bottom: 1.5rem;
 }
 
 .config-card {
   background: var(--p-content-background);
   border: 1px solid var(--p-content-border-color);
-  margin-bottom: 1.5rem;
-}
-
-:deep(.p-card-title) {
-  color: var(--p-primary-color);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
 }
 
 :deep(.p-card-subtitle) {
@@ -387,18 +383,11 @@ async function saveConfig() {
 }
 
 .api-keys-table input {
-  width: 32rem;
+  width: 28rem;
 }
 
-.placeholder-content {
-  text-align: center;
-  padding: 2rem;
-  color: var(--p-text-muted-color);
-}
-
-.sub-text {
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+.api-keys-table input[type="password"] {
+  width: 28rem;
 }
 
 /* LLM Configuration Styles */
@@ -439,22 +428,5 @@ async function saveConfig() {
 
 .delete-btn {
   flex-shrink: 0;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .mapping-row,
-  .model-row {
-    flex-wrap: wrap;
-  }
-
-  .agent-input,
-  .model-dropdown,
-  .provider-dropdown,
-  .model-id,
-  .model-name {
-    flex: 1 1 100%;
-    min-width: 100%;
-  }
 }
 </style>

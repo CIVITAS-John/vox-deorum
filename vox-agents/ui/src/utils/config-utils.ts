@@ -5,6 +5,16 @@
 import type { AgentMapping, ModelDefinition, LLMConfig } from '../api/config-types';
 
 /**
+ * Predefined agent types available in the system
+ */
+export const agentTypes = [
+  { label: 'Default', value: 'default' },
+  { label: 'Briefer', value: 'briefer' },
+  { label: 'Simple Strategist', value: 'simple-strategist' },
+  { label: 'Simple Strategist (Briefed)', value: 'simple-strategist-briefed' }
+];
+
+/**
  * Parse LLM configuration from config.llms into mappings and definitions
  *
  * @param llms - The llms configuration object from config.json
