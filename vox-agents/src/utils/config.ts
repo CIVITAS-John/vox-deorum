@@ -52,7 +52,7 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
-    'openrouter/google/gpt-oss-120b': {
+    'openrouter/openai/gpt-oss-120b': {
       provider: 'openrouter',
       name: 'openai/gpt-oss-120b',
       options: {
