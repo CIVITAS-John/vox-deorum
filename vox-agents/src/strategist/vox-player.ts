@@ -9,10 +9,6 @@
 import { VoxContext } from "../infra/vox-context.js";
 import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
 import { createLogger } from "../utils/logger.js";
-import { SimpleStrategist } from "./agents/simple-strategist.js";
-import { SimpleStrategistBriefed } from "./agents/simple-strategist-briefed.js";
-import { SimpleBriefer } from "../briefer/simple-briefer.js";
-import { NoneStrategist } from "./agents/none-strategist.js";
 import { setTimeout } from 'node:timers/promises';
 import { sqliteExporter, spanProcessor } from "../instrumentation.js";
 import { config } from "../utils/config.js";
@@ -47,11 +43,8 @@ export class VoxPlayer {
     VoxSpanExporter.getInstance().createContext(id, this.playerConfig.strategist);
 
     // Pass model overrides to VoxContext
+    // Agents are now registered globally in agent-registry.ts
     this.context = new VoxContext(playerConfig.llms || {}, id);
-    this.context.registerAgent(new SimpleStrategist());
-    this.context.registerAgent(new SimpleStrategistBriefed());
-    this.context.registerAgent(new SimpleBriefer());
-    this.context.registerAgent(new NoneStrategist());
 
     this.parameters = {
       playerID,

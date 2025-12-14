@@ -25,6 +25,11 @@ export class SimpleBriefer extends Briefer {
   readonly name = "simple-briefer";
 
   /**
+   * Human-readable description of what this agent does
+   */
+  readonly description = "Summarizes detailed game reports into concise strategic briefings highlighting threats, opportunities, and key insights";
+
+  /**
    * Gets the system prompt for the briefer
    */
   public async getSystem(_parameters: StrategistParameters, _input: string, _context: VoxContext<StrategistParameters>): Promise<string> {

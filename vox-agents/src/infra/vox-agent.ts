@@ -43,7 +43,12 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
    * The name identifier for this agent
    */
   abstract readonly name: string;
-  
+
+  /**
+   * Human-readable description of what this agent does
+   */
+  abstract readonly description: string;
+
   /**
    * Optional description for when this agent is exposed as a tool
    */

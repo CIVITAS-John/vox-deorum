@@ -22,6 +22,11 @@ export class SimpleStrategist extends SimpleStrategistBase {
    * The name identifier for this agent
    */
   readonly name = "simple-strategist";
+
+  /**
+   * Human-readable description of what this agent does
+   */
+  readonly description = "Analyzes game state and makes strategic decisions for Civ V gameplay including diplomacy, technology, policy, and grand strategy";
   
   /**
    * Gets the system prompt for the strategist

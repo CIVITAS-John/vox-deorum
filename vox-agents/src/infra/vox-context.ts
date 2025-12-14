@@ -19,6 +19,7 @@ import { trace, SpanStatusCode, context } from '@opentelemetry/api';
 import { spanProcessor } from '../instrumentation.js';
 import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
 import { countMessagesTokens } from "../utils/token-counter.js";
+import { getAllAgents } from "./agent-registry.js";
 
 /**
  * Runtime context for executing Vox Agents.
@@ -34,11 +35,6 @@ export class VoxContext<TParameters extends AgentParameters> {
    * Unique identifier for this context instance
    */
   public readonly id: string;
-
-  /**
-   * Registry of available agents indexed by name
-   */
-  public agents: Record<string, VoxAgent<TParameters>> = {};
 
   /**
    * Registry of available tools indexed by name
@@ -85,16 +81,6 @@ export class VoxContext<TParameters extends AgentParameters> {
     this.logger.info(`VoxContext initialized with ID: ${this.id}`);
   }
 
-  /**
-   * Register an agent in the context.
-   * Registered agents become available for execution and as tools for other agents.
-   *
-   * @param agent - The agent to register
-   */
-  public registerAgent(agent: VoxAgent<TParameters>): void {
-    this.agents[agent.name] = agent;
-    this.logger.info(`Agent registered: ${agent.name}`);
-  }
 
   /**
    * Register a tool in the context
@@ -177,7 +163,8 @@ export class VoxContext<TParameters extends AgentParameters> {
     name: string,
     input: any,
     parameters: TParameters): Promise<T | undefined> {
-    const agent = this.agents[name];
+    const agents = getAllAgents();
+    const agent = agents[name] as VoxAgent<TParameters> | undefined;
     if (!agent) {
       this.logger.error(`Agent not found: ${name}`);
       return undefined;
@@ -214,10 +201,11 @@ export class VoxContext<TParameters extends AgentParameters> {
     parameters: TParameters,
     input: unknown
   ): Promise<string> {
-    const agent = this.agents[agentName];
+    const agents = getAllAgents();
+    const agent = agents[agentName] as VoxAgent<TParameters> | undefined;
     if (!agent) {
       this.logger.error(`Agent not found: ${agentName}`);
-      throw new Error(`Agent '${agentName}' not found in context`);
+      throw new Error(`Agent '${agentName}' not found in registry`);
     }
 
     let currentAgent = parameters.running;
@@ -239,10 +227,10 @@ export class VoxContext<TParameters extends AgentParameters> {
         let allTools = { ...this.tools };
 
         // Add other agents as tools (excluding the current agent to prevent recursion)
-        for (const [otherAgentName, otherAgent] of Object.entries(this.agents)) {
+        for (const [otherAgentName, otherAgent] of Object.entries(agents)) {
           if (otherAgentName !== agentName) {
             allTools[`call-${otherAgentName}`] = createAgentTool(
-              otherAgent,
+              otherAgent as VoxAgent<TParameters>,
               this,
               parameters
             );

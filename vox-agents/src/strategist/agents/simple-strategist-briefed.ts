@@ -26,6 +26,11 @@ export class SimpleStrategistBriefed extends SimpleStrategistBase {
   readonly name = "simple-strategist-briefed";
 
   /**
+   * Human-readable description of what this agent does
+   */
+  readonly description = "Requests a strategic briefing before making decisions, using summarized game state for focused high-level strategy";
+
+  /**
    * Gets the system prompt for the strategist
    */
   public async getSystem(_parameters: StrategistParameters, _context: VoxContext<StrategistParameters>): Promise<string> {

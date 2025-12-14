@@ -21,6 +21,11 @@ export class NoneStrategist extends Strategist {
    * The name identifier for this agent
    */
   readonly name = "none-strategist";
+
+  /**
+   * Human-readable description of what this agent does
+   */
+  readonly description = "No-op agent that fetches game state but takes no strategic actions, used for testing or baseline comparisons";
   
   /**
    * Gets the system prompt for the strategist
