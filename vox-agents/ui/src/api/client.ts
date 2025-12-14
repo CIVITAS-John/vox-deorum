@@ -15,8 +15,6 @@ import type {
   SessionStatus,
   ConfigFile,
   ConfigListResponse,
-  Agent,
-  ChatResponse,
   ErrorResponse,
   UploadResponse,
   Span

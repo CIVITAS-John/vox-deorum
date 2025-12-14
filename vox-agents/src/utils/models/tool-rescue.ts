@@ -233,7 +233,7 @@ function emitToolCallChunks(
 function emitRemainingText(
   text: string | undefined,
   controller: TransformStreamDefaultController<LanguageModelV2StreamPart>,
-  id: string = 'rescued-text'
+  id: string
 ): void {
   if (text) {
     controller.enqueue({
@@ -332,8 +332,8 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
 
       // Track if we've already found tool calls
       let toolCallsFound = false;
-      // Buffer for incomplete JSON that might span chunks
-      let incompleteBuffer = "";
+      // Buffer for incomplete JSON
+      let incompleteBuffers: Record<string, string> = {};
 
       const transformStream = new TransformStream<
         LanguageModelV2StreamPart,
@@ -344,6 +344,7 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
             case "text-delta": {
               // Process the incoming delta
               let currentDelta = chunk.delta;
+              let incompleteBuffer = incompleteBuffers[chunk.id] ?? "";
 
               // If we detect JSON start, add to buffer
               if (incompleteBuffer === "") {
@@ -394,22 +395,21 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
             }
             case "text-end": {
               // Text block ended, pass through
-              controller.enqueue(chunk);
-              break;
-            }
-            case "finish": {
-              // Final attempt to rescue tool calls from any remaining buffer
-              if (incompleteBuffer) {
+              let incompleteBuffer = incompleteBuffers[chunk.id] ?? "";
+              if (incompleteBuffer !== "") {
                 const processed = rescueToolCallsFromText(incompleteBuffer, toolNames);
                 if (processed.toolCalls.length > 0) {
                   toolCallsFound = true;
                   // Emit remaining text if any
-                  emitRemainingText(processed.remainingText, controller);
+                  emitRemainingText(processed.remainingText, controller, chunk.id);
                   // Emit tool calls
                   emitToolCallChunks(processed.toolCalls, controller);
                 }
               }
-
+              controller.enqueue(chunk);
+              break;
+            }
+            case "finish": {
               // Update finish reason if we found tool calls
               if (toolCallsFound) {
                 controller.enqueue({
@@ -426,17 +426,6 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
               // Pass through other chunks unchanged
               controller.enqueue(chunk);
               break;
-            }
-          }
-        },
-
-        flush(controller) {
-          // Final cleanup - attempt to rescue from any remaining buffer
-          if (incompleteBuffer) {
-            const processed = rescueToolCallsFromText(incompleteBuffer, toolNames);
-            if (processed.toolCalls.length > 0) {
-              emitRemainingText(processed.remainingText, controller);
-              emitToolCallChunks(processed.toolCalls, controller);
             }
           }
         }
