@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
+import Message from 'primevue/message';
 import ProgressSpinner from 'primevue/progressspinner';
 import ActiveSessionsList from '@/components/ActiveSessionsList.vue';
 import { activeSessions, loading, fetchTelemetryData } from '@/stores/telemetry';
@@ -75,6 +76,11 @@ fetchTelemetryData();
         </div>
       </template>
     </ActiveSessionsList>
+
+    <!-- Info message for historical sessions when active games exist -->
+    <Message v-if="hasActiveSessions" severity="info" :closable="false">
+      Looking for past games? Visit the <a @click="goToTelemetryView" class="telemetry-link">Telemetry page</a> to browse historical sessions.
+    </Message>
   </div>
 </template>
 
@@ -91,8 +97,13 @@ fetchTelemetryData();
   flex-wrap: wrap;
 }
 
-.info-text {
-  color: var(--text-color-secondary);
-  margin-bottom: 1rem;
+.telemetry-link {
+  color: var(--primary-color);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.telemetry-link:hover {
+  opacity: 0.8;
 }
 </style>

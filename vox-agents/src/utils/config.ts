@@ -36,34 +36,34 @@ export const defaultConfig: VoxAgentsConfig = {
     level: 'info'
   },
   llms: {
-    default: 'gpt-oss-120b',
-    'gemma3-27b': {
-      provider: 'openrouter',
-      name: 'google/gemma-3-27b-it',
-      options: {
-        toolMiddleware: 'gemma'
-      }
-    },
-    'gpt-5-mini': {
+    default: 'openrouter/openai/gpt-oss-120b',
+    'openai/gpt-5-mini': {
       provider: 'openai',
       name: 'gpt-5-mini'
     },
-    'gpt-5-nano': {
+    'openai/gpt-5-nano': {
       provider: 'openai',
       name: 'gpt-5-nano'
     },
-    'gpt-oss-20b': {
+    'openrouter/openai/gpt-oss-20b': {
       provider: 'openrouter',
       name: 'openai/gpt-oss-20b',
       options: {
         toolMiddleware: 'prompt'
       }
     },
-    'gpt-oss-120b': {
+    'openrouter/google/gpt-oss-120b': {
       provider: 'openrouter',
       name: 'openai/gpt-oss-120b',
       options: {
         toolMiddleware: 'prompt'
+      }
+    },
+    'openrouter/google/gemma3-27b': {
+      provider: 'openrouter',
+      name: 'google/gemma-3-27b-it',
+      options: {
+        toolMiddleware: 'gemma'
       }
     },
     'chutes/gpt-oss-120b': {
@@ -77,8 +77,8 @@ export const defaultConfig: VoxAgentsConfig = {
       provider: 'chutes',
       name: 'zai-org/GLM-4.6-FP8'
     },
-    'jetstream2/gpt-oss-120b': {
-      provider: 'jetstream2',
+    'openai-compatible/gpt-oss-120b': {
+      provider: 'openai-compatible',
       name: 'gpt-oss-120b',
       options: {
         toolMiddleware: 'prompt'
