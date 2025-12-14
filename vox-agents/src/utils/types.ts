@@ -1,15 +1,79 @@
 /**
- * Type definitions for the Vox Agents API
+ * @module types/shared
+ *
+ * Shared type definitions between Vox Agents backend and UI frontend.
+ * This module contains all type definitions that are used by both the
+ * Node.js backend service and the Vue.js frontend application.
  */
 
-// Health API Types
+// ============================================================================
+// Core Configuration Types
+// ============================================================================
+
+/**
+ * Transport types supported by the MCP Client
+ */
+export type TransportType = 'stdio' | 'http';
+
+/**
+ * LLM model configuration for backend processing
+ */
+export interface LLMConfig {
+  provider: string;
+  name: string;
+  options?: Record<string, any>;
+}
+
+/**
+ * Version information structure
+ */
+export interface VersionInfo {
+  version: string;  // Full version string like "0.1.0 (b559c18)"
+  major: number;
+  minor: number;
+  revision: number;
+  commit?: string;  // Git commit hash
+}
+
+/**
+ * Main Vox Agents configuration structure
+ */
+export interface VoxAgentsConfig {
+  agent: {
+    name: string;
+  };
+  versionInfo?: VersionInfo;
+  webui: {
+    port: number;
+    enabled: boolean;
+  };
+  mcpServer: {
+    transport: {
+      type: TransportType;
+      endpoint?: string;
+      command?: string;
+      args?: string[];
+    };
+  };
+  logging: {
+    level: string;
+  };
+  llms: Record<string, string | LLMConfig>;
+}
+
+// Type alias for backward compatibility
+export type Model = LLMConfig;
+
+// ============================================================================
+// API Response Types
+// ============================================================================
 
 /**
  * Represents the health status of the Vox Agents service
  */
 export interface HealthStatus {
   /** Service health status (e.g., "healthy", "unhealthy") */
-  status: string;
+  status?: string;
   /** ISO timestamp of when the health check was performed */
   timestamp: string;
   /** Name of the service being checked */
@@ -24,7 +88,19 @@ export interface HealthStatus {
   port?: number;
 }
 
-// Log API Types
+/**
+ * Standard error response format for API failures
+ */
+export interface ErrorResponse {
+  /** Main error message */
+  error: string;
+  /** Additional error details or stack trace */
+  details?: string;
+}
+
+// ============================================================================
+// Log and Telemetry Types
+// ============================================================================
 
 /**
  * Represents a single log entry from the Vox Agents system
@@ -43,8 +119,6 @@ export interface LogEntry {
   /** Additional structured parameters associated with the log */
   params?: Record<string, any>;
 }
-
-// Telemetry API Types
 
 /**
  * Metadata for a telemetry database file containing game session data
@@ -91,6 +165,10 @@ export interface TelemetrySessionsResponse {
   /** Array of active sessions with parsed metadata */
   sessions: TelemetrySession[];
 }
+
+// ============================================================================
+// OpenTelemetry Span Types
+// ============================================================================
 
 /**
  * Flexible key-value attributes for OpenTelemetry spans
@@ -168,7 +246,9 @@ export interface UploadResponse {
   path?: string;
 }
 
-// Session API Types (for future implementation)
+// ============================================================================
+// Session Management Types
+// ============================================================================
 
 /**
  * Represents the current status of a Vox Agents game session
@@ -186,7 +266,9 @@ export interface SessionStatus {
   progress?: number;
 }
 
-// Config API Types (for future implementation)
+// ============================================================================
+// Configuration Management Types
+// ============================================================================
 
 /**
  * Represents a configuration file for Vox Agents
@@ -208,7 +290,19 @@ export interface ConfigListResponse {
   configs: string[];
 }
 
-// Agent API Types (for future implementation)
+/**
+ * API response for configuration endpoint
+ */
+export interface ConfigResponse {
+  /** Main configuration from config.json */
+  config: VoxAgentsConfig;
+  /** API keys from .env file */
+  apiKeys: Record<string, string>;
+}
+
+// ============================================================================
+// Agent System Types
+// ============================================================================
 
 /**
  * Represents an AI agent in the Vox system
@@ -257,22 +351,9 @@ export interface ChatResponse {
   }>;
 }
 
-// Error Response Type
-
-/**
- * Standard error response format for API failures
- */
-export interface ErrorResponse {
-  /** Main error message */
-  error: string;
-  /** Additional error details or stack trace */
-  details?: string;
-}
-
-/**
- * Configuration types for Vox Agents
- * Defines structures for API keys, LLM models, and agent configurations
- */
+// ============================================================================
+// Model Configuration Types
+// ============================================================================
 
 /**
  * Agent-to-model mapping
@@ -298,67 +379,12 @@ export interface ModelDefinition {
   name: string;
 }
 
-/**
- * LLM configuration object structure
- * Used internally by the backend
- */
-export interface LLMConfig {
-  /** Provider for the model */
-  provider: string;
-  /** Model name */
-  name: string;
-  /** Optional settings (not exposed in UI currently) */
-  options?: Record<string, any>;
-}
+// ============================================================================
+// UI Constants
+// ============================================================================
 
 /**
- * Main Vox Agents configuration structure
- */
-export interface VoxAgentsConfig {
-  /** Agent configuration */
-  agent: {
-    name: string;
-  };
-  /** Version information */
-  versionInfo?: {
-    version: string;
-    major: number;
-    minor: number;
-    revision: number;
-    commit?: string;
-  };
-  /** Web UI configuration */
-  webui?: {
-    port: number;
-    enabled: boolean;
-  };
-  /** MCP Server configuration */
-  mcpServer?: {
-    transport: {
-      type: string;
-      endpoint?: string;
-    };
-  };
-  /** Logging configuration */
-  logging: {
-    level: string;
-  };
-  /** LLM configurations - mix of string aliases and model definitions */
-  llms: Record<string, string | LLMConfig>;
-}
-
-/**
- * API response for configuration endpoint
- */
-export interface ConfigResponse {
-  /** Main configuration from config.json */
-  config: VoxAgentsConfig;
-  /** API keys from .env file */
-  apiKeys: Record<string, string>;
-}
-
-/**
- * Supported LLM providers
+ * Supported LLM providers for UI selection
  */
 export const llmProviders = [
   { label: 'OpenRouter', value: 'openrouter' },
@@ -370,7 +396,7 @@ export const llmProviders = [
 ];
 
 /**
- * API key field definitions
+ * API key field definitions for UI forms
  */
 export const apiKeyFields = [
   { key: 'OPENAI_API_KEY', label: 'OpenAI API Key', type: 'password' },

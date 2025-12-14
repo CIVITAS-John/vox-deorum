@@ -10,7 +10,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createLogger } from '../../utils/logger.js';
-import { defaultConfig, loadConfigFromFile, type VoxAgentsConfig } from '../../utils/config.js';
+import { defaultConfig, loadConfigFromFile } from '../../utils/config.js';
+import type { VoxAgentsConfig } from '../../utils/types.js';
 
 const logger = createLogger('config', 'webui');
 const router = Router();

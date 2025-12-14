@@ -6,7 +6,7 @@
 
 import { ref, shallowRef } from 'vue';
 import { apiClient } from '../api/client';
-import type { LogEntry } from '@/api/types';
+import type { LogEntry } from '@/utils/types';
 
 // Reactive state
 export const logs = shallowRef<LogEntry[]>([]);

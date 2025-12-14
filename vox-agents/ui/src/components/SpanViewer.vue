@@ -203,7 +203,7 @@ import Dialog from 'primevue/dialog';
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import AIMessagesViewer from './AIMessagesViewer.vue';
-import type { Span } from '../api/types';
+import type { Span } from '../utils/types';
 import {
   formatDuration,
   formatTimestamp,

@@ -10,7 +10,7 @@ import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
 import SpanViewer from '@/components/SpanViewer.vue';
 import { api } from '@/api/client';
-import type { Span } from '@/api/types';
+import type { Span } from '../utils/types';
 
 const route = useRoute();
 const router = useRouter();

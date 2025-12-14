@@ -11,59 +11,9 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { execSync } from 'child_process';
 import { createLogger } from './logger.js';
+import type { VoxAgentsConfig, TransportType, VersionInfo, LLMConfig as Model } from './types.js';
 
 const logger = createLogger('Config');
-
-/**
- * Transport types supported by the MCP Client
- */
-export type TransportType = 'stdio' | 'http';
-
-/**
- * LLM model configuration
- */
-export interface Model {
-  provider: string;
-  name: string;
-  options?: Record<string, any>;
-}
-
-/**
- * Version information structure
- */
-export interface VersionInfo {
-  version: string;  // Full version string like "0.1.0 (b559c18)"
-  major: number;
-  minor: number;
-  revision: number;
-  commit?: string;  // Git commit hash
-}
-
-/**
- * Vox Agents configuration structure
- */
-export interface VoxAgentsConfig {
-  agent: {
-    name: string;
-  };
-  versionInfo?: VersionInfo;
-  webui: {
-    port: number;
-    enabled: boolean;
-  };
-  mcpServer: {
-    transport: {
-      type: TransportType;
-      endpoint?: string;
-      command?: string;
-      args?: string[];
-    };
-  };
-  logging: {
-    level: string;
-  };
-  llms: Record<string, Model | string>;
-}
 
 /**
  * Default configuration values

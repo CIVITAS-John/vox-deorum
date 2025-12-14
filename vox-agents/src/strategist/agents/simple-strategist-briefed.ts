@@ -11,7 +11,7 @@ import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { getModelConfig } from "../../utils/models/models.js";
-import { Model } from "../../utils/config.js";
+import { Model } from "../../utils/types.js";
 
 /**
  * A briefed strategist agent that first requests a briefing before making strategic decisions.

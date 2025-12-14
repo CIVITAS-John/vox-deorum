@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { apiClient } from '../api/client';
-import type { HealthStatus } from '@/api/types';
+import type { HealthStatus } from '@/utils/types';
 
 export const healthStatus = ref<HealthStatus | null>(null);
 

@@ -9,8 +9,8 @@ import ProgressSpinner from 'primevue/progressspinner';
 import Dropdown from 'primevue/dropdown';
 import { useConfirm } from 'primevue/useconfirm';
 import { apiClient } from '../api/client';
-import type { AgentMapping, ModelDefinition, VoxAgentsConfig } from '../api/types';
-import { llmProviders, apiKeyFields } from '../api/types';
+import type { AgentMapping, ModelDefinition, VoxAgentsConfig } from '../utils/types';
+import { llmProviders, apiKeyFields } from '../utils/types';
 import {
   parseLLMConfig,
   buildLLMConfig,

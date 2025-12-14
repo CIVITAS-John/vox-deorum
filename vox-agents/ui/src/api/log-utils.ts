@@ -2,7 +2,7 @@
  * Log data structures and preprocessing utilities
  */
 
-import type { LogEntry } from './types.js';
+import type { LogEntry } from '../utils/types';
 
 /** Fixed fields that are not considered params */
 const FIXED_LOG_FIELDS = [

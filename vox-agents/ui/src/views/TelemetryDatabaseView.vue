@@ -13,7 +13,7 @@ import Paginator from 'primevue/paginator';
 import ProgressSpinner from 'primevue/progressspinner';
 import Toolbar from 'primevue/toolbar';
 import { api } from '@/api/client';
-import type { Span } from '@/api/types';
+import type { Span } from '../utils/types';
 import {
   formatDuration,
   formatTimestamp,

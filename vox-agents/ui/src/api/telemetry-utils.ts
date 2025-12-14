@@ -2,7 +2,7 @@
  * Utility functions for telemetry data formatting and processing
  */
 
-import type { Span } from './types';
+import type { Span } from '../utils/types';
 
 /**
  * Format duration in milliseconds for display

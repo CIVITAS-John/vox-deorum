@@ -2,7 +2,7 @@
  * Configuration utilities for parsing and building LLM configurations
  */
 
-import type { AgentMapping, ModelDefinition, LLMConfig } from '../api/types';
+import type { AgentMapping, ModelDefinition, LLMConfig } from '../utils/types';
 
 /**
  * Predefined agent types available in the system

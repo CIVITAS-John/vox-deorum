@@ -12,7 +12,7 @@ import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
 import { getModel, buildProviderOptions } from "../utils/models/models.js";
-import { Model } from "../utils/config.js";
+import { Model } from "../utils/types.js";
 import { exponentialRetry } from "../utils/retry.js";
 import { v4 as uuidv4 } from 'uuid';
 import { trace, SpanStatusCode, context } from '@opentelemetry/api';

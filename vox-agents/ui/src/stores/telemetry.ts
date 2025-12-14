@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { api } from '../api/client';
-import type { TelemetryMetadata, TelemetrySession } from '@/api/types';
+import type { TelemetryMetadata, TelemetrySession } from '@/utils/types';
 
 /**
  * Store for telemetry data with auto-refresh functionality

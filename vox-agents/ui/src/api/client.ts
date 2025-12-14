@@ -21,7 +21,7 @@ import type {
   ErrorResponse,
   UploadResponse,
   Span
-} from './types';
+} from '../utils/types';
 
 /**
  * API client for managing communication with the Vox Agents backend server.
