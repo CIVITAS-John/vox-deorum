@@ -5,12 +5,24 @@
  * Provides routes for session tracking, database discovery, span streaming, and trace analysis.
  */
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import multer from 'multer';
 import { createLogger } from '../../utils/logger.js';
 import { sqliteExporter } from '../../instrumentation.js';
+import type {
+  TelemetryDatabasesResponse,
+  TelemetryMetadata,
+  TelemetrySessionsResponse,
+  TelemetrySession,
+  SessionSpansResponse,
+  DatabaseTracesResponse,
+  TraceSpansResponse,
+  UploadResponse,
+  ErrorResponse,
+  Span
+} from '../../utils/types.js';
 
 const logger = createLogger('telemetry', 'webui');
 const router = Router();
@@ -31,9 +43,9 @@ const upload = multer({
 /**
  * List existing database files with parsed metadata
  */
-router.get('/databases', async (req, res) => {
+router.get('/databases', async (_req: Request, res: Response<TelemetryDatabasesResponse | ErrorResponse>) => {
   try {
-    const databases: any[] = [];
+    const databases: TelemetryMetadata[] = [];
 
     // Check main telemetry folder
     const telemetryDir = path.join(process.cwd(), 'telemetry');
@@ -89,7 +101,7 @@ router.get('/databases', async (req, res) => {
 /**
  * Upload a database file
  */
-router.post('/upload', upload.single('database'), async (req: any, res) => {
+router.post('/upload', upload.single('database'), async (req: Request, res: Response<UploadResponse | ErrorResponse>) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -126,12 +138,12 @@ router.post('/upload', upload.single('database'), async (req: any, res) => {
 /**
  * List active telemetry sessions from SQLiteSpanExporter
  */
-router.get('/sessions/active', async (req, res) => {
+router.get('/sessions/active', async (_req: Request, res: Response<TelemetrySessionsResponse>) => {
   // Get active connections (context IDs) from the exporter
   const sessionIds = sqliteExporter.getActiveConnections();
 
   // Parse session IDs to extract game and player info
-  const sessions = sessionIds.map(sessionId => {
+  const sessions: TelemetrySession[] = sessionIds.map(sessionId => {
     // Format is typically: gameId-playerId-timestamp
     const parts = sessionId.split('-');
     if (parts.length >= 2) {
@@ -153,7 +165,7 @@ router.get('/sessions/active', async (req, res) => {
 /**
  * Get latest 100 spans for an active session (context)
  */
-router.get('/sessions/:id/spans', async (req, res) => {
+router.get('/sessions/:id/spans', async (req: Request<{ id: string }>, res: Response<SessionSpansResponse | ErrorResponse>) => {
   const { id: contextId } = req.params;
 
   // Check if this is an active context
@@ -167,20 +179,26 @@ router.get('/sessions/:id/spans', async (req, res) => {
   const db = sqliteExporter.getDatabase(contextId);
 
   // Get latest 100 spans
-  const spans = await db.selectFrom('spans')
+  const dbSpans = await db.selectFrom('spans')
     .selectAll()
     .orderBy('startTime', 'desc')
     .limit(100)
     .execute();
 
-  res.json({ spans: spans.reverse() });
+  // Map database spans to API spans (handle nullable attributes)
+  const spans: Span[] = dbSpans.reverse().map(span => ({
+    ...span,
+    attributes: span.attributes || {}
+  }));
+
+  res.json({ spans });
   return;
 });
 
 /**
  * Stream new spans for an active session via SSE
  */
-router.get('/sessions/:id/stream', (req, res) => {
+router.get('/sessions/:id/stream', (req: Request<{ id: string }>, res: Response) => {
   const { id: contextId } = req.params;
 
   // Check if this is an active context
@@ -202,8 +220,24 @@ router.get('/sessions/:id/stream', (req, res) => {
   res.write('event: heartbeat\n\n');
 
   // Set up event listener for new spans
-  const spanListener = (spans: any[]) => {
+  const spanListener = (dbSpans: any[]) => {
     try {
+      // Map database spans to API spans
+      const spans: Span[] = dbSpans.map(span => ({
+        id: span.id,
+        contextId: span.contextId,
+        turn: span.turn ?? null,
+        traceId: span.traceId,
+        spanId: span.spanId,
+        parentSpanId: span.parentSpanId ?? null,
+        name: span.name,
+        startTime: span.startTime,
+        endTime: span.endTime,
+        durationMs: span.durationMs,
+        attributes: span.attributes || {},
+        statusCode: span.statusCode,
+        statusMessage: span.statusMessage ?? null
+      }));
       res.write(`event: span\ndata: ${JSON.stringify(spans)}\n\n`);
     } catch (error) {
       logger.error('Error streaming spans', error);
@@ -231,7 +265,7 @@ router.get('/sessions/:id/stream', (req, res) => {
  * - Direct filename (e.g., "game123-player1.db")
  * - Folder path + filename (e.g., "telemetry/game123-player1.db" or "telemetry/uploaded/game123-player1.db")
  */
-router.get('/db/:filename(*)/traces', async (req, res) => {
+router.get('/db/:filename(*)/traces', async (req: Request<{ filename: string }>, res: Response<DatabaseTracesResponse | ErrorResponse>) => {
   try {
     const { filename } = req.params;
     const { limit = '100', offset = '0' } = req.query;
@@ -244,7 +278,7 @@ router.get('/db/:filename(*)/traces', async (req, res) => {
 
     try {
       // Get root spans (traces - spans without parent)
-      const traces = await db.selectFrom('spans')
+      const dbTraces = await db.selectFrom('spans')
         .selectAll()
         .where('parentSpanId', 'is', null)
         .orderBy('startTime', 'desc')
@@ -252,7 +286,13 @@ router.get('/db/:filename(*)/traces', async (req, res) => {
         .offset(parseInt(offset as string))
         .execute();
 
-      res.json({ traces: traces });
+      // Map database spans to API spans
+      const traces: Span[] = dbTraces.map(span => ({
+        ...span,
+        attributes: span.attributes || {}
+      }));
+
+      res.json({ traces });
     } finally {
       await db.destroy();
     }
@@ -269,7 +309,7 @@ router.get('/db/:filename(*)/traces', async (req, res) => {
  * - Direct filename (e.g., "game123-player1.db")
  * - Folder path + filename (e.g., "telemetry/game123-player1.db" or "telemetry/uploaded/game123-player1.db")
  */
-router.get('/db/:filename(*)/trace/:traceId/spans', async (req, res) => {
+router.get('/db/:filename(*)/trace/:traceId/spans', async (req: Request<{ filename: string; traceId: string }>, res: Response<TraceSpansResponse | ErrorResponse>) => {
   try {
     const { filename, traceId } = req.params;
 
@@ -281,17 +321,23 @@ router.get('/db/:filename(*)/trace/:traceId/spans', async (req, res) => {
 
     try {
       // Get all spans in the trace
-      const spans = await db.selectFrom('spans')
+      const dbSpans = await db.selectFrom('spans')
         .selectAll()
         .where('traceId', '=', traceId)
         .orderBy('startTime', 'asc')
         .execute();
 
-      if (spans.length === 0) {
+      if (dbSpans.length === 0) {
         return res.status(404).json({ error: 'Trace not found' });
       }
 
-      res.json({ spans: spans });
+      // Map database spans to API spans
+      const spans: Span[] = dbSpans.map(span => ({
+        ...span,
+        attributes: span.attributes || {}
+      }));
+
+      res.json({ spans });
     } finally {
       await db.destroy();
     }

@@ -3,7 +3,7 @@
  * Provides REST API and SSE endpoints for telemetry, logs, sessions, and agent chat
  */
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,6 +13,7 @@ import { sseManager } from './sse-manager.js';
 import config from '../utils/config.js';
 import telemetryRoutes from './routes/telemetry.js';
 import configRoutes from './routes/config.js';
+import type { HealthStatus, ErrorResponse } from '../utils/types.js';
 
 // Get __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -61,32 +62,33 @@ app.use('/api/telemetry', telemetryRoutes);
 app.use('/api/config', configRoutes);
 
 // Health check endpoint - minimal API foundation
-app.get('/api/health', (req, res) => {
-  res.json({
+app.get('/api/health', (_req: Request, res: Response<HealthStatus>) => {
+  const healthStatus: HealthStatus = {
     timestamp: new Date().toISOString(),
     service: 'vox-agents-webui',
     version: config.versionInfo?.version || '0.0.0',
     uptime: process.uptime(),
     clients: sseManager.getClientCount(),
     port: PORT
-  });
+  };
+  res.json(healthStatus);
 });
 
 // SSE endpoint for log streaming
-app.get('/api/logs/stream', (req, res) => {
+app.get('/api/logs/stream', (_req: Request, res: Response) => {
   webLogger.info('New SSE client connected');
   sseManager.addClient(res);
 });
 
 // Catch-all route for SPA - must come AFTER all API routes
-app.get('*', (_req, res) => {
+app.get('*', (_req: Request, res: Response<ErrorResponse>) => {
   const indexPath = path.join(staticPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
     res.status(404).json({
       error: 'UI not built',
-      message: 'Run "npm run build" in ui/ directory to build the frontend'
+      details: 'Run "npm run build" in ui/ directory to build the frontend'
     });
   }
 });

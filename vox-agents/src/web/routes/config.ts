@@ -5,13 +5,13 @@
  * config.json and .env files.
  */
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createLogger } from '../../utils/logger.js';
 import { defaultConfig, loadConfigFromFile } from '../../utils/config.js';
-import type { VoxAgentsConfig } from '../../utils/types.js';
+import type { VoxAgentsConfig, ConfigResponse, ErrorResponse } from '../../utils/types.js';
 
 const logger = createLogger('config', 'webui');
 const router = Router();
@@ -42,7 +42,7 @@ function formatEnvFile(env: Record<string, string>): string {
  * GET /api/config
  * Get current configuration from config.json and .env
  */
-router.get('/', async (req, res) => {
+router.get('/', async (_req: Request, res: Response<ConfigResponse | ErrorResponse>) => {
   try {
     // Load config.json
     const config = loadConfigFromFile<VoxAgentsConfig>('config.json', defaultConfig);
@@ -72,7 +72,7 @@ router.get('/', async (req, res) => {
  * POST /api/config
  * Update configuration in config.json and .env
  */
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request<{}, {}, Partial<ConfigResponse>>, res: Response<{ success: boolean } | ErrorResponse>) => {
   try {
     const { config, apiKeys } = req.body;
 
