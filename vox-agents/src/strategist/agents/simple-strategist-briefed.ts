@@ -88,13 +88,13 @@ ${parameters.metadata}`.trim()
     }, {
       role: "user",
       content: `
-You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
-
 # Strategies and Options
 ${state.options}
 
-# Strategic Briefing
+# Briefings
 ${briefing}
+
+You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
 `.trim()
     }];
   }

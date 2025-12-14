@@ -87,8 +87,6 @@ ${parameters.metadata}`.trim()
     }, {
       role: "user",
       content: `
-The game is at turn ${parameters.turn}.
-
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
 ${state.victory}
@@ -111,7 +109,9 @@ ${state.military}
 
 # Events
 Events: events since the last decision-making.
-${state.events}`.trim()
+${state.events}
+
+You are writing the briefing for Player ${parameters.playerID ?? 0} after turn ${parameters.turn}.`.trim()
     }];
   }
   

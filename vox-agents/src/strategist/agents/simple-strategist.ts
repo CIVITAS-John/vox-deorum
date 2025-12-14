@@ -93,8 +93,6 @@ ${parameters.metadata}`.trim()
     }, {
       role: "user",
       content: `
-You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
-
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
 ${state.victory}
@@ -117,6 +115,8 @@ ${state.military}
 
 # Events
 Events: events since you last made a decision.
+
+You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
 ${state.events}
 `.trim()
     }];
