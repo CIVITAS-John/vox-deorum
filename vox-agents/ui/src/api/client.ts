@@ -16,7 +16,6 @@ import type {
   ConfigFile,
   ConfigListResponse,
   Agent,
-  AgentListResponse,
   ChatResponse,
   ErrorResponse,
   UploadResponse,
@@ -366,71 +365,6 @@ class ApiClient {
       }
     );
   }
-
-  // ============= Agent API Methods =============
-
-  /**
-   * List all registered agents
-   */
-  async getAgents(): Promise<AgentListResponse> {
-    return this.fetchJson<AgentListResponse>(`${this.baseUrl}/api/agents`);
-  }
-
-  /**
-   * Get details for a specific agent
-   */
-  async getAgent(name: string): Promise<Agent> {
-    return this.fetchJson<Agent>(
-      `${this.baseUrl}/api/agents/${encodeURIComponent(name)}`
-    );
-  }
-
-  /**
-   * Send a chat message to an agent
-   */
-  async sendChatMessage(agentName: string, message: string): Promise<ChatResponse> {
-    return this.fetchJson<ChatResponse>(
-      `${this.baseUrl}/api/agents/${encodeURIComponent(agentName)}/chat`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message })
-      }
-    );
-  }
-
-  /**
-   * Stream agent responses via SSE
-   */
-  streamAgentResponse(
-    agentName: string,
-    onMessage: (response: ChatResponse) => void,
-    onError?: (error: Event) => void
-  ): () => void {
-    const key = `agent-${agentName}`;
-    this.closeSseConnection(key);
-
-    const eventSource = new EventSource(
-      `${this.baseUrl}/api/agents/${encodeURIComponent(agentName)}/stream`
-    );
-
-    eventSource.onmessage = (event) => {
-      try {
-        const data: ChatResponse = JSON.parse(event.data);
-        onMessage(data);
-      } catch (error) {
-        console.error('Failed to parse agent response:', error);
-      }
-    };
-
-    eventSource.onerror = (error) => {
-      if (onError) onError(error);
-    };
-
-    this.sseConnections.set(key, eventSource);
-    return () => this.closeSseConnection(key);
-  }
-
 
   // ============= Global Config API Methods =============
 

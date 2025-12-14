@@ -9,7 +9,7 @@
 import { Tool, StepResult, ModelMessage } from "ai";
 import { createLogger } from "../utils/logger.js";
 import { z, ZodObject } from "zod";
-import { Model } from "../utils/types.js";
+import { Model } from "../types/index.js";
 import { VoxContext } from "./vox-context.js";
 import { getModelConfig } from "../utils/models/models.js";
 

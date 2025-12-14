@@ -344,7 +344,7 @@ async function saveConfig() {
               icon="pi pi-trash"
               text
               severity="danger"
-              @click="confirmDeleteModel(model.id)"
+              @click="confirmDeleteModel(model.id!)"
               class="delete-btn"
             />
           </div>

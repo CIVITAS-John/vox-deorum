@@ -11,7 +11,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { createLogger } from '../../utils/logger.js';
 import { defaultConfig, loadConfigFromFile } from '../../utils/config.js';
-import type { VoxAgentsConfig, ConfigResponse, ErrorResponse } from '../../utils/types.js';
+import type { VoxAgentsConfig, ConfigResponse, ErrorResponse } from '../../types/index.js';
 
 const logger = createLogger('config', 'webui');
 const router = Router();

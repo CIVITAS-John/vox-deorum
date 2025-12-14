@@ -11,7 +11,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { execSync } from 'child_process';
 import { createLogger } from './logger.js';
-import type { VoxAgentsConfig, TransportType, VersionInfo, LLMConfig as Model } from './types.js';
+import type { VoxAgentsConfig, TransportType, VersionInfo } from '../types/index.js';
 
 const logger = createLogger('Config');
 

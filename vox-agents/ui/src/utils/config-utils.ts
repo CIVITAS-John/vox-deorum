@@ -67,7 +67,8 @@ export function buildLLMConfig(
 
   // Add all model definitions first
   for (const def of definitions) {
-    llms[def.id] = {
+    llms[def.id!] = {
+      id: def.id,
       provider: def.provider,
       name: def.name
     };

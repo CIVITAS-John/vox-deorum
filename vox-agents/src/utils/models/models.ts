@@ -7,7 +7,7 @@
 
 import { LanguageModel, ProviderMetadata, wrapLanguageModel } from 'ai';
 import { config } from '../config.js';
-import type { Model } from '../types.js';
+import type { Model } from '../../types/index.js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';

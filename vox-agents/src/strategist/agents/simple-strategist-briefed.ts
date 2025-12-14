@@ -11,7 +11,7 @@ import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { getModelConfig } from "../../utils/models/models.js";
-import { Model } from "../../utils/types.js";
+import { Model } from "../../types/index.js";
 
 /**
  * A briefed strategist agent that first requests a briefing before making strategic decisions.
@@ -107,6 +107,6 @@ You, Player ${parameters.playerID ?? 0}, are making strategic decisions after tu
    * @returns The language model to use, or undefined for default
    */
   public getModel(_parameters: StrategistParameters, _input: unknown, overrides: Record<string, Model | string>): Model {
-    return getModelConfig(this.name, "high", overrides);
+    return getModelConfig(this.name, "medium", overrides);
   }
 }

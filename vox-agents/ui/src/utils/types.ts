@@ -4,6 +4,6 @@
  */
 
 // Re-export all shared types from the backend
-export * from '../../../src/utils/types.js';
+export * from '../../../src/types/index.js';
 
 // UI-specific type extensions can be added here if needed in the future

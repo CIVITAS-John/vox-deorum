@@ -13,7 +13,7 @@ import { sseManager } from './sse-manager.js';
 import config from '../utils/config.js';
 import telemetryRoutes from './routes/telemetry.js';
 import configRoutes from './routes/config.js';
-import type { HealthStatus, ErrorResponse } from '../utils/types.js';
+import type { HealthStatus, ErrorResponse } from '../types/index.js';
 
 // Get __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);

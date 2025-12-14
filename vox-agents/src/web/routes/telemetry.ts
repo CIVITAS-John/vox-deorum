@@ -22,7 +22,7 @@ import type {
   UploadResponse,
   ErrorResponse,
   Span
-} from '../../utils/types.js';
+} from '../../types/index.js';
 
 const logger = createLogger('telemetry', 'webui');
 const router = Router();
