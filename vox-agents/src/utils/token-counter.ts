@@ -22,6 +22,7 @@ export function countTokens(text: string): number {
   try {
     const encoder = get_encoding("o200k_base");
     const tokens = encoder.encode(text);
+    encoder.free();
     return tokens.length;
   } catch (error) {
     logger.error(`Error counting tokens:`, error);

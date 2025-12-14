@@ -2,7 +2,7 @@
  * Configuration utilities for parsing and building LLM configurations
  */
 
-import type { AgentMapping, ModelDefinition, LLMConfig } from '../utils/types';
+import type { AgentMapping, LLMConfig } from '../utils/types';
 
 /**
  * Predefined agent types available in the system
@@ -22,10 +22,10 @@ export const agentTypes = [
  */
 export function parseLLMConfig(llms: Record<string, any>): {
   mappings: AgentMapping[];
-  definitions: ModelDefinition[];
+  definitions: LLMConfig[];
 } {
   const mappings: AgentMapping[] = [];
-  const definitions: Record<string, ModelDefinition> = {};
+  const definitions: Record<string, LLMConfig> = {};
 
   // Collect all model definitions (objects with provider and name)
   for (const [key, value] of Object.entries(llms)) {
@@ -61,7 +61,7 @@ export function parseLLMConfig(llms: Record<string, any>): {
  */
 export function buildLLMConfig(
   mappings: AgentMapping[],
-  definitions: ModelDefinition[]
+  definitions: LLMConfig[]
 ): Record<string, string | LLMConfig> {
   const llms: Record<string, string | LLMConfig> = {};
 
@@ -88,7 +88,7 @@ export function buildLLMConfig(
  *
  * @param model - Model definition to update
  */
-export function updateModelId(model: ModelDefinition): void {
+export function updateModelId(model: LLMConfig): void {
   if (model.provider && model.name) {
     model.id = `${model.provider}/${model.name}`;
   } else {
@@ -121,7 +121,7 @@ export function getAgentsUsingModel(
  */
 export function validateMappings(
   mappings: AgentMapping[],
-  definitions: ModelDefinition[]
+  definitions: LLMConfig[]
 ): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   const availableModels = new Set(definitions.map(d => d.id));

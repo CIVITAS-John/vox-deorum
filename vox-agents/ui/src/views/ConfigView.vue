@@ -9,7 +9,7 @@ import ProgressSpinner from 'primevue/progressspinner';
 import Dropdown from 'primevue/dropdown';
 import { useConfirm } from 'primevue/useconfirm';
 import { apiClient } from '../api/client';
-import type { AgentMapping, ModelDefinition, VoxAgentsConfig } from '../utils/types';
+import type { AgentMapping, LLMConfig, VoxAgentsConfig } from '../utils/types';
 import { llmProviders, apiKeyFields } from '../utils/types';
 import {
   parseLLMConfig,
@@ -30,7 +30,7 @@ const config = ref<VoxAgentsConfig | null>(null);
 
 // LLM Configuration State
 const agentMappings = ref<AgentMapping[]>([]);
-const modelDefinitions = ref<ModelDefinition[]>([]);
+const modelDefinitions = ref<LLMConfig[]>([]);
 
 // Initialize confirmation service
 const confirm = useConfirm();

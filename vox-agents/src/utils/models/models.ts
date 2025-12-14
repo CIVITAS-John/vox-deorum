@@ -2,8 +2,7 @@
  * @module utils/models/models
  *
  * LLM model instance management utilities.
- * Handles creation and configuration of language models from various providers
- * (OpenRouter, OpenAI, Google, Jetstream2, Chutes) with middleware support.
+ * Handles creation and configuration of language models from various providers with middleware support.
  */
 
 import { LanguageModel, ProviderMetadata, wrapLanguageModel } from 'ai';

@@ -366,19 +366,6 @@ export interface AgentMapping {
   model: string;
 }
 
-/**
- * Model definition with provider details
- * Defines a language model configuration
- */
-export interface ModelDefinition {
-  /** Auto-generated ID in format: {provider}/{name} */
-  id: string;
-  /** LLM provider (openrouter, openai, google, jetstream2, chutes) */
-  provider: string;
-  /** Model name specific to the provider */
-  name: string;
-}
-
 // ============================================================================
 // UI Constants
 // ============================================================================
