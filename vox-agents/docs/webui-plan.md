@@ -225,17 +225,121 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 ### Stage 6: Agent Chat
 **Status**: 🔄 Not Started
 
-**Backend Requirements**:
-- Agent registry endpoint
-- Chat message handler
-- VoxContext/AgentParameters integration (read-only)
-- SSE response streaming
+**Overview**: Unified chat interface for interacting with agents - both specialized agents (Diplomat, General) using live context and a Telepathist agent for analyzing past records via telemetry.
 
-**Frontend Requirements**:
-- Agent discovery and listing
-- Chat interface component
-- Message history
-- Tool call visualization
+#### Unified Chat API
+Single endpoint handles all agent interactions with streaming responses.
+
+**Backend Requirements**:
+- `GET /api/agents` - List all available agents
+  ```typescript
+  Response: {
+    agents: [{
+      name: string,           // "diplomat", "general", "historian"
+      description: string
+    }]
+  }
+  ```
+
+- `POST /api/agents/session` - Create a new chat session
+  ```typescript
+  body: {
+    agentName: string,        // Required: agent to use ("diplomat", "general", "telepathist", etc.)
+    contextId?: string,       // Option 1: Connect to VoxAgent/Telemetry database via context
+    databasePath?: string,    // Option 2: Connect directly to database file path
+    turn?: number            // Optional: Specific turn number (mainly for telepathist)
+  }
+  // Response:
+  {
+    sessionId: string,       // Generated session identifier
+    agentName: string,       // Confirmed agent name
+    contextType: "live" | "database",  // Type of connection
+    metadata: {
+      gameId: string,
+      playerId: number,
+      turn: number
+    }
+  }
+  ```
+
+- `GET /api/agents/sessions` - Get all active chat sessions
+  ```typescript
+  Response: {
+    sessions: [{
+      sessionId: string,
+      agentName: string,
+      contextType: "live" | "database",
+      createdAt: string,      // ISO timestamp
+      lastMessageAt?: string,  // ISO timestamp of last activity
+      metadata: {
+        gameId: string,
+        playerId: number,
+        turn: number
+      }
+    }]
+  }
+  ```
+
+- `GET /api/agents/session/:sessionId` - Get session details with messages
+  ```typescript
+  Response: {
+    sessionId: string,
+    agentName: string,
+    contextType: "live" | "database",
+    createdAt: string,
+    lastMessageAt?: string,
+    metadata: {
+      gameId: string,
+      playerId: number,
+      turn: number
+    },
+    messages: [{
+      id: string,
+      role: "user" | "assistant",
+      content: string,
+      timestamp: string,      // ISO timestamp
+      toolCalls?: [{          // For assistant messages
+        tool: string,
+        args: any,
+        result?: any
+      }]
+    }]
+  }
+  ```
+
+- `POST /api/agents/chat` - Unified streaming chat endpoint
+  ```typescript
+  body: {
+    agentName: string,        // Selected agent
+    sessionId?: string,         // Chat session ID
+    message: string,          // User's message
+  }
+  // Response: SSE stream with events:
+  // - "message": Partial text response
+  // - "tool_call": Tool invocation details
+  // - "done": Completion signal
+  ```
+
+**Implementation Details**:
+- **Live Agents** (Diplomat, General, etc.):
+  - Fetch current VoxContext from contextId
+  - Execute with VoxContext's current parameter
+
+- **Historian Agent**:
+  - Works with a Telemetry database
+  - Internally queries telemetry data to reconstruct decisions
+
+#### Frontend Architecture
+
+**Shared Components to Extract**:
+```typescript
+// components/shared/
+├── ContextSelector.vue
+│   // Unified selector for active sessions
+│
+└── StreamingMessage.vue
+    // Renders streaming agent responses with tool calls
+```
 
 ### Stage 7: Session Control
 **Status**: 🔄 Not Started
