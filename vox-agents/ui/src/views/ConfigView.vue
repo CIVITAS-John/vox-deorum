@@ -9,8 +9,8 @@ import ProgressSpinner from 'primevue/progressspinner';
 import Dropdown from 'primevue/dropdown';
 import { useConfirm } from 'primevue/useconfirm';
 import { apiClient } from '../api/client';
-import type { AgentMapping, ModelDefinition, VoxAgentsConfig } from '../api/config-types';
-import { llmProviders, apiKeyFields } from '../api/config-types';
+import type { AgentMapping, ModelDefinition, VoxAgentsConfig } from '../api/types';
+import { llmProviders, apiKeyFields } from '../api/types';
 import {
   parseLLMConfig,
   buildLLMConfig,
@@ -233,6 +233,7 @@ async function saveConfig() {
                   v-if="field.type === 'password'"
                   :id="field.key"
                   v-model="apiKeys[field.key]"
+                  class="password-input"
                   :placeholder="`Enter ${field.label}`"
                   toggleMask
                   :feedback="false"
@@ -382,11 +383,8 @@ async function saveConfig() {
   font-size: 0.875rem;
 }
 
-.api-keys-table input {
-  width: 28rem;
-}
-
-.api-keys-table input[type="password"] {
+.api-keys-table input,
+.password-input {
   width: 28rem;
 }
 

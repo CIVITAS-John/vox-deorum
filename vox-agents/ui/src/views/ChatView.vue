@@ -4,7 +4,7 @@ import Card from 'primevue/card';
 
 <template>
   <div class="chat-view">
-    <h1>Chat with Any Agents</h1>
+    <h1>Chat with Agents</h1>
     
     Placeholder.
   </div>

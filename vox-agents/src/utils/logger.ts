@@ -7,6 +7,7 @@
  */
 
 import winston from 'winston';
+import Transport from 'winston-transport';
 import path from 'path';
 import fs from 'fs';
 import { sseManager } from '../web/sse-manager.js';
@@ -132,6 +133,27 @@ const jsonFormat = winston.format.combine(
 );
 
 /**
+ * Streaming Transport - broadcast all incoming logs to the API stream.
+ */
+class StreamingTransport extends Transport {
+  constructor(opts?: Transport.TransportStreamOptions) {
+    super(opts);
+  }
+
+  /**
+   * Log method required by Transport interface.
+   * Simply calls the callback to acknowledge receipt without doing anything.
+   *
+   * @param _info - The log information object (unused)
+   * @param callback - Callback to signal completion
+   */
+  log(msg: any, callback: () => void): void {
+    sseManager.broadcast("log", msg);
+    if (callback) callback();
+  }
+}
+
+/**
  * Create and configure the logger instance
  */
 export const logger = winston.createLogger({
@@ -157,14 +179,11 @@ export const logger = winston.createLogger({
       format: jsonFormat,
       maxsize: 10485760, // 10MB
       maxFiles: 10
-    })
+    }),
+    // Stream to the API
+    new StreamingTransport()
   ],
   exitOnError: false
-});
-
-// Hijack the logs and stream to SSE
-logger.stream({ start: -1 }).on('log', function(log) {
-  sseManager.broadcast("log", log);
 });
 
 /**

@@ -81,7 +81,7 @@ onMounted(() => {
       <Card class="active-sessions-section">
         <template #title>
           <div class="section-header">
-            <span>Active Sessions</span>
+            <span>Active Games</span>
             <Tag v-if="activeSessions.length > 0" :value="activeSessions.length" severity="success" />
           </div>
         </template>
@@ -89,7 +89,7 @@ onMounted(() => {
         <template #content>
           <div v-if="activeSessions.length === 0" class="table-empty">
             <i class="pi pi-info-circle"></i>
-            <p>No active telemetry sessions</p>
+            <p>No active game sessions</p>
           </div>
 
           <div v-else class="data-table">
@@ -125,7 +125,7 @@ onMounted(() => {
       <Card class="databases-section">
         <template #title>
           <div class="section-header">
-            <span>Existing Databases</span>
+            <span>Past Games</span>
             <Tag v-if="databases.length > 0" :value="databases.length" />
           </div>
         </template>

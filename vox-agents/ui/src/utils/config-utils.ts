@@ -2,14 +2,14 @@
  * Configuration utilities for parsing and building LLM configurations
  */
 
-import type { AgentMapping, ModelDefinition, LLMConfig } from '../api/config-types';
+import type { AgentMapping, ModelDefinition, LLMConfig } from '../api/types';
 
 /**
  * Predefined agent types available in the system
  */
 export const agentTypes = [
   { label: 'Default', value: 'default' },
-  { label: 'Briefer', value: 'briefer' },
+  { label: 'Simple Briefer', value: 'simple-briefer' },
   { label: 'Simple Strategist', value: 'simple-strategist' },
   { label: 'Simple Strategist (Briefed)', value: 'simple-strategist-briefed' }
 ];
@@ -25,7 +25,7 @@ export function parseLLMConfig(llms: Record<string, any>): {
   definitions: ModelDefinition[];
 } {
   const mappings: AgentMapping[] = [];
-  const definitions: Record<string, ModelDefinition> = {}
+  const definitions: Record<string, ModelDefinition> = {};
 
   // Collect all model definitions (objects with provider and name)
   for (const [key, value] of Object.entries(llms)) {

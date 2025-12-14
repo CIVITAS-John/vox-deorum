@@ -52,12 +52,7 @@ router.get('/', async (req, res) => {
 
     try {
       const envContent = await fs.readFile(envPath, 'utf-8');
-      const env = dotenv.parse(envContent);
-
-      // Extract API keys
-      apiKeys = Object.entries(env)
-        .filter(([key]) => key.includes('API_KEY') || key === 'OLLAMA_URL')
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+      apiKeys = dotenv.parse(envContent);
     } catch (error) {
       logger.debug('.env file not found or could not be read');
     }
