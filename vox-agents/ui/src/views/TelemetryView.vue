@@ -6,6 +6,7 @@ import Button from 'primevue/button';
 import FileUpload from 'primevue/fileupload';
 import Tag from 'primevue/tag';
 import ProgressSpinner from 'primevue/progressspinner';
+import ActiveSessionsList from '@/components/ActiveSessionsList.vue';
 import { api } from '@/api/client';
 import { activeSessions, databases, loading, fetchTelemetryData } from '@/stores/telemetry';
 import type { TelemetryMetadata } from '../utils/types';
@@ -78,48 +79,10 @@ onMounted(() => {
 
     <div v-else class="section-container">
       <!-- Active Sessions Section -->
-      <Card class="active-sessions-section">
-        <template #title>
-          <div class="section-header">
-            <span>Active Games</span>
-            <Tag v-if="activeSessions.length > 0" :value="activeSessions.length" severity="success" />
-          </div>
-        </template>
-
-        <template #content>
-          <div v-if="activeSessions.length === 0" class="table-empty">
-            <i class="pi pi-info-circle"></i>
-            <p>No active game sessions</p>
-          </div>
-
-          <div v-else class="data-table">
-            <!-- Table Header -->
-            <div class="table-header">
-              <div class="col-expand">Game ID</div>
-              <div class="col-fixed-80">Player</div>
-              <div class="col-fixed-80">Actions</div>
-            </div>
-
-            <!-- Table Body -->
-            <div class="table-body">
-              <div v-for="session in activeSessions" :key="session.sessionId"
-                   class="table-row clickable"
-                   @click="viewActiveSession(session.sessionId)">
-                <div class="col-expand">
-                  {{ session.gameId || '-' }}
-                </div>
-                <div class="col-fixed-80">
-                  {{ session.playerId || '-' }}
-                </div>
-                <div class="col-fixed-80">
-                  <Button icon="pi pi-eye" text rounded size="small"
-                          @click.stop="viewActiveSession(session.sessionId)" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
-      </Card>
+      <ActiveSessionsList
+        :sessions="activeSessions"
+        @session-selected="viewActiveSession"
+        @view-session="viewActiveSession" />
 
       <!-- Existing Databases Section -->
       <Card class="databases-section">

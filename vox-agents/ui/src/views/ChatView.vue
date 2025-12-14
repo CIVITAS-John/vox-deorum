@@ -1,11 +1,98 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import Card from 'primevue/card';
+import Button from 'primevue/button';
+import ProgressSpinner from 'primevue/progressspinner';
+import ActiveSessionsList from '@/components/ActiveSessionsList.vue';
+import { activeSessions, loading, fetchTelemetryData } from '@/stores/telemetry';
+
+/**
+ * Chat view component - entry point for agent chat interactions
+ */
+
+const router = useRouter();
+
+/**
+ * Check if any sessions are available
+ */
+const hasActiveSessions = computed(() => activeSessions.value.length > 0);
+
+/**
+ * Handle session selection for chat
+ */
+function handleSessionSelected(sessionId: string) {
+  // TODO: Navigate to chat interface with selected session
+  console.log('Selected session for chat:', sessionId);
+}
+
+/**
+ * Navigate to session view to start new games
+ */
+function goToSessionView() {
+  router.push({ name: 'session' });
+}
+
+/**
+ * Navigate to telemetry view to find historical sessions
+ */
+function goToTelemetryView() {
+  router.push({ name: 'telemetry' });
+}
+
+// Fetch sessions on mount
+fetchTelemetryData();
 </script>
 
 <template>
   <div class="chat-view">
     <h1>Chat with Agents</h1>
-    
-    Placeholder.
+
+    <div v-if="loading" class="loading-container">
+      <ProgressSpinner />
+      <p>Loading sessions...</p>
+    </div>
+
+    <!-- Active Sessions List -->
+    <ActiveSessionsList
+      :sessions="activeSessions"
+      title="Choose a Game Session to Chat"
+      emptyMessage="No active sessions available."
+      :show-view-button="false"
+      @session-selected="handleSessionSelected">
+      <template #empty-action>
+        <div class="empty-action-container">
+          <Button
+            label="Start Game"
+            icon="pi pi-play"
+            @click="goToSessionView"
+            severity="primary" />
+          <Button
+            label="Browse Archives"
+            icon="pi pi-history"
+            @click="goToTelemetryView"
+            severity="secondary" />
+        </div>
+      </template>
+    </ActiveSessionsList>
   </div>
 </template>
+
+<style scoped>
+@import '@/styles/global.css';
+@import '@/styles/states.css';
+
+.empty-action-container {
+  display: flex;
+  gap: 1rem;
+  text-align: center;
+  margin-top: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.info-text {
+  color: var(--text-color-secondary);
+  margin-bottom: 1rem;
+}
+</style>
