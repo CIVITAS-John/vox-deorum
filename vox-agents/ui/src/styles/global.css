@@ -17,6 +17,10 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'EB Garamond', Georgia, 'Times New Roman', Times, serif;
 }
 
+h1 {
+  margin-bottom: 1rem;
+}
+
 /* Dark mode support */
 .dark-mode {
   color-scheme: dark;
@@ -27,6 +31,10 @@ body {
   transition: background-color 0.3s, color 0.3s;
   background-color: var(--p-surface-ground);
   color: var(--p-text-color);
+}
+
+.h-full {
+  min-height: 100%;
 }
 
 /* Custom scrollbar styles */
@@ -53,11 +61,6 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.simple-header h1 {
-  margin: 0;
 }
 
 /* Section layout styles */
@@ -69,6 +72,31 @@ body {
 
 /* Section header for card titles */
 .section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Page header with controls */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+}
+
+.page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-header-left h1 {
+  margin: 0;
+}
+
+.page-header-controls {
   display: flex;
   align-items: center;
   gap: 0.5rem;

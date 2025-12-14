@@ -127,6 +127,7 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 - Proper (not excessive) error handling - avoid redundant try-catch layers
 - Should never use any or unknown types unless absolutely necessary
 - Before creating new mechanisms, check if it already exists
+- **Use camelCase for exported constants** (e.g., `export const apiKeyFields`, not `API_KEY_FIELDS`)
 
 ### Logging Conventions
 - **Use Winston logger** for all TypeScript modules (bridge-service, mcp-server, vox-agents)

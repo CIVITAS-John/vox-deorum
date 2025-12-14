@@ -209,7 +209,7 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 9. **Performance Optimization**: Implemented pagination, lazy loading, and computed properties for large datasets
 
 ### Stage 5: Configuration Management
-**Status**: ✅ Backend Complete, 🔄 Frontend Pending
+**Status**: ✅ COMPLETED
 
 **Backend Implementation**: ✅ COMPLETED
 - Created minimal configuration API in `src/web/routes/config.ts`
@@ -226,20 +226,175 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - Routes mounted in `src/web/server.ts` at `/api/config`
 - Reuses existing `VoxAgentsConfig` interface and utilities
 
-**Implementation Details**:
-- Direct file operations in route handlers (no separate manager)
-- Parses .env file format properly (handles comments and empty lines)
-- **Override behavior** - POST completely replaces configs (no merging)
-- **Multi-line support** - Properly escapes and quotes values with newlines
-- No validation/reload endpoints (handled by frontend)
-- Uses existing logger utility with 'webui' source
+**Frontend Implementation**: ✅ COMPLETED
+- ✅ **API Keys Card** - Completed in `ConfigView.vue`
+  - Password inputs with toggle visibility for common LLM providers
+  - Supports OpenRouter, OpenAI, Google AI, Anthropic, Ollama
+  - Save/reload functionality with success/error messaging
+  - Integrated with existing backend endpoints
+- ✅ **LLM Configuration** - Completed with simplified design
+  - Agent-Model Mappings card for assigning models to agents
+  - Model Definitions card for configuring available models
+  - Auto-generated model IDs from provider/name
+  - Dropdown-based provider selection
+  - Warning dialog when deleting models in use
+  - Integrated with existing Save All/Reload functionality
 
-**Frontend Requirements**: 🔄 Pending
-- Simple form interface for editing configuration
-- API key input fields with masking for security
-- LLM provider configuration (model selection, endpoints)
-- Export/import/reset functionality
-- No complex UI - focus on essential settings for players
+## LLM Configuration UI Design (Simplified)
+
+### Overview
+The `config.llms` field contains two types of configuration that will be managed through two separate cards in the ConfigView:
+1. **Agent-Model Mappings** - Maps agent names to model identifiers
+2. **Model Definitions** - Defines model provider details (no optional settings for now)
+
+### Card 1: Agent-Model Mappings
+**Purpose**: Configure which model each agent uses
+
+**UI Components**:
+- PrimeVue Card with title "Agent-Model Assignments"
+- Simple list view showing mappings:
+  - Agent Name (text)
+  - Assigned Model (dropdown from available models)
+  - Delete button (trash icon)
+- "Add Mapping" button in card header
+- Dropdown populated from available models in Card 2
+
+**Features**:
+- **Create**: Simple row with agent name input and model dropdown
+- **Edit**: In-line dropdown to change model assignment
+- **Delete**: Remove mapping (no confirmation needed)
+- **Validation**: Only allow selection of existing models
+
+**Data Structure Example**:
+```json
+{
+  "llms": {
+    "default": "jetstream2/gpt-oss-120b",
+    "simple-briefer": "jetstream2/gpt-oss-120b",
+    "simple-strategist-briefed": "openai/o3-mini"
+  }
+}
+```
+
+### Card 2: Model Definitions
+**Purpose**: Define available models with their provider configurations
+
+**UI Components**:
+- PrimeVue Card with title "Model Configurations"
+- Simple list of model definitions
+- Each model shows:
+  - Auto-generated Model ID: `{provider}/{name}` (read-only, grayed out)
+  - Provider (dropdown: openrouter, openai, google, jetstream2, chutes)
+  - Model Name (text input with provider-specific placeholders)
+  - Delete button
+
+**Features**:
+- **Create Model**: Add row with:
+  - Provider dropdown (required)
+  - Model Name input (required)
+  - Model ID auto-populates as `{provider}/{name}`
+- **Edit Model**: Edit provider/name inline, ID updates automatically
+- **Delete Model**: Remove (warn if used by agents)
+- **No advanced options** - Keep it simple for now
+
+**Provider Examples**:
+- **OpenRouter**: `openrouter/google/gemma-3-27b-it`
+- **OpenAI**: `openai/gpt-4-turbo`
+- **Google**: `google/gemini-1.5-pro`
+- **Jetstream2**: `jetstream2/gpt-oss-120b`
+- **Chutes**: `chutes/glm-4.6`
+
+**Data Structure (Internal Representation)**:
+```json
+{
+  "llms": {
+    "jetstream2/gpt-oss-120b": {
+      "provider": "jetstream2",
+      "name": "gpt-oss-120b"
+    },
+    "openai/o3-mini": {
+      "provider": "openai",
+      "name": "o3-mini-2024-12-17"
+    },
+    "openrouter/google/gemma-3-27b-it": {
+      "provider": "openrouter",
+      "name": "google/gemma-3-27b-it"
+    }
+  }
+}
+```
+
+### UI Layout in ConfigView
+
+```vue
+<!-- After existing API Keys Card -->
+
+<!-- Card 1: Agent-Model Mappings -->
+<Card class="config-card">
+  <template #title>
+    <i class="pi pi-link" /> Agent-Model Assignments
+  </template>
+  <template #subtitle>
+    Configure which language model each agent uses
+  </template>
+  <template #content>
+    <!-- Simple list with existing field/input styles -->
+    <div class="mappings-list">
+      <div v-for="mapping in agentMappings" class="field">
+        <InputText v-model="mapping.agent" placeholder="Agent name" />
+        <Dropdown v-model="mapping.model" :options="availableModels" />
+        <Button icon="pi pi-trash" text @click="deleteMapping(index)" />
+      </div>
+      <Button label="Add Mapping" icon="pi pi-plus" text />
+    </div>
+  </template>
+</Card>
+
+<!-- Card 2: Model Definitions -->
+<Card class="config-card">
+  <template #title>
+    <i class="pi pi-box" /> Model Configurations
+  </template>
+  <template #subtitle>
+    Define available language models and their providers
+  </template>
+  <template #content>
+    <!-- Simple list with existing field/input styles -->
+    <div class="models-list">
+      <div v-for="model in modelDefinitions" class="field">
+        <InputText :value="model.id" disabled class="model-id" />
+        <Dropdown v-model="model.provider" :options="providers" />
+        <InputText v-model="model.name" placeholder="Model name" />
+        <Button icon="pi pi-trash" text @click="deleteModel(index)" />
+      </div>
+      <Button label="Add Model" icon="pi pi-plus" text />
+    </div>
+  </template>
+</Card>
+```
+
+### Implementation Approach
+
+1. **State Management**:
+   - Two arrays: `agentMappings` and `modelDefinitions`
+   - Parse from `config.llms` on load
+   - Reconstruct `config.llms` on save
+   - Auto-generate model IDs as `{provider}/{name}`
+
+2. **Validation Logic**:
+   - Agent mappings can only reference existing model IDs
+   - Model IDs auto-generated, no duplicates possible
+   - Warn before deleting models that are in use
+
+3. **Styling**:
+   - Reuse existing `.field`, `.config-card` styles from API Keys section
+   - Use same button styles and layout patterns
+   - Keep consistent with existing ConfigView design
+
+4. **Integration**:
+   - Save both cards together with existing Save All button
+   - Reload refreshes both cards
+   - Success/error messages in existing toolbar
 
 ### Stage 6: Session Control
 **Status**: 🔄 Not Started

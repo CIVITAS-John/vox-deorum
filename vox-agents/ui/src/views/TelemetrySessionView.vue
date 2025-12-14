@@ -130,8 +130,8 @@ onUnmounted(() => {
 <template>
   <div class="telemetry-session-view">
     <!-- Header with navigation and controls -->
-    <div class="session-header">
-      <div class="header-left">
+    <div class="page-header">
+      <div class="page-header-left">
         <Button
           icon="pi pi-arrow-left"
           text
@@ -144,7 +144,7 @@ onUnmounted(() => {
           Streaming
         </Tag>
       </div>
-      <div class="header-controls">
+      <div class="page-header-controls">
         <Button
           :icon="isStreaming ? 'pi pi-pause' : 'pi pi-play'"
           @click="toggleStreaming"
@@ -196,30 +196,6 @@ onUnmounted(() => {
 
 <style scoped>
 @import '@/styles/states.css';
-
-.session-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 0 0.5rem;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.header-left h1 {
-  margin: 0;
-}
-
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
 
 .streaming-tag {
   animation: pulse 2s infinite;

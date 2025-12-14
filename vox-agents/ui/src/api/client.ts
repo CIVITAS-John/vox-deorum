@@ -430,6 +430,35 @@ class ApiClient {
     return () => this.closeSseConnection(key);
   }
 
+
+  // ============= Global Config API Methods =============
+
+  /**
+   * Get current configuration (config.json and API keys)
+   * @returns Current configuration and API keys
+   */
+  async getCurrentConfig(): Promise<{ config: any; apiKeys: Record<string, string> }> {
+    return this.fetchJson<{ config: any; apiKeys: Record<string, string> }>(
+      `${this.baseUrl}/api/config`
+    );
+  }
+
+  /**
+   * Update current configuration (config.json and API keys)
+   * @param data Configuration data and API keys to update
+   * @returns Success status
+   */
+  async updateCurrentConfig(data: { config?: any; apiKeys?: Record<string, string> }): Promise<{ success: boolean }> {
+    return this.fetchJson<{ success: boolean }>(
+      `${this.baseUrl}/api/config`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }
+    );
+  }
+  
   // ============= Utility Methods =============
 
   /**

@@ -6,6 +6,7 @@ import Drawer from 'primevue/drawer'
 import Menu from 'primevue/menu'
 import { RouterView } from 'vue-router'
 import Tag from 'primevue/tag'
+import ConfirmDialog from 'primevue/confirmdialog'
 import { healthStatus } from './stores/health'
 import '/node_modules/primeflex/primeflex.css'
 
@@ -92,6 +93,9 @@ const toggleDrawer = () => {
 
 <template>
   <div class="app-container">
+    <!-- Global ConfirmDialog for all components -->
+    <ConfirmDialog />
+
     <!-- Menu Toggle Button -->
     <Button
       icon="pi pi-bars"

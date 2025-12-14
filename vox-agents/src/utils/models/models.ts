@@ -10,6 +10,7 @@ import { LanguageModel, ProviderMetadata, wrapLanguageModel } from 'ai';
 import { config, type Model } from '../config.js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createOpenAI } from '@ai-sdk/openai';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { gemmaToolMiddleware } from '@ai-sdk-tool/parser';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import dotenv from 'dotenv';
@@ -93,13 +94,6 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
     case "openrouter":
       result = createOpenRouter()(config.name);
       break;
-    case "jetstream2":
-      result = createOpenAICompatible({
-        baseURL: "https://llm-api.jetstream-cloud.org/v1",
-        name: "jetstream2",
-        apiKey: process.env.JETSTREAM2_API_KEY,
-      }).chatModel(config.name);
-      break;
     case "chutes":
       result = createOpenAICompatible({
         baseURL: "https://llm.chutes.ai/v1",
@@ -113,8 +107,16 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
     case "google":
       result = createGoogleGenerativeAI()(config.name);
       break;
+    case "anthropic":
+      result = createAnthropic()(config.name);
+      break;
     default:
-      throw new Error(`Unsupported provider: ${config.provider}`);
+      result = createOpenAICompatible({
+        baseURL: process.env.OPENAI_COMPATIBLE_URL!,
+        name: config.provider,
+        apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
+      }).chatModel(config.name);
+      break;
   }
   // Wrap it for tool calling
   switch (config.options?.toolMiddleware) {
