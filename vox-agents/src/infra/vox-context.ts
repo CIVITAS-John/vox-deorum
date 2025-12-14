@@ -6,13 +6,13 @@
  * Implements the agentic loop with tool calling, step preparation, and stop conditions.
  */
 
-import { generateText, Output, Tool, StepResult, ToolSet, ModelMessage } from "ai";
+import { generateText, Output, Tool, StepResult, ToolSet, ModelMessage, streamText } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
 import { getModel, buildProviderOptions } from "../utils/models/models.js";
-import { Model } from "../types/index.js";
+import { Model, StreamingEventCallback } from "../types/index.js";
 import { exponentialRetry } from "../utils/retry.js";
 import { v4 as uuidv4 } from 'uuid';
 import { trace, SpanStatusCode, context } from '@opentelemetry/api';
@@ -199,7 +199,8 @@ export class VoxContext<TParameters extends AgentParameters> {
   public async execute(
     agentName: string,
     parameters: TParameters,
-    input: unknown
+    input: unknown,
+    callback?: StreamingEventCallback
   ): Promise<string> {
     const agents = getAllAgents();
     const agent = agents[agentName] as VoxAgent<TParameters> | undefined;
@@ -271,7 +272,8 @@ export class VoxContext<TParameters extends AgentParameters> {
               stepCount,
               messages,
               modelConfig,
-              allTools
+              allTools,
+              callback
             );
 
             // Update state from step results
@@ -342,7 +344,8 @@ export class VoxContext<TParameters extends AgentParameters> {
     stepCount: number,
     messages: ModelMessage[],
     model: Model,
-    allTools: ToolSet
+    allTools: ToolSet,
+    callback?: StreamingEventCallback
   ): Promise<{ messages: ModelMessage[], shouldStop: boolean, finalText?: string, inputTokens: number, reasoningTokens: number, outputTokens: number }> {
     const stepSpan = this.tracer.startSpan(`agent.${agent.name}.step.${stepCount + 1}`, {
       attributes: {
@@ -375,8 +378,8 @@ export class VoxContext<TParameters extends AgentParameters> {
         });
 
         // Execute a single step
-        const stepResponse = await exponentialRetry(async () => {
-          return await generateText({
+        const stepResults = await exponentialRetry(async () => {
+          return await streamText({
             // Model settings
             model: getModel(stepModel),
             providerOptions: stepProviderOptions,
@@ -392,9 +395,12 @@ export class VoxContext<TParameters extends AgentParameters> {
             // Output schema for tool as agent
             experimental_output: stepOutputSchema ? Output.object({ schema: stepOutputSchema }) : undefined,
             // Stop after one step
-            stopWhen: () => true
-          });
+            stopWhen: () => true,
+            // Events
+            onChunk: callback?.OnChunk,
+          }).steps;
         }, this.logger);
+        const stepResponse = stepResults[stepResults.length - 1];
 
         // Update token usage
         /* const inputTokens = stepResponse.totalUsage.inputTokens ?? 0;
@@ -419,8 +425,8 @@ export class VoxContext<TParameters extends AgentParameters> {
         let shouldStop = false;
         let finalText: string | undefined;
 
-        if (stepResponse.steps.length > 0) {
-          allSteps.push(...stepResponse.steps);
+        if (stepResults.length > 0) {
+          allSteps.push(...stepResults);
           finalText = stepResponse.text;
 
           // Update messages with the response
@@ -428,7 +434,7 @@ export class VoxContext<TParameters extends AgentParameters> {
 
           // Check stop condition
           shouldStop = this.abortController.signal.aborted ||
-            agent.stopCheck(parameters, input, stepResponse.steps[0], allSteps);
+            agent.stopCheck(parameters, input, stepResponse, allSteps);
 
           this.logger.debug(`Stop check for ${agent.name}: ${shouldStop}`, {
             stepNumber: stepCount + 1,

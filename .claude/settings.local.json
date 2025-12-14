@@ -30,7 +30,6 @@
       "Bash(find:*)",
       "Bash(cmd /c \"dir *\")",
       "Bash(git lfs:*)",
-      "Bash(git add:*)",
       "Bash(git rm:*)",
       "Bash(git submodule:*)",
       "WebFetch(domain:ai-sdk.dev)",

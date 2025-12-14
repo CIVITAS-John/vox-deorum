@@ -15,7 +15,7 @@ export * from './api.js';
 export * from './telemetry.js';
 
 // Agent system types
-export * from './agents.js';
+export * from './chat.js';
 
 // UI constants
 export * from './constants.js';
