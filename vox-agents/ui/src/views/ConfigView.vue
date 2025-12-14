@@ -384,7 +384,7 @@ async function saveConfig() {
 }
 
 .api-keys-table input,
-.password-input {
+.password-input input {
   width: 28rem;
 }
 

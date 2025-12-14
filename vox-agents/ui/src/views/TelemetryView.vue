@@ -88,7 +88,7 @@ onMounted(() => {
       <Card class="databases-section">
         <template #title>
           <div class="section-header">
-            <span>Past Games</span>
+            <h3>Past Games</h3>
             <Tag v-if="databases.length > 0" :value="databases.length" />
           </div>
         </template>

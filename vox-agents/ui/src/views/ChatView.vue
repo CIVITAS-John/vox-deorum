@@ -57,7 +57,7 @@ fetchTelemetryData();
     <!-- Active Sessions List -->
     <ActiveSessionsList
       :sessions="activeSessions"
-      title="Choose a Game Session to Chat"
+      title="Choose an Active Game Session"
       emptyMessage="No active sessions available."
       :show-view-button="false"
       @session-selected="handleSessionSelected">

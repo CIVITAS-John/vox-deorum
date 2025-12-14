@@ -53,7 +53,7 @@ const sessionCount = computed(() => props.sessions.length);
   <Card class="active-sessions-card">
     <template #title>
       <div class="section-header">
-        <h2>{{ title }}</h2>
+        <h3>{{ title }}</h3>
         <Tag v-if="sessionCount > 0" :value="sessionCount" severity="success" />
       </div>
     </template>
@@ -101,9 +101,5 @@ const sessionCount = computed(() => props.sessions.length);
 
 .active-sessions-card {
   width: 100%;
-}
-
-h2 {
-  margin-bottom: 0.5rem;
 }
 </style>
