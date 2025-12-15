@@ -5,7 +5,7 @@
  * Detects and transforms JSON tool calls embedded in text responses into proper tool-call format.
  * Handles cases where LLMs output tool calls as JSON text instead of using the native tool-calling API.
  */
-import type { LanguageModelMiddleware, Tool } from 'ai';
+import { tool, type LanguageModelMiddleware, type Tool } from 'ai';
 import { createLogger } from '../logger.js';
 import { LanguageModelV2FunctionTool, LanguageModelV2ProviderDefinedTool, LanguageModelV2StreamPart, LanguageModelV2Text, LanguageModelV2ToolCall, LanguageModelV2ToolChoice } from '@ai-sdk/provider';
 
@@ -202,8 +202,8 @@ export function rescueToolCallsFromText(
     }
 
     if (!patternFound) {
-      if (Object.keys(toolCall).length > 0)
-        logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${jsonText}`);
+      // if (Object.keys(toolCall).length > 0)
+      //   logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${jsonText}`);
       continue;
     }
 
@@ -260,10 +260,9 @@ function emitToolCallChunks(
   toolCalls.forEach((toolCall) => {
     controller.enqueue({
       type: 'tool-call',
-      toolCallType: 'function',
       toolCallId: toolCall.toolCallId,
       toolName: toolCall.toolName,
-      args: toolCall.input
+      input: toolCall.input
     } as any);
   });
 }

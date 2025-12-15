@@ -36,7 +36,7 @@ export const defaultConfig: VoxAgentsConfig = {
     level: 'info'
   },
   llms: {
-    default: 'openrouter/openai/gpt-oss-120b',
+    default: 'openai-compatible/gpt-oss-120b',
     'openai/gpt-5-mini': {
       provider: 'openai',
       name: 'gpt-5-mini'
