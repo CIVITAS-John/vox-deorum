@@ -43,7 +43,6 @@ export function getModelConfig(
   if (overrides && overrides[name]) {
     const override = overrides[name];
     if (typeof override === 'string') {
-      if (name === "default") throw new Error("The model for `default` is not found. Please check your settings!")
       return getModelConfig(override, reasoning, overrides);
     }
     // It's a Model object - apply reasoning if needed
@@ -63,7 +62,6 @@ export function getModelConfig(
     return getModelConfig("default", reasoning);
   }
   if (typeof(model) === "string") {
-    if (name === "default") throw new Error("The model for `default` is not found. Please check your settings!")
     return getModelConfig(model, reasoning);
   } else if (reasoning) {
     return {

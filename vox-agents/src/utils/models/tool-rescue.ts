@@ -90,8 +90,7 @@ ${descriptions}`;
  */
 export function rescueToolCallsFromText(
   text: string,
-  availableTools: Set<string>,
-  verifyAll: boolean = true
+  availableTools: Set<string>
 ): { remainingText?: string, toolCalls: LanguageModelV2ToolCall[] } {
   // Define common field name patterns to check
   const fieldPatterns = [
@@ -159,7 +158,7 @@ export function rescueToolCallsFromText(
     }
 
     if (!patternFound) {
-      logger.log("warn", `Failed to rescue tool call: no matching field pattern found`, toolCall);
+      logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${JSON.stringify(toolCall)}`);
       continue;
     }
 
@@ -181,7 +180,7 @@ export function rescueToolCallsFromText(
   }
 
   // Only return the rescued tool calls if all were valid
-  if (rescuedToolCalls.length > 0 && (!verifyAll || allToolCallsValid)) {
+  if (rescuedToolCalls.length > 0 && allToolCallsValid) {
     // If we extracted a JSON block, calculate remaining text
     let remainingText: string | undefined;
     if (largestBlock && largestBlock !== text) {
@@ -376,8 +375,8 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
               // If we're already buffering or detect JSON start, add to buffer
               if (incompleteBuffer !== "") {
                 // Try to rescue tool calls from accumulated buffer
-                const processed = rescueToolCallsFromText(incompleteBuffer, toolNames, false);
-                if (processed.toolCalls.length > 0 && !toolCallsFound) {
+                const processed = rescueToolCallsFromText(incompleteBuffer, toolNames);
+                if (processed.toolCalls.length > 0) {
                   toolCallsFound = true;
                   // Emit remaining text if any
                   if (processed.remainingText)
@@ -405,6 +404,8 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
                   // Emit tool calls
                   emitToolCallChunks(processed.toolCalls, controller);
                 }
+              } else {
+                emitRemainingText(incompleteBuffer, controller, chunk.id);
               }
               controller.enqueue(chunk);
               break;
