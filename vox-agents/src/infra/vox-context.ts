@@ -171,14 +171,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     }
 
     try {
-      const result = await this.execute(name, parameters, input);
-
-      // Apply output schema if the agent defines one
-      if (agent.outputSchema) {
-        return agent.outputSchema.parse(result) as T;
-      }
-
-      return result as T;
+      return await this.execute(name, parameters, input) as T;
     } catch (error) {
       this.logger.error(`Error calling agent ${name}:`, error);
       return undefined;
@@ -201,7 +194,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     parameters: TParameters,
     input: unknown,
     callback?: StreamingEventCallback
-  ): Promise<string> {
+  ): Promise<any> {
     const agents = getAllAgents();
     const agent = agents[agentName] as VoxAgent<TParameters> | undefined;
     if (!agent) {
@@ -298,10 +291,14 @@ export class VoxContext<TParameters extends AgentParameters> {
             'tokens.output': outputTokens,
           });
           span.setStatus({ code: SpanStatusCode.OK });
-          return finalText;
+          
+          // Convert into the output
+          const output = agent.getOutput(parameters, input, finalText);
+          if (!output) return;
+          return agent.postprocessOutput(parameters, input, output);
         } else {
           span.setStatus({ code: SpanStatusCode.OK, message: 'No system prompt' });
-          return "[nothing]";
+          return undefined;
         }
       } catch (error) {
         this.logger.error(`Error executing agent ${agentName}!`, error);
@@ -310,7 +307,7 @@ export class VoxContext<TParameters extends AgentParameters> {
           code: SpanStatusCode.ERROR,
           message: error instanceof Error ? error.message : String(error)
         });
-        return "[nothing]";
+        return undefined;
       } finally {
         parameters.running = currentAgent;
         span.end();

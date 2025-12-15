@@ -39,13 +39,15 @@ export interface JsonToMarkdownConfig {
  */
 export function jsonToMarkdown(
   jsonObject: any,
-  options: Partial<JsonToMarkdownConfig> = {}
+  options?: Partial<JsonToMarkdownConfig>
 ): string {
+  const actual = options ?? (jsonObject._markdownConfig as Partial<JsonToMarkdownConfig> ?? {})
+
   const config: JsonToMarkdownConfig = {
-    configs: options.configs ?? [],
-    startingLevel: options.startingLevel ?? 2,
-    maxLevel: options.maxLevel ?? 6,
-    indentString: options.indentString ?? "  "
+    configs: actual.configs ?? [],
+    startingLevel: actual.startingLevel ?? 2,
+    maxLevel: actual.maxLevel ?? 6,
+    indentString: actual.indentString ?? "  "
   };
 
   return transformValue(jsonObject, 0, config, "").trim();
@@ -113,6 +115,9 @@ function transformObject(
 
   // Process each key-value pair
   for (const [key, value] of Object.entries(obj)) {
+    // Ignore keys starting with `_` for internal configs
+    if (key.startsWith("_")) continue;
+
     // Check if there's a transformer for this value at the next depth
     const nextHeadingConfig = config.configs[depth + 1];
     if (nextHeadingConfig?.transformer) {

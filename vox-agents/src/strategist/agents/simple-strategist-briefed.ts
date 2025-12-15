@@ -12,6 +12,7 @@ import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { getModelConfig } from "../../utils/models/models.js";
 import { Model } from "../../types/index.js";
+import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
 
 /**
  * A briefed strategist agent that first requests a briefing before making strategic decisions.
@@ -89,12 +90,12 @@ You will receive:
       content: `
 # Situation
 You are Player ${parameters.playerID ?? 0}.
-${parameters.metadata}`.trim()
+${jsonToMarkdown(parameters.metadata)}`.trim()
     }, {
       role: "user",
       content: `
 # Strategies and Options
-${state.options}
+${jsonToMarkdown(state.options)}
 
 # Briefings
 ${briefing}

@@ -31,6 +31,8 @@ export interface GameState {
   military?: any;
   /** Victory condition progress and standings */
   victory?: any;
+  /** Additional reports (e.g. briefings) */
+  reports: Record<string, string>;
 }
 
 /**
@@ -93,6 +95,7 @@ export async function refreshGameState(
     options,
     military,
     victory,
+    reports: {}
   };
 
   // Update and return parameters with the new game state stored by turn

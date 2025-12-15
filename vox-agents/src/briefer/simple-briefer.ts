@@ -11,6 +11,7 @@ import { VoxContext } from "../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategist/strategy-parameters.js";
 import { getModelConfig } from "../utils/models/models.js";
 import { Model } from "../types/index.js";
+import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 
 /**
  * A simple briefer agent that analyzes the game state and produces a concise briefing.
@@ -88,33 +89,33 @@ Reason briefly. Write your briefing as a text document in a clear, direct, conci
       content: `
 # Situation
 You are writing a strategic briefing for Player ${parameters.playerID ?? 0}.
-${parameters.metadata}`.trim()
+${jsonToMarkdown(parameters.metadata)}`.trim()
     }, {
       role: "user",
       content: `
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
-${state.victory}
+${jsonToMarkdown(state.victory)}
 
 # Strategies
 Strategies: existing strategic decisions and available options for the player.
-${state.options}
+${jsonToMarkdown(state.options)}
 
 # Players
 Players: summary reports about visible players in the world.
-${state.players}
+${jsonToMarkdown(state.players)}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
-${state.cities}
+${jsonToMarkdown(state.cities)}
 
 # Military
 Military: summary reports about tactical zones and visible units.
-${state.military}
+${jsonToMarkdown(state.military)}
 
 # Events
 Events: events since the last decision-making.
-${state.events}
+${jsonToMarkdown(state.events)}
 
 You are writing the briefing for Player ${parameters.playerID ?? 0} after turn ${parameters.turn}.`.trim()
     }];

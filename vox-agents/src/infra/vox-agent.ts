@@ -129,19 +129,38 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   
   /**
    * Manually post-process LLM results and send back the output.
-   * 
+   *
    * @param parameters - The execution parameters
-   * @param lastStep - The most recent step result
-   * @param allSteps - All steps executed so far
+   * @param input - The starting input
+   * @param finalText - The final generated text
    * @returns True if the agent should stop, false to continue
    */
   public getOutput(
     _parameters: TParameters,
     _input: TInput,
-    _lastStep: StepResult<Record<string, Tool>>,
-    _allSteps: StepResult<Record<string, Tool>>[]
+    finalText: string
+  ): TOutput | undefined {
+    if (finalText === "") return;
+    if (this.outputSchema) {
+      return this.outputSchema.parse(finalText);
+    } else {
+      return finalText as any;
+    }
+  }
+
+  /**
+   * Post-processes the output before returning it.
+   * Override this method to modify the output after getOutput.
+   *
+   * @param output - The output from getOutput
+   * @returns The post-processed output
+   */
+  public postprocessOutput(
+    _parameters: TParameters,
+    _input: TInput,
+    output: TOutput
   ): TOutput {
-    return JSON.parse(_lastStep.text);
+    return output;
   }
 
   /**

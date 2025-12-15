@@ -10,6 +10,7 @@ import { ModelMessage } from "ai";
 import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
+import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
 
 /**
  * A simple strategist agent that analyzes the game state and sets an appropriate strategy.
@@ -95,35 +96,35 @@ You will receive the following reports:
       content: `
 # Situation
 You are Player ${parameters.playerID ?? 0}.
-${parameters.metadata}`.trim()
+${jsonToMarkdown(parameters.metadata)}`.trim()
     }, {
       role: "user",
       content: `
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
-${state.victory}
+${jsonToMarkdown(state.victory)}
 
 # Strategies
 Strategies: existing strategic decisions and available options for you.
-${state.options}
+${jsonToMarkdown(state.options)}
 
 # Players
 Players: summary reports about visible players in the world.
-${state.players}
+${jsonToMarkdown(state.players)}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
-${state.cities}
+${jsonToMarkdown(state.cities)}
 
 # Military
 Military: summary reports about tactical zones and visible units.
-${state.military}
+${jsonToMarkdown(state.military)}
 
 # Events
 Events: events since you last made a decision.
+${jsonToMarkdown(state.events)}
 
 You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
-${state.events}
 `.trim()
     }];
   }

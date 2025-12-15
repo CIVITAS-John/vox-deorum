@@ -15,7 +15,6 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { mcpClient } from "../models/mcp-client.js";
 import { trace, SpanStatusCode, SpanKind } from '@opentelemetry/api';
 import { camelCase } from "change-case";
-import { jsonToMarkdown } from "./json-to-markdown.js";
 
 const tracer = trace.getTracer('vox-tools');
 
@@ -164,10 +163,6 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
           // console.log(options.experimental_context);
         }
 
-        // Local arg: formatting
-        const convertMarkdown = args["Markdown"] !== false;
-        delete args["Markdown"];
-
         // Log inputs
         span.setAttributes({
           'tool.input': JSON.stringify(args)
@@ -185,16 +180,9 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
         span.setStatus({ code: SpanStatusCode.OK });
 
         // Return results
-        if (convertMarkdown && structuredResult) {
-          result = result?.Result ?? structuredResult.Result ?? structuredResult;
-          const markdown = jsonToMarkdown(result, {
-            configs: (tool._meta as any)?.markdownConfig,
-            startingLevel: 2,
-          });
-          return markdown;
-        } else {
-          return structuredResult ?? result;
-        }
+        result = result?.Result ?? structuredResult.Result ?? structuredResult;
+        result._markdownConfig = (tool._meta as any)?.markdownConfig
+        return result;
       } catch (error) {
         logger.error(`Error calling MCP tool ${tool.name}:`, error);
         span.recordException(error as Error);

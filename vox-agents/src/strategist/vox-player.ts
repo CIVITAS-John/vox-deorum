@@ -145,10 +145,7 @@ export class VoxPlayer {
             // Create a new root context for this turn's trace
             await context.with(trace.setSpan(context.active(), turnSpan), async () => {
               // Refresh all strategy parameters
-              turnSpan.setAttributes({
-                'game.state': JSON.stringify(await refreshGameState(this.context, this.parameters))
-              });
-              
+              await refreshGameState(this.context, this.parameters)
               await this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
 
               // Without strategists, we just fake one
