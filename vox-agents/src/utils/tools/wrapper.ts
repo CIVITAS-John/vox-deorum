@@ -172,15 +172,15 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
         // Call the tool
         var result = await mcpClient.callTool(tool.name, args);
         const structuredResult = result.structuredContent;
+        result = structuredResult ?? result;
         logger.debug(`Tool call completed: ${tool.name}`);
 
         span.setAttributes({
-          'tool.output': JSON.stringify(structuredResult ?? result)
+          'tool.output': JSON.stringify(result)
         });
         span.setStatus({ code: SpanStatusCode.OK });
 
         // Return results
-        result = result?.Result ?? structuredResult.Result ?? structuredResult;
         result._markdownConfig = (tool._meta as any)?.markdownConfig
         return result;
       } catch (error) {
