@@ -385,7 +385,10 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
                   // Emit tool calls as proper stream chunks
                   emitToolCallChunks(processed.toolCalls, controller);
                   // Clear the buffer and stop buffering
-                  incompleteBuffer = "";
+                  incompleteBuffers[chunk.id] = "";
+                } else {
+                  // Store the buffer in case we need to update it
+                  incompleteBuffers[chunk.id] = incompleteBuffer;
                 }
               }
 
