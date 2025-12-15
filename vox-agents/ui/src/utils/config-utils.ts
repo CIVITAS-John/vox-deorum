@@ -20,7 +20,7 @@ export const agentTypes = [
  * @param llms - The llms configuration object from config.json
  * @returns Parsed agent mappings and model definitions
  */
-export function parseLLMConfig(llms: Record<string, any>): {
+export function parseLLMConfig(llms: Record<string, LLMConfig | string>): {
   mappings: AgentMapping[];
   definitions: LLMConfig[];
 } {
@@ -32,8 +32,7 @@ export function parseLLMConfig(llms: Record<string, any>): {
     if (typeof value === 'object' && value.provider && value.name) {
       definitions[key] = {
         id: key,
-        provider: value.provider,
-        name: value.name
+        ...value
       };
     }
   }
@@ -67,11 +66,16 @@ export function buildLLMConfig(
 
   // Add all model definitions first
   for (const def of definitions) {
-    llms[def.id!] = {
+    const modelConfig: LLMConfig = {
       id: def.id,
       provider: def.provider,
       name: def.name
     };
+    // Only add options if they exist
+    if (def.options) {
+      modelConfig.options = def.options;
+    }
+    llms[def.id!] = modelConfig;
   }
 
   // Add all mappings (these will overwrite if the key already exists)
