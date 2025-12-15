@@ -158,7 +158,8 @@ export function rescueToolCallsFromText(
     }
 
     if (!patternFound) {
-      logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${JSON.stringify(toolCall)}`);
+      if (Object.keys(toolCall).length > 0)
+        logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${JSON.stringify(toolCall)}`);
       continue;
     }
 
@@ -403,9 +404,9 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
                   emitRemainingText(processed.remainingText, controller, chunk.id);
                   // Emit tool calls
                   emitToolCallChunks(processed.toolCalls, controller);
+                } else {
+                  emitRemainingText(incompleteBuffer, controller, chunk.id);
                 }
-              } else {
-                emitRemainingText(incompleteBuffer, controller, chunk.id);
               }
               controller.enqueue(chunk);
               break;
