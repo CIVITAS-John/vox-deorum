@@ -202,14 +202,14 @@ export function rescueToolCallsFromText(
     }
 
     if (!patternFound) {
-      // if (Object.keys(toolCall).length > 0)
-      //   logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${jsonText}`);
+      if (Object.keys(toolCall).length > 0 && useJaison)
+         logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${jsonText}`);
       continue;
     }
 
     // Check if the tool exists in available tools
     if (!availableTools.has(toolName!)) {
-      logger.log("warn", `Failed to rescue tool call: non-existent tool ${toolName}`, toolParameters);
+      if (useJaison) logger.log("warn", `Failed to rescue tool call: non-existent or unavailable tool ${toolName}`, toolParameters);
       continue;
     }
 
