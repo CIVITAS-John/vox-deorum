@@ -12,7 +12,6 @@ import { StrategistParameters } from "./strategy-parameters.js";
  *
  * @abstract
  * @class
- * @template T - Additional agent-specific data
  */
 export abstract class Strategist extends VoxAgent<StrategistParameters> {
 }

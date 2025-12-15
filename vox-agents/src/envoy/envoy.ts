@@ -9,12 +9,12 @@ import { VoxAgent } from "../infra/vox-agent.js";
 import { StrategistParameters } from "../strategist/strategy-parameters.js";
 
 /**
- * Base briefer agent that summarizes the game state.
+ * Base envoy agent that can chat with the user.
  *
  * @abstract
  * @class
  */
-export abstract class Briefer extends VoxAgent<StrategistParameters, string, string> {
+export abstract class Envoy extends VoxAgent<StrategistParameters> {
   /**
    * Determines whether the agent should stop execution
    */
@@ -27,10 +27,7 @@ export abstract class Briefer extends VoxAgent<StrategistParameters, string, str
     // Stop if we've executed set-strategy tool
     for (var step of allSteps) {
       for (const result of step.content) {
-        if (result.type === "text" && result.text.length >= 10) {
-          this.logger.info(`Briefing produced (length ${result.text.length}), stopping agent`, {
-            Abstract: result.text.substring(0, 500).replace("\n\n", "\n") + "..."
-          });
+        if (result.type === "tool-call") {
           return true;
         }
       }

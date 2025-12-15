@@ -50,6 +50,7 @@ export class StrategistSession {
   private abortController = new AbortController();
   private finishPromise: Promise<void>;
   private victoryResolve?: () => void;
+  private lastGameID?: string;
   private lastGameState: 'running' | 'crashed' | 'victory' | 'initializing' = 'initializing';
   private crashRecoveryAttempts = 0;
   private dllConnected = false;
@@ -174,12 +175,15 @@ export class StrategistSession {
   }
 
   private async handleGameSwitched(params: any): Promise<void> {
-    logger.warn(`Game context switching to ${params.gameID} at turn ${params.turn}`);
-
     // If in wait mode and this is the initial game load, treat it like load mode
     if (this.config.gameMode === 'wait' && this.lastGameState === 'initializing') {
       this.lastGameState = 'running';
     }
+
+    // If nothing is changing, ignore this
+    if (params.gameID === this.lastGameID) return;
+    this.lastGameID = params.gameID;
+    logger.warn(`Game context switching to ${params.gameID} at turn ${params.turn}`);
 
     // Abort all existing players
     for (const player of this.activePlayers.values()) {
