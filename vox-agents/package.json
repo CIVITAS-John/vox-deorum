@@ -12,7 +12,7 @@
     "briefer": "npm run build && npm run briefer:dist --",
     "briefer:dist": "node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/briefer/index.js",
     "strategist": "npm run build && npm run strategist:dist --",
-    "strategist:dist": "node --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js",
+    "strategist:dist": "node --inspect --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",

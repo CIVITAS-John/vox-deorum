@@ -90,7 +90,8 @@ ${descriptions}`;
  */
 export function rescueToolCallsFromText(
   text: string,
-  availableTools: Set<string>
+  availableTools: Set<string>,
+  useJaison: boolean = true
 ): { remainingText?: string, toolCalls: LanguageModelV2ToolCall[] } {
   // Define common field name patterns to check
   const fieldPatterns = [
@@ -99,26 +100,67 @@ export function rescueToolCallsFromText(
     { nameField: 'tool', parametersField: 'arguments' }
   ];
 
-  // First, try to extract the largest JSON block using regex
-  // This matches either an array [...] or object {...} with nested structures
-  // Using a simpler pattern that finds balanced brackets/braces
-  const jsonPatterns = [
-    /\[(?:[^\[\]]*|\[(?:[^\[\]]*|\[[^\[\]]*\])*\])*\]/g,  // Nested arrays
-    /\{(?:[^{}]*|\{(?:[^{}]*|\{[^{}]*\})*\})*\}/g         // Nested objects
-  ];
+  // First, try to extract the largest JSON block by finding balanced brackets/braces
+  // This uses character-by-character parsing instead of regex
+  function findJsonBlocks(str: string): string[] {
+    const blocks: string[] = [];
+    const openChars = ['{', '['];
 
-  let largestBlock = '';
-  let largestBlockSize = 0;
-  let match;
+    for (let i = 0; i < str.length; i++) {
+      if (!openChars.includes(str[i])) continue;
+
+      const startChar = str[i];
+      const endChar = startChar === '{' ? '}' : ']';
+      let depth = 1;
+      let j = i + 1;
+      let inString = false;
+      let escapeNext = false;
+
+      while (j < str.length && depth > 0) {
+        const char = str[j];
+
+        if (escapeNext) {
+          escapeNext = false;
+          j++;
+          continue;
+        }
+
+        if (char === '\\') {
+          escapeNext = true;
+          j++;
+          continue;
+        }
+
+        if (char === '"') {
+          inString = !inString;
+        } else if (!inString) {
+          if (char === startChar) {
+            depth++;
+          } else if (char === endChar) {
+            depth--;
+          }
+        }
+
+        j++;
+      }
+
+      if (depth === 0) {
+        blocks.push(str.substring(i, j));
+      }
+    }
+
+    return blocks;
+  }
 
   // Find all potential JSON blocks and select the largest one
-  for (const pattern of jsonPatterns) {
-    pattern.lastIndex = 0; // Reset regex state
-    while ((match = pattern.exec(text)) !== null) {
-      if (match[0].length > largestBlockSize) {
-        largestBlock = match[0];
-        largestBlockSize = match[0].length;
-      }
+  const jsonBlocks = findJsonBlocks(text);
+  let largestBlock = '';
+  let largestBlockSize = 0;
+
+  for (const block of jsonBlocks) {
+    if (block.length > largestBlockSize) {
+      largestBlock = block;
+      largestBlockSize = block.length;
     }
   }
 
@@ -128,7 +170,9 @@ export function rescueToolCallsFromText(
   // Try to parse the JSON using jaison
   let parsed: any;
   try {
-    parsed = jaison(jsonText);
+    if (useJaison)
+      parsed = jaison(jsonText);
+    else parsed = JSON.parse(jsonText);
   } catch {
     // Not valid JSON, return as text
     return { toolCalls: [], remainingText: text };
@@ -159,7 +203,7 @@ export function rescueToolCallsFromText(
 
     if (!patternFound) {
       if (Object.keys(toolCall).length > 0)
-        logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${JSON.stringify(toolCall)}`);
+        logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${jsonText}`);
       continue;
     }
 
@@ -297,7 +341,6 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
         result.content.forEach((content) => {
           if (content.type === "text") {
             const processed = rescueToolCallsFromText(content.text, toolNames);
-
             // If tool calls were rescued, add them to the content array
             if (processed.toolCalls.length > 0) {
               // Remove the text that contained the tool calls if it was completely consumed
@@ -375,8 +418,8 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
 
               // If we're already buffering or detect JSON start, add to buffer
               if (incompleteBuffer !== "") {
-                // Try to rescue tool calls from accumulated buffer
-                const processed = rescueToolCallsFromText(incompleteBuffer, toolNames);
+                // Try to rescue tool calls from accumulated buffer - strict first
+                const processed = rescueToolCallsFromText(incompleteBuffer, toolNames, false);
                 if (processed.toolCalls.length > 0) {
                   toolCallsFound = true;
                   // Emit remaining text if any
@@ -400,6 +443,7 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
               // Text block ended, pass through
               let incompleteBuffer = incompleteBuffers[chunk.id] ?? "";
               if (incompleteBuffer !== "") {
+                // More lenient when the stream is finishing
                 const processed = rescueToolCallsFromText(incompleteBuffer, toolNames);
                 if (processed.toolCalls.length > 0) {
                   toolCallsFound = true;
