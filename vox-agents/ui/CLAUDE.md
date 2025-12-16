@@ -1,268 +1,109 @@
 # CLAUDE.md - Vox Agents UI
 
-This file provides guidance for Claude Code when working with the Vue UI components.
+Vue 3 + TypeScript UI. Follow existing patterns, don't reinvent.
 
-## UI Development Patterns
+## Core Principles
 
-### Component Architecture
-- **PrimeVue-first approach** - Always use existing PrimeVue components before creating custom ones
-- **Composition API** - Use `<script setup lang="ts">` for all components
-- **TypeScript strict mode** - All props, events, and data must be properly typed
-- **Single File Components** - Keep template, script, and styles together
+### Look Before You Leap
+- **Check existing components** in `components/` before creating new ones
+- **Review existing styles** in `styles/` (global, panel, states, data-table, civ5-theme)
+- **Use existing stores** in `stores/` for state management patterns
+- **Import types** from `@/utils/types` which re-exports backend types
 
-### State Management
-- **Vue stores** - Use reactive refs in stores for cross-component state (see `stores/health.ts`)
-- **Local state** - Use `ref()` and `computed()` for component-specific state
-- **Props down, events up** - Follow standard Vue data flow patterns
-- **SSE for real-time** - Use Server-Sent Events for streaming data (logs, telemetry)
-
-### API Integration
+### Type Safety
 ```typescript
-// Always use the centralized API client
-import { apiClient } from '@/api/client';
+// All types come from one place
+import type { VoxContext, ToolCall, AIMessage } from '@/utils/types';
 
-// Type all API responses
-interface MyResponse {
-  data: string;
-  timestamp: string;
-}
-
-// Handle errors gracefully
-try {
-  const result = await apiClient.getCustom<MyResponse>('/api/endpoint');
-} catch (error) {
-  // Show user-friendly error
-}
+// Never use any or unknown
+// Always use defineProps<T>() and defineEmits<T>()
 ```
 
-### PrimeVue Component Usage
+### PrimeVue First
+- Use PrimeVue components and PrimeFlex utilities
+- Check [PrimeVue docs](https://primevue.org) before custom solutions
+- Prefer component props over custom CSS
+- Use theme CSS variables for consistency
+
+### State Patterns
+- **Stores**: Reactive refs exported directly (see `stores/health.ts`)
+- **SSE**: Auto-reconnect with exponential backoff (see `stores/logs.ts`)
+- **API**: Centralized client with typed responses (see `api/client.ts`)
+
+## Component Patterns
+
+### Loading/Error/Empty States
 ```vue
-<!-- Always import components explicitly -->
-<script setup lang="ts">
-import Card from 'primevue/card';
-import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-</script>
+<!-- Use existing CSS classes from styles/states.css -->
+<div v-if="loading" class="loading-container">
+  <i class="pi pi-spin pi-spinner" style="font-size: 2rem;" />
+  <p>Loading...</p>
+</div>
 
-<!-- Use PrimeVue's built-in styling classes -->
-<template>
-  <Card class="mb-3">
-    <template #title>
-      <i class="pi pi-icon-name" /> Title
-    </template>
-    <template #content>
-      <!-- Content here -->
-    </template>
-  </Card>
-</template>
+<div v-else-if="error" class="error-container">
+  <i class="pi pi-exclamation-triangle" />
+  <p>{{ error }}</p>
+</div>
+
+<div v-else-if="!data.length" class="empty-state">
+  <i class="pi pi-inbox" />
+  <p>No data available</p>
+</div>
 ```
 
-### Styling Guidelines
-- **PrimeVue themes** - Use Aura theme as base, customize with CSS variables
-- **Utility classes** - Use PrimeFlex for layout (flex, grid, spacing)
-- **Scoped styles** - Always use `<style scoped>` to prevent style leakage
-- **Dark mode** - Support via CSS class toggle on document root
-- **Responsive design** - Use PrimeFlex breakpoint utilities
+### Real Examples to Follow
+- **LogViewer.vue** - SSE streaming, filtering, virtual scroll
+- **DashboardView.vue** - Cards, health monitoring, state patterns
+- **TelemetryView.vue** - DataTable with pagination, trace navigation
+- **ConfigView.vue** - Forms, validation, JSON editing
+- **AIMessagesViewer.vue** - Message rendering, tool calls display
 
-### Real-time Data Patterns
-```typescript
-// SSE connection with auto-reconnect
-class SSEClient {
-  private eventSource: EventSource | null = null;
-  private reconnectTimeout: number | null = null;
-
-  connect() {
-    this.eventSource = new EventSource('/api/stream');
-
-    this.eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      // Handle data
-    };
-
-    this.eventSource.onerror = () => {
-      this.reconnect();
-    };
-  }
-
-  private reconnect() {
-    // Exponential backoff
-    this.reconnectTimeout = setTimeout(() => {
-      this.connect();
-    }, Math.min(30000, (this.reconnectDelay *= 2)));
-  }
-}
+## File Structure
+```
+src/
+├── api/          # API client, SSE utils
+├── components/   # Reusable Vue components
+├── stores/       # Reactive state management
+├── styles/       # Global CSS, theme overrides
+├── utils/        # Type definitions, helpers
+└── views/        # Route-level components
 ```
 
-### Performance Optimizations
-- **Virtual scrolling** - Use PrimeVue DataTable virtual scroll for large datasets
-- **Debounced inputs** - 300ms debounce for search/filter inputs
-- **Lazy loading** - Load data on-demand, not all at once
-- **Component lazy loading** - Use Vue Router's lazy loading for views
-- **Buffer limits** - Cap log buffers at 1000 lines, telemetry at 100 per page
+## Performance Guidelines
+- Virtual scroll for lists > 100 items
+- Debounce search inputs (300ms)
+- Buffer limits: 1000 logs, 100 telemetry spans
+- Lazy load routes with `() => import()`
 
-### Error Handling
-```typescript
-// Standardized error display
-const showError = (message: string) => {
-  toast.add({
-    severity: 'error',
-    summary: 'Error',
-    detail: message,
-    life: 5000
-  });
-};
+## Integration
+- Backend types via `@/utils/types`
+- Winston logs via SSE (`stores/logs.ts`)
+- Config from `config.json` via API
+- Telemetry SQLite via Kysely
 
-// API error handler
-const handleApiError = (error: any) => {
-  if (error.response?.data?.message) {
-    showError(error.response.data.message);
-  } else if (error.message) {
-    showError(error.message);
-  } else {
-    showError('An unexpected error occurred');
-  }
-};
-```
-
-### Testing Approach
-- **Component testing** - Use Vitest with @vue/test-utils
-- **API mocking** - Mock API calls in tests, not in components
-- **Real data testing** - Test with actual game data early and often
-- **E2E testing** - Manual testing during development phases
-
-## File Organization
-
-### Views
-- Each major route gets its own view in `views/`
-- Views orchestrate components and handle routing
-- Views should be relatively thin, delegating to components
-
-### Components
-- Reusable UI elements in `components/`
-- Each component should have a single, clear responsibility
-- Prefer composition over inheritance
-
-### Stores
-- Shared reactive state in `stores/`
-- Each store handles one domain (health, session, etc.)
-- Export reactive refs directly, not classes
-
-### API
-- All HTTP/SSE logic in `api/`
-- Centralized error handling
-- Type-safe request/response interfaces
-
-## Common Patterns
-
-### Loading States
-```vue
-<template>
-  <div v-if="loading" class="flex align-items-center justify-content-center">
-    <i class="pi pi-spin pi-spinner text-4xl" />
-  </div>
-  <div v-else-if="error" class="text-center">
-    <i class="pi pi-exclamation-triangle text-4xl text-orange-500" />
-    <p>{{ error }}</p>
-  </div>
-  <div v-else>
-    <!-- Main content -->
-  </div>
-</template>
-```
-
-### Data Tables
-```vue
-<DataTable
-  :value="data"
-  :paginator="true"
-  :rows="10"
-  :rowsPerPageOptions="[10, 25, 50]"
-  :loading="loading"
-  :virtualScrollerOptions="{ itemSize: 46 }"
-  scrollable
-  scrollHeight="400px"
->
-  <Column field="name" header="Name" :sortable="true" />
-  <Column field="value" header="Value">
-    <template #body="{ data }">
-      <Tag :value="data.value" />
-    </template>
-  </Column>
-</DataTable>
-```
-
-### Form Validation
-```typescript
-// Use reactive forms with validation
-const formData = reactive({
-  name: '',
-  email: ''
-});
-
-const errors = reactive({
-  name: '',
-  email: ''
-});
-
-const validate = () => {
-  errors.name = formData.name ? '' : 'Name is required';
-  errors.email = formData.email.includes('@') ? '' : 'Invalid email';
-  return !errors.name && !errors.email;
-};
-```
-
-## Development Workflow
-
-### Starting Development
+## Commands
 ```bash
 cd vox-agents/ui
-npm run dev  # Starts Vite dev server with HMR
-```
+npm run dev           # Dev server with HMR
+npm run build         # Production build to ../dist-ui/
 
-### Building for Production
-```bash
-npm run build  # Outputs to ../dist-ui/
-```
-
-### Running with Backend
-```bash
 cd vox-agents
-npm run webui:dev  # Runs both backend and frontend
+npm run webui:dev     # Backend + frontend together
 ```
 
-## Common Pitfalls to Avoid
+## Don'ts
+- Don't use `any` or `unknown` types
+- Don't create styles when PrimeFlex has it
+- Don't poll when SSE is available
+- Don't hardcode URLs or magic numbers
+- Don't skip error handling
+- Don't mutate props, use emits
+- Don't fetch in templates
 
-1. **Don't fetch in templates** - Always fetch in setup() or onMounted()
-2. **Don't mutate props** - Use emit to communicate changes to parent
-3. **Don't use any type** - Always provide proper TypeScript types
-4. **Don't ignore errors** - Always handle and display errors to users
-5. **Don't poll unnecessarily** - Use SSE for real-time updates
-6. **Don't create custom components prematurely** - Check PrimeVue catalog first
-7. **Don't hardcode API URLs** - Always use the API client
-8. **Don't skip loading states** - Users need feedback during async operations
-
-## Integration Points
-
-### With Vox Agents Backend
-- Shared process - UI server runs in same Node process
-- Unified configuration - Reads from same config.json
-- Logger integration - Winston logs streamed via SSE
-- Session management - Direct access to StrategistSession
-
-### With Game Data
-- Telemetry databases - Direct SQLite access via Kysely
-- Agent parameters - Read-only context from VoxContext
-- MCP tools - Visualization of tool calls and responses
-- Game state - Real-time updates via bridge service (future)
-
-## Next Steps for Development
-
-When implementing new features:
-1. Check if PrimeVue has a component for it
-2. Create TypeScript interfaces for all data
-3. Implement API endpoint if needed
-4. Build component with loading/error states
-5. Add to router if it's a new view
+## When Adding Features
+1. Check PrimeVue catalog first
+2. Look at existing components for patterns
+3. Use types from `@/utils/types`
+4. Use existing CSS classes from `styles/`
+5. Handle loading, error, and empty states
 6. Test with real game data
-7. Handle edge cases (empty data, errors, disconnections)
