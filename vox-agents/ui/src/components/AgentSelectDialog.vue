@@ -44,29 +44,27 @@ const dialogVisible = computed({
   set: (value: boolean) => emit('update:visible', value)
 });
 
-const contextDescription = computed(() => {
+const contextType = computed(() => {
+  if (props.contextId) return 'Active Game';
+  if (props.databasePath) return 'Database';
+  return 'No Context';
+});
+
+const contextName = computed(() => {
   if (props.contextId) {
-    return `Active Session: ${props.contextId}`;
+    return props.contextId;
   } else if (props.databasePath) {
-    const filename = props.databasePath.split(/[/\\]/).pop() || props.databasePath;
-    let description = `Database: ${filename}`;
-
-    // Add turn information
-    if (props.turn !== undefined) {
-      description += ` (Turn ${props.turn})`;
-    }
-
-    // Add span information if available
-    if (props.span) {
-      description += ` - ${props.span.name}`;
-      if (props.span.spanId) {
-        description += ` [${props.span.spanId.substring(0, 8)}...]`;
-      }
-    }
-
-    return description;
+    return props.databasePath.split(/[/\\]/).pop() || props.databasePath;
   }
-  return 'No context selected';
+  return '';
+});
+
+const contextTurn = computed(() => {
+  return props.span?.attributes?.turn || props.turn;
+});
+
+const contextSpanName = computed(() => {
+  return props.span?.name || '';
 });
 
 // Methods
@@ -163,7 +161,12 @@ onMounted(() => {
   >
     <template #header>
       <h2>Select Agent</h2>
-      <Tag :value="contextDescription" severity="info" />
+      <div class="context-tags">
+        <Tag :value="contextType" severity="info" />
+        <Tag v-if="contextName" :value="contextName" />
+        <Tag v-if="contextTurn !== undefined" :value="`Turn ${contextTurn}`" severity="secondary" />
+        <Tag v-if="contextSpanName" :value="contextSpanName" severity="contrast" />
+      </div>
     </template>
 
     <!-- Loading State -->
@@ -235,4 +238,10 @@ onMounted(() => {
 <style scoped>
 @import '@/styles/states.css';
 @import '@/styles/data-table.css';
+
+.context-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
 </style>
