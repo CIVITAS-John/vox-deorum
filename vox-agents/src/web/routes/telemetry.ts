@@ -11,6 +11,7 @@ import path from 'path';
 import multer from 'multer';
 import { createLogger } from '../../utils/logger.js';
 import { sqliteExporter } from '../../instrumentation.js';
+import { parseDatabaseIdentifier, parseContextIdentifier } from '../../utils/identifier-parser.js';
 import type {
   TelemetryDatabasesResponse,
   TelemetryMetadata,
@@ -66,21 +67,14 @@ router.get('/databases', async (_req: Request, res: Response<TelemetryDatabasesR
         } else if (entry.isFile() && entry.name.endsWith('.db')) {
           const stats = await fs.stat(fullPath);
 
-          // Get relative folder path from telemetry directory
-          const relativePath = path.relative(baseDir, dir);
-          const folderPath = relativePath.replace(/\\/g, '/');
-
-          // Parse filename (gameid-playerid.db format)
-          const nameWithoutExt = path.basename(entry.name, '.db');
-          const parts = nameWithoutExt.split('-');
-          const playerId = parts[parts.length - 1] || 'unknown';
-          const gameId = parts.slice(0, -2).join('-') || 'unknown';
+          // Parse filename and folder path using utility function
+          const identifierInfo = parseDatabaseIdentifier(fullPath, baseDir);
 
           databases.push({
-            folder: folderPath,
+            folder: identifierInfo.folderPath || '',
             filename: entry.name,
-            gameId,
-            playerId,
+            gameId: identifierInfo.gameID,
+            playerId: identifierInfo.playerID.toString(),
             size: stats.size,
             lastModified: stats.mtime.toISOString()
           });
@@ -144,18 +138,13 @@ router.get('/sessions/active', async (_req: Request, res: Response<TelemetrySess
 
   // Parse session IDs to extract game and player info
   const sessions: TelemetrySession[] = sessionIds.map(sessionId => {
-    // Format is typically: gameId-playerId-timestamp
-    const parts = sessionId.split('-');
-    if (parts.length >= 2) {
-      const playerId = parts[parts.length - 1];
-      const gameId = parts.slice(0, -2).join('-');
-      return {
-        sessionId,
-        gameId: gameId || undefined,
-        playerId: playerId || undefined
-      };
-    }
-    return { sessionId };
+    // Use utility function to parse identifier
+    const identifierInfo = parseContextIdentifier(sessionId);
+    return {
+      sessionId,
+      gameId: identifierInfo.gameID !== sessionId ? identifierInfo.gameID : undefined,
+      playerId: identifierInfo.playerID > 0 ? identifierInfo.playerID.toString() : undefined
+    };
   });
 
   res.json({ sessions });

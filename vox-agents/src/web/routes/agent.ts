@@ -8,6 +8,8 @@
 
 import { Router, Request, Response } from 'express';
 import { agentRegistry } from '../../infra/agent-registry.js';
+import { contextRegistry } from '../../infra/context-registry.js';
+import { VoxContext } from '../../infra/vox-context.js';
 import { EnvoyThread } from '../../envoy/envoy-thread.js';
 import { createLogger } from '../../utils/logger.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,7 +17,11 @@ import { SSEManager } from '../sse-manager.js';
 import { ModelMessage } from 'ai';
 import { sqliteExporter } from '../../instrumentation.js';
 import fs from 'fs/promises';
-import path from 'path';
+import {
+  parseContextIdentifier,
+  parseDatabaseIdentifier,
+  createTelepathicContextId
+} from '../../utils/identifier-parser.js';
 import type {
   ListAgentsResponse,
   CreateSessionRequest,
@@ -26,6 +32,8 @@ import type {
   DeleteSessionResponse,
   AgentInfo
 } from '../types/agent-api.js';
+import { StrategistParameters } from '../../strategist/strategy-parameters.js';
+import { StreamingEventCallback } from '../../types/index.js';
 
 const logger = createLogger('webui:agent-routes');
 
@@ -82,29 +90,35 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
       let gameID = 'unknown';
       let playerID = 0;
       const contextType = databasePath ? 'database' : 'live';
+      let effectiveContextId = contextId;
 
       if (contextId) {
-        // Check if contextId refers to an active telemetry session
-        const activeConnections = sqliteExporter.getActiveConnections();
-        if (activeConnections.includes(contextId)) {
-          // Parse gameId and playerId from contextId (format: gameId-playerId)
-          const parts = contextId.split('-');
-          if (parts.length >= 2) {
-            playerID = parseInt(parts[parts.length - 1] || '0', 10);
-            gameID = parts.slice(0, -1).join('-') || contextId;
-          } else {
-            gameID = contextId;
-          }
+        // First check if this is an existing VoxContext
+        const existingContext = contextRegistry.get(contextId);
+        if (existingContext) {
+          // Use the existing live context
+          logger.info(`Using existing VoxContext: ${contextId}`);
+          // Parse gameId and playerId using utility function
+          const identifierInfo = parseContextIdentifier(contextId);
+          gameID = identifierInfo.gameID;
+          playerID = identifierInfo.playerID;
+        } else {
+          return res.status(400).json({ error: `Connection not found: ${contextId}` } as any);
         }
       } else if (databasePath) {
         // Validate database file exists
         try {
           await fs.access(databasePath);
-          // Parse gameId and playerId from filename
-          const nameWithoutExt = path.basename(databasePath, '.db');
-          const parts = nameWithoutExt.split('-');
-          playerID = parseInt(parts[parts.length - 1] || '0', 10);
-          gameID = parts.slice(0, -1).join('-') || 'unknown';
+          // Parse gameId and playerId using utility function
+          const identifierInfo = parseDatabaseIdentifier(databasePath);
+          gameID = identifierInfo.gameID;
+          playerID = identifierInfo.playerID;
+
+          // Create a new VoxContext for telepathist mode (database-based)
+          effectiveContextId = createTelepathicContextId(gameID, playerID);
+          const telepathContext = new VoxContext<StrategistParameters>({}, effectiveContextId);
+          await telepathContext.registerMCP();
+          logger.info(`Created new VoxContext for telepathist mode: ${effectiveContextId}`);
         } catch {
           return res.status(400).json({ error: `Database file not found: ${databasePath}` } as any);
         }
@@ -121,7 +135,7 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
         gameID,
         playerID,
         contextType,
-        contextId,
+        contextId: effectiveContextId!,
         databasePath,
         messages: [],
         metadata: {
@@ -188,16 +202,22 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
         res.status(400).json({ error: 'Message is required' });
         return;
       }
-      
+
       if (!sessionId) {
         res.status(400).json({ error: 'SessionID is required' });
         return;
       }
 
-      // Get or create session
+      // Get session
       let thread = chatSessions.get(sessionId);
       if (!thread) {
         res.status(404).json({ error: 'Session not found' });
+        return;
+      }
+
+      const voxContext = contextRegistry.get<StrategistParameters>(thread.contextId);
+      if (!voxContext) {
+        res.status(400).json({ error: 'Context not found. It may have been shut down.' });
         return;
       }
 
@@ -223,38 +243,78 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
       // Send initial connection event
       sseManager.broadcast('connected', { sessionId: thread.id });
 
-      // Simulate agent response (would integrate with actual agent execution)
-      // For now, just echo back the message
-      setTimeout(() => {
-        // Send message chunks
-        const response = `I received your message: "${message}". This is a placeholder response from ${thread.agent}.`;
-        const chunks = response.split(' ');
+      try {
+        // Prepare parameters for agent execution
+        const parameters: StrategistParameters = {
+          playerID: thread.playerID,
+          gameID: thread.gameID,
+          turn: thread.metadata?.turn || 0,
+          after: 0,
+          before: Date.now(),
+          gameStates: []
+        };
 
-        chunks.forEach((chunk, index) => {
-          setTimeout(() => {
-            sseManager.broadcast('message', { text: chunk + ' ' });
-          }, index * 100);
-        });
+        // Execute the agent with the thread as input
+        const streamCallback: StreamingEventCallback = {
+          OnChunk: ({ chunk }) => {
+            // Handle different chunk types
+            if (chunk.type === 'text-delta') {
+              sseManager.broadcast('message', { text: chunk.text });
+            } else if (chunk.type === 'tool-call') {
+              sseManager.broadcast('tool-call', {
+                toolName: chunk.toolName,
+                toolCallId: chunk.toolCallId,
+                input: chunk.input
+              });
+            } else if (chunk.type === 'tool-result') {
+              sseManager.broadcast('tool-result', {
+                toolName: chunk.toolName,
+                toolCallId: chunk.toolCallId,
+                output: chunk.output
+              });
+            }
+          }
+        };
 
-        // Send completion after all chunks
-        setTimeout(() => {
-          // Add assistant message to thread
+        const result = await voxContext.execute(
+          thread.agent,
+          parameters,
+          thread,
+          streamCallback
+        );
+
+        // The result should be an updated EnvoyThread
+        if (result && typeof result === 'object' && 'messages' in result) {
+          // Update the thread with the result
+          thread.messages = result.messages;
+          thread.metadata = result.metadata || thread.metadata;
+        } else {
+          // If the agent doesn't return a thread, add a generic response
           const assistantMessage: ModelMessage = {
             role: 'assistant',
-            content: response
+            content: typeof result === 'string' ? result : 'Response processed successfully.'
           };
-          thread!.messages.push(assistantMessage);
+          thread.messages.push(assistantMessage);
+        }
 
-          sseManager.broadcast('done', {
-            sessionId: thread!.id,
-            messageCount: thread!.messages.length
-          });
-        }, chunks.length * 100 + 500);
-      }, 500);
+        sseManager.broadcast('done', {
+          sessionId: thread.id,
+          messageCount: thread.messages.length
+        });
+
+      } catch (error) {
+        logger.error('Failed to execute agent', { error });
+        sseManager.broadcast('error', {
+          message: 'Failed to execute agent',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
 
       // Handle client disconnect
       req.on('close', () => {
         logger.info(`Chat client disconnected`);
+        // Optionally abort the context if it's still running
+        voxContext.abort(false);
       });
 
     } catch (error) {
@@ -265,14 +325,24 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
 
   /**
    * DELETE /api/agents/session/:sessionId - Delete a chat session
-   * Removes the specified session from memory
+   * Removes the specified session from memory and optionally shuts down its context
    */
-  router.delete('/agents/session/:sessionId', (req: Request, res: Response<DeleteSessionResponse>): Response => {
+  router.delete('/agents/session/:sessionId', async (req: Request, res: Response<DeleteSessionResponse>): Promise<Response> => {
     try {
       const { sessionId } = req.params;
+      const thread = chatSessions.get(sessionId);
 
-      if (!chatSessions.has(sessionId)) {
+      if (!thread) {
         return res.status(404).json({ error: 'Session not found' } as any);
+      }
+
+      // If this is a telepathist context (database-based), shut it down
+      if (thread.contextId && thread.contextId.startsWith('telepathist-')) {
+        const context = contextRegistry.get(thread.contextId);
+        if (context) {
+          await context.shutdown();
+          logger.info(`Shut down telepathist context: ${thread.contextId}`);
+        }
       }
 
       chatSessions.delete(sessionId);

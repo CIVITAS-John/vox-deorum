@@ -31,7 +31,7 @@ export interface EnvoyThread {
   contextType: 'live' | 'database';
 
   /** VoxContext ID for live sessions */
-  contextId?: string;
+  contextId: string;
 
   /** Database file path for database sessions */
   databasePath?: string;
