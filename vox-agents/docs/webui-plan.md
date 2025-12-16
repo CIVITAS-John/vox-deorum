@@ -223,9 +223,29 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - Save All/Reload functionality with success/error messaging
 
 ### Stage 6: Agent Chat
-**Status**: 🔄 Not Started
+**Status**: 🔄 Partially Started - Foundation exists
 
 **Overview**: Unified chat interface for interacting with agents - both specialized agents (Diplomat, General) using live context and a Telepathist agent for analyzing past records via telemetry.
+
+**What's Already Implemented**:
+- **Backend Foundation**:
+  - Base `Envoy` agent class exists at `src/envoy/envoy.ts` for chat-based interactions
+  - `EnvoyThread` data structure at `src/envoy/envoy-thread.ts` for conversation context
+  - Chat types defined in `src/types/chat.ts` with streaming event callbacks
+
+- **Frontend Foundation**:
+  - Basic `ChatView.vue` component created with session selection UI
+  - Integration with active sessions from telemetry store
+  - Navigation to session/telemetry views for session discovery
+  - Uses `ActiveSessionsList` component for session display
+
+**What's Still Needed**:
+- Backend API routes in `src/web/routes/agent.ts` for all agent endpoints
+- Chat session management and storage, reusing existing types
+- Integration between Envoy agents and VoxContext/telemetry databases
+- Frontend chat interface components (message list, input, streaming display)
+- SSE streaming implementation for real-time responses
+- Tool call display and formatting
 
 #### Unified Chat API
 Single endpoint handles all agent interactions with streaming responses.
@@ -342,19 +362,24 @@ Single endpoint handles all agent interactions with streaming responses.
 ```
 
 ### Stage 7: Session Control
-**Status**: 🔄 Not Started
+**Status**: 🔄 Not Started - Placeholder exists
 
-**Backend Requirements**:
-- Wrapper API around StrategistSession
+**What's Already Implemented**:
+- Basic `SessionView.vue` component created as placeholder
+- Route configured in Vue Router
+
+**Backend Requirements Still Needed**:
+- Wrapper API around StrategistSession in `src/web/routes/session.ts`
 - Session state management
 - Progress tracking via SSE
 - Graceful shutdown handling
 
-**Frontend Requirements**:
+**Frontend Requirements Still Needed**:
 - Session status card
-- Start/stop controls
-- Progress indicators
-- Config selector from available files
+- Start/stop controls with config file selection
+- Progress indicators for turn processing
+- Real-time status updates via SSE
+- Integration with existing StrategistSession class
 
 ## API Design
 

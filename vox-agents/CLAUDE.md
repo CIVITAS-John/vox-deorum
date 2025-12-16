@@ -42,7 +42,10 @@ The system supports standalone and component modes:
 - `turn` - Current game turn number
 - `after`/`before` - Event filtering timestamps
 - `running` - Track currently executing agent
+- `metadata` - Custom agent annotations for game metadata
+- `gameStates` - Map of turn numbers to game state snapshots
 - **Pattern**: `store` provides persistent state across executions
+- **Pattern**: `gameStates` maintains historical game information for analysis
 
 ## Module System
 
@@ -130,6 +133,16 @@ The system supports standalone and component modes:
 
 ## Type Safety
 
+### Strong Typing for Game State
+- **GameState** interface with typed reports from MCP server
+- Import types directly from MCP server build output:
+  ```typescript
+  import type { CitiesReport } from "../../../mcp-server/dist/tools/knowledge/get-cities.js";
+  import type { PlayersReport } from "../../../mcp-server/dist/tools/knowledge/get-players.js";
+  ```
+- Structured parameter storage with proper type definitions
+- **Pattern**: Always use typed imports from MCP server for game data structures
+
 ### Zod Schema Integration
 - Create agent tools with Zod input/output schemas
 - Provide default schemas if not specified by agent
@@ -166,10 +179,12 @@ The system supports standalone and component modes:
 VoxAgent (Base)
 ├── Briefer (Game state analysis)
 │   └── SimpleBriefer
-└── Strategist (Strategic decisions)
-    ├── NoneStrategist (Baseline)
-    ├── SimpleStrategist (Direct)
-    └── SimpleStrategistBriefed (Two-stage)
+├── Strategist (Strategic decisions)
+│   ├── NoneStrategist (Baseline)
+│   ├── SimpleStrategist (Direct)
+│   └── SimpleStrategistBriefed (Two-stage)
+└── Envoy (Diplomatic interactions)
+    └── (In development)
 ```
 
 ### Creating New Agents
@@ -352,6 +367,13 @@ PrimeVue includes full color scales (50-950) for all colors:
 /* var(--vp-font-family-mono) ❌ - use 'Courier New', Courier, monospace */
 ```
 
+### Web UI Components
+- **SSE Manager** for real-time log streaming
+- **Express Server** with CORS and static file serving
+- **API Routes** organized by feature (telemetry, config, chat)
+- **Vue Components** with PrimeVue for rich UI elements
+- **Pattern**: Use SSE for server-to-client streaming data
+
 ### Development Server
 - Vite for fast development and bundling
 - Configure cache headers to prevent stale content:
@@ -362,6 +384,8 @@ PrimeVue includes full color scales (50-950) for all colors:
     'Expires': '0'
   }
   ```
+- **Hot Module Replacement** for rapid UI development
+- **Proxy configuration** for API endpoints during development
 
 ## Common Pitfalls
 

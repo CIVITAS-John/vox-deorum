@@ -10,11 +10,13 @@ LLM-powered strategic AI agents for Civilization V. This module implements sophi
   - `NoneStrategist` - Baseline agent for testing
   - `SimpleStrategist` - Direct strategy implementation
   - `SimpleStrategistBriefed` - Two-stage analysis with briefing
+- **Envoy Agents** - Diplomatic and negotiation agents (in development)
 - **MCP Client** - Robust HTTP/SSE client for MCP server communication
 - **Tool Integration** - Dynamic tool wrapping and composition for game actions
-- **Multi-LLM Support** - OpenRouter, OpenAI, and Google AI providers
-- **Session Management** - Persistent session tracking for game continuity
-- **Observability** - OpenTelemetry integration with SQLite export
+- **Multi-LLM Support** - OpenRouter, OpenAI, Google AI, and Anthropic providers
+- **Session Management** - Persistent session tracking with game state storage
+- **Web UI** - Vue 3 dashboard for monitoring and control
+- **Observability** - OpenTelemetry integration with SQLite and Parquet export
 
 ## Architecture
 
@@ -27,14 +29,17 @@ LLM Providers ← Vox Agents → MCP Server → Bridge Service → Civ V
 
 ### Core Components
 
-- **VoxAgent** (`infra/vox-agent.ts`) - Base class with step execution and tool integration
-- **VoxContext** (`infra/vox-context.ts`) - Execution context with MCP client management
-- **VoxCivilization** (`infra/vox-civilization.ts`) - Game process lifecycle management
-- **Briefer** (`briefer/briefer.ts`) - Base class for game state analysis
-- **Strategist** (`strategist/strategist.ts`) - Base class for strategic decisions
-- **MCP Client** (`utils/models/mcp-client.ts`) - Event-driven MCP communication
-- **Tool Wrapper** (`utils/tools/wrapper.ts`) - Dynamic tool adaptation for LLMs
-- **Session Manager** (`strategist/strategist-session.ts`) - Game session tracking
+- **VoxAgent** ([vox-agent.ts](src/infra/vox-agent.ts)) - Base class with step execution and tool integration
+- **VoxContext** ([vox-context.ts](src/infra/vox-context.ts)) - Execution context with MCP client management
+- **VoxCivilization** ([vox-civilization.ts](src/infra/vox-civilization.ts)) - Game process lifecycle management
+- **Briefer** ([briefer.ts](src/briefer/briefer.ts)) - Base class for game state analysis
+- **Strategist** ([strategist.ts](src/strategist/strategist.ts)) - Base class for strategic decisions
+- **Envoy** ([envoy.ts](src/envoy/envoy.ts)) - Base class for diplomatic interactions
+- **MCP Client** ([mcp-client.ts](src/utils/models/mcp-client.ts)) - Event-driven MCP communication
+- **Tool Wrapper** ([wrapper.ts](src/utils/tools/wrapper.ts)) - Dynamic tool adaptation for LLMs
+- **Session Manager** ([strategist-session.ts](src/strategist/strategist-session.ts)) - Game session with state persistence
+- **Web Server** ([server.ts](src/web/server.ts)) - Express API and Vue UI hosting
+- **Agent Registry** ([agent-registry.ts](src/infra/agent-registry.ts)) - Dynamic agent discovery and loading
 
 ## Quick Start
 
@@ -112,9 +117,12 @@ By default, the strategist runs in **interactive mode**:
 Example configuration:
 ```json
 {
-  "llmPlayers": [1],           // Array of player IDs to control with LLM
+  "llmPlayers": {              // Object mapping player IDs to strategist configs
+    "1": {
+      "strategist": "simple-strategist"
+    }
+  },
   "autoPlay": false,           // false = interactive (pauses), true = observe (auto)
-  "strategist": "simple-strategist", // Agent to use
   "gameMode": "start",         // Game mode ("start" for new game, "load" for saved game)
   "repetition": 1              // Number of games to play in sequence
 }
@@ -202,6 +210,30 @@ The agent workflow:
 4. Analyzes game state and makes decisions
 5. Resumes game automatically
 6. Handles crashes with automatic recovery
+
+## Web UI Dashboard
+
+The module includes a Vue 3 dashboard for monitoring and control:
+
+```bash
+# Build everything including UI
+npm run build
+
+# Development mode with hot reload
+cd ui && npm run dev
+
+# Preview production build
+cd ui && npm run preview
+```
+
+The web server starts automatically with the agents and serves the UI at http://localhost:3333
+
+Features:
+- **Real-time Logs** - Stream logs from all components with filtering
+- **Telemetry Viewer** - Inspect OpenTelemetry spans and traces
+- **Session Monitor** - Track active game sessions and agent states
+- **Configuration Editor** - Modify runtime configuration
+- **Agent Chat** - Interactive chat interface with agents
 
 ## Key Implementation Details
 
@@ -296,7 +328,8 @@ vox-agents/
 │   ├── infra/                 # Core framework
 │   │   ├── vox-agent.ts       # Base agent class
 │   │   ├── vox-context.ts     # Execution context
-│   │   └── vox-civilization.ts # Game lifecycle
+│   │   ├── vox-civilization.ts # Game lifecycle
+│   │   └── agent-registry.ts  # Dynamic agent loading
 │   ├── briefer/               # Briefing agents
 │   │   ├── briefer.ts         # Base briefer
 │   │   ├── simple-briefer.ts  # Simple implementation
@@ -309,15 +342,29 @@ vox-agents/
 │   │   │   └── simple-strategist-briefed.ts
 │   │   ├── strategist.ts      # Base strategist
 │   │   ├── strategist-session.ts # Session management
-│   │   ├── strategy-parameters.ts # Parameters
+│   │   ├── strategy-parameters.ts # Typed parameters
 │   │   ├── vox-player.ts      # Player management
 │   │   └── index.ts           # Entry point
+│   ├── envoy/                 # Diplomatic agents
+│   │   ├── envoy.ts           # Base envoy class
+│   │   └── envoy-thread.ts    # Conversation threading
+│   ├── web/                   # Web UI backend
+│   │   ├── server.ts          # Express server
+│   │   ├── sse-manager.ts     # Server-sent events
+│   │   └── routes/            # API endpoints
 │   ├── utils/                 # Utilities
-│   │   ├── models/            # LLM clients
-│   │   ├── telemetry/         # Observability
-│   │   └── tools/             # Tool wrappers
+│   │   ├── models/            # LLM clients & middleware
+│   │   ├── telemetry/         # Observability & export
+│   │   ├── tools/             # Tool wrappers & helpers
+│   │   ├── config.ts          # Configuration loader
+│   │   ├── logger.ts          # Winston logger
+│   │   └── retry.ts           # Exponential backoff
+│   ├── types/                 # TypeScript types
 │   └── instrumentation.ts     # OpenTelemetry setup
+├── ui/                        # Vue 3 dashboard
+│   ├── src/                   # Frontend source
+│   └── vite.config.ts         # Vite configuration
 ├── tests/                     # Vitest suite
-├── configs/                   # Configuration files
+├── configs/                   # Game configurations
 └── package.json
 ```
