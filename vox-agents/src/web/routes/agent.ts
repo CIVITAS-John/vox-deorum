@@ -15,7 +15,6 @@ import { createLogger } from '../../utils/logger.js';
 import { v4 as uuidv4 } from 'uuid';
 import { SSEManager } from '../sse-manager.js';
 import { ModelMessage } from 'ai';
-import { sqliteExporter } from '../../instrumentation.js';
 import fs from 'fs/promises';
 import {
   parseContextIdentifier,
@@ -196,7 +195,7 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
    */
   router.post('/agents/chat', async (req: Request<{}, {}, ChatRequest>, res: Response): Promise<void> => {
     try {
-      const { agentName, sessionId, message } = req.body;
+      const { sessionId, message } = req.body;
 
       if (!message) {
         res.status(400).json({ error: 'Message is required' });
@@ -244,64 +243,24 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
       sseManager.broadcast('connected', { sessionId: thread.id });
 
       try {
-        // Prepare parameters for agent execution
-        const parameters: StrategistParameters = {
-          playerID: thread.playerID,
-          gameID: thread.gameID,
-          turn: thread.metadata?.turn || 0,
-          after: 0,
-          before: Date.now(),
-          gameStates: []
-        };
-
         // Execute the agent with the thread as input
         const streamCallback: StreamingEventCallback = {
           OnChunk: ({ chunk }) => {
-            // Handle different chunk types
-            if (chunk.type === 'text-delta') {
-              sseManager.broadcast('message', { text: chunk.text });
-            } else if (chunk.type === 'tool-call') {
-              sseManager.broadcast('tool-call', {
-                toolName: chunk.toolName,
-                toolCallId: chunk.toolCallId,
-                input: chunk.input
-              });
-            } else if (chunk.type === 'tool-result') {
-              sseManager.broadcast('tool-result', {
-                toolName: chunk.toolName,
-                toolCallId: chunk.toolCallId,
-                output: chunk.output
-              });
-            }
+            sseManager.broadcast('message', chunk);
           }
         };
 
-        const result = await voxContext.execute(
+        await voxContext.execute(
           thread.agent,
-          parameters,
+          voxContext.lastParameter!,
           thread,
           streamCallback
         );
-
-        // The result should be an updated EnvoyThread
-        if (result && typeof result === 'object' && 'messages' in result) {
-          // Update the thread with the result
-          thread.messages = result.messages;
-          thread.metadata = result.metadata || thread.metadata;
-        } else {
-          // If the agent doesn't return a thread, add a generic response
-          const assistantMessage: ModelMessage = {
-            role: 'assistant',
-            content: typeof result === 'string' ? result : 'Response processed successfully.'
-          };
-          thread.messages.push(assistantMessage);
-        }
 
         sseManager.broadcast('done', {
           sessionId: thread.id,
           messageCount: thread.messages.length
         });
-
       } catch (error) {
         logger.error('Failed to execute agent', { error });
         sseManager.broadcast('error', {

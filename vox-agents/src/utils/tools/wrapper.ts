@@ -145,7 +145,7 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
           'tool.name': tool.name,
           'tool.type': 'mcp',
           'vox.context.id': context.id,
-          'game.turn': context.turn
+          'game.turn': context.lastParameter?.turn ?? -1
         }
       });
 

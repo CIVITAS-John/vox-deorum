@@ -66,9 +66,9 @@ export class VoxContext<TParameters extends AgentParameters> {
   public outputTokens: number = 0;
 
   /**
-   * Current game turn
+   * The last executed parameter
    */
-  public turn: number = 0
+  public lastParameter?: TParameters;
 
   /**
    * Constructor for VoxContext
@@ -205,7 +205,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     }
 
     let currentAgent = parameters.running;
-    this.turn = parameters.turn;
+    this.lastParameter = parameters;
     parameters.running = agentName;
 
     const span = this.tracer.startSpan(`agent.${agentName}`, {
