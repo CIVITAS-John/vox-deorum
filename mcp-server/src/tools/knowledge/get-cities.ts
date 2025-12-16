@@ -57,6 +57,16 @@ const CityDataSchema = z.object({
 });
 
 /**
+ * Schema for the tool's output.
+ */
+const GetCitiesOutputSchema = z.record(z.string(), z.record(z.string(), CityDataSchema));
+
+/**
+ * Type for the tool's output.
+ */
+export type CitiesReport = z.infer<typeof GetCitiesOutputSchema>;
+
+/**
  * Tool for retrieving city information with visibility controls
  */
 class GetCitiesTool extends ToolBase {
@@ -78,7 +88,7 @@ class GetCitiesTool extends ToolBase {
   /**
    * Output schema for the tool
    */
-  readonly outputSchema = z.record(z.string(), z.record(z.string(), CityDataSchema));
+  readonly outputSchema = GetCitiesOutputSchema;
 
   /**
    * Optional annotations for the tool

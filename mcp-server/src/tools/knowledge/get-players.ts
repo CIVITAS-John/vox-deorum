@@ -71,6 +71,12 @@ const PlayerDataSchema = z.object({
 }).passthrough();
 
 /**
+ * Type for the tool's output.
+ */
+const GetPlayersOutputSchema = z.record(z.string(), z.union([PlayerDataSchema, z.string()]));
+export type PlayersReport = z.infer<typeof GetPlayersOutputSchema>;
+
+/**
  * Tool for retrieving player information and summaries
  */
 class GetPlayersTool extends ToolBase {
@@ -92,7 +98,7 @@ class GetPlayersTool extends ToolBase {
   /**
    * Output schema for the tool
    */
-  readonly outputSchema = z.record(z.string(), z.union([PlayerDataSchema, z.string()]));
+  readonly outputSchema = GetPlayersOutputSchema;
 
   /**
    * Optional annotations for the tool

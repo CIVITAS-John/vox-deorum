@@ -1,5 +1,12 @@
 import { AgentParameters } from "../infra/vox-agent.js";
 import { VoxContext } from "../infra/vox-context.js";
+import type { CitiesReport } from "../../../mcp-server/dist/tools/knowledge/get-cities.js";
+import type { PlayersReport } from "../../../mcp-server/dist/tools/knowledge/get-players.js";
+import type { EventsReport } from "../../../mcp-server/dist/tools/knowledge/get-events.js";
+import type { MilitaryReport } from "../../../mcp-server/dist/tools/knowledge/get-military-report.js";
+import type { OptionsReport } from "../../../mcp-server/dist/tools/knowledge/get-options.js";
+import type { VictoryProgressReport } from "../../../mcp-server/dist/tools/knowledge/get-victory-progress.js";
+import type { GameMetadata } from "../../../mcp-server/dist/tools/knowledge/get-metadata.js"
 
 /**
  * Parameters for the strategist agent
@@ -10,7 +17,7 @@ export interface StrategistParameters extends AgentParameters {
   /** Fetch events equals to or before this ID */
   before: number;
   /** Metadata storage for custom agent annotations */
-  metadata?: any;
+  metadata?: GameMetadata;
   /** Map of turn numbers to game states for historical tracking */
   gameStates: Record<number, GameState>;
 }
@@ -20,17 +27,17 @@ export interface StrategistParameters extends AgentParameters {
  */
 export interface GameState {
   /** Player information including civilizations, leaders, and diplomacy */
-  players?: any;
+  players?: PlayersReport;
   /** Game events that occurred during this turn */
-  events?: any;
+  events?: EventsReport;
   /** Cities data including population, production, and buildings */
-  cities?: any;
+  cities?: CitiesReport;
   /** Available strategic and tactical options */
-  options?: any;
+  options?: OptionsReport;
   /** Military units, positions, and combat status */
-  military?: any;
+  military?: MilitaryReport;
   /** Victory condition progress and standings */
-  victory?: any;
+  victory?: VictoryProgressReport;
   /** Additional reports (e.g. briefings) */
   reports: Record<string, string>;
 }

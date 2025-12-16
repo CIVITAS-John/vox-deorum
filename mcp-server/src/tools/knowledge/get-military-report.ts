@@ -17,6 +17,12 @@ const GetMilitaryReportInputSchema = z.object({
 });
 
 /**
+ * Type for the tool's output.
+ */
+const GetMilitaryReportOutputSchema = z.record(z.string(), z.any());
+export type MilitaryReport = z.infer<typeof GetMilitaryReportOutputSchema>;
+
+/**
  * Tool for retrieving military report
  */
 class GetMilitaryReportTool extends ToolBase {
@@ -38,7 +44,7 @@ class GetMilitaryReportTool extends ToolBase {
   /**
    * Output schema for the tool
    */
-  readonly outputSchema = z.record(z.string(), z.any());
+  readonly outputSchema = GetMilitaryReportOutputSchema;
 
   /**
    * Optional annotations for the tool

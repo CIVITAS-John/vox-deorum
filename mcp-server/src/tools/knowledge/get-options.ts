@@ -59,6 +59,11 @@ const GetOptionsOutputSchema = z.object({
 }).passthrough();
 
 /**
+ * Type for the tool's output.
+ */
+export type OptionsReport = z.infer<typeof GetOptionsOutputSchema>;
+
+/**
  * Tool for retrieving player strategic options
  */
 class GetOptionsTool extends ToolBase {

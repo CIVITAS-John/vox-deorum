@@ -29,14 +29,14 @@ const MetadataSchema = z.object({
 });
 
 /**
- * Type for the metadata result schema
+ * Export type for reuse
  */
-type MetadataType = z.infer<typeof MetadataSchema>;
+export type GameMetadata = z.infer<typeof MetadataSchema>;
 
 /**
  * Tool for retrieving static game metadata
  */
-class GetMetadataTool extends LuaFunctionTool<MetadataType> {
+class GetMetadataTool extends LuaFunctionTool<GameMetadata> {
   /**
    * Unique identifier for the tool
    */

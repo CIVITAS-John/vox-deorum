@@ -37,6 +37,14 @@ const GameEventOutputSchema = z.object({
 }).passthrough();
 
 /**
+ * Type for the tool's output.
+ */
+const GetEventsOutputSchema = z.union([z.object({
+  events: z.array(GameEventOutputSchema)
+}), z.object({}).passthrough()]);
+export type EventsReport = z.infer<typeof GetEventsOutputSchema>;
+
+/**
  * Tool for retrieving game events with optional filtering
  */
 class GetEventsTool extends ToolBase {
@@ -58,9 +66,7 @@ class GetEventsTool extends ToolBase {
   /**
    * Output schema for the tool
    */
-  readonly outputSchema = z.union([z.object({
-    events: z.array(GameEventOutputSchema)
-  }), z.object({}).passthrough()]);
+  readonly outputSchema = GetEventsOutputSchema;
 
   /**
    * Optional annotations for the tool

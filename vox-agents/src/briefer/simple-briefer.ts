@@ -87,8 +87,9 @@ Reason briefly. Write your briefing as a text document in a clear, direct, conci
     return [{
       role: "system",
       content: `
+You are an expert briefing writer for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
+
 # Situation
-You are writing a strategic briefing for Player ${parameters.playerID ?? 0}.
 ${jsonToMarkdown(parameters.metadata)}`.trim()
     }, {
       role: "user",
@@ -117,7 +118,7 @@ ${jsonToMarkdown(state.military)}
 Events: events since the last decision-making.
 ${jsonToMarkdown(state.events)}
 
-You are writing the briefing for Player ${parameters.playerID ?? 0} after turn ${parameters.turn}.`.trim()
+You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}), after turn ${parameters.turn}.`.trim()
     }];
   }
   

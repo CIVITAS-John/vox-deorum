@@ -94,8 +94,9 @@ You will receive the following reports:
     return [{
       role: "system",
       content: `
+You are ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
+
 # Situation
-You are Player ${parameters.playerID ?? 0}.
 ${jsonToMarkdown(parameters.metadata)}`.trim()
     }, {
       role: "user",
@@ -124,7 +125,7 @@ ${jsonToMarkdown(state.military)}
 Events: events since you last made a decision.
 ${jsonToMarkdown(state.events)}
 
-You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
+You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.YouAre!.Name}, Player ${parameters.playerID ?? 0}), are making strategic decisions after turn ${parameters.turn}.
 `.trim()
     }];
   }

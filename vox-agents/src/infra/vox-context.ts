@@ -6,7 +6,7 @@
  * Implements the agentic loop with tool calling, step preparation, and stop conditions.
  */
 
-import { generateText, Output, Tool, StepResult, ToolSet, ModelMessage, streamText } from "ai";
+import { generateText, Output, Tool, StepResult, ToolSet, ModelMessage, streamText, tool } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
@@ -20,6 +20,7 @@ import { spanProcessor } from '../instrumentation.js';
 import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
 import { countMessagesTokens } from "../utils/token-counter.js";
 import { getAllAgents } from "./agent-registry.js";
+import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 
 /**
  * Runtime context for executing Vox Agents.
@@ -366,6 +367,17 @@ export class VoxContext<TParameters extends AgentParameters> {
         const stepActiveTools = stepConfig.activeTools || agent.getActiveTools(parameters);
         const stepToolChoice = stepConfig.toolChoice || (stepActiveTools && stepActiveTools.length > 0 ? agent.toolChoice : "auto");
         const stepOutputSchema = stepConfig.outputSchema;
+
+        // Prepare tool-result messages by converting nested objects to markdown
+        messages.forEach((message) => {
+          if (!Array.isArray(message.content)) return;
+          // Process each tool result
+          message.content.forEach(toolResult => {
+            if (toolResult.type === 'tool-result' && typeof(toolResult.output.value) === "object") {
+              delete (toolResult.output.value as any)._markdownconfig;
+            }
+          });
+        });
 
         // Record step configuration in span
         stepSpan.setAttributes({

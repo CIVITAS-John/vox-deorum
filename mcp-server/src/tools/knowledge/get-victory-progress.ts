@@ -45,6 +45,11 @@ const GetVictoryProgressOutputSchema = z.object({
 });
 
 /**
+ * Type for the tool's output.
+ */
+export type VictoryProgressReport = z.infer<typeof GetVictoryProgressOutputSchema>;
+
+/**
  * Tool for retrieving victory progress information
  */
 class GetVictoryProgressTool extends ToolBase {

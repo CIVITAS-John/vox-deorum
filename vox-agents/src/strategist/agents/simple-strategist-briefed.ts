@@ -88,8 +88,9 @@ You will receive:
     return [{
       role: "system",
       content: `
+You are ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
+
 # Situation
-You are Player ${parameters.playerID ?? 0}.
 ${jsonToMarkdown(parameters.metadata)}`.trim()
     }, {
       role: "user",
@@ -100,7 +101,7 @@ ${jsonToMarkdown(state.options)}
 # Briefings
 ${briefing}
 
-You, Player ${parameters.playerID ?? 0}, are making strategic decisions after turn ${parameters.turn}.
+You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.YouAre!.Name}, Player ${parameters.playerID ?? 0}), are making strategic decisions after turn ${parameters.turn}.
 `.trim()
     }];
   }
