@@ -374,7 +374,7 @@ export class VoxContext<TParameters extends AgentParameters> {
           // Process each tool result
           message.content.forEach(toolResult => {
             if (toolResult.type === 'tool-result' && typeof(toolResult.output.value) === "object") {
-              delete (toolResult.output.value as any)._markdownconfig;
+              delete (toolResult.output.value as any)._markdownConfig;
             }
           });
         });
