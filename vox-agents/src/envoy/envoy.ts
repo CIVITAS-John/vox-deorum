@@ -7,7 +7,7 @@
 import { StepResult, Tool } from "ai";
 import { VoxAgent } from "../infra/vox-agent.js";
 import { StrategistParameters } from "../strategist/strategy-parameters.js";
-import { EnvoyThread } from "./envoy-thread.js";
+import { EnvoyThread } from "../types/index.js";
 
 /**
  * Base envoy agent that can chat with the user.

@@ -6,6 +6,7 @@
  */
 
 import type { Span, TelemetryMetadata, TelemetrySession } from './telemetry.js';
+import type { EnvoyThread } from './chat.js';
 
 // ============================================================================
 // Core API Response Types
@@ -186,4 +187,75 @@ export interface ChatResponse {
     /** Result returned from the tool */
     result?: any;
   }>;
+}
+
+/**
+ * Information about an available agent
+ */
+export interface AgentInfo {
+  /** Name of the agent */
+  name: string;
+  /** Description of what the agent does */
+  description: string;
+  /** Tags for categorizing/filtering agents */
+  tags: string[];
+}
+
+/**
+ * Response containing list of available agents
+ */
+export interface ListAgentsResponse {
+  /** Array of available agents */
+  agents: AgentInfo[];
+}
+
+/**
+ * Request to create a new chat session
+ */
+export interface CreateSessionRequest {
+  /** Name of the agent to use */
+  agentName: string;
+  /** Context ID for live sessions */
+  contextId?: string;
+  /** Database path for telepathist mode */
+  databasePath?: string;
+  /** Current game turn */
+  turn?: number;
+}
+
+/**
+ * Response after creating a new chat session
+ * Returns the full EnvoyThread object
+ */
+export type CreateSessionResponse = EnvoyThread;
+
+/**
+ * Response containing list of chat sessions
+ */
+export interface ListSessionsResponse {
+  /** Array of active chat sessions (EnvoyThread objects) */
+  sessions: EnvoyThread[];
+}
+
+/**
+ * Response containing a single chat session
+ */
+export type GetSessionResponse = EnvoyThread;
+
+/**
+ * Request to send a chat message
+ */
+export interface ChatRequest {
+  /** Session ID to send the message to */
+  sessionId: string;
+  /** The message content */
+  message: string;
+}
+
+/**
+ * Response after deleting a session
+ */
+export interface DeleteSessionResponse {
+  /** Whether the deletion was successful */
+  success: boolean;
 }

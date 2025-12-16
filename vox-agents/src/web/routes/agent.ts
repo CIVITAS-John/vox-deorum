@@ -10,7 +10,6 @@ import { Router, Request, Response } from 'express';
 import { agentRegistry } from '../../infra/agent-registry.js';
 import { contextRegistry } from '../../infra/context-registry.js';
 import { VoxContext } from '../../infra/vox-context.js';
-import { EnvoyThread } from '../../envoy/envoy-thread.js';
 import { createLogger } from '../../utils/logger.js';
 import { v4 as uuidv4 } from 'uuid';
 import { SSEManager } from '../sse-manager.js';
@@ -21,7 +20,8 @@ import {
   parseDatabaseIdentifier,
   createTelepathicContextId
 } from '../../utils/identifier-parser.js';
-import type {
+import { StrategistParameters } from '../../strategist/strategy-parameters.js';
+import { 
   ListAgentsResponse,
   CreateSessionRequest,
   CreateSessionResponse,
@@ -29,10 +29,10 @@ import type {
   GetSessionResponse,
   ChatRequest,
   DeleteSessionResponse,
-  AgentInfo
-} from '../types/agent-api.js';
-import { StrategistParameters } from '../../strategist/strategy-parameters.js';
-import { StreamingEventCallback } from '../../types/index.js';
+  AgentInfo,
+  StreamingEventCallback, 
+  EnvoyThread
+} from '../../types/index.js';
 
 const logger = createLogger('webui:agent-routes');
 

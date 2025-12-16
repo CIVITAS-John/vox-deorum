@@ -311,7 +311,7 @@ All endpoints use strongly-typed interfaces and return `EnvoyThread` objects dir
   ```
 
 **Implementation Details**:
-- All types defined in `src/web/types/agent-api.ts`
+- All types defined in `src/types/`. In UI, refer through `ui/utils/types.ts`
 - Validates contextId against active telemetry sessions
 - Validates databasePath for file existence
 - Parses gameId/playerId from contextId or database filename
