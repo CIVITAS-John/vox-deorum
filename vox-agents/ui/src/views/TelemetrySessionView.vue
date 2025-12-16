@@ -10,6 +10,7 @@ import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
 import Tag from 'primevue/tag';
 import SpanViewer from '@/components/SpanViewer.vue';
+import AgentSelectDialog from '@/components/AgentSelectDialog.vue';
 import { api } from '@/api/client';
 import type { Span } from '../utils/types';
 
@@ -23,6 +24,9 @@ const spans = ref<Span[]>([]);
 const rootSpan = ref<Span | null>(null);
 const isStreaming = ref(false);
 const streamCleanup = ref<(() => void) | null>(null);
+
+// Dialog state
+const showAgentDialog = ref(false);
 
 // Extract session ID from route
 const sessionId = computed(() => route.params.sessionId as string);
@@ -118,6 +122,13 @@ function toggleStreaming() {
   }
 }
 
+/**
+ * Open agent selection dialog
+ */
+function openAgentDialog() {
+  showAgentDialog.value = true;
+}
+
 onMounted(() => {
   loadSessionSpans();
 });
@@ -145,6 +156,14 @@ onUnmounted(() => {
         </Tag>
       </div>
       <div class="page-header-controls">
+        <Button
+          icon="pi pi-comment"
+          @click="openAgentDialog"
+          label="Chat with Agent"
+          severity="primary"
+          size="small"
+          class="mr-2"
+        />
         <Button
           :icon="isStreaming ? 'pi pi-pause' : 'pi pi-play'"
           @click="toggleStreaming"
@@ -190,6 +209,12 @@ onUnmounted(() => {
       :spans="spans"
       :root-span="rootSpan"
       :is-streaming="isStreaming"
+    />
+
+    <!-- Agent Selection Dialog -->
+    <AgentSelectDialog
+      v-model:visible="showAgentDialog"
+      :contextId="sessionId"
     />
   </div>
 </template>

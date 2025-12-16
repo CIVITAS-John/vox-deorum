@@ -9,6 +9,7 @@ import { useRoute, useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
 import SpanViewer from '@/components/SpanViewer.vue';
+import AgentSelectDialog from '@/components/AgentSelectDialog.vue';
 import { api } from '@/api/client';
 import type { Span } from '../utils/types';
 
@@ -20,6 +21,9 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const spans = ref<Span[]>([]);
 const rootSpan = ref<Span | null>(null);
+
+// Dialog state
+const showAgentDialog = ref(false);
 
 // Extract parameters from route
 const filename = computed(() => {
@@ -61,6 +65,13 @@ async function loadTraceSpans() {
   }
 }
 
+/**
+ * Open agent dialog
+ */
+function openAgentDialog() {
+  showAgentDialog.value = true;
+}
+
 onMounted(() => {
   loadTraceSpans();
 });
@@ -69,14 +80,25 @@ onMounted(() => {
 <template>
   <div class="telemetry-trace-view">
     <!-- Header with navigation -->
-    <div class="simple-header">
-      <Button
-        icon="pi pi-arrow-left"
-        text
-        rounded
-        @click="goBack"
-      />
-      <h1>{{ rootSpan!.name }}</h1>
+    <div class="page-header">
+      <div class="page-header-left">
+        <Button
+          icon="pi pi-arrow-left"
+          text
+          rounded
+          @click="goBack"
+        />
+        <h1>{{ rootSpan?.name || 'Trace View' }}</h1>
+      </div>
+      <div class="page-header-controls">
+        <Button
+          icon="pi pi-comment"
+          @click="openAgentDialog"
+          label="Chat with Telepathist"
+          severity="primary"
+          size="small"
+        />
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -97,6 +119,14 @@ onMounted(() => {
       v-if="rootSpan"
       :spans="spans"
       :root-span="rootSpan"
+    />
+
+    <!-- Agent Selection Dialog -->
+    <AgentSelectDialog
+      v-model:visible="showAgentDialog"
+      :databasePath="`telemetry/${filename}`"
+      :turn="rootSpan?.attributes?.turn || rootSpan?.turn"
+      :span="rootSpan || undefined"
     />
   </div>
 </template>

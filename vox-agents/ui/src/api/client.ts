@@ -17,7 +17,13 @@ import type {
   ConfigListResponse,
   ErrorResponse,
   UploadResponse,
-  Span
+  Span,
+  ListAgentsResponse,
+  CreateSessionRequest,
+  EnvoyThread,
+  ListSessionsResponse,
+  DeleteSessionResponse,
+  ChatRequest
 } from '../utils/types';
 
 /**
@@ -391,7 +397,104 @@ class ApiClient {
       }
     );
   }
-  
+
+  // ============= Agent API Methods =============
+
+  /**
+   * Get list of available agents
+   */
+  async getAgents(): Promise<ListAgentsResponse> {
+    return this.fetchJson<ListAgentsResponse>(
+      `${this.baseUrl}/api/agents`
+    );
+  }
+
+  /**
+   * Create a new agent chat session
+   */
+  async createAgentSession(request: CreateSessionRequest): Promise<EnvoyThread> {
+    return this.fetchJson<EnvoyThread>(
+      `${this.baseUrl}/api/agents/session`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+      }
+    );
+  }
+
+  /**
+   * Get all agent chat sessions
+   */
+  async getAgentSessions(): Promise<ListSessionsResponse> {
+    return this.fetchJson<ListSessionsResponse>(
+      `${this.baseUrl}/api/agents/sessions`
+    );
+  }
+
+  /**
+   * Get a specific agent chat session
+   */
+  async getAgentSession(sessionId: string): Promise<EnvoyThread> {
+    return this.fetchJson<EnvoyThread>(
+      `${this.baseUrl}/api/agents/session/${encodeURIComponent(sessionId)}`
+    );
+  }
+
+  /**
+   * Delete an agent chat session
+   */
+  async deleteAgentSession(sessionId: string): Promise<DeleteSessionResponse> {
+    return this.fetchJson<DeleteSessionResponse>(
+      `${this.baseUrl}/api/agents/session/${encodeURIComponent(sessionId)}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  /**
+   * Send a message to an agent and stream the response
+   */
+  streamAgentChat(
+    request: ChatRequest,
+    onMessage: (data: any) => void,
+    onError?: (error: Event) => void
+  ): () => void {
+    const key = `agent-chat-${request.sessionId}`;
+    this.closeSseConnection(key);
+
+    // Create SSE connection with POST body
+    const url = `${this.baseUrl}/api/agents/chat`;
+    const eventSource = new EventSource(url);
+
+    // Send the actual message via POST first, then connect to SSE
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request)
+    }).catch(error => {
+      console.error('Failed to send chat message:', error);
+      if (onError) onError(new Event('error'));
+    });
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type !== 'heartbeat') {
+          onMessage(data);
+        }
+      } catch (error) {
+        console.error('Failed to parse agent response:', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      if (onError) onError(error);
+    };
+
+    this.sseConnections.set(key, eventSource);
+    return () => this.closeSseConnection(key);
+  }
+
   // ============= Utility Methods =============
 
   /**

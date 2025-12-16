@@ -12,6 +12,7 @@ import Tag from 'primevue/tag';
 import Paginator from 'primevue/paginator';
 import ProgressSpinner from 'primevue/progressspinner';
 import Toolbar from 'primevue/toolbar';
+import AgentSelectDialog from '@/components/AgentSelectDialog.vue';
 import { api } from '@/api/client';
 import type { Span } from '../utils/types';
 import {
@@ -33,6 +34,10 @@ const traces = ref<Span[]>([]);
 const searchQuery = ref('');
 const first = ref(0); // PrimeVue Paginator uses 'first' for the first row index
 const rows = ref(20); // Number of rows per page
+
+// Dialog state
+const showAgentDialog = ref(false);
+const selectedTrace = ref<Span | null>(null);
 
 // Extract filename from route params
 const filename = computed(() => {
@@ -134,6 +139,14 @@ async function loadTraces() {
   } finally {
     loading.value = false;
   }
+}
+
+/**
+ * Open agent dialog for a specific trace
+ */
+function openAgentDialog(trace: Span) {
+  selectedTrace.value = trace;
+  showAgentDialog.value = true;
 }
 
 // Reset pagination when search changes
@@ -265,6 +278,15 @@ onMounted(() => {
                   rounded
                   size="small"
                   @click.stop="viewTrace(trace)"
+                  v-tooltip="'View Details'"
+                />
+                <Button
+                  icon="pi pi-comment"
+                  text
+                  rounded
+                  size="small"
+                  @click.stop="openAgentDialog(trace)"
+                  v-tooltip="'Chat with Telepathist'"
                 />
               </div>
             </div>
@@ -283,6 +305,14 @@ onMounted(() => {
         />
       </div>
     </div>
+
+    <!-- Agent Selection Dialog -->
+    <AgentSelectDialog
+      v-model:visible="showAgentDialog"
+      :databasePath="`telemetry/${filename}`"
+      :turn="selectedTrace?.attributes?.turn || selectedTrace?.turn"
+      :span="selectedTrace || undefined"
+    />
   </div>
 </template>
 

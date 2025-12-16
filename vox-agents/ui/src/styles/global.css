@@ -64,7 +64,12 @@ body {
 .simple-header {
   display: flex;
   align-items: center;
+  margin-bottom: 1rem;
   gap: 1rem;
+}
+
+.simple-header h1 {
+  margin-bottom: 0;
 }
 
 /* Section layout styles */

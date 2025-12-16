@@ -17,7 +17,7 @@ export interface StreamingEventCallback {
  * Contains the metadata and messages for a conversation thread.
  */
 
-import { ModelMessage } from "ai";
+import type { ModelMessage } from "ai";
 
 /**
  * Represents a chat thread for the Envoy agent.

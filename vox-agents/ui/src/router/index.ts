@@ -53,11 +53,6 @@ const router = createRouter({
       path: '/chat',
       name: 'chat',
       component: ChatView
-    },
-    {
-      path: '/chat/session/:sessionId?',
-      name: 'chat-session',
-      component: () => import('../views/ChatSessionView.vue')
     }
   ],
 })

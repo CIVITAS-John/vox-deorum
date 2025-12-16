@@ -6,6 +6,7 @@ import Button from 'primevue/button';
 import Message from 'primevue/message';
 import ProgressSpinner from 'primevue/progressspinner';
 import ActiveSessionsList from '@/components/ActiveSessionsList.vue';
+import AgentSelectDialog from '@/components/AgentSelectDialog.vue';
 import { activeSessions, loading, fetchTelemetryData } from '@/stores/telemetry';
 
 /**
@@ -13,6 +14,10 @@ import { activeSessions, loading, fetchTelemetryData } from '@/stores/telemetry'
  */
 
 const router = useRouter();
+
+// Dialog state
+const showAgentDialog = ref(false);
+const selectedContextId = ref<string | undefined>();
 
 /**
  * Check if any sessions are available
@@ -23,8 +28,9 @@ const hasActiveSessions = computed(() => activeSessions.value.length > 0);
  * Handle session selection for chat
  */
 function handleSessionSelected(sessionId: string) {
-  // TODO: Navigate to chat interface with selected session
-  console.log('Selected session for chat:', sessionId);
+  // Show agent selection dialog with the selected session context
+  selectedContextId.value = sessionId;
+  showAgentDialog.value = true;
 }
 
 /**
@@ -81,6 +87,12 @@ fetchTelemetryData();
     <Message v-if="hasActiveSessions" severity="info" :closable="false">
       Looking for past games? Visit the <a @click="goToTelemetryView" class="telemetry-link">Telemetry page</a> to browse historical sessions.
     </Message>
+
+    <!-- Agent Selection Dialog -->
+    <AgentSelectDialog
+      v-model:visible="showAgentDialog"
+      :contextId="selectedContextId"
+    />
   </div>
 </template>
 
