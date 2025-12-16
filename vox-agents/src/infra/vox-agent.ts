@@ -50,6 +50,11 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   abstract readonly description: string;
 
   /**
+   * Tags for categorizing and filtering agents (e.g., ["chat", "strategist", "briefer"])
+   */
+  public tags: string[] = [];
+
+  /**
    * Optional description for when this agent is exposed as a tool
    */
   public toolDescription?: string;

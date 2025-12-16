@@ -18,5 +18,9 @@
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
     "docs": "typedoc"
+  },
+  "dependencies": {
+    "@types/uuid": "^10.0.0",
+    "uuid": "^13.0.0"
   }
 }

@@ -13,6 +13,7 @@ import { sseManager } from './sse-manager.js';
 import config from '../utils/config.js';
 import telemetryRoutes from './routes/telemetry.js';
 import configRoutes from './routes/config.js';
+import { createAgentRoutes } from './routes/agent.js';
 import type { HealthStatus, ErrorResponse } from '../types/index.js';
 
 // Get __dirname in ESM
@@ -61,6 +62,9 @@ app.use('/api/telemetry', telemetryRoutes);
 // Mount config routes
 app.use('/api/config', configRoutes);
 
+// Mount agent routes
+app.use('/api', createAgentRoutes(sseManager));
+
 // Health check endpoint - minimal API foundation
 app.get('/api/health', (_req: Request, res: Response<HealthStatus>) => {
   const healthStatus: HealthStatus = {
@@ -98,18 +102,6 @@ export async function startWebServer(): Promise<void> {
   return new Promise((resolve) => {
     const server = app.listen(PORT, () => {
       webLogger.info(`🌐 Web UI available at: http://localhost:${config.webui.port}`);
-      webLogger.info('Available endpoints:');
-      webLogger.info('  • Health Check:            GET  /api/health');
-      webLogger.info('  • Log Stream:              GET  /api/logs/stream (SSE)');
-      webLogger.info('  • Active Sessions:         GET  /api/telemetry/sessions/active');
-      webLogger.info('  • Database List:           GET  /api/telemetry/databases');
-      webLogger.info('  • Upload Database:         POST /api/telemetry/upload');
-      webLogger.info('  • Session Spans:           GET  /api/telemetry/sessions/:id/spans');
-      webLogger.info('  • Session Stream:          GET  /api/telemetry/sessions/:id/stream (SSE)');
-      webLogger.info('  • Database Traces:         GET  /api/telemetry/db/:filename/traces');
-      webLogger.info('  • Trace Spans:             GET  /api/telemetry/db/:filename/trace/:traceId/spans');
-      webLogger.info('  • Get Configuration:       GET  /api/config');
-      webLogger.info('  • Update Configuration:    POST /api/config');
       webLogger.info('Press Ctrl+C to stop the server');
 
       // Start SSE heartbeat to keep connections alive

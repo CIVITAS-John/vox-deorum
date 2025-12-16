@@ -27,6 +27,15 @@ export interface EnvoyThread {
   /** Player ID this thread is associated with */
   playerID: number;
 
+  /** Type of context: live VoxContext or database */
+  contextType: 'live' | 'database';
+
+  /** VoxContext ID for live sessions */
+  contextId?: string;
+
+  /** Database file path for database sessions */
+  databasePath?: string;
+
   /** The conversation messages in this thread */
   messages: ModelMessage[];
 
