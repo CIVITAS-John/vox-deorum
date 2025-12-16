@@ -5,8 +5,10 @@ A streamlined web interface for Vox Agents providing telemetry analysis, log vie
 
 ## Current Status
 - ✅ **Stage 1-3 Complete**: API foundation, full UI framework, and real-time log viewer fully implemented
-- ✅ **Stage 4 Backend Complete**: Telemetry API endpoints fully operational, frontend pending
-- 🔄 **Stage 4 Frontend & 5-7 Pending**: Telemetry UI, session control, config management, and agent chat
+- ✅ **Stage 4 Complete**: Telemetry API and UI fully operational with span viewing and trace analysis
+- ✅ **Stage 5 Complete**: Configuration management API and UI for settings and API keys
+- ✅ **Stage 6 Backend Complete**: Agent chat API with strong typing and SSE streaming
+- 🔄 **Stage 6 Frontend & 7 Pending**: Agent chat UI and session control
 
 ## Technology Stack
 - **Frontend**: Vue 3 with TypeScript (already initialized at `ui/`)
@@ -223,131 +225,98 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - Save All/Reload functionality with success/error messaging
 
 ### Stage 6: Agent Chat
-**Status**: 🔄 Partially Started - Foundation exists
+**Status**: ✅ Backend COMPLETED, Frontend Pending
 
 **Overview**: Unified chat interface for interacting with agents - both specialized agents (Diplomat, General) using live context and a Telepathist agent for analyzing past records via telemetry.
 
-**What's Already Implemented**:
-- **Backend Foundation**:
-  - Base `Envoy` agent class exists at `src/envoy/envoy.ts` for chat-based interactions
-  - `EnvoyThread` data structure at `src/envoy/envoy-thread.ts` for conversation context
-  - Chat types defined in `src/types/chat.ts` with streaming event callbacks
+**Backend Implementation**: ✅ COMPLETED
+- ✅ Enhanced `EnvoyThread` type with `contextType`, `contextId`, and `databasePath` fields
+- ✅ Strong type definitions in `src/web/types/agent-api.ts` for all API endpoints
+- ✅ Complete API implementation in `src/web/routes/agent.ts`:
+  - `GET /api/agents` - Lists all registered agents with tags
+  - `POST /api/agents/session` - Creates new chat session with validation
+  - `GET /api/agents/sessions` - Returns all sessions as EnvoyThreads
+  - `GET /api/agents/session/:id` - Returns specific EnvoyThread
+  - `POST /api/agents/chat` - Streaming chat endpoint with SSE
+  - `DELETE /api/agents/session/:id` - Removes session
+- ✅ Added `tags: string[]` field to VoxAgent base class for filtering
+- ✅ Validation for contextId (active telemetry sessions) and databasePath (file existence)
+- ✅ In-memory session storage with full EnvoyThread structure
+- ✅ SSE integration for streaming responses
 
-- **Frontend Foundation**:
-  - Basic `ChatView.vue` component created with session selection UI
-  - Integration with active sessions from telemetry store
-  - Navigation to session/telemetry views for session discovery
-  - Uses `ActiveSessionsList` component for session display
+**Frontend Implementation**: 🔄 Partially Started
+- ✅ Basic `ChatView.vue` component created with session selection UI
+- ✅ Integration with active sessions from telemetry store
+- ✅ Navigation to session/telemetry views for session discovery
+- ✅ Uses `ActiveSessionsList` component for session display
+- ⏳ **Still Needed**:
+  - Chat interface components (message list, input, streaming display)
+  - Integration with new API endpoints
+  - Tool call display and formatting
+  - Agent selection and filtering by tags
 
-**What's Still Needed**:
-- Backend API routes in `src/web/routes/agent.ts` for all agent endpoints
-- Chat session management and storage, reusing existing types
-- Integration between Envoy agents and VoxContext/telemetry databases
-- Frontend chat interface components (message list, input, streaming display)
-- SSE streaming implementation for real-time responses
-- Tool call display and formatting
+#### Unified Chat API ✅ IMPLEMENTED
+All endpoints use strongly-typed interfaces and return `EnvoyThread` objects directly.
 
-#### Unified Chat API
-Single endpoint handles all agent interactions with streaming responses.
-
-**Backend Requirements**:
+**Implemented Endpoints**:
 - `GET /api/agents` - List all available agents
   ```typescript
-  Response: {
-    agents: [{
-      name: string,           // "diplomat", "general", "historian"
-      description: string
-    }]
+  Response: ListAgentsResponse {
+    agents: AgentInfo[] {
+      name: string,           // Agent identifier
+      description: string,    // Human-readable description
+      tags: string[]         // For categorization/filtering
+    }
   }
   ```
 
 - `POST /api/agents/session` - Create a new chat session
   ```typescript
-  body: {
-    agentName: string,        // Required: agent to use ("diplomat", "general", "telepathist", etc.)
-    contextId?: string,       // Option 1: Connect to VoxAgent/Telemetry database via context
-    databasePath?: string,    // Option 2: Connect directly to database file path
-    turn?: number            // Optional: Specific turn number (mainly for telepathist)
+  Request: CreateSessionRequest {
+    agentName: string,        // Required: agent to use
+    contextId?: string,       // Option 1: Active telemetry session ID
+    databasePath?: string,    // Option 2: Database file path
+    turn?: number            // Optional: Specific turn number
   }
-  // Response:
-  {
-    sessionId: string,       // Generated session identifier
-    agentName: string,       // Confirmed agent name
-    contextType: "live" | "database",  // Type of connection
-    metadata: {
-      gameId: string,
-      playerId: number,
-      turn: number
-    }
-  }
+  Response: EnvoyThread     // Full thread object with all fields
   ```
 
 - `GET /api/agents/sessions` - Get all active chat sessions
   ```typescript
-  Response: {
-    sessions: [{
-      sessionId: string,
-      agentName: string,
-      contextType: "live" | "database",
-      createdAt: string,      // ISO timestamp
-      lastMessageAt?: string,  // ISO timestamp of last activity
-      metadata: {
-        gameId: string,
-        playerId: number,
-        turn: number
-      }
-    }]
+  Response: ListSessionsResponse {
+    sessions: EnvoyThread[]   // Array of full thread objects
   }
   ```
 
-- `GET /api/agents/session/:sessionId` - Get session details with messages
+- `GET /api/agents/session/:sessionId` - Get session details
   ```typescript
-  Response: {
-    sessionId: string,
-    agentName: string,
-    contextType: "live" | "database",
-    createdAt: string,
-    lastMessageAt?: string,
-    metadata: {
-      gameId: string,
-      playerId: number,
-      turn: number
-    },
-    messages: [{
-      id: string,
-      role: "user" | "assistant",
-      content: string,
-      timestamp: string,      // ISO timestamp
-      toolCalls?: [{          // For assistant messages
-        tool: string,
-        args: any,
-        result?: any
-      }]
-    }]
-  }
+  Response: EnvoyThread       // Full thread with message history
   ```
 
 - `POST /api/agents/chat` - Unified streaming chat endpoint
   ```typescript
-  body: {
-    agentName: string,        // Selected agent
-    sessionId?: string,         // Chat session ID
-    message: string,          // User's message
+  Request: ChatRequest {
+    agentName?: string,       // Optional: agent name
+    sessionId?: string,       // Optional: existing session
+    message: string          // Required: user's message
   }
-  // Response: SSE stream with events:
-  // - "message": Partial text response
-  // - "tool_call": Tool invocation details
-  // - "done": Completion signal
+  Response: SSE stream with ChatEventData
+  ```
+
+- `DELETE /api/agents/session/:sessionId` - Delete session
+  ```typescript
+  Response: DeleteSessionResponse {
+    success: boolean
+  }
   ```
 
 **Implementation Details**:
-- **Live Agents** (Diplomat, General, etc.):
-  - Fetch current VoxContext from contextId
-  - Execute with VoxContext's current parameter
-
-- **Historian Agent**:
-  - Works with a Telemetry database
-  - Internally queries telemetry data to reconstruct decisions
+- All types defined in `src/web/types/agent-api.ts`
+- Validates contextId against active telemetry sessions
+- Validates databasePath for file existence
+- Parses gameId/playerId from contextId or database filename
+- Returns full `EnvoyThread` objects, not custom responses
+- SSE streaming ready for real-time chat responses
 
 #### Frontend Architecture
 
@@ -542,5 +511,20 @@ SSE /api/agents/:name/stream    // Response stream
 4. **Incremental delivery** - Each phase produces working functionality
 5. **PrimeVue-first approach** - Always use existing PrimeVue components before custom implementations
 
+### Infrastructure Improvements (2024-12-15)
+- **ContextRegistry** ✅ - Centralized registry for tracking all active VoxContext instances
+  - Automatic registration on creation and unregistration on shutdown
+  - Provides global visibility into active contexts
+  - Singleton pattern with Map-based storage for O(1) lookups
+  - Methods: `register()`, `unregister()`, `get()`, `getAll()`, `shutdownAll()`
+
+- **AgentRegistry Refactor** ✅ - Converted from function-based to class-based architecture
+  - Consistent with ContextRegistry design pattern
+  - Removed deprecated legacy function exports
+  - All code updated to use new class API (`agentRegistry.method()`)
+  - Maintains backward compatibility through instance methods
+
 ### Next Steps
-Proceed with Stage 6 (Agent Chat) to enable interactive agent testing, then implement Stage 7 (Session Control) for game session management.
+1. Complete Stage 6 Frontend (Agent Chat UI) to enable interactive agent testing
+2. Implement Stage 7 (Session Control) for game session management
+3. Integrate ContextRegistry with web UI for context monitoring

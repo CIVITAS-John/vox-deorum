@@ -7,7 +7,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { getAllAgents, getAgent } from '../../infra/agent-registry.js';
+import { agentRegistry } from '../../infra/agent-registry.js';
 import { EnvoyThread } from '../../envoy/envoy-thread.js';
 import { createLogger } from '../../utils/logger.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -46,8 +46,8 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
    */
   router.get('/agents', (_req: Request, res: Response<ListAgentsResponse>) => {
     try {
-      const agents = getAllAgents();
-      const agentList: AgentInfo[] = Object.values(agents).map(agent => ({
+      const agents = agentRegistry.getAll();
+      const agentList: AgentInfo[] = agents.map(agent => ({
         name: agent.name,
         description: agent.description,
         tags: agent.tags || []
@@ -73,7 +73,7 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
       }
 
       // Verify agent exists
-      const agent = getAgent(agentName);
+      const agent = agentRegistry.get(agentName);
       if (!agent) {
         return res.status(404).json({ error: `Agent ${agentName} not found` } as any);
       }

@@ -19,8 +19,8 @@ import { trace, SpanStatusCode, context } from '@opentelemetry/api';
 import { spanProcessor } from '../instrumentation.js';
 import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
 import { countMessagesTokens } from "../utils/token-counter.js";
-import { getAllAgents } from "./agent-registry.js";
-import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
+import { agentRegistry } from "./agent-registry.js";
+import { contextRegistry } from "./context-registry.js";
 
 /**
  * Runtime context for executing Vox Agents.
@@ -80,6 +80,9 @@ export class VoxContext<TParameters extends AgentParameters> {
     this.modelOverrides = modelOverrides;
     this.abortController = new AbortController();
     this.logger.info(`VoxContext initialized with ID: ${this.id}`);
+
+    // Automatically register this context in the registry
+    contextRegistry.register(this);
   }
 
 
@@ -164,8 +167,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     name: string,
     input: any,
     parameters: TParameters): Promise<T | undefined> {
-    const agents = getAllAgents();
-    const agent = agents[name] as VoxAgent<TParameters> | undefined;
+    const agent = agentRegistry.get<TParameters>(name);
     if (!agent) {
       this.logger.error(`Agent not found: ${name}`);
       return undefined;
@@ -196,8 +198,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     input: unknown,
     callback?: StreamingEventCallback
   ): Promise<any> {
-    const agents = getAllAgents();
-    const agent = agents[agentName] as VoxAgent<TParameters> | undefined;
+    const agent = agentRegistry.get<TParameters>(agentName);
     if (!agent) {
       this.logger.error(`Agent not found: ${agentName}`);
       throw new Error(`Agent '${agentName}' not found in registry`);
@@ -222,7 +223,8 @@ export class VoxContext<TParameters extends AgentParameters> {
         let allTools = { ...this.tools };
 
         // Add other agents as tools (excluding the current agent to prevent recursion)
-        for (const [otherAgentName, otherAgent] of Object.entries(agents)) {
+        const allAgents = agentRegistry.getAllAsRecord();
+        for (const [otherAgentName, otherAgent] of Object.entries(allAgents)) {
           if (otherAgentName !== agentName) {
             allTools[`call-${otherAgentName}`] = createAgentTool(
               otherAgent as VoxAgent<TParameters>,
@@ -473,7 +475,7 @@ export class VoxContext<TParameters extends AgentParameters> {
 
   /**
    * Gracefully shutdown the VoxContext.
-   * Flushes telemetry data and closes SQLite databases.
+   * Flushes telemetry data, closes SQLite databases, and unregisters from the registry.
    */
   public async shutdown(): Promise<void> {
     this.logger.info(`Shutting down VoxContext ${this.id}`);
@@ -487,6 +489,9 @@ export class VoxContext<TParameters extends AgentParameters> {
 
       // Close the SQLite database for this specific context
       await VoxSpanExporter.getInstance().closeContext(this.id);
+
+      // Automatically unregister this context from the registry
+      contextRegistry.unregister(this.id);
 
       this.logger.info(`VoxContext ${this.id} shutdown complete`);
     } catch (error) {
