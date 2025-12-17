@@ -143,7 +143,7 @@ router.get('/sessions/active', async (_req: Request, res: Response<TelemetrySess
     return {
       sessionId,
       gameId: identifierInfo.gameID !== sessionId ? identifierInfo.gameID : undefined,
-      playerId: identifierInfo.playerID > 0 ? identifierInfo.playerID.toString() : undefined
+      playerId: identifierInfo.playerID.toString()
     };
   });
 

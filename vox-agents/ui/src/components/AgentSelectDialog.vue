@@ -70,17 +70,17 @@ const contextSpanName = computed(() => {
 // Filtered agents based on context
 const filteredAgents = computed(() => {
   return agents.value.filter(agent => {
-    // If session has contextId (active game), filter out agents with "active-games" tag
-    if (props.contextId && agent.tags.includes('active-games')) {
-      return false;
+    // If session has contextId (active game), filter agents with "active-game" tag
+    if (props.contextId && agent.tags.includes('active-game')) {
+      return true;
     }
 
-    // If session has databasePath (telepathist mode), filter out agents with "telepathist" tag
+    // If session has databasePath (telepathist mode), filter agents with "telepathist" tag
     if (props.databasePath && agent.tags.includes('telepathist')) {
-      return false;
+      return true;
     }
 
-    return true;
+    return false;
   });
 });
 
@@ -259,5 +259,10 @@ onMounted(() => {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
+}
+
+.selected {
+  font-weight: bold;
+  background-color: var(--p-hover-background);
 }
 </style>

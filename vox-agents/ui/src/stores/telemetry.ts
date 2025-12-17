@@ -1,14 +1,16 @@
 import { ref } from 'vue';
 import { api } from '../api/client';
-import type { TelemetryMetadata, TelemetrySession } from '@/utils/types';
+import type { TelemetryMetadata, TelemetrySession, EnvoyThread } from '@/utils/types';
 
 /**
  * Store for telemetry data with auto-refresh functionality
  */
 
 export const activeSessions = ref<TelemetrySession[]>([]);
+export const chatSessions = ref<EnvoyThread[]>([]);
 export const databases = ref<TelemetryMetadata[]>([]);
 export const loading = ref(false);
+export const loadingChats = ref(false);
 
 /**
  * Fetch active telemetry sessions
@@ -35,6 +37,18 @@ const fetchDatabases = async () => {
 };
 
 /**
+ * Fetch active chat sessions
+ */
+const fetchChatSessions = async () => {
+  try {
+    const response = await api.getAgentSessions();
+    chatSessions.value = response.sessions || [];
+  } catch (error) {
+    console.error('Failed to fetch chat sessions:', error);
+  }
+};
+
+/**
  * Fetch all telemetry data
  */
 export const fetchTelemetryData = async () => {
@@ -46,9 +60,25 @@ export const fetchTelemetryData = async () => {
   }
 };
 
+/**
+ * Fetch chat sessions
+ */
+export const fetchChatData = async () => {
+  loadingChats.value = true;
+  try {
+    await fetchChatSessions();
+  } finally {
+    loadingChats.value = false;
+  }
+};
+
 // Start fetching sessions immediately and every 5 seconds (similar to health.ts)
 fetchSessions();
 setInterval(fetchSessions, 5000);
+
+// Start fetching chat sessions periodically
+fetchChatSessions();
+setInterval(fetchChatSessions, 5000);
 
 // Fetch databases on initialization
 fetchDatabases();

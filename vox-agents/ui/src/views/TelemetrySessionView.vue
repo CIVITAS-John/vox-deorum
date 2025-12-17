@@ -159,7 +159,7 @@ onUnmounted(() => {
         <Button
           icon="pi pi-comment"
           @click="openAgentDialog"
-          label="Chat with Agent"
+          label="Chat"
           severity="primary"
           size="small"
           class="mr-2"

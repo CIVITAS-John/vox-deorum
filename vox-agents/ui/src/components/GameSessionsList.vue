@@ -6,7 +6,7 @@ import Tag from 'primevue/tag';
 import type { TelemetrySession } from '@/utils/types';
 
 /**
- * Props for the ActiveSessionsList component
+ * Props for the GameSessionsList component
  */
 interface Props {
   sessions: TelemetrySession[];

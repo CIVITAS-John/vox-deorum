@@ -6,7 +6,7 @@ import Button from 'primevue/button';
 import FileUpload from 'primevue/fileupload';
 import Tag from 'primevue/tag';
 import ProgressSpinner from 'primevue/progressspinner';
-import ActiveSessionsList from '@/components/ActiveSessionsList.vue';
+import GameSessionsList from '@/components/GameSessionsList.vue';
 import { api } from '@/api/client';
 import { activeSessions, databases, loading, fetchTelemetryData } from '@/stores/telemetry';
 import type { TelemetryMetadata } from '../utils/types';
@@ -79,7 +79,7 @@ onMounted(() => {
 
     <div v-else class="section-container">
       <!-- Active Sessions Section -->
-      <ActiveSessionsList
+      <GameSessionsList
         :sessions="activeSessions"
         @session-selected="viewActiveSession"
         @view-session="viewActiveSession" />

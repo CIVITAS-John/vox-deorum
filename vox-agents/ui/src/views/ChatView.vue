@@ -5,9 +5,12 @@ import Card from 'primevue/card';
 import Button from 'primevue/button';
 import Message from 'primevue/message';
 import ProgressSpinner from 'primevue/progressspinner';
-import ActiveSessionsList from '@/components/ActiveSessionsList.vue';
+import ChatSessionsList from '@/components/ChatSessionsList.vue';
+import GameSessionsList from '@/components/GameSessionsList.vue';
 import AgentSelectDialog from '@/components/AgentSelectDialog.vue';
-import { activeSessions, loading, fetchTelemetryData } from '@/stores/telemetry';
+import { activeSessions, chatSessions, loading, loadingChats, fetchTelemetryData, fetchChatData } from '@/stores/telemetry';
+import { api } from '@/api/client';
+import type { EnvoyThread } from '@/utils/types';
 
 /**
  * Chat view component - entry point for agent chat interactions
@@ -23,14 +26,43 @@ const selectedContextId = ref<string | undefined>();
  * Check if any sessions are available
  */
 const hasActiveSessions = computed(() => activeSessions.value.length > 0);
+const hasChatSessions = computed(() => chatSessions.value.length > 0);
+const hasAnySessions = computed(() => hasActiveSessions.value || hasChatSessions.value);
 
 /**
- * Handle session selection for chat
+ * Handle game session selection for starting new chat
  */
-function handleSessionSelected(sessionId: string) {
+function handleGameSessionSelected(sessionId: string) {
   // Show agent selection dialog with the selected session context
   selectedContextId.value = sessionId;
   showAgentDialog.value = true;
+}
+
+/**
+ * Handle chat session selection for viewing details
+ */
+function handleChatSessionSelected(session: EnvoyThread) {
+  // Navigate to chat detail view
+  router.push({ name: 'chat-detail', params: { sessionId: session.id } });
+}
+
+/**
+ * Resume an existing chat session
+ */
+function handleChatResume(sessionId: string) {
+  router.push({ name: 'chat-detail', params: { sessionId } });
+}
+
+/**
+ * Delete a chat session
+ */
+async function handleChatDelete(sessionId: string) {
+  try {
+    await api.deleteAgentSession(sessionId);
+    await fetchChatData();
+  } catch (error) {
+    console.error('Failed to delete chat session:', error);
+  }
 }
 
 /**
@@ -49,24 +81,39 @@ function goToTelemetryView() {
 
 // Fetch sessions on mount
 fetchTelemetryData();
+fetchChatData();
 </script>
 
 <template>
   <div class="chat-view">
     <h1>Chat with Agents</h1>
 
-    <div v-if="loading" class="loading-container">
+    <div v-if="loading || loadingChats" class="loading-container">
       <ProgressSpinner />
       <p>Loading sessions...</p>
     </div>
 
-    <!-- Active Sessions List -->
-    <ActiveSessionsList
+    <!-- Active Chat Sessions (only show if there are any) -->
+    <ChatSessionsList
+      v-if="hasChatSessions"
+      :sessions="chatSessions"
+      title="Active Chat Sessions"
+      emptyMessage="No active chat sessions."
+      :show-actions="true"
+      @session-selected="handleChatSessionSelected"
+      @session-resume="handleChatResume"
+      @session-delete="handleChatDelete"
+      class="section-margin"
+    />
+
+    <!-- Active Game Sessions -->
+    <GameSessionsList
       :sessions="activeSessions"
-      title="Choose an Active Game Session"
-      emptyMessage="No active sessions available."
+      title="Choose a Game Session to Start Chat"
+      emptyMessage="No active game sessions available."
       :show-view-button="false"
-      @session-selected="handleSessionSelected">
+      @session-selected="handleGameSessionSelected"
+      class="section-margin">
       <template #empty-action>
         <div class="empty-action-container">
           <Button
@@ -81,7 +128,7 @@ fetchTelemetryData();
             severity="secondary" />
         </div>
       </template>
-    </ActiveSessionsList>
+    </GameSessionsList>
 
     <!-- Info message for historical sessions when active games exist -->
     <Message v-if="hasActiveSessions" severity="info" :closable="false">
@@ -119,7 +166,7 @@ fetchTelemetryData();
   opacity: 0.8;
 }
 
-.active-sessions-card {
-  margin-bottom: 1rem;
+.section-margin {
+  margin-bottom: 1.5rem;
 }
 </style>
