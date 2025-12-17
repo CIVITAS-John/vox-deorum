@@ -3,6 +3,7 @@
  * Provides methods for REST endpoints and SSE streaming with strong typing
  */
 
+import { SSE } from 'sse.js';
 import { extractLogParams } from './log-utils';
 import type {
   HealthStatus,
@@ -43,7 +44,7 @@ import type {
 class ApiClient {
   private baseUrl: string;
   /** Map of active SSE connections indexed by unique keys */
-  private sseConnections: Map<string, EventSource> = new Map();
+  private sseConnections: Map<string, EventSource | SSE> = new Map();
 
   constructor() {
     // In production, use same origin. In dev, use Vite proxy or configured port
@@ -461,21 +462,17 @@ class ApiClient {
     const key = `agent-chat-${request.sessionId}`;
     this.closeSseConnection(key);
 
-    // Create SSE connection with POST body
     const url = `${this.baseUrl}/api/agents/chat`;
-    const eventSource = new EventSource(url);
 
-    // Send the actual message via POST first, then connect to SSE
-    fetch(url, {
+    // Create SSE connection with POST request
+    const eventSource = new SSE(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request)
-    }).catch(error => {
-      console.error('Failed to send chat message:', error);
-      if (onError) onError(new Event('error'));
+      payload: JSON.stringify(request),
+      withCredentials: false
     });
 
-    eventSource.onmessage = (event) => {
+    eventSource.addEventListener('message', (event: any) => {
       try {
         const data = JSON.parse(event.data);
         if (data.type !== 'heartbeat') {
@@ -484,13 +481,38 @@ class ApiClient {
       } catch (error) {
         console.error('Failed to parse agent response:', error);
       }
-    };
+    });
 
-    eventSource.onerror = (error) => {
+    eventSource.addEventListener('error', (error: any) => {
+      console.error('SSE error:', error);
       if (onError) onError(error);
-    };
+    });
 
+    eventSource.addEventListener('connected', (event: any) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('SSE connected:', data);
+      } catch (error) {
+        console.error('Failed to parse connected event:', error);
+      }
+    });
+
+    eventSource.addEventListener('done', (event: any) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('SSE done:', data);
+      } catch (error) {
+        console.error('Failed to parse done event:', error);
+      }
+    });
+
+    // Start the connection
+    eventSource.stream();
+
+    // Store the connection for cleanup
     this.sseConnections.set(key, eventSource);
+
+    // Return cleanup function
     return () => this.closeSseConnection(key);
   }
 

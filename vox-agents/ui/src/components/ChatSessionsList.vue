@@ -86,7 +86,7 @@ function getSessionTitle(session: EnvoyThread): string {
         <div class="table-header">
           <div class="col-expand">Session</div>
           <div class="col-fixed-120">Agent</div>
-          <div class="col-fixed-200">Game</div>
+          <div class="col-fixed-250">Game</div>
           <div class="col-fixed-60">Player</div>
           <div v-if="showActions" class="col-fixed-120">Actions</div>
         </div>
@@ -102,7 +102,7 @@ function getSessionTitle(session: EnvoyThread): string {
             <div class="col-fixed-120">
               {{ session.agent }}
             </div>
-            <div class="col-fixed-200">
+            <div class="col-fixed-250">
               {{ session.gameID }}
             </div>
             <div class="col-fixed-60">

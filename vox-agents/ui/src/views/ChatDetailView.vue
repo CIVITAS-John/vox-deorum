@@ -3,23 +3,28 @@ View: ChatDetailView
 Purpose: Main chat interface for interacting with agents
 -->
 <template>
-  <div class="flex flex-column" style="height: 100vh; overflow: hidden">
+  <div class="flex flex-column" style="height: 100%; overflow: hidden">
     <!-- Header -->
-    <Card class="borderless no-top" style="flex-shrink: 0">
-      <template #content>
-        <div class="flex justify-content-between align-items-center">
-          <div class="flex align-items-center gap-3">
-            <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
-            <h2 style="margin: 0">{{ thread?.agent || 'Loading' }} Chat</h2>
-          </div>
-          <div v-if="thread" class="flex align-items-center gap-2">
-            <Tag :value="thread.contextType" :severity="thread.contextType === 'live' ? 'success' : 'info'" />
-            <span class="text-sm text-muted">Game: {{ thread.gameID }} | Player: {{ thread.playerID }}</span>
-            <Button icon="pi pi-trash" text severity="danger" rounded @click="confirmDelete" />
-          </div>
+    <div style="flex-shrink: 0; padding: 1rem">
+      <div class="flex justify-content-between align-items-center">
+        <div class="flex align-items-center gap-3">
+          <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
+          <h2 style="margin: 0">{{ thread?.title || `${thread?.agent || 'Loading'} Chat` }}</h2>
         </div>
-      </template>
-    </Card>
+        <div v-if="thread" class="flex align-items-center gap-2">
+          <Tag :value="thread.contextType" :severity="thread.contextType === 'live' ? 'success' : 'info'" />
+          <span class="text-sm text-muted">Game: {{ thread.gameID }} | Player: {{ thread.playerID }}</span>
+          <Button
+            icon="pi pi-trash"
+            text
+            severity="danger"
+            rounded
+            :loading="isDeleting"
+            @click="confirmDelete"
+          />
+        </div>
+      </div>
+    </div>
 
     <!-- Messages -->
     <Card class="borderless" style="flex: 1; overflow: hidden">
@@ -38,54 +43,38 @@ Purpose: Main chat interface for interacting with agents
     </Card>
 
     <!-- Input -->
-    <Card class="borderless no-bottom" style="flex-shrink: 0">
-      <template #content>
-        <div class="flex align-items-end gap-2">
-          <Textarea
-            v-model="inputMessage"
-            :disabled="isStreaming || !thread"
-            @keydown.enter.prevent="handleEnterKey"
-            placeholder="Type your message..."
-            :rows="3"
-            auto-resize
-            style="flex: 1"
-          />
-          <Button
-            @click="sendMessage"
-            :disabled="!inputMessage.trim() || isStreaming || !thread"
-            :loading="isStreaming"
-            icon="pi pi-send"
-            label="Send"
-          />
-        </div>
-        <div v-if="streamingStatus" class="text-sm" style="color: var(--p-primary-500); margin-top: 0.5rem">
-          <i class="pi pi-spin pi-spinner"></i>
-          {{ streamingStatus }}
-        </div>
-      </template>
-    </Card>
+    <div style="flex-shrink: 0; padding: 1rem">
+      <div class="flex align-items-end gap-2">
+        <Textarea
+          v-model="inputMessage"
+          :disabled="isStreaming || !thread"
+          @keydown.enter.prevent="handleEnterKey"
+          placeholder="Type your message..."
+          :rows="3"
+          auto-resize
+          style="flex: 1"
+        />
+        <Button
+          @click="sendMessage"
+          :disabled="!inputMessage.trim() || isStreaming || !thread"
+          :loading="isStreaming"
+          icon="pi pi-send"
+          label="Send"
+        />
+      </div>
+      <div v-if="streamingStatus" class="text-sm" style="color: var(--p-primary-500); margin-top: 0.5rem">
+        <i class="pi pi-spin pi-spinner"></i>
+        {{ streamingStatus }}
+      </div>
+    </div>
 
     <!-- Delete confirmation dialog -->
-    <Dialog
-      v-model:visible="showDeleteDialog"
-      header="Confirm Delete"
-      :style="{ width: '450px' }"
-      modal
-    >
-      <p>Are you sure you want to delete this chat session?</p>
-      <template #footer>
-        <Button
-          label="Cancel"
-          text
-          @click="showDeleteDialog = false"
-        />
-        <Button
-          label="Delete"
-          severity="danger"
-          @click="deleteSession"
-        />
-      </template>
-    </Dialog>
+    <DeleteSessionDialog
+      v-model="showDeleteDialog"
+      :session="thread"
+      :redirect-after-delete="true"
+      redirect-path="/chat"
+    />
   </div>
 </template>
 
@@ -96,13 +85,13 @@ import Card from 'primevue/card';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
-import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
 import { useToast } from 'primevue/usetoast';
 import { api } from '../api/client';
 import type { EnvoyThread, ChatRequest } from '../utils/types';
 import type { ModelMessage } from 'ai';
 import ChatMessages from '../components/chat/ChatMessages.vue';
+import DeleteSessionDialog from '../components/DeleteSessionDialog.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -114,6 +103,7 @@ const inputMessage = ref('');
 const isStreaming = ref(false);
 const streamingStatus = ref('');
 const showDeleteDialog = ref(false);
+const isDeleting = ref(false);
 const messageTimestamps = ref<Date[]>([]);
 let sseCleanup: (() => void) | null = null;
 
@@ -240,29 +230,6 @@ const sendMessage = async () => {
 
 const confirmDelete = () => {
   showDeleteDialog.value = true;
-};
-
-const deleteSession = async () => {
-  try {
-    await api.deleteAgentSession(sessionId.value);
-    toast.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: 'Chat session deleted',
-      life: 3000
-    });
-    goBack();
-  } catch (error) {
-    console.error('Failed to delete session:', error);
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to delete session',
-      life: 3000
-    });
-  } finally {
-    showDeleteDialog.value = false;
-  }
 };
 
 // Lifecycle

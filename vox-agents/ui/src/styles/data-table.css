@@ -151,6 +151,23 @@
   background: var(--p-green-50);
 }
 
+/* Dark mode styles for row states */
+.dark-mode .table-row.selected {
+  background: var(--p-primary-900);
+}
+
+.dark-mode .table-row.error {
+  background: var(--p-red-900);
+}
+
+.dark-mode .table-row.warning {
+  background: var(--p-yellow-900);
+}
+
+.dark-mode .table-row.success {
+  background: var(--p-green-900);
+}
+
 /* Note: .table-empty styles defined in states.css */
 
 /* Loading state */

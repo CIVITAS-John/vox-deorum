@@ -20,6 +20,7 @@
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.5.3",
+    "sse.js": "^2.7.2",
     "virtua": "^0.48.2",
     "vue": "^3.5.25",
     "vue-json-pretty": "^2.6.0",

@@ -146,12 +146,14 @@ async function confirmSelection() {
       request
     });
 
-    // Navigate to chat session (when route is implemented)
-    // TODO: Uncomment when chat-session route is implemented
-    // router.push({
-    //   name: 'chat-session',
-    //   params: { sessionId: session.id }
-    // });
+    // Navigate to chat session
+    router.push({
+      name: 'chat-detail',
+      params: { sessionId: session.id }
+    });
+
+    // Close dialog after navigation
+    closeDialog();
   } catch (err) {
     console.error('Failed to create chat session:', err);
     error.value = err instanceof Error ? err.message : 'Failed to create session';

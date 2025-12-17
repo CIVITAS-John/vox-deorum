@@ -8,8 +8,8 @@ import ProgressSpinner from 'primevue/progressspinner';
 import ChatSessionsList from '@/components/ChatSessionsList.vue';
 import GameSessionsList from '@/components/GameSessionsList.vue';
 import AgentSelectDialog from '@/components/AgentSelectDialog.vue';
+import DeleteSessionDialog from '@/components/DeleteSessionDialog.vue';
 import { activeSessions, chatSessions, loading, loadingChats, fetchTelemetryData, fetchChatData } from '@/stores/telemetry';
-import { api } from '@/api/client';
 import type { EnvoyThread } from '@/utils/types';
 
 /**
@@ -20,7 +20,9 @@ const router = useRouter();
 
 // Dialog state
 const showAgentDialog = ref(false);
+const showDeleteDialog = ref(false);
 const selectedContextId = ref<string | undefined>();
+const sessionToDelete = ref<EnvoyThread | null>(null);
 
 /**
  * Check if any sessions are available
@@ -56,13 +58,20 @@ function handleChatResume(sessionId: string) {
 /**
  * Delete a chat session
  */
-async function handleChatDelete(sessionId: string) {
-  try {
-    await api.deleteAgentSession(sessionId);
-    await fetchChatData();
-  } catch (error) {
-    console.error('Failed to delete chat session:', error);
+function handleChatDelete(sessionId: string) {
+  const session = chatSessions.value.find(s => s.id === sessionId);
+  if (session) {
+    sessionToDelete.value = session;
+    showDeleteDialog.value = true;
   }
+}
+
+/**
+ * Handle successful deletion
+ */
+function handleDeleteSuccess() {
+  // Refresh the chat list
+  fetchChatData();
 }
 
 /**
@@ -139,6 +148,13 @@ fetchChatData();
     <AgentSelectDialog
       v-model:visible="showAgentDialog"
       :contextId="selectedContextId"
+    />
+
+    <!-- Delete Confirmation Dialog -->
+    <DeleteSessionDialog
+      v-model="showDeleteDialog"
+      :session="sessionToDelete"
+      @deleted="handleDeleteSuccess"
     />
   </div>
 </template>

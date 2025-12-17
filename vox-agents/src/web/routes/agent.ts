@@ -194,92 +194,86 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
    * Sends a message to the specified agent and streams the response
    */
   router.post('/agents/chat', async (req: Request<{}, {}, ChatRequest>, res: Response): Promise<void> => {
-    try {
-      const { sessionId, message } = req.body;
+    const { sessionId, message } = req.body;
 
-      if (!message) {
-        res.status(400).json({ error: 'Message is required' });
-        return;
-      }
-
-      if (!sessionId) {
-        res.status(400).json({ error: 'SessionID is required' });
-        return;
-      }
-
-      // Get session
-      let thread = chatSessions.get(sessionId);
-      if (!thread) {
-        res.status(404).json({ error: 'Session not found' });
-        return;
-      }
-
-      const voxContext = contextRegistry.get<StrategistParameters>(thread.contextId);
-      if (!voxContext) {
-        res.status(400).json({ error: 'Context not found. It may have been shut down.' });
-        return;
-      }
-
-      // Add user message to thread
-      const userMessage: ModelMessage = {
-        role: 'user',
-        content: message
-      };
-      thread.messages.push(userMessage);
-      thread.metadata!.updatedAt = new Date();
-
-      // Set up SSE stream
-      res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*'
-      });
-
-      // Register SSE client
-      sseManager.addClient(res);
-
-      // Send initial connection event
-      sseManager.broadcast('connected', { sessionId: thread.id });
-
-      try {
-        // Execute the agent with the thread as input
-        const streamCallback: StreamingEventCallback = {
-          OnChunk: ({ chunk }) => {
-            sseManager.broadcast('message', chunk);
-          }
-        };
-
-        await voxContext.execute(
-          thread.agent,
-          voxContext.lastParameter!,
-          thread,
-          streamCallback
-        );
-
-        sseManager.broadcast('done', {
-          sessionId: thread.id,
-          messageCount: thread.messages.length
-        });
-      } catch (error) {
-        logger.error('Failed to execute agent', { error });
-        sseManager.broadcast('error', {
-          message: 'Failed to execute agent',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-
-      // Handle client disconnect
-      req.on('close', () => {
-        logger.info(`Chat client disconnected`);
-        // Optionally abort the context if it's still running
-        voxContext.abort(false);
-      });
-
-    } catch (error) {
-      logger.error('Failed to process chat', { error });
-      res.status(500).json({ error: 'Failed to process chat' });
+    if (!message) {
+      res.status(400).json({ error: 'Message is required' });
+      return;
     }
+
+    if (!sessionId) {
+      res.status(400).json({ error: 'SessionID is required' });
+      return;
+    }
+
+    // Get session
+    let thread = chatSessions.get(sessionId);
+    if (!thread) {
+      res.status(404).json({ error: 'Session not found' });
+      return;
+    }
+
+    const voxContext = contextRegistry.get<StrategistParameters>(thread.contextId);
+    if (!voxContext) {
+      res.status(400).json({ error: 'Context not found. It may have been shut down.' });
+      return;
+    }
+
+    // Add user message to thread
+    const userMessage: ModelMessage = {
+      role: 'user',
+      content: message
+    };
+    thread.messages.push(userMessage);
+    thread.metadata!.updatedAt = new Date();
+
+    // Set up SSE stream
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*'
+    });
+
+    // Register SSE client
+    sseManager.addClient(res);
+
+    // Send initial connection event
+    sseManager.broadcast('connected', { sessionId: thread.id });
+
+    try {
+      // Execute the agent with the thread as input
+      const streamCallback: StreamingEventCallback = {
+        OnChunk: ({ chunk }) => {
+          sseManager.broadcast('message', chunk);
+        }
+      };
+
+      await voxContext.execute(
+        thread.agent,
+        voxContext.lastParameter!,
+        thread,
+        streamCallback
+      );
+
+      sseManager.broadcast('done', {
+        sessionId: thread.id,
+        messageCount: thread.messages.length
+      });
+    } catch (error) {
+      logger.error('Failed to execute agent', { error });
+      sseManager.broadcast('error', {
+        message: 'Failed to execute agent',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+
+    // Handle client disconnect
+    req.on('close', () => {
+      logger.info(`Chat client disconnected`);
+      // Optionally abort the context if it's still running
+      voxContext.abort(false);
+    });
   });
 
   /**
