@@ -8,7 +8,8 @@ A streamlined web interface for Vox Agents providing telemetry analysis, log vie
 - ✅ **Stage 4 Complete**: Telemetry API and UI fully operational with span viewing and trace analysis
 - ✅ **Stage 5 Complete**: Configuration management API and UI for settings and API keys
 - ✅ **Stage 6 Backend Complete**: Agent chat API with strong typing and SSE streaming
-- 🔄 **Stage 6 Frontend & 7 Pending**: Agent chat UI and session control
+- 🔄 **Stage 6 Frontend Partial**: Chat session list and agent selection dialog implemented, chat detail view pending
+- ⏳ **Stage 7 Pending**: Session control not started
 
 ## Technology Stack
 - **Frontend**: Vue 3 with TypeScript (already initialized at `ui/`)
@@ -61,9 +62,13 @@ vox-agents/
 - src/web/routes/ - Modular API route handlers ✅
   - telemetry.ts ✅ - Complete telemetry API implementation
   - config.ts ✅ - Configuration management endpoints
-  - session.ts (planned) - Session control endpoints
-  - agent.ts (planned) - Agent chat endpoints
-- Additional UI components for remaining features (planned)
+  - agent.ts ✅ - Agent chat endpoints with SSE streaming
+  - session.ts ⏳ - Session control endpoints (not started)
+- UI Components:
+  - ChatSessionsList.vue ✅ - Display active chat sessions
+  - GameSessionsList.vue ✅ - Display game sessions
+  - AgentSelectDialog.vue ✅ - Agent selection with context
+  - ChatDetailView.vue ⏳ - Chat interface (not started)
 ```
 
 ## Core Features Overview
@@ -225,7 +230,7 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - Save All/Reload functionality with success/error messaging
 
 ### Stage 6: Agent Chat
-**Status**: ✅ Backend COMPLETED, Frontend Pending
+**Status**: ✅ Backend COMPLETED, 🔄 Frontend 60% Complete
 
 **Overview**: Unified chat interface for interacting with agents - both specialized agents (Diplomat, General) using live context and a Telepathist agent for analyzing past records via telemetry.
 
@@ -244,16 +249,22 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - ✅ In-memory session storage with full EnvoyThread structure
 - ✅ SSE integration for streaming responses
 
-**Frontend Implementation**: 🔄 Partially Started
-- ✅ Basic `ChatView.vue` component created with session selection UI
-- ✅ Integration with active sessions from telemetry store
+**Frontend Implementation**: 🔄 Partially Complete
+- ✅ `ChatView.vue` component with comprehensive session selection UI
+- ✅ `ChatSessionsList.vue` component for displaying active chat sessions
+- ✅ `GameSessionsList.vue` component for displaying game sessions
+- ✅ `AgentSelectDialog.vue` component for agent selection with context
+- ✅ Integration with telemetry store for active sessions
 - ✅ Navigation to session/telemetry views for session discovery
-- ✅ Uses `ActiveSessionsList` component for session display
+- ✅ API client methods for all agent endpoints
+- ✅ Session creation with contextId support
 - ⏳ **Still Needed**:
-  - Chat interface components (message list, input, streaming display)
-  - Integration with new API endpoints
-  - Tool call display and formatting
-  - Agent selection and filtering by tags
+  - `ChatDetailView.vue` - The actual chat interface component
+  - Message list display with streaming support
+  - Input field with send button
+  - Tool call visualization
+  - Real-time SSE message streaming
+  - Message history management
 
 #### Unified Chat API ✅ IMPLEMENTED
 All endpoints use strongly-typed interfaces and return `EnvoyThread` objects directly.
@@ -331,23 +342,26 @@ All endpoints use strongly-typed interfaces and return `EnvoyThread` objects dir
 ```
 
 ### Stage 7: Session Control
-**Status**: 🔄 Not Started - Placeholder exists
+**Status**: ⏳ Not Started - Placeholder exists
 
 **What's Already Implemented**:
 - Basic `SessionView.vue` component created as placeholder
 - Route configured in Vue Router
+- Navigation from ChatView to SessionView for starting new games
 
 **Backend Requirements Still Needed**:
 - Wrapper API around StrategistSession in `src/web/routes/session.ts`
-- Session state management
-- Progress tracking via SSE
-- Graceful shutdown handling
+- Session state management and lifecycle control
+- Progress tracking via SSE for turn-by-turn updates
+- Graceful shutdown handling with proper cleanup
+- Config file selection and validation
 
 **Frontend Requirements Still Needed**:
-- Session status card
-- Start/stop controls with config file selection
+- Session status card showing current game state
+- Start/stop controls with config file selection dropdown
 - Progress indicators for turn processing
-- Real-time status updates via SSE
+- Real-time status updates via SSE connection
+- Error handling and recovery UI
 - Integration with existing StrategistSession class
 
 ## API Design
@@ -525,6 +539,23 @@ SSE /api/agents/:name/stream    // Response stream
   - Maintains backward compatibility through instance methods
 
 ### Next Steps
-1. Complete Stage 6 Frontend (Agent Chat UI) to enable interactive agent testing
-2. Implement Stage 7 (Session Control) for game session management
-3. Integrate ContextRegistry with web UI for context monitoring
+1. **Complete Stage 6 Frontend (Agent Chat UI)**
+   - Create `ChatDetailView.vue` component with full chat interface
+   - Implement message streaming with SSE
+   - Add tool call visualization
+   - Handle message history and context display
+   - Add route to router configuration for chat detail view
+
+2. **Implement Stage 7 (Session Control)**
+   - Create backend API in `src/web/routes/session.ts`
+   - Wrap StrategistSession with web-friendly interface
+   - Implement SSE for progress updates
+   - Build comprehensive session management UI
+   - Add config file selection and validation
+
+3. **Polish and Optimization**
+   - Add error boundaries and recovery mechanisms
+   - Implement reconnection logic for SSE connections
+   - Add loading states and skeleton screens
+   - Optimize bundle size and lazy loading
+   - Add comprehensive error messages and user feedback
