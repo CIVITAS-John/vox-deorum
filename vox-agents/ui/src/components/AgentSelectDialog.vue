@@ -67,6 +67,23 @@ const contextSpanName = computed(() => {
   return props.span?.name || '';
 });
 
+// Filtered agents based on context
+const filteredAgents = computed(() => {
+  return agents.value.filter(agent => {
+    // If session has contextId (active game), filter out agents with "active-games" tag
+    if (props.contextId && agent.tags.includes('active-games')) {
+      return false;
+    }
+
+    // If session has databasePath (telepathist mode), filter out agents with "telepathist" tag
+    if (props.databasePath && agent.tags.includes('telepathist')) {
+      return false;
+    }
+
+    return true;
+  });
+});
+
 // Methods
 async function loadAgents() {
   loading.value = true;
@@ -75,6 +92,7 @@ async function loadAgents() {
   try {
     const response = await apiClient.getAgents();
     agents.value = response.agents || [];
+    console.log(response.agents);
   } catch (err) {
     console.error('Error loading agents:', err);
     error.value = err instanceof Error ? err.message : 'Failed to load agents';
@@ -144,9 +162,7 @@ async function confirmSelection() {
 
 // Load agents when dialog opens
 onMounted(() => {
-  if (props.visible) {
-    loadAgents();
-  }
+  loadAgents();
 });
 </script>
 
@@ -193,12 +209,12 @@ onMounted(() => {
 
       <!-- Table body -->
       <div class="table-body">
-        <div v-if="agents.length === 0" class="table-empty">
+        <div v-if="filteredAgents.length === 0" class="table-empty">
           <i class="pi pi-inbox"></i>
           <p>No agents available</p>
         </div>
         <div
-          v-for="agent in agents"
+          v-for="agent in filteredAgents"
           :key="agent.name"
           class="table-row clickable"
           :class="{ 'selected': selectedAgent?.name === agent.name }"

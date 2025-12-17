@@ -118,4 +118,8 @@ fetchTelemetryData();
 .telemetry-link:hover {
   opacity: 0.8;
 }
+
+.active-sessions-card {
+  margin-bottom: 1rem;
+}
 </style>

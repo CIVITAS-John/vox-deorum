@@ -98,7 +98,6 @@ class ApiClient {
       try {
         const rawLog = JSON.parse(event.data);
         const processedLog = extractLogParams(rawLog);
-        console.log(processedLog);
         onMessage(processedLog);
       } catch (error) {
         console.error('Failed to parse log message:', error);
