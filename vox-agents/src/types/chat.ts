@@ -38,6 +38,9 @@ export interface EnvoyThread {
 
   /** Player ID this thread is associated with */
   playerID: number;
+  
+  /** Player ID the user is associated with */
+  userPlayerID?: number;
 
   /** Type of context: live VoxContext or database */
   contextType: 'live' | 'database';

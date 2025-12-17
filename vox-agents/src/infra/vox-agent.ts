@@ -171,11 +171,13 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   /**
    * Gets the initial messages to include in the conversation.
    * These messages will be added after the system prompt.
-   * 
+   *
    * @param parameters - The execution parameters
+   * @param input - The input passed to the agent
+   * @param context - The VoxContext for this execution
    * @returns Array of initial messages, or empty array if none
    */
-  public async getInitialMessages(_parameters: TParameters, _context: VoxContext<TParameters>): Promise<ModelMessage[]> {
+  public async getInitialMessages(_parameters: TParameters, _input: TInput, _context: VoxContext<TParameters>): Promise<ModelMessage[]> {
     return [];
   }
   
@@ -226,7 +228,7 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
 
     // Handle messages
     if (lastStep === null) {
-      config.messages = [...messages, ...await this.getInitialMessages(parameters, context)];
+      config.messages = [...messages, ...await this.getInitialMessages(parameters, input, context)];
     } else if (this.onlyLastRound) {
       // Keep all system and user messages, but only the last round of assistant/tool messages
       const filteredMessages: ModelMessage[] = [];

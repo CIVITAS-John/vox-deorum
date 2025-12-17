@@ -74,15 +74,15 @@ You will receive:
   /**
    * Gets the initial messages for the conversation
    */
-  public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
-    var state = getRecentGameState(parameters)!; 
+  public async getInitialMessages(parameters: StrategistParameters, input: unknown, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
+    var state = getRecentGameState(parameters)!;
 
     // Get the briefing from the simple-briefer agent
     const briefing = await context.callAgent<string>("simple-briefer", undefined, parameters);
     if (!briefing) throw new Error("Failed to generate strategic briefings.");
 
     // Get the information
-    await super.getInitialMessages(parameters, context);
+    await super.getInitialMessages(parameters, input, context);
 
     // Return the messages with briefing instead of full state
     return [{

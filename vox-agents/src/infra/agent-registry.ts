@@ -12,6 +12,7 @@ import { SimpleStrategist } from "../strategist/agents/simple-strategist.js";
 import { SimpleStrategistBriefed } from "../strategist/agents/simple-strategist-briefed.js";
 import { SimpleBriefer } from "../briefer/simple-briefer.js";
 import { NoneStrategist } from "../strategist/agents/none-strategist.js";
+import { Spokesperson } from "../envoy/spokesperson.js";
 
 /**
  * Registry for managing available Vox agents.
@@ -165,6 +166,9 @@ class AgentRegistry {
 
     // Register briefer agents
     this.register(new SimpleBriefer());
+
+    // Register envoy agents
+    this.register(new Spokesperson());
 
     this.defaultsInitialized = true;
     this.logger.info(`Default agents initialized: ${this.agents.size} agents registered`);

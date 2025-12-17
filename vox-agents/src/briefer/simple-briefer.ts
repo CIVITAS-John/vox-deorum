@@ -79,10 +79,10 @@ Reason briefly. Write your briefing as a text document in a clear, direct, conci
   /**
    * Gets the initial messages for the conversation
    */
-  public async getInitialMessages(parameters: StrategistParameters, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
+  public async getInitialMessages(parameters: StrategistParameters, input: string, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     var state = getRecentGameState(parameters)!;
     // Get the information
-    await super.getInitialMessages(parameters, context);
+    await super.getInitialMessages(parameters, input, context);
     // Return the messages
     return [{
       role: "system",
