@@ -10,9 +10,9 @@
   flex-direction: column;
   width: 100%;
   font-size: 0.875rem;
-  border: 1px solid var(--p-surface-border);
-  border-radius: var(--p-border-radius);
-  background: var(--p-surface-0);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--border-radius);
+  background: var(--p-content-background);
   overflow: hidden;
 }
 
@@ -21,10 +21,9 @@
   display: flex;
   align-items: center;
   padding: 0.75rem 0.5rem;
-  background: var(--p-surface-50);
-  border-bottom: 2px solid var(--p-surface-border);
+  background: var(--content-hover-background);
+  border-bottom: 2px solid var(--p-content-border-color);
   font-weight: 600;
-  color: var(--p-text-color);
   user-select: none;
 }
 
@@ -39,7 +38,7 @@
   display: flex;
   align-items: center;
   padding: 0.1rem 0.5rem;
-  border-bottom: 1px solid var(--p-surface-200);
+  border-bottom: 1px solid var(--content-border-color);
   transition: background-color 0.2s;
   min-height: 2.5rem;
 }
@@ -49,7 +48,7 @@
 }
 
 .table-row:hover {
-  background: var(--p-surface-100);
+  background: var(--p-content-hover-background);
 }
 
 /* Clickable row style */
