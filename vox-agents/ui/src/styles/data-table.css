@@ -1,6 +1,7 @@
 /**
  * Shared data table styles for consistent flex-based table appearance
  * Used across LogViewer, TelemetryView, and other table-like components
+ * Uses PrimeVue design tokens for consistency
  */
 
 /* Container for the entire table */
@@ -9,9 +10,9 @@
   flex-direction: column;
   width: 100%;
   font-size: 0.875rem;
-  border: 1px solid var(--p-content-border-color);
-  border-radius: var(--border-radius);
-  background: var(--p-content-background);
+  border: 1px solid var(--p-surface-border);
+  border-radius: var(--p-border-radius);
+  background: var(--p-surface-0);
   overflow: hidden;
 }
 
@@ -20,10 +21,10 @@
   display: flex;
   align-items: center;
   padding: 0.75rem 0.5rem;
-  background: var(--content-hover-background);
-  border-bottom: 2px solid var(--p-content-border-color);
+  background: var(--p-surface-50);
+  border-bottom: 2px solid var(--p-surface-border);
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--p-text-color);
   user-select: none;
 }
 
@@ -38,7 +39,7 @@
   display: flex;
   align-items: center;
   padding: 0.1rem 0.5rem;
-  border-bottom: 1px solid var(--content-border-color);
+  border-bottom: 1px solid var(--p-surface-200);
   transition: background-color 0.2s;
   min-height: 2.5rem;
 }
@@ -48,7 +49,7 @@
 }
 
 .table-row:hover {
-  background: var(--p-content-hover-background);
+  background: var(--p-surface-100);
 }
 
 /* Clickable row style */
@@ -114,7 +115,7 @@
   padding-right: 0.5rem;
 }
 
-/* Text utilities */
+/* Table-specific text utilities (not duplicated elsewhere) */
 .monospace {
   font-family: 'Courier New', Courier, monospace;
   font-size: 0.85rem;
@@ -131,66 +132,27 @@
   word-wrap: break-word;
 }
 
-.text-muted {
-  color: var(--p-text-muted-color);
-}
-
-.text-small {
-  font-size: 0.75rem;
-}
-
-/* Alignment utilities */
-.text-left {
-  text-align: left;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-right {
-  text-align: right;
-  padding-right: 0;
-  padding-left: 0.5rem;
-}
+/* Note: .text-muted defined in chat.css */
+/* Note: text alignment classes available in PrimeFlex */
 
 /* Special row states */
 .table-row.selected {
-  background: rgba(var(--p-primary-500), 0.12);
+  background: var(--p-primary-100);
 }
 
 .table-row.error {
-  background: rgba(var(--p-red-500), 0.05);
+  background: var(--p-red-50);
 }
 
 .table-row.warning {
-  background: rgba(var(--p-yellow-500), 0.05);
+  background: var(--p-yellow-50);
 }
 
 .table-row.success {
-  background: rgba(var(--p-green-500), 0.05);
+  background: var(--p-green-50);
 }
 
-/* Empty state for tables */
-.table-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: var(--p-text-muted-color);
-  text-align: center;
-}
-
-.table-empty i {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.table-empty p {
-  margin: 0;
-}
+/* Note: .table-empty styles defined in states.css */
 
 /* Loading state */
 .table-loading {
@@ -198,7 +160,7 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: var(--p-text-muted-color);
+  color: var(--p-text-secondary-color);
 }
 
 /* Responsive adjustments */

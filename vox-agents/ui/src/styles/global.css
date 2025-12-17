@@ -152,3 +152,17 @@ body {
 .p-input-icon-right > .p-inputtext {
   padding-right: 2.5rem;
 }
+
+/* Common text utilities used across components */
+.text-muted { color: var(--p-text-muted-color); }
+.text-secondary { color: var(--p-text-secondary-color); }
+.text-small { font-size: 0.75rem; }
+
+/* Borderless cards for chat interface */
+.borderless :deep(.p-card) {
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+}
+.borderless.no-top :deep(.p-card) { border-top: none; }
+.borderless.no-bottom :deep(.p-card) { border-bottom: none; }

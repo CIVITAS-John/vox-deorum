@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import PrimeVue from 'primevue/config'
 import ConfirmationService from 'primevue/confirmationservice'
+import ToastService from 'primevue/toastservice'
 import Civ5Theme from './styles/civ5-theme'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
@@ -17,6 +18,9 @@ app.use(PrimeVue, {
 
 // Add confirmation service for dialogs
 app.use(ConfirmationService)
+
+// Add toast service for notifications
+app.use(ToastService)
 
 app.use(router)
 

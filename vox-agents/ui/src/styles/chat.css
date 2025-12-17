@@ -1,0 +1,148 @@
+/**
+ * Chat-specific styles using PrimeVue design tokens
+ * Minimal custom styles - leveraging PrimeFlex and global utilities
+ */
+
+/* Message blocks */
+.msg {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--p-border-radius);
+  background: var(--p-surface-100);
+  border-left: 3px solid var(--p-surface-400);
+  transition: background-color 0.15s ease;
+}
+
+.msg-user {
+  background: var(--p-primary-50);
+  margin-left: 2rem;
+  border-left-color: var(--p-primary-500);
+}
+
+.msg-assistant {
+  margin-right: 2rem;
+}
+
+.msg-system {
+  background: var(--p-surface-200);
+  font-style: italic;
+  color: var(--p-text-muted-color);
+  border-left-color: var(--p-surface-500);
+}
+
+.msg-tool-call,
+.msg-tool-result {
+  background: var(--p-surface-50);
+  margin: 0.5rem 0;
+}
+
+.msg-tool-call {
+  border-left-color: var(--p-primary-500);
+}
+
+.msg-tool-result {
+  border-left-color: var(--p-green-500);
+}
+
+/* Custom utilities not in PrimeFlex or global.css */
+.whitespace-pre { white-space: pre-wrap; word-wrap: break-word; }
+/* Note: .text-muted and .text-secondary defined in global.css */
+
+/* Tool headers */
+.tool-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+}
+
+.tool-icon {
+  font-size: 1.2rem;
+}
+
+.tool-name {
+  color: var(--p-primary-600);
+}
+
+/* Tool content areas */
+.tool-args,
+.tool-result-content {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-surface-200);
+  border-radius: var(--p-border-radius);
+  overflow-x: auto;
+}
+
+.tool-result-content {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.text-result {
+  font-family: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--p-text-color);
+}
+
+.json-pretty {
+  font-size: 0.875rem;
+}
+
+/* Special blocks */
+.collapsible {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--p-border-radius);
+  background: var(--p-surface-50);
+  border: 1px solid var(--p-surface-200);
+  transition: all 0.15s ease;
+}
+
+.collapsible:hover {
+  border-color: var(--p-surface-300);
+}
+
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--p-text-color);
+}
+
+.collapsible-header:hover {
+  opacity: 0.85;
+}
+
+.collapsible-header .pi {
+  color: var(--p-primary-500);
+  transition: transform 0.2s ease;
+}
+
+.collapsible-content {
+  margin-top: 0.75rem;
+  padding-left: 1.5rem;
+  line-height: 1.5;
+  color: var(--p-text-secondary-color);
+}
+
+/* Virtual list specific styles */
+.virtual-list {
+  height: 100%;
+  overflow: auto;
+  padding: 1rem;
+}
+
+/* Scroll button */
+.scroll-btn {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}

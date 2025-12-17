@@ -1,5 +1,5 @@
 /**
- * Shared styles for loading, error, and empty states
+ * Shared styles for loading, error, and empty states using PrimeVue tokens
  */
 
 /* Loading State */
@@ -10,7 +10,7 @@
   justify-content: center;
   min-height: 400px;
   gap: 1rem;
-  color: var(--text-color-secondary);
+  color: var(--p-text-secondary-color);
 }
 
 .loading-container p {
@@ -30,13 +30,13 @@
 
 .error-container i {
   font-size: 3rem;
-  color: var(--red-500);
+  color: var(--p-red-500);
 }
 
 .error-container p {
   margin: 0;
   font-size: 1.1rem;
-  color: var(--text-color);
+  color: var(--p-text-color);
   text-align: center;
   max-width: 500px;
 }
@@ -48,13 +48,13 @@
   align-items: center;
   justify-content: center;
   padding: 4rem 2rem;
-  color: var(--text-color-secondary);
+  color: var(--p-text-secondary-color);
   gap: 1rem;
 }
 
 .empty-state i {
   font-size: 3rem;
-  color: var(--surface-400);
+  color: var(--p-surface-400);
 }
 
 .empty-state p {
@@ -65,7 +65,7 @@
 
 .empty-state .text-small {
   font-size: 0.9rem;
-  color: var(--text-color-secondary);
+  color: var(--p-text-secondary-color);
   margin-top: -0.5rem;
 }
 
@@ -76,13 +76,13 @@
   align-items: center;
   justify-content: center;
   padding: 3rem 2rem;
-  color: var(--text-color-secondary);
+  color: var(--p-text-secondary-color);
   gap: 0.75rem;
 }
 
 .table-empty i {
   font-size: 2.5rem;
-  color: var(--surface-400);
+  color: var(--p-surface-400);
 }
 
 .table-empty p {
@@ -93,6 +93,6 @@
 
 .table-empty .text-muted {
   font-size: 0.85rem;
-  color: var(--surface-500);
+  color: var(--p-surface-500);
   margin-top: -0.25rem;
 }
