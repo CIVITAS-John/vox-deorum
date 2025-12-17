@@ -86,7 +86,7 @@ function getSessionTitle(session: EnvoyThread): string {
         <div class="table-header">
           <div class="col-expand">Session</div>
           <div class="col-fixed-120">Agent</div>
-          <div class="col-fixed-80">Game</div>
+          <div class="col-fixed-200">Game</div>
           <div class="col-fixed-60">Player</div>
           <div v-if="showActions" class="col-fixed-120">Actions</div>
         </div>
@@ -100,13 +100,13 @@ function getSessionTitle(session: EnvoyThread): string {
               {{ getSessionTitle(session) }}
             </div>
             <div class="col-fixed-120">
-              <Tag :value="session.agent" severity="secondary" />
+              {{ session.agent }}
             </div>
-            <div class="col-fixed-80">
-              {{ session.gameID || '-' }}
+            <div class="col-fixed-200">
+              {{ session.gameID }}
             </div>
             <div class="col-fixed-60">
-              {{ session.playerID || '-' }}
+              {{ session.playerID }}
             </div>
             <div v-if="showActions" class="col-fixed-120">
               <Button icon="pi pi-play" text rounded size="small"

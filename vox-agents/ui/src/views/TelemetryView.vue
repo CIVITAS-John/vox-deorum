@@ -138,10 +138,10 @@ onMounted(() => {
                   <Tag :value="db.folder" severity="secondary" />
                 </div>
                 <div class="col-expand">
-                  {{ db.gameId }}
+                  {{ db.gameID }}
                 </div>
                 <div class="col-fixed-80">
-                  {{ db.playerId }}
+                  {{ db.playerID }}
                 </div>
                 <div class="col-fixed-80">
                   {{ formatFileSize(db.size) }}

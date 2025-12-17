@@ -19,7 +19,7 @@
 .table-header {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 0.5rem;
   background: var(--content-hover-background);
   border-bottom: 2px solid var(--p-content-border-color);
   font-weight: 600;

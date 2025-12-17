@@ -14,9 +14,9 @@ export interface TelemetryMetadata {
   /** Database filename */
   filename: string;
   /** Unique game session identifier */
-  gameId: string;
+  gameID: string;
   /** Player identifier for the session */
-  playerId: string;
+  playerID: string;
   /** Database file size in bytes */
   size: number;
   /** ISO timestamp of last modification */
@@ -30,9 +30,9 @@ export interface TelemetrySession {
   /** The session identifier */
   sessionId: string;
   /** Extracted game ID if available */
-  gameId?: string;
+  gameID?: string;
   /** Extracted player ID if available */
-  playerId?: string;
+  playerID?: string;
 }
 
 /**

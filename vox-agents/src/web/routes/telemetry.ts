@@ -73,8 +73,8 @@ router.get('/databases', async (_req: Request, res: Response<TelemetryDatabasesR
           databases.push({
             folder: identifierInfo.folderPath || '',
             filename: entry.name,
-            gameId: identifierInfo.gameID,
-            playerId: identifierInfo.playerID.toString(),
+            gameID: identifierInfo.gameID,
+            playerID: identifierInfo.playerID.toString(),
             size: stats.size,
             lastModified: stats.mtime.toISOString()
           });
@@ -142,8 +142,8 @@ router.get('/sessions/active', async (_req: Request, res: Response<TelemetrySess
     const identifierInfo = parseContextIdentifier(sessionId);
     return {
       sessionId,
-      gameId: identifierInfo.gameID !== sessionId ? identifierInfo.gameID : undefined,
-      playerId: identifierInfo.playerID.toString()
+      gameID: identifierInfo.gameID !== sessionId ? identifierInfo.gameID : undefined,
+      playerID: identifierInfo.playerID.toString()
     };
   });
 

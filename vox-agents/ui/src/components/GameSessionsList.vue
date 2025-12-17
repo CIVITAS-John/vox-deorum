@@ -79,10 +79,10 @@ const sessionCount = computed(() => props.sessions.length);
                class="table-row clickable"
                @click="handleSessionClick(session.sessionId)">
             <div class="col-expand">
-              {{ session.gameId || '-' }}
+              {{ session.gameID || '-' }}
             </div>
             <div class="col-fixed-80">
-              {{ session.playerId || '-' }}
+              {{ session.playerID || '-' }}
             </div>
             <div v-if="showViewButton" class="col-fixed-80">
               <Button icon="pi pi-eye" text rounded size="small"

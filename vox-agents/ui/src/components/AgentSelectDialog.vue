@@ -204,7 +204,7 @@ onMounted(() => {
       <div class="table-header">
         <div class="col-fixed-150">Name</div>
         <div class="col-expand">Description</div>
-        <div class="col-fixed-200">Tags</div>
+        <div class="col-fixed-250">Tags</div>
       </div>
 
       <!-- Table body -->
@@ -221,8 +221,8 @@ onMounted(() => {
           @click="selectedAgent = agent"
         >
           <div class="col-fixed-150">{{ agent.name }}</div>
-          <div class="col-expand">{{ agent.description }}</div>
-          <div class="col-fixed-200">
+          <div class="col-expand description-col">{{ agent.description }}</div>
+          <div class="col-fixed-250">
             <Tag
               v-for="tag in agent.tags"
               :key="tag"
@@ -264,5 +264,13 @@ onMounted(() => {
 .selected {
   font-weight: bold;
   background-color: var(--p-hover-background);
+}
+
+/* Multi-line description support */
+.description-col {
+  white-space: pre-wrap !important;
+  word-wrap: break-word;
+  overflow: visible !important;
+  text-overflow: unset !important;
 }
 </style>

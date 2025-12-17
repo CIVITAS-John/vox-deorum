@@ -86,14 +86,14 @@ if (values.players || values.strategist) {
 
   if (values.players) {
     const playerList = Array.isArray(values.players) ? values.players : [values.players];
-    const playerIds = playerList.flatMap(p =>
+    const playerIDs = playerList.flatMap(p =>
       (p as string).split(',').map(id => parseInt(id.trim()))
     ).filter(id => !isNaN(id));
 
     // Build llmPlayers as a Record
     cmdOverrides.llmPlayers = {};
-    for (const playerId of playerIds) {
-      cmdOverrides.llmPlayers[playerId] = { strategist };
+    for (const playerID of playerIDs) {
+      cmdOverrides.llmPlayers[playerID] = { strategist };
     }
   } else if (values.strategist) {
     // If only strategist is specified, update the default player

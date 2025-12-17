@@ -97,7 +97,7 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
         if (existingContext) {
           // Use the existing live context
           logger.info(`Using existing VoxContext: ${contextId}`);
-          // Parse gameId and playerId using utility function
+          // Parse gameID and playerID using utility function
           const identifierInfo = parseContextIdentifier(contextId);
           gameID = identifierInfo.gameID;
           playerID = identifierInfo.playerID;
@@ -108,7 +108,7 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
         // Validate database file exists
         try {
           await fs.access(databasePath);
-          // Parse gameId and playerId using utility function
+          // Parse gameID and playerID using utility function
           const identifierInfo = parseDatabaseIdentifier(databasePath);
           gameID = identifierInfo.gameID;
           playerID = identifierInfo.playerID;
