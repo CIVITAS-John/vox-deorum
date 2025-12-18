@@ -3,7 +3,7 @@ View: ChatDetailView
 Purpose: Main chat interface for interacting with agents
 -->
 <template>
-  <div class="flex flex-column" style="height: 100%; overflow: hidden">
+  <div class="chat-detail-container">
     <!-- Header -->
     <div class="page-header">
       <div class="page-header-left">
@@ -31,24 +31,22 @@ Purpose: Main chat interface for interacting with agents
       </div>
     </div>
 
-    <!-- Messages -->
-    <Card class="borderless" style="flex: 1; overflow: hidden">
-      <template #content>
-        <ChatMessages
-          v-if="thread"
-          :messages="thread.messages"
-          :auto-scroll="!isStreaming"
-          :scroll-trigger="newChunkEvent"
-        />
-        <div v-else class="loading-container">
-          <ProgressSpinner />
-          <p>Loading chat session...</p>
-        </div>
-      </template>
-    </Card>
+    <!-- Messages Container -->
+    <div class="messages-wrapper">
+      <ChatMessages
+        v-if="thread"
+        :messages="thread.messages"
+        :auto-scroll="!isStreaming"
+        :scroll-trigger="newChunkEvent"
+      />
+      <div v-else class="loading-container">
+        <ProgressSpinner />
+        <p>Loading chat session...</p>
+      </div>
+    </div>
 
-    <!-- Input -->
-    <div class="flex align-items-end gap-2 mt-4">
+    <!-- Input Area -->
+    <div class="input-area">
       <Textarea
         v-model="inputMessage"
         :disabled="isStreaming || !thread"
@@ -56,7 +54,7 @@ Purpose: Main chat interface for interacting with agents
         placeholder="Type your message..."
         :rows="3"
         auto-resize
-        style="flex: 1"
+        class="input-textarea"
       />
       <Button
         @click="sendMessage"
@@ -80,7 +78,6 @@ Purpose: Main chat interface for interacting with agents
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import Card from 'primevue/card';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
@@ -168,10 +165,4 @@ onUnmounted(() => {
 
 <style scoped>
 @import '@/styles/chat.css';
-@import '@/styles/states.css';
-/* Component uses shared styles from chat.css and states.css */
-
-.p-card {
-  background-color: var(--p-content-hover-background);
-}
 </style>

@@ -240,9 +240,11 @@ VoxAgent (Base)
 #### Shared Style Files
 - `src/styles/global.css` - Application-wide styles and section layouts
 - `src/styles/data-table.css` - Common table styles for consistent appearance
+- `src/styles/chat.css` - Chat-specific styles for messages and chat interfaces
+- `src/styles/states.css` - Empty states and loading states
 
 #### Style Reuse Patterns
-1. **Always check existing shared styles** before creating new ones
+1. **Always check existing stylesheet before creating any new styles or pages** - Review all shared stylesheets to avoid duplicating existing styles
 
 2. **Use shared CSS classes from global.css**:
    - `.section-container` - Container for multiple card sections with gap

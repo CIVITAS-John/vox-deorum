@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-messages-container" ref="chatContainer">
+  <div class="chat-messages-container">
     <div v-if="messages.length === 0" class="empty-state">
       <i class="pi pi-comments" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5"></i>
       <p>No messages yet. Start a conversation!</p>
@@ -10,7 +10,6 @@
       ref="virtualScroller"
       :data="messages"
       :overscan="3"
-      :style="{ minHeight: scrollerHeight }"
       class="virtual-list"
     >
       <template #default="{ item, index }">
@@ -33,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue';
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { VList } from 'virtua/vue';
 import Button from 'primevue/button';
 import type { ModelMessage } from 'ai';
@@ -52,31 +51,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Template refs
 const virtualScroller = ref<InstanceType<typeof VList>>();
-const chatContainer = ref<HTMLElement>();
 
 // State
 const showScrollButton = ref(false);
-const scrollerHeight = ref('600px');
-
-// Debounce timer
-let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-
-// Calculate adaptive scroll height
-const calculateScrollerHeight = () => {
-  // Get viewport height and subtract approximate space for header, input area, padding
-  const viewportHeight = window.innerHeight;
-  const headerAndInputHeight = 300; // Approximate height for header, input area, and padding
-  const calculatedHeight = Math.max(400, viewportHeight - headerAndInputHeight); // Minimum 400px
-  scrollerHeight.value = `${calculatedHeight}px`;
-};
-
-// Update dimensions on window resize with debounce
-const handleResize = () => {
-  if (resizeTimer) clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    calculateScrollerHeight();
-  }, 150); // Debounce for 150ms
-};
 
 // Scroll to bottom of the list
 const scrollToBottom = () => {
@@ -113,9 +90,6 @@ watch(() => props.scrollTrigger, () => {
 });
 
 onMounted(() => {
-  calculateScrollerHeight();
-  window.addEventListener('resize', handleResize);
-
   // Wait for next tick to ensure virtual scroller is rendered
   nextTick(() => {
     // Get the internal scroll container from Virtua and add scroll listener
@@ -132,42 +106,14 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-
   // Clean up scroll listener
   const scrollElement = (virtualScroller.value as any)?.$el?.firstElementChild;
   if (scrollElement) {
     scrollElement.removeEventListener('scroll', handleScroll);
-  }
-
-  // Clear resize timer if it exists
-  if (resizeTimer) {
-    clearTimeout(resizeTimer);
   }
 });
 </script>
 
 <style scoped>
 @import '@/styles/chat.css';
-@import '@/styles/states.css';
-
-.chat-messages-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.virtual-list {
-  flex: 1;
-  overflow: auto;
-}
-
-.scroll-btn {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 10;
-}
 </style>

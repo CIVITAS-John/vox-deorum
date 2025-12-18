@@ -31,17 +31,17 @@
 }
 
 /** Message content styles **/
-.message-content p {
+.message-content :deep(p) {
   margin: 0 0 0.5rem;
 }
 
-.message-content ul,
-.message-content ol {
+.message-content :deep(ul),
+.message-content :deep(ol) {
   margin: 0.5rem 0;
   padding-left: 2rem;
 }
 
-.message-content hr {
+.message-content :deep(hr) {
   margin: 1rem 0;
 }
 
@@ -131,10 +131,22 @@
   color: var(--p-text-secondary-color);
 }
 
-/* Virtual list specific styles */
-.virtual-list {
+/* Chat messages container */
+.chat-messages-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  overflow: auto;
+  width: 100%;
+  min-height: 0; /* Important for flex children */
+}
+
+/* Virtual list */
+.virtual-list {
+  flex: 1 1 auto;
+  min-height: 0; /* Allow shrinking below content height */
+  width: 100%;
+  height: 100%;
 }
 
 /* Scroll button */
@@ -144,4 +156,56 @@
   right: 1rem;
   z-index: 10;
   box-shadow: 0 2px 8px var(--p-shadow-color);
+}
+
+/* Empty state styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--p-text-secondary-color);
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Chat detail view container */
+.chat-detail-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 2rem);
+  overflow: hidden;
+}
+
+/* Messages wrapper */
+.messages-wrapper {
+  flex: 1 1 auto;
+  min-height: 0; /* Critical for flex children */
+  background: var(--p-content-hover-background);
+  border-radius: var(--p-border-radius);
+  padding: 1rem;
+}
+
+/* Input area */
+.input-area {
+  flex-shrink: 0;
+  display: flex;
+  margin-top: 1rem;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.input-textarea {
+  flex: 1;
+}
+
+/* Loading container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
 }
