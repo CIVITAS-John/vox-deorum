@@ -92,7 +92,6 @@ async function loadAgents() {
   try {
     const response = await apiClient.getAgents();
     agents.value = response.agents || [];
-    console.log(response.agents);
   } catch (err) {
     console.error('Error loading agents:', err);
     error.value = err instanceof Error ? err.message : 'Failed to load agents';

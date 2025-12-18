@@ -162,7 +162,7 @@ onMounted(() => {
 <template>
   <div class="telemetry-database-view">
     <!-- Header with navigation -->
-    <div class="simple-header">
+    <div class="page-header">
       <Button
         icon="pi pi-arrow-left"
         text

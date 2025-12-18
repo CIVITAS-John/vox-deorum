@@ -5,24 +5,30 @@ Purpose: Main chat interface for interacting with agents
 <template>
   <div class="flex flex-column" style="height: 100%; overflow: hidden">
     <!-- Header -->
-    <div style="flex-shrink: 0; padding: 1rem">
-      <div class="flex justify-content-between align-items-center">
-        <div class="flex align-items-center gap-3">
-          <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
-          <h2 style="margin: 0">{{ thread?.title || `${thread?.agent || 'Loading'} Chat` }}</h2>
-        </div>
-        <div v-if="thread" class="flex align-items-center gap-2">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>{{ thread?.title || `${thread?.agent || 'Loading'} Chat` }}</h1>
+        <div v-if="thread" class="flex align-items-center gap-2" style="margin-left: 1rem">
           <Tag :value="thread.contextType" :severity="thread.contextType === 'live' ? 'success' : 'info'" />
           <span class="text-sm text-muted">Game: {{ thread.gameID }} | Player: {{ thread.playerID }}</span>
-          <Button
-            icon="pi pi-trash"
-            text
-            severity="danger"
-            rounded
-            :loading="isDeleting"
-            @click="confirmDelete"
-          />
         </div>
+      </div>
+      <div class="page-header-controls">
+        <Button
+          label="Back"
+          icon="pi pi-arrow-left"
+          text
+          @click="goBack"
+        />
+        <Button
+          label="Delete"
+          icon="pi pi-trash"
+          text
+          severity="danger"
+          :loading="isDeleting"
+          @click="confirmDelete"
+          v-if="thread"
+        />
       </div>
     </div>
 
@@ -43,29 +49,23 @@ Purpose: Main chat interface for interacting with agents
     </Card>
 
     <!-- Input -->
-    <div style="flex-shrink: 0; padding: 1rem">
-      <div class="flex align-items-end gap-2">
-        <Textarea
-          v-model="inputMessage"
-          :disabled="isStreaming || !thread"
-          @keydown.enter.prevent="handleEnterKey"
-          placeholder="Type your message..."
-          :rows="3"
-          auto-resize
-          style="flex: 1"
-        />
-        <Button
-          @click="sendMessage"
-          :disabled="!inputMessage.trim() || isStreaming || !thread"
-          :loading="isStreaming"
-          icon="pi pi-send"
-          label="Send"
-        />
-      </div>
-      <div v-if="streamingStatus" class="text-sm" style="color: var(--p-primary-500); margin-top: 0.5rem">
-        <i class="pi pi-spin pi-spinner"></i>
-        {{ streamingStatus }}
-      </div>
+    <div class="flex align-items-end gap-2">
+      <Textarea
+        v-model="inputMessage"
+        :disabled="isStreaming || !thread"
+        @keydown.enter.prevent="handleEnterKey"
+        placeholder="Type your message..."
+        :rows="3"
+        auto-resize
+        style="flex: 1"
+      />
+      <Button
+        @click="sendMessage"
+        :disabled="!inputMessage.trim() || isStreaming || !thread"
+        :loading="isStreaming"
+        icon="pi pi-send"
+        label="Send"
+      />
     </div>
 
     <!-- Delete confirmation dialog -->
@@ -101,7 +101,6 @@ const toast = useToast();
 const thread = ref<EnvoyThread | null>(null);
 const inputMessage = ref('');
 const isStreaming = ref(false);
-const streamingStatus = ref('');
 const showDeleteDialog = ref(false);
 const isDeleting = ref(false);
 const messageTimestamps = ref<Date[]>([]);
@@ -156,7 +155,6 @@ const sendMessage = async () => {
 
   // Start streaming
   isStreaming.value = true;
-  streamingStatus.value = 'Connecting...';
 
   // Prepare for assistant response
   const assistantMessage: ModelMessage = {
@@ -179,10 +177,7 @@ const sendMessage = async () => {
     sseCleanup = api.streamAgentChat(
       request,
       (data) => {
-        if (data.type === 'connected') {
-          streamingStatus.value = 'Agent is thinking...';
-        } else if (data.type === 'message') {
-          streamingStatus.value = 'Agent is responding...';
+        if (data.type === 'message') {
           // Append chunk to the assistant message
           buffer += data;
           if (thread.value) {
@@ -192,7 +187,6 @@ const sendMessage = async () => {
             };
           }
         } else if (data.type === 'done') {
-          streamingStatus.value = '';
           isStreaming.value = false;
         } else if (data.type === 'error') {
           throw new Error(data.message || 'Stream error');
@@ -200,7 +194,6 @@ const sendMessage = async () => {
       },
       (error) => {
         console.error('SSE error:', error);
-        streamingStatus.value = '';
         isStreaming.value = false;
         toast.add({
           severity: 'error',
@@ -212,7 +205,6 @@ const sendMessage = async () => {
     );
   } catch (error) {
     console.error('Failed to send message:', error);
-    streamingStatus.value = '';
     isStreaming.value = false;
 
     // Remove the empty assistant message

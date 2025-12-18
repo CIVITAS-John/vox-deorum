@@ -59,10 +59,13 @@ function handleChatResume(sessionId: string) {
  * Delete a chat session
  */
 function handleChatDelete(sessionId: string) {
-  const session = chatSessions.value.find(s => s.id === sessionId);
-  if (session) {
-    sessionToDelete.value = session;
-    showDeleteDialog.value = true;
+  // Find the session in the array
+  for (const session of chatSessions.value) {
+    if (session.id === sessionId) {
+      sessionToDelete.value = session;
+      showDeleteDialog.value = true;
+      break;
+    }
   }
 }
 

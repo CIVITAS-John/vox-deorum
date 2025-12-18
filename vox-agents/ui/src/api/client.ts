@@ -473,6 +473,7 @@ class ApiClient {
     });
 
     eventSource.addEventListener('message', (event: any) => {
+      console.log(event);
       try {
         const data = JSON.parse(event.data);
         if (data.type !== 'heartbeat') {
