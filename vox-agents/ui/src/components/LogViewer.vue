@@ -122,7 +122,7 @@ const sourceOptions = [
   { label: 'Agents', value: 'agents' },
   { label: 'WebUI', value: 'webui' }
 ];
-const virtualScroller = ref<any>();
+const virtualScroller = ref<InstanceType<typeof VList>>();
 const logContainer = ref<HTMLElement>();
 const scrollerHeight = ref('600px');
 const messageFieldWidth = ref(100);
@@ -196,7 +196,7 @@ watch(filteredLogs, (newLogs, oldLogs) => {
       if (targetIndex >= 0) {
         requestAnimationFrame(() => {
           // Virtua uses scrollToIndex method directly on the ref
-          virtualScroller.value.scrollToIndex(targetIndex);
+          virtualScroller.value!.scrollToIndex(targetIndex);
         });
       }
     });
@@ -266,25 +266,5 @@ onUnmounted(() => {
 .source-filter :deep(.p-multiselect-label) {
   padding: 0.375rem 0.5rem;
   font-size: 0.875rem;
-}
-
-/* Log level specific text colors */
-.table-row.error {
-  color: var(--red-700);
-}
-
-.table-row.warning {
-  color: var(--yellow-700);
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .table-row.error {
-    color: var(--red-300);
-  }
-
-  .table-row.warning {
-    color: var(--yellow-300);
-  }
 }
 </style>

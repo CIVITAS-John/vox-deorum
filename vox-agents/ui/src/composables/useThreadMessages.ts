@@ -56,9 +56,9 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
     isStreaming.value = true;
 
     // Prepare for assistant response with array content for multi-part support
-    contents = [];
-    const assistantMessage: ModelMessage = { role: "assistant", content: contents };
+    const assistantMessage: ModelMessage = { role: "assistant", content: [] };
     thread.value.messages.push(assistantMessage);
+    contents = thread.value.messages[thread.value.messages.length - 1]!.content as any;
 
     // Prepare for each type
     let currentText: LanguageModelV2TextPart | null = null;
@@ -78,7 +78,6 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
       return api.streamAgentChat(
         request,
         (part) => {
-          console.log(part);
           switch (part.type) {
             case "text-delta":
               // Handle text streaming
@@ -147,19 +146,16 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
               console.warn('Unknown stream part type:', part.type, part);
               break;
           }
-          thread.value!.messages = thread.value!.messages;
         },
         (error) => {
           console.error('SSE error:', error);
           pushErrorMessage(error);
           isStreaming.value = false;
-          thread.value!.messages = thread.value!.messages;
         },
         () => {
           // onDone callback - streaming completed successfully
           console.log('Streaming completed');
           isStreaming.value = false;
-          thread.value!.messages = thread.value!.messages;
         }
       );
     } catch (error) {
