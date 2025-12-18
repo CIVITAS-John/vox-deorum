@@ -36,7 +36,6 @@ Purpose: Main chat interface for interacting with agents
       <ChatMessages
         v-if="thread"
         :messages="thread.messages"
-        :auto-scroll="!isStreaming"
         :scroll-trigger="newChunkEvent"
       />
       <div v-else class="loading-container">

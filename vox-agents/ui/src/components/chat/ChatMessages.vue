@@ -19,15 +19,6 @@
         />
       </template>
     </VList>
-
-    <Button
-      v-if="showScrollButton"
-      @click="scrollToBottom"
-      icon="pi pi-arrow-down"
-      rounded
-      severity="secondary"
-      class="scroll-btn"
-    />
   </div>
 </template>
 
@@ -82,7 +73,7 @@ const handleScroll = () => {
 // Watch for scroll trigger events to handle autoscroll
 watch(() => props.scrollTrigger, () => {
   // Scroll to bottom when a new meaningful chunk is received
-  if (props.autoScroll && virtualScroller.value && props.messages.length > 0) {
+  if (props.autoScroll && virtualScroller.value) {
     nextTick(() => {
       scrollToBottom();
     });
@@ -92,25 +83,8 @@ watch(() => props.scrollTrigger, () => {
 onMounted(() => {
   // Wait for next tick to ensure virtual scroller is rendered
   nextTick(() => {
-    // Get the internal scroll container from Virtua and add scroll listener
-    const scrollElement = (virtualScroller.value as any)?.$el?.firstElementChild;
-    if (scrollElement) {
-      scrollElement.addEventListener('scroll', handleScroll);
-    }
-
-    // Initial scroll to bottom if messages exist
-    if (props.messages.length > 0 && props.autoScroll) {
-      scrollToBottom();
-    }
+    scrollToBottom();
   });
-});
-
-onUnmounted(() => {
-  // Clean up scroll listener
-  const scrollElement = (virtualScroller.value as any)?.$el?.firstElementChild;
-  if (scrollElement) {
-    scrollElement.removeEventListener('scroll', handleScroll);
-  }
 });
 </script>
 
