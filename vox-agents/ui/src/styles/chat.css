@@ -13,10 +13,6 @@
   transition: background-color 0.15s ease;
 }
 
-.msg li {
-  padding-left: 1.5rem;
-}
-
 .msg-user {
   margin-left: 3rem;
   border-left-color: var(--p-primary-500);
@@ -32,6 +28,21 @@
 
 .msg-tool-result {
   border-left-color: var(--p-green-500);
+}
+
+/** Message content styles **/
+.message-content p {
+  margin: 0 0 0.5rem;
+}
+
+.message-content ul,
+.message-content ol {
+  margin: 0.5rem 0;
+  padding-left: 2rem;
+}
+
+.message-content hr {
+  margin: 1rem 0;
 }
 
 /* Custom utilities not in PrimeFlex or global.css */
