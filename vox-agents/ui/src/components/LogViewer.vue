@@ -54,54 +54,50 @@
       </template>
     </Toolbar>
 
-    <div class="log-content">
+    <div v-if="filteredLogs.length === 0" class="log-content table-empty">
+      <i class="pi pi-inbox"></i>
+      <p>No log entries to display</p>
+      <p class="text-small text-muted">Logs will appear here as the application runs</p>
+    </div>
 
-      <div v-if="filteredLogs.length === 0" class="table-empty">
-        <i class="pi pi-inbox"></i>
-        <p>No log entries to display</p>
-        <p class="text-small text-muted">Logs will appear here as the application runs</p>
+    <div v-else class="log-content data-table" ref="logContainer">
+      <!-- Header row -->
+      <div class="table-header">
+        <div class="col-fixed-100">Time</div>
+        <div class="col-fixed-150">Level</div>
+        <div class="col-expand">Message</div>
       </div>
 
-      <div v-else class="data-table log-container" ref="logContainer">
-        <!-- Header row -->
-        <div class="table-header">
-          <div class="col-fixed-100">Time</div>
-          <div class="col-fixed-150">Level</div>
-          <div class="col-expand">Message</div>
-        </div>
-
-        <!-- Log entries using Virtua VList -->
-        <VList
-          :data="filteredLogs"
-          :style="{ minHeight: scrollerHeight }"
-          ref="virtualScroller"
-          class="table-body"
-          #default="{ item, index }"
-        >
-          <div :key="`${item.timestamp}-${index}`"
-               :class="getLogRowClass(item.level)">
-            <div class="col-fixed-100">{{ formatTimestamp(item.timestamp) }}</div>
-            <div class="col-fixed-150">
-              <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
-              <span class="level-context text-muted text-small">{{ item.context }}</span>
-            </div>
-            <div class="col-expand text-wrap">
-              {{ item.message }}
-              <div v-if="item.params" class="params-list">
-                <ParamsList :params="item.params" :depth="0" />
-              </div>
+      <!-- Log entries using Virtua VList -->
+      <VList
+        :data="filteredLogs"
+        ref="virtualScroller"
+        class="table-body"
+        #default="{ item, index }"
+      >
+        <div :key="`${item.timestamp}-${index}`"
+             :class="getLogRowClass(item.level)">
+          <div class="col-fixed-100">{{ formatTimestamp(item.timestamp) }}</div>
+          <div class="col-fixed-150">
+            <span class="level-emoji">{{ getLevelEmoji(item.level) }}</span>
+            <span class="level-context text-muted text-small">{{ item.context }}</span>
+          </div>
+          <div class="col-expand text-wrap">
+            {{ item.message }}
+            <div v-if="item.params" class="params-list">
+              <ParamsList :params="item.params" :depth="0" />
             </div>
           </div>
-        </VList>
-      </div>
+        </div>
+      </VList>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue';
+import { ref, computed, nextTick, watch } from 'vue';
 import { logs, isConnected, clearLogs as clearLogsStore } from '../stores/logs';
-import { getLevelEmoji, formatTimestamp, levelHierarchy, calculateMessageCharWidth } from '../api/log-utils';
+import { getLevelEmoji, formatTimestamp, levelHierarchy } from '../api/log-utils';
 import { VList } from 'virtua/vue';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -124,25 +120,6 @@ const sourceOptions = [
 ];
 const virtualScroller = ref<InstanceType<typeof VList>>();
 const logContainer = ref<HTMLElement>();
-const scrollerHeight = ref('600px');
-const messageFieldWidth = ref(100);
-
-// Calculate adaptive scroll height
-const calculateScrollerHeight = () => {
-  // Get viewport height and subtract approximate space for header, controls, padding
-  const viewportHeight = window.innerHeight;
-  const headerAndControlsHeight = 250; // Approximate height for header, controls, and padding
-  const calculatedHeight = Math.max(400, viewportHeight - headerAndControlsHeight); // Minimum 400px
-  scrollerHeight.value = `${calculatedHeight}px`;
-};
-
-// Update message field width based on container
-const updateMessageFieldWidth = () => {
-  if (logContainer.value) {
-    const containerWidth = logContainer.value.offsetWidth;
-    messageFieldWidth.value = calculateMessageCharWidth(containerWidth);
-  }
-};
 
 // Get appropriate row class based on log level
 const getLogRowClass = (level: string) => {
@@ -157,17 +134,6 @@ const getLogRowClass = (level: string) => {
   }
 };
 
-// Debounce timer
-let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-
-// Update dimensions on window resize with debounce
-const handleResize = () => {
-  if (resizeTimer) clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    calculateScrollerHeight();
-    updateMessageFieldWidth();
-  }, 150); // Debounce for 150ms
-};
 
 // Filtered logs based on level and source
 const filteredLogs = computed(() => {
@@ -201,36 +167,22 @@ watch(filteredLogs, (newLogs, oldLogs) => {
       }
     });
   }
-
-  // Update width calculation when logs change (container might resize)
-  if (newLogs.length !== oldLogs?.length) {
-    nextTick(() => {
-      updateMessageFieldWidth();
-    });
-  }
 });
 
 // Use the store's clear function
 const clearLogs = () => clearLogsStore();
-
-onMounted(() => {
-  calculateScrollerHeight();
-  // Wait for next tick to ensure container is rendered
-  nextTick(() => {
-    updateMessageFieldWidth();
-  });
-  window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-});
 </script>
 
 <style scoped>
 @import '@/styles/data-table.css';
 @import '@/styles/states.css';
 @import '@/styles/panel.css';
+
+.logs-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
 .log-content {
   flex: 1;
