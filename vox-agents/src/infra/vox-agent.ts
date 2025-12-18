@@ -114,6 +114,7 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   public getActiveTools(parameters: TParameters): string[] | undefined {
     return [];
   }
+  
   /**
    * Determines whether the agent should stop execution.
    * Called after each step to check if the generation should continue.

@@ -8,32 +8,22 @@
   padding: 0.75rem;
   margin-bottom: 0.5rem;
   border-radius: var(--p-border-radius);
-  background: var(--p-surface-100);
+  background: var(--p-content-background);
   border-left: 3px solid var(--p-surface-400);
   transition: background-color 0.15s ease;
 }
 
+.msg li {
+  padding-left: 1.5rem;
+}
+
 .msg-user {
-  background: var(--p-primary-50);
-  margin-left: 2rem;
+  margin-left: 3rem;
   border-left-color: var(--p-primary-500);
 }
 
 .msg-assistant {
-  margin-right: 2rem;
-}
-
-.msg-system {
-  background: var(--p-surface-200);
-  font-style: italic;
-  color: var(--p-text-muted-color);
-  border-left-color: var(--p-surface-500);
-}
-
-.msg-tool-call,
-.msg-tool-result {
-  background: var(--p-surface-50);
-  margin: 0.5rem 0;
+  margin-right: 3rem;
 }
 
 .msg-tool-call {
@@ -70,8 +60,7 @@
 .tool-result-content {
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background: var(--p-surface-0);
-  border: 1px solid var(--p-surface-200);
+  border: 1px solid var(--p-content-border-color);
   border-radius: var(--p-border-radius);
   overflow-x: auto;
 }
@@ -82,10 +71,8 @@
 }
 
 .text-result {
-  font-family: inherit;
   white-space: pre-wrap;
   word-break: break-word;
-  color: var(--p-text-color);
 }
 
 .json-pretty {
@@ -98,12 +85,17 @@
   margin-bottom: 0.5rem;
   border-radius: var(--p-border-radius);
   background: var(--p-surface-50);
-  border: 1px solid var(--p-surface-200);
+  border: 1px solid var(--p-content-border-color);
   transition: all 0.15s ease;
+}
+
+.dark-mode .collapsible {
+  background: var(--p-surface-950);
 }
 
 .collapsible:hover {
   border-color: var(--p-surface-300);
+  background: var(--p-content-hover-background);
 }
 
 .collapsible-header {
@@ -112,7 +104,6 @@
   gap: 0.5rem;
   cursor: pointer;
   user-select: none;
-  color: var(--p-text-color);
 }
 
 .collapsible-header:hover {
@@ -120,12 +111,10 @@
 }
 
 .collapsible-header .pi {
-  color: var(--p-primary-500);
   transition: transform 0.2s ease;
 }
 
 .collapsible-content {
-  margin-top: 0.75rem;
   padding-left: 1.5rem;
   line-height: 1.5;
   color: var(--p-text-secondary-color);
@@ -135,7 +124,6 @@
 .virtual-list {
   height: 100%;
   overflow: auto;
-  padding: 1rem;
 }
 
 /* Scroll button */
@@ -144,5 +132,5 @@
   bottom: 1rem;
   right: 1rem;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px var(--p-shadow-color);
 }

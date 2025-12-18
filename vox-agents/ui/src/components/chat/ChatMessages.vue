@@ -42,10 +42,12 @@ import ChatMessage from './ChatMessage.vue';
 interface Props {
   messages: ModelMessage[];
   autoScroll?: boolean;
+  scrollTrigger?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  autoScroll: true
+  autoScroll: true,
+  scrollTrigger: 0
 });
 
 // Template refs
@@ -100,15 +102,15 @@ const handleScroll = () => {
   showScrollButton.value = !atBottom && props.messages.length > 5;
 };
 
-// Watch for new messages to handle autoscroll
-watch(() => props.messages, (newMessages, oldMessages) => {
-  // Only autoscroll if there are new messages
-  if (props.autoScroll && virtualScroller.value && newMessages.length > (oldMessages?.length ?? 0)) {
+// Watch for scroll trigger events to handle autoscroll
+watch(() => props.scrollTrigger, () => {
+  // Scroll to bottom when a new meaningful chunk is received
+  if (props.autoScroll && virtualScroller.value && props.messages.length > 0) {
     nextTick(() => {
       scrollToBottom();
     });
   }
-}, { deep: true });
+});
 
 onMounted(() => {
   calculateScrollerHeight();

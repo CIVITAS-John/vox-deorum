@@ -21,7 +21,7 @@
   display: flex;
   align-items: center;
   padding: 0.75rem 0.5rem;
-  background: var(--content-hover-background);
+  background: var(--p-content-hover-background);
   border-bottom: 2px solid var(--p-content-border-color);
   font-weight: 600;
   user-select: none;
@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   padding: 0.1rem 0.5rem;
-  border-bottom: 1px solid var(--content-border-color);
+  border-bottom: 1px solid var(--p-content-border-color);
   transition: background-color 0.2s;
   min-height: 2.5rem;
 }

@@ -275,10 +275,20 @@ VoxAgent (Base)
 - `var(--p-text-color)` - Primary text color (#334155)
 - `var(--p-text-muted-color)` - Muted/secondary text color (#64748b)
 - `var(--p-text-hover-color)` - Text hover color (#1e293b)
+- `var(--p-text-secondary-color)` - Secondary text color for less emphasis
 - `var(--p-primary-color)` - Theme's primary color (#f59e0b - amber)
 - `var(--p-primary-contrast-color)` - Text color on primary background (#ffffff)
 - `var(--p-highlight-background)` - Background for highlighted elements (#fffbeb)
 - `var(--p-highlight-color)` - Text color for highlighted elements (#b45309)
+
+#### Content Background System
+**IMPORTANT**: Use content-specific variables for adaptive dark mode support:
+- `var(--p-content-background)` - Main content area background (adapts to theme)
+- `var(--p-content-hover-background)` - Hovered content background (subtle highlight)
+- `var(--p-content-border-color)` - Content area borders
+- `var(--p-hover-background)` - General hover state background
+
+**DO NOT USE** `var(--p-surface-0)` for content backgrounds - it stays white in dark mode!
 
 #### Surface Color System
 Surface colors for different UI layers (0-950 scale):
@@ -324,13 +334,19 @@ PrimeVue includes full color scales (50-950) for all colors:
 ```css
 /* Correct - using actual PrimeVue variables */
 .log-header {
-  background: var(--p-surface-100);
+  background: var(--p-content-hover-background);
   color: var(--p-text-color);
-  border: 1px solid var(--p-surface-200);
+  border: 1px solid var(--p-content-border-color);
 }
 
 .log-row:hover {
-  background: var(--p-surface-50);
+  background: var(--p-content-hover-background);
+}
+
+/* Content areas that need dark mode adaptation */
+.content-panel {
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
 }
 
 .log-error {
@@ -387,6 +403,47 @@ PrimeVue includes full color scales (50-950) for all colors:
 - **Hot Module Replacement** for rapid UI development
 - **Proxy configuration** for API endpoints during development
 
+### Chat Interface Styling
+**IMPORTANT**: Follow these conventions for chat-related styles:
+
+#### Color Usage
+- **Always use PrimeVue theme variables** - Never hardcode colors like `rgba(0,0,0,0.15)`
+- **Use semantic color variables** for consistent theming:
+  - Text: `var(--p-text-color)`, `var(--p-text-muted-color)`, `var(--p-text-secondary-color)`
+  - Content backgrounds: `var(--p-content-background)`, `var(--p-content-hover-background)`
+  - UI layers: `var(--p-surface-50)` through `var(--p-surface-950)` (for non-content areas)
+  - Borders: `var(--p-content-border-color)` for content, `var(--p-surface-200/300)` for UI
+  - Primary: `var(--p-primary-50)` through `var(--p-primary-950)`
+  - Status indicators: `var(--p-green-500)`, `var(--p-red-500)`, etc.
+
+#### Dark Mode Support
+- **For backgrounds and content areas**: Provide dark mode alternatives
+  ```css
+  .element {
+    background: var(--p-surface-100);
+  }
+  /* Dark mode adjustments if the theme variables don't auto-adapt */
+  .dark-mode .element {
+    background: var(--p-surface-800);
+  }
+  ```
+- **For shadows**: Use darker shadows in dark mode
+  ```css
+  .element {
+    box-shadow: 0 2px 8px var(--p-shadow-color);
+  }
+  .dark-mode .element {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+  ```
+- **For indicator colors** (borders, icons): Usually no dark mode alternative needed as they're meant to stand out
+
+#### Message Type Styling
+- User messages: Primary theme colors (`var(--p-primary-50)`, `var(--p-primary-500)`)
+- Assistant messages: Default surface colors
+- System messages: Muted colors with italic text
+- Tool messages: Subtle surface variations with colored borders
+
 ## Common Pitfalls
 
 1. **Not refreshing AbortController** after abort
@@ -398,3 +455,5 @@ PrimeVue includes full color scales (50-950) for all colors:
 7. **Missing telemetry flushing** on exit
 8. **Forgetting `.js` extensions** in imports
 9. **Using hardcoded colors** instead of PrimeVue theme variables
+10. **Using `var(--p-surface-0)` for content** - Use `var(--p-content-background)` instead
+11. **Not providing dark mode alternatives** for backgrounds and shadows

@@ -17,6 +17,10 @@
   "dependencies": {
     "@primeuix/themes": "^2.0.2",
     "@primevue/themes": "^4.5.3",
+    "@types/dompurify": "^3.0.5",
+    "@types/marked": "^5.0.2",
+    "dompurify": "^3.3.1",
+    "marked": "^17.0.1",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.5.3",

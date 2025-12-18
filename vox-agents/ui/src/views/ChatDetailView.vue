@@ -38,6 +38,7 @@ Purpose: Main chat interface for interacting with agents
           v-if="thread"
           :messages="thread.messages"
           :auto-scroll="!isStreaming"
+          :scroll-trigger="newChunkEvent"
         />
         <div v-else class="loading-container">
           <ProgressSpinner />
@@ -103,6 +104,9 @@ const isStreaming = ref(false);
 const showDeleteDialog = ref(false);
 let sseCleanup: (() => void) | null = null;
 
+// Event emitter for new chunks
+const newChunkEvent = ref(0);
+
 // Computed
 const sessionId = computed(() => route.params.sessionId as string);
 
@@ -110,7 +114,11 @@ const sessionId = computed(() => route.params.sessionId as string);
 const { sendMessage: sendThreadMessage } = useThreadMessages({
   thread,
   sessionId,
-  isStreaming
+  isStreaming,
+  onNewChunk: () => {
+    // Increment the event counter to trigger a reactive update
+    newChunkEvent.value++;
+  }
 });
 
 // Methods
@@ -162,4 +170,8 @@ onUnmounted(() => {
 @import '@/styles/chat.css';
 @import '@/styles/states.css';
 /* Component uses shared styles from chat.css and states.css */
+
+.p-card {
+  background-color: var(--p-content-hover-background);
+}
 </style>

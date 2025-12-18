@@ -38,10 +38,15 @@ export abstract class Envoy extends VoxAgent<StrategistParameters, EnvoyThread, 
    */
   public stopCheck(
     _parameters: StrategistParameters,
-    _input: unknown,
-    _lastStep: StepResult<Record<string, Tool>>,
+    input: EnvoyThread,
+    lastStep: StepResult<Record<string, Tool>>,
     allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {
+    // Add the message to the record
+    lastStep.response.messages.forEach(element => {
+      input.messages.push(element);
+    });
+
     // Continue if we have executed a tool
     for (var step of allSteps) {
       for (const result of step.content) {

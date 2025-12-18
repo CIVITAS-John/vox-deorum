@@ -13,10 +13,11 @@ export interface UseThreadMessagesOptions {
   thread: Ref<EnvoyThread | null>;
   sessionId: Ref<string>;
   isStreaming: Ref<boolean>;
+  onNewChunk?: () => void;
 }
 
 export function useThreadMessages(options: UseThreadMessagesOptions) {
-  const { thread, sessionId, isStreaming } = options;
+  const { thread, sessionId, isStreaming, onNewChunk } = options;
   let contents: Array<LanguageModelV2TextPart | LanguageModelV2ReasoningPart | LanguageModelV2ToolCallPart | LanguageModelV2ToolResultPart>;
 
   /**
@@ -86,10 +87,13 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
                 currentTextID = part.id;
                 currentText = { type: "text", text: part.text };
                 contents.push(currentText);
+                currentText = contents[contents.length - 1] as any;
               } else if (currentText) {
                 // Continue streaming to existing text part
                 currentText.text += part.text;
               }
+              // Trigger event on meaningful text chunk
+              onNewChunk?.();
               break;
 
             case "reasoning-delta":
@@ -99,10 +103,13 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
                 currentReasoningID = part.id;
                 currentReasoning = { type: "reasoning", text: part.text };
                 contents.push(currentReasoning);
+                currentReasoning = contents[contents.length - 1] as any;
               } else if (currentReasoning) {
                 // Continue streaming to existing reasoning part
                 currentReasoning.text += part.text;
               }
+              // Trigger event on reasoning chunk
+              onNewChunk?.();
               break;
 
             case "tool-call":
@@ -117,6 +124,7 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
                   input: {}
                 };
                 contents.push(currentToolCall);
+                currentToolCall = contents[contents.length - 1] as any;
               }
               break;
 
@@ -139,6 +147,8 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
                 toolName: part.toolName,
                 output: part.output
               });
+              // Trigger event on tool result
+              onNewChunk?.();
               break;
 
             default:
