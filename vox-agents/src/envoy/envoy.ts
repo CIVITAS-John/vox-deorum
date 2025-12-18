@@ -42,21 +42,20 @@ export abstract class Envoy extends VoxAgent<StrategistParameters, EnvoyThread, 
     _lastStep: StepResult<Record<string, Tool>>,
     allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {
-    // Stop if we've executed set-strategy tool
+    // Continue if we have executed a tool
     for (var step of allSteps) {
       for (const result of step.content) {
         if (result.type === "tool-call") {
-          return true;
+          // Unless after 3 steps to prevent infinite loops
+          if (allSteps.length >= 3) {
+            this.logger.warn("Reached maximum step limit (3), stopping agent");
+            return true;
+          }
+          return false;
         }
       }
     }
 
-    // Also stop after 3 steps to prevent infinite loops
-    if (allSteps.length >= 3) {
-      this.logger.warn("Reached maximum step limit (3), stopping agent");
-      return true;
-    }
-
-    return false;
+    return true;
   }
 }

@@ -166,7 +166,7 @@ const toggleDrawer = () => {
 
 .menu-toggle {
   position: fixed;
-  top: 1rem;
+  top: 1.75rem;
   left: 1rem;
   z-index: 1100;
 }

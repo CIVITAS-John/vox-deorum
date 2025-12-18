@@ -9,7 +9,6 @@
         v-if="part.type === 'text'"
         :role="message.role"
         :content="part.text"
-        :timestamp="index === 0 && !hasReasoningFirst ? timestamp : undefined"
       />
       <ToolCallMessage
         v-if="part.type === 'tool-call'"
@@ -35,7 +34,6 @@ import ToolResultMessage from './ToolResultMessage.vue';
 
 interface Props {
   message: ModelMessage;
-  timestamp?: Date;
 }
 
 const props = defineProps<Props>();

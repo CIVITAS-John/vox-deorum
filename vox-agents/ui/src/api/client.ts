@@ -26,6 +26,7 @@ import type {
   DeleteSessionResponse,
   ChatRequest
 } from '../utils/types';
+import type { TextStreamPart, ToolSet } from 'ai';
 
 /**
  * API client for managing communication with the Vox Agents backend server.
@@ -456,8 +457,9 @@ class ApiClient {
    */
   streamAgentChat(
     request: ChatRequest,
-    onMessage: (data: any) => void,
-    onError?: (error: Event) => void
+    onMessage: (data: TextStreamPart<ToolSet>) => void,
+    onError: (message: string) => void,
+    onDone: () => void
   ): () => void {
     const key = `agent-chat-${request.sessionId}`;
     this.closeSseConnection(key);
@@ -472,40 +474,39 @@ class ApiClient {
       withCredentials: false
     });
 
+    // Listen for 'message' events (streaming chunks)
     eventSource.addEventListener('message', (event: any) => {
-      console.log(event);
       try {
         const data = JSON.parse(event.data);
-        if (data.type !== 'heartbeat') {
-          onMessage(data);
+        // The backend sends just the chunk string for message events
+        onMessage(data);
+      } catch (error) {
+        console.error('Failed to parse agent message chunk:', error);
+      }
+    });
+
+    // Listen for 'done' events
+    eventSource.addEventListener('done', onDone);
+
+    // Listen for 'error' events from the server
+    eventSource.addEventListener('error', (event: any) => {
+      if (event.data) {
+        try {
+          const data = JSON.parse(event.data);
+          console.error('SSE server error:', data);
+          // Pass server error to the handler
+          onError(data);
+        } catch (error) {
+          console.error('Failed to parse error event:', error);
         }
-      } catch (error) {
-        console.error('Failed to parse agent response:', error);
       }
     });
 
-    eventSource.addEventListener('error', (error: any) => {
-      console.error('SSE error:', error);
+    // Handle SSE connection errors (not server-sent error events)
+    eventSource.onerror = (error: any) => {
+      console.error('SSE connection error:', error);
       if (onError) onError(error);
-    });
-
-    eventSource.addEventListener('connected', (event: any) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('SSE connected:', data);
-      } catch (error) {
-        console.error('Failed to parse connected event:', error);
-      }
-    });
-
-    eventSource.addEventListener('done', (event: any) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('SSE done:', data);
-      } catch (error) {
-        console.error('Failed to parse done event:', error);
-      }
-    });
+    };
 
     // Start the connection
     eventSource.stream();

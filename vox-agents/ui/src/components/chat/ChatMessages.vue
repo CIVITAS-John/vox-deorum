@@ -15,7 +15,6 @@
       <template #default="{ item, index }">
         <ChatMessage
           :message="item"
-          :timestamp="timestamps?.[index]"
         />
       </template>
     </VList>
@@ -40,7 +39,6 @@ import ChatMessage from './ChatMessage.vue';
 
 interface Props {
   messages: ModelMessage[];
-  timestamps?: Date[];
   autoScroll?: boolean;
 }
 

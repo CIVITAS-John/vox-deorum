@@ -92,6 +92,10 @@ body {
   gap: 0.75rem;
 }
 
+.main-content:not(.drawer-open) .page-header-left {
+  padding-left: 2.5rem;
+}
+
 .page-header-controls {
   display: flex;
   align-items: center;

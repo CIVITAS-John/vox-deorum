@@ -163,13 +163,15 @@ onMounted(() => {
   <div class="telemetry-database-view">
     <!-- Header with navigation -->
     <div class="page-header">
-      <Button
-        icon="pi pi-arrow-left"
-        text
-        rounded
-        @click="goBack"
-      />
-      <h1>{{ filename }}</h1>
+      <div class="page-header-left">
+        <Button
+          icon="pi pi-arrow-left"
+          text
+          rounded
+          @click="goBack"
+        />
+        <h1>{{ filename }}</h1>
+      </div>
     </div>
 
     <!-- Loading State -->

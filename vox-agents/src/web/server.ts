@@ -63,7 +63,7 @@ app.use('/api/telemetry', telemetryRoutes);
 app.use('/api/config', configRoutes);
 
 // Mount agent routes
-app.use('/api', createAgentRoutes(sseManager));
+app.use('/api', createAgentRoutes());
 
 // Health check endpoint - minimal API foundation
 app.get('/api/health', (_req: Request, res: Response<HealthStatus>) => {

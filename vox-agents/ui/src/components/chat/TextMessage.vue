@@ -2,7 +2,6 @@
   <div :class="`msg msg-${role} whitespace-pre`">
     <div class="flex justify-content-between align-items-center text-sm msg-header">
       <span class="font-semibold text-secondary">{{ displayRole }}</span>
-      <span v-if="timestamp" class="text-xs text-muted">{{ formattedTime }}</span>
     </div>
     {{ content }}
   </div>
@@ -14,7 +13,6 @@ import { computed } from 'vue';
 interface Props {
   role: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
-  timestamp?: Date;
 }
 
 const props = defineProps<Props>();
@@ -25,13 +23,6 @@ const displayRole = computed(() => ({
   system: 'System',
   tool: 'Tool'
 }[props.role] || props.role));
-
-const formattedTime = computed(() =>
-  props.timestamp?.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit'
-  }) || ''
-);
 </script>
 
 <style scoped>

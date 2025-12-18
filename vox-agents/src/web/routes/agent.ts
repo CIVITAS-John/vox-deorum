@@ -12,7 +12,6 @@ import { contextRegistry } from '../../infra/context-registry.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { createLogger } from '../../utils/logger.js';
 import { v4 as uuidv4 } from 'uuid';
-import { SSEManager } from '../sse-manager.js';
 import { ModelMessage } from 'ai';
 import fs from 'fs/promises';
 import {
@@ -41,10 +40,9 @@ const chatSessions = new Map<string, EnvoyThread>();
 
 /**
  * Create agent API routes
- * @param sseManager - SSE manager for streaming responses
  * @returns Express router with agent endpoints
  */
-export function createAgentRoutes(sseManager: SSEManager): Router {
+export function createAgentRoutes(): Router {
   const router = Router();
 
   /**
@@ -235,17 +233,20 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
       'Access-Control-Allow-Origin': '*'
     });
 
-    // Register SSE client
-    sseManager.addClient(res);
+    // Helper function to send SSE event to this specific client
+    const sendEvent = (event: string, data: any) => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
 
     // Send initial connection event
-    sseManager.broadcast('connected', { sessionId: thread.id });
+    sendEvent('connected', { sessionId: thread.id });
 
     try {
       // Execute the agent with the thread as input
       const streamCallback: StreamingEventCallback = {
         OnChunk: ({ chunk }) => {
-          sseManager.broadcast('message', chunk);
+          sendEvent('message', chunk);
         }
       };
 
@@ -256,16 +257,16 @@ export function createAgentRoutes(sseManager: SSEManager): Router {
         streamCallback
       );
 
-      sseManager.broadcast('done', {
+      sendEvent('done', {
         sessionId: thread.id,
         messageCount: thread.messages.length
       });
     } catch (error) {
       logger.error('Failed to execute agent', { error });
-      sseManager.broadcast('error', {
-        message: 'Failed to execute agent',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      sendEvent('error', { message: `Failed to execute agent: ${(error as any).message ?? "unknown"}` })
+    } finally {
+      // Close the SSE stream
+      res.end();
     }
 
     // Handle client disconnect

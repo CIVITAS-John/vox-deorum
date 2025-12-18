@@ -7,6 +7,12 @@ Purpose: Main chat interface for interacting with agents
     <!-- Header -->
     <div class="page-header">
       <div class="page-header-left">
+        <Button
+          icon="pi pi-arrow-left"
+          text
+          rounded
+          @click="goBack"
+        />
         <h1>{{ thread?.title || `${thread?.agent || 'Loading'} Chat` }}</h1>
         <div v-if="thread" class="flex align-items-center gap-2" style="margin-left: 1rem">
           <Tag :value="thread.contextType" :severity="thread.contextType === 'live' ? 'success' : 'info'" />
@@ -15,17 +21,10 @@ Purpose: Main chat interface for interacting with agents
       </div>
       <div class="page-header-controls">
         <Button
-          label="Back"
-          icon="pi pi-arrow-left"
-          text
-          @click="goBack"
-        />
-        <Button
           label="Delete"
           icon="pi pi-trash"
           text
           severity="danger"
-          :loading="isDeleting"
           @click="confirmDelete"
           v-if="thread"
         />
@@ -38,7 +37,6 @@ Purpose: Main chat interface for interacting with agents
         <ChatMessages
           v-if="thread"
           :messages="thread.messages"
-          :timestamps="messageTimestamps"
           :auto-scroll="!isStreaming"
         />
         <div v-else class="loading-container">
@@ -49,7 +47,7 @@ Purpose: Main chat interface for interacting with agents
     </Card>
 
     <!-- Input -->
-    <div class="flex align-items-end gap-2">
+    <div class="flex align-items-end gap-2 mt-4">
       <Textarea
         v-model="inputMessage"
         :disabled="isStreaming || !thread"
@@ -92,6 +90,7 @@ import type { EnvoyThread, ChatRequest } from '../utils/types';
 import type { ModelMessage } from 'ai';
 import ChatMessages from '../components/chat/ChatMessages.vue';
 import DeleteSessionDialog from '../components/DeleteSessionDialog.vue';
+import { useThreadMessages } from '../composables/useThreadMessages';
 
 const route = useRoute();
 const router = useRouter();
@@ -102,12 +101,17 @@ const thread = ref<EnvoyThread | null>(null);
 const inputMessage = ref('');
 const isStreaming = ref(false);
 const showDeleteDialog = ref(false);
-const isDeleting = ref(false);
-const messageTimestamps = ref<Date[]>([]);
 let sseCleanup: (() => void) | null = null;
 
 // Computed
 const sessionId = computed(() => route.params.sessionId as string);
+
+// Use the thread messages composable
+const { sendMessage: sendThreadMessage } = useThreadMessages({
+  thread,
+  sessionId,
+  isStreaming
+});
 
 // Methods
 const goBack = () => {
@@ -115,20 +119,7 @@ const goBack = () => {
 };
 
 const loadSession = async () => {
-  try {
-    thread.value = await api.getAgentSession(sessionId.value);
-    // Initialize timestamps for existing messages
-    messageTimestamps.value = thread.value.messages.map(() => new Date());
-  } catch (error) {
-    console.error('Failed to load session:', error);
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to load chat session',
-      life: 3000
-    });
-    goBack();
-  }
+  thread.value = await api.getAgentSession(sessionId.value);
 };
 
 const handleEnterKey = (event: KeyboardEvent) => {
@@ -138,85 +129,16 @@ const handleEnterKey = (event: KeyboardEvent) => {
 };
 
 const sendMessage = async () => {
-  if (!inputMessage.value.trim() || isStreaming.value || !thread.value) {
+  if (!inputMessage.value.trim()) {
     return;
   }
 
   const message = inputMessage.value.trim();
   inputMessage.value = '';
 
-  // Add user message to thread
-  const userMessage: ModelMessage = {
-    role: 'user',
-    content: message
-  };
-  thread.value.messages.push(userMessage);
-  messageTimestamps.value.push(new Date());
-
-  // Start streaming
-  isStreaming.value = true;
-
-  // Prepare for assistant response
-  const assistantMessage: ModelMessage = {
-    role: 'assistant',
-    content: ''
-  };
-  thread.value.messages.push(assistantMessage);
-  const assistantMsgIndex = thread.value.messages.length - 1;
-  messageTimestamps.value.push(new Date());
-
-  try {
-    const request: ChatRequest = {
-      sessionId: sessionId.value,
-      message: message
-    };
-
-    // Set up SSE streaming
-    let buffer = '';
-
-    sseCleanup = api.streamAgentChat(
-      request,
-      (data) => {
-        if (data.type === 'message') {
-          // Append chunk to the assistant message
-          buffer += data;
-          if (thread.value) {
-            thread.value.messages[assistantMsgIndex] = {
-              ...assistantMessage,
-              content: buffer
-            };
-          }
-        } else if (data.type === 'done') {
-          isStreaming.value = false;
-        } else if (data.type === 'error') {
-          throw new Error(data.message || 'Stream error');
-        }
-      },
-      (error) => {
-        console.error('SSE error:', error);
-        isStreaming.value = false;
-        toast.add({
-          severity: 'error',
-          summary: 'Connection Error',
-          detail: 'Lost connection to server',
-          life: 3000
-        });
-      }
-    );
-  } catch (error) {
-    console.error('Failed to send message:', error);
-    isStreaming.value = false;
-
-    // Remove the empty assistant message
-    thread.value.messages.pop();
-    messageTimestamps.value.pop();
-
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to send message',
-      life: 3000
-    });
+  const cleanup = await sendThreadMessage(message);
+  if (cleanup) {
+    sseCleanup = cleanup;
   }
 };
 
