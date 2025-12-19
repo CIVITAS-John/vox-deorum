@@ -264,36 +264,6 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - ✅ Auto-scroll with manual override capability
 - ✅ Error handling and recovery mechanisms
 
-**Optimization Opportunities Identified**:
-1. **Code Consolidation**:
-   - Merge duplicate SSE handling logic between telemetry and chat
-   - Extract shared virtual scrolling patterns into composable
-   - Unify session management patterns across views
-
-2. **Performance Improvements**:
-   - Implement message pagination for long conversations (currently loads all)
-   - Add message search/filter capability for better navigation
-   - Cache agent list to reduce API calls
-   - Debounce scroll events in virtual lists
-
-3. **UX Enhancements**:
-   - Add typing indicators during streaming
-   - Implement message retry on failure
-   - Add keyboard shortcuts (Ctrl+Enter to send, etc.)
-   - Show timestamp on message hover
-   - Add copy-to-clipboard for code blocks
-
-4. **State Management**:
-   - Move chat sessions to Pinia store for persistence
-   - Add session recovery after page refresh
-   - Implement optimistic UI updates for better responsiveness
-
-5. **Backend Optimizations**:
-   - Add database persistence for chat sessions (currently in-memory)
-   - Implement session expiration and cleanup
-   - Add rate limiting for chat requests
-   - Cache VoxContext lookups
-
 #### Unified Chat API ✅ IMPLEMENTED
 All endpoints use strongly-typed interfaces and return `EnvoyThread` objects directly.
 
@@ -356,18 +326,6 @@ All endpoints use strongly-typed interfaces and return `EnvoyThread` objects dir
 - Parses gameId/playerId from contextId or database filename
 - Returns full `EnvoyThread` objects, not custom responses
 - SSE streaming ready for real-time chat responses
-
-#### Frontend Architecture
-
-**Shared Components to Extract**:
-```typescript
-// components/shared/
-├── ContextSelector.vue
-│   // Unified selector for active sessions
-│
-└── StreamingMessage.vue
-    // Renders streaming agent responses with tool calls
-```
 
 ### Stage 7: Session Control
 **Status**: ⏳ Not Started - Placeholder exists
