@@ -230,7 +230,7 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - Save All/Reload functionality with success/error messaging
 
 ### Stage 6: Agent Chat
-**Status**: ✅ Backend COMPLETED, 🔄 Frontend 60% Complete
+**Status**: ✅ COMPLETED
 
 **Overview**: Unified chat interface for interacting with agents - both specialized agents (Diplomat, General) using live context and a Telepathist agent for analyzing past records via telemetry.
 
@@ -249,22 +249,50 @@ Execute agents with user messages via VoxContext. Stream responses via SSE, disp
 - ✅ In-memory session storage with full EnvoyThread structure
 - ✅ SSE integration for streaming responses
 
-**Frontend Implementation**: 🔄 Partially Complete
-- ✅ `ChatView.vue` component with comprehensive session selection UI
-- ✅ `ChatSessionsList.vue` component for displaying active chat sessions
-- ✅ `GameSessionsList.vue` component for displaying game sessions
-- ✅ `AgentSelectDialog.vue` component for agent selection with context
-- ✅ Integration with telemetry store for active sessions
-- ✅ Navigation to session/telemetry views for session discovery
-- ✅ API client methods for all agent endpoints
-- ✅ Session creation with contextId support
-- ⏳ **Still Needed**:
-  - `ChatDetailView.vue` - The actual chat interface component
-  - Message list display with streaming support
-  - Input field with send button
-  - Tool call visualization
-  - Real-time SSE message streaming
-  - Message history management
+**Frontend Implementation**: ✅ COMPLETED
+- ✅ `ChatView.vue` - Main chat view with session management
+- ✅ `ChatDetailView.vue` - Full chat interface with message streaming
+- ✅ `ChatSessionsList.vue` - Active chat sessions display
+- ✅ `GameSessionsList.vue` - Game sessions browser
+- ✅ `AgentSelectDialog.vue` - Agent selection with context
+- ✅ `ChatMessages.vue` - Virtual scrolling message list
+- ✅ `ChatMessage.vue` - Individual message rendering with tool calls
+- ✅ `useThreadMessages` composable - Streaming logic abstraction
+- ✅ `DeleteSessionDialog.vue` - Session deletion confirmation
+- ✅ Full SSE streaming with multi-part content support
+- ✅ Tool call visualization with collapsible JSON display
+- ✅ Auto-scroll with manual override capability
+- ✅ Error handling and recovery mechanisms
+
+**Optimization Opportunities Identified**:
+1. **Code Consolidation**:
+   - Merge duplicate SSE handling logic between telemetry and chat
+   - Extract shared virtual scrolling patterns into composable
+   - Unify session management patterns across views
+
+2. **Performance Improvements**:
+   - Implement message pagination for long conversations (currently loads all)
+   - Add message search/filter capability for better navigation
+   - Cache agent list to reduce API calls
+   - Debounce scroll events in virtual lists
+
+3. **UX Enhancements**:
+   - Add typing indicators during streaming
+   - Implement message retry on failure
+   - Add keyboard shortcuts (Ctrl+Enter to send, etc.)
+   - Show timestamp on message hover
+   - Add copy-to-clipboard for code blocks
+
+4. **State Management**:
+   - Move chat sessions to Pinia store for persistence
+   - Add session recovery after page refresh
+   - Implement optimistic UI updates for better responsiveness
+
+5. **Backend Optimizations**:
+   - Add database persistence for chat sessions (currently in-memory)
+   - Implement session expiration and cleanup
+   - Add rate limiting for chat requests
+   - Cache VoxContext lookups
 
 #### Unified Chat API ✅ IMPLEMENTED
 All endpoints use strongly-typed interfaces and return `EnvoyThread` objects directly.
@@ -539,23 +567,56 @@ SSE /api/agents/:name/stream    // Response stream
   - Maintains backward compatibility through instance methods
 
 ### Next Steps
-1. **Complete Stage 6 Frontend (Agent Chat UI)**
-   - Create `ChatDetailView.vue` component with full chat interface
-   - Implement message streaming with SSE
-   - Add tool call visualization
-   - Handle message history and context display
-   - Add route to router configuration for chat detail view
 
-2. **Implement Stage 7 (Session Control)**
-   - Create backend API in `src/web/routes/session.ts`
-   - Wrap StrategistSession with web-friendly interface
-   - Implement SSE for progress updates
-   - Build comprehensive session management UI
-   - Add config file selection and validation
+1. **Implement Stage 7 (Session Control)** - Priority: HIGH
+   **Backend Requirements**:
+   - Create `src/web/routes/session.ts` with following endpoints:
+     - `GET /api/session/status` - Get current session state (idle/running/paused)
+     - `GET /api/session/configs` - List available config files from configs/
+     - `POST /api/session/start` - Start new game session with selected config
+     - `POST /api/session/pause` - Pause current session
+     - `POST /api/session/resume` - Resume paused session
+     - `POST /api/session/stop` - Gracefully stop session
+     - `SSE /api/session/events` - Stream turn-by-turn progress updates
+   - Wrap existing `StrategistSession` class for web access
+   - Handle session lifecycle (start, pause, resume, stop)
+   - Implement proper cleanup on shutdown
 
-3. **Polish and Optimization**
-   - Add error boundaries and recovery mechanisms
-   - Implement reconnection logic for SSE connections
-   - Add loading states and skeleton screens
-   - Optimize bundle size and lazy loading
-   - Add comprehensive error messages and user feedback
+   **Frontend Requirements**:
+   - Update `SessionView.vue` with full implementation:
+     - Session status card with state indicator
+     - Config file selector dropdown
+     - Start/Stop/Pause/Resume controls
+     - Progress bar for turn processing
+     - Real-time log display for session events
+     - Error recovery UI
+   - Add Pinia store for session state management
+   - Connect SSE for real-time updates
+
+2. **Code Optimization Phase** - Priority: MEDIUM
+   **Shared Components Extraction**:
+   - Create `useSSE` composable for unified SSE handling
+   - Create `useVirtualScroll` composable for list virtualization
+   - Extract `SessionCard` component for reuse
+   - Build `StatusIndicator` component for connection states
+
+   **Performance Optimizations**:
+   - Implement lazy loading for routes
+   - Add request/response caching layer
+   - Optimize bundle with code splitting
+   - Add service worker for offline support
+
+   **State Management Improvements**:
+   - Migrate all session data to Pinia stores
+   - Implement store persistence with localStorage
+   - Add optimistic updates for better UX
+   - Create unified error handling store
+
+3. **Production Readiness** - Priority: LOW
+   - Add comprehensive error boundaries
+   - Implement retry logic with exponential backoff
+   - Add telemetry for UI interactions
+   - Create user preferences system
+   - Add keyboard navigation support
+   - Implement accessibility features (ARIA labels, etc.)
+   - Add PWA manifest for installability

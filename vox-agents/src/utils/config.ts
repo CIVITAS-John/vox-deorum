@@ -66,16 +66,38 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'gemma'
       }
     },
-    'chutes/gpt-oss-120b': {
+    'openrouter/google/gemini-2.5-flash-lite': {
+      provider: 'openrouter',
+      name: 'google/gemini-2.5-flash-lite',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
+    'anthropic/claude-haiku-4-5': {
+      provider: 'anthropic',
+      name: 'claude-haiku-4-5'
+    },
+    'anthropic/claude-sonnet-4-5': {
+      provider: 'anthropic',
+      name: 'claude-sonnet-4-59'
+    },
+    'chutes/openai/gpt-oss-120b': {
       provider: 'chutes',
       name: 'openai/gpt-oss-120b',
       options: {
         toolMiddleware: 'prompt'
       }
     },
-    'chutes/glm-4.6': {
+    'chutes/zai-org/glm-4.6': {
       provider: 'chutes',
       name: 'zai-org/GLM-4.6-FP8'
+    },
+    'openai-compatible/gpt-oss-20b': {
+      provider: 'openai-compatible',
+      name: 'gpt-oss-120b',
+      options: {
+        toolMiddleware: 'prompt'
+      }
     },
     'openai-compatible/gpt-oss-120b': {
       provider: 'openai-compatible',
