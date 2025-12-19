@@ -14,6 +14,7 @@ import config from '../utils/config.js';
 import telemetryRoutes from './routes/telemetry.js';
 import configRoutes from './routes/config.js';
 import { createAgentRoutes } from './routes/agent.js';
+import sessionRoutes from './routes/session.js';
 import type { HealthStatus, ErrorResponse } from '../types/index.js';
 
 // Get __dirname in ESM
@@ -64,6 +65,9 @@ app.use('/api/config', configRoutes);
 
 // Mount agent routes
 app.use('/api', createAgentRoutes());
+
+// Mount session routes
+app.use('/api/session', sessionRoutes);
 
 // Health check endpoint - minimal API foundation
 app.get('/api/health', (_req: Request, res: Response<HealthStatus>) => {

@@ -10,7 +10,8 @@
 import { sqliteExporter } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
 import { loadConfigFromFile } from "../utils/config.js";
-import { StrategistSession, StrategistSessionConfig } from "./strategist-session.js";
+import { StrategistSession } from "./strategist-session.js";
+import { StrategistSessionConfig } from "../types/config.js";
 import { setTimeout } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import * as readline from 'node:readline';
@@ -64,6 +65,7 @@ const isWaitMode = values.wait as boolean;
 
 // Default configuration (interactive mode)
 const defaultConfig: StrategistSessionConfig = {
+  type: 'strategist',
   llmPlayers: {
     1: { strategist: "simple-strategist" }
   },

@@ -11,43 +11,21 @@ import { mcpClient } from "../utils/models/mcp-client.js";
 import { VoxPlayer } from "./vox-player.js";
 import { voxCivilization } from "../infra/vox-civilization.js";
 import { setTimeout } from 'node:timers/promises';
-import { Model } from "../types/index.js";
+import { VoxSession, SessionStatus } from "../infra/vox-session.js";
+import { sessionRegistry } from "../infra/session-registry.js";
+import { StrategistSessionConfig } from "../types/config.js";
 
 const logger = createLogger('StrategistSession');
 
 /**
- * Player-specific configuration for LLM control
- */
-export interface PlayerConfig {
-  /** Strategist type to use for this player */
-  strategist: string;
-  /** Optional LLM model overrides per voxcontext (e.g., per agent name) */
-  llms?: Record<string, Model | string>;
-}
-
-/**
- * Configuration for a StrategistSession
- */
-export interface StrategistSessionConfig {
-  /** Players to monitor and control with LLM, mapped by player ID */
-  llmPlayers: Record<number, PlayerConfig>;
-  /** Whether to automatically start playing when game switches */
-  autoPlay: boolean;
-  /** Game mode - 'start' for new game, 'load' to load existing, 'wait' to wait for manual start (default: 'load') */
-  gameMode: 'start' | 'load' | 'wait';
-  /** The number of repeated runs. After the first, all will be new games */
-  repetition?: number;
-}
-
-/**
- * Manages a game session for the strategist system.
+ * Concrete implementation of VoxSession for Strategist game sessions.
+ * Manages AI players and game lifecycle.
  * Handles game startup, player coordination, crash recovery, and graceful shutdown.
  *
  * @class
  */
-export class StrategistSession {
+export class StrategistSession extends VoxSession<StrategistSessionConfig> {
   private activePlayers = new Map<number, VoxPlayer>();
-  private abortController = new AbortController();
   private finishPromise: Promise<void>;
   private victoryResolve?: () => void;
   private lastGameID?: string;
@@ -56,7 +34,8 @@ export class StrategistSession {
   private dllConnected = false;
   private readonly MAX_RECOVERY_ATTEMPTS = 3;
 
-  constructor(private config: StrategistSessionConfig) {
+  constructor(config: StrategistSessionConfig) {
+    super(config);
     this.finishPromise = new Promise((resolve) => {
       this.victoryResolve = resolve;
     });
@@ -68,10 +47,15 @@ export class StrategistSession {
    * Launches the game, connects to MCP server, and waits for completion.
    */
   async start(): Promise<void> {
-    const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' :
-                      this.config.gameMode === 'wait' ? undefined : 'LoadGame.lua';
+    try {
+      // Update state and register with the session registry
+      this.onStateChange('running');
+      sessionRegistry.register(this);
 
-    logger.info(`Starting strategist session in ${this.config.gameMode} mode`, this.config);
+      const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' :
+                        this.config.gameMode === 'wait' ? undefined : 'LoadGame.lua';
+
+      logger.info(`Starting strategist session ${this.id} in ${this.config.gameMode} mode`, this.config);
 
     // In wait mode, prompt the user to start the game manually
     if (this.config.gameMode === 'wait') {
@@ -128,8 +112,46 @@ export class StrategistSession {
       await voxCivilization.killGame();
     });
 
-    // Wait for victory or shutdown
-    await this.finishPromise;
+      // Wait for victory or shutdown
+      await this.finishPromise;
+    } catch (error) {
+      logger.error('Session failed with error:', error);
+      this.onStateChange('error', (error as Error).message);
+      sessionRegistry.unregister(this.id);
+      throw error;
+    }
+  }
+
+  /**
+   * Stop the session gracefully (implements VoxSession abstract method).
+   * Calls the existing shutdown() method.
+   */
+  async stop(): Promise<void> {
+    await this.shutdown();
+  }
+
+  /**
+   * Get current session status for API responses (implements VoxSession abstract method).
+   */
+  getStatus(): SessionStatus {
+    // Get active VoxContext IDs from active players
+    const contexts: string[] = [];
+    for (const player of this.activePlayers.values()) {
+      const contextId = player.getContextId();
+      if (contextId) {
+        contexts.push(contextId);
+      }
+    }
+
+    return {
+      id: this.id,
+      type: this.config.type,
+      state: this.state,
+      config: this.config,
+      startTime: this.startTime,
+      contexts,
+      error: this.errorMessage
+    };
   }
 
   /**
@@ -138,6 +160,9 @@ export class StrategistSession {
    */
   async shutdown(): Promise<void> {
     logger.info('Shutting down strategist session...');
+
+    // Update state
+    this.onStateChange('stopping');
 
     // Signal abort to stop processing new events
     this.abortController.abort();
@@ -163,6 +188,12 @@ export class StrategistSession {
     if (this.victoryResolve) {
       this.victoryResolve();
     }
+
+    // Unregister from session registry and update state
+    sessionRegistry.unregister(this.id);
+    this.onStateChange('stopped');
+
+    logger.info('Strategist session shutdown complete');
   }
 
   private async handlePlayerDoneTurn(params: any): Promise<void> {

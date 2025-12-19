@@ -84,3 +84,43 @@ export interface ConfigFile {
   /** ISO timestamp of last modification */
   lastModified?: string;
 }
+
+/**
+ * Base configuration for all session types.
+ * Contains common settings shared across different session implementations.
+ */
+export interface SessionConfig {
+  /** Session type - currently only 'strategist' is implemented */
+  type: 'strategist';
+
+  /** Whether to automatically continue playing when it's the AI's turn */
+  autoPlay: boolean;
+
+  /** How to start the game session */
+  gameMode: 'start' | 'load' | 'wait';
+
+  /** Number of games to play in sequence (optional) */
+  repetition?: number;
+}
+
+/**
+ * Player-specific configuration for LLM control
+ */
+export interface PlayerConfig {
+  /** Strategist type to use for this player */
+  strategist: string;
+  /** Optional LLM model overrides per voxcontext (e.g., per agent name) */
+  llms?: Record<string, Model | string>;
+}
+
+/**
+ * Configuration specific to Strategist sessions.
+ * Extends base config with player-specific LLM settings.
+ */
+export interface StrategistSessionConfig extends SessionConfig {
+  /** Must be 'strategist' for this config type */
+  type: 'strategist';
+
+  /** Map of player IDs to their LLM configurations */
+  llmPlayers: Record<number, PlayerConfig>;
+}

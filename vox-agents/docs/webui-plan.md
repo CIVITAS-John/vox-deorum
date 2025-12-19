@@ -338,7 +338,6 @@ All endpoints use strongly-typed interfaces and return `EnvoyThread` objects dir
 **Backend Requirements Still Needed**:
 - Wrapper API around StrategistSession in `src/web/routes/session.ts`
 - Session state management and lifecycle control
-- Progress tracking via SSE for turn-by-turn updates
 - Graceful shutdown handling with proper cleanup
 - Config file selection and validation
 

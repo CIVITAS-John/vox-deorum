@@ -14,7 +14,7 @@ import { sqliteExporter, spanProcessor } from "../instrumentation.js";
 import { config } from "../utils/config.js";
 import { refreshGameState, StrategistParameters } from "./strategy-parameters.js";
 import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";
-import { PlayerConfig } from "./strategist-session.js";
+import { PlayerConfig } from "../types/config.js";
 
 /**
  * Manages a single player's strategist execution within a game session.
@@ -229,5 +229,15 @@ export class VoxPlayer {
     this.aborted = true;
     this.successful = successful;
     this.context.abort(successful);
+  }
+
+  /**
+   * Get the context ID for this player.
+   * Used for telemetry tracking.
+   *
+   * @returns The VoxContext ID or undefined if not set
+   */
+  getContextId(): string | undefined {
+    return this.context?.id;
   }
 }

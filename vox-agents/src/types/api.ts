@@ -259,3 +259,81 @@ export interface DeleteSessionResponse {
   /** Whether the deletion was successful */
   success: boolean;
 }
+
+// ============================================================================
+// Session Management API Response Types
+// ============================================================================
+
+import type { SessionConfig } from './config.js';
+
+/**
+ * Response for session status endpoint.
+ */
+export interface SessionStatusResponse {
+  /** Whether a session is active */
+  active: boolean;
+
+  /** Current session details if active */
+  session?: import('../infra/vox-session.js').SessionStatus;
+}
+
+/**
+ * Information about a configuration file.
+ */
+export interface ConfigInfo {
+  /** Config filename */
+  filename: string;
+
+  /** Session type (e.g., 'strategist') */
+  type: string;
+
+  /** Display name */
+  name: string;
+
+  /** Whether the config is valid JSON */
+  valid: boolean;
+
+  /** Auto-play setting if available */
+  autoPlay?: boolean;
+
+  /** Game mode if available */
+  gameMode?: string;
+}
+
+/**
+ * Response for session config list endpoint.
+ */
+export interface SessionConfigListResponse {
+  /** Available configuration files */
+  configs: ConfigInfo[];
+}
+
+/**
+ * Request to start a new session.
+ */
+export interface StartSessionRequest {
+  /** Configuration filename to load */
+  configFile: string;
+}
+
+/**
+ * Response after starting a session.
+ */
+export interface StartSessionResponse {
+  /** The new session ID */
+  sessionId: string;
+
+  /** Session status */
+  status: import('../infra/vox-session.js').SessionStatus;
+}
+
+/**
+ * Response after stopping a session.
+ */
+export interface StopSessionResponse {
+  /** Whether the stop was successful */
+  success: boolean;
+
+  /** Optional message */
+  message?: string;
+}
