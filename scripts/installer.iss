@@ -386,7 +386,7 @@ begin
           MsgBox('WARNING: Vox Populi mod was not found and you chose to skip its installation.' + #13#10#13#10 +
                  'Vox Deorum REQUIRES Vox Populi to function. The system will likely not work correctly.' + #13#10#13#10 +
                  'Please install Vox Populi manually or re-run the installer without skipping the update.',
-                 mbWarning, MB_OK);
+                 mbError, MB_OK);
         end;
       end;
 
@@ -416,7 +416,7 @@ begin
           MsgBox('WARNING: Vox Populi UI mods were not found and you chose to skip their installation.' + #13#10#13#10 +
                  'These UI components are required for proper Vox Populi functionality.' + #13#10#13#10 +
                  'The game interface may not work correctly without them.',
-                 mbWarning, MB_OK);
+                 mbError, MB_OK);
         end;
       end;
 
