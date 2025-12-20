@@ -115,11 +115,6 @@
 }
 
 /* Table-specific text utilities (not duplicated elsewhere) */
-.monospace {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.85rem;
-}
-
 .text-truncate {
   overflow: hidden;
   text-overflow: ellipsis;

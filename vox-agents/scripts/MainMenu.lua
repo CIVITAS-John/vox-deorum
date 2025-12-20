@@ -21,7 +21,7 @@ Controls.VersionNumber:SetText(versionNumber);
 function getMostRecentSave()
   local fileList = {}
   print("Loading recent saves...")
-  -- Load single player saves (not autosaves, not cloud saves)
+  -- Load single player saves (incl. auto saves)
   UI.SaveFileList(fileList, GameTypes.GAME_SINGLE_PLAYER, true, true)
 
   if #fileList == 0 then

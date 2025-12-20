@@ -376,7 +376,7 @@ async function saveConfig() {
 }
 
 .api-keys-table input,
-.password-input :deep(input) {
-  width: 28rem;
+.p-password-input {
+  width: 28rem !important;
 }
 </style>

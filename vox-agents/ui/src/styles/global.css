@@ -25,6 +25,10 @@ h2, h3 {
   margin-bottom: 0.5rem;
 }
 
+h3 {
+  font-size: 1.4rem;
+}
+
 /* Dark mode support */
 .dark-mode {
   color-scheme: dark;

@@ -191,7 +191,7 @@ function formatJson(data: any): string {
 
 .tool-id {
   color: var(--p-text-muted-color);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

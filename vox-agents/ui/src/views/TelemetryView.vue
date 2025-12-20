@@ -5,6 +5,7 @@ import Card from 'primevue/card';
 import Button from 'primevue/button';
 import FileUpload from 'primevue/fileupload';
 import Tag from 'primevue/tag';
+import Toolbar from 'primevue/toolbar';
 import ProgressSpinner from 'primevue/progressspinner';
 import GameSessionsList from '@/components/GameSessionsList.vue';
 import { api } from '@/api/client';
@@ -70,7 +71,11 @@ onMounted(() => {
 
 <template>
   <div class="telemetry-view">
-    <h1>Telemetry Viewer</h1>
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Telemetry Viewer</h1>
+      </div>
+    </div>
 
     <div v-if="loading" class="loading-container">
       <ProgressSpinner />
@@ -85,16 +90,13 @@ onMounted(() => {
         @view-session="viewActiveSession" />
 
       <!-- Existing Databases Section -->
-      <Card class="databases-section">
-        <template #title>
-          <div class="section-header">
-            <h3>Past Games</h3>
-            <Tag v-if="databases.length > 0" :value="databases.length" />
-          </div>
-        </template>
-
-        <template #header>
-          <div class="upload-area">
+      <div class="panel-container">
+        <Toolbar>
+          <template #start>
+            <h3 class="m-0">Past Games</h3>
+            <Tag v-if="databases.length > 0" :value="databases.length" class="ml-2" />
+          </template>
+          <template #end>
             <FileUpload
               ref="fileUploadRef"
               mode="basic"
@@ -105,13 +107,12 @@ onMounted(() => {
               customUpload
               @uploader="onUpload"
               chooseLabel="Upload Database"
+              size="small"
               :chooseIcon="uploadProgress ? 'pi pi-spin pi-spinner' : 'pi pi-upload'"
               :disabled="uploadProgress"
             />
-          </div>
-        </template>
-
-        <template #content>
+          </template>
+        </Toolbar>
           <div v-if="databases.length === 0" class="table-empty">
             <i class="pi pi-database"></i>
             <p>No telemetry databases found</p>
@@ -156,8 +157,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
-        </template>
-      </Card>
+      </div>
     </div>
   </div>
 </template>
@@ -166,9 +166,5 @@ onMounted(() => {
 @import '@/styles/global.css';
 @import '@/styles/data-table.css';
 @import '@/styles/states.css';
-
-/* Telemetry-specific styles only */
-.upload-area {
-  padding: 1rem;
-}
+@import '@/styles/panel.css';
 </style>

@@ -54,13 +54,13 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       sessionRegistry.register(this);
 
       const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' :
-                        this.config.gameMode === 'wait' ? undefined : 'LoadGame.lua';
+                        this.config.gameMode === 'wait' ? 'MainMenu.lua' : 'LoadGame.lua';
 
       logger.info(`Starting strategist session ${this.id} in ${this.config.gameMode} mode`, this.config);
 
     // In wait mode, prompt the user to start the game manually
     if (this.config.gameMode === 'wait') {
-      logger.warn('WAIT MODE: Please start Civilization V manually and load your game.');
+      logger.warn('WAIT MODE: Please manually start or load your game.');
       logger.warn('The session will automatically continue when the game is loaded.');
     }
 
@@ -310,7 +310,7 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // If the game wasn't initialized, use the appropriate script based on mode
     const luaScript = this.config.gameMode === 'start' && this.lastGameState === 'initializing' ? 'StartGame.lua' :
-                      this.config.gameMode === 'wait' ? undefined : 'LoadGame.lua';
+                      this.config.gameMode === 'wait' ? 'MainMenu.lua' : 'LoadGame.lua';
 
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
@@ -329,7 +329,7 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // Restart the game using the appropriate script to recover from crash
     if (this.config.gameMode === 'wait') {
-      logger.warn('RECOVERY: Please restart Civilization V manually and load your game.');
+      logger.warn('RECOVERY: Please load your game manually.');
       logger.warn('The session will automatically continue when the game is loaded.');
     } else {
       logger.info(`Starting Civilization V with ${luaScript} to recover from crash...`);

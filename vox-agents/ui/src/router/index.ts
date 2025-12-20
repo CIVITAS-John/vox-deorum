@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import DashboardView from '../views/DashboardView.vue'
 import TelemetryView from '../views/TelemetryView.vue'
 import LogsView from '../views/LogsView.vue'
 import SessionView from '../views/SessionView.vue'
@@ -11,8 +10,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'dashboard',
-      component: DashboardView
+      redirect: '/session'
     },
     {
       path: '/telemetry',

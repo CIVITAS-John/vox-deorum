@@ -3,10 +3,13 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import Button from 'primevue/button';
 import Message from 'primevue/message';
 import Tag from 'primevue/tag';
+import Toolbar from 'primevue/toolbar';
 import ProgressSpinner from 'primevue/progressspinner';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
 import ConfigDialog from '../components/ConfigDialog.vue';
+import GameModeDialog from '../components/GameModeDialog.vue';
+import type { GameMode } from '../components/GameModeDialog.vue';
 import { apiClient } from '../api/client';
 import {
   sessionStatus,
@@ -33,6 +36,10 @@ const showConfigDialog = ref(false);
 const configDialogMode = ref<'add' | 'edit'>('add');
 const editingConfig = ref<StrategistSessionConfig | undefined>(undefined);
 const editingConfigName = ref('');
+
+// Game mode dialog state
+const showGameModeDialog = ref(false);
+const pendingConfig = ref<SessionConfig | null>(null);
 
 // Starting session state
 const startingSession = ref(false);
@@ -114,18 +121,34 @@ async function loadConfigs() {
 }
 
 /**
- * Start a new session with the given configuration
+ * Show game mode dialog before starting session
  */
-async function startSessionWithConfig(config: SessionConfig) {
+function showGameModeSelection(config: SessionConfig) {
+  pendingConfig.value = config;
+  showGameModeDialog.value = true;
+}
+
+/**
+ * Start a new session with the given configuration and game mode
+ */
+async function startSessionWithGameMode(mode: GameMode) {
+  if (!pendingConfig.value) return;
+
   startingSession.value = true;
 
   try {
-    await apiClient.startSession(config);
+    // Create a copy of the config with the selected game mode
+    const configWithMode = {
+      ...pendingConfig.value,
+      gameMode: mode
+    };
+
+    await apiClient.startSession(configWithMode);
     await fetchSessionStatus();
     toast.add({
       severity: 'success',
       summary: 'Session Started',
-      detail: 'Game session started successfully',
+      detail: `Game session started in ${mode} mode`,
       life: 3000
     });
   } catch (err: any) {
@@ -137,6 +160,7 @@ async function startSessionWithConfig(config: SessionConfig) {
     });
   } finally {
     startingSession.value = false;
+    pendingConfig.value = null;
   }
 }
 
@@ -273,30 +297,27 @@ onUnmounted(() => {
 
     <!-- Active Session Panel -->
     <div v-if="sessionStatus?.active && sessionStatus.session" class="panel-container mb-4">
-      <div class="panel-header">
-        <div class="flex align-items-center gap-2">
-          <i class="pi pi-circle-fill" :style="{ color: stateColor }"></i>
-          <span>Active Session</span>
-        </div>
-        <Button
-          label="Stop Session"
-          icon="pi pi-stop"
-          severity="danger"
-          size="small"
-          @click="confirmStopSession"
-          :loading="sessionLoading"
-        />
-      </div>
+      <Toolbar>
+        <template #start>
+          <h3>Active Session</h3>
+        </template>
+        <template #end>
+          <Button
+            label="Stop Session"
+            icon="pi pi-stop"
+            severity="danger"
+            size="small"
+            @click="confirmStopSession"
+            :loading="sessionLoading"
+          />
+        </template>
+      </Toolbar>
 
       <div class="data-table">
         <!-- Session Details Table -->
         <div class="table-row">
           <div class="col-fixed-150">Session ID</div>
           <div class="col-expand">{{ sessionStatus.session.id }}</div>
-        </div>
-        <div class="table-row">
-          <div class="col-fixed-150">Type</div>
-          <div class="col-expand">{{ sessionStatus.session.type }}</div>
         </div>
         <div class="table-row">
           <div class="col-fixed-150">State</div>
@@ -309,7 +330,7 @@ onUnmounted(() => {
           <div class="col-expand">{{ elapsedTime }}</div>
         </div>
         <div class="table-row">
-          <div class="col-fixed-150">Auto-play</div>
+          <div class="col-fixed-150">Observe</div>
           <div class="col-expand">
             <i :class="sessionStatus.session.config.autoPlay ? 'pi pi-check text-green-500' : 'pi pi-times text-red-500'"></i>
             {{ sessionStatus.session.config.autoPlay ? 'Yes' : 'No' }}
@@ -346,8 +367,8 @@ onUnmounted(() => {
             icon="pi pi-plus"
             label="New Config"
             severity="success"
+            size="small"
             @click="openConfigDialog('add')"
-            :disabled="sessionStatus?.active"
           />
         </template>
       </Toolbar>
@@ -373,7 +394,6 @@ onUnmounted(() => {
           label="Create First Config"
           icon="pi pi-plus"
           @click="openConfigDialog('add')"
-          :disabled="sessionStatus?.active"
         />
       </div>
 
@@ -405,7 +425,7 @@ onUnmounted(() => {
                   size="small"
                   rounded
                   v-tooltip="'Start Session'"
-                  @click="startSessionWithConfig(config)"
+                  @click="showGameModeSelection(config)"
                   :disabled="sessionStatus?.active || startingSession"
                   :loading="startingSession"
                 />
@@ -416,7 +436,6 @@ onUnmounted(() => {
                   rounded
                   v-tooltip="'Edit Config'"
                   @click="openConfigDialog('edit', config)"
-                  :disabled="sessionStatus?.active"
                 />
                 <Button
                   icon="pi pi-trash"
@@ -425,7 +444,6 @@ onUnmounted(() => {
                   rounded
                   v-tooltip="'Delete Config'"
                   @click="confirmDeleteConfig(config)"
-                  :disabled="sessionStatus?.active"
                 />
               </div>
             </div>
@@ -441,6 +459,13 @@ onUnmounted(() => {
       :config="editingConfig"
       :configName="editingConfigName"
       @save="handleConfigSave"
+    />
+
+    <!-- Game Mode Dialog -->
+    <GameModeDialog
+      v-model:visible="showGameModeDialog"
+      :loading="startingSession"
+      @select="startSessionWithGameMode"
     />
   </div>
 </template>

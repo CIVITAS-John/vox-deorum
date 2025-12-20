@@ -1,0 +1,13 @@
+{
+  "name": "play-briefed",
+  "type": "strategist",
+  "autoPlay": false,
+  "gameMode": "wait",
+  "llmPlayers": {
+    "0": {
+      "strategist": "simple-strategist-briefed",
+      "llms": {}
+    }
+  },
+  "repetition": null
+}

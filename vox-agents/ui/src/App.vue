@@ -46,11 +46,6 @@ const menuItems = computed(() => [
     label: 'Navigation',
     items: [
       {
-        label: 'Dashboard',
-        icon: 'pi pi-home',
-        command: () => router.push('/')
-      },
-      {
         label: 'Play',
         icon: 'pi pi-play',
         command: () => router.push('/session')
