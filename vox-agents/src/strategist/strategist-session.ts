@@ -54,7 +54,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       sessionRegistry.register(this);
 
       const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' :
-                        this.config.gameMode === 'wait' ? 'MainMenu.lua' : 'LoadGame.lua';
+                        this.config.gameMode === 'wait' ? 'LoadMods.lua' : 'LoadGame.lua';
 
       logger.info(`Starting strategist session ${this.id} in ${this.config.gameMode} mode`, this.config);
 
@@ -319,7 +319,7 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // If the game wasn't initialized, use the appropriate script based on mode
     const luaScript = this.config.gameMode === 'start' && this.lastGameState === 'initializing' ? 'StartGame.lua' :
-                      this.config.gameMode === 'wait' ? 'MainMenu.lua' : 'LoadGame.lua';
+                      this.config.gameMode === 'wait' ? 'LoadMods.lua' : 'LoadGame.lua';
 
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
