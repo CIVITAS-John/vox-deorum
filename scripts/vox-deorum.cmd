@@ -109,12 +109,6 @@ if "!ADDITIONAL_ARGS!"=="" (
 set /p VOX_PID=<"%TEMP%\vox.pid"
 echo        Started with PID: %VOX_PID%
 
-echo [INFO] Waiting for Vox Agents to initialize...
-timeout /t 10 /nobreak >nul
-
-echo [INFO] Opening GUI at http://localhost:5555...
-start http://localhost:5555
-
 echo ========================================
 echo All services started successfully!
 echo ========================================"

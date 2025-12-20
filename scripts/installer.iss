@@ -42,7 +42,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 BeveledLabel={#MyAppName} {#MyAppVersion} - LLM-Enhanced AI for Civilization V (VP {#VoxPopuliVersion})
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checked
+Name: "launchvoxdeorum"; Description: "Launch Vox Deorum after installation"; GroupDescription: "General Options:"; Flags: checked
 Name: "skipvoxpopuli"; Description: "Skip Vox Populi mod update (WARNING: May cause compatibility issues)"; GroupDescription: "Advanced Options:"; Flags: unchecked
 
 [Files]
@@ -100,6 +101,10 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\scripts\vox-deorum.cmd"; Ic
 Name: "{autodesktop}\{#MyAppName} Configuration"; Filename: "notepad.exe"; Parameters: "{app}\vox-agents\.env"; IconFilename: "{app}\scripts\vox-deorum.ico"; Tasks: desktopicon
 
 ; [Registry] section removed - no PATH modification needed since we use portable Node.js
+
+[Run]
+; Launch Vox Deorum after installation if selected
+Filename: "{app}\scripts\vox-deorum.cmd"; Description: "Launch Vox Deorum"; Flags: postinstall nowait skipifsilent; Tasks: launchvoxdeorum
 
 [UninstallRun]
 ; Clean up mods on uninstall

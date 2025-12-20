@@ -93,7 +93,7 @@ function closeDialog() {
             <i class="pi pi-clock mr-2"></i>
             <div class="text-left">
               <div class="font-bold">Manual Start</div>
-              <div class="text-sm opacity-80">Start Civilization V with Vox Deorum, then load your game manually</div>
+              <div class="text-sm opacity-80">Start the game with Vox Deorum (mods loaded <strong>automatically</strong>) and load your game manually</div>
             </div>
           </template>
         </Button>
