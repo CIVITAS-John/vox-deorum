@@ -2,7 +2,7 @@
 ; This script bundles all necessary files including portable Node.js
 
 #define MyAppVersion "0.4.1"
-#define VoxPopuliVersion "5.0.0-alpha3"
+#define VoxPopuliVersion "5.0.1"
 
 #define MyAppName "Vox Deorum"
 #define MyAppPublisher "John Chen"
