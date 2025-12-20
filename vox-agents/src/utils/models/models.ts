@@ -43,6 +43,7 @@ export function getModelConfig(
   if (overrides && overrides[name]) {
     const override = overrides[name];
     if (typeof override === 'string') {
+      console.log(name + " parsed to " + override);
       return getModelConfig(override, reasoning, overrides);
     }
     // It's a Model object - apply reasoning if needed
@@ -62,6 +63,7 @@ export function getModelConfig(
     return getModelConfig("default", reasoning);
   }
   if (typeof(model) === "string") {
+    console.log(name + " parsed to " + model);
     return getModelConfig(model, reasoning);
   } else if (reasoning) {
     return {

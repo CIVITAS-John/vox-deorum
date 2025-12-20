@@ -73,12 +73,53 @@ watch(() => props.visible, (newVal) => {
   }
 });
 
+// Watch for observed mode changes to adjust player IDs
+watch(() => localConfig.value.autoPlay, (newVal, oldVal) => {
+  // Skip if dialog is not visible or values are the same
+  if (!props.visible || newVal === oldVal) return;
+
+  const players = { ...localConfig.value.llmPlayers };
+  const playerIds = Object.keys(players).map(Number).sort((a, b) => a - b);
+
+  // If there are no players, just add one with the correct ID
+  if (playerIds.length === 0) {
+    addPlayer();
+    return;
+  }
+
+  // Adjust player IDs based on observed mode
+  // When observed mode is OFF (autoPlay = false), ensure no player 0
+  // When observed mode is ON (autoPlay = true), allow player 0
+  if (!newVal && playerIds.includes(0)) {
+    // Switching from observed to non-observed: shift player 0 to player 1
+    const newPlayers: typeof players = {};
+    for (const [id, player] of Object.entries(players)) {
+      const numId = Number(id);
+      const newId = numId === 0 ? 1 : numId;
+      newPlayers[newId] = player;
+    }
+    localConfig.value.llmPlayers = newPlayers;
+  } else if (newVal && playerIds[0] === 1 && !playerIds.includes(0)) {
+    // Switching from non-observed to observed: shift player 1 to player 0
+    const newPlayers: typeof players = {};
+    for (const [id, player] of Object.entries(players)) {
+      const numId = Number(id);
+      const newId = numId === 1 ? 0 : numId;
+      newPlayers[newId] = player;
+    }
+    localConfig.value.llmPlayers = newPlayers;
+  }
+});
+
 /**
  * Add a new player to the configuration
  */
 function addPlayer() {
-  const nextId = Math.max(-1, ...Object.keys(localConfig.value.llmPlayers).map(Number)) + 1;
-  const defaultStrategist = strategistOptions.value[0]!.value;
+  // When observed mode is off (autoPlay = false), start with player 1
+  // When observed mode is on (autoPlay = true), start with player 0
+  const startingId = localConfig.value.autoPlay ? -1 : 0;
+  const nextId = Math.max(startingId, ...Object.keys(localConfig.value.llmPlayers).map(Number)) + 1;
+  const defaultStrategist = strategistOptions.value[0]?.value || '';
   localConfig.value.llmPlayers[nextId] = {
     strategist: defaultStrategist,
     llms: {}

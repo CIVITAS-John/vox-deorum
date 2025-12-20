@@ -32,6 +32,12 @@ export abstract class VoxSession<TConfig extends SessionConfig = SessionConfig> 
   /** Error message if session failed */
   protected errorMessage?: string;
 
+  /** Current game ID */
+  protected gameID?: string;
+
+  /** Current game turn */
+  protected turn?: number;
+
   /**
    * Create a new VoxSession instance.
    * @param type - Session type identifier

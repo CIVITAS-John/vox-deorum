@@ -151,6 +151,8 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       config: this.config,
       startTime: this.startTime,
       contexts,
+      gameID: this.gameID,
+      turn: this.turn,
       error: this.errorMessage
     };
   }
@@ -201,6 +203,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     const player = this.activePlayers.get(params.playerID);
     if (player) {
       this.lastGameState = 'running';
+      this.turn = params.turn;  // Update current turn
       if (player.notifyTurn(params.turn, params.latestID))
         this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 0.5);
     }
@@ -215,6 +218,8 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     // If nothing is changing, ignore this
     if (params.gameID === this.lastGameID) return;
     this.lastGameID = params.gameID;
+    this.gameID = params.gameID;  // Update current game ID
+    this.turn = params.turn;  // Update current turn
     logger.warn(`Game context switching to ${params.gameID} at turn ${params.turn}`);
 
     // Abort all existing players

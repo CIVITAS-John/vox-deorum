@@ -38,7 +38,7 @@ function closeDialog() {
     :visible="visible"
     header="Select Game Mode"
     :modal="true"
-    :style="{ width: '500px' }"
+    :style="{ width: '45vw', minWidth: '560px' }"
     :closable="!loading"
     :dismissableMask="!loading"
     @update:visible="closeDialog"

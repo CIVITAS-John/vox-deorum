@@ -300,6 +300,7 @@ onUnmounted(() => {
       <Toolbar>
         <template #start>
           <h3>Active Session</h3>
+          <Tag class="ml-2" :severity="stateSeverity" :value="sessionStatus.session.state.toUpperCase()" />
         </template>
         <template #end>
           <Button
@@ -319,11 +320,13 @@ onUnmounted(() => {
           <div class="col-fixed-150">Session ID</div>
           <div class="col-expand">{{ sessionStatus.session.id }}</div>
         </div>
-        <div class="table-row">
-          <div class="col-fixed-150">State</div>
-          <div class="col-expand">
-            <Tag :severity="stateSeverity" :value="sessionStatus.session.state.toUpperCase()" />
-          </div>
+        <div class="table-row" v-if="sessionStatus.session.gameID">
+          <div class="col-fixed-150">Game ID</div>
+          <div class="col-expand">{{ sessionStatus.session.gameID }}</div>
+        </div>
+        <div class="table-row" v-if="sessionStatus.session.turn !== undefined">
+          <div class="col-fixed-150">Current Turn</div>
+          <div class="col-expand">{{ sessionStatus.session.turn }}</div>
         </div>
         <div class="table-row" v-if="elapsedTime">
           <div class="col-fixed-150">Duration</div>

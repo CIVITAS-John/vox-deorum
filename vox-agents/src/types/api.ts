@@ -275,6 +275,12 @@ export interface SessionStatus {
   /** Active VoxContext IDs for telemetry tracking */
   contexts?: string[];
 
+  /** Current game ID */
+  gameID?: string;
+
+  /** Current game turn */
+  turn?: number;
+
   /** Error message if state is 'error' */
   error?: string;
 }
