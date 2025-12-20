@@ -29,6 +29,7 @@ export class VoxPlayer {
   private logger;
   private pendingTurn?: { turn: number; latestID: number };
   private aborted = false;
+  private running = false;
   private successful = false;
 
   constructor(
@@ -65,7 +66,7 @@ export class VoxPlayer {
    * @returns True if this is a new turn notification, false if duplicate
    */
   notifyTurn(turn: number, latestID: number): boolean {
-    if (this.parameters.running) {
+    if (this.running) {
       this.logger.warn(`The ${this.playerConfig.strategist} is still working on turn ${this.parameters.turn}. Skipping turn ${turn}...`);
       return this.pendingTurn?.turn !== turn;
     }
@@ -108,7 +109,7 @@ export class VoxPlayer {
         while (!this.aborted) {
           const turnData = this.pendingTurn;
           if (!turnData) {
-            this.parameters.running = undefined;
+            this.running = false;
             await setTimeout(10);
             continue;
           }
@@ -117,7 +118,7 @@ export class VoxPlayer {
           this.pendingTurn = undefined;
           this.parameters.turn = turnData.turn;
           this.parameters.before = turnData.latestID;
-          this.parameters.running = this.playerConfig.strategist;
+          this.running = true;
 
           // Logging
           const startingInput = this.context.inputTokens;
@@ -178,7 +179,7 @@ export class VoxPlayer {
               message: error instanceof Error ? error.message : String(error)
             });
           } finally {
-            this.parameters.running = undefined;
+            this.running = false;
             turnSpan.end();
             await spanProcessor.forceFlush();
           }

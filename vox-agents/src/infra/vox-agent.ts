@@ -24,8 +24,6 @@ export interface AgentParameters {
   gameID: string;
   /** Current game turn number */
   turn: number;
-  /** Identifier for the currently running agent or process */
-  running?: string;
 }
 
 /**

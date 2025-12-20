@@ -204,9 +204,7 @@ export class VoxContext<TParameters extends AgentParameters> {
       throw new Error(`Agent '${agentName}' not found in registry`);
     }
 
-    let currentAgent = parameters.running;
     this.lastParameter = parameters;
-    parameters.running = agentName;
 
     const span = this.tracer.startSpan(`agent.${agentName}`, {
       attributes: {
@@ -312,7 +310,6 @@ export class VoxContext<TParameters extends AgentParameters> {
         });
         return undefined;
       } finally {
-        parameters.running = currentAgent;
         span.end();
       }
     });
