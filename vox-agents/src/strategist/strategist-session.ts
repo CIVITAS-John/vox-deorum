@@ -11,9 +11,10 @@ import { mcpClient } from "../utils/models/mcp-client.js";
 import { VoxPlayer } from "./vox-player.js";
 import { voxCivilization } from "../infra/vox-civilization.js";
 import { setTimeout } from 'node:timers/promises';
-import { VoxSession, SessionStatus } from "../infra/vox-session.js";
+import { VoxSession } from "../infra/vox-session.js";
 import { sessionRegistry } from "../infra/session-registry.js";
 import { StrategistSessionConfig } from "../types/config.js";
+import { SessionStatus } from "../types/api.js";
 
 const logger = createLogger('StrategistSession');
 
