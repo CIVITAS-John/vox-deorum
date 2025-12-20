@@ -65,6 +65,7 @@ const isWaitMode = values.wait as boolean;
 
 // Default configuration (interactive mode)
 const defaultConfig: StrategistSessionConfig = {
+  name: 'default',
   type: 'strategist',
   llmPlayers: {
     1: { strategist: "simple-strategist" }
@@ -122,6 +123,11 @@ const sessionConfig: StrategistSessionConfig = loadConfigFromFile(
   defaultConfig,
   cmdOverrides
 );
+
+// Ensure the config has a name (use filename without extension if not set)
+if (!sessionConfig.name) {
+  sessionConfig.name = configFile.replace('.json', '');
+}
 
 // Session instance
 let session: StrategistSession | null = null;

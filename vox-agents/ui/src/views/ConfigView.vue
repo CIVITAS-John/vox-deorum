@@ -355,24 +355,16 @@ async function saveConfig() {
 </template>
 
 <style scoped>
-/* Import shared state styles */
+/* Import shared styles */
 @import '@/styles/states.css';
+@import '@/styles/config.css';
 
-.status-messages,
-.config-card {
+/* Page-specific styles */
+.status-messages {
   margin-bottom: 1.5rem;
 }
 
-.config-card {
-  background: var(--p-content-background);
-  border: 1px solid var(--p-content-border-color);
-}
-
-:deep(.p-card-subtitle) {
-  color: var(--p-text-muted-color);
-  font-size: 0.875rem;
-}
-
+/* API keys table specific styles */
 .api-keys-table {
   width: 100%;
   vertical-align: middle;
@@ -384,47 +376,7 @@ async function saveConfig() {
 }
 
 .api-keys-table input,
-.password-input input {
+.password-input :deep(input) {
   width: 28rem;
-}
-
-/* LLM Configuration Styles */
-.mappings-list,
-.models-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.mapping-row,
-.model-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.agent-input {
-  flex: 1;
-  min-width: 150px;
-}
-
-.model-dropdown,
-.provider-dropdown {
-  flex: 1.5;
-  min-width: 200px;
-}
-
-.model-id {
-  flex: 1.5;
-  opacity: 0.7;
-}
-
-.model-name {
-  flex: 2;
-  min-width: 200px;
-}
-
-.delete-btn {
-  flex-shrink: 0;
 }
 </style>

@@ -90,6 +90,9 @@ export interface ConfigFile {
  * Contains common settings shared across different session implementations.
  */
 export interface SessionConfig {
+  /** Configuration name (typically derived from filename) */
+  name: string;
+
   /** Session type - currently only 'strategist' is implemented */
   type: 'strategist';
 

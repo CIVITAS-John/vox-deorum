@@ -79,7 +79,10 @@ export function createSessionRoutes(): Router {
             try {
               const filePath = path.join(configDir, filename);
               const content = await fs.readFile(filePath, 'utf-8');
-              return JSON.parse(content) as SessionConfig;
+              const config = JSON.parse(content) as SessionConfig;
+              // Add filename (without .json) as the config name
+              config.name = filename.replace('.json', '');
+              return config;
             } catch (error) {
               logger.warn(`Failed to parse config file ${filename}:`, error);
               return undefined;
@@ -200,6 +203,9 @@ export function createSessionRoutes(): Router {
           return;
         }
       }
+
+      // Set the config name based on filename (without .json)
+      config.name = finalFilename.replace('.json', '');
 
       // Write the config file
       const configPath = path.join(configDir, finalFilename);

@@ -1,0 +1,197 @@
+/**
+ * Shared styles for configuration components
+ * Used by ConfigView and ConfigDialog
+ */
+
+/* Card Styles */
+.config-card,
+.config-section {
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+}
+
+.config-card {
+  margin-bottom: 1.5rem;
+}
+
+.config-card :deep(.p-card-title),
+.config-section :deep(.p-card-title) {
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.config-card :deep(.p-card-subtitle),
+.config-section :deep(.p-card-subtitle) {
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+}
+
+.config-card :deep(.p-card-body),
+.config-section :deep(.p-card-body) {
+  padding: 1rem;
+}
+
+.config-card :deep(.p-card-content),
+.config-section :deep(.p-card-content) {
+  padding-top: 0.75rem;
+}
+
+/* List Layouts */
+.config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mappings-list,
+.models-list,
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Row Layouts */
+.config-row,
+.mapping-row,
+.model-row,
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.player-row {
+  padding: 0.75rem;
+  background: var(--p-surface-50);
+  border: 1px solid var(--p-surface-200);
+  border-radius: var(--p-border-radius);
+}
+
+/* Field Layouts */
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.field-row:last-child {
+  margin-bottom: 0;
+}
+
+.field-row label {
+  min-width: 120px;
+  font-weight: 500;
+  color: var(--p-text-color);
+}
+
+.field-input {
+  flex: 1;
+  max-width: 300px;
+}
+
+/* Input Sizing */
+.config-name-input,
+.strategist-input {
+  flex: 1;
+}
+
+.strategist-input {
+  max-width: 300px;
+}
+
+.agent-input {
+  flex: 1;
+  min-width: 150px;
+}
+
+.model-dropdown,
+.provider-dropdown {
+  flex: 1.5;
+  min-width: 200px;
+}
+
+.model-id {
+  flex: 1.5;
+  opacity: 0.7;
+}
+
+.model-name {
+  flex: 2;
+  min-width: 200px;
+}
+
+/* Labels */
+.player-label {
+  min-width: 80px;
+  font-weight: 500;
+}
+
+/* Buttons */
+.delete-btn {
+  flex-shrink: 0;
+}
+
+.delete-btn.in-row {
+  margin-left: auto;
+}
+
+/* Checkbox Styles */
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-label {
+  margin: 0;
+  font-weight: normal;
+  color: var(--p-text-muted-color);
+}
+
+/* Edit Mode Hint */
+.edit-mode-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Settings Grid */
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .field-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .field-row label {
+    min-width: unset;
+  }
+
+  .field-input,
+  .strategist-input,
+  .model-dropdown,
+  .provider-dropdown {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .config-row,
+  .mapping-row,
+  .model-row {
+    flex-wrap: wrap;
+  }
+}
