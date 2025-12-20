@@ -83,7 +83,7 @@ import Textarea from 'primevue/textarea';
 import ProgressSpinner from 'primevue/progressspinner';
 import { useToast } from 'primevue/usetoast';
 import { api } from '../api/client';
-import type { EnvoyThread, ChatRequest } from '../utils/types';
+import type { EnvoyThread, ChatMessageRequest } from '../utils/types';
 import type { ModelMessage } from 'ai';
 import ChatMessages from '../components/chat/ChatMessages.vue';
 import DeleteSessionDialog from '../components/DeleteSessionDialog.vue';
@@ -123,7 +123,7 @@ const goBack = () => {
 };
 
 const loadSession = async () => {
-  thread.value = await api.getAgentSession(sessionId.value);
+  thread.value = await api.getAgentChat(sessionId.value);
 };
 
 const handleEnterKey = (event: KeyboardEvent) => {

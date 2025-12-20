@@ -12,6 +12,17 @@ import { SessionConfig, StrategistSessionConfig } from '../../types/config.js';
 import { createLogger } from '../../utils/logger.js';
 import fs from 'fs/promises';
 import path from 'path';
+import type {
+  SessionStatusResponse,
+  SessionConfigsResponse,
+  StartSessionRequest,
+  StartSessionResponse,
+  SaveSessionConfigRequest,
+  SaveSessionConfigResponse,
+  DeleteSessionConfigResponse,
+  StopSessionResponse,
+  ErrorResponse
+} from '../../types/api.js';
 
 const logger = createLogger('webui:session-routes');
 
@@ -25,17 +36,19 @@ export function createSessionRoutes(): Router {
    * GET /api/session/status
    * Get the current session status.
    */
-  router.get('/status', (_req: Request, res: Response) => {
+  router.get('/status', (_req: Request, res: Response<SessionStatusResponse | ErrorResponse>) => {
     try {
       const session = sessionRegistry.getActive();
 
-      res.json({
+      const response: SessionStatusResponse = {
         active: !!session,
         session: session?.getStatus()
-      });
+      };
+      res.json(response);
     } catch (error) {
       logger.error('Failed to get session status', { error });
-      res.status(500).json({ error: 'Failed to get session status' });
+      const errorResponse: ErrorResponse = { error: 'Failed to get session status' };
+      res.status(500).json(errorResponse);
     }
   });
 
@@ -43,7 +56,7 @@ export function createSessionRoutes(): Router {
    * GET /api/session/configs
    * List available configuration files from the configs directory.
    */
-  router.get('/configs', async (_req: Request, res: Response): Promise<Response> => {
+  router.get('/configs', async (_req: Request, res: Response<SessionConfigsResponse | ErrorResponse>) => {
     try {
       const configDir = path.join(process.cwd(), 'configs');
 
@@ -51,52 +64,56 @@ export function createSessionRoutes(): Router {
       try {
         await fs.access(configDir);
       } catch {
-        return res.json({ configs: [] });
+        const response: SessionConfigsResponse = { configs: [] };
+        res.json(response);
+        return;
       }
 
       const files = await fs.readdir(configDir);
 
       // Filter and parse JSON config files
-      const configs: SessionConfig[] = await Promise.all(
+      const configs = (await Promise.all(
         files
           .filter(f => f.endsWith('.json'))
           .map(async filename => {
             try {
               const filePath = path.join(configDir, filename);
               const content = await fs.readFile(filePath, 'utf-8');
-              return JSON.parse(content);
+              return JSON.parse(content) as SessionConfig;
             } catch (error) {
               logger.warn(`Failed to parse config file ${filename}:`, error);
               return undefined;
             }
           })
-          .filter(c => c)
-      );
+      )).filter((c): c is SessionConfig => c !== undefined);
 
-      return res.json({ configs });
+      const response: SessionConfigsResponse = { configs };
+      res.json(response);
     } catch (error) {
       logger.error('Failed to list configs', { error });
-      return res.status(500).json({ error: 'Failed to list configurations' });
+      const errorResponse: ErrorResponse = { error: 'Failed to list configurations' };
+      res.status(500).json(errorResponse);
     }
   });
 
   /**
    * POST /api/session/start
    * Start a new game session with the specified configuration.
-   *
-   * Request body:
-   * - config: SessionConfig - The session configuration object
    */
-  router.post('/start', async (req: Request, res: Response): Promise<Response> => {
+  router.post('/start', async (req: Request<{}, {}, StartSessionRequest>, res: Response<StartSessionResponse | ErrorResponse>) => {
     const { config } = req.body;
 
     if (!config) {
-      return res.status(400).json({ error: 'Config object required' });
+      const errorResponse: ErrorResponse = { error: 'Config object required' };
+      res.status(400).json(errorResponse);
+      return;
     }
 
     // Check for existing session
     if (sessionRegistry.hasActiveSession()) {
-      return res.status(400).json({ error: 'A session is already active' });
+      const errorResponse: ErrorResponse = { error: 'A session is already active' };
+      res.status(400).json(errorResponse);
+      return;
     }
 
     try {
@@ -110,7 +127,9 @@ export function createSessionRoutes(): Router {
 
       // Validate required fields
       if (!strategistConfig.llmPlayers || typeof strategistConfig.llmPlayers !== 'object') {
-        return res.status(400).json({ error: 'Config must include llmPlayers configuration' });
+        const errorResponse: ErrorResponse = { error: 'Config must include llmPlayers configuration' };
+        res.status(400).json(errorResponse);
+        return;
       }
 
       // Create and start session
@@ -123,33 +142,35 @@ export function createSessionRoutes(): Router {
       });
 
       // Return session info immediately
-      return res.json({
+      const response: StartSessionResponse = {
         sessionId: session.id,
         status: session.getStatus()
-      });
+      };
+      res.json(response);
     } catch (error) {
       logger.error('Failed to start session', { error });
-      return res.status(500).json({ error: `Failed to start session: ${(error as Error).message}` });
+      const errorResponse: ErrorResponse = { error: `Failed to start session: ${(error as Error).message}` };
+      res.status(500).json(errorResponse);
     }
   });
 
   /**
    * POST /api/session/save
    * Save a session configuration to a local file.
-   *
-   * Request body:
-   * - filename: string - The filename to save as (without .json extension)
-   * - config: SessionConfig - The configuration object to save
    */
-  router.post('/save', async (req: Request, res: Response): Promise<Response> => {
+  router.post('/save', async (req: Request<{}, {}, SaveSessionConfigRequest>, res: Response<SaveSessionConfigResponse | ErrorResponse>) => {
     const { filename, config } = req.body;
 
     if (!filename) {
-      return res.status(400).json({ error: 'Filename required' });
+      const errorResponse: ErrorResponse = { error: 'Filename required' };
+      res.status(400).json(errorResponse);
+      return;
     }
 
     if (!config) {
-      return res.status(400).json({ error: 'Config object required' });
+      const errorResponse: ErrorResponse = { error: 'Config object required' };
+      res.status(400).json(errorResponse);
+      return;
     }
 
     // Sanitize filename - remove path characters and ensure .json extension
@@ -174,7 +195,9 @@ export function createSessionRoutes(): Router {
       if (config.type === 'strategist') {
         const strategistConfig = config as StrategistSessionConfig;
         if (!strategistConfig.llmPlayers || typeof strategistConfig.llmPlayers !== 'object') {
-          return res.status(400).json({ error: 'Strategist config must include llmPlayers configuration' });
+          const errorResponse: ErrorResponse = { error: 'Strategist config must include llmPlayers configuration' };
+          res.status(400).json(errorResponse);
+          return;
         }
       }
 
@@ -184,29 +207,30 @@ export function createSessionRoutes(): Router {
 
       logger.info(`Saved configuration to ${finalFilename}`);
 
-      return res.json({
+      const response: SaveSessionConfigResponse = {
         success: true,
         filename: finalFilename,
         path: configPath
-      });
+      };
+      res.json(response);
     } catch (error) {
       logger.error('Failed to save config', { error });
-      return res.status(500).json({ error: `Failed to save configuration: ${(error as Error).message}` });
+      const errorResponse: ErrorResponse = { error: `Failed to save configuration: ${(error as Error).message}` };
+      res.status(500).json(errorResponse);
     }
   });
 
   /**
    * DELETE /api/session/config/:filename
    * Delete a saved configuration file.
-   *
-   * URL params:
-   * - filename: string - The config filename to delete (with or without .json extension)
    */
-  router.delete('/config/:filename', async (req: Request, res: Response): Promise<Response> => {
+  router.delete('/config/:filename', async (req: Request<{ filename: string }>, res: Response<DeleteSessionConfigResponse | ErrorResponse>) => {
     const { filename } = req.params;
 
     if (!filename) {
-      return res.status(400).json({ error: 'Filename required' });
+      const errorResponse: ErrorResponse = { error: 'Filename required' };
+      res.status(400).json(errorResponse);
+      return;
     }
 
     // Sanitize filename - remove path characters and ensure .json extension
@@ -221,7 +245,9 @@ export function createSessionRoutes(): Router {
       try {
         await fs.access(configPath);
       } catch {
-        return res.status(404).json({ error: `Config file not found: ${finalFilename}` });
+        const errorResponse: ErrorResponse = { error: `Config file not found: ${finalFilename}` };
+        res.status(404).json(errorResponse);
+        return;
       }
 
       // Delete the file
@@ -229,13 +255,15 @@ export function createSessionRoutes(): Router {
 
       logger.info(`Deleted configuration file: ${finalFilename}`);
 
-      return res.json({
+      const response: DeleteSessionConfigResponse = {
         success: true,
         message: `Configuration ${finalFilename} deleted successfully`
-      });
+      };
+      res.json(response);
     } catch (error) {
       logger.error('Failed to delete config', { error });
-      return res.status(500).json({ error: `Failed to delete configuration: ${(error as Error).message}` });
+      const errorResponse: ErrorResponse = { error: `Failed to delete configuration: ${(error as Error).message}` };
+      res.status(500).json(errorResponse);
     }
   });
 
@@ -243,11 +271,13 @@ export function createSessionRoutes(): Router {
    * POST /api/session/stop
    * Stop the currently active session.
    */
-  router.post('/stop', async (_req: Request, res: Response): Promise<Response> => {
+  router.post('/stop', async (_req: Request, res: Response<StopSessionResponse | ErrorResponse>) => {
     const session = sessionRegistry.getActive();
 
     if (!session) {
-      return res.status(404).json({ error: 'No active session' });
+      const errorResponse: ErrorResponse = { error: 'No active session' };
+      res.status(404).json(errorResponse);
+      return;
     }
 
     try {
@@ -256,13 +286,15 @@ export function createSessionRoutes(): Router {
       // Stop the session (this will unregister it)
       await session.stop();
 
-      return res.json({
+      const response: StopSessionResponse = {
         success: true,
         message: 'Session stopped successfully'
-      });
+      };
+      res.json(response);
     } catch (error) {
       logger.error('Failed to stop session', { error });
-      return res.status(500).json({ error: `Failed to stop session: ${(error as Error).message}` });
+      const errorResponse: ErrorResponse = { error: `Failed to stop session: ${(error as Error).message}` };
+      res.status(500).json(errorResponse);
     }
   });
 

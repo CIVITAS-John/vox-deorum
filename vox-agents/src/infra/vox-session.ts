@@ -7,35 +7,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import type { SessionConfig } from '../types/config.js';
-
-/** Session state enumeration */
-export type SessionState = 'idle' | 'running' | 'paused' | 'stopping' | 'stopped' | 'error';
-
-/**
- * Session status information for API responses.
- */
-export interface SessionStatus {
-  /** Unique session identifier */
-  id: string;
-
-  /** Session type (e.g., 'strategist') */
-  type: string;
-
-  /** Current session state */
-  state: SessionState;
-
-  /** Session configuration */
-  config: SessionConfig;
-
-  /** When the session started */
-  startTime: Date;
-
-  /** Active VoxContext IDs for telemetry tracking */
-  contexts?: string[];
-
-  /** Error message if state is 'error' */
-  error?: string;
-}
+import { SessionState, SessionStatus } from '../types/api.js';
 
 /**
  * Abstract base class for all Vox session types.

@@ -20,16 +20,16 @@ import {
   createTelepathicContextId
 } from '../../utils/identifier-parser.js';
 import { StrategistParameters } from '../../strategist/strategy-parameters.js';
-import { 
+import {
   ListAgentsResponse,
-  CreateSessionRequest,
-  CreateSessionResponse,
-  ListSessionsResponse,
-  GetSessionResponse,
-  ChatRequest,
-  DeleteSessionResponse,
+  CreateChatRequest,
+  CreateChatResponse,
+  ListChatsResponse,
+  GetChatResponse,
+  ChatMessageRequest,
+  DeleteChatResponse,
   AgentInfo,
-  StreamingEventCallback, 
+  StreamingEventCallback,
   EnvoyThread
 } from '../../types/index.js';
 
@@ -66,10 +66,10 @@ export function createAgentRoutes(): Router {
   });
 
   /**
-   * POST /api/agents/session - Create a new chat session
-   * Initializes a new chat session for the specified agent
+   * POST /api/agents/chat - Create a new chat thread
+   * Initializes a new chat thread for the specified agent
    */
-  router.post('/agents/session', async (req: Request<{}, {}, CreateSessionRequest>, res: Response<CreateSessionResponse>): Promise<Response> => {
+  router.post('/agents/chat', async (req: Request<{}, {}, CreateChatRequest>, res: Response<CreateChatResponse>): Promise<Response> => {
     try {
       const { agentName, contextId, databasePath, turn } = req.body;
 
@@ -153,61 +153,61 @@ export function createAgentRoutes(): Router {
   });
 
   /**
-   * GET /api/agents/sessions - Get all active chat sessions
-   * Returns list of all current chat sessions as EnvoyThreads
+   * GET /api/agents/chats - Get all active chat threads
+   * Returns list of all current chat threads as EnvoyThreads
    */
-  router.get('/agents/sessions', (_req: Request, res: Response<ListSessionsResponse>) => {
+  router.get('/agents/chats', (_req: Request, res: Response<ListChatsResponse>) => {
     try {
-      const sessions = Array.from(chatSessions.values());
-      res.json({ sessions });
+      const chats = Array.from(chatSessions.values());
+      res.json({ chats });
     } catch (error) {
-      logger.error('Failed to list sessions', { error });
-      res.status(500).json({ error: 'Failed to list sessions' } as any);
+      logger.error('Failed to list chat threads', { error });
+      res.status(500).json({ error: 'Failed to list chat threads' } as any);
     }
   });
 
   /**
-   * GET /api/agents/session/:sessionId - Get session details with messages
+   * GET /api/agents/chat/:chatId - Get chat thread details with messages
    * Returns the full EnvoyThread with message history
    */
-  router.get('/agents/session/:sessionId', (req: Request, res: Response<GetSessionResponse>): Response => {
+  router.get('/agents/chat/:chatId', (req: Request, res: Response<GetChatResponse>): Response => {
     try {
-      const { sessionId } = req.params;
-      const thread = chatSessions.get(sessionId);
+      const { chatId } = req.params;
+      const thread = chatSessions.get(chatId);
 
       if (!thread) {
-        return res.status(404).json({ error: 'Session not found' } as any);
+        return res.status(404).json({ error: 'Chat thread not found' } as any);
       }
 
       // Return the full EnvoyThread
       return res.json(thread);
     } catch (error) {
-      logger.error('Failed to get session', { error });
-      return res.status(500).json({ error: 'Failed to get session' } as any);
+      logger.error('Failed to get chat thread', { error });
+      return res.status(500).json({ error: 'Failed to get chat thread' } as any);
     }
   });
 
   /**
-   * POST /api/agents/chat - Unified streaming chat endpoint
+   * POST /api/agents/message - Unified streaming chat endpoint
    * Sends a message to the specified agent and streams the response
    */
-  router.post('/agents/chat', async (req: Request<{}, {}, ChatRequest>, res: Response): Promise<void> => {
-    const { sessionId, message } = req.body;
+  router.post('/agents/message', async (req: Request<{}, {}, ChatMessageRequest>, res: Response): Promise<void> => {
+    const { chatId, message } = req.body;
 
     if (!message) {
       res.status(400).json({ error: 'Message is required' });
       return;
     }
 
-    if (!sessionId) {
-      res.status(400).json({ error: 'SessionID is required' });
+    if (!chatId) {
+      res.status(400).json({ error: 'Chat ID is required' });
       return;
     }
 
-    // Get session
-    let thread = chatSessions.get(sessionId);
+    // Get chat thread
+    let thread = chatSessions.get(chatId);
     if (!thread) {
-      res.status(404).json({ error: 'Session not found' });
+      res.status(404).json({ error: 'Chat thread not found' });
       return;
     }
 
@@ -278,16 +278,16 @@ export function createAgentRoutes(): Router {
   });
 
   /**
-   * DELETE /api/agents/session/:sessionId - Delete a chat session
-   * Removes the specified session from memory and optionally shuts down its context
+   * DELETE /api/agents/chat/:chatId - Delete a chat thread
+   * Removes the specified chat thread from memory and optionally shuts down its context
    */
-  router.delete('/agents/session/:sessionId', async (req: Request, res: Response<DeleteSessionResponse>): Promise<Response> => {
+  router.delete('/agents/chat/:chatId', async (req: Request, res: Response<DeleteChatResponse>): Promise<Response> => {
     try {
-      const { sessionId } = req.params;
-      const thread = chatSessions.get(sessionId);
+      const { chatId } = req.params;
+      const thread = chatSessions.get(chatId);
 
       if (!thread) {
-        return res.status(404).json({ error: 'Session not found' } as any);
+        return res.status(404).json({ error: 'Chat thread not found' } as any);
       }
 
       // If this is a telepathist context (database-based), shut it down
@@ -299,11 +299,11 @@ export function createAgentRoutes(): Router {
         }
       }
 
-      chatSessions.delete(sessionId);
+      chatSessions.delete(chatId);
       return res.json({ success: true });
     } catch (error) {
-      logger.error('Failed to delete session', { error });
-      return res.status(500).json({ error: 'Failed to delete session' } as any);
+      logger.error('Failed to delete chat thread', { error });
+      return res.status(500).json({ error: 'Failed to delete chat thread' } as any);
     }
   });
 

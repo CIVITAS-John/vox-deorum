@@ -68,8 +68,8 @@ const visible = computed({
 });
 
 const message = computed(() => {
-  const sessionName = props.session?.title || props.session?.id || 'this session';
-  return `Are you sure you want to delete the chat session "${sessionName}"?`;
+  const sessionName = props.session?.title || props.session?.id || 'this chat thread';
+  return `Are you sure you want to delete the chat thread "${sessionName}"?`;
 });
 
 // Methods
@@ -91,12 +91,12 @@ const handleDelete = async () => {
   isDeleting.value = true;
 
   try {
-    await api.deleteAgentSession(props.session.id);
+    await api.deleteAgentChat(props.session.id);
 
     toast.add({
       severity: 'success',
       summary: 'Success',
-      detail: 'Chat session deleted',
+      detail: 'Chat thread deleted',
       life: 3000
     });
 

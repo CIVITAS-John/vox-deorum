@@ -86,22 +86,6 @@ export interface ConfigResponse {
 // Session API Response Types
 // ============================================================================
 
-/**
- * Represents the current status of a Vox Agents game session
- */
-export interface SessionStatus {
-  /** Whether a session is currently active */
-  active: boolean;
-  /** Unique identifier for the active session */
-  sessionId?: string;
-  /** Configuration file used for the session */
-  config?: string;
-  /** ISO timestamp when the session started */
-  startTime?: string;
-  /** Session progress percentage (0-100) */
-  progress?: number;
-}
-
 // ============================================================================
 // Telemetry API Response Types
 // ============================================================================
@@ -210,9 +194,9 @@ export interface ListAgentsResponse {
 }
 
 /**
- * Request to create a new chat session
+ * Request to create a new chat thread
  */
-export interface CreateSessionRequest {
+export interface CreateChatRequest {
   /** Name of the agent to use */
   agentName: string;
   /** Context ID for live sessions */
@@ -224,38 +208,38 @@ export interface CreateSessionRequest {
 }
 
 /**
- * Response after creating a new chat session
+ * Response after creating a new chat thread
  * Returns the full EnvoyThread object
  */
-export type CreateSessionResponse = EnvoyThread;
+export type CreateChatResponse = EnvoyThread;
 
 /**
- * Response containing list of chat sessions
+ * Response containing list of chat threads
  */
-export interface ListSessionsResponse {
-  /** Array of active chat sessions (EnvoyThread objects) */
-  sessions: EnvoyThread[];
+export interface ListChatsResponse {
+  /** Array of active chat threads (EnvoyThread objects) */
+  chats: EnvoyThread[];
 }
 
 /**
- * Response containing a single chat session
+ * Response containing a single chat thread
  */
-export type GetSessionResponse = EnvoyThread;
+export type GetChatResponse = EnvoyThread;
 
 /**
  * Request to send a chat message
  */
-export interface ChatRequest {
-  /** Session ID to send the message to */
-  sessionId: string;
+export interface ChatMessageRequest {
+  /** Chat thread ID to send the message to */
+  chatId: string;
   /** The message content */
   message: string;
 }
 
 /**
- * Response after deleting a session
+ * Response after deleting a chat thread
  */
-export interface DeleteSessionResponse {
+export interface DeleteChatResponse {
   /** Whether the deletion was successful */
   success: boolean;
 }
@@ -266,74 +250,109 @@ export interface DeleteSessionResponse {
 
 import type { SessionConfig } from './config.js';
 
-/**
- * Response for session status endpoint.
- */
-export interface SessionStatusResponse {
-  /** Whether a session is active */
-  active: boolean;
-
-  /** Current session details if active */
-  session?: import('../infra/vox-session.js').SessionStatus;
-}
+/** Session state enumeration */
+export type SessionState = 'idle' | 'running' | 'paused' | 'stopping' | 'stopped' | 'error';
 
 /**
- * Information about a configuration file.
+ * Session status information for API responses.
  */
-export interface ConfigInfo {
-  /** Config filename */
-  filename: string;
+export interface SessionStatus {
+  /** Unique session identifier */
+  id: string;
 
   /** Session type (e.g., 'strategist') */
   type: string;
 
-  /** Display name */
-  name: string;
+  /** Current session state */
+  state: SessionState;
 
-  /** Whether the config is valid JSON */
-  valid: boolean;
+  /** Session configuration */
+  config: SessionConfig;
 
-  /** Auto-play setting if available */
-  autoPlay?: boolean;
+  /** When the session started */
+  startTime: Date;
 
-  /** Game mode if available */
-  gameMode?: string;
+  /** Active VoxContext IDs for telemetry tracking */
+  contexts?: string[];
+
+  /** Error message if state is 'error' */
+  error?: string;
 }
 
 /**
- * Response for session config list endpoint.
+ * GET /api/session/status response
  */
-export interface SessionConfigListResponse {
-  /** Available configuration files */
-  configs: ConfigInfo[];
+export interface SessionStatusResponse {
+  /** Whether a session is active */
+  active: boolean;
+  /** Current session details if active */
+  session?: SessionStatus;
 }
 
 /**
- * Request to start a new session.
+ * GET /api/session/configs response
+ */
+export interface SessionConfigsResponse {
+  /** Available session configurations */
+  configs: SessionConfig[];
+}
+
+/**
+ * POST /api/session/start request body
  */
 export interface StartSessionRequest {
-  /** Configuration filename to load */
-  configFile: string;
+  /** Session configuration object */
+  config: SessionConfig;
 }
 
 /**
- * Response after starting a session.
+ * POST /api/session/start response
  */
 export interface StartSessionResponse {
   /** The new session ID */
   sessionId: string;
-
   /** Session status */
-  status: import('../infra/vox-session.js').SessionStatus;
+  status: SessionStatus;
 }
 
 /**
- * Response after stopping a session.
+ * POST /api/session/save request body
+ */
+export interface SaveSessionConfigRequest {
+  /** Filename to save as (without .json extension) */
+  filename: string;
+  /** Configuration object to save */
+  config: SessionConfig;
+}
+
+/**
+ * POST /api/session/save response
+ */
+export interface SaveSessionConfigResponse {
+  /** Whether the save was successful */
+  success: boolean;
+  /** Final filename with .json extension */
+  filename: string;
+  /** Full path to the saved file */
+  path: string;
+}
+
+/**
+ * DELETE /api/session/config/:filename response
+ */
+export interface DeleteSessionConfigResponse {
+  /** Whether the deletion was successful */
+  success: boolean;
+  /** Success message */
+  message: string;
+}
+
+/**
+ * POST /api/session/stop response
  */
 export interface StopSessionResponse {
   /** Whether the stop was successful */
   success: boolean;
-
-  /** Optional message */
-  message?: string;
+  /** Success message */
+  message: string;
 }

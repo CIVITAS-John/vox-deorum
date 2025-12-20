@@ -4,7 +4,7 @@
  */
 
 import type { Ref } from 'vue';
-import type { EnvoyThread, ChatRequest } from '@/utils/types';
+import type { EnvoyThread, ChatMessageRequest } from '@/utils/types';
 import type { LanguageModelV2TextPart, LanguageModelV2ReasoningPart, LanguageModelV2ToolCallPart, LanguageModelV2ToolResultPart } from '@ai-sdk/provider';
 import { api } from '@/api/client';
 import type { ModelMessage } from 'ai';
@@ -71,12 +71,12 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
     let currentToolInput: string = "";
 
     try {
-      const request: ChatRequest = {
-        sessionId: sessionId.value,
+      const request: ChatMessageRequest = {
+        chatId: sessionId.value,
         message: message
       };
 
-      return api.streamAgentChat(
+      return api.streamAgentMessage(
         request,
         (part) => {
           switch (part.type) {

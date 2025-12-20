@@ -135,10 +135,10 @@ async function confirmSelection() {
       request.turn = turn;
     }
 
-    // Create the session
-    const session = await apiClient.createAgentSession(request);
+    // Create the chat thread
+    const session = await apiClient.createAgentChat(request);
 
-    console.log('Created chat session:', {
+    console.log('Created chat thread:', {
       session,
       agent: selectedAgent.value,
       span: props.span,

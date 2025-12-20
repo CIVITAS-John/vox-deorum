@@ -13,18 +13,30 @@ import type {
   SessionSpansResponse,
   DatabaseTracesResponse,
   TraceSpansResponse,
-  SessionStatus,
+  // Session management types
+  SessionStatusResponse,
+  SessionConfigsResponse,
+  StartSessionRequest,
+  StartSessionResponse,
+  SaveSessionConfigRequest,
+  SaveSessionConfigResponse,
+  DeleteSessionConfigResponse,
+  StopSessionResponse,
+  SessionConfig,
+  // Config types
   ConfigFile,
   ConfigListResponse,
   ErrorResponse,
   UploadResponse,
   Span,
+  // Agent chat types
   ListAgentsResponse,
-  CreateSessionRequest,
-  EnvoyThread,
-  ListSessionsResponse,
-  DeleteSessionResponse,
-  ChatRequest
+  CreateChatRequest,
+  CreateChatResponse,
+  ListChatsResponse,
+  GetChatResponse,
+  DeleteChatResponse,
+  ChatMessageRequest
 } from '../utils/types';
 import type { TextStreamPart, ToolSet } from 'ai';
 
@@ -260,26 +272,60 @@ class ApiClient {
   /**
    * Get current session status
    */
-  async getSessionStatus(): Promise<SessionStatus> {
-    return this.fetchJson<SessionStatus>(`${this.baseUrl}/api/session/status`);
+  async getSessionStatus(): Promise<SessionStatusResponse> {
+    return this.fetchJson<SessionStatusResponse>(`${this.baseUrl}/api/session/status`);
+  }
+
+  /**
+   * Get list of available session configuration files
+   */
+  async getSessionConfigs(): Promise<SessionConfigsResponse> {
+    return this.fetchJson<SessionConfigsResponse>(`${this.baseUrl}/api/session/configs`);
   }
 
   /**
    * Start a new session with configuration
+   * @param config Full session configuration object
    */
-  async startSession(config: Record<string, any>): Promise<SessionStatus> {
-    return this.fetchJson<SessionStatus>(`${this.baseUrl}/api/session/start`, {
+  async startSession(config: SessionConfig): Promise<StartSessionResponse> {
+    const request: StartSessionRequest = { config };
+    return this.fetchJson<StartSessionResponse>(`${this.baseUrl}/api/session/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(config)
+      body: JSON.stringify(request)
     });
+  }
+
+  /**
+   * Save a session configuration to file
+   * @param filename Name to save the config as (without .json extension)
+   * @param config Configuration object to save
+   */
+  async saveSessionConfig(filename: string, config: SessionConfig): Promise<SaveSessionConfigResponse> {
+    const request: SaveSessionConfigRequest = { filename, config };
+    return this.fetchJson<SaveSessionConfigResponse>(`${this.baseUrl}/api/session/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request)
+    });
+  }
+
+  /**
+   * Delete a saved session configuration file
+   * @param filename Config filename to delete (with or without .json extension)
+   */
+  async deleteSessionConfig(filename: string): Promise<DeleteSessionConfigResponse> {
+    return this.fetchJson<DeleteSessionConfigResponse>(
+      `${this.baseUrl}/api/session/config/${encodeURIComponent(filename)}`,
+      { method: 'DELETE' }
+    );
   }
 
   /**
    * Stop the current session
    */
-  async stopSession(): Promise<{ success: boolean }> {
-    return this.fetchJson<{ success: boolean }>(`${this.baseUrl}/api/session/stop`, {
+  async stopSession(): Promise<StopSessionResponse> {
+    return this.fetchJson<StopSessionResponse>(`${this.baseUrl}/api/session/stop`, {
       method: 'POST'
     });
   }
@@ -411,11 +457,11 @@ class ApiClient {
   }
 
   /**
-   * Create a new agent chat session
+   * Create a new agent chat thread
    */
-  async createAgentSession(request: CreateSessionRequest): Promise<EnvoyThread> {
-    return this.fetchJson<EnvoyThread>(
-      `${this.baseUrl}/api/agents/session`,
+  async createAgentChat(request: CreateChatRequest): Promise<CreateChatResponse> {
+    return this.fetchJson<CreateChatResponse>(
+      `${this.baseUrl}/api/agents/chat`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -425,29 +471,29 @@ class ApiClient {
   }
 
   /**
-   * Get all agent chat sessions
+   * Get all agent chat threads
    */
-  async getAgentSessions(): Promise<ListSessionsResponse> {
-    return this.fetchJson<ListSessionsResponse>(
-      `${this.baseUrl}/api/agents/sessions`
+  async getAgentChats(): Promise<ListChatsResponse> {
+    return this.fetchJson<ListChatsResponse>(
+      `${this.baseUrl}/api/agents/chats`
     );
   }
 
   /**
-   * Get a specific agent chat session
+   * Get a specific agent chat thread
    */
-  async getAgentSession(sessionId: string): Promise<EnvoyThread> {
-    return this.fetchJson<EnvoyThread>(
-      `${this.baseUrl}/api/agents/session/${encodeURIComponent(sessionId)}`
+  async getAgentChat(chatId: string): Promise<GetChatResponse> {
+    return this.fetchJson<GetChatResponse>(
+      `${this.baseUrl}/api/agents/chat/${encodeURIComponent(chatId)}`
     );
   }
 
   /**
-   * Delete an agent chat session
+   * Delete an agent chat thread
    */
-  async deleteAgentSession(sessionId: string): Promise<DeleteSessionResponse> {
-    return this.fetchJson<DeleteSessionResponse>(
-      `${this.baseUrl}/api/agents/session/${encodeURIComponent(sessionId)}`,
+  async deleteAgentChat(chatId: string): Promise<DeleteChatResponse> {
+    return this.fetchJson<DeleteChatResponse>(
+      `${this.baseUrl}/api/agents/chat/${encodeURIComponent(chatId)}`,
       { method: 'DELETE' }
     );
   }
@@ -455,16 +501,16 @@ class ApiClient {
   /**
    * Send a message to an agent and stream the response
    */
-  streamAgentChat(
-    request: ChatRequest,
+  streamAgentMessage(
+    request: ChatMessageRequest,
     onMessage: (data: TextStreamPart<ToolSet>) => void,
     onError: (message: string) => void,
     onDone: () => void
   ): () => void {
-    const key = `agent-chat-${request.sessionId}`;
+    const key = `agent-chat-${request.chatId}`;
     this.closeSseConnection(key);
 
-    const url = `${this.baseUrl}/api/agents/chat`;
+    const url = `${this.baseUrl}/api/agents/message`;
 
     // Create SSE connection with POST request
     const eventSource = new SSE(url, {

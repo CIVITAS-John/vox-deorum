@@ -37,14 +37,14 @@ const fetchDatabases = async () => {
 };
 
 /**
- * Fetch active chat sessions
+ * Fetch active chat threads
  */
 const fetchChatSessions = async () => {
   try {
-    const response = await api.getAgentSessions();
-    chatSessions.value = response.sessions || [];
+    const response = await api.getAgentChats();
+    chatSessions.value = response.chats || [];
   } catch (error) {
-    console.error('Failed to fetch chat sessions:', error);
+    console.error('Failed to fetch chat threads:', error);
   }
 };
 
