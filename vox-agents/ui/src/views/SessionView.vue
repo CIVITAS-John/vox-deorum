@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import Card from 'primevue/card';
 import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
 import Message from 'primevue/message';
 import Tag from 'primevue/tag';
 import ProgressSpinner from 'primevue/progressspinner';
@@ -269,82 +266,82 @@ onUnmounted(() => {
 <template>
   <div class="session-view">
     <div class="page-header">
-      <h1>Session Control</h1>
+      <div class="page-header-left">
+        <h1>Session Control</h1>
+      </div>
     </div>
 
-    <!-- Active Session Card -->
-    <Card v-if="sessionStatus?.active && sessionStatus.session" class="mb-4">
-      <template #title>
+    <!-- Active Session Panel -->
+    <div v-if="sessionStatus?.active && sessionStatus.session" class="panel-container mb-4">
+      <div class="panel-header">
         <div class="flex align-items-center gap-2">
           <i class="pi pi-circle-fill" :style="{ color: stateColor }"></i>
-          Active Session
+          <span>Active Session</span>
         </div>
-      </template>
-      <template #content>
-        <div class="grid">
-          <!-- Session Info -->
-          <div class="col-12 md:col-6">
-            <div class="mb-2">
-              <strong>Session ID:</strong> {{ sessionStatus.session.id }}
-            </div>
-            <div class="mb-2">
-              <strong>Type:</strong> {{ sessionStatus.session.type }}
-            </div>
-            <div class="mb-2">
-              <strong>State:</strong>
-              <Tag :severity="stateSeverity" :value="sessionStatus.session.state.toUpperCase()" />
-            </div>
-            <div class="mb-2" v-if="elapsedTime">
-              <strong>Duration:</strong> {{ elapsedTime }}
-            </div>
-          </div>
+        <Button
+          label="Stop Session"
+          icon="pi pi-stop"
+          severity="danger"
+          size="small"
+          @click="confirmStopSession"
+          :loading="sessionLoading"
+        />
+      </div>
 
-          <!-- Session Config -->
-          <div class="col-12 md:col-6">
-            <div class="mb-2">
-              <strong>Auto-play:</strong> {{ sessionStatus.session.config.autoPlay ? 'Yes' : 'No' }}
-            </div>
-            <div class="mb-2">
-              <strong>Game Mode:</strong> {{ sessionStatus.session.config.gameMode }}
-            </div>
-            <div class="mb-2" v-if="sessionStatus.session.config.repetition">
-              <strong>Repetitions:</strong> {{ sessionStatus.session.config.repetition }}
-            </div>
-          </div>
-
-          <!-- Error Message -->
-          <div class="col-12" v-if="sessionStatus.session.error">
-            <Message severity="error" :closable="false">
-              {{ sessionStatus.session.error }}
-            </Message>
-          </div>
-
-          <!-- Session Controls -->
-          <div class="col-12">
-            <div class="flex gap-2">
-              <Button
-                label="Stop Session"
-                icon="pi pi-stop"
-                severity="danger"
-                @click="confirmStopSession"
-                :loading="sessionLoading"
-              />
-            </div>
+      <div class="data-table">
+        <!-- Session Details Table -->
+        <div class="table-row">
+          <div class="col-fixed-150">Session ID</div>
+          <div class="col-expand">{{ sessionStatus.session.id }}</div>
+        </div>
+        <div class="table-row">
+          <div class="col-fixed-150">Type</div>
+          <div class="col-expand">{{ sessionStatus.session.type }}</div>
+        </div>
+        <div class="table-row">
+          <div class="col-fixed-150">State</div>
+          <div class="col-expand">
+            <Tag :severity="stateSeverity" :value="sessionStatus.session.state.toUpperCase()" />
           </div>
         </div>
-      </template>
-    </Card>
+        <div class="table-row" v-if="elapsedTime">
+          <div class="col-fixed-150">Duration</div>
+          <div class="col-expand">{{ elapsedTime }}</div>
+        </div>
+        <div class="table-row">
+          <div class="col-fixed-150">Auto-play</div>
+          <div class="col-expand">
+            <i :class="sessionStatus.session.config.autoPlay ? 'pi pi-check text-green-500' : 'pi pi-times text-red-500'"></i>
+            {{ sessionStatus.session.config.autoPlay ? 'Yes' : 'No' }}
+          </div>
+        </div>
+        <div class="table-row">
+          <div class="col-fixed-150">Game Mode</div>
+          <div class="col-expand">{{ sessionStatus.session.config.gameMode }}</div>
+        </div>
+        <div class="table-row" v-if="sessionStatus.session.config.repetition">
+          <div class="col-fixed-150">Repetitions</div>
+          <div class="col-expand">{{ sessionStatus.session.config.repetition }}</div>
+        </div>
+        <div class="table-row error" v-if="sessionStatus.session.error">
+          <div class="col-fixed-150">Error</div>
+          <div class="col-expand text-wrap">{{ sessionStatus.session.error }}</div>
+        </div>
+      </div>
+    </div>
 
     <!-- Session Error -->
     <Message v-if="sessionError" severity="error" :closable="false" class="mb-4">
       {{ sessionError }}
     </Message>
 
-    <!-- Configurations Card -->
-    <Card>
-      <template #title>
-        <div class="flex justify-content-between align-items-center">
-          <span>Configurations</span>
+    <!-- Configurations Panel -->
+    <div class="panel-container">
+      <Toolbar>
+        <template #start>
+          <h3>Configurations</h3>
+        </template>
+        <template #end>
           <Button
             icon="pi pi-plus"
             label="New Config"
@@ -352,86 +349,90 @@ onUnmounted(() => {
             @click="openConfigDialog('add')"
             :disabled="sessionStatus?.active"
           />
-        </div>
-      </template>
-      <template #content>
-        <!-- Loading State -->
-        <div v-if="loadingConfigs" class="flex justify-content-center p-4">
-          <ProgressSpinner />
-        </div>
+        </template>
+      </Toolbar>
 
-        <!-- Error State -->
-        <Message v-else-if="configError" severity="error" :closable="false">
+      <!-- Loading State -->
+      <div v-if="loadingConfigs" class="table-loading">
+        <ProgressSpinner />
+        <span class="ml-2">Loading configurations...</span>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="configError" class="p-3">
+        <Message severity="error" :closable="false">
           {{ configError }}
         </Message>
+      </div>
 
-        <!-- Empty State -->
-        <div v-else-if="configs.length === 0" class="text-center p-4">
-          <i class="pi pi-inbox text-4xl text-400 mb-3"></i>
-          <p class="text-600">No configurations found.</p>
-          <Button
-            label="Create First Config"
-            icon="pi pi-plus"
-            @click="openConfigDialog('add')"
-            :disabled="sessionStatus?.active"
-          />
+      <!-- Empty State -->
+      <div v-else-if="configs.length === 0" class="table-empty">
+        <i class="pi pi-inbox"></i>
+        <p>No configurations found</p>
+        <Button
+          label="Create First Config"
+          icon="pi pi-plus"
+          @click="openConfigDialog('add')"
+          :disabled="sessionStatus?.active"
+        />
+      </div>
+
+      <!-- Configurations Table -->
+      <div v-else class="data-table">
+        <!-- Header row -->
+        <div class="table-header">
+          <div class="col-expand">Name</div>
+          <div class="col-fixed-100">Type</div>
+          <div class="col-fixed-80">Observe</div>
+          <div class="col-fixed-200">Actions</div>
         </div>
 
-        <!-- Configurations List -->
-        <DataTable v-else :value="configs" responsiveLayout="scroll">
-          <Column field="name" header="Name">
-            <template #body="{ data }">
-              {{ data.name }}
-            </template>
-          </Column>
-          <Column field="type" header="Type">
-            <template #body="{ data }">
-              <Tag value="Strategist" />
-            </template>
-          </Column>
-          <Column field="gameMode" header="Game Mode">
-            <template #body="{ data }">
-              {{ data.gameMode }}
-            </template>
-          </Column>
-          <Column field="autoPlay" header="Auto-play">
-            <template #body="{ data }">
-              <i :class="data.autoPlay ? 'pi pi-check text-green-500' : 'pi pi-times text-red-500'"></i>
-            </template>
-          </Column>
-          <Column header="LLM Players">
-            <template #body="{ data }">
-              {{ Object.keys(data.llmPlayers || {}).length }} players
-            </template>
-          </Column>
-          <Column header="Actions" style="width: 200px">
-            <template #body="{ data, index }">
+        <!-- Table rows -->
+        <div class="table-body">
+          <div v-for="(config, index) in configs" :key="index" class="table-row">
+            <div class="col-expand text-truncate">{{ config.name }}</div>
+            <div class="col-fixed-100">
+              <Tag value="Strategist" severity="info" />
+            </div>
+            <div class="col-fixed-80">
+              <i :class="config.autoPlay ? 'pi pi-check text-green-500' : 'pi pi-times text-red-500'"></i>
+            </div>
+            <div class="col-fixed-200">
               <div class="flex gap-2">
                 <Button
                   icon="pi pi-play"
                   severity="success"
-                  @click="startSessionWithConfig(data)"
+                  size="small"
+                  rounded
+                  v-tooltip="'Start Session'"
+                  @click="startSessionWithConfig(config)"
                   :disabled="sessionStatus?.active || startingSession"
                   :loading="startingSession"
                 />
                 <Button
                   icon="pi pi-pencil"
                   severity="info"
-                  @click="openConfigDialog('edit', data)"
+                  size="small"
+                  rounded
+                  v-tooltip="'Edit Config'"
+                  @click="openConfigDialog('edit', config)"
                   :disabled="sessionStatus?.active"
                 />
                 <Button
                   icon="pi pi-trash"
                   severity="danger"
-                  @click="confirmDeleteConfig(data)"
+                  size="small"
+                  rounded
+                  v-tooltip="'Delete Config'"
+                  @click="confirmDeleteConfig(config)"
                   :disabled="sessionStatus?.active"
                 />
               </div>
-            </template>
-          </Column>
-        </DataTable>
-      </template>
-    </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Configuration Dialog -->
     <ConfigDialog
@@ -445,4 +446,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+@import '@/styles/data-table.css';
+@import '@/styles/states.css';
+@import '@/styles/panel.css';
 </style>

@@ -4,6 +4,7 @@ import router from './router'
 import PrimeVue from 'primevue/config'
 import ConfirmationService from 'primevue/confirmationservice'
 import ToastService from 'primevue/toastservice'
+import Tooltip from 'primevue/tooltip'
 import Civ5Theme from './styles/civ5-theme'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
@@ -21,6 +22,9 @@ app.use(ConfirmationService)
 
 // Add toast service for notifications
 app.use(ToastService)
+
+// Add tooltip directive
+app.directive('tooltip', Tooltip)
 
 app.use(router)
 

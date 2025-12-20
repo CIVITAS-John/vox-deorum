@@ -270,7 +270,7 @@ async function saveConfig() {
       </template>
       <template #content>
         <div class="mappings-list">
-          <div v-for="(mapping, index) in agentMappings" :key="index" class="mapping-row">
+          <div v-for="(mapping, index) in agentMappings" :key="index" class="field-row">
             <Dropdown
               v-model="mapping.agent"
               :options="agentTypes"
@@ -318,7 +318,7 @@ async function saveConfig() {
       </template>
       <template #content>
         <div class="models-list">
-          <div v-for="(model, index) in modelDefinitions" :key="index" class="model-row">
+          <div v-for="(model, index) in modelDefinitions" :key="index" class="field-row">
             <InputText
               :value="model.id"
               disabled

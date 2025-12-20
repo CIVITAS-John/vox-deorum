@@ -5,7 +5,7 @@
  * auto-play settings, and player LLM assignments.
  */
 
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
@@ -13,7 +13,8 @@ import Checkbox from 'primevue/checkbox';
 import InputNumber from 'primevue/inputnumber';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
-import type { StrategistSessionConfig } from '../utils/types';
+import type { StrategistSessionConfig, AgentInfo } from '../utils/types';
+import { apiClient } from '../api/client';
 
 // Props
 const props = defineProps<{
@@ -39,13 +40,8 @@ const localConfig = ref<StrategistSessionConfig>({
 });
 
 const localName = ref('');
-
-// Game mode options
-const gameModeOptions = [
-  { label: 'Start New Game', value: 'start' },
-  { label: 'Load Save', value: 'load' },
-  { label: 'Wait for Game', value: 'wait' }
-];
+const strategistOptions = ref<{ label: string; value: string }[]>([]);
+const loadingStrategists = ref(false);
 
 // Computed properties
 const dialogTitle = computed(() =>
@@ -59,18 +55,15 @@ watch(() => props.visible, (newVal) => {
   if (newVal) {
     if (props.mode === 'add') {
       // Reset to default config for new
+      const defaultStrategist = strategistOptions.value[0]!.value;
       localConfig.value = {
-        name: `session_${new Date().toISOString().slice(0, 10)}`,
+        name: `session-${new Date().toISOString().slice(0, 10)}`,
         type: 'strategist',
         autoPlay: false,
         gameMode: 'wait',
-        llmPlayers: {
-          0: {
-            strategist: 'default',
-            llms: {}
-          }
-        }
+        llmPlayers: {}
       };
+      addPlayer();
       localName.value = localConfig.value.name;
     } else if (props.config) {
       // Copy config for editing
@@ -85,8 +78,9 @@ watch(() => props.visible, (newVal) => {
  */
 function addPlayer() {
   const nextId = Math.max(-1, ...Object.keys(localConfig.value.llmPlayers).map(Number)) + 1;
+  const defaultStrategist = strategistOptions.value[0]!.value;
   localConfig.value.llmPlayers[nextId] = {
-    strategist: 'default',
+    strategist: defaultStrategist,
     llms: {}
   };
 }
@@ -116,6 +110,36 @@ function handleSave() {
 function handleClose() {
   emit('update:visible', false);
 }
+
+/**
+ * Load available strategist agents
+ */
+async function loadStrategistOptions() {
+  loadingStrategists.value = true;
+  try {
+    const response = await apiClient.getAgents();
+    // Filter for strategist agents (those with 'strategist' tag or in their name)
+    const strategists = response.agents.filter(agent =>
+      agent.tags.includes('strategist') ||
+      agent.name.toLowerCase().includes('strategist')
+    );
+
+    // Convert to dropdown options
+    strategistOptions.value = strategists.map(agent => ({
+      label: `${agent.name} - ${agent.description}`,
+      value: agent.name
+    }));
+  } catch (error) {
+    console.error('Failed to load strategist options:', error);
+  } finally {
+    loadingStrategists.value = false;
+  }
+}
+
+// Load strategist options on mount
+onMounted(() => {
+  loadStrategistOptions();
+});
 </script>
 
 <template>
@@ -127,49 +151,22 @@ function handleClose() {
     @update:visible="handleClose"
   >
     <div class="config-dialog-content">
-      <!-- Configuration Name -->
-      <Card class="config-section">
-        <template #title>
-          <i class="pi pi-tag" /> Configuration Name
-        </template>
-        <template #content>
-          <div class="field-row">
-            <InputText
-              v-model="localName"
-              :disabled="isEditMode"
-              placeholder="Enter configuration name"
-              class="config-name-input"
-            />
-            <span v-if="isEditMode" class="edit-mode-hint">
-              <i class="pi pi-info-circle" /> Name cannot be changed in edit mode
-            </span>
-          </div>
-        </template>
-      </Card>
-
       <!-- Game Settings -->
       <Card class="config-section">
-        <template #title>
-          <i class="pi pi-cog" /> Game Settings
-        </template>
         <template #content>
           <div class="settings-grid">
-            <!-- Game Mode -->
             <div class="field-row">
-              <label for="gameMode">Game Mode:</label>
-              <Dropdown
-                id="gameMode"
-                v-model="localConfig.gameMode"
-                :options="gameModeOptions"
-                optionLabel="label"
-                optionValue="value"
-                class="field-input"
+              <label for="autoPlay">Name: </label>
+              <InputText
+                v-model="localName"
+                :disabled="isEditMode"
+                placeholder="Enter configuration name"
+                class="config-name-input"
               />
             </div>
-
             <!-- Auto-play -->
             <div class="field-row">
-              <label for="autoPlay">Auto-play:</label>
+              <label for="autoPlay">Observe:</label>
               <div class="checkbox-wrapper">
                 <Checkbox
                   id="autoPlay"
@@ -177,11 +174,10 @@ function handleClose() {
                   :binary="true"
                 />
                 <label for="autoPlay" class="checkbox-label">
-                  Enable automatic continuation when it's AI's turn
+                  Enable observation mode when starting the session
                 </label>
               </div>
             </div>
-
             <!-- Repetitions -->
             <div class="field-row">
               <label for="repetition">Repetitions:</label>
@@ -190,7 +186,7 @@ function handleClose() {
                 v-model="localConfig.repetition"
                 :min="1"
                 :max="100"
-                placeholder="Number of games (optional)"
+                placeholder="# of auto-repeated games (for research only)"
                 class="field-input"
               />
             </div>
@@ -220,12 +216,16 @@ function handleClose() {
             <div
               v-for="(player, playerId) in localConfig.llmPlayers"
               :key="playerId"
-              class="player-row"
+              class="field-row"
             >
               <span class="player-label">Player {{ playerId }}:</span>
-              <InputText
+              <Dropdown
                 v-model="player.strategist"
-                placeholder="Strategist type"
+                :options="strategistOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Select strategist"
+                :loading="loadingStrategists"
                 class="strategist-input"
               />
               <Button
@@ -271,8 +271,8 @@ function handleClose() {
   gap: 1.25rem;
 }
 
-/* Override delete button to have auto margin in player rows */
-.player-row .delete-btn {
+/* Override delete button to have auto margin in field rows */
+.field-row .delete-btn {
   margin-left: auto;
 }
 </style>
