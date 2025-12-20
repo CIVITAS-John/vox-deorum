@@ -49,8 +49,8 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
    */
   async start(): Promise<void> {
     try {
-      // Update state and register with the session registry
-      this.onStateChange('running');
+      // Update state to starting and register with the session registry
+      this.onStateChange('starting');
       sessionRegistry.register(this);
 
       const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' :
@@ -87,6 +87,10 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
           break;
         case "DLLConnected":
           this.dllConnected = true;
+          // Transition to running state when DLL connects (game is initialized)
+          if (this.state === 'starting' || this.state === 'recovering') {
+            this.onStateChange('running');
+          }
           await this.handleDLLConnected(params);
           break;
         case "DLLDisconnected":
@@ -254,7 +258,7 @@ Game.SetAIAutoPlay(2000, -1);`
   }
 
   private async handleDLLConnected(params: any): Promise<void> {
-    const recovering = this.lastGameState === 'crashed';
+    const recovering = this.state === 'recovering';
 
     if (recovering) {
       this.lastGameState = 'running';
@@ -331,6 +335,9 @@ Game.SetAIAutoPlay(2000, -1);`
     // Attempt to recover the game
     this.crashRecoveryAttempts++;
     logger.info(`Attempting game recovery (attempt ${Math.ceil(this.crashRecoveryAttempts)}/${this.MAX_RECOVERY_ATTEMPTS})...`);
+
+    // Update state to recovering
+    this.onStateChange('recovering');
 
     // Restart the game using the appropriate script to recover from crash
     if (this.config.gameMode === 'wait') {

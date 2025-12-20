@@ -24,7 +24,7 @@ export abstract class VoxSession<TConfig extends SessionConfig = SessionConfig> 
   readonly startTime: Date;
 
   /** Current session state */
-  protected state: SessionState = 'idle';
+  protected state: SessionState = 'stopped';
 
   /** Abort controller for graceful shutdown */
   protected abortController = new AbortController();
@@ -98,6 +98,6 @@ export abstract class VoxSession<TConfig extends SessionConfig = SessionConfig> 
    * Check if the session can be stopped.
    */
   canStop(): boolean {
-    return this.state === 'running' || this.state === 'paused';
+    return this.state === 'starting' || this.state === 'running' || this.state === 'recovering';
   }
 }

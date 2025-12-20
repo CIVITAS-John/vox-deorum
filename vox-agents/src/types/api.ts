@@ -251,7 +251,7 @@ export interface DeleteChatResponse {
 import type { SessionConfig } from './config.js';
 
 /** Session state enumeration */
-export type SessionState = 'idle' | 'running' | 'paused' | 'stopping' | 'stopped' | 'error';
+export type SessionState = 'starting' | 'running' | 'stopping' | 'stopped' | 'recovering' | 'error';
 
 /**
  * Session status information for API responses.

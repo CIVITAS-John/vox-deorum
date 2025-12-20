@@ -56,10 +56,12 @@ const stateColor = computed(() => {
 
   const state = sessionStatus.value.session.state;
   switch (state) {
+    case 'starting': return 'blue';
     case 'running': return 'green';
-    case 'paused': return 'orange';
-    case 'error': return 'red';
+    case 'recovering': return 'orange';
     case 'stopping': return 'yellow';
+    case 'stopped': return 'gray';
+    case 'error': return 'red';
     default: return 'gray';
   }
 });
@@ -72,10 +74,12 @@ const stateSeverity = computed(() => {
 
   const state = sessionStatus.value.session.state;
   switch (state) {
+    case 'starting': return 'info';
     case 'running': return 'success';
-    case 'paused': return 'warning';
-    case 'error': return 'danger';
+    case 'recovering': return 'warning';
     case 'stopping': return 'warning';
+    case 'stopped': return undefined;
+    case 'error': return 'danger';
     default: return undefined;
   }
 });

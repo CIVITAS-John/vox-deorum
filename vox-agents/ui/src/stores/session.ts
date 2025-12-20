@@ -25,7 +25,9 @@ export async function fetchSessionStatus() {
     sessionStatus.value = response;
 
     // Start or stop polling based on session state
-    if (response.active && response.session?.state === 'running') {
+    // Poll during active states: starting, running, recovering, stopping
+    const activeStates = ['starting', 'running', 'recovering', 'stopping'];
+    if (response.active && response.session && activeStates.includes(response.session.state)) {
       startPolling();
     } else {
       stopPolling();
@@ -52,8 +54,9 @@ export function startPolling() {
       const response = await apiClient.getSessionStatus();
       sessionStatus.value = response;
 
-      // Stop polling if session is no longer running
-      if (!response.active || response.session?.state !== 'running') {
+      // Stop polling if session is no longer in an active state
+      const activeStates = ['starting', 'running', 'recovering', 'stopping'];
+      if (!response.active || !response.session || !activeStates.includes(response.session.state)) {
         stopPolling();
       }
     } catch (err) {
