@@ -6,6 +6,18 @@
  */
 
 /**
+ * API key field definition for UI forms
+ */
+export interface ApiKeyField {
+  key: string;
+  label: string;
+  type: 'password' | 'text';
+  placeholder?: string;
+  helpLink?: string;
+  helpTooltip?: string;
+}
+
+/**
  * Supported LLM providers for UI selection
  */
 export const llmProviders = [
@@ -20,12 +32,54 @@ export const llmProviders = [
 /**
  * API key field definitions for UI forms
  */
-export const apiKeyFields = [
-  { key: 'OPENAI_API_KEY', label: 'OpenAI API Key', type: 'password' },
-  { key: 'ANTHROPIC_API_KEY', label: 'Anthropic API Key', type: 'password' },
-  { key: 'GOOGLE_GENERATIVE_AI_API_KEY', label: 'Google Generative AI API Key', type: 'password' },
-  { key: 'CHUTES_API_KEY', label: 'Chutes API Key', type: 'password' },
-  { key: 'OPENROUTER_API_KEY', label: 'OpenRouter API Key', type: 'password' },
-  { key: 'OPENAI_COMPATIBLE_URL', label: 'OpenAI Compatible URL (e.g. llama.cpp, ollama)', type: 'text', placeholder: 'http://127.0.0.1:11434' },
-  { key: 'OPENAI_COMPATIBLE_API_KEY', label: 'OpenAI Compatible API Key', type: 'password' }
+export const apiKeyFields: ApiKeyField[] = [
+  {
+    key: 'OPENAI_API_KEY',
+    label: 'OpenAI API Key',
+    type: 'password',
+    helpLink: 'https://info2951.infosci.cornell.edu/tutorials/openai-key.html',
+    helpTooltip: 'Get your OpenAI API key from the OpenAI Platform'
+  },
+  {
+    key: 'ANTHROPIC_API_KEY',
+    label: 'Anthropic API Key',
+    type: 'password',
+    helpLink: 'https://platform.claude.com/docs/en/get-started',
+    helpTooltip: 'Get your Anthropic API key from the Anthropic Console'
+  },
+  {
+    key: 'GOOGLE_GENERATIVE_AI_API_KEY',
+    label: 'Google Generative AI API Key',
+    type: 'password',
+    helpLink: 'https://ai.google.dev/gemini-api/docs/api-key',
+    helpTooltip: 'Get your Google AI API key from Google AI Studio'
+  },
+  {
+    key: 'CHUTES_API_KEY',
+    label: 'Chutes API Key',
+    type: 'password',
+    helpLink: 'https://chutes.ai/',
+    helpTooltip: 'Get your Chutes API key from the Chutes dashboard'
+  },
+  {
+    key: 'OPENROUTER_API_KEY',
+    label: 'OpenRouter API Key',
+    type: 'password',
+    helpLink: 'https://openrouter.ai/',
+    helpTooltip: 'Get your OpenRouter API key from the OpenRouter dashboard'
+  },
+  {
+    key: 'OPENAI_COMPATIBLE_URL',
+    label: 'OpenAI Compatible URL (e.g. llama.cpp, ollama)',
+    type: 'text',
+    placeholder: 'http://127.0.0.1:11434',
+    helpLink: 'https://lmstudio.ai/',
+    helpTooltip: 'Enter the base URL of your OpenAI-compatible API endpoint'
+  },
+  {
+    key: 'OPENAI_COMPATIBLE_API_KEY',
+    label: 'OpenAI Compatible API Key',
+    type: 'password',
+    helpTooltip: 'Enter the API key if your OpenAI-compatible endpoint requires authentication'
+  }
 ];

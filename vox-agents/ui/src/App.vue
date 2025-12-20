@@ -43,7 +43,7 @@ onMounted(() => {
 // Navigation menu items formatted for PrimeVue Menu component
 const menuItems = computed(() => [
   {
-    label: 'Navigation',
+    label: 'System',
     items: [
       {
         label: 'Play',
@@ -64,6 +64,11 @@ const menuItems = computed(() => [
         label: 'Logs',
         icon: 'pi pi-list',
         command: () => router.push('/logs')
+      },
+      {
+        label: 'Settings',
+        icon: 'pi pi-cog',
+        command: () => router.push('/config')
       }
     ]
   },
@@ -71,12 +76,22 @@ const menuItems = computed(() => [
     separator: true
   },
   {
-    label: 'System',
+    label: 'Links',
     items: [
       {
-        label: 'Settings',
-        icon: 'pi pi-cog',
-        command: () => router.push('/config')
+        label: 'Documentation',
+        icon: 'pi pi-question-circle',
+        command: () => window.open('https://github.com/CIVITAS-John/vox-deorum/blob/main/README.md', '_blank')
+      },
+      {
+        label: 'Report Issues',
+        icon: 'pi pi-exclamation-triangle',
+        command: () => window.open('https://github.com/CIVITAS-John/vox-deorum/issues', '_blank')
+      },
+      {
+        label: 'Replay Viewer',
+        icon: 'pi pi-video',
+        command: () => window.open('https://civitas-john.github.io/vox-deorum-replay', '_blank')
       }
     ]
   }

@@ -6,7 +6,7 @@
  * Implements the agentic loop with tool calling, step preparation, and stop conditions.
  */
 
-import { generateText, Output, Tool, StepResult, ToolSet, ModelMessage, streamText, tool } from "ai";
+import { Output, Tool, StepResult, ToolSet, ModelMessage, streamText, tool } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";

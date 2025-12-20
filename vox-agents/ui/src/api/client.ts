@@ -445,6 +445,16 @@ class ApiClient {
     );
   }
 
+  /**
+   * Check if .env file exists
+   * @returns Object with exists boolean
+   */
+  async checkEnvFile(): Promise<{ exists: boolean }> {
+    return this.fetchJson<{ exists: boolean }>(
+      `${this.baseUrl}/api/config/check`
+    );
+  }
+
   // ============= Agent API Methods =============
 
   /**

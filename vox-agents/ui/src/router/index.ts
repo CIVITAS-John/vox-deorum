@@ -4,13 +4,24 @@ import LogsView from '../views/LogsView.vue'
 import SessionView from '../views/SessionView.vue'
 import ConfigView from '../views/ConfigView.vue'
 import ChatView from '../views/ChatView.vue'
+import { api } from '../api/client'
+
+let envExists = true
+
+try {
+  const { exists } = await api.checkEnvFile()
+  envExists = exists
+  console.log(".env file exists: " + exists)
+} catch (error) {
+  console.error('Failed to check .env file:', error)
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      redirect: '/session'
+      redirect: envExists ? '/session' : '/config'
     },
     {
       path: '/telemetry',

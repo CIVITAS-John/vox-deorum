@@ -10,7 +10,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createLogger } from '../../utils/logger.js';
-import { defaultConfig, loadConfigFromFile } from '../../utils/config.js';
+import { defaultConfig, loadConfigFromFile, refreshConfig } from '../../utils/config.js';
 import type { VoxAgentsConfig, ConfigResponse, ErrorResponse } from '../../types/index.js';
 
 const logger = createLogger('config', 'webui');
@@ -69,6 +69,26 @@ router.get('/', async (_req: Request, res: Response<ConfigResponse | ErrorRespon
 });
 
 /**
+ * GET /api/config/check
+ * Check if .env file exists
+ */
+router.get('/check', async (_req: Request, res: Response<{ exists: boolean } | ErrorResponse>) => {
+  try {
+    const envPath = path.join(process.cwd(), '.env');
+
+    try {
+      await fs.access(envPath);
+      res.json({ exists: true });
+    } catch {
+      res.json({ exists: false });
+    }
+  } catch (error) {
+    logger.error('Error checking .env file', error);
+    res.status(500).json({ error: 'Failed to check .env file' });
+  }
+});
+
+/**
  * POST /api/config
  * Update configuration in config.json and .env
  */
@@ -89,6 +109,10 @@ router.post('/', async (req: Request<{}, {}, Partial<ConfigResponse>>, res: Resp
       // Write updated config
       await fs.writeFile(configPath, JSON.stringify(updatedConfig, null, 2));
       logger.info('Updated config.json');
+
+      // Refresh the in-memory configuration
+      refreshConfig();
+      logger.info('Refreshed system configuration');
     }
 
     // Update .env if API keys provided
@@ -99,6 +123,10 @@ router.post('/', async (req: Request<{}, {}, Partial<ConfigResponse>>, res: Resp
       // Write updated .env
       await fs.writeFile(envPath, formatEnvFile(apiKeys));
       logger.info('Updated .env file');
+
+      // Reload the environment variables into process.env
+      dotenv.config({ path: envPath, override: true });
+      logger.info('Reloaded environment variables');
     }
 
     res.json({ success: true });

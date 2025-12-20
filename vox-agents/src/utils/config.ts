@@ -256,6 +256,18 @@ function loadConfig(): VoxAgentsConfig {
  * console.log(config.agent.name); // 'vox-agents'
  * ```
  */
-export const config = loadConfig();
+export let config = loadConfig();
+
+/**
+ * Refresh the configuration by reloading from config.json and environment variables.
+ * Updates the singleton instance with fresh values.
+ *
+ * @returns The refreshed configuration object
+ */
+export function refreshConfig(): VoxAgentsConfig {
+  logger.info('Refreshing configuration...');
+  config = loadConfig();
+  return config;
+}
 
 export default config;

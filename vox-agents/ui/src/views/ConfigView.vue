@@ -7,6 +7,7 @@ import Password from 'primevue/password';
 import Message from 'primevue/message';
 import ProgressSpinner from 'primevue/progressspinner';
 import Dropdown from 'primevue/dropdown';
+import Tooltip from 'primevue/tooltip';
 import { useConfirm } from 'primevue/useconfirm';
 import { apiClient } from '../api/client';
 import type { AgentMapping, LLMConfig, VoxAgentsConfig } from '../utils/types';
@@ -219,7 +220,7 @@ async function saveConfig() {
         <i class="pi pi-key" /> LLM API Keys
       </template>
       <template #subtitle>
-        API keys are stored locally in your .env file
+        You would need them to play with LLMs. API keys are stored locally and never uploaded
       </template>
       <template #content>
         <table class="api-keys-table">
@@ -227,13 +228,30 @@ async function saveConfig() {
             <tr v-for="field in apiKeyFields" :key="field.key">
               <td class="label-cell">
                 <label :for="field.key">{{ field.label }}</label>
+                <a
+                  v-if="field.helpLink"
+                  :href="field.helpLink"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="help-link"
+                  v-tooltip.top="field.helpTooltip"
+                >
+                  <i class="pi pi-question-circle"></i>
+                </a>
+                <span
+                  v-else-if="field.helpTooltip"
+                  class="help-icon"
+                  v-tooltip.top="field.helpTooltip"
+                >
+                  <i class="pi pi-question-circle"></i>
+                </span>
               </td>
               <td class="input-cell">
                 <Password
                   v-if="field.type === 'password'"
                   :id="field.key"
                   v-model="apiKeys[field.key]"
-                  class="password-input"
+                  :inputClass="'password-field'"
                   :placeholder="`Enter ${field.label}`"
                   toggleMask
                   :feedback="false"
@@ -373,10 +391,28 @@ async function saveConfig() {
 .api-keys-table .label-cell {
   padding-right: 1rem;
   font-size: 0.875rem;
+  white-space: nowrap;
 }
 
-.api-keys-table input,
-.p-password-input {
+.api-keys-table .label-cell label {
+  margin-right: 0.5rem;
+}
+
+.api-keys-table .help-link,
+.api-keys-table .help-icon {
+  color: var(--text-color-secondary);
+  font-size: 0.875rem;
+  vertical-align: middle;
+  transition: color 0.2s;
+}
+
+.api-keys-table .help-link:hover {
+  color: var(--primary-color);
+}
+
+.api-keys-table .input-cell input,
+.api-keys-table .input-cell :deep(.p-password input),
+.api-keys-table .input-cell :deep(.p-inputtext) {
   width: 28rem !important;
 }
 </style>

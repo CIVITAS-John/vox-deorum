@@ -82,11 +82,12 @@ jobs:
             $issContent | Set-Content "scripts\installer.iss" -NoNewline
           }
 
-          # Update README.md version badge if it exists
-          if (Select-String -Path "README.md" -Pattern "img.shields.io/badge/version-" -Quiet) {
+          # Update README.md version (line 5: **Version X.Y.Z - Beta**)
+          if (Test-Path "README.md") {
             $readmeContent = Get-Content "README.md" -Raw
-            $readmeContent = $readmeContent -replace "version-v[0-9]+\.[0-9]+\.[0-9]+", "version-$version"
+            $readmeContent = $readmeContent -replace '\*\*Version [0-9]+\.[0-9]+\.[0-9]+ - Beta\*\*', "**Version $versionNoV - Beta**"
             $readmeContent | Set-Content "README.md" -NoNewline
+            Write-Host "Updated README.md version to $versionNoV"
           }
 
           # Update bootstrap.cmd with new tag
