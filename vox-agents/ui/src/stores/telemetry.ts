@@ -25,12 +25,17 @@ const fetchSessions = async () => {
 };
 
 /**
- * Fetch telemetry databases
+ * Fetch telemetry databases and sort by last modified date (descending)
  */
 const fetchDatabases = async () => {
   try {
     const response = await api.getTelemetryDatabases();
-    databases.value = response.databases || [];
+    // Sort databases by lastModified in descending order (newest first)
+    databases.value = (response.databases || []).sort((a, b) => {
+      const dateA = new Date(a.lastModified).getTime();
+      const dateB = new Date(b.lastModified).getTime();
+      return dateB - dateA; // Descending order
+    });
   } catch (error) {
     console.error('Failed to fetch telemetry databases:', error);
   }

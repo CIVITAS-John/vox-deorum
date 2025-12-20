@@ -164,4 +164,5 @@ onUnmounted(() => {
 
 <style scoped>
 @import '@/styles/chat.css';
+@import '@/styles/states.css';
 </style>

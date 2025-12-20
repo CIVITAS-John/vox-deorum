@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import Card from 'primevue/card';
+import Toolbar from 'primevue/toolbar';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import type { TelemetrySession } from '@/utils/types';
@@ -50,56 +50,51 @@ const sessionCount = computed(() => props.sessions.length);
 </script>
 
 <template>
-  <Card class="active-sessions-card">
-    <template #title>
-      <div class="section-header">
-        <h3>{{ title }}</h3>
-        <Tag v-if="sessionCount > 0" :value="sessionCount" severity="success" />
+  <div class="panel-container">
+    <Toolbar>
+      <template #start>
+        <h3 class="m-0">{{ title }}</h3>
+        <Tag v-if="sessionCount > 0" :value="sessionCount" severity="success" class="ml-2" />
+      </template>
+    </Toolbar>
+
+    <div v-if="sessionCount === 0" class="table-empty">
+      <i class="pi pi-info-circle"></i>
+      <p>{{ emptyMessage }}</p>
+      <slot name="empty-action"></slot>
+    </div>
+
+    <div v-else class="data-table">
+      <!-- Table Header -->
+      <div class="table-header">
+        <div class="col-expand">Game ID</div>
+        <div class="col-fixed-80">Player</div>
+        <div v-if="showViewButton" class="col-fixed-100">Actions</div>
       </div>
-    </template>
 
-    <template #content>
-      <div v-if="sessionCount === 0" class="table-empty">
-        <i class="pi pi-info-circle"></i>
-        <p>{{ emptyMessage }}</p>
-        <slot name="empty-action"></slot>
-      </div>
-
-      <div v-else class="data-table">
-        <!-- Table Header -->
-        <div class="table-header">
-          <div class="col-expand">Game ID</div>
-          <div class="col-fixed-80">Player</div>
-          <div v-if="showViewButton" class="col-fixed-80">Actions</div>
-        </div>
-
-        <!-- Table Body -->
-        <div class="table-body">
-          <div v-for="session in sessions" :key="session.sessionId"
-               class="table-row clickable"
-               @click="handleSessionClick(session.sessionId)">
-            <div class="col-expand">
-              {{ session.gameID || '-' }}
-            </div>
-            <div class="col-fixed-80">
-              {{ session.playerID || '-' }}
-            </div>
-            <div v-if="showViewButton" class="col-fixed-80">
-              <Button icon="pi pi-eye" text rounded size="small"
-                      @click.stop="handleViewClick(session.sessionId)" />
-            </div>
+      <!-- Table Body -->
+      <div class="table-body">
+        <div v-for="session in sessions" :key="session.sessionId"
+             class="table-row clickable"
+             @click="handleSessionClick(session.sessionId)">
+          <div class="col-expand">
+            {{ session.gameID || '-' }}
+          </div>
+          <div class="col-fixed-80">
+            {{ session.playerID || '-' }}
+          </div>
+          <div v-if="showViewButton" class="col-fixed-100">
+            <Button label="View" icon="pi pi-chart-line" text size="small"
+                    @click.stop="handleViewClick(session.sessionId)" />
           </div>
         </div>
       </div>
-    </template>
-  </Card>
+    </div>
+  </div>
 </template>
 
 <style scoped>
 @import '@/styles/data-table.css';
 @import '@/styles/states.css';
-
-.active-sessions-card {
-  width: 100%;
-}
+@import '@/styles/panel.css';
 </style>

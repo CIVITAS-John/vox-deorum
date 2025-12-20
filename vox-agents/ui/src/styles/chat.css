@@ -199,13 +199,3 @@
 .input-textarea {
   flex: 1;
 }
-
-/* Loading container */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 1rem;
-}
