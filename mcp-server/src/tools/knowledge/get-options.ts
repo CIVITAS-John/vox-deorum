@@ -165,10 +165,9 @@ class GetOptionsTool extends ToolBase {
         },
         EconomicStrategies: {
           Current: strategies?.EconomicStrategies,
-          Options: economicStrategies ?
-            Object.fromEntries(
+          Options: Object.fromEntries(
               cleanOptions.EconomicStrategies.map(strategyName => {
-                const strategy = economicStrategies.find(s => s.Type === strategyName)!;
+                const strategy = economicStrategies!.find(s => s.Type === strategyName)!;
                 return [
                   strategyName,
                   strategy.Description ?? {
@@ -177,14 +176,13 @@ class GetOptionsTool extends ToolBase {
                   }
                 ];
               })
-            ) : cleanOptions.EconomicStrategies
+            )
         },
         MilitaryStrategies: {
           Current: strategies?.MilitaryStrategies,
-          Options: militaryStrategies ?
-            Object.fromEntries(
+          Options: Object.fromEntries(
               cleanOptions.MilitaryStrategies.map(strategyName => {
-                const strategy = militaryStrategies.find(s => s.Type === strategyName)!;
+                const strategy = militaryStrategies!.find(s => s.Type === strategyName)!;
                 return [
                   strategyName,
                   strategy.Description ?? {
@@ -193,7 +191,7 @@ class GetOptionsTool extends ToolBase {
                   }
                 ];
               })
-            ) : cleanOptions.MilitaryStrategies
+            )
         },
       },
       Persona: persona as Record<string, string | number> | undefined,

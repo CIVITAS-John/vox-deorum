@@ -55,6 +55,7 @@ Source: "..\version.json"; DestDir: "{app}"; Flags: ignoreversion
 ; Core application files (without node_modules)
 Source: "..\bridge-service\*"; DestDir: "{app}\bridge-service"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,\src\*,node_modules\*,\data\*,\tests\*,\logs\*,docs\*,\telemetry\*"
 Source: "..\mcp-server\*"; DestDir: "{app}\mcp-server"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,\src\*,node_modules\*,\data\*,\tests\*,\archive\*,\logs\*,docs\*,\telemetry\*"
+Source: "..\mcp-server\docs\strategies\*"; DestDir: "{app}\mcp-server\docs\strategies"; Flags: ignoreversion recursesubdirs createallsubdirs"
 Source: "..\vox-agents\*"; DestDir: "{app}\vox-agents"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,\src\*,\ui\*,node_modules\*,\data\*,\tests\*,logs\*,docs\*,\telemetry\*,.env"
 
 ; Civ5 mod files
