@@ -42,8 +42,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 BeveledLabel={#MyAppName} {#MyAppVersion} - LLM-Enhanced AI for Civilization V (VP {#VoxPopuliVersion})
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checked
-Name: "launchvoxdeorum"; Description: "Launch Vox Deorum after installation"; GroupDescription: "General Options:"; Flags: checked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+Name: "launchvoxdeorum"; Description: "Launch Vox Deorum after installation"; GroupDescription: "General Options:"
 Name: "skipvoxpopuli"; Description: "Skip Vox Populi mod update (WARNING: May cause compatibility issues)"; GroupDescription: "Advanced Options:"; Flags: unchecked
 
 [Files]
