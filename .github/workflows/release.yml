@@ -170,14 +170,15 @@ jobs:
           name: ${{ steps.version.outputs.VERSION }}
           body: |
             ${{ steps.commit_msg.outputs.MESSAGE }}
+            
+            Please refer to [the forum post](https://forums.civfanatics.com/threads/beta-release-vox-deorum-play-civilization-with-llms.701133/) for more information.
 
-            \#\# Quick Install
-            Download the installer `${{ steps.version.outputs.INSTALLER_NAME }}` or use `bootstrap.cmd` to automatically set up Vox Deorum.
+            ## Quick Install
+            Download the installer `${{ steps.version.outputs.INSTALLER_NAME }}` to automatically set up Vox Deorum.
 
-            \#\# What's Changed
+            ## What's Changed
             See [commit history](https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.VERSION }}) for detailed changes.
           files: |
-            scripts/bootstrap.cmd
             scripts/dist/${{ steps.version.outputs.INSTALLER_NAME }}
           draft: false
           prerelease: false

@@ -116,8 +116,10 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
       result = createAnthropic()(config.name);
       break;
     default:
+      if (!process.env.OPENAI_COMPATIBLE_URL)
+        throw new Error("Didn't find the OPENAI_COMPATIBLE_URL in environment variables! Please check your settings.");
       result = createOpenAICompatible({
-        baseURL: process.env.OPENAI_COMPATIBLE_URL!,
+        baseURL: process.env.OPENAI_COMPATIBLE_URL,
         name: config.provider,
         apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
       }).chatModel(config.name);
