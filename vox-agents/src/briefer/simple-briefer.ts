@@ -39,6 +39,7 @@ export class SimpleBriefer extends Briefer {
     return `
 You are an export briefing writer for Civilization V with the latest Vox Populi mod.
 Your role is to produce a concise briefing based on the current game state, following your leader's instruction.
+Your leader only has control over macro-level decision making. Focus on providing relevant information.
 
 # Objective
 Summarize the full game state into a strategic briefing that highlights:
@@ -147,7 +148,7 @@ You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader},
     return {
       "instruct-briefer": createSimpleTool({
           name: "instruct-briefer",
-          description: "Set instructions for your briefer to follow when summarizing game state",
+          description: "Set instructions for your briefer to follow next turn",
           inputSchema: z.object({
             instruction: z.string().describe("Instructions for your briefer, e.g. what kind of information to prioritize")
           }),

@@ -14,6 +14,7 @@ import { camelCase } from "change-case";
 import { createLogger } from "../logger.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { AgentParameters } from "../../infra/vox-agent.js";
+import { HeadingConfig } from './json-to-markdown.js';
 
 const tracer = trace.getTracer('vox-tools');
 
@@ -103,9 +104,16 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
         span.setStatus({ code: SpanStatusCode.OK });
 
         // Return results
-        if (typeof(result) === "object")
-          result._markdownConfig = (tool._meta as any)?.markdownConfig
-        return result;
+        if (typeof(result) === "object") {
+          const config = (tool._meta as any)?.markdownConfig;
+          if (Array.isArray(config)) {
+            result._markdownConfig = {
+              configs: config.map(level => {
+                return { format: level } as HeadingConfig;
+              })
+            }
+          }
+        } return result;
       } catch (error) {
         logger.error(`Error calling MCP tool ${tool.name}:`, error);
         span.recordException(error as Error);

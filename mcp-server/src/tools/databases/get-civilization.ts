@@ -98,7 +98,7 @@ class GetCivilizationTool extends DatabaseQueryTool<CivilizationSummary, Civiliz
       
       for (const unit of uniqueUnits) {
         if (unit.UniqueName && unit.ReplacesName) {
-          abilities.push(`Unit: ${unit.UniqueName}, Replacing ${unit.ReplacesName}`);
+          abilities.push(`Unique Unit: ${unit.UniqueName}, Replacing ${unit.ReplacesName}`);
         }
       }
       
@@ -115,16 +115,33 @@ class GetCivilizationTool extends DatabaseQueryTool<CivilizationSummary, Civiliz
         .where('Civilization_BuildingClassOverrides.CivilizationType', '=', civ.Type)
         .where('Civilization_BuildingClassOverrides.BuildingType', 'is not', null)
         .execute();
-      
+
       for (const building of uniqueBuildings) {
         if (building.UniqueName && building.ReplacesName) {
-          abilities.push(`Building: ${building.UniqueName}, Replacing ${building.ReplacesName}`);
+          abilities.push(`Unique Building: ${building.UniqueName}, Replacing ${building.ReplacesName}`);
+        }
+      }
+
+      // Get unique improvements
+      const uniqueImprovements = await db
+        .selectFrom("Improvements")
+        .select([
+          'Description as UniqueName', 
+          'Help as UniqueHelp'
+        ])
+        .where('CivilizationType', '=', civ.Type)
+        .where('SpecificCivRequired', '=', 1)
+        .execute();
+
+      for (const improvement of uniqueImprovements) {
+        if (improvement.UniqueName) {
+          abilities.push(`Unique Improvement: ${improvement.UniqueName} (${improvement.UniqueHelp})`);
         }
       }
       
       // Add leader trait as ability (already fetched in the main query)
       if (civ.TraitDescription) {
-        abilities.push(`Ability: ${civ.TraitDescription}`);
+        abilities.push(`Civilization Ability: ${civ.TraitDescription}`);
       }
       
       summaries.push({
@@ -225,7 +242,7 @@ export async function getCivilization(civType: string) {
     .where('Civilization_BuildingClassOverrides.CivilizationType', '=', civType)
     .where('Civilization_BuildingClassOverrides.BuildingType', 'is not', null)
     .execute();
-  
+
   for (const building of uniqueBuildings) {
     if (building.UniqueName) {
       abilities.push({
@@ -233,6 +250,27 @@ export async function getCivilization(civType: string) {
         Name: building.UniqueName,
         Help: building.UniqueStrategy || building.UniqueHelp || 'Unique building',
         Replacing: building.ReplacesName || undefined
+      });
+    }
+  }
+
+  // Get unique improvements with details
+  const uniqueImprovements = await db
+    .selectFrom("Improvements")
+    .select([
+      'Description as UniqueName',
+      'Help as UniqueHelp'
+    ])
+    .where('CivilizationType', '=', civType)
+    .where('SpecificCivRequired', '=', 1)
+    .execute();
+
+  for (const improvement of uniqueImprovements) {
+    if (improvement.UniqueName) {
+      abilities.push({
+        Type: 'Improvement',
+        Name: improvement.UniqueName,
+        Help: improvement.UniqueHelp || 'Unique improvement'
       });
     }
   }
