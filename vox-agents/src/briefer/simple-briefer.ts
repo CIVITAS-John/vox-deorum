@@ -154,7 +154,7 @@ You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader},
           execute: async (input, parameters) => {
             // Store the instruction in working memory for the next briefing
             parameters.workingMemory["briefer-instruction"] = input.instruction;
-            return `Briefer instruction set: ${input.instruction}`;
+            return `Briefer instruction set.`;
           }
         }, context)
     };
