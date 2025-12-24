@@ -81,7 +81,7 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
    * Whether we will only keep the last round of agent-tool exchanges (i.e. system + user + last reasoning (if any) + last text (if any) + last tool call + last tool result)
    */
   public onlyLastRound: boolean = false;
-  
+
   /**
    * Gets the language model to use for this agent execution.
    * Can return undefined to use the default model from VoxContext.

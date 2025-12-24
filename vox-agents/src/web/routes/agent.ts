@@ -113,8 +113,7 @@ export function createAgentRoutes(): Router {
 
           // Create a new VoxContext for telepathist mode (database-based)
           effectiveContextId = createTelepathicContextId(gameID, playerID);
-          const telepathContext = new VoxContext<StrategistParameters>({}, effectiveContextId);
-          await telepathContext.registerMCP();
+          new VoxContext<StrategistParameters>({}, effectiveContextId);
           logger.info(`Created new VoxContext for telepathist mode: ${effectiveContextId}`);
         } catch {
           return res.status(400).json({ error: `Database file not found: ${databasePath}` } as any);

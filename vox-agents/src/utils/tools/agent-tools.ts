@@ -33,7 +33,7 @@ const tracer = trace.getTracer('vox-tools');
 export function createAgentTool<TParameters extends AgentParameters, TInput = unknown, TOutput = unknown>(
   agent: VoxAgent<TParameters, TInput, TOutput>,
   context: VoxContext<TParameters>,
-  baseParameters: TParameters
+  toolsGetter: () => TParameters
 ): VercelTool {
   const logger = createLogger(`AgentTool-${agent.name}`);
 
@@ -61,7 +61,7 @@ export function createAgentTool<TParameters extends AgentParameters, TInput = un
           'tool.input': JSON.stringify(input)
         });
 
-        let parameters = baseParameters;
+        let parameters = toolsGetter();
 
         // Execute the agent through the context
         const result = await context.execute(agent.name, parameters, input);

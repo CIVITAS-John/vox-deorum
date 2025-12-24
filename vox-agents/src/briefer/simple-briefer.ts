@@ -6,12 +6,14 @@
  */
 
 import { ModelMessage } from "ai";
+import { z } from "zod";
 import { Briefer } from "./briefer.js";
 import { VoxContext } from "../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategist/strategy-parameters.js";
 import { getModelConfig } from "../utils/models/models.js";
 import { Model } from "../types/index.js";
 import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
+import { createSimpleTool } from "../utils/tools/simple-tools.js";
 
 /**
  * A simple briefer agent that analyzes the game state and produces a concise briefing.
@@ -36,11 +38,10 @@ export class SimpleBriefer extends Briefer {
   public async getSystem(_parameters: StrategistParameters, _input: string, _context: VoxContext<StrategistParameters>): Promise<string> {
     return `
 You are an export briefing writer for Civilization V with the latest Vox Populi mod.
-Your role is to produce a concise briefing based on the current game state.
+Your role is to produce a concise briefing based on the current game state, following your leader's instruction.
 
 # Objective
 Summarize the full game state into a strategic briefing that highlights:
-- Critical threats and opportunities
 - Key diplomatic relationships and tensions
 - Economic and military position relative to opponents
 - Important events since the last decision
@@ -49,7 +50,7 @@ Summarize the full game state into a strategic briefing that highlights:
 - Highlight important strategic changes and intelligence
 - The briefing should be objective and analytical, do not bias towards existing strategy
 - Never provide raw, excessive, or tactical information (e.g. coordinates, IDs)
-- Never give suggestions or considerations, not your responsibilities
+- Never give suggestions or considerations, that's not your responsibilities
 - Never send out verbatim from Strategies
 
 # Resources
@@ -73,7 +74,7 @@ You will receive the following reports:
 - Events: events since the last decision-making.
 
 # Instruction
-Reason briefly. Write your briefing as a text document in a clear, direct, concise language.`.trim()
+Reason briefly. Write your briefing as a plain text document with a clear, direct, concise language.`.trim()
   }
 
   /**
@@ -90,7 +91,9 @@ Reason briefly. Write your briefing as a text document in a clear, direct, conci
 You are an expert briefing writer for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
 
 # Situation
-${jsonToMarkdown(parameters.metadata)}`.trim()
+${jsonToMarkdown(parameters.metadata)}
+
+Your leader's instruction: ${input}`.trim()
     }, {
       role: "user",
       content: `
@@ -133,3 +136,20 @@ You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader},
     return getModelConfig(this.name, "low", overrides);
   }
 }
+
+/**
+ * Tool for setting specific instructions for the strategic briefer.
+ * Allows strategists to guide how game state should be summarized in briefings.
+ */
+export const instructBriefer = createSimpleTool({
+  name: "instruct-briefer",
+  description: "Set instructions for your briefer to follow when summarizing game state",
+  inputSchema: z.object({
+    instruction: z.string().describe("Instructions for your briefer, e.g. what kind of information to prioritize")
+  }),
+  execute: async (input, parameters) => {
+    // Store the instruction in working memory for the next briefing
+    parameters.workingMemory["briefer-instruction"] = input.instruction;
+    return `Briefer instruction set: ${input.instruction}`;
+  }
+}, {} as StrategistParameters);

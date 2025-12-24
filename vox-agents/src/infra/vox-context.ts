@@ -82,30 +82,32 @@ export class VoxContext<TParameters extends AgentParameters> {
     this.abortController = new AbortController();
     this.logger.info(`VoxContext initialized with ID: ${this.id}`);
 
+    // Register the tools
+    this.registerTools();
+
     // Automatically register this context in the registry
     contextRegistry.register(this);
   }
 
   /**
-   * Register a tool in the context
-   * @param name - The tool name
-   * @param tool - The tool implementation
-   */
-  public registerTool(name: string, tool: Tool): void {
-    this.tools[name] = tool;
-    this.logger.info(`Tool registered: ${name}`);
-  }
-
-  /**
-   * Register all MCP client tools.
+   * Register all tools.
    * Fetches available tools from the MCP server and wraps them for use with AI SDK.
    */
-  public async registerMCP() {
+  private async registerTools() {
+    // MCP tools
     var mcpTools = wrapMCPTools(await mcpClient.getTools(), this);
     for (var tool of Object.keys(mcpTools)) {
       this.tools[tool] = mcpTools[tool];
     }
-    this.logger.info(`MCP tools registered: ${Object.keys(mcpTools).length}`)
+    // Agent tools
+    const allAgents = agentRegistry.getAllAsRecord();
+    for (const [agentName, agent] of Object.entries(allAgents)) {
+      this.tools[`call-${agentName}`] = createAgentTool(
+        agent as VoxAgent<TParameters>,
+        this,
+        () => this.lastParameter!
+      );
+    }
   }
 
   /**
@@ -217,21 +219,6 @@ export class VoxContext<TParameters extends AgentParameters> {
 
     return await context.with(trace.setSpan(context.active(), span), async () => {
       try {
-        // Dynamically create agent tools for handoff capability
-        let allTools = { ...this.tools };
-
-        // Add other agents as tools (excluding the current agent to prevent recursion)
-        const allAgents = agentRegistry.getAllAsRecord();
-        for (const [otherAgentName, otherAgent] of Object.entries(allAgents)) {
-          if (otherAgentName !== agentName) {
-            allTools[`call-${otherAgentName}`] = createAgentTool(
-              otherAgent as VoxAgent<TParameters>,
-              this,
-              parameters
-            );
-          }
-        }
-
         // Execute the agent using generateText
         // Get model config - agent's model or default, with overrides applied
         const modelConfig = agent.getModel(parameters, input, this.modelOverrides);
@@ -266,7 +253,7 @@ export class VoxContext<TParameters extends AgentParameters> {
               stepCount,
               messages,
               modelConfig,
-              allTools,
+              this.tools,
               callback
             );
 

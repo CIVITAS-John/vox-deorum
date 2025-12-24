@@ -67,7 +67,8 @@ You will receive:
  - You will receive options and short descriptions for each type of decision.
  - Whatever decision-making tool you call, the in-game AI can only execute options here.
  - You must choose options from the relevant lists. Double-check if your choices match.
-- You will receive a strategic briefing from your secretary, summarizing the current game situation.
+- Briefing: summarizing the current game situation.
+  - You can give your briefer a specific instruction by calling the \`instruct-briefer\` tool.
   - You will make independent and wise judgment.`.trim()
   }
 
@@ -76,9 +77,10 @@ You will receive:
    */
   public async getInitialMessages(parameters: StrategistParameters, input: unknown, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     var state = getRecentGameState(parameters)!;
+    var instruction = parameters.workingMemory["briefer-instruction"] ?? "None";
 
     // Get the briefing from the simple-briefer agent
-    const briefing = await context.callAgent<string>("simple-briefer", undefined, parameters);
+    const briefing = await context.callAgent<string>("simple-briefer", instruction, parameters);
     if (!briefing) throw new Error("Failed to generate strategic briefings.");
 
     // Get the information
@@ -99,6 +101,7 @@ ${jsonToMarkdown(parameters.metadata)}`.trim()
 ${jsonToMarkdown(state.options)}
 
 # Briefings
+Your last instruction: ${instruction}
 ${briefing}
 
 You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.YouAre!.Name}, Player ${parameters.playerID ?? 0}), are making strategic decisions after turn ${parameters.turn}.
@@ -106,6 +109,14 @@ You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.Yo
     }];
   }
   
+  /**
+   * Gets the list of active tools for this agent
+   */
+  public getActiveTools(parameters: StrategistParameters): string[] | undefined {
+    // Return specific tools the strategist needs
+    return ["instruct-briefer", ...(super.getActiveTools(parameters) ?? [])]
+  }
+
   /**
    * Gets the language model to use for this agent execution.
    * Can return undefined to use the default model from VoxContext.

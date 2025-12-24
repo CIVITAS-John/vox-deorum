@@ -16,9 +16,11 @@ export interface StrategistParameters extends AgentParameters {
   after: number;
   /** Fetch events equals to or before this ID */
   before: number;
-  /** Metadata storage for custom agent annotations */
+  /** Metadata of the game */
   metadata?: GameMetadata;
-  /** Map of turn numbers to game states for historical tracking */
+  /** A short-term working memory of the agent */
+  workingMemory: Record<string, string>;
+  /** Map of turn numbers to game states as a memory store */
   gameStates: Record<number, GameState>;
 }
 

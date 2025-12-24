@@ -53,6 +53,7 @@ export class VoxPlayer {
       turn: -1,
       after: initialTurn * 1000000,
       before: 0,
+      workingMemory: {},
       gameStates: []
     };
   }
@@ -95,8 +96,6 @@ export class VoxPlayer {
 
     return await context.with(trace.setSpan(context.active(), span), async () => {
       try {
-        await this.context.registerMCP();
-
         // Set the player's AI type
         await Promise.all([
           this.context.callTool("set-metadata", { Key: `experiment`, Value: this.playerConfig.strategist }, this.parameters),
