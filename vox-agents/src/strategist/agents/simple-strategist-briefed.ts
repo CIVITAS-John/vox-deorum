@@ -87,6 +87,7 @@ You will receive:
 
     // Get the information
     await super.getInitialMessages(parameters, input, context);
+    const { YouAre, ...SituationData } = parameters.metadata || {};
 
     // Return the messages with briefing instead of full state
     return [{
@@ -95,7 +96,10 @@ You will receive:
 You are ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
 
 # Situation
-${jsonToMarkdown(parameters.metadata)}`.trim()
+${jsonToMarkdown(SituationData)}
+
+# Your Civilization
+${jsonToMarkdown(YouAre)}`.trim()
     }, {
       role: "user",
       content: `

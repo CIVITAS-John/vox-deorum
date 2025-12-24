@@ -90,6 +90,7 @@ You will receive the following reports:
     var state = getRecentGameState(parameters)!;
     // Get the information
     await super.getInitialMessages(parameters, input, context);
+    const { YouAre, ...SituationData } = parameters.metadata || {};
     // Return the messages
     return [{
       role: "system",
@@ -97,32 +98,42 @@ You will receive the following reports:
 You are ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
 
 # Situation
-${jsonToMarkdown(parameters.metadata)}`.trim()
+${jsonToMarkdown(SituationData)}
+
+# Your Civilization
+${jsonToMarkdown(YouAre)}
+`.trim()
     }, {
       role: "user",
       content: `
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
+
 ${jsonToMarkdown(state.victory)}
 
 # Strategies
 Strategies: existing strategic decisions and available options for you.
+
 ${jsonToMarkdown(state.options)}
 
 # Players
 Players: summary reports about visible players in the world.
+
 ${jsonToMarkdown(state.players)}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
+
 ${jsonToMarkdown(state.cities)}
 
 # Military
 Military: summary reports about tactical zones and visible units.
+
 ${jsonToMarkdown(state.military)}
 
 # Events
 Events: events since you last made a decision.
+
 ${jsonToMarkdown(state.events)}
 
 You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.YouAre!.Name}, Player ${parameters.playerID ?? 0}), are making strategic decisions after turn ${parameters.turn}.

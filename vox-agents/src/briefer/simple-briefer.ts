@@ -85,6 +85,7 @@ Reason briefly. Write your briefing as a plain text document with a clear, direc
     var state = getRecentGameState(parameters)!;
     // Get the information
     await super.getInitialMessages(parameters, input, context);
+    const { YouAre, ...SituationData } = parameters.metadata || {};
     // Return the messages
     return [{
       role: "system",
@@ -92,7 +93,10 @@ Reason briefly. Write your briefing as a plain text document with a clear, direc
 You are an expert briefing writer for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
 
 # Situation
-${jsonToMarkdown(parameters.metadata)}
+${jsonToMarkdown(SituationData)}
+
+# Your Civilization
+${jsonToMarkdown(YouAre)}
 
 Your leader's instruction: ${input}`.trim()
     }, {
@@ -100,26 +104,32 @@ Your leader's instruction: ${input}`.trim()
       content: `
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
+
 ${jsonToMarkdown(state.victory)}
 
 # Strategies
 Strategies: existing strategic decisions and available options for the player.
+
 ${jsonToMarkdown(state.options)}
 
 # Players
 Players: summary reports about visible players in the world.
+
 ${jsonToMarkdown(state.players)}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
+
 ${jsonToMarkdown(state.cities)}
 
 # Military
 Military: summary reports about tactical zones and visible units.
+
 ${jsonToMarkdown(state.military)}
 
 # Events
 Events: events since the last decision-making.
+
 ${jsonToMarkdown(state.events)}
 
 You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}), after turn ${parameters.turn}.`.trim()
@@ -150,11 +160,11 @@ You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader},
           name: "instruct-briefer",
           description: "Set instructions for your briefer to follow next turn",
           inputSchema: z.object({
-            instruction: z.string().describe("Instructions for your briefer, e.g. what kind of information to prioritize")
+            Instruction: z.string().describe("Instructions for your briefing writer, e.g. what kind of information to prioritize in the briefing")
           }),
           execute: async (input, parameters) => {
             // Store the instruction in working memory for the next briefing
-            parameters.workingMemory["briefer-instruction"] = input.instruction;
+            parameters.workingMemory["briefer-instruction"] = input.Instruction;
             return `Briefer instruction set.`;
           }
         }, context)

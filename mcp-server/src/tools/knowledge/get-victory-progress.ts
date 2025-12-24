@@ -84,7 +84,8 @@ class GetVictoryProgressTool extends ToolBase {
    * Optional metadata for the tool
    */
   readonly metadata = {
-    autoComplete: ["PlayerID"]
+    autoComplete: ["PlayerID"],
+    markdownConfig: ["{key}"]
   }
 
   /**

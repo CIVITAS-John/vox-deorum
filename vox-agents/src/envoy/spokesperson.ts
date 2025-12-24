@@ -72,6 +72,7 @@ You represent your government's interests with diplomatic tact and strategic amb
     const civName = parameters.metadata!.YouAre!.Name;
     const state = parameters.gameStates[parameters.turn];
     const hint = `Remember: You represent ${civName} on the world stage. Every response reflects on ${leader}'s leadership and your civilization's standing. The time is at turn ${parameters.turn}.`;
+    const { YouAre, ...SituationData } = parameters.metadata || {};
 
     const messages: ModelMessage[] = [{
       role: "system",
@@ -79,7 +80,10 @@ You represent your government's interests with diplomatic tact and strategic amb
 You are the official spokesperson for ${leader} of ${civName} in Civilization V with the Vox Populi mod, answering oral questions from an audience.
 
 # Situation
-${jsonToMarkdown(parameters.metadata)}`.trim()
+${jsonToMarkdown(SituationData)}
+
+# Your Civilization
+${jsonToMarkdown(YouAre)}`.trim()
     }];
 
     // If there is a briefing, use it
@@ -101,26 +105,32 @@ ${hint}`.trim()
         content: `
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
+
 ${jsonToMarkdown(state.victory)}
 
 # Strategies
 Strategies: existing strategic decisions and available options for the player.
+
 ${jsonToMarkdown(state.options)}
 
 # Players
 Players: summary reports about visible players in the world.
+
 ${jsonToMarkdown(state.players)}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
+
 ${jsonToMarkdown(state.cities)}
 
 # Military
 Military: summary reports about tactical zones and visible units.
+
 ${jsonToMarkdown(state.military)}
 
 # Events
 Events: events since the last decision-making.
+
 ${jsonToMarkdown(state.events)}
 
 ${hint}`.trim()});
