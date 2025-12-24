@@ -88,9 +88,6 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
         case "DLLConnected":
           this.dllConnected = true;
           // Transition to running state when DLL connects (game is initialized)
-          if (this.state === 'starting' || this.state === 'recovering') {
-            this.onStateChange('running');
-          }
           await this.handleDLLConnected(params);
           break;
         case "DLLDisconnected":
@@ -261,7 +258,7 @@ Game.SetAIAutoPlay(2000, -1);`
   private async handleDLLConnected(params: any): Promise<void> {
     const recovering = this.state === 'recovering';
 
-    if (recovering) {
+    if (this.state === 'recovering') {
       this.lastGameState = 'running';
       logger.info('Game successfully recovered from crash');
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
@@ -270,6 +267,9 @@ Game.SetAIAutoPlay(2000, -1);`
         await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
       }
     }
+    
+    if (this.state === 'starting')
+      this.onStateChange('running');
   }
 
   private async handlePlayerVictory(params: any): Promise<void> {
