@@ -28,7 +28,6 @@ export abstract class SimpleStrategistBase extends Strategist {
   public getActiveTools(_parameters: StrategistParameters): string[] | undefined {
     // Return specific tools the strategist needs
     return [
-      "get-civilization",
       "set-strategy",
       "set-persona",
       "set-research",

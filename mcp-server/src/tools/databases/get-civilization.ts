@@ -23,7 +23,6 @@ export const CivilizationReportSchema = CivilizationSummarySchema.extend({
     Help: z.string(),
     Replacing: z.string().optional()
   })),
-  Archetype: z.string(),
   PreferredVictory: z.string()
 });
 
@@ -184,7 +183,6 @@ export async function getCivilization(civType: string) {
       'Civilizations.Strategy',
       'Leaders.Type as LeaderType',
       'Leaders.Description as LeaderName',
-      'Leaders.Personality',
       'Leaders.PrimaryVictoryPursuit',
       'Traits.Type as TraitType',
       'Traits.ShortDescription as TraitShortDescription',
@@ -290,7 +288,6 @@ export async function getCivilization(civType: string) {
     Name: civ.ShortDescription!,
     Abilities: abilities,
     Leader: civ.LeaderName!,
-    Archetype: changeCase.pascalCase(civ.Personality!).substring(11),
     PreferredVictory: changeCase.pascalCase(civ.PrimaryVictoryPursuit!).substring(14)
   };
 }
