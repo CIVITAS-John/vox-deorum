@@ -1,100 +1,21 @@
 /**
- * @module utils/tools/wrapper
+ * @module utils/tools/mcp-tools
  *
- * Tool wrapper utilities for integrating agents and MCP tools with Vercel AI SDK.
- * Provides functions to wrap VoxAgents and MCP tools as AI SDK CoreTools,
- * handling schema transformation, parameter injection, and observability.
+ * MCP tool wrapper utilities for integrating Model Context Protocol tools with Vercel AI SDK.
+ * Provides functions to wrap MCP tools as AI SDK CoreTools,
+ * handling schema filtering, parameter injection, and markdown conversion.
  */
 
-import { z } from "zod";
-import { AgentParameters, VoxAgent } from "../../infra/vox-agent.js";
-import { VoxContext } from "../../infra/vox-context.js";
-import { createLogger } from "../logger.js";
 import { Tool as VercelTool, dynamicTool, ToolSet, jsonSchema } from 'ai';
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { mcpClient } from "../models/mcp-client.js";
 import { trace, SpanStatusCode, SpanKind } from '@opentelemetry/api';
 import { camelCase } from "change-case";
+import { createLogger } from "../logger.js";
+import { VoxContext } from "../../infra/vox-context.js";
+import { AgentParameters } from "../../infra/vox-agent.js";
 
 const tracer = trace.getTracer('vox-tools');
-
-/**
- * Creates a dynamic tool wrapper for an agent using Vercel AI SDK's dynamicTool.
- * Allows agents to call other agents as tools, enabling hierarchical agent architectures.
- *
- * @param agent - The agent to wrap as a tool
- * @param context - The VoxContext for executing the agent
- * @param baseParameters - Base parameters to merge with tool invocation parameters
- * @returns A CoreTool that can be used with AI SDK
- *
- * @example
- * ```typescript
- * const strategistAgent = new SimpleStrategist();
- * const tool = createAgentTool(strategistAgent, context, { playerID: 0 });
- * ```
- */
-export function createAgentTool<TParameters extends AgentParameters, TInput = unknown, TOutput = unknown>(
-  agent: VoxAgent<TParameters, TInput, TOutput>,
-  context: VoxContext<TParameters>,
-  baseParameters: TParameters
-): VercelTool {
-  const logger = createLogger(`AgentTool-${agent.name}`);
-
-  // Use a simpler approach to avoid deep type instantiation issues
-  const description = agent.toolDescription || `Execute the ${agent.name} agent to handle specialized tasks`;
-  const inputSchema = agent.inputSchema || z.object({
-    Prompt: z.string().describe("The prompt or task to give to the agent")
-  });
-
-  return dynamicTool({
-    description,
-    inputSchema: inputSchema as any,
-    execute: async (input) => {
-      const span = tracer.startSpan(`agent-tool.${agent.name}`, {
-        attributes: {
-          'vox.context.id': context.id,
-          'tool.name': agent.name,
-          'tool.type': 'agent',
-        }
-      });
-
-      try {
-        logger.debug(`Executing agent-tool: ${agent.name}`);
-        span.setAttributes({
-          'tool.input': JSON.stringify(input)
-        });
-
-        let parameters = baseParameters;
-
-        // Execute the agent through the context
-        const result = await context.execute(agent.name, parameters, input);
-        logger.debug(`Agent-tool execution completed: ${agent.name}`);
-
-        span.setAttributes({
-          'tool.output': JSON.stringify(result)
-        });
-        span.setStatus({ code: SpanStatusCode.OK });
-
-        // Apply output schema if defined
-        if (agent.outputSchema) {
-          return agent.outputSchema.parse(result);
-        }
-
-        return { result };
-      } catch (error) {
-        logger.error(`Error in agent-tool ${agent.name}:`, error);
-        span.recordException(error as Error);
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: error instanceof Error ? error.message : String(error)
-        });
-        throw error;
-      } finally {
-        span.end();
-      }
-    }
-  });
-}
 
 /**
  * Wrap a MCP tool for Vercel AI SDK.
@@ -102,13 +23,13 @@ export function createAgentTool<TParameters extends AgentParameters, TInput = un
  * and markdown conversion of results.
  *
  * @param tool - MCP tool definition
- * @param contextId - Optional VoxContext ID for tracing
+ * @param context - VoxContext for tracing and parameter injection
  * @returns Vercel AI SDK CoreTool
  *
  * @example
  * ```typescript
  * const tools = await mcpClient.getTools();
- * const wrapped = wrapMCPTool(tools[0]);
+ * const wrapped = wrapMCPTool(tools[0], context);
  * ```
  */
 export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): VercelTool {
@@ -205,13 +126,13 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
  * Convenience function to batch-wrap an array of MCP tools.
  *
  * @param tools - Array of MCP tool definitions
- * @param contextId - Optional VoxContext ID for tracing
+ * @param context - VoxContext for tracing and parameter injection
  * @returns ToolSet object mapping tool names to wrapped tools
  *
  * @example
  * ```typescript
  * const tools = await mcpClient.getTools();
- * const toolSet = wrapMCPTools(tools);
+ * const toolSet = wrapMCPTools(tools, context);
  * ```
  */
 export function wrapMCPTools(tools: Tool[], context: VoxContext<AgentParameters>): ToolSet {

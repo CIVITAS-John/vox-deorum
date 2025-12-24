@@ -9,7 +9,6 @@
 import { Output, Tool, StepResult, ToolSet, ModelMessage, streamText, tool } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
-import { createAgentTool, wrapMCPTools } from "../utils/tools/wrapper.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
 import { getModel, buildProviderOptions } from "../utils/models/models.js";
 import { Model, StreamingEventCallback } from "../types/index.js";
@@ -21,6 +20,8 @@ import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
 import { countMessagesTokens } from "../utils/token-counter.js";
 import { agentRegistry } from "./agent-registry.js";
 import { contextRegistry } from "./context-registry.js";
+import { createAgentTool } from "../utils/tools/agent-tools.js";
+import { wrapMCPTools } from "../utils/tools/mcp-tools.js";
 
 /**
  * Runtime context for executing Vox Agents.
@@ -84,7 +85,6 @@ export class VoxContext<TParameters extends AgentParameters> {
     // Automatically register this context in the registry
     contextRegistry.register(this);
   }
-
 
   /**
    * Register a tool in the context
