@@ -28,6 +28,8 @@ export interface StrategistParameters extends AgentParameters {
  * Game state snapshot containing all relevant game information at a specific turn
  */
 export interface GameState {
+  /** The turn number. */
+  turn: number;
   /** Player information including civilizations, leaders, and diplomacy */
   players?: PlayersReport;
   /** Game events that occurred during this turn */
@@ -68,11 +70,13 @@ function extractErrorText(result: any): string {
  * Refreshes strategy parameters by fetching all required game state information
  * @param context - The VoxContext to use for calling tools
  * @param parameters - The strategy parameters to refresh
+ * @param cullLimit - Number of past turns to keep (default: 10)
  * @returns The updated strategy parameters
  */
 export async function refreshGameState(
   context: VoxContext<StrategistParameters>,
-  parameters: StrategistParameters
+  parameters: StrategistParameters,
+  cullLimit: number = 10
 ): Promise<GameState> {
   // Get the game metadata as a prerequisite
   parameters.metadata = parameters.metadata ??
@@ -104,11 +108,26 @@ export async function refreshGameState(
     options,
     military,
     victory,
-    reports: {}
+    reports: {},
+    turn: parameters.turn
   };
 
   // Update and return parameters with the new game state stored by turn
   parameters.gameStates[parameters.turn] = currentState;
+
+  // Cull old game states - keep only states within cullLimit turns before current turn
+  // and remove any future states (after current turn)
+  const currentTurn = parameters.turn;
+  const oldestAllowedTurn = currentTurn - cullLimit;
+
+  for (const turnStr of Object.keys(parameters.gameStates)) {
+    const turn = Number(turnStr);
+    // Remove states that are either in the future or too old
+    if (turn > currentTurn || turn < oldestAllowedTurn) {
+      delete parameters.gameStates[turn];
+    }
+  }
+
   return currentState;
 }
 
@@ -161,18 +180,11 @@ export function getGameState(
  */
 export function getRecentGameState(
   parameters: StrategistParameters,
-  maxTurn?: number
 ): GameState | undefined {
   let mostRecentTurn: number | undefined;
 
   for (const turnStr of Object.keys(parameters.gameStates)) {
     const turn = Number(turnStr);
-
-    // Skip turns beyond our maximum
-    if (maxTurn !== undefined && turn > maxTurn) {
-      continue;
-    }
-
     // Update if this is the most recent turn we've seen
     if (mostRecentTurn === undefined || turn > mostRecentTurn) {
       mostRecentTurn = turn;

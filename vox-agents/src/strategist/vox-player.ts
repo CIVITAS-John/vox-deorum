@@ -7,7 +7,7 @@
  */
 
 import { VoxContext } from "../infra/vox-context.js";
-import { trace, SpanStatusCode, SpanKind, context } from '@opentelemetry/api';
+import { trace, SpanStatusCode, context } from '@opentelemetry/api';
 import { createLogger } from "../utils/logger.js";
 import { setTimeout } from 'node:timers/promises';
 import { sqliteExporter, spanProcessor } from "../instrumentation.js";
@@ -54,7 +54,7 @@ export class VoxPlayer {
       after: initialTurn * 1000000,
       before: 0,
       workingMemory: {},
-      gameStates: []
+      gameStates: {}
     };
   }
 

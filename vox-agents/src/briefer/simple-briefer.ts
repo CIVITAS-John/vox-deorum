@@ -9,11 +9,12 @@ import { ModelMessage, Tool } from "ai";
 import { z } from "zod";
 import { Briefer } from "./briefer.js";
 import { VoxContext } from "../infra/vox-context.js";
-import { getRecentGameState, StrategistParameters } from "../strategist/strategy-parameters.js";
+import { getGameState, getRecentGameState, StrategistParameters } from "../strategist/strategy-parameters.js";
 import { getModelConfig } from "../utils/models/models.js";
 import { Model } from "../types/index.js";
 import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 import { createSimpleTool } from "../utils/tools/simple-tools.js";
+import { getOffsetedTurn } from "../utils/game-speed.js";
 
 /**
  * A simple briefer agent that analyzes the game state and produces a concise briefing.
@@ -43,21 +44,18 @@ Your leader only has control over macro-level decision making. Focus on providin
 
 # Objective
 Summarize the full game state into a strategic briefing that highlights:
-- Key diplomatic relationships and tensions
-- Economic and military position relative to opponents
-- Important events since the last decision
+- Key diplomatic relationships and tensions.
+- Economic and military position relative to opponents.
+- Important events since the last decision.
 
 # Guidelines
-- Highlight important strategic changes and intelligence
-- The briefing should be objective and analytical, do not bias towards existing strategy
-- Never provide raw, excessive, or tactical information (e.g. coordinates, IDs)
-- Never give suggestions or considerations, that's not your responsibilities
-- Never send out verbatim from Strategies
+- Highlight important strategic changes and intelligence.
+- The briefing should be objective and analytical, do not bias towards existing strategy.
+- Never provide raw, excessive, or tactical information (e.g. coordinates, IDs).
+- Never give suggestions or considerations, that's not your responsibilities.
 
 # Resources
 You will receive the following reports:
-- Strategies: existing strategic decisions and available options for the player.
- - Strategies, persona, technology, and policy of the player, as well as the current rationale.
 - Victory Progress: current progress towards each type of victory.
  - Domination Victory: Control or vassalize all original capitals.
  - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
@@ -73,6 +71,7 @@ You will receive the following reports:
  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
  - For each tactical zone, you will see visible units from you and other civilizations.
 - Events: events since the last decision-making.
+- Past Briefing: your past briefing from a recent turn for comparison. Your leader can only see your current briefing.
 
 # Instruction
 Reason briefly. Write your briefing as a plain text document with a clear, direct, concise language.`.trim()
@@ -87,7 +86,7 @@ Reason briefly. Write your briefing as a plain text document with a clear, direc
     await super.getInitialMessages(parameters, input, context);
     const { YouAre, ...SituationData } = parameters.metadata || {};
     // Return the messages
-    return [{
+    const messages: ModelMessage[] = [{
       role: "system",
       content: `
 You are an expert briefing writer for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
@@ -106,11 +105,6 @@ Your leader's instruction: ${input}`.trim()
 Victory Progress: current progress towards each type of victory.
 
 ${jsonToMarkdown(state.victory)}
-
-# Strategies
-Strategies: existing strategic decisions and available options for the player.
-
-${jsonToMarkdown(state.options)}
 
 # Players
 Players: summary reports about visible players in the world.
@@ -134,6 +128,17 @@ ${jsonToMarkdown(state.events)}
 
 You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}), after turn ${parameters.turn}.`.trim()
     }];
+    // Send in the past briefing
+    var lastState = getGameState(parameters, getOffsetedTurn(parameters, -5));
+    if (lastState) {
+      messages.push({
+        role: "user", 
+        content: `# Past Briefing
+Past Briefing: your past briefing from ${parameters.turn - lastState.turn} turns ago (turn ${lastState.turn}) for comparison.
+${lastState.reports["briefing"]}`
+      });
+    }
+    return messages;
   }
   
   /**
