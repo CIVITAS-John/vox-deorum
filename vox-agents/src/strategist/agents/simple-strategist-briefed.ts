@@ -54,7 +54,7 @@ Your goal is to **call tools** to make high-level decisions for the in-game AI. 
 - You can change the in-game AI's diplomatic strategy by calling the \`set-persona\` tool.
 - You can change the in-game AI's NEXT technology to research (when you finish the current one) by calling the \`set-research\` tool.
 - You can change the in-game AI's NEXT policy to adopt (when you have enough culture) by calling the \`set-policy\` tool.
-- You can ask your briefer to prepare a focused report by calling the \`instruct-briefer\` tool.
+- You can ask your briefer to prepare a focused report next turn by calling the \`instruct-briefer\` tool.
 - You must set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
  - You don't have to make a change. Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
 - Always provide a rationale for each decision. You will be able to read the rationale next turn.
