@@ -112,7 +112,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         this.tools[toolName] = tool;
       }
     }
-    console.log(Object.keys(this.tools).join("; "));
+    // console.log(Object.keys(this.tools).join("; "));
   }
 
   /**

@@ -47,13 +47,14 @@ You can interact with multiple tools at a time. Used tools will be removed from 
 When reasoning, focus on the gameplay strategy.
 
 # Goals
-Your goal is to **call one or more tools** to make high-level decisions for the in-game AI. Each tool has a list of acceptable options, and you must follow them.
+Your goal is to **call tools** to make high-level decisions for the in-game AI. Each tool has a list of acceptable options, and you must follow them.
 - Carefully reason about the current situation and available options, and what kind of change each option will bring.
  - When the situation requires, do not shy away from pivoting strategies.
  - Analyze both your situation and your opponents. Avoid wishful thinking.
 - You can change the in-game AI's diplomatic strategy by calling the \`set-persona\` tool.
 - You can change the in-game AI's NEXT technology to research (when you finish the current one) by calling the \`set-research\` tool.
 - You can change the in-game AI's NEXT policy to adopt (when you have enough culture) by calling the \`set-policy\` tool.
+- You can ask your briefer to prepare a focused report by calling the \`instruct-briefer\` tool.
 - You must set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
  - You don't have to make a change. Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
 - Always provide a rationale for each decision. You will be able to read the rationale next turn.
@@ -67,8 +68,7 @@ You will receive:
  - You will receive options and short descriptions for each type of decision.
  - Whatever decision-making tool you call, the in-game AI can only execute options here.
  - You must choose options from the relevant lists. Double-check if your choices match.
-- Briefing: summarizing the current game situation.
-  - You can give your briefer a specific instruction by calling the \`instruct-briefer\` tool.
+- Briefing: provided by your briefer, summarizing the current game situation.
   - You will make independent and wise judgment.`.trim()
   }
 
@@ -77,10 +77,11 @@ You will receive:
    */
   public async getInitialMessages(parameters: StrategistParameters, input: unknown, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     var state = getRecentGameState(parameters)!;
-    var instruction = parameters.workingMemory["briefer-instruction"] ?? "None";
+    var instruction = parameters.workingMemory["briefer-instruction"] ?? "Nothing specific";
 
     // Get the briefing from the simple-briefer agent
     const briefing = await context.callAgent<string>("simple-briefer", instruction, parameters);
+    delete parameters.workingMemory["briefer-instruction"];
     if (!briefing) throw new Error("Failed to generate strategic briefings.");
 
     // Get the information
@@ -101,7 +102,6 @@ ${jsonToMarkdown(parameters.metadata)}`.trim()
 ${jsonToMarkdown(state.options)}
 
 # Briefings
-Instruction to your briefer: ${instruction}
 ${briefing}
 
 You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.YouAre!.Name}, Player ${parameters.playerID ?? 0}), are making strategic decisions after turn ${parameters.turn}.
