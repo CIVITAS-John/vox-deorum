@@ -11,6 +11,7 @@ import { AgentParameters } from "../../infra/vox-agent.js";
 import { createLogger } from "../logger.js";
 import { Tool as VercelTool, dynamicTool } from 'ai';
 import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { VoxContext } from "../../infra/vox-context.js";
 
 const tracer = trace.getTracer('vox-tools');
 
@@ -66,7 +67,7 @@ export interface SimpleToolConfig<TParameters extends AgentParameters, TInput = 
  */
 export function createSimpleTool<TParameters extends AgentParameters, TInput = any, TOutput = any>(
   config: SimpleToolConfig<TParameters, TInput, TOutput>,
-  parameters: TParameters
+  context: VoxContext<TParameters>
 ): VercelTool {
   const logger = createLogger(`SimpleTool-${config.name}`);
 
@@ -78,8 +79,8 @@ export function createSimpleTool<TParameters extends AgentParameters, TInput = a
         attributes: {
           'tool.name': config.name,
           'tool.type': 'simple',
-          'player.id': parameters.playerID,
-          'game.turn': parameters.turn ?? -1
+          'vox.context.id': context.id,
+          'game.turn': context.lastParameter?.turn ?? -1
         }
       });
 
@@ -90,7 +91,7 @@ export function createSimpleTool<TParameters extends AgentParameters, TInput = a
         });
 
         // Execute the function with input and parameters
-        const result = await config.execute(input as TInput, parameters);
+        const result = await config.execute(input as TInput, context.lastParameter!);
 
         logger.debug(`Simple tool execution completed: ${config.name}`);
         span.setAttributes({

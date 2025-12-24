@@ -143,26 +143,20 @@ You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader},
    *
    * @returns Record of tool name to Tool instance, or empty object if no extra tools
    */
-  public getExtraTools(): Record<string, Tool> {
+  public getExtraTools(context: VoxContext<StrategistParameters>): Record<string, Tool> {
     return {
-      "instruct-briefer": instructBriefer
+      "instruct-briefer": createSimpleTool({
+          name: "instruct-briefer",
+          description: "Set instructions for your briefer to follow when summarizing game state",
+          inputSchema: z.object({
+            instruction: z.string().describe("Instructions for your briefer, e.g. what kind of information to prioritize")
+          }),
+          execute: async (input, parameters) => {
+            // Store the instruction in working memory for the next briefing
+            parameters.workingMemory["briefer-instruction"] = input.instruction;
+            return `Briefer instruction set: ${input.instruction}`;
+          }
+        }, context)
     };
   }
 }
-
-/**
- * Tool for setting specific instructions for the strategic briefer.
- * Allows strategists to guide how game state should be summarized in briefings.
- */
-export const instructBriefer = createSimpleTool({
-  name: "instruct-briefer",
-  description: "Set instructions for your briefer to follow when summarizing game state",
-  inputSchema: z.object({
-    instruction: z.string().describe("Instructions for your briefer, e.g. what kind of information to prioritize")
-  }),
-  execute: async (input, parameters) => {
-    // Store the instruction in working memory for the next briefing
-    parameters.workingMemory["briefer-instruction"] = input.instruction;
-    return `Briefer instruction set: ${input.instruction}`;
-  }
-}, {} as StrategistParameters);

@@ -236,6 +236,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     for (const [playerIDStr, playerConfig] of Object.entries(this.config.llmPlayers)) {
       const playerID = parseInt(playerIDStr);
       const player = new VoxPlayer(playerID, playerConfig, params.gameID, params.turn);
+      await player.context.registerTools();
       this.activePlayers.set(playerID, player);
       player.execute();
     }

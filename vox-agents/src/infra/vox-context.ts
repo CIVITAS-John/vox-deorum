@@ -82,9 +82,6 @@ export class VoxContext<TParameters extends AgentParameters> {
     this.abortController = new AbortController();
     this.logger.info(`VoxContext initialized with ID: ${this.id}`);
 
-    // Register the tools
-    this.registerTools();
-
     // Automatically register this context in the registry
     contextRegistry.register(this);
   }
@@ -93,7 +90,7 @@ export class VoxContext<TParameters extends AgentParameters> {
    * Register all tools.
    * Fetches available tools from the MCP server and wraps them for use with AI SDK.
    */
-  private async registerTools() {
+  public async registerTools() {
     // MCP tools
     var mcpTools = wrapMCPTools(await mcpClient.getTools(), this);
     for (var tool of Object.keys(mcpTools)) {
@@ -110,7 +107,7 @@ export class VoxContext<TParameters extends AgentParameters> {
       );
 
       // Register any extra tools provided by the agent
-      const extraTools = (agent as VoxAgent<TParameters>).getExtraTools();
+      const extraTools = (agent as VoxAgent<TParameters>).getExtraTools(this);
       for (const [toolName, tool] of Object.entries(extraTools)) {
         this.tools[toolName] = tool;
       }

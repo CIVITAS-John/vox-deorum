@@ -185,9 +185,10 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
    * These tools will be registered in addition to the agent's own tool representation.
    * Override this method to provide custom tools specific to this agent.
    *
+   * @param context - The VoxContext for this tool
    * @returns Record of tool name to Tool instance, or empty object if no extra tools
    */
-  public getExtraTools(): Record<string, Tool> {
+  public getExtraTools(_context: VoxContext<TParameters>): Record<string, Tool> {
     return {};
   }
   

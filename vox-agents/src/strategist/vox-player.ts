@@ -24,7 +24,7 @@ import { PlayerConfig } from "../types/config.js";
  * @class
  */
 export class VoxPlayer {
-  private context: VoxContext<StrategistParameters>;
+  public readonly context: VoxContext<StrategistParameters>;
   private parameters: StrategistParameters;
   private logger;
   private pendingTurn?: { turn: number; latestID: number };
