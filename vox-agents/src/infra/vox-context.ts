@@ -112,6 +112,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         this.tools[toolName] = tool;
       }
     }
+    console.log(Object.keys(this.tools).join("; "));
   }
 
   /**
@@ -257,7 +258,6 @@ export class VoxContext<TParameters extends AgentParameters> {
               stepCount,
               messages,
               modelConfig,
-              this.tools,
               callback
             );
 
@@ -332,7 +332,6 @@ export class VoxContext<TParameters extends AgentParameters> {
     stepCount: number,
     messages: ModelMessage[],
     model: Model,
-    allTools: ToolSet,
     callback?: StreamingEventCallback
   ): Promise<{ messages: ModelMessage[], shouldStop: boolean, finalText?: string, inputTokens: number, reasoningTokens: number, outputTokens: number }> {
     const stepSpan = this.tracer.startSpan(`agent.${agent.name}.step.${stepCount + 1}`, {
@@ -387,7 +386,7 @@ export class VoxContext<TParameters extends AgentParameters> {
             // Current messages
             messages: messages,
             // Tools
-            tools: allTools,
+            tools: this.tools,
             activeTools: stepActiveTools,
             toolChoice: stepToolChoice,
             experimental_context: parameters,
@@ -402,9 +401,6 @@ export class VoxContext<TParameters extends AgentParameters> {
         const stepResponse = stepResults[stepResults.length - 1];
 
         // Update token usage
-        /* const inputTokens = stepResponse.totalUsage.inputTokens ?? 0;
-        const reasoningTokens = stepResponse.totalUsage.reasoningTokens ?? 0;
-        const outputTokens = (stepResponse.totalUsage.outputTokens ?? 0) - reasoningTokens; */
         const inputTokens = countMessagesTokens(messages, false);
         const reasoningTokens = countMessagesTokens(stepResponse.response.messages, true);
         const outputTokens = countMessagesTokens(stepResponse.response.messages, false);

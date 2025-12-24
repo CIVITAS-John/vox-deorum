@@ -101,7 +101,7 @@ ${jsonToMarkdown(parameters.metadata)}`.trim()
 ${jsonToMarkdown(state.options)}
 
 # Briefings
-Your last instruction: ${instruction}
+Instruction to your briefer: ${instruction}
 ${briefing}
 
 You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.YouAre!.Name}, Player ${parameters.playerID ?? 0}), are making strategic decisions after turn ${parameters.turn}.
