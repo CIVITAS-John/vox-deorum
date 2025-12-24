@@ -5,7 +5,7 @@
  * Condenses full game reports into key insights for strategic decision-making.
  */
 
-import { ModelMessage } from "ai";
+import { ModelMessage, Tool } from "ai";
 import { z } from "zod";
 import { Briefer } from "./briefer.js";
 import { VoxContext } from "../infra/vox-context.js";
@@ -134,6 +134,19 @@ You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader},
    */
   public getModel(_parameters: StrategistParameters, _input: unknown, overrides: Record<string, Model | string>): Model {
     return getModelConfig(this.name, "low", overrides);
+  }
+
+  /**
+   * Gets extra tools that this agent provides to the context.
+   * These tools will be registered in addition to the agent's own tool representation.
+   * Override this method to provide custom tools specific to this agent.
+   *
+   * @returns Record of tool name to Tool instance, or empty object if no extra tools
+   */
+  public getExtraTools(): Record<string, Tool> {
+    return {
+      "instruct-briefer": instructBriefer
+    };
   }
 }
 

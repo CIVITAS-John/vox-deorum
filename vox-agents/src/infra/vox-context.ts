@@ -102,11 +102,18 @@ export class VoxContext<TParameters extends AgentParameters> {
     // Agent tools
     const allAgents = agentRegistry.getAllAsRecord();
     for (const [agentName, agent] of Object.entries(allAgents)) {
+      // Agent as a tool
       this.tools[`call-${agentName}`] = createAgentTool(
         agent as VoxAgent<TParameters>,
         this,
         () => this.lastParameter!
       );
+
+      // Register any extra tools provided by the agent
+      const extraTools = (agent as VoxAgent<TParameters>).getExtraTools();
+      for (const [toolName, tool] of Object.entries(extraTools)) {
+        this.tools[toolName] = tool;
+      }
     }
   }
 

@@ -179,6 +179,17 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   public async getInitialMessages(_parameters: TParameters, _input: TInput, _context: VoxContext<TParameters>): Promise<ModelMessage[]> {
     return [];
   }
+
+  /**
+   * Gets extra tools that this agent provides to the context.
+   * These tools will be registered in addition to the agent's own tool representation.
+   * Override this method to provide custom tools specific to this agent.
+   *
+   * @returns Record of tool name to Tool instance, or empty object if no extra tools
+   */
+  public getExtraTools(): Record<string, Tool> {
+    return {};
+  }
   
   /**
    * Prepares the next step in the agent execution.
