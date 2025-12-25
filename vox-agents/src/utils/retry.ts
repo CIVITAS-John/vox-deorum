@@ -9,33 +9,70 @@ import { Logger } from "winston";
 
 /**
  * Executes an async function with exponential backoff retry logic
- * @param fn - The async function to execute
+ * @param fn - The async function to execute, receives a progress callback to prevent timeout
  * @param logger - Winston logger instance for logging retry attempts
  * @param maxRetries - Maximum number of retry attempts (default: 10)
  * @param initialDelay - Initial delay in milliseconds (default: 2000)
  * @param maxDelay - Maximum delay in milliseconds (default: 15000)
  * @param backoffFactor - Exponential backoff multiplier (default: 1.5)
+ * @param executionTimeout - Maximum time to wait for each execution attempt in milliseconds (default: 300000 = 5 minutes)
  * @returns The result of the successful function execution
  * @throws The last error if all retries are exhausted
  */
 export async function exponentialRetry<T>(
-  fn: () => Promise<T>,
+  fn: (updateProgress: () => void) => Promise<T>,
   logger: Logger,
   maxRetries: number = 10,
   initialDelay: number = 2000,
   maxDelay: number = 15000,
-  backoffFactor: number = 1.5
+  backoffFactor: number = 1.5,
+  executionTimeout: number = 120000 // 2 minutes
 ): Promise<T> {
   let lastError: Error;
   let delay = initialDelay;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      return await fn();
+      // Timeout support
+      let timeoutHandle: NodeJS.Timeout | null = null;
+      let isTimedOut = false;
+      let timeoutReject: (reason: Error) => void;
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutReject = reject;
+      });
+
+      const resetTimeout = () => {
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+        }
+        if (!isTimedOut) {
+          timeoutHandle = setTimeout(() => {
+            isTimedOut = true;
+            timeoutReject(new Error(`Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes) of inactivity`));
+          }, executionTimeout);
+        }
+      };
+      
+      // Start initial timeout
+      resetTimeout();
+
+      // Race between the function execution and timeout
+      const result = await Promise.race([
+        fn(resetTimeout),
+        timeoutPromise
+      ]);
+
+      // Clear the timeout if execution completed successfully
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      return result;
     } catch (error) {
       lastError = error as Error;
 
-      if (attempt === maxRetries || (error as any)?.isRetryable) {
+      // Check if error is explicitly marked as non-retryable
+      const isNonRetryable = error && typeof error === 'object' && 'isRetryable' in error && error.isRetryable === false;
+
+      if (attempt === maxRetries || isNonRetryable) {
         throw lastError;
       }
 

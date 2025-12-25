@@ -376,7 +376,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         });
 
         // Execute a single step
-        const stepResults = await exponentialRetry(async () => {
+        const stepResults = await exponentialRetry(async (update) => {
           return await streamText({
             // Model settings
             model: getModel(stepModel),
@@ -397,7 +397,10 @@ export class VoxContext<TParameters extends AgentParameters> {
             // Stop after one step
             stopWhen: () => true,
             // Events
-            onChunk: callback?.OnChunk
+            onChunk: (args) => {
+              update();
+              callback?.OnChunk(args);
+            }
           }).steps;
         }, this.logger);
         const stepResponse = stepResults[stepResults.length - 1];
