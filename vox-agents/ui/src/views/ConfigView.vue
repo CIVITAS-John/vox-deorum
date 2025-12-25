@@ -10,8 +10,8 @@ import Dropdown from 'primevue/dropdown';
 import Tooltip from 'primevue/tooltip';
 import { useConfirm } from 'primevue/useconfirm';
 import { apiClient } from '../api/client';
-import type { AgentMapping, LLMConfig, VoxAgentsConfig } from '../utils/types';
-import { llmProviders, apiKeyFields } from '../utils/types';
+import type { AgentMapping, LLMConfig, VoxAgentsConfig, ToolMiddlewareType } from '../utils/types';
+import { llmProviders, apiKeyFields, toolMiddlewareOptions } from '../utils/types';
 import {
   parseLLMConfig,
   buildLLMConfig,
@@ -67,7 +67,11 @@ async function loadConfig() {
     // Parse LLM configuration
     const { mappings, definitions } = parseLLMConfig(data.config.llms || {});
     agentMappings.value = mappings;
-    modelDefinitions.value = definitions;
+    // Ensure all model definitions have an options object
+    modelDefinitions.value = definitions.map(def => ({
+      ...def,
+      options: def.options || {}
+    }));
 
     // Keep other parts
     config.value = data.config;
@@ -95,7 +99,8 @@ function addModel() {
   modelDefinitions.value.push({
     id: '',
     provider: 'openrouter',
-    name: ''
+    name: '',
+    options: {}
   });
 }
 
@@ -127,6 +132,18 @@ function deleteModel(modelId: string) {
 
   // Remove any mappings using this model
   agentMappings.value = agentMappings.value.filter(m => m.model !== modelId);
+}
+
+// Handle toolMiddleware changes
+function handleToolMiddlewareChange(model: LLMConfig, value: ToolMiddlewareType | null) {
+  if (!model.options) {
+    model.options = {};
+  }
+  if (value) {
+    model.options.toolMiddleware = value;
+  } else {
+    delete model.options.toolMiddleware;
+  }
 }
 
 // Save configuration (API keys and config)
@@ -337,12 +354,6 @@ async function saveConfig() {
       <template #content>
         <div class="models-list">
           <div v-for="(model, index) in modelDefinitions" :key="index" class="field-row">
-            <InputText
-              :value="model.id"
-              disabled
-              placeholder="Auto-generated ID"
-              class="model-id"
-            />
             <Dropdown
               v-model="model.provider"
               :options="llmProviders"
@@ -358,6 +369,22 @@ async function saveConfig() {
               class="model-name"
               @input="updateModelId(model)"
             />
+            <Dropdown
+              :modelValue="model.options?.toolMiddleware ?? 'rescue'"
+              :options="toolMiddlewareOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select middleware"
+              class="middleware-dropdown"
+              showClear
+              @update:modelValue="(value: ToolMiddlewareType | null) => handleToolMiddlewareChange(model, value)"
+            >
+              <template #option="slotProps">
+                <div v-tooltip.top="slotProps.option.tooltip">
+                  {{ slotProps.option.label }}
+                </div>
+              </template>
+            </Dropdown>
             <Button
               icon="pi pi-trash"
               text

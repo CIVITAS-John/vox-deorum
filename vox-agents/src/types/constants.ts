@@ -5,6 +5,8 @@
  * Contains provider lists and form field definitions.
  */
 
+import type { ToolMiddlewareType } from './config.js';
+
 /**
  * API key field definition for UI forms
  */
@@ -27,6 +29,36 @@ export const llmProviders = [
   { label: 'Google AI', value: 'google' },
   { label: 'OpenAI Compatible', value: 'openai-compatible' },
   { label: 'Chutes', value: 'chutes' }
+];
+
+/**
+ * Tool middleware option definition for UI forms
+ */
+export interface ToolMiddlewareOption {
+  label: string;
+  value: ToolMiddlewareType;
+  tooltip: string;
+}
+
+/**
+ * Tool middleware options for model configuration
+ */
+export const toolMiddlewareOptions: ToolMiddlewareOption[] = [
+  {
+    label: 'Prompt-based Tool Calling',
+    value: 'prompt',
+    tooltip: 'Uses prompt engineering to enable tool calling for models without native support'
+  },
+  {
+    label: 'Tool Rescue',
+    value: 'rescue',
+    tooltip: 'Automatically rescues failed tool calls and retries with improved prompts'
+  },
+  {
+    label: 'Gemma3-style Tool Calling',
+    value: 'gemma',
+    tooltip: 'Specialized tool calling format optimized for Gemma 3 models'
+  }
 ];
 
 /**

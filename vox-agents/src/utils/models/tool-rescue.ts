@@ -43,7 +43,7 @@ export function createToolPrompt(tool: (LanguageModelV2FunctionTool | LanguageMo
  * @param tools Array of tool definitions with names and schemas
  * @returns System prompt text instructing the model to use JSON format for tool calls
  */
-export function createToolPrompts(tools: (LanguageModelV2FunctionTool | LanguageModelV2ProviderDefinedTool)[], 
+export function createToolPrompts(tools: (LanguageModelV2FunctionTool | LanguageModelV2ProviderDefinedTool)[],
   choice: LanguageModelV2ToolChoice): string | undefined {
   // Format tools with their schemas
   const descriptions = tools.map(createToolPrompt).join('\n\n');
@@ -203,7 +203,7 @@ export function rescueToolCallsFromText(
 
     if (!patternFound) {
       if (Object.keys(toolCall).length > 0 && useJaison)
-         logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${jsonText}`);
+        logger.log("warn", `Failed to rescue tool call: no matching field pattern found from ${jsonText}`);
       continue;
     }
 
@@ -326,163 +326,175 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
     },
 
     wrapGenerate: async ({ doGenerate, params }) => {
-      // Execute the generation (params were already transformed if needed)
-      const result = await doGenerate();
-      params.tools = params.tools ?? (params as any).originalTools;
+      try {
+        // Execute the generation (params were already transformed if needed)
+        const result = await doGenerate();
+        params.tools = params.tools ?? (params as any).originalTools;
 
-      // Process the response to rescue tool calls from JSON text if we have tools but not tool calls
-      if (result.content.findIndex(content => content.type === "tool-call") === -1 && params.tools && params.tools.length > 0) {
-        // Extract tool names from the tool definitions
-        const toolNames = new Set(params.tools.map((tool) => tool.name));
-        const newContents: typeof result.content = [];
+        // Process the response to rescue tool calls from JSON text if we have tools but not tool calls
+        if (result.content.findIndex(content => content.type === "tool-call") === -1 && params.tools && params.tools.length > 0) {
+          // Extract tool names from the tool definitions
+          const toolNames = new Set(params.tools.map((tool) => tool.name));
+          const newContents: typeof result.content = [];
 
-        // Go through each text respose
-        result.content.forEach((content) => {
-          if (content.type === "text") {
-            const processed = rescueToolCallsFromText(content.text, toolNames);
-            // If tool calls were rescued, add them to the content array
-            if (processed.toolCalls.length > 0) {
-              // Remove the text that contained the tool calls if it was completely consumed
-              if (processed.remainingText) newContents.push({ type: 'text', text: processed.remainingText });
-              // Add the rescued tool calls to content
-              newContents.push(...processed.toolCalls);
-              result.finishReason = 'tool-calls';
-              return;
+          // Go through each text respose
+          result.content.forEach((content) => {
+            if (content.type === "text") {
+              const processed = rescueToolCallsFromText(content.text, toolNames);
+              // If tool calls were rescued, add them to the content array
+              if (processed.toolCalls.length > 0) {
+                // Remove the text that contained the tool calls if it was completely consumed
+                if (processed.remainingText) newContents.push({ type: 'text', text: processed.remainingText });
+                // Add the rescued tool calls to content
+                newContents.push(...processed.toolCalls);
+                result.finishReason = 'tool-calls';
+                return;
+              }
             }
-          }
-          newContents.push(content);
-        });
+            newContents.push(content);
+          });
 
-        // Update result with new contents
-        result.content = newContents;
+          // Update result with new contents
+          result.content = newContents;
+        }
+
+        return result;
+      } catch (error) {
+        // Re-throw the error to let the retry mechanism handle it
+        logger.error("Error in wrapGenerate middleware", error);
+        throw error;
       }
-
-      return result;
     },
 
     wrapStream: async ({ doStream, params }) => {
-      const { stream, ...rest } = await doStream();
-      params.tools = params.tools ?? (params as any).originalTools;
+      try {
+        const { stream, ...rest } = await doStream();
+        params.tools = params.tools ?? (params as any).originalTools;
 
-      // If we don't have tools, just pass through the stream
-      if (!params.tools || params.tools.length === 0) {
-        return { stream, ...rest };
-      }
+        // If we don't have tools, just pass through the stream
+        if (!params.tools || params.tools.length === 0) {
+          return { stream, ...rest };
+        }
 
-      // Extract tool names from the tool definitions
-      const toolNames = new Set(params.tools.map((tool) => tool.name));
+        // Extract tool names from the tool definitions
+        const toolNames = new Set(params.tools.map((tool) => tool.name));
 
-      // Track if we've already found tool calls
-      let toolCallsFound = false;
-      // Buffer for incomplete JSON
-      let incompleteBuffers: Record<string, string> = {};
+        // Track if we've already found tool calls
+        let toolCallsFound = false;
+        // Buffer for incomplete JSON
+        let incompleteBuffers: Record<string, string> = {};
 
-      const transformStream = new TransformStream<
-        LanguageModelV2StreamPart,
-        LanguageModelV2StreamPart
-      >({
-        transform(chunk, controller) {
-          switch (chunk.type) {
-            case "text-delta": {
-              // Process the incoming delta
-              let currentDelta = chunk.delta;
-              let incompleteBuffer = incompleteBuffers[chunk.id] ?? "";
+        const transformStream = new TransformStream<
+          LanguageModelV2StreamPart,
+          LanguageModelV2StreamPart
+        >({
+          transform(chunk, controller) {
+            switch (chunk.type) {
+              case "text-delta": {
+                // Process the incoming delta
+                let currentDelta = chunk.delta;
+                let incompleteBuffer = incompleteBuffers[chunk.id] ?? "";
 
-              // If we detect JSON start, add to buffer
-              if (incompleteBuffer === "") {
-                // Check for both { and [ as JSON start characters
-                const objStartIndex = currentDelta.indexOf('{');
-                const arrStartIndex = currentDelta.indexOf('[');
-                let jsonStartIndex = -1;
+                // If we detect JSON start, add to buffer
+                if (incompleteBuffer === "") {
+                  // Check for both { and [ as JSON start characters
+                  const objStartIndex = currentDelta.indexOf('{');
+                  const arrStartIndex = currentDelta.indexOf('[');
+                  let jsonStartIndex = -1;
 
-                // Find the first occurrence of either { or [
-                if (objStartIndex !== -1 && arrStartIndex !== -1) {
-                  jsonStartIndex = Math.min(objStartIndex, arrStartIndex);
-                } else if (objStartIndex !== -1) {
-                  jsonStartIndex = objStartIndex;
-                } else if (arrStartIndex !== -1) {
-                  jsonStartIndex = arrStartIndex;
-                }
+                  // Find the first occurrence of either { or [
+                  if (objStartIndex !== -1 && arrStartIndex !== -1) {
+                    jsonStartIndex = Math.min(objStartIndex, arrStartIndex);
+                  } else if (objStartIndex !== -1) {
+                    jsonStartIndex = objStartIndex;
+                  } else if (arrStartIndex !== -1) {
+                    jsonStartIndex = arrStartIndex;
+                  }
 
-                if (jsonStartIndex !== -1) {
-                  // Output text before JSON, start buffering from JSON
-                  chunk.delta = currentDelta.substring(0, jsonStartIndex);
-                  incompleteBuffer = currentDelta.substring(jsonStartIndex);
-                }
-              } else {
-                // Already buffering, add to buffer
-                incompleteBuffer += currentDelta;
-                chunk.delta = "";
-              }
-
-              // If we're already buffering or detect JSON start, add to buffer
-              if (incompleteBuffer !== "") {
-                // Try to rescue tool calls from accumulated buffer - strict first
-                const processed = rescueToolCallsFromText(incompleteBuffer, toolNames, false);
-                if (processed.toolCalls.length > 0) {
-                  toolCallsFound = true;
-                  // Emit remaining text if any
-                  if (processed.remainingText)
-                    chunk.delta = processed.remainingText;
-                  // Emit tool calls as proper stream chunks
-                  emitToolCallChunks(processed.toolCalls, controller);
-                  // Clear the buffer and stop buffering
-                  incompleteBuffers[chunk.id] = "";
+                  if (jsonStartIndex !== -1) {
+                    // Output text before JSON, start buffering from JSON
+                    chunk.delta = currentDelta.substring(0, jsonStartIndex);
+                    incompleteBuffer = currentDelta.substring(jsonStartIndex);
+                  }
                 } else {
-                  // Store the buffer in case we need to update it
-                  incompleteBuffers[chunk.id] = incompleteBuffer;
+                  // Already buffering, add to buffer
+                  incompleteBuffer += currentDelta;
+                  chunk.delta = "";
                 }
-              }
 
-              // Pass through the remaining text
-              if (chunk.delta !== "") controller.enqueue(chunk);
-              break;
-            }
-            case "text-end": {
-              // Text block ended, pass through
-              let incompleteBuffer = incompleteBuffers[chunk.id] ?? "";
-              if (incompleteBuffer !== "") {
-                // More lenient when the stream is finishing
-                const processed = rescueToolCallsFromText(incompleteBuffer, toolNames);
-                if (processed.toolCalls.length > 0) {
-                  toolCallsFound = true;
-                  // Emit remaining text if any
-                  emitRemainingText(processed.remainingText, controller, chunk.id);
-                  // Emit tool calls
-                  emitToolCallChunks(processed.toolCalls, controller);
-                } else {
-                  emitRemainingText(incompleteBuffer, controller, chunk.id);
+                // If we're already buffering or detect JSON start, add to buffer
+                if (incompleteBuffer !== "") {
+                  // Try to rescue tool calls from accumulated buffer - strict first
+                  const processed = rescueToolCallsFromText(incompleteBuffer, toolNames, false);
+                  if (processed.toolCalls.length > 0) {
+                    toolCallsFound = true;
+                    // Emit remaining text if any
+                    if (processed.remainingText)
+                      chunk.delta = processed.remainingText;
+                    // Emit tool calls as proper stream chunks
+                    emitToolCallChunks(processed.toolCalls, controller);
+                    // Clear the buffer and stop buffering
+                    incompleteBuffers[chunk.id] = "";
+                  } else {
+                    // Store the buffer in case we need to update it
+                    incompleteBuffers[chunk.id] = incompleteBuffer;
+                  }
                 }
+
+                // Pass through the remaining text
+                if (chunk.delta !== "") controller.enqueue(chunk);
+                break;
               }
-              controller.enqueue(chunk);
-              break;
-            }
-            case "finish": {
-              // Update finish reason if we found tool calls
-              if (toolCallsFound) {
-                controller.enqueue({
-                  ...chunk,
-                  finishReason: 'tool-calls'
-                });
-              } else {
+              case "text-end": {
+                // Text block ended, pass through
+                let incompleteBuffer = incompleteBuffers[chunk.id] ?? "";
+                if (incompleteBuffer !== "") {
+                  // More lenient when the stream is finishing
+                  const processed = rescueToolCallsFromText(incompleteBuffer, toolNames);
+                  if (processed.toolCalls.length > 0) {
+                    toolCallsFound = true;
+                    // Emit remaining text if any
+                    emitRemainingText(processed.remainingText, controller, chunk.id);
+                    // Emit tool calls
+                    emitToolCallChunks(processed.toolCalls, controller);
+                  } else {
+                    emitRemainingText(incompleteBuffer, controller, chunk.id);
+                  }
+                }
                 controller.enqueue(chunk);
+                break;
               }
-              break;
-            }
+              case "finish": {
+                // Update finish reason if we found tool calls
+                if (toolCallsFound) {
+                  controller.enqueue({
+                    ...chunk,
+                    finishReason: 'tool-calls'
+                  });
+                } else {
+                  controller.enqueue(chunk);
+                }
+                break;
+              }
 
-            default: {
-              // Pass through other chunks unchanged
-              controller.enqueue(chunk);
-              break;
+              default: {
+                // Pass through other chunks unchanged
+                controller.enqueue(chunk);
+                break;
+              }
             }
           }
-        }
-      });
+        });
 
-      return {
-        stream: stream.pipeThrough(transformStream),
-        ...rest,
-      };
+        return {
+          stream: stream.pipeThrough(transformStream),
+          ...rest,
+        };
+      } catch (error) {
+        // Re-throw the error to let the retry mechanism handle it
+        logger.error("Error in wrapStream middleware", error);
+        throw error;
+      }
     }
   };
 }

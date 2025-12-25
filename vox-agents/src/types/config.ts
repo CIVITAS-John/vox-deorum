@@ -11,13 +11,21 @@
 export type TransportType = 'stdio' | 'http';
 
 /**
+ * Tool middleware types for LLM configuration
+ */
+export type ToolMiddlewareType = 'prompt' | 'rescue' | 'gemma';
+
+/**
  * LLM model configuration for backend processing
  */
 export interface LLMConfig {
   id?: string;
   provider: string;
   name: string;
-  options?: Record<string, any>;
+  options?: {
+    toolMiddleware?: ToolMiddlewareType;
+    [key: string]: any;
+  };
 }
 
 /**

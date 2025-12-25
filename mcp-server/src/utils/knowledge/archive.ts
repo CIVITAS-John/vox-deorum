@@ -88,11 +88,11 @@ export async function findLatestSaveFile(): Promise<SaveFileInfo | null> {
 }
 
 /**
- * Archive the latest game save, replay, and database to a strategist-specific folder
+ * Archive the latest game save, replay, database, and telemetry to a strategist-specific folder
  */
 export async function archiveGameData(
   experimentOverride?: string
-): Promise<{ savePath: string, dbPath: string, replayPath?: string } | null> {
+): Promise<{ savePath: string, dbPath: string, replayPath?: string, telemetryPaths?: string[] } | null> {
   try {
     // Get the strategist name from metadata or use override/default
     const store = knowledgeManager.getStore();
@@ -137,6 +137,44 @@ export async function archiveGameData(
       // Continue even if database doesn't exist
     }
 
+    // Copy telemetry data files
+    const telemetryPaths: string[] = [];
+    const telemetrySourceDir = path.join('vox-agents', 'telemetry', experiment);
+
+    try {
+      await fs.access(telemetrySourceDir);
+      const telemetryFiles = await fs.readdir(telemetrySourceDir);
+
+      // Filter for telemetry database files matching the game ID pattern
+      const gameIdTelemetryFiles = telemetryFiles.filter(file => {
+        // Match files like: {gameId}-player-{playerId}.db (and their WAL/SHM files)
+        return file.startsWith(gameId) && file.endsWith('.db');
+      });
+
+      // Copy each telemetry file
+      for (const telemetryFile of gameIdTelemetryFiles) {
+        const sourcePath = path.join(telemetrySourceDir, telemetryFile);
+        const destPath = path.join(archivePath, telemetryFile);
+
+        try {
+          await fs.copyFile(sourcePath, destPath);
+          telemetryPaths.push(destPath);
+          logger.info(`Archived telemetry file: ${telemetryFile}`);
+        } catch (error) {
+          logger.warn(`Could not copy telemetry file: ${telemetryFile}`, error);
+        }
+      }
+
+      if (telemetryPaths.length > 0) {
+        logger.info(`Archived ${telemetryPaths.length} telemetry files`);
+      } else {
+        logger.warn(`No telemetry files found for game ID: ${gameId}`);
+      }
+    } catch (error) {
+      logger.error(`Telemetry directory not found or inaccessible: ${telemetrySourceDir}`);
+      // Continue even if telemetry doesn't exist
+    }
+
     // Copy the replay file if it exists
     let replayDest: string | undefined;
     const latestReplay = await findLatestReplayFile();
@@ -158,7 +196,8 @@ export async function archiveGameData(
     return {
       savePath: saveDest,
       dbPath: dbDest,
-      replayPath: replayDest
+      replayPath: replayDest,
+      telemetryPaths: telemetryPaths.length > 0 ? telemetryPaths : undefined
     };
   } catch (error) {
     logger.error('Error archiving game data:', error);

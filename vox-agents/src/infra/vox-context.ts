@@ -381,6 +381,8 @@ export class VoxContext<TParameters extends AgentParameters> {
             // Model settings
             model: getModel(stepModel),
             providerOptions: stepProviderOptions,
+            // Disable Vercel AI SDK's internal retry to let our exponentialRetry handle it
+            maxRetries: 0,
             // Abort signal for cancellation
             abortSignal: this.abortController.signal,
             // Current messages
@@ -395,7 +397,7 @@ export class VoxContext<TParameters extends AgentParameters> {
             // Stop after one step
             stopWhen: () => true,
             // Events
-            onChunk: callback?.OnChunk,
+            onChunk: callback?.OnChunk
           }).steps;
         }, this.logger);
         const stepResponse = stepResults[stepResults.length - 1];
