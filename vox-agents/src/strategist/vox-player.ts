@@ -97,10 +97,7 @@ export class VoxPlayer {
     return await context.with(trace.setSpan(context.active(), span), async () => {
       try {
         // Set the player's AI type
-        await Promise.all([
-          this.context.callTool("set-metadata", { Key: `experiment`, Value: this.playerConfig.strategist }, this.parameters),
-          this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.playerConfig.strategist }, this.parameters)
-        ]);
+        await this.context.callTool("set-metadata", { Key: `strategist-${this.playerID}`, Value: this.playerConfig.strategist }, this.parameters);
 
         // Resume the game in case the vox agent was aborted
         await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);

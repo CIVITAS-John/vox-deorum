@@ -238,6 +238,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       player.execute();
     }
 
+    await mcpClient.callTool("set-metadata", { Key: `experiment`, Value: this.config.name });
     if (this.config.autoPlay && params.turn === 0) {
       // Autoplay
       await setTimeout(3000);
