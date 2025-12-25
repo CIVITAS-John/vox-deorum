@@ -56,6 +56,8 @@ const PlayerDataSchema = z.object({
   GoldPerTurn: z.number().optional(),
   HappinessSituation: z.string().optional(),
   HappinessPercentage: z.number().optional(),
+  MilitaryUnits: z.number().optional(),
+  MilitarySupply: z.number().optional(),
   TourismPerTurn: z.number().optional(),
   CulturePerTurn: z.number().optional(),
   FaithPerTurn: z.number().optional(),
@@ -251,6 +253,10 @@ function postProcessData(
   delete summary.OutgoingTradeRoutes;
   delete summary.IncomingTradeRoutes;
   delete summary.Spies;
+
+  // Hide military supply
+  delete summary.MilitarySupply;
+  delete summary.MilitaryUnits;
 
   // Hide golden age if not in one
   if (summary.GoldenAge && !summary.GoldenAge.endsWith("turns remaining"))

@@ -144,6 +144,8 @@ export async function setupKnowledgeDatabase(
     .addColumn('PolicyBranches', 'text') // JSON object
     .addColumn('Technologies', 'integer', (col) => col.notNull())
     .addColumn('CurrentResearch', 'text') // Current technology being researched
+    .addColumn('MilitaryUnits', 'integer') // Current military units needing supply
+    .addColumn('MilitarySupply', 'integer') // Maximum supply capacity
     .addColumn('ResourcesAvailable', 'text')
     .addColumn('FoundedReligion', 'text')
     .addColumn('MajorityReligion', 'text')

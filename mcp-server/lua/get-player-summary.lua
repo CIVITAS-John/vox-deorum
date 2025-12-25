@@ -137,6 +137,8 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         SciencePerTurn = player:GetScience(),  -- Science per turn (only visible to team)
         Technologies = fromTeam:GetTeamTechs():GetNumTechsKnown() or 0,
         CurrentResearch = currentResearch,
+        MilitaryUnits = player:GetNumUnitsToSupply(),  -- Current military units needing supply
+        MilitarySupply = player:GetNumUnitsSupplied(),  -- Maximum supply capacity
         PolicyBranches = nil,  -- Will be populated if player has policies
         FoundedReligion = nil,  -- Will be populated if player founded religion
         MajorityReligion = player:GetStateReligionName(),
