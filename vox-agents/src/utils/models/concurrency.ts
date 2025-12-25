@@ -6,7 +6,7 @@
  */
 
 import pLimit from 'p-limit';
-import { streamText, StreamTextResult } from 'ai';
+import { streamText } from 'ai';
 import type { Logger } from 'winston';
 import { exponentialRetry } from '../retry.js';
 import type { Model } from '../../types/index.js';
@@ -41,15 +41,18 @@ function getModelLimiter(model: Model): ReturnType<typeof pLimit> {
 /**
  * Wrapper for streamText that adds per-model concurrency limiting and exponential retry.
  * This is a drop-in replacement for streamText that ensures only a limited number of
- * concurrent requests are made per model.
+ * concurrent requests are made per model. It also properly handles errors that occur
+ * during streaming by awaiting the steps Promise within the retry mechanism.
  *
  * @param params - Same parameters as streamText, but model must be a Model object from getModel()
  * @param logger - Winston logger for retry logging
- * @returns Promise that resolves to StreamTextResult
+ * @param awaitSteps - Whether to await the steps Promise within the retry (default: true)
+ * @returns Promise that resolves to either StreamTextResult or the resolved steps array
  *
  * @example
  * ```typescript
- * const result = await streamTextWithConcurrency({
+ * // Get the full result with steps awaited
+ * const stepResults = await streamTextWithConcurrency({
  *   model: getModel(stepModel),
  *   messages: messages,
  *   // ... other streamText parameters
@@ -59,7 +62,7 @@ function getModelLimiter(model: Model): ReturnType<typeof pLimit> {
 export async function streamTextWithConcurrency<T extends Parameters<typeof streamText>[0]>(
   params: T & { model: any }, // model is from getModel() which returns LanguageModel
   logger: Logger
-): Promise<Awaited<ReturnType<typeof streamText>>> {
+) {
   // Extract the model config from params
   // The model parameter comes from getModel(stepModel) where stepModel is our Model type
   // We need to get the original Model config to determine concurrency limits
@@ -72,7 +75,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
     : pLimit(3); // Default fallback
 
   // Wrap the streamText call with both concurrency limiting and exponential retry
-  return limiter(() =>
+  return limiter(async () =>
     exponentialRetry(async (update) => {
       // Call streamText with all the original parameters
       // Modify onChunk to call the update function for retry timeout reset
@@ -85,7 +88,11 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         }
       };
 
-      return streamText(modifiedParams);
+      const result = streamText(modifiedParams);
+      return {
+        ...result,
+        steps: await result.steps
+      };
     }, logger)
   );
 }

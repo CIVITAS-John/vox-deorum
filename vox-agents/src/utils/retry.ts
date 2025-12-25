@@ -72,6 +72,11 @@ export async function exponentialRetry<T>(
       // Check if error is explicitly marked as non-retryable
       const isNonRetryable = error && typeof error === 'object' && 'isRetryable' in error && error.isRetryable === false;
 
+      if (attempt === maxRetries) {
+        logger.warn(`Non-retryable error: ${lastError.message}`, lastError);
+        throw lastError;
+      }
+
       if (attempt === maxRetries || isNonRetryable) {
         throw lastError;
       }

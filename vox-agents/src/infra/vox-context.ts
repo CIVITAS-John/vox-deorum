@@ -376,6 +376,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         });
 
         // Execute a single step with concurrency limiting and retry
+        // The steps are already awaited within the retry mechanism to properly catch streaming errors
         const result = await streamTextWithConcurrency(
           withModelConfig({
             // Model settings
@@ -405,7 +406,8 @@ export class VoxContext<TParameters extends AgentParameters> {
         );
 
         if (this.abortController.signal.aborted) throw new Error("Operation aborted.");
-        const stepResults = await result.steps;
+        // Steps are already resolved by streamTextWithConcurrency
+        const stepResults = result.steps;
         const stepResponse = stepResults[stepResults.length - 1];
 
         // Update token usage
