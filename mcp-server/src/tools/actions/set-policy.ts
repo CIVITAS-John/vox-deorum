@@ -16,6 +16,7 @@ import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 const SetPolicyResultSchema = z.object({
   PreviousPolicy: z.number().optional(),
   PreviousBranch: z.number().optional(),
+  Next: z.number().optional(), // Used for validation failures
   // These properties are added by the execute method
   Previous: z.string().optional(),
   IsBranch: z.boolean().optional()
@@ -77,6 +78,28 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
   protected script = `
     local activePlayer = Players[playerID]
 
+    -- Validate that the policy/branch is available if not clearing
+    if not (policyID == -1 and branchID == -1) then
+      local possiblePolicies, possibleBranches = activePlayer:GetPossiblePolicies(true)
+      local isValid = false
+
+      -- Check if it's a valid policy
+      if policyID ~= -1 then
+        for _, id in ipairs(possiblePolicies) do
+          if id == policyID then isValid = true break end
+        end
+      end
+
+      -- Check if it's a valid branch
+      if branchID ~= -1 then
+        for _, id in ipairs(possibleBranches) do
+          if id == branchID then isValid = true break end
+        end
+      end
+
+      if not isValid then return { Next = -1 } end
+    end
+
     -- Get the previous forced policy (if any)
     -- GetNextPolicy returns (policyID, branchID)
     local prevPolicy, prevBranch = activePlayer:GetNextPolicy()
@@ -116,10 +139,8 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
       } else {
         // Try as an individual policy
         policyID = retrieveEnumValue("PolicyID", Policy);
-        if (policyID === -1) {
-          Policy = "None"
-        // throw new Error(`Policy or branch "${Policy}" not found. Please use a valid policy/branch name or 'None' to clear.`);
-        }
+        if (policyID === -1)
+          throw new Error(`Policy or branch "${Policy}" not found.`);
       }
     }
 
@@ -127,7 +148,9 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
     const result = await super.call(PlayerID, policyID, branchID);
 
     if (result.Success) {
-      const store = knowledgeManager.getStore();
+      // Check for validation failure
+      if (result.Result?.Next === -1)
+        throw new Error(`The policy "${Policy}" is not currently available for this player. Please check available options using get-options.`);
 
       // Convert the previous policy/branch IDs back to names
       if (result.Result) {
@@ -148,6 +171,7 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
       }
 
       // Store the policy decision in the knowledge database
+      const store = knowledgeManager.getStore();
       await store.storeMutableKnowledge(
         'PolicyChanges',
         PlayerID,

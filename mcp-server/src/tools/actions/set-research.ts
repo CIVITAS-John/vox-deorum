@@ -15,6 +15,7 @@ import { addReplayMessages } from "../../utils/lua/replay-messages.js";
  */
 const SetResearchResultSchema = z.object({
   Previous: z.number().optional(),
+  Next: z.number().optional(), // Used for validation failures
   // This property is added by the execute method
   PreviousTech: z.string().optional()
 });
@@ -74,6 +75,16 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
   protected script = `
     local activePlayer = Players[playerID]
 
+    -- Validate that the technology is available if not clearing (-1)
+    if techID ~= -1 then
+      local possibleTechs = activePlayer:GetPossibleTechs(true)
+      local isValid = false
+      for _, id in ipairs(possibleTechs) do
+        if id == techID then isValid = true break end
+      end
+      if not isValid then return { Next = -1 } end
+    end
+
     -- Get the previous forced research (if any)
     local previousTechID = activePlayer:GetNextResearch()
 
@@ -97,14 +108,16 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
     const techID = Technology.toLowerCase() === "none" ? -1 : retrieveEnumValue("TechID", Technology);
 
     if (techID === -1 && Technology.toLowerCase() !== "none") {
-      throw new Error(`Technology "${Technology}" not found. Please use a valid technology name or 'None' to clear.`);
+      throw new Error(`Technology "${Technology}" not found.`);
     }
 
     // Call the parent execute with the technology ID
     const result = await super.call(PlayerID, techID);
 
     if (result.Success) {
-      const store = knowledgeManager.getStore();
+      // Check for validation failure
+      if (result.Result?.Next === -1)
+        throw new Error(`Technology "${Technology}" is not currently available for this player.`);
 
       // Convert the previous tech ID back to a name
       if (result.Result?.Previous !== undefined) {
@@ -120,6 +133,7 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
       }
 
       // Store the research decision in the knowledge database
+      const store = knowledgeManager.getStore();
       await store.storeMutableKnowledge(
         'ResearchChanges',
         PlayerID,

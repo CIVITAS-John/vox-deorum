@@ -51,6 +51,7 @@
     "kysely": "^0.28.5",
     "mathjs": "^14.6.0",
     "node-ipc": "^9.2.1",
+    "p-limit": "^7.2.0",
     "p-queue": "^9.0.0",
     "pluralize-esm": "^9.0.5",
     "undici": "^7.16.0",

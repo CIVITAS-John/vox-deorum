@@ -6,13 +6,13 @@
  * Implements the agentic loop with tool calling, step preparation, and stop conditions.
  */
 
-import { Output, Tool, StepResult, ToolSet, ModelMessage, streamText, tool } from "ai";
+import { Output, Tool, StepResult, ToolSet, ModelMessage } from "ai";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
 import { getModel, buildProviderOptions } from "../utils/models/models.js";
 import { Model, StreamingEventCallback } from "../types/index.js";
-import { exponentialRetry } from "../utils/retry.js";
+import { streamTextWithConcurrency, withModelConfig } from "../utils/models/concurrency.js";
 import { v4 as uuidv4 } from 'uuid';
 import { trace, SpanStatusCode, context } from '@opentelemetry/api';
 import { spanProcessor } from '../instrumentation.js';
@@ -375,14 +375,13 @@ export class VoxContext<TParameters extends AgentParameters> {
           'step.messages': JSON.stringify(messages)
         });
 
-        // Execute a single step
-        const stepResults = (await exponentialRetry(async (update) => {
-          if (this.abortController.signal.aborted) return;
-          return await streamText({
+        // Execute a single step with concurrency limiting and retry
+        const result = await streamTextWithConcurrency(
+          withModelConfig({
             // Model settings
             model: getModel(stepModel),
             providerOptions: stepProviderOptions,
-            // Disable Vercel AI SDK's internal retry to let our exponentialRetry handle it
+            // Disable Vercel AI SDK's internal retry to let our wrapper handle it
             maxRetries: 0,
             // Abort signal for cancellation
             abortSignal: this.abortController.signal,
@@ -398,13 +397,15 @@ export class VoxContext<TParameters extends AgentParameters> {
             // Stop after one step
             stopWhen: () => true,
             // Events
-            onChunk: (args) => {
-              update();
+            onChunk: (args: any) => {
               callback?.OnChunk(args);
             }
-          }).steps;
-        }, this.logger))!;
+          }, stepModel),
+          this.logger
+        );
+
         if (this.abortController.signal.aborted) throw new Error("Operation aborted.");
+        const stepResults = await result.steps;
         const stepResponse = stepResults[stepResults.length - 1];
 
         // Update token usage
@@ -414,7 +415,7 @@ export class VoxContext<TParameters extends AgentParameters> {
 
         // Record step results in span
         const responses = stepResponse.response.messages;
-        responses.forEach(response => delete response.providerOptions);
+        responses.forEach((response: any) => delete response.providerOptions);
         stepSpan.setAttributes({
           'model': `${stepModel.provider}/${stepModel.name}@${stepModel.options?.["reasoningEffort"] ?? ""}`,
           'tokens.input': inputTokens,

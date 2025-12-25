@@ -24,6 +24,7 @@ export interface LLMConfig {
   name: string;
   options?: {
     toolMiddleware?: ToolMiddlewareType;
+    concurrencyLimit?: number;
     [key: string]: any;
   };
 }
