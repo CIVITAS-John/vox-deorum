@@ -15,7 +15,7 @@ import { Logger } from "winston";
  * @param initialDelay - Initial delay in milliseconds (default: 2000)
  * @param maxDelay - Maximum delay in milliseconds (default: 15000)
  * @param backoffFactor - Exponential backoff multiplier (default: 1.5)
- * @param executionTimeout - Maximum time to wait for each execution attempt in milliseconds (default: 300000 = 5 minutes)
+ * @param executionTimeout - Maximum time to wait after each progress update (default: 1 minute)
  * @returns The result of the successful function execution
  * @throws The last error if all retries are exhausted
  */
@@ -26,7 +26,7 @@ export async function exponentialRetry<T>(
   initialDelay: number = 2000,
   maxDelay: number = 15000,
   backoffFactor: number = 1.5,
-  executionTimeout: number = 120000 // 2 minutes
+  executionTimeout: number = 60000 // 1 minute
 ): Promise<T> {
   let lastError: Error;
   let delay = initialDelay;

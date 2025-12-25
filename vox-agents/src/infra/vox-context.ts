@@ -376,7 +376,8 @@ export class VoxContext<TParameters extends AgentParameters> {
         });
 
         // Execute a single step
-        const stepResults = await exponentialRetry(async (update) => {
+        const stepResults = (await exponentialRetry(async (update) => {
+          if (this.abortController.signal.aborted) return;
           return await streamText({
             // Model settings
             model: getModel(stepModel),
@@ -402,7 +403,8 @@ export class VoxContext<TParameters extends AgentParameters> {
               callback?.OnChunk(args);
             }
           }).steps;
-        }, this.logger);
+        }, this.logger))!;
+        if (this.abortController.signal.aborted) throw new Error("Operation aborted.");
         const stepResponse = stepResults[stepResults.length - 1];
 
         // Update token usage
