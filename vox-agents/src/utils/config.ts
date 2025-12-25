@@ -92,6 +92,10 @@ export const defaultConfig: VoxAgentsConfig = {
       provider: 'chutes',
       name: 'zai-org/GLM-4.6-TEE'
     },
+    'chutes/zai-org/glm-4.7': {
+      provider: 'chutes',
+      name: 'zai-org/GLM-4.7-TEE'
+    },
     'openai-compatible/gpt-oss-20b': {
       provider: 'openai-compatible',
       name: 'gpt-oss-120b',
