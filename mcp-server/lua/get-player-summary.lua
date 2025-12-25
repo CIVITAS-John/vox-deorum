@@ -131,7 +131,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         GoldPerTurn = player:CalculateGoldRate(),
         HappinessPercentage = player:GetExcessHappiness(),  -- Excess happiness (can be negative)
         GoldenAge = goldenAge,  -- Golden Age status (e.g., "5 turns remaining", "Estimated in 8 turns", "Need More Happiness")
-        TourismPerTurn = player:GetTourismPerTurnIncludingInstantTimes100() / 100,
+        TourismPerTurn = player:GetTourism(), -- Raw tourism output
         CulturePerTurn = player:GetTotalJONSCulturePerTurn(),  -- Culture per turn (visible to met players)
         FaithPerTurn = player:GetTotalFaithPerTurn(),  -- Faith per turn (only visible to team)
         SciencePerTurn = player:GetScience(),  -- Science per turn (only visible to team)

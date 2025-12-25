@@ -204,21 +204,30 @@ if culturalVictory and Game:IsVictoryValid(culturalVictory.ID) then
               local iTrend = player:GetInfluenceTrend(otherPlayerID)
               local trendText = ""
 
+              -- Calculate trending percentage (tourism per turn / their culture per turn)
+              local tourismPerTurn = player:GetTourismPerTurnIncludingInstantTimes100(otherPlayerID)
+              local culturePerTurn = otherPlayer:GetTotalJONSCulturePerTurn()
+              local trendingPercent = 0
+
+              if culturePerTurn > 0 then
+                trendingPercent = math.floor((tourismPerTurn / culturePerTurn))
+              end
+
               if iTrend == InfluenceLevelTrend.INFLUENCE_TREND_FALLING then
-                trendText = "Falling"
+                trendText = string.format("Falling (tourism/culture ratio %d%%)", trendingPercent)
               elseif iTrend == InfluenceLevelTrend.INFLUENCE_TREND_STATIC then
-                trendText = "Static"
+                trendText = string.format("Static (tourism/culture ratio %d%%)", trendingPercent)
               elseif iTrend == InfluenceLevelTrend.INFLUENCE_TREND_RISING then
                 local turnsToInfluential = player:GetTurnsToInfluential(otherPlayerID)
                 -- Check if rising slowly or normal rising
                 if turnsToInfluential >= 999 then
-                  trendText = "Rising Slowly"
+                  trendText = string.format("Rising Slowly (tourism/culture ratio %d%%)", trendingPercent)
                 else
                   -- Add turns to influential if not already influential
                   if influenceLevel < InfluenceLevelTypes.INFLUENCE_LEVEL_INFLUENTIAL then
-                    trendText = string.format("Rising (%d turns to Influential)", turnsToInfluential)
+                    trendText = string.format("Rising (%d turns to Influential, tourism/culture ratio %d%%)", turnsToInfluential, trendingPercent)
                   else
-                    trendText = "Rising"
+                    trendText = string.format("Rising (tourism/culture ratio %d%%)", trendingPercent)
                   end
                 end
               end
