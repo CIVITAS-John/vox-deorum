@@ -139,7 +139,7 @@ export async function archiveGameData(
 
     // Copy telemetry data files
     const telemetryPaths: string[] = [];
-    const telemetrySourceDir = path.join('vox-agents', 'telemetry', experiment);
+    const telemetrySourceDir = path.join('vox-agents', 'telemetry');
 
     try {
       await fs.access(telemetrySourceDir);
