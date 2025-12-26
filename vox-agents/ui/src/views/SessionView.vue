@@ -320,6 +320,10 @@ onUnmounted(() => {
 
       <div class="data-table">
         <!-- Session Details Table -->
+        <div class="table-row" v-if="sessionStatus.session.config?.name">
+          <div class="col-fixed-150">Configuration</div>
+          <div class="col-expand">{{ sessionStatus.session.config.name }}</div>
+        </div>
         <div class="table-row">
           <div class="col-fixed-150">Session ID</div>
           <div class="col-expand">{{ sessionStatus.session.id }}</div>

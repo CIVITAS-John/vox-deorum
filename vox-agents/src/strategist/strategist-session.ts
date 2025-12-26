@@ -257,10 +257,7 @@ Game.SetAIAutoPlay(2000, -1);`
   }
 
   private async handleDLLConnected(params: any): Promise<void> {
-    const recovering = this.state === 'recovering';
-
     if (this.state === 'recovering') {
-      this.lastGameState = 'running';
       logger.info('Game successfully recovered from crash');
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
       if (this.config.autoPlay) {
@@ -269,8 +266,7 @@ Game.SetAIAutoPlay(2000, -1);`
       }
     }
     
-    if (this.state === 'starting')
-      this.onStateChange('running');
+    this.onStateChange('running');
   }
 
   private async handlePlayerVictory(params: any): Promise<void> {
@@ -326,6 +322,7 @@ Game.SetAIAutoPlay(2000, -1);`
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
     this.lastGameState = 'crashed';
+    this.onStateChange('error');
 
     // Check if we've exceeded recovery attempts
     if (this.crashRecoveryAttempts >= this.MAX_RECOVERY_ATTEMPTS) {
