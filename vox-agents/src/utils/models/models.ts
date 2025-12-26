@@ -193,6 +193,29 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
     };
   }
 
+  // Handle Anthropic's reasoning format
+  if (model.provider === 'anthropic' && model.options.reasoningEffort && model.options.reasoningEffort !== "minimal") {
+    const { reasoningEffort, ...otherOptions } = model.options;
+    let budget = 1024;
+    switch (model.options.reasoningEffort) {
+      case 'low':
+        budget = 1024;
+        break;
+      case 'medium':
+        budget = 4096;
+        break;
+      case 'high':
+        budget = 8192;
+        break;
+    }
+    return {
+      anthropic: {
+        ...otherOptions,
+        thinking: { type: 'enabled', budgetTokens: budget }
+      }
+    };
+  }
+
   // Default: pass options through as-is
   return {
     [model.provider]: model.options

@@ -412,7 +412,7 @@ export class VoxContext<TParameters extends AgentParameters> {
 
         // Update token usage
         const inputTokens = countMessagesTokens(messages, false);
-        const reasoningTokens = countMessagesTokens(stepResponse.response.messages, true);
+        const reasoningTokens = Math.max(countMessagesTokens(stepResponse.response.messages, true), stepResponse.usage.reasoningTokens ?? 0);
         const outputTokens = countMessagesTokens(stepResponse.response.messages, false);
 
         // Record step results in span

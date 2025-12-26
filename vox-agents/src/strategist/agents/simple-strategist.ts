@@ -11,6 +11,8 @@ import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
+import { getModelConfig } from "../../utils/models/models.js";
+import { Model } from "../../types/index.js";
 
 /**
  * A simple strategist agent that analyzes the game state and sets an appropriate strategy.
@@ -140,5 +142,16 @@ ${jsonToMarkdown(state.events)}
 You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.YouAre!.Name}, Player ${parameters.playerID ?? 0}), are making strategic decisions after turn ${parameters.turn}.
 `.trim()
     }];
+  }
+
+  /**
+   * Gets the language model to use for this agent execution.
+   * Can return undefined to use the default model from VoxContext.
+   * 
+   * @param parameters - The execution parameters
+   * @returns The language model to use, or undefined for default
+   */
+  public getModel(_parameters: StrategistParameters, _input: unknown, overrides: Record<string, Model | string>): Model {
+    return getModelConfig(this.name, "medium", overrides);
   }
 }
