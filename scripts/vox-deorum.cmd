@@ -7,31 +7,34 @@ setlocal enabledelayedexpansion
 :: Available modes: webui, briefer, strategist
 :: Example: vox-deorum.cmd --strategist --verbose --debug
 
-:: Check if npm is in PATH
-where npm >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [ERROR] npm not found in PATH. Checking for local node/ folder...
+:: Configure Node.js (prefer bundled over system)
+set "BUNDLED_NODE=%~dp0..\node"
+set "NODE_FOUND="
 
-    :: Check if node/ folder exists in the script directory
-    if exist "%~dp0..\node\" (
-        echo [INFO] Found local node/ folder. Adding to PATH temporarily...
-        set "PATH=%~dp0..\node;%PATH%"
-
-        :: Verify npm is now accessible
-        where npm >nul 2>&1
-        if !errorlevel! neq 0 (
-            echo [ERROR] npm not found in local node/ folder.
-            echo [ERROR] Please ensure Node.js is installed or a portable node/ folder exists.
-            pause
-            exit /b 1
-        )
-        echo [INFO] Successfully added local node/ to PATH.
-    ) else (
-        echo [ERROR] Local node/ folder not found at: %~dp0..\node\
-        echo [ERROR] Please install Node.js or provide a portable Node.js installation in the node/ folder.
-        pause
-        exit /b 1
+:: Try bundled Node.js first
+if exist "%BUNDLED_NODE%\npm.cmd" (
+    "%BUNDLED_NODE%\npm.cmd" --version >nul 2>&1
+    if !errorlevel! equ 0 (
+        set "PATH=%BUNDLED_NODE%;%PATH%"
+        set "NODE_FOUND=bundled"
+        echo [INFO] Using bundled Node.js
     )
+)
+
+:: Fall back to system Node.js
+if not defined NODE_FOUND (
+    where npm >nul 2>&1
+    if !errorlevel! equ 0 (
+        set "NODE_FOUND=system"
+        echo [INFO] Using system Node.js
+    )
+)
+
+:: Exit if no Node.js found
+if not defined NODE_FOUND (
+    echo [ERROR] Node.js not found. Install it or place a portable version in: %BUNDLED_NODE%
+    pause
+    exit /b 1
 )
 
 set "VOX_MODE=%~1"
