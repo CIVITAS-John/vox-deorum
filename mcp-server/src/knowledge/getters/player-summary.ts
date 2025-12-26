@@ -7,6 +7,7 @@ import { LuaFunction } from '../../bridge/lua-function.js';
 import { PlayerSummary } from '../schema/timed.js';
 import { getEraName } from '../../utils/database/enums.js';
 import { knowledgeManager } from '../../server.js';
+import { stripTags } from '../../utils/database/localized.js';
 
 /**
  * Lua function that extracts player summary information from the game
@@ -28,9 +29,38 @@ export async function getPlayerSummaries(saving: boolean = true): Promise<Select
     return [];
   const store = knowledgeManager.getStore();
 
-  // Process era names for all summaries
+  // Process all summaries
   for (var summary of response.result) {
+    // Era names
     summary.Era = getEraName(summary.Era);
+    // Quests
+    if (summary.Quests) {
+      for (var key of Object.keys(summary.Quests)) {
+        const questLines = (summary.Quests[key] as string)
+          .split("[NEWLINE]")
+          .filter(line => line)
+          .map(line => stripTags(line)
+            .replace(/^(Global Quests:|Personal Quests:|Other Information:)\s*/i, "")
+            .trim())
+          .filter(line => line !== "");
+        const quests: string[] = [];
+        let currentQuest = "";
+        let seenAsterick = false;
+        for (var line of questLines) {
+          const asterick = line.startsWith("*");
+          if (!asterick && seenAsterick) {
+            quests.push(currentQuest);
+            currentQuest = line;
+          } else {
+            currentQuest += " " + line;
+          }
+          seenAsterick = asterick;
+        }
+        if (currentQuest !== "")
+          quests.push(currentQuest);
+        summary.Quests[key] = quests;
+      }
+    }
   }
 
   // Store all summaries in batch if saving is enabled

@@ -70,6 +70,7 @@ const PlayerDataSchema = z.object({
   OutgoingTradeRoutes: z.record(z.string(), z.union([z.string(), z.record(z.string(), z.any())])).optional(),
   IncomingTradeRoutes: z.record(z.string(), z.union([z.string(), z.record(z.string(), z.any())])).optional(),
   Spies: z.record(z.string(), z.record(z.string(), z.any())).optional(),
+  Quests: z.array(z.string()).optional(),
 }).passthrough();
 
 /**
@@ -318,6 +319,11 @@ function postProcessData(
     delete summary.FaithPerTurn;
     delete summary.SciencePerTurn;
     delete summary.TourismPerTurn;
+    if (viewingPlayerID !== -1 && summary.Quests)
+      summary.Quests = (summary.Quests as any)[`Player${viewingPlayerID}`];
+    else delete summary.Quests;
+  } else {
+    delete summary.Quests;
   }
   return summary;
 }

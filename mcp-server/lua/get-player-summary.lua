@@ -1,3 +1,5 @@
+include("CityStateStatusHelper")
+
 -- Extract player summary information from the game
 -- Returns summary data with relative visibility between all players
 
@@ -533,6 +535,22 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         end
       end
       summary.ResourcesAvailable = availableResources
+
+      -- Get active quests for this city-state
+      local quests = {}
+
+      -- Get quest information for each major player
+      for majorID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
+        local major = Players[majorID]
+        if major and major:IsAlive() then
+          -- Get the quest tooltip text for this major player
+          local fieldName = "Player" .. majorID
+          local questTooltip = GetActiveQuestToolTip(majorID, playerID)
+          quests[fieldName] = questTooltip
+        end
+      end
+
+      summary.Quests = quests
       
       -- Add relative visibility to all other players
       for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do

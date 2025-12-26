@@ -153,6 +153,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('OutgoingTradeRoutes', 'text')
     .addColumn('IncomingTradeRoutes', 'text')
     .addColumn('Spies', 'text')
+    .addColumn('Quests', 'text')
     .execute();
   // Create indexes for PlayerSummaries table
   await createMutableKnowledgeIndexes(db, 'PlayerSummaries');
