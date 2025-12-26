@@ -577,6 +577,13 @@ if !errorlevel! equ 0 (
             echo   Error level: !errorlevel!
         )
         popd
+        
+        if exist "!PROJECT_ROOT!\vox-agents\ui\package.json" (
+            echo   Installing WebUI dependencies...
+            pushd "!PROJECT_ROOT!\vox-agents\ui"
+            call npm install
+            popd
+        )
 
         :: Setup .env file if it doesn't exist
         if exist "!PROJECT_ROOT!\vox-agents\.env.default" (
@@ -589,39 +596,6 @@ if !errorlevel! equ 0 (
             ) else (
                 echo   [OK] .env file already exists
             )
-        )
-    ) else (
-        echo   [WARN] Root package.json not found at !PROJECT_ROOT!
-        echo   Attempting legacy installation method...
-
-        :: Fallback to individual installations if root package.json doesn't exist
-        if exist "!PROJECT_ROOT!\bridge-service\package.json" (
-            echo   Installing bridge-service dependencies...
-            pushd "!PROJECT_ROOT!\bridge-service"
-            call npm install
-            popd
-        )
-
-        if exist "!PROJECT_ROOT!\mcp-server\package.json" (
-            echo   Installing mcp-server dependencies...
-            pushd "!PROJECT_ROOT!\mcp-server"
-            call npm install
-            popd
-        )
-
-        if exist "!PROJECT_ROOT!\vox-agents\package.json" (
-            echo   Installing vox-agents dependencies...
-            pushd "!PROJECT_ROOT!\vox-agents"
-            call npm install
-
-            :: Setup .env file if it doesn't exist
-            if exist ".env.default" (
-                if not exist ".env" (
-                    copy /Y ".env.default" ".env" >nul 2>&1
-                    set "ENV_CREATED=1"
-                )
-            )
-            popd
         )
     )
 )
