@@ -314,7 +314,7 @@ export class DatabaseManager {
         return hadToWait;
       } catch (error) {
         hadToWait = true;
-        logger.warn(`Table ${tableName} not found yet, waiting 10 seconds...`);
+        logger.warn(`Table ${tableName} not found yet, waiting for the game and mod to load...`);
         await new Promise(resolve => setTimeout(resolve, 10000));
       }
     }

@@ -139,7 +139,7 @@ export class DLLConnector extends EventEmitter {
         }).on('error', (error: any) => {
           if (!this.connected) {
             // For initial connection failures, also start reconnection attempts
-            logger.warn(`Failed to connect to DLL: ${error.message || error}, reconnecting...`);
+            logger.warn(`Could not connect to DLL: ${error.message || error}, waiting for the game and mod to load...`);
             this.handleDisconnection();
             resolve(false);
           } else {
