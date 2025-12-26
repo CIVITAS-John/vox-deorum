@@ -77,6 +77,8 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
   // Wrap the streamText call with both concurrency limiting and exponential retry
   return limiter(async () =>
     exponentialRetry(async (update) => {
+      if (params.abortSignal?.aborted) return;
+      
       // Call streamText with all the original parameters
       // Modify onChunk to call the update function for retry timeout reset
       const originalOnChunk = params.onChunk;

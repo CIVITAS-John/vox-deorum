@@ -405,7 +405,7 @@ export class VoxContext<TParameters extends AgentParameters> {
           this.logger
         );
 
-        if (this.abortController.signal.aborted) throw new Error("Operation aborted.");
+        if (!result || this.abortController.signal.aborted) throw new Error("Operation aborted.");
         // Steps are already resolved by streamTextWithConcurrency
         const stepResults = result.steps;
         const stepResponse = stepResults[stepResults.length - 1];
