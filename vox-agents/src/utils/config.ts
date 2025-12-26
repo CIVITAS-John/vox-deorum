@@ -79,7 +79,7 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'anthropic/claude-sonnet-4-5': {
       provider: 'anthropic',
-      name: 'claude-sonnet-4-59'
+      name: 'claude-sonnet-4-5'
     },
     'chutes/openai/gpt-oss-120b': {
       provider: 'chutes',
