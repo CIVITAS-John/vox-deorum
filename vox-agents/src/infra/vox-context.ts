@@ -391,7 +391,7 @@ export class VoxContext<TParameters extends AgentParameters> {
             // Tools
             tools: this.tools,
             activeTools: stepActiveTools,
-            toolChoice: stepToolChoice,
+            toolChoice: stepModel.provider === "anthropic" && stepToolChoice === "required" ? "auto" : stepToolChoice,
             experimental_context: parameters,
             // Output schema for tool as agent
             experimental_output: stepOutputSchema ? Output.object({ schema: stepOutputSchema }) : undefined,
@@ -411,7 +411,7 @@ export class VoxContext<TParameters extends AgentParameters> {
         const stepResponse = stepResults[stepResults.length - 1];
 
         // Update token usage
-        const inputTokens = countMessagesTokens(messages, false);
+        const inputTokens = Math.max(countMessagesTokens(messages, false), stepResponse.usage.inputTokens ?? 0);
         const reasoningTokens = Math.max(countMessagesTokens(stepResponse.response.messages, true), stepResponse.usage.reasoningTokens ?? 0);
         const outputTokens = countMessagesTokens(stepResponse.response.messages, false);
 
