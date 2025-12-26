@@ -13,11 +13,14 @@ set "NODE_FOUND="
 
 :: Try bundled Node.js first
 if exist "%BUNDLED_NODE%\npm.cmd" (
-    "%BUNDLED_NODE%\npm.cmd" --version >nul 2>&1
+    echo [DEBUG] Found bundled npm.cmd at %BUNDLED_NODE%\npm.cmd
+    call "%BUNDLED_NODE%\npm.cmd" --version >nul 2>&1
     if !errorlevel! equ 0 (
         set "PATH=%BUNDLED_NODE%;%PATH%"
         set "NODE_FOUND=bundled"
         echo [INFO] Using bundled Node.js
+    ) else (
+        echo [DEBUG] Bundled npm.cmd test failed with errorlevel !errorlevel!
     )
 )
 
