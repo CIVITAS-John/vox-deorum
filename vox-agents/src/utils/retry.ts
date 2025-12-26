@@ -73,7 +73,7 @@ export async function exponentialRetry<T>(
       const isNonRetryable = error && typeof error === 'object' && 'isRetryable' in error && error.isRetryable === false;
 
       if (attempt === maxRetries) {
-        logger.warn(`Non-retryable error: ${lastError.message}`, lastError);
+        logger.warn(`Non-retryable error`, lastError);
         throw lastError;
       }
 
@@ -82,7 +82,7 @@ export async function exponentialRetry<T>(
       }
 
       // Log retry attempt
-      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error: ${lastError.message}`, lastError);
+      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error`, lastError);
 
       // Calculate next delay with exponential backoff
       const currentDelay = Math.min(delay, maxDelay);
