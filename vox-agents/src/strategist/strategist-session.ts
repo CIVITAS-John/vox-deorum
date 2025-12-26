@@ -204,6 +204,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     const player = this.activePlayers.get(params.playerID);
     if (player) {
       this.lastGameState = 'running';
+      this.onStateChange('running');
       this.turn = params.turn;  // Update current turn
       if (player.notifyTurn(params.turn, params.latestID))
         this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 0.5);
@@ -214,6 +215,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     // If in wait mode and this is the initial game load, treat it like load mode
     if (this.config.gameMode === 'wait' && this.lastGameState === 'initializing') {
       this.lastGameState = 'running';
+      this.onStateChange('running');
     }
 
     // If nothing is changing, ignore this
