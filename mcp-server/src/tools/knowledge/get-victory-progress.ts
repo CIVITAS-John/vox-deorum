@@ -134,8 +134,8 @@ function parseVictoryField(
     try {
       parsed = JSON.parse(field);
     } catch {
-      // Not JSON, return as-is (status string like "Not available")
-      return field;
+      // Not JSON, return as a simple string array (status string like "Not available")
+      return [field];
     }
   }
 
