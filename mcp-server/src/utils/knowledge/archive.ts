@@ -148,7 +148,7 @@ export async function archiveGameData(
       // Filter for telemetry database files matching the game ID pattern
       const gameIdTelemetryFiles = telemetryFiles.filter(file => {
         // Match files like: {gameId}-player-{playerId}.db (and their WAL/SHM files)
-        return file.startsWith(gameId) && file.endsWith('.db');
+        return path.basename(file).startsWith(gameId) && file.endsWith('.db');
       });
 
       // Copy each telemetry file
