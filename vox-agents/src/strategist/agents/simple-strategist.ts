@@ -57,6 +57,7 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
 - Each turn, you must call either \`set-strategy\` or \`keep-status-quo\` tool. 
  - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
  - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
+ - Strategies change the weight of the in-game AI. Their impact (and therefore, yours) is often not immediate.
 - Always provide a rationale for each decision. You will be able to read the rationale next turn.
 
 # Resources
@@ -77,7 +78,7 @@ You will receive the following reports:
 - Players: summary reports about visible players in the world. Also:
  - You will receive in-game AI's diplomatic evaluations.
  - You will receive each player's publicly available relationships.
- - Pay attention to master/vassal relationships. If you are a vassal, you cannot achieve a conquest victory before independence.
+ - Pay attention to master/vassal relationships. If you are a vassal, you cannot achieve a domination victory before independence.
 - Cities: summary reports about discovered cities in the world.
 - Military: summary reports about tactical zones and visible units.
  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
