@@ -153,7 +153,14 @@ export class DLLConnector extends EventEmitter {
             try {
               const trimmed = item.trim();
               if (trimmed == "") return;
-              const jsonData = JSON.parse(trimmed);
+              // Sanitize control characters that may not be properly escaped by the DLL
+              // This escapes all control chars (0x00-0x1F) as Unicode escape sequences
+              const sanitized = trimmed.replace(/[\x00-\x1f]/g, (char) => {
+                // Allow \t, \n, \r if they're already escaped (preceded by backslash)
+                // But since we're replacing raw chars, we escape them all
+                return '\\u' + ('0000' + char.charCodeAt(0).toString(16)).slice(-4);
+              });
+              const jsonData = JSON.parse(sanitized);
               this.handleMessage(jsonData);
             } catch (error) {
               logger.error('Failed to process JSON data:', error);
