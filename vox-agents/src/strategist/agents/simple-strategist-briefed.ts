@@ -69,6 +69,12 @@ You will receive:
  - You will receive options and short descriptions for each type of decision.
  - Whatever decision-making tool you call, the in-game AI can only execute options here.
  - You must choose options from the relevant lists. Double-check if your choices match.
+- Victory Progress: current progress towards each type of victory.
+ - Domination Victory: Control or vassalize all original capitals.
+ - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
+ - Cultural Victory: Accumulate tourism (that outpaces other civilizations' culture) to influence all others.
+ - Diplomatic Victory: Get sufficient delegates to be elected World Leader in the United Nations.
+ - Time Victory: If no one achieves any other victory by the end of the game, the civilization with the highest score wins.
 - Briefing: prepared by your briefer, summarizing the current game situation.
   - You will make independent and wise judgment.`.trim()
   }
@@ -105,6 +111,11 @@ ${jsonToMarkdown(YouAre)}`.trim()
       content: `
 # Strategies and Options
 ${jsonToMarkdown(state.options)}
+
+# Victory Progress
+Victory Progress: current progress towards each type of victory.
+
+${jsonToMarkdown(state.victory)}
 
 # Briefings
 ${instruction ? `Produced with your instruction: **${instruction}**\n` : ""}${briefing}
