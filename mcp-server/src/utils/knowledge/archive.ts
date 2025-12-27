@@ -143,7 +143,7 @@ export async function archiveGameData(
 
     try {
       await fs.access(telemetrySourceDir);
-      const telemetryFiles = await fs.readdir(telemetrySourceDir);
+      const telemetryFiles = await fs.readdir(telemetrySourceDir, { recursive: true });
 
       // Filter for telemetry database files matching the game ID pattern
       const gameIdTelemetryFiles = telemetryFiles.filter(file => {
