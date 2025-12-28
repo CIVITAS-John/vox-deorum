@@ -99,7 +99,6 @@ Name: "{app}\node"
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\scripts\vox-deorum.cmd"; IconFilename: "{app}\scripts\vox-deorum.ico"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\scripts\vox-deorum.cmd"; IconFilename: "{app}\scripts\vox-deorum.ico"; Tasks: desktopicon
-Name: "{autodesktop}\{#MyAppName} Configuration"; Filename: "notepad.exe"; Parameters: "{app}\vox-agents\.env"; IconFilename: "{app}\scripts\vox-deorum.ico"; Tasks: desktopicon
 
 ; [Registry] section removed - no PATH modification needed since we use portable Node.js
 
