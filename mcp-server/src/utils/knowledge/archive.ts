@@ -154,7 +154,7 @@ export async function archiveGameData(
       // Copy each telemetry file
       for (const telemetryFile of gameIdTelemetryFiles) {
         const sourcePath = path.join(telemetrySourceDir, telemetryFile);
-        const destPath = path.join(archivePath, telemetryFile);
+        const destPath = path.join(archivePath, path.basename(telemetryFile));
 
         try {
           await fs.copyFile(sourcePath, destPath);
