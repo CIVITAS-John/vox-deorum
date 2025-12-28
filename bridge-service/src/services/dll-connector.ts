@@ -86,6 +86,7 @@ export class DLLConnector extends EventEmitter {
   private pendingRequests: Map<string, PendingRequest> = new Map();
   private reconnectAttempts: number = 0;
   private reconnectTimer?: NodeJS.Timeout;
+  private messageBuffer: string = ''; // Buffer for incomplete messages
 
   constructor() {
     super();
@@ -146,26 +147,35 @@ export class DLLConnector extends EventEmitter {
             logger.error('IPC error:', error);
           }
         }).on('data', (data: Buffer) => {
-          // Parse into JSON
-          const datas = data.toString().split("!@#$%^!");
-          logger.debug('Received data: ' + data.toString());
-          datas.forEach(item => {
-            try {
-              const trimmed = item.trim();
-              if (trimmed == "") return;
-              // Sanitize control characters that may not be properly escaped by the DLL
-              // This escapes all control chars (0x00-0x1F) as Unicode escape sequences
-              const sanitized = trimmed.replace(/[\x00-\x1f]/g, (char) => {
-                // Allow \t, \n, \r if they're already escaped (preceded by backslash)
-                // But since we're replacing raw chars, we escape them all
-                return '\\u' + ('0000' + char.charCodeAt(0).toString(16)).slice(-4);
-              });
-              const jsonData = JSON.parse(sanitized);
-              this.handleMessage(jsonData);
-            } catch (error) {
-              logger.error('Failed to process JSON data:', error);
+          // Add incoming data to the buffer
+          this.messageBuffer += data.toString();
+
+          // Process all complete messages (those ending with delimiter)
+          const delimiter = '!@#$%^!';
+          let delimiterIndex = this.messageBuffer.indexOf(delimiter);
+
+          while (delimiterIndex !== -1) {
+            // Extract the complete message (without delimiter)
+            const message = this.messageBuffer.substring(0, delimiterIndex);
+
+            // Remove the processed message and delimiter from buffer
+            this.messageBuffer = this.messageBuffer.substring(delimiterIndex + delimiter.length);
+
+            // Process the message if not empty
+            if (message.trim()) {
+              logger.debug('Received message: ' + message);
+              this.handleMessage(message);
             }
-          })
+
+            // Look for the next delimiter
+            delimiterIndex = this.messageBuffer.indexOf(delimiter);
+          }
+
+          // Any remaining data in the buffer is an incomplete message
+          // It will be processed when the rest arrives
+          if (this.messageBuffer.length > 0) {
+            logger.debug(`Buffering incomplete message (${this.messageBuffer.length} bytes)`);
+          }
         });
       });
     });
@@ -174,19 +184,22 @@ export class DLLConnector extends EventEmitter {
   /**
    * Handle incoming messages
    */
-  private handleMessage(message: any): void {
+  private handleMessage(message: string): void {
     try {
       // Parse message if it's a string
       let data: any;
-      if (typeof message === 'string') {
-        try {
-          data = JSON.parse(message);
-        } catch (parseError) {
-          logger.error('Failed to parse JSON message from DLL:' + parseError, message);
-          return;
-        }
-      } else {
-        data = message;
+      try {
+        // Sanitize control characters that may not be properly escaped by the DLL
+        // This escapes all control chars (0x00-0x1F) as Unicode escape sequences
+        // TODO: Fix the DLL
+        const sanitized = message.trim().replace(/[\x00-\x1f]/g, (char) => {
+          return '\\u' + ('0000' + char.charCodeAt(0).toString(16)).slice(-4);
+        });
+        if (sanitized === "") return;
+        data = JSON.parse(sanitized);
+      } catch (parseError) {
+        logger.error('Failed to parse JSON message from DLL:' + parseError, message);
+        return;
       }
       // Route based on message type
       switch (data.type) {
@@ -225,7 +238,10 @@ export class DLLConnector extends EventEmitter {
    */
   private handleDisconnection(): void {
     this.connected = false;
-    
+
+    // Clear the message buffer on disconnection
+    this.messageBuffer = '';
+
     // Reject all pending requests
     if (this.shuttingDown) return;
     // Prevent parallel reconnection attempts
