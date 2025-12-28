@@ -357,23 +357,28 @@ begin
       if not DirExists(ModsPath) then
         CreateDir(ModsPath);
 
-      // Always delete and update Community Patch and Vox Deorum (required for functionality)
-      DelTree(ModsPath + '\(1) Community Patch', True, True, True);
-      DelTree(ModsPath + '\(1b) Vox Deorum', True, True, True);
-
-      // Copy Community Patch and Vox Deorum mods (always required)
-      Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-dll\(1) Community Patch') + '" "' + ModsPath + '\(1) Community Patch"',
-           '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-mod') + '" "' + ModsPath + '\(1b) Vox Deorum"',
-           '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-
-      // Copy DLL to Community Patch folder (always required)
-      CopyFile(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.dll'),
-               ModsPath + '\(1) Community Patch\CvGameCore_Expansion2.dll', True);
-
       // Only update Vox Populi mods if not skipped by user
       if not IsTaskSelected('skipvoxpopuli') then
       begin
+        // Always delete and update Community Patch and Vox Deorum (required for functionality)
+        DelTree(ModsPath + '\(1) Community Patch', True, True, True);
+        DelTree(ModsPath + '\(1b) Vox Deorum', True, True, True);
+
+        // Copy Community Patch and Vox Deorum mods (always required)
+        Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-dll\(1) Community Patch') + '" "' + ModsPath + '\(1) Community Patch"',
+            '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+        Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-mod') + '" "' + ModsPath + '\(1b) Vox Deorum"',
+            '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+        // Copy DLL to Community Patch folder
+        CopyFile(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.dll'),
+                ModsPath + '\(1) Community Patch\CvGameCore_Expansion2.dll', True);
+
+        // Copy debug symbols if present
+        if FileExists(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.pdb')) then
+          CopyFile(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.pdb'),
+                  ModsPath + '\(1) Community Patch\CvGameCore_Expansion2.pdb', True);
+
         // Delete existing Vox Populi mod folders first
         DelTree(ModsPath + '\(2) Vox Populi', True, True, True);
         DelTree(ModsPath + '\(3a) EUI Compatibility Files', True, True, True);
@@ -383,27 +388,7 @@ begin
              '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
         Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-dll\(3a) EUI Compatibility Files') + '" "' + ModsPath + '\(3a) EUI Compatibility Files"',
              '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      end
-      else
-      begin
-        // User chose to skip Vox Populi update - check if it exists
-        if not DirExists(ModsPath + '\(2) Vox Populi') then
-        begin
-          MsgBox('WARNING: Vox Populi mod was not found and you chose to skip its installation.' + #13#10#13#10 +
-                 'Vox Deorum REQUIRES Vox Populi to function. The system will likely not work correctly.' + #13#10#13#10 +
-                 'Please install Vox Populi manually or re-run the installer without skipping the update.',
-                 mbError, MB_OK);
-        end;
-      end;
-
-      // Copy debug symbols if present
-      if FileExists(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.pdb')) then
-        CopyFile(ExpandConstant('{app}\scripts\release\CvGameCore_Expansion2.pdb'),
-                 ModsPath + '\(1) Community Patch\CvGameCore_Expansion2.pdb', True);
-
-      // Only update UI mods if not skipping Vox Populi update
-      if not IsTaskSelected('skipvoxpopuli') then
-      begin
+        
         // Delete existing UI mods first (similar to robocopy /mir), but continue even if deletion fails
         DelTree(Civ5Path + '\Assets\DLC\VPUI', True, True, True);
         DelTree(Civ5Path + '\Assets\DLC\UI_bc1', True, True, True);
@@ -416,12 +401,12 @@ begin
       end
       else
       begin
-        // User chose to skip UI mods update - check if they exist
-        if not DirExists(Civ5Path + '\Assets\DLC\VPUI') or not DirExists(Civ5Path + '\Assets\DLC\UI_bc1') then
+        // User chose to skip Vox Populi update - check if it exists
+        if not DirExists(ModsPath + '\(2) Vox Populi') then
         begin
-          MsgBox('WARNING: Vox Populi UI mods were not found and you chose to skip their installation.' + #13#10#13#10 +
-                 'These UI components are required for proper Vox Populi functionality.' + #13#10#13#10 +
-                 'The game interface may not work correctly without them.',
+          MsgBox('WARNING: Vox Populi mod was not found and you chose to skip its installation.' + #13#10#13#10 +
+                 'Vox Deorum REQUIRES Vox Populi to function. The system will likely not work correctly.' + #13#10#13#10 +
+                 'Please install Vox Populi manually or re-run the installer without skipping the update.',
                  mbError, MB_OK);
         end;
       end;
