@@ -238,14 +238,11 @@ Game.RegisterFunction("${Name}", function(${Arguments})
       local availableResources = nil  -- Start with nil, only allocate if needed
       for resource in GameInfo.Resources() do
         if player:IsResourceRevealed(resource.ID) then
-          local resourceTotal = player:GetNumResourceTotal(resource.ID, true)
-          if resourceTotal > 0 then
-            local resourceCount = player:GetNumResourceAvailable(resource.ID, true)
-            -- Only allocate and add if we have revealed resources
-            if not availableResources then availableResources = {} end
-            local resourceName = Locale.ConvertTextKey(resource.Description)
-            availableResources[resourceName] = resourceCount
-          end
+          local resourceCount = player:GetNumResourceAvailable(resource.ID, true)
+          -- Only allocate and add if we have revealed resources
+          if not availableResources then availableResources = {} end
+          local resourceName = Locale.ConvertTextKey(resource.Description)
+          availableResources[resourceName] = resourceCount
         end
       end
       summary.ResourcesAvailable = availableResources
