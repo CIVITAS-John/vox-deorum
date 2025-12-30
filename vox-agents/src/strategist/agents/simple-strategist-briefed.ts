@@ -45,11 +45,7 @@ ${SimpleStrategistBase.goalsPrompt}
  - Your briefer ONLY has information of the current game state and cannot predict tactical AI's next decision.
  - Your briefer DOES NOT have access to strategic options or control over tactical decisions.
  - Your briefer DOES BEST on summarizing and synthesizing information, not analyzing or calculating (which is your responsibility).
-- Each turn, you must call either \`set-strategy\` or \`keep-status-quo\` tool.
- - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
- - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
- - Strategies change the weight of the in-game AI's NEXT decision. It won't directly change the production item, etc.
-- Always provide a paragraph of rationale for each tool. You will be able to read the rationale next turn.
+${SimpleStrategistBase.decisionPrompt}
 
 # Resources
 You will receive the following reports:

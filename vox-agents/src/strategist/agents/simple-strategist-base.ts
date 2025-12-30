@@ -51,6 +51,15 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
 - You can change the in-game AI's NEXT policy to adopt (when you have enough culture) by calling the \`set-policy\` tool.`;
 
   /**
+   * Shared prompt: Decision-making description
+   */
+  public static readonly decisionPrompt = `- Each turn, you must call either \`set-strategy\` or \`keep-status-quo\` tool.
+ - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
+ - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
+ - Strategies change the weight of the in-game AI's NEXT decision. It won't directly change the production item, etc.
+- Always provide a short paragraph of rationale for each tool. You will read this rationale next turn.`;
+
+  /**
    * Shared prompt: Victory conditions description
    */
   public static readonly victoryConditionsPrompt = `- Victory Progress: current progress towards each type of victory.

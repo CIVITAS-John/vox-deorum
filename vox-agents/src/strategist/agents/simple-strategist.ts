@@ -46,7 +46,7 @@ ${SimpleStrategistBase.goalsPrompt}
  - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
  - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
  - Strategies change the weight of the in-game AI's NEXT decision. It won't directly change the production item, etc.
-- Always provide a paragraph of rationale for each tool. You will be able to read the rationale next turn.
+${SimpleStrategistBase.decisionPrompt}
 
 # Resources
 You will receive the following reports:
