@@ -12,7 +12,7 @@ const logger = createLogger("ReadPlayerPersona");
 
 // Create a reusable LuaFunction for reading player persona values
 const readPlayerPersonaFunction = new LuaFunction(
-  "ReadPlayerPersona",
+  "readPlayerPersona",
   ["playerId"],
   `
     local player = Players[playerId]
