@@ -102,7 +102,7 @@ class GetCitiesTool extends ToolBase {
    */
   readonly metadata = {
     autoComplete: ["PlayerID", "Owner"],
-    markdownConfig: ["Player: {key}"]
+    markdownConfig: ["Player: {key}", "{key}"]
   }
 
   /**

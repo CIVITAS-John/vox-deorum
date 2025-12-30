@@ -16,6 +16,7 @@ import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 import { createSimpleTool } from "../utils/tools/simple-tools.js";
 import { getOffsetedTurn } from "../utils/game-speed.js";
 import { SimpleStrategistBase } from "../strategist/agents/simple-strategist-base.js";
+import { anthropic } from "@ai-sdk/anthropic";
 
 /**
  * A simple briefer agent that analyzes the game state and produces a concise briefing.
@@ -58,7 +59,7 @@ Summarize the full game state into a strategic briefing that highlights:
 # Resources
 You will receive the following reports:
 ${SimpleStrategistBase.victoryConditionsPrompt}
-${SimpleStrategistBase.playersInfoPrompt.replace("If you are a vassal, you cannot achieve a domination victory", "Vassals cannot achieve a conquest victory")}
+${SimpleStrategistBase.playersInfoPrompt}
 - Cities: summary reports about discovered cities in the world.
 - Military: summary reports about tactical zones and visible units.
  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
@@ -90,10 +91,10 @@ You are an expert briefing writer for ${parameters.metadata?.YouAre!.Leader}, le
 ${jsonToMarkdown(SituationData)}
 
 # Your Civilization
-${jsonToMarkdown(YouAre)}
-
-# Leader's Instruction
-${input}`.trim()
+${jsonToMarkdown(YouAre)}`.trim(),
+      providerOptions: {
+        anthropic: { cacheControl: { type: 'ephemeral' } }
+      }
     }, {
       role: "user",
       content: `
@@ -122,7 +123,10 @@ Events: events since the last decision-making.
 
 ${jsonToMarkdown(state.events)}
 
-You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}), after turn ${parameters.turn}.`.trim()
+# Leader's Instruction
+You are writing a strategic briefing for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}), after turn ${parameters.turn}.
+
+${input}`.trim()
     }];
     // Send in the past briefing
     var lastState = getGameState(parameters, getOffsetedTurn(parameters, -5));

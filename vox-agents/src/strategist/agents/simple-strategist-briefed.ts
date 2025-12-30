@@ -96,7 +96,10 @@ Options: available strategic options for you.
 
 ${jsonToMarkdown(Options, {
   configs: [{}]
-})}`.trim()
+})}`.trim(),
+      providerOptions: {
+        anthropic: { cacheControl: { type: 'ephemeral' } }
+      }
     }, {
       role: "user",
       content: `
