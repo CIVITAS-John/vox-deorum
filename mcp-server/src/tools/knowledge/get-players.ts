@@ -47,6 +47,7 @@ const PlayerDataSchema = z.object({
   GoldenAge: z.string().optional(),
   Technologies: z.number().optional(),
   CurrentResearch: z.string().nullable().optional(),
+  NextPolicyTurns: z.number().nullable().optional(),
   MajorAlly: z.string().nullable().optional(),
   Cities: z.number().optional(),
   Population: z.number().optional(),
@@ -240,6 +241,7 @@ function postProcessData(
 
   // Hide current research from non-team members
   delete summary.CurrentResearch;
+  delete summary.NextPolicyTurns;
 
   // Hide actual happiness number
   delete summary.HappinessPercentage;

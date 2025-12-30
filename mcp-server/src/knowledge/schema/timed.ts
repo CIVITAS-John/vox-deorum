@@ -91,6 +91,7 @@ export interface PlayerSummary extends MutableKnowledge {
   SciencePerTurn: number | null; // Science per turn (visibility 2 only - team/self)
   Technologies: number | null;
   CurrentResearch: string | null; // Current technology being researched (visibility 2 only)
+  NextPolicyTurns: number | null; // Turns until next policy can be adopted (visibility 2 only)
   MilitaryUnits: number | null; // Current military units needing supply
   MilitarySupply: number | null; // Maximum supply capacity
   PolicyBranches: JSONColumnType<Record<string, string[]>> | null; // Policy branch -> array of policy names (details visibility 2 only)

@@ -83,11 +83,22 @@ Game.RegisterFunction("${Name}", function(${Arguments})
       local teamID = player:GetTeam()
       local fromTeam = Teams[player:GetTeam()]
       
-      -- Get current research
+      -- Get current research with estimated turns
       local currentResearch = nil
       local techID = player:GetCurrentResearch()
       if techID and techID >= 0 and GameInfo.Technologies[techID] then
-        currentResearch = Locale.ConvertTextKey(GameInfo.Technologies[techID].Description)
+        local techName = Locale.ConvertTextKey(GameInfo.Technologies[techID].Description)
+        -- Calculate turns to complete research
+        local sciencePerTurn = player:GetScience()
+        if sciencePerTurn > 0 then
+          local researchCost = fromTeam:GetResearchCost(techID)
+          local researchProgress = fromTeam:GetResearchProgress(techID)
+          local researchRemaining = researchCost - researchProgress
+          local turnsToComplete = math.ceil(researchRemaining / sciencePerTurn)
+          currentResearch = techName .. " (Estimated in " .. turnsToComplete .. " turns)"
+        else
+          currentResearch = techName .. " (No science)"
+        end
       else
         currentResearch = "None"
       end
@@ -121,6 +132,20 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         end
       end
 
+      -- Calculate turns until next policy
+      local nextPolicyTurns = nil
+      local culturePerTurn = player:GetTotalJONSCulturePerTurnTimes100() / 100
+      if culturePerTurn > 0 then
+        local cultureCost = player:GetNextPolicyCost()
+        local cultureProgress = player:GetJONSCultureTimes100() / 100
+        local cultureRemaining = cultureCost - cultureProgress
+        if cultureRemaining > 0 then
+          nextPolicyTurns = math.ceil(cultureRemaining / culturePerTurn)
+        else
+          nextPolicyTurns = 0  -- Can adopt policy now
+        end
+      end
+
       local summary = {
         Key = playerID,
         Score = player:GetScore(),  -- Player's current score
@@ -139,6 +164,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         SciencePerTurn = player:GetScience(),  -- Science per turn (only visible to team)
         Technologies = fromTeam:GetTeamTechs():GetNumTechsKnown() or 0,
         CurrentResearch = currentResearch,
+        NextPolicyTurns = nextPolicyTurns,  -- Turns until next policy can be adopted
         MilitaryUnits = player:GetNumUnitsToSupply(),  -- Current military units needing supply
         MilitarySupply = player:GetNumUnitsSupplied(),  -- Maximum supply capacity
         PolicyBranches = nil,  -- Will be populated if player has policies
