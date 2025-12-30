@@ -91,8 +91,8 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         -- Calculate turns to complete research
         local sciencePerTurn = player:GetScience()
         if sciencePerTurn > 0 then
-          local researchCost = fromTeam:GetResearchCost(techID)
-          local researchProgress = fromTeam:GetResearchProgress(techID)
+          local researchCost = player:GetResearchCost(techID)
+          local researchProgress = player:GetResearchProgress(techID)
           local researchRemaining = researchCost - researchProgress
           local turnsToComplete = math.ceil(researchRemaining / sciencePerTurn)
           currentResearch = techName .. " (Estimated in " .. turnsToComplete .. " turns)"
