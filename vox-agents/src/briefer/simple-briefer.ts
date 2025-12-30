@@ -62,6 +62,7 @@ You will receive the following reports:
  - Cultural Victory: Accumulate tourism (that outpaces other civilizations' culture) to influence all others.
  - Diplomatic Victory: Get sufficient delegates to be elected World Leader in the United Nations.
  - Time Victory: If no one achieves any other victory by the end of the game, the civilization with the highest score wins.
+ - Your leader also has direct access to this section.
 - Players: summary reports about visible players in the world. Also:
  - You will receive in-game AI's diplomatic evaluations.
  - You will receive each player's publicly available relationships.
@@ -71,10 +72,12 @@ You will receive the following reports:
  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
  - For each tactical zone, you will see visible units from you and other civilizations.
 - Events: events since the last decision-making.
-- Past Briefing: your past briefing from a recent turn for comparison. Your leader can only see your current briefing.
+- Past Briefing: your past briefing from a recent turn for comparison. 
+ - Your leader can only see your most recent briefing.
+ - Document important information for future comparison.
 
 # Instruction
-Reason briefly. Write your briefing as a plain text document with a clear, direct, concise language.`.trim()
+Write your briefing as a plain text document with a clear, direct, concise language.`.trim()
   }
 
   /**
@@ -97,7 +100,8 @@ ${jsonToMarkdown(SituationData)}
 # Your Civilization
 ${jsonToMarkdown(YouAre)}
 
-Your leader's instruction: ${input}`.trim()
+# Leader's Instruction
+${input}`.trim()
     }, {
       role: "user",
       content: `
@@ -163,9 +167,9 @@ ${lastState.reports["briefing"]}`
     return {
       "instruct-briefer": createSimpleTool({
           name: "instruct-briefer",
-          description: "Set instructions for your briefer to follow next turn",
+          description: "Set writing instructions for your briefer to focus on next turn",
           inputSchema: z.object({
-            Instruction: z.string().describe("Instructions for your briefing writer, e.g. what kind of information to prioritize in the briefing")
+            Instruction: z.string().describe("Instructions for your briefer's **report writing**, e.g. what kind of information to prioritize in the briefing")
           }),
           execute: async (input, parameters) => {
             // Store the instruction in working memory for the next briefing
