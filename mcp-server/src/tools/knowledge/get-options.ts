@@ -27,34 +27,32 @@ const GetOptionsInputSchema = z.object({
  * Output schema for the GetOptions tool
  */
 const GetOptionsOutputSchema = z.object({
+  // Options - available choices
+  Options: z.object({
+    GrandStrategies: z.any(),
+    MilitaryStrategies: z.any(),
+    EconomicStrategies: z.any(),
+    Technologies: z.any(),
+    Policies: z.any()
+  }),
   // Persona fields
   Persona: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
-  // Strategy fields (only for active player when requested)
+  // Strategy - current selections and rationale
   Strategy: z.object({
     Rationale: z.string().optional(),
-    GrandStrategy: z.object({
-      Current: z.string().optional(),
-      Options: z.any(),
-    }),
-    EconomicStrategies: z.object({
-      Current: z.array(z.string()).optional(),
-      Options: z.any(),
-    }),
-    MilitaryStrategies: z.object({
-      Current: z.array(z.string()).optional(),
-      Options: z.any(),
-    })
+    GrandStrategy: z.string().optional(),
+    EconomicStrategies: z.array(z.string()).optional(),
+    MilitaryStrategies: z.array(z.string()).optional()
   }),
-  // Technology and Policies
+  // Research - current selection
   Research: z.object({
     Next: z.string(),
-    Rationale: z.string().optional(),
-    Options: z.any(),
+    Rationale: z.string().optional()
   }),
+  // Policies - current selection
   Policies: z.object({
     Next: z.string(),
-    Rationale: z.string().optional(),
-    Options: z.any(),
+    Rationale: z.string().optional()
   })
 }).passthrough();
 
@@ -157,48 +155,34 @@ class GetOptionsTool extends ToolBase {
 
     // Chime in more data
     const result = {
-      Strategy: {
-        Rationale: (strategies as any)?.Rationale,
-        GrandStrategy: {
-          Current: strategies?.GrandStrategy,
-          Options: Object.values(enumMappings["GrandStrategy"]).filter(s => s !== "None")
-        },
-        EconomicStrategies: {
-          Current: strategies?.EconomicStrategies,
-          Options: Object.fromEntries(
-              cleanOptions.EconomicStrategies.map(strategyName => {
-                const strategy = economicStrategies!.find(s => s.Type === strategyName)!;
-                return [
-                  strategyName,
-                  strategy.Description ?? {
-                    Production: strategy?.Production,
-                    Overall: strategy?.Overall
-                  }
-                ];
-              })
-            )
-        },
-        MilitaryStrategies: {
-          Current: strategies?.MilitaryStrategies,
-          Options: Object.fromEntries(
-              cleanOptions.MilitaryStrategies.map(strategyName => {
-                const strategy = militaryStrategies!.find(s => s.Type === strategyName)!;
-                return [
-                  strategyName,
-                  strategy.Description ?? {
-                    Production: strategy?.Production,
-                    Overall: strategy?.Overall
-                  }
-                ];
-              })
-            )
-        },
-      },
       Persona: persona as Record<string, string | number> | undefined,
-      Research: {
-        Next: research?.Technology ?? "None",
-        Rationale: research?.Rationale,
-        Options: technologies && cleanOptions.Technologies.length > 0 ?
+      Options: {
+        GrandStrategies: Object.values(enumMappings["GrandStrategy"]).filter(s => s !== "None"),
+        EconomicStrategies: Object.fromEntries(
+          cleanOptions.EconomicStrategies.map(strategyName => {
+            const strategy = economicStrategies!.find(s => s.Type === strategyName)!;
+            return [
+              strategyName,
+              strategy.Description ?? {
+                Production: strategy?.Production,
+                Overall: strategy?.Overall
+              }
+            ];
+          })
+        ),
+        MilitaryStrategies: Object.fromEntries(
+          cleanOptions.MilitaryStrategies.map(strategyName => {
+            const strategy = militaryStrategies!.find(s => s.Type === strategyName)!;
+            return [
+              strategyName,
+              strategy.Description ?? {
+                Production: strategy?.Production,
+                Overall: strategy?.Overall
+              }
+            ];
+          })
+        ),
+        Technologies: technologies && cleanOptions.Technologies.length > 0 ?
           Object.fromEntries(
             cleanOptions.Technologies.map(techName => {
               const tech = technologies.find(s => s.Name === techName)!;
@@ -210,12 +194,8 @@ class GetOptionsTool extends ToolBase {
                 help.trim()
               ];
             })
-          ) : cleanOptions.Technologies
-      },
-      Policies: {
-        Next: policy?.Policy ? `${policy.Policy} (${policy.IsBranch ? "New Branch" : "Policy"})` : "None",
-        Rationale: policy?.Rationale,
-        Options: policies ?
+          ) : cleanOptions.Technologies,
+        Policies: policies ?
           Object.fromEntries(
             cleanOptions.Policies.map(policyName => {
               const current = policies.find(s => s.Name === policyName)!;
@@ -227,7 +207,7 @@ class GetOptionsTool extends ToolBase {
             }).concat(cleanOptions.PolicyBranches.map(policyName => {
               const current = policies.find(s => s.Name === policyName)!;
               var Help = current?.Help ?? "";
-              if (policy?.Policy !== undefined && policy?.Policy !== "None") 
+              if (policy?.Policy !== undefined && policy?.Policy !== "None")
                 Help = Help.replaceAll(/\n+/g, " ");
               return [
                 policyName + " (New Branch)",
@@ -235,6 +215,20 @@ class GetOptionsTool extends ToolBase {
               ];
             }))
           ) : cleanOptions.Policies.concat(cleanOptions.PolicyBranches)
+      },
+      Strategy: {
+        Rationale: (strategies as any)?.Rationale,
+        GrandStrategy: strategies?.GrandStrategy,
+        EconomicStrategies: strategies?.EconomicStrategies,
+        MilitaryStrategies: strategies?.MilitaryStrategies
+      },
+      Research: {
+        Next: research?.Technology ?? "None",
+        Rationale: research?.Rationale
+      },
+      Policies: {
+        Next: policy?.Policy ? `${policy.Policy} (${policy.IsBranch ? "New Branch" : "Policy"})` : "None",
+        Rationale: policy?.Rationale
       }
     };
     return result;

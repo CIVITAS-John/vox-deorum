@@ -51,7 +51,7 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
 - Carefully reason about the current situation and available options, and what kind of change each option will bring.
  - When the situation requires, do not shy away from pivoting strategies.
  - Analyze both your situation and your opponents. Avoid wishful thinking.
-- You can change the in-game AI's diplomatic strategy by calling the \`set-persona\` tool.
+- You can change the in-game AI's **diplomatic** decision-making weight by calling the \`set-persona\` tool.
 - You can change the in-game AI's NEXT technology to research (when you finish the current one) by calling the \`set-research\` tool.
 - You can change the in-game AI's NEXT policy to adopt (when you have enough culture) by calling the \`set-policy\` tool.
 - You can ask your briefer to prepare a focused report (only for) the next turn by calling the \`instruct-briefer\` tool.
@@ -65,13 +65,14 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
 - Always provide a paragraph of rationale for each tool. You will be able to read the rationale next turn.
 
 # Resources
-You will receive:
-- Strategies: current strategic decisions and available options for you.
- - You will receive strategies, persona, technology, and policy you set last time.
- - It is typically preferable to finish existing policy branches before starting new ones.
+You will receive the following reports:
+- Options: available strategic options for you.
  - You will receive options and short descriptions for each type of decision.
  - Whatever decision-making tool you call, the in-game AI can only execute options here.
  - You must choose options from the relevant lists. Double-check if your choices match.
+ - It is typically preferable to finish existing policy branches before starting new ones.
+- Strategies: existing strategic decisions and rationale from you.
+ - You will receive strategies, persona, technology, and policy you set last time.
 - Victory Progress: current progress towards each type of victory.
  - Domination Victory: Control or vassalize all original capitals.
  - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
@@ -98,6 +99,7 @@ You will receive:
     // Get the information
     await super.getInitialMessages(parameters, input, context);
     const { YouAre, ...SituationData } = parameters.metadata || {};
+    const { Options, ...Strategy } = state.options || {};
 
     // Return the messages with briefing instead of full state
     return [{
@@ -109,12 +111,21 @@ You are ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?
 ${jsonToMarkdown(SituationData)}
 
 # Your Civilization
-${jsonToMarkdown(YouAre)}`.trim()
+${jsonToMarkdown(YouAre)}
+
+# Options
+Options: available strategic options for you.
+
+${jsonToMarkdown(Options, {
+  configs: [{}]
+})}`.trim()
     }, {
       role: "user",
       content: `
-# Strategies and Options
-${jsonToMarkdown(state.options)}
+# Strategies
+Strategies: existing strategic decisions from you.
+
+${jsonToMarkdown(Strategy)}
 
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
