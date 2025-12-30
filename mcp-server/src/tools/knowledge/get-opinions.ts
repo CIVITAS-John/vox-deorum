@@ -30,7 +30,6 @@ const OpinionDataSchema = z.object({
   TeamID: z.number(),
   Civilization: z.string(),
   Leader: z.string(),
-  IsHuman: z.boolean(),
   IsMajor: z.boolean(),
   // Opinion fields
   OpinionFromMe: z.array(z.string()).describe("Opinion from the requesting player TO the target player").optional(),
@@ -131,7 +130,6 @@ class GetOpinionsTool extends ToolBase {
           TeamID: info.TeamID,
           Civilization: info.Civilization,
           Leader: info.Leader,
-          IsHuman: info.IsHuman === 1,
           IsMajor: info.IsMajor === 1,
           // Opinion data
           OpinionFromMe: stripTags(toOpinion)?.split("\n"),

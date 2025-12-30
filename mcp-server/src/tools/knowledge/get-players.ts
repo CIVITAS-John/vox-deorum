@@ -36,7 +36,6 @@ const PlayerDataSchema = z.object({
   TeamID: z.number(),
   Civilization: z.string(),
   Leader: z.string(),
-  IsHuman: z.boolean(),
   IsMajor: z.boolean(),
   // Opinion fields
   OpinionFromMe: z.array(z.string()).optional(),
@@ -177,7 +176,6 @@ class GetPlayersTool extends ToolBase {
         TeamID: info.TeamID,
         Civilization: info.Civilization,
         Leader: info.IsMajor ? info.Leader : "City State",
-        IsHuman: info.IsHuman == 1,
         IsMajor: info.IsMajor == 1,
         // Dynamic summary (if available)
         ...cleanSummary
