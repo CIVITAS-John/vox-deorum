@@ -9,8 +9,9 @@ import { ModelMessage, Tool } from "ai";
 import { Envoy } from "./envoy.js";
 import { VoxContext } from "../infra/vox-context.js";
 import { StrategistParameters } from "../strategist/strategy-parameters.js";
-import { EnvoyThread } from "../types/index.js";
+import { EnvoyThread, Model } from "../types/index.js";
 import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
+import { getModelConfig } from "../utils/models/models.js";
 
 /**
  * Spokesperson agent that represents the civilization diplomatically.
@@ -142,5 +143,16 @@ ${hint}`.trim()});
     }
 
     return messages;
+  }
+  
+  /**
+   * Gets the language model to use for this agent execution.
+   * Can return undefined to use the default model from VoxContext.
+   * 
+   * @param parameters - The execution parameters
+   * @returns The language model to use, or undefined for default
+   */
+  public getModel(_parameters: StrategistParameters, _input: unknown, overrides: Record<string, Model | string>): Model {
+    return getModelConfig(this.name, "low", overrides);
   }
 }

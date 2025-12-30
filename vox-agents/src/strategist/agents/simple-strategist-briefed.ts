@@ -133,7 +133,7 @@ Victory Progress: current progress towards each type of victory.
 ${jsonToMarkdown(state.victory)}
 
 # Briefings
-${instruction ? `Produced with your instruction: **${instruction}**\n` : ""}${briefing}
+${instruction ? `Produced with your instruction: \n\n${instruction}\n\n` : ""}${briefing}
 
 You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.YouAre!.Name}, Player ${parameters.playerID ?? 0}), are making strategic decisions after turn ${parameters.turn}.
 `.trim()
