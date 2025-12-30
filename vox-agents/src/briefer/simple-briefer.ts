@@ -15,6 +15,7 @@ import { Model } from "../types/index.js";
 import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 import { createSimpleTool } from "../utils/tools/simple-tools.js";
 import { getOffsetedTurn } from "../utils/game-speed.js";
+import { SimpleStrategistBase } from "../strategist/agents/simple-strategist-base.js";
 
 /**
  * A simple briefer agent that analyzes the game state and produces a concise briefing.
@@ -44,40 +45,31 @@ Your leader only has control over macro-level decision making. Focus on providin
 
 # Objective
 Summarize the full game state into a strategic briefing that highlights:
-- Key diplomatic relationships and tensions.
 - Economic and military position relative to opponents.
-- Important events since the last decision.
+- Important events during the past turn.
+- Comparison with the last available briefing.
 
 # Guidelines
 - Highlight important strategic changes and intelligence.
 - The briefing should be objective and analytical, do not bias towards existing strategy.
 - Never provide raw, excessive, or tactical information (e.g. coordinates, IDs).
-- Never give suggestions or considerations, that's not your responsibilities.
+- Never give suggestions or considerations, which is not your responsibility.
 
 # Resources
 You will receive the following reports:
-- Victory Progress: current progress towards each type of victory.
- - Domination Victory: Control or vassalize all original capitals.
- - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
- - Cultural Victory: Accumulate tourism (that outpaces other civilizations' culture) to influence all others.
- - Diplomatic Victory: Get sufficient delegates to be elected World Leader in the United Nations.
- - Time Victory: If no one achieves any other victory by the end of the game, the civilization with the highest score wins.
- - Your leader also has direct access to this section.
-- Players: summary reports about visible players in the world. Also:
- - You will receive in-game AI's diplomatic evaluations.
- - You will receive each player's publicly available relationships.
- - Pay attention to master/vassal relationships. Vassals cannot achieve a conquest victory before independence.
+${SimpleStrategistBase.victoryConditionsPrompt}
+${SimpleStrategistBase.playersInfoPrompt.replace("If you are a vassal, you cannot achieve a domination victory", "Vassals cannot achieve a conquest victory")}
 - Cities: summary reports about discovered cities in the world.
 - Military: summary reports about tactical zones and visible units.
  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
  - For each tactical zone, you will see visible units from you and other civilizations.
 - Events: events since the last decision-making.
-- Past Briefing: your past briefing from a recent turn for comparison. 
+- Past Briefing: your past briefing from a recent turn for comparison.
  - Your leader can only see your most recent briefing.
- - Document important information for future comparison.
 
 # Instruction
-Write your briefing as a plain text document with a clear, direct, concise language.`.trim()
+Write your briefing as a plain text document with a clear, direct, concise language.
+Your leader has access to Victory Progress and Players sections. Don't repeat them.`.trim()
   }
 
   /**

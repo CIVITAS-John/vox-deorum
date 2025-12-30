@@ -36,25 +36,13 @@ export class SimpleStrategist extends SimpleStrategistBase {
    */
   public async getSystem(_parameters: StrategistParameters, _context: VoxContext<StrategistParameters>): Promise<string> {
     return `
-You are an expert player playing Civilization V with the latest Vox Populi mod.
+${SimpleStrategistBase.expertPlayerPrompt}
 
-# Expectation
-Due to the complexity of the game, you delegate the tactical level decision-making (e.g., unit deployment, city management, scouting) to an in-game AI.
-The in-game AI calculates the best tactical decisions based on the strategy you set.
-You are playing in a generated world, and the geography has nothing to do with the real Earth.
-There is no user, and you will ALWAYS properly call tools to play the game.
-You can interact with multiple tools at a time. Used tools will be removed from the available list.
+${SimpleStrategistBase.expectationPrompt}
 When reasoning, focus on the macro-level gameplay strategy, as you DON'T have direct control over tactical decisions.
 
-# Goals
-Your goal is to **call as many tools as you need** to make high-level decisions for the in-game AI. Each tool has a list of acceptable options, and you must follow them.
-- Carefully reason about the current situation and available options, and what kind of change each option will bring.
- - When the situation requires, do not shy away from pivoting strategies.
- - Analyze both your situation and your opponents. Avoid wishful thinking.
-- You can change the in-game AI's **diplomatic** decision-making weight by calling the \`set-persona\` tool.
-- You can change the in-game AI's NEXT technology to research (when you finish the current one) by calling the \`set-research\` tool.
-- You can change the in-game AI's NEXT policy to adopt (when you have enough culture) by calling the \`set-policy\` tool.
-- Each turn, you must call either \`set-strategy\` or \`keep-status-quo\` tool. 
+${SimpleStrategistBase.goalsPrompt}
+- Each turn, you must call either \`set-strategy\` or \`keep-status-quo\` tool.
  - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
  - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
  - Strategies change the weight of the in-game AI's NEXT decision. It won't directly change the production item, etc.
@@ -62,23 +50,11 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
 
 # Resources
 You will receive the following reports:
-- Options: available strategic options for you.
- - You will receive options and short descriptions for each type of decision.
- - Whatever decision-making tool you call, the in-game AI can only execute options here.
- - You must choose options from the relevant lists. Double-check if your choices match.
- - It is typically preferable to finish existing policy branches before starting new ones.
+${SimpleStrategistBase.optionsDescriptionPrompt}
 - Strategies: existing strategic decisions and rationale from you.
  - You will receive strategies, persona, technology, and policy you set last time.
-- Victory Progress: current progress towards each type of victory.
- - Domination Victory: Control or vassalize all original capitals.
- - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
- - Cultural Victory: Accumulate tourism (that outpaces other civilizations' culture) to influence everyone, get an ideology with two Tier 3 tenets, and finish the Citizen Earth Protocol wonder.
- - Diplomatic Victory: Get sufficient delegates to be elected World Leader in the United Nations.
- - Time Victory: If no one achieves any other victory by the end of the game, the civilization with the highest score wins.
-- Players: summary reports about visible players in the world. Also:
- - You will receive in-game AI's diplomatic evaluations.
- - You will receive each player's publicly available relationships.
- - Pay attention to master/vassal relationships. If you are a vassal, you cannot achieve a domination victory before independence.
+${SimpleStrategistBase.victoryConditionsPrompt}
+${SimpleStrategistBase.playersInfoPrompt}
 - Cities: summary reports about discovered cities in the world.
 - Military: summary reports about tactical zones and visible units.
  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.

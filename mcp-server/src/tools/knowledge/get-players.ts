@@ -33,7 +33,7 @@ const GetPlayersInputSchema = z.object({
  */
 const PlayerDataSchema = z.object({
   // PlayerInformation fields
-  TeamID: z.number(),
+  TeamID: z.number().optional(),
   Civilization: z.string(),
   Leader: z.string(),
   IsMajor: z.boolean(),
@@ -202,6 +202,10 @@ class GetPlayersTool extends ToolBase {
           playerData.OpinionToMe = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
         }
       }
+
+      // Remove TeamID if you are your team
+      if (playerID === playerData.TeamID)
+        delete playerData.TeamID;
       
       // Postprocess to remove things you shouldn't see
       if (visibility !== 2) postProcessData(playerData, playerInfos, playerSummaries, args.PlayerID);
@@ -310,8 +314,10 @@ function postProcessData(
 
   // Remove info from minor civs
   if (!summary.IsMajor) {
+    delete summary.TeamID;
     delete summary.Era;
     delete summary.Cities;
+    delete summary.Technologies;
     delete summary.Gold;
     delete summary.GoldPerTurn;
     delete summary.Score;
