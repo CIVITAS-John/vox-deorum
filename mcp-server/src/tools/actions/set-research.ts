@@ -34,7 +34,7 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Set a player's next research technology by name. The in-game AI will be forced to select this technology when making its next tech choice.";
+  readonly description = "Set a player's next research technology by name. The in-game AI will start researching it after completing the current one.";
 
   /**
    * Input schema for the set-research tool
@@ -42,7 +42,7 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
     Technology: z.string().describe("Technology name to research next (None to clear)"),
-    Rationale: z.string().describe("Explain your rationale for selecting this technology")
+    Rationale: z.string().describe("Explain your rationale for selecting this technology in a paragraph")
   });
 
   /**

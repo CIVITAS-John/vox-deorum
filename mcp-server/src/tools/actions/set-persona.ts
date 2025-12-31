@@ -67,7 +67,7 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
    */
   inputSchema = personaSchema.extend({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
-    Rationale: z.string().describe("Explain your rationale for adjusting these persona values")
+    Rationale: z.string().describe("Explain your rationale for adjusting these persona values in a paragraph")
   });
 
   /**

@@ -46,7 +46,7 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
     GrandStrategy: z.string().optional().describe("The grand strategy name to set (and override)"),
     EconomicStrategies: z.array(z.string()).optional().describe("The economic strategy names to set (and override)"),
     MilitaryStrategies: z.array(z.string()).optional().describe("The military strategy names to set (and override)"),
-    Rationale: z.string().describe("Explain your rationale behind choosing this strategy set")
+    Rationale: z.string().describe("Explain your rationale behind choosing this strategy set in a paragraph")
   });
 
   /**
