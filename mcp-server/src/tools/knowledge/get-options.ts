@@ -188,7 +188,7 @@ class GetOptionsTool extends ToolBase {
               const tech = technologies.find(s => s.Name === techName)!;
               let help = tech?.Help ?? "";
               if ((tech?.TechsUnlocked?.length ?? 0) > 0)
-                help += `\nLeading to: ${tech?.TechsUnlocked?.join(", ")}`;
+                help += `\nResearching it would unlock: ${tech?.TechsUnlocked?.join(", ")}`;
               return [
                 techName,
                 help.trim()
