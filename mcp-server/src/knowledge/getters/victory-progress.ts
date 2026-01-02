@@ -32,21 +32,29 @@ export async function getVictoryProgress(saving: boolean = true): Promise<Partia
   const store = knowledgeManager.getStore();
   const victoryData = response.result[0];
 
-  // Strip localization markers from diplomatic victory resolution descriptions
-  if (victoryData.DiplomaticVictory &&
-      victoryData.DiplomaticVictory.ActiveResolutions) {
-    for (const resolutionName in victoryData.DiplomaticVictory.ActiveResolutions) {
-      const resolution = victoryData.DiplomaticVictory.ActiveResolutions[resolutionName];
-      resolution.Description = stripTags(resolution.Description);
+  // Helper to strip localization markers from resolution/proposal objects
+  const stripTagsFromItems = (items: Record<string, any>) => {
+    const stripped: Record<string, any> = {};
+    for (const name in items) {
+      const item = items[name];
+      const strippedName = stripTags(name);
+      stripped[strippedName] = {
+        ...item,
+        Description: stripTags(item.Description)
+      };
     }
-  }
+    return stripped;
+  };
 
-  // Strip localization markers from proposal descriptions
-  if (victoryData.DiplomaticVictory &&
-      victoryData.DiplomaticVictory.Proposals) {
-    for (const proposalName in victoryData.DiplomaticVictory.Proposals) {
-      const proposal = victoryData.DiplomaticVictory.Proposals[proposalName];
-      proposal.Description = stripTags(proposal.Description);
+  // Strip localization markers from diplomatic victory data
+  if (victoryData.DiplomaticVictory) {
+    if (victoryData.DiplomaticVictory.ActiveResolutions) {
+      victoryData.DiplomaticVictory.ActiveResolutions =
+        stripTagsFromItems(victoryData.DiplomaticVictory.ActiveResolutions);
+    }
+    if (victoryData.DiplomaticVictory.Proposals) {
+      victoryData.DiplomaticVictory.Proposals =
+        stripTagsFromItems(victoryData.DiplomaticVictory.Proposals);
     }
   }
 
