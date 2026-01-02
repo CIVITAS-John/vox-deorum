@@ -73,15 +73,15 @@ ${SimpleStrategistBase.playersInfoPrompt}
     const [militaryBriefing, economyBriefing, diplomacyBriefing] = await Promise.all([
       context.callAgent<string>("specialized-briefer", {
         mode: "Military",
-        instruction: militaryInstruction ?? "Provide a comprehensive military briefing."
+        instruction: militaryInstruction ?? ""
       } as SpecializedBrieferInput, parameters),
       context.callAgent<string>("specialized-briefer", {
         mode: "Economy",
-        instruction: economyInstruction ?? "Provide a comprehensive economic briefing."
+        instruction: economyInstruction ?? ""
       } as SpecializedBrieferInput, parameters),
       context.callAgent<string>("specialized-briefer", {
         mode: "Diplomacy",
-        instruction: diplomacyInstruction ?? "Provide a comprehensive diplomatic briefing."
+        instruction: diplomacyInstruction ?? ""
       } as SpecializedBrieferInput, parameters)
     ]);
 
