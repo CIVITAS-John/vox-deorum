@@ -100,7 +100,7 @@ ${SimpleStrategistBase.playersInfoPrompt}
     const diplomacyInstruction = parameters.workingMemory["briefer-instruction-diplomacy"];
 
     // Check the event length to decide between simple/specialized briefer
-    if (JSON.stringify(state.events!).length <= 2000 || state.turn <= 1) {
+    if (JSON.stringify(state.events!).length <= 3000 || state.turn <= 1) {
       // Assemble combined instruction from specialized instructions
       const combinedInstruction = [
         militaryInstruction && `Military: ${militaryInstruction}`,
