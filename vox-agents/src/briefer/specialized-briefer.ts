@@ -17,6 +17,7 @@ import { createSimpleTool } from "../utils/tools/simple-tools.js";
 import { getOffsetedTurn } from "../utils/game-speed.js";
 import { SimpleBriefer } from "./simple-briefer.js";
 import { filterEventsByCategory, EventCategory } from "../utils/event-filters.js";
+import type { ConsolidatedEventsReport } from '../../../mcp-server/dist/tools/knowledge/get-events.js';
 import { SimpleStrategistBase } from "../strategist/agents/simple-strategist-base.js";
 
 /**
@@ -264,13 +265,8 @@ export class SpecializedBriefer extends Briefer<SpecializedBrieferInput> {
     await Briefer.prototype.getInitialMessages.call(this, parameters, input.instruction, context);
     const { YouAre, ...SituationData } = parameters.metadata || {};
 
-    // Filter events to the appropriate category
-    const filteredEvents = state.events ? Object.fromEntries(
-      Object.entries(state.events as Record<string, any[]>).map(([turn, events]) => [
-        turn,
-        filterEventsByCategory(events, config.eventCategory)
-      ])
-    ) : undefined;
+    // Filter events to the appropriate category (state.events is consolidated format by default)
+    const filteredEvents = filterEventsByCategory(state.events! as ConsolidatedEventsReport, config.eventCategory);
 
     const messages: ModelMessage[] = [{
       role: "system",

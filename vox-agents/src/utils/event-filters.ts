@@ -8,6 +8,7 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import type { ConsolidatedEventsReport } from '../../../mcp-server/dist/tools/knowledge/get-events.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,22 +47,35 @@ function loadEventCategories(): Record<string, EventCategory[]> {
 }
 
 /**
- * Filters an array of events to only include those belonging to the specified category.
- * Events can belong to multiple categories, so an event is included if the category
- * is present in its category list.
+ * Filters consolidated events (turn-keyed format) to only include those belonging
+ * to the specified category. Events can belong to multiple categories, so an event
+ * is included if the category is present in its category list.
  *
- * @param events - Array of event objects with a Type property
+ * Note: This function filters the parent event by Type. Nested Events arrays are
+ * preserved as-is since they don't have their own Type field.
+ *
+ * @param eventsByTurn - Consolidated events report (turn-keyed object)
  * @param category - The event category to filter by
- * @returns Filtered array of events matching the category
+ * @returns Filtered consolidated events report with only matching events
  */
-export function filterEventsByCategory<T extends { Type: string }>(
-  events: T[],
+export function filterEventsByCategory(
+  eventsByTurn: ConsolidatedEventsReport,
   category: EventCategory
-): T[] {
+): ConsolidatedEventsReport {
   const categories = loadEventCategories();
+  const filtered: ConsolidatedEventsReport = {};
 
-  return events.filter(event => {
-    const eventCategories = categories[event.Type];
-    return eventCategories && eventCategories.includes(category);
-  });
+  for (const [turn, events] of Object.entries(eventsByTurn)) {
+    const turnFiltered = events.filter(event => {
+      const eventCategories = categories[event.Type];
+      return eventCategories && eventCategories.includes(category);
+    });
+
+    // Only include turn if it has events
+    if (turnFiltered.length > 0) {
+      filtered[turn] = turnFiltered;
+    }
+  }
+
+  return filtered;
 }

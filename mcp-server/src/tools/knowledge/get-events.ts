@@ -37,12 +37,29 @@ const GameEventOutputSchema = z.object({
 }).passthrough();
 
 /**
- * Type for the tool's output.
+ * Consolidated event schema - can have:
+ * - Events array (nested differing fields)
+ * - Merged fields (single event)
+ * - Property arrays (uniform properties like Plot: [...])
  */
-const GetEventsOutputSchema = z.union([z.object({
-  events: z.array(GameEventOutputSchema)
-}), z.object({}).passthrough()]);
+const ConsolidatedEventSchema = z.object({
+  Type: z.string(),
+  Events: z.array(z.record(z.string(), z.any())).optional()
+}).passthrough();
+
+/**
+ * Type for the tool's output - plain union of consolidated vs original format
+ */
+const GetEventsOutputSchema = z.union([
+  z.object({ events: z.array(GameEventOutputSchema) }),  // Original format
+  z.record(z.string(), z.array(ConsolidatedEventSchema))  // Consolidated format (turn-keyed)
+]);
+
+/**
+ * Derive types from Zod schemas
+ */
 export type EventsReport = z.infer<typeof GetEventsOutputSchema>;
+export type ConsolidatedEventsReport = Record<string, z.infer<typeof ConsolidatedEventSchema>[]>;
 
 /**
  * Tool for retrieving game events with optional filtering
