@@ -57,7 +57,7 @@ export class SimpleBriefer extends Briefer {
    * Standard instruction footer for all briefing types
    */
   static readonly instructionFooter = `# Instruction
-Write your briefing as a plain text document with a clear, direct, concise language. NO details unless necessary.
+Reason briefly. Write your briefing as a plain text document with a clear, direct, concise language.
 Your leader has access to Victory Progress and Players sections. Do not repeat those information.`;
 
   /**
