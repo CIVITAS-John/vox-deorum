@@ -73,9 +73,9 @@ interface TurnLog {
 // HEARTSHIP STRATEGIST
 // ============================================================================
 
-export class HeartshipStrategist extends SimpleStrategistBase {
-  readonly name = "heartship-strategist";
-  readonly description = "Collaborative AI strategist using Vesta + Athena dialogue with persistent memory";
+export class HeartshipStrategistV2 extends SimpleStrategistBase {
+  readonly name = "heartship-strategist-v2";
+  readonly description = "Collaborative AI strategist v2 with persistent memory and token management";
 
   // Static memory - persists across turns, resets on new game
   private static memory: DialogueMemory | null = null;
@@ -97,7 +97,7 @@ export class HeartshipStrategist extends SimpleStrategistBase {
    * Estimate token count for a string
    */
   private estimateTokens(text: string): number {
-    return Math.ceil(text.length / HeartshipStrategist.CHARS_PER_TOKEN);
+    return Math.ceil(text.length / HeartshipStrategistV2.CHARS_PER_TOKEN);
   }
 
   /**
@@ -133,7 +133,7 @@ export class HeartshipStrategist extends SimpleStrategistBase {
    * Trim memory to fit within token budget
    */
   private trimMemoryToFit(memory: DialogueMemory): void {
-    while (this.estimateMemoryTokens(memory) > HeartshipStrategist.MAX_MEMORY_TOKENS) {
+    while (this.estimateMemoryTokens(memory) > HeartshipStrategistV2.MAX_MEMORY_TOKENS) {
       // Priority: keep recent decisions, trim older patterns/concerns first
       if (memory.learnedPatterns.length > 3) {
         memory.learnedPatterns.shift();
@@ -156,9 +156,9 @@ export class HeartshipStrategist extends SimpleStrategistBase {
    */
   private getMemory(gameId: string): DialogueMemory {
     // Reset if new game
-    if (!HeartshipStrategist.memory || HeartshipStrategist.memory.gameId !== gameId) {
+    if (!HeartshipStrategistV2.memory || HeartshipStrategistV2.memory.gameId !== gameId) {
       this.logger.info(`[Heartship] New game detected: ${gameId}. Initializing fresh memory.`);
-      HeartshipStrategist.memory = {
+      HeartshipStrategistV2.memory = {
         gameId,
         lastTurn: 0,
         recentDecisions: [],
@@ -167,9 +167,9 @@ export class HeartshipStrategist extends SimpleStrategistBase {
         learnedPatterns: [],
         opponentModels: {}
       };
-      HeartshipStrategist.turnLogs = [];
+      HeartshipStrategistV2.turnLogs = [];
     }
-    return HeartshipStrategist.memory;
+    return HeartshipStrategistV2.memory;
   }
 
   /**
@@ -244,7 +244,7 @@ export class HeartshipStrategist extends SimpleStrategistBase {
    * Update memory with new decisions from completed turn
    */
   private recordDecisions(decisions: Decision[]): void {
-    if (!HeartshipStrategist.memory) return;
+    if (!HeartshipStrategistV2.memory) return;
     
     // Validate and filter decisions
     const validDecisions = decisions.filter(d => {
@@ -259,12 +259,12 @@ export class HeartshipStrategist extends SimpleStrategistBase {
       this.logger.warn(`[Heartship] ${decisions.length - validDecisions.length} invalid decisions filtered`);
     }
     
-    HeartshipStrategist.memory.recentDecisions.push(...validDecisions);
+    HeartshipStrategistV2.memory.recentDecisions.push(...validDecisions);
     
     // Keep only last 10 decisions
-    if (HeartshipStrategist.memory.recentDecisions.length > 10) {
-      HeartshipStrategist.memory.recentDecisions = 
-        HeartshipStrategist.memory.recentDecisions.slice(-10);
+    if (HeartshipStrategistV2.memory.recentDecisions.length > 10) {
+      HeartshipStrategistV2.memory.recentDecisions = 
+        HeartshipStrategistV2.memory.recentDecisions.slice(-10);
     }
   }
 
@@ -630,7 +630,7 @@ You are Player ${parameters.playerID ?? 0}.
         synthesis: synthesisRequired ? synthesisTokens : undefined
       }
     };
-    HeartshipStrategist.turnLogs.push(turnLog);
+    HeartshipStrategistV2.turnLogs.push(turnLog);
 
     // Update memory state
     memory.lastTurn = parameters.turn;
@@ -687,7 +687,7 @@ If no specific actions, call keep-status-quo with rationale from the dialogue.
       this.recordDecisions(decisions);
       
       // Update turn log with decisions
-      const currentLog = HeartshipStrategist.turnLogs.find(l => l.turn === parameters.turn);
+      const currentLog = HeartshipStrategistV2.turnLogs.find(l => l.turn === parameters.turn);
       if (currentLog) {
         currentLog.decisions = decisions;
       }
@@ -706,30 +706,30 @@ If no specific actions, call keep-status-quo with rationale from the dialogue.
    * Get all turn logs for analysis
    */
   public static getTurnLogs(): TurnLog[] {
-    return HeartshipStrategist.turnLogs;
+    return HeartshipStrategistV2.turnLogs;
   }
 
   /**
    * Get current memory state
    */
   public static getMemoryState(): DialogueMemory | null {
-    return HeartshipStrategist.memory;
+    return HeartshipStrategistV2.memory;
   }
 
   /**
    * Get disagreement rate across all turns
    */
   public static getDisagreementRate(): number {
-    if (HeartshipStrategist.turnLogs.length === 0) return 0;
-    const disagreements = HeartshipStrategist.turnLogs.filter(l => l.synthesisRequired).length;
-    return disagreements / HeartshipStrategist.turnLogs.length;
+    if (HeartshipStrategistV2.turnLogs.length === 0) return 0;
+    const disagreements = HeartshipStrategistV2.turnLogs.filter(l => l.synthesisRequired).length;
+    return disagreements / HeartshipStrategistV2.turnLogs.length;
   }
 
   /**
    * Get total token usage
    */
   public static getTotalTokenUsage(): { vesta: number; athena: number; synthesis: number } {
-    return HeartshipStrategist.turnLogs.reduce(
+    return HeartshipStrategistV2.turnLogs.reduce(
       (acc, log) => ({
         vesta: acc.vesta + log.tokenUsage.vesta,
         athena: acc.athena + log.tokenUsage.athena,
