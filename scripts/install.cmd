@@ -572,6 +572,17 @@ if !errorlevel! equ 0 (
         call npm install
         if !errorlevel! equ 0 (
             echo   [OK] All dependencies installed via workspaces
+
+            :: Pre-build mcp-server to ensure it's ready to use
+            echo   Building MCP server...
+            pushd "!PROJECT_ROOT!\mcp-server"
+            call npm run build
+            if !errorlevel! equ 0 (
+                echo   [OK] MCP server built successfully
+            ) else (
+                echo   [WARN] Failed to build MCP server
+            )
+            popd
         ) else (
             echo   [WARN] Failed to install dependencies
             echo   Error level: !errorlevel!

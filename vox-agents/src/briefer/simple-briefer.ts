@@ -29,7 +29,8 @@ export class SimpleBriefer extends Briefer {
    */
   static readonly commonGuidelines = `- The briefing should be objective and analytical, do not bias towards existing strategy.
 - Never provide raw, excessive, or tactical information (e.g. coordinates, IDs).
-- Never give suggestions or considerations, which is not your responsibility.`;
+- Never give suggestions or considerations, which is not your responsibility.
+- Never report speculative information. If you don't have the accurate data, say it clearly.`;
 
   /**
    * Description of Cities report

@@ -17,6 +17,7 @@ import { createSimpleTool } from "../utils/tools/simple-tools.js";
 import { getOffsetedTurn } from "../utils/game-speed.js";
 import { SimpleBriefer } from "./simple-briefer.js";
 import { filterEventsByCategory, EventCategory } from "../utils/event-filters.js";
+import { pickPlayerFields, omitPlayerFields, pickCityFields, omitCityFields } from "../utils/report-filters.js";
 import type { ConsolidatedEventsReport } from '../../../mcp-server/dist/tools/knowledge/get-events.js';
 import { SimpleStrategistBase } from "../strategist/agents/simple-strategist-base.js";
 
@@ -41,7 +42,7 @@ interface ModeConfig {
   eventCategory: EventCategory;
   getDataPrompt: (
     parameters: StrategistParameters,
-    events: Record<string, { Type: string }[]> | undefined
+    events: ConsolidatedEventsReport
   ) => string;
   getReportKey: (mode: BriefingMode) => string;
 }
@@ -72,6 +73,7 @@ Summarize the military situation into a strategic briefing that highlights:
 
 # Guidelines
 ${SimpleBriefer.commonGuidelines}
+- Remember the military report only contains VISIBLE units.
 
 # Resources
 You will receive the following reports:
@@ -87,16 +89,26 @@ ${SimpleBriefer.instructionFooter}`.trim(),
 
   getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
+    const filteredPlayers = pickPlayerFields(state.players!, [
+      'Civilization', 'Leader', 'TeamID', 'IsMajor', 'Era', 
+      'Score', 'Territory', 'Cities', 'Population', 'GoldenAge', 'Technologies',
+      'MilitaryUnits', 'MilitarySupply', 'HappinessSituation', 'Relationships', 'PolicyBranches'
+    ]);
+    const filteredCities = pickCityFields(state.cities!, [
+      'ID', 'X', 'Y', 'Population', 'DefenseStrength', 'Health',
+      'IsCapital', 'IsPuppet', 'IsOccupied', 'IsCoastal', 'ResistanceTurns', 'RazingTurns',
+      'CurrentProduction', 'ProductionTurnsLeft'
+    ]);
     return `
 # Players
 Players: summary reports about visible players in the world.
 
-${jsonToMarkdown(state.players)}
+${jsonToMarkdown(filteredPlayers)}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
 
-${jsonToMarkdown(state.cities)}
+${jsonToMarkdown(filteredCities)}
 
 # Military
 Military: summary reports about tactical zones and visible units.
@@ -132,6 +144,7 @@ ${SimpleBriefer.commonGuidelines}
 
 # Resources
 You will receive the following reports:
+${SimpleStrategistBase.victoryConditionsPrompt}
 ${SimpleStrategistBase.playersInfoPrompt}
 ${SimpleBriefer.citiesPrompt}
 - Events: economy-related events since the last decision-making.
@@ -143,16 +156,24 @@ ${SimpleBriefer.instructionFooter}`.trim(),
 
   getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
+    const filteredPlayers = omitPlayerFields(state.players!, [
+      'OpinionFromMe', 'OpinionToMe', 'MyEvaluations', 'Spies'
+    ]);
     return `
+# Victory Progress
+Victory Progress: current progress towards each type of victory.
+
+${jsonToMarkdown(state.victory)}
+
 # Players
 Players: summary reports about visible players in the world.
 
-${jsonToMarkdown(state.players)}
+${jsonToMarkdown(filteredPlayers)}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
 
-${jsonToMarkdown(state.cities)}
+${jsonToMarkdown(state.cities!)}
 
 # Events
 Events: economy-related events since the last decision-making.
@@ -185,6 +206,7 @@ ${SimpleBriefer.commonGuidelines}
 You will receive the following reports:
 ${SimpleStrategistBase.playersInfoPrompt}
 ${SimpleBriefer.citiesPrompt}
+- World Congress: votes and resolutions in the World Congress.
 - Events: diplomacy-related events since the last decision-making.
 ${SimpleBriefer.pastBriefingPrompt}
 
@@ -194,16 +216,29 @@ ${SimpleBriefer.instructionFooter}`.trim(),
 
   getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
+    const filteredPlayers = pickPlayerFields(state.players!, [
+      'Civilization', 'Leader', 'IsMajor', 'TeamID', 'Era', 'Score', 'Territory',
+      'OpinionFromMe', 'OpinionToMe', 'Relationships', 'MyEvaluation', 'PolicyBranches',
+      'FoundedReligion', 'MajorityReligion', 'MajorAlly', 'Quests',
+      'GoldenAge', 'HappinessSituation'
+    ]);
+    const filteredCities = pickCityFields(state.cities!, [
+      'ID', 'X', 'Y', 'Population', 'MajorityReligion',
+      'IsCapital', 'IsPuppet', 'IsCoastal', 'IsOccupied', 'Wonders'
+    ]);
     return `
+# World Congress
+${jsonToMarkdown(state.victory!.DiplomaticVictory)}
+
 # Players
 Players: summary reports about visible players in the world.
 
-${jsonToMarkdown(state.players)}
+${jsonToMarkdown(filteredPlayers)}
 
 # Cities
 Cities: summary reports about discovered cities in the world.
 
-${jsonToMarkdown(state.cities)}
+${jsonToMarkdown(filteredCities)}
 
 # Events
 Events: diplomacy-related events since the last decision-making.
