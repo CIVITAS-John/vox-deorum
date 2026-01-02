@@ -302,8 +302,59 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
       VotesNeeded = votesNeeded,
       Status = status,
       Contender = nil,
-      ActiveResolutions = {}
+      SessionStatus = "",
+      ActiveResolutions = {},
+      Proposals = {}
     }
+
+    -- Generate session status string
+    if league:IsInSession() then
+      diplomaticData.SessionStatus = "Voting Now"
+    else
+      local turnsUntilSession = league:GetTurnsUntilSession()
+      if turnsUntilSession == 1 then
+        diplomaticData.SessionStatus = "Voting in 1 turn"
+      else
+        diplomaticData.SessionStatus = "Voting in " .. turnsUntilSession .. " turns"
+      end
+    end
+
+    -- Extract active proposals (exclude on-hold)
+    local function processProposals(proposalList, direction)
+      for _, proposal in ipairs(proposalList) do
+        local proposalPlayer = proposal.ProposalPlayer
+        local proposerName = "Unknown"
+
+        if proposalPlayer and proposalPlayer >= 0 then
+          local player = Players[proposalPlayer]
+          if player then
+            proposerName = player:GetCivilizationShortDescription()
+          end
+        end
+
+        local choice = proposal.ProposerDecision or -1
+        local resolutionName = league:GetResolutionName(proposal.Type, proposal.ID, choice, false)
+
+        -- Get the raw Help text (contains TXT_KEY markers) instead of localized text
+        local resolutionEntry = GameInfo.Resolutions[proposal.Type]
+        local description = resolutionEntry and Locale.Lookup(resolutionEntry.Help) or "Unknown resolution"
+
+        -- Use direction-prefixed name as key (like ActiveResolutions)
+        local proposalKey = direction .. ": " .. resolutionName
+        diplomaticData.Proposals[proposalKey] = {
+          Proposer = proposerName,
+          Description = description
+        }
+      end
+    end
+
+    -- Get active proposals only (not on-hold)
+    local enactProposals = league:GetEnactProposals()
+    local repealProposals = league:GetRepealProposals()
+
+    -- Process both types
+    processProposals(enactProposals, "Enact")
+    processProposals(repealProposals, "Repeal")
 
     -- Extract active resolutions from the league
     for _, resolution in ipairs(league:GetActiveResolutions()) do

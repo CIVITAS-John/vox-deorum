@@ -41,6 +41,15 @@ export async function getVictoryProgress(saving: boolean = true): Promise<Partia
     }
   }
 
+  // Strip localization markers from proposal descriptions
+  if (victoryData.DiplomaticVictory &&
+      victoryData.DiplomaticVictory.Proposals) {
+    for (const proposalName in victoryData.DiplomaticVictory.Proposals) {
+      const proposal = victoryData.DiplomaticVictory.Proposals[proposalName];
+      proposal.Description = stripTags(proposal.Description);
+    }
+  }
+
   // Store the victory progress if saving is enabled (always use Key = 0)
   if (saving) {
     // Visible to all players (constrained by visibility for player's identity)

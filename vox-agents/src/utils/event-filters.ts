@@ -66,6 +66,11 @@ export function filterEventsByCategory(
   const filtered: ConsolidatedEventsReport = {};
 
   for (const [turn, events] of Object.entries(eventsByTurn)) {
+    if (turn === "_markdownConfig") {
+      filtered[turn] = events;
+      continue;
+    }
+
     const turnFiltered = events.filter(event => {
       const eventCategories = categories[event.Type];
       return eventCategories && eventCategories.includes(category);

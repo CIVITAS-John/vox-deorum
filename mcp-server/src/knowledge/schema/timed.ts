@@ -378,9 +378,18 @@ export interface CulturalVictoryData {
  * Active resolution information for Diplomatic victory
  */
 export interface ActiveResolution {
-  Name: string; // Resolution name
   Description: string; // Resolution details
   EnactedOn: number; // Turn number when enacted
+}
+
+/**
+ * Proposal information for World Congress
+ * Only includes active proposals (not on-hold)
+ * Keyed by resolution name with direction prefix (e.g., "Enact: World Religion")
+ */
+export interface Proposal {
+  Proposer: string; // Civilization name of proposer
+  Description: string; // Detailed resolution description
 }
 
 /**
@@ -390,12 +399,14 @@ export interface ActiveResolution {
 export interface DiplomaticVictoryData {
   VotesNeeded: number;
   Status: "WorldCongress" | "UnitedNations";
-  ActiveResolutions: ActiveResolution[];
+  SessionStatus: string; // "Voting Now" or "Voting in X turns"
+  ActiveResolutions: Record<string, ActiveResolution>;
+  Proposals: Record<string, Proposal>; // Active proposals only (excludes on-hold), keyed by name with direction
   Contender: string | undefined;
   [playerName: string]: {
     Delegates: number;
     VictoryPercentage: number;
-  } | number | string | undefined | ActiveResolution[];
+  } | number | string | undefined | Record<string, ActiveResolution> | Record<string, Proposal>;
 }
 
 /**
