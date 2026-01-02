@@ -200,7 +200,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('RazingTurns', 'integer', (col) => col.notNull())
     .addColumn('ResistanceTurns', 'integer', (col) => col.notNull())
     .addColumn('BuildingCount', 'integer', (col) => col.notNull())
-    .addColumn('WonderCount', 'integer', (col) => col.notNull())
+    .addColumn('Wonders', 'text', (col) => col.notNull()) // JSON array of wonder names
     .addColumn('GreatWorkCount', 'integer', (col) => col.notNull())
     .addColumn('CurrentProduction', 'text')
     .addColumn('ProductionTurnsLeft', 'integer', (col) => col.notNull())

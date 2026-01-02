@@ -173,9 +173,9 @@ ${roleIntro('diplomatic analyst')}
 # Objective
 Summarize the diplomatic situation into a strategic briefing that highlights:
 - Diplomatic relationships and standing with other civilizations.
-- Recent diplomatic events (declarations of war, peace treaties, alliances).
 - World Congress activities and resolutions.
-- City-state relationships and influence changes.
+- City-state relationships, quests, and influence changes.
+- Recent diplomatic events (declarations of war, peace treaties, friendship, denouncement).
 - Comparison with the last available diplomatic briefing.
 
 # Guidelines

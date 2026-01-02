@@ -133,9 +133,23 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS do
       cityData.RazingTurns = city:IsRazing() and city:GetRazingTurns() or 0
       cityData.ResistanceTurns = city:IsResistance() and city:GetResistanceTurns() or 0
 
-      -- Building and wonder counts
+      -- Building and wonder information
       cityData.BuildingCount = city:GetNumBuildings()
-      cityData.WonderCount = city:GetNumWorldWonders() + city:GetNumNationalWonders()
+
+      -- Collect wonder names
+      local wonders = {}
+      for building in GameInfo.Buildings() do
+        local buildingID = building.ID
+        if city:IsHasBuilding(buildingID) then
+          local buildingClass = GameInfo.BuildingClasses[building.BuildingClass]
+          if buildingClass and (buildingClass.MaxGlobalInstances == 1 or buildingClass.MaxPlayerInstances == 1) then
+            -- This is a wonder (world or national)
+            table.insert(wonders, Locale.ConvertTextKey(building.Description))
+          end
+        end
+      end
+      cityData.Wonders = wonders
+
       cityData.GreatWorkCount = city:GetNumGreatWorks()
 
       -- Current production
