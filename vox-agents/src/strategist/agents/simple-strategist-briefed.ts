@@ -42,16 +42,13 @@ ${SimpleStrategistBase.expectationPrompt}
 
 ${SimpleStrategistBase.goalsPrompt}
 - You can ask your briefer to prepare a focused report (only for) the next turn by calling the \`instruct-briefer\` tool.
- - Your briefer ONLY has information of the current game state and cannot predict tactical AI's next decision.
- - Your briefer DOES NOT have access to strategic options or control over tactical decisions.
- - Your briefer DOES BEST on summarizing and synthesizing information, not analyzing or calculating (which is your responsibility).
+${SimpleStrategistBase.brieferCapabilitiesPrompt}
 ${SimpleStrategistBase.decisionPrompt}
 
 # Resources
 You will receive the following reports:
 ${SimpleStrategistBase.optionsDescriptionPrompt}
-- Strategies: existing strategic decisions and rationale from you.
- - You will receive strategies, persona, technology, and policy you set last time.
+${SimpleStrategistBase.strategiesDescriptionPrompt}
 ${SimpleStrategistBase.victoryConditionsPrompt}
 ${SimpleStrategistBase.playersInfoPrompt}
 - Briefing: prepared by your briefer, summarizing the current game situation.
@@ -105,6 +102,8 @@ Strategies: existing strategic decisions from you.
 ${jsonToMarkdown(Strategy)}
 
 # Players
+Players: summary reports about visible players in the world.
+
 ${jsonToMarkdown(state.players)}
 
 # Victory Progress

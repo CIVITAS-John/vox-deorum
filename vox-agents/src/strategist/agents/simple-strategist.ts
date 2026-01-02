@@ -42,17 +42,12 @@ ${SimpleStrategistBase.expectationPrompt}
 When reasoning, focus on the macro-level gameplay strategy, as you DON'T have direct control over tactical decisions.
 
 ${SimpleStrategistBase.goalsPrompt}
-- Each turn, you must call either \`set-strategy\` or \`keep-status-quo\` tool.
- - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
- - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
- - Strategies change the weight of the in-game AI's NEXT decision. It won't directly change the production item, etc.
 ${SimpleStrategistBase.decisionPrompt}
 
 # Resources
 You will receive the following reports:
 ${SimpleStrategistBase.optionsDescriptionPrompt}
-- Strategies: existing strategic decisions and rationale from you.
- - You will receive strategies, persona, technology, and policy you set last time.
+${SimpleStrategistBase.strategiesDescriptionPrompt}
 ${SimpleStrategistBase.victoryConditionsPrompt}
 ${SimpleStrategistBase.playersInfoPrompt}
 - Cities: summary reports about discovered cities in the world.

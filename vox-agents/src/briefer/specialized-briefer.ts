@@ -37,12 +37,12 @@ export interface SpecializedBrieferInput {
  */
 interface ModeConfig {
   systemPrompt: string;
-  getInitialMessages: (
-    briefer: SpecializedBriefer,
+  eventCategory: EventCategory;
+  getDataPrompt: (
     parameters: StrategistParameters,
-    input: SpecializedBrieferInput,
-    context: VoxContext<StrategistParameters>
-  ) => Promise<ModelMessage[]>;
+    events: Record<string, { Type: string }[]> | undefined
+  ) => string;
+  getReportKey: (mode: BriefingMode) => string;
 }
 
 /**
@@ -63,15 +63,13 @@ ${roleIntro('military intelligence analyst')}
 
 # Objective
 Summarize the military situation into a strategic briefing that highlights:
-- Military strength and position relative to opponents
-- Active conflicts, threats, and combat results
-- Military unit movements and tactical developments
-- Important military-related events during the past turn
-- Comparison with the last available military briefing
+- Active conflicts or potential threats.
+- Military strength and position relative to opponents.
+- Important military-related events during the past turn.
+- Needs, growth, or excesses of our military forces.
+- Comparison with the last available military briefing.
 
 # Guidelines
-- Focus exclusively on military and combat-related information
-- Highlight important strategic military changes and intelligence
 ${SimpleBriefer.commonGuidelines}
 
 # Resources
@@ -79,45 +77,16 @@ You will receive the following reports:
 ${SimpleStrategistBase.playersInfoPrompt}
 ${SimpleBriefer.citiesPrompt}
 ${SimpleBriefer.militaryPrompt}
-- Events: military-related events since the last decision-making
+- Events: military-related events since the last decision-making.
 ${SimpleBriefer.pastBriefingPrompt}
 
 ${SimpleBriefer.instructionFooter}`.trim(),
 
-  getInitialMessages: async (briefer, parameters, input, context) => {
+  eventCategory: 'Military',
+
+  getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
-    await Briefer.prototype.getInitialMessages.call(briefer, parameters, input.instruction, context);
-    const { YouAre, ...SituationData } = parameters.metadata || {};
-
-    // Filter events to military category
-    const militaryEvents = state.events ? Object.fromEntries(
-      Object.entries(state.events as Record<string, any[]>).map(([turn, events]) => [
-        turn,
-        filterEventsByCategory(events, 'Military')
-      ])
-    ) : undefined;
-
-    const messages: ModelMessage[] = [{
-      role: "system",
-      content: `
-You are an expert military intelligence analyst for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
-
-# Situation
-${jsonToMarkdown(SituationData)}
-
-# Your Civilization
-${jsonToMarkdown(YouAre)}`.trim(),
-      providerOptions: {
-        anthropic: { cacheControl: { type: 'ephemeral' } }
-      }
-    }, {
-      role: "user",
-      content: `
-# Victory Progress
-Victory Progress: current progress towards each type of victory.
-
-${jsonToMarkdown(state.victory)}
-
+    return `
 # Players
 Players: summary reports about visible players in the world.
 
@@ -136,27 +105,10 @@ ${jsonToMarkdown(state.military)}
 # Events
 Events: military-related events since the last decision-making.
 
-${jsonToMarkdown(militaryEvents)}
+${jsonToMarkdown(events)}`.trim();
+  },
 
-# Leader's Instruction
-You are writing a military briefing for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}), after turn ${parameters.turn}.
-
-${input.instruction}`.trim()
-    }];
-
-    // Add past military briefing if available
-    const lastState = getGameState(parameters, getOffsetedTurn(parameters, -5));
-    if (lastState && lastState.reports["briefing-military"]) {
-      messages.push({
-        role: "user",
-        content: `# Past Briefing
-Past Briefing: your past military briefing from ${parameters.turn - lastState.turn} turns ago (turn ${lastState.turn}) for comparison.
-${lastState.reports["briefing-military"]}`
-      });
-    }
-
-    return messages;
-  }
+  getReportKey: () => "briefing-military"
 };
 
 /**
@@ -168,60 +120,29 @@ ${roleIntro('economic analyst')}
 
 # Objective
 Summarize the economic situation into a strategic briefing that highlights:
-- Economic position and development relative to opponents
-- City growth, production, and infrastructure developments
-- Technology progress and policy changes
-- Important economic events during the past turn
-- Comparison with the last available economic briefing
+- Economic position and development relative to opponents.
+- Technology progress and policy changes.
+- Needs, growth, or excessives in our economy.
+- Important economic events during the past turn.
+- Comparison with the last available economic briefing.
 
 # Guidelines
-- Focus exclusively on economic, technological, and development-related information
-- Highlight important strategic economic changes and intelligence
 ${SimpleBriefer.commonGuidelines}
 
 # Resources
 You will receive the following reports:
 ${SimpleStrategistBase.playersInfoPrompt}
 ${SimpleBriefer.citiesPrompt}
-- Events: economy-related events since the last decision-making
+- Events: economy-related events since the last decision-making.
 ${SimpleBriefer.pastBriefingPrompt}
 
 ${SimpleBriefer.instructionFooter}`.trim(),
 
-  getInitialMessages: async (briefer, parameters, input, context) => {
+  eventCategory: 'Economy',
+
+  getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
-    await Briefer.prototype.getInitialMessages.call(briefer, parameters, input.instruction, context);
-    const { YouAre, ...SituationData } = parameters.metadata || {};
-
-    // Filter events to economy category
-    const economyEvents = state.events ? Object.fromEntries(
-      Object.entries(state.events as Record<string, any[]>).map(([turn, events]) => [
-        turn,
-        filterEventsByCategory(events, 'Economy')
-      ])
-    ) : undefined;
-
-    const messages: ModelMessage[] = [{
-      role: "system",
-      content: `
-You are an expert economic analyst for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
-
-# Situation
-${jsonToMarkdown(SituationData)}
-
-# Your Civilization
-${jsonToMarkdown(YouAre)}`.trim(),
-      providerOptions: {
-        anthropic: { cacheControl: { type: 'ephemeral' } }
-      }
-    }, {
-      role: "user",
-      content: `
-# Victory Progress
-Victory Progress: current progress towards each type of victory.
-
-${jsonToMarkdown(state.victory)}
-
+    return `
 # Players
 Players: summary reports about visible players in the world.
 
@@ -235,27 +156,10 @@ ${jsonToMarkdown(state.cities)}
 # Events
 Events: economy-related events since the last decision-making.
 
-${jsonToMarkdown(economyEvents)}
+${jsonToMarkdown(events)}`.trim();
+  },
 
-# Leader's Instruction
-You are writing an economic briefing for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}), after turn ${parameters.turn}.
-
-${input.instruction}`.trim()
-    }];
-
-    // Add past economic briefing if available
-    const lastState = getGameState(parameters, getOffsetedTurn(parameters, -5));
-    if (lastState && lastState.reports["briefing-economy"]) {
-      messages.push({
-        role: "user",
-        content: `# Past Briefing
-Past Briefing: your past economic briefing from ${parameters.turn - lastState.turn} turns ago (turn ${lastState.turn}) for comparison.
-${lastState.reports["briefing-economy"]}`
-      });
-    }
-
-    return messages;
-  }
+  getReportKey: () => "briefing-economy"
 };
 
 /**
@@ -267,61 +171,29 @@ ${roleIntro('diplomatic analyst')}
 
 # Objective
 Summarize the diplomatic situation into a strategic briefing that highlights:
-- Diplomatic relationships and standing with other civilizations
-- Recent diplomatic events (declarations of war, peace treaties, alliances)
-- World Congress activities and resolutions
-- City-state relationships and influence changes
-- Important diplomatic events during the past turn
-- Comparison with the last available diplomatic briefing
+- Diplomatic relationships and standing with other civilizations.
+- Recent diplomatic events (declarations of war, peace treaties, alliances).
+- World Congress activities and resolutions.
+- City-state relationships and influence changes.
+- Comparison with the last available diplomatic briefing.
 
 # Guidelines
-- Focus exclusively on diplomatic, relationship, and political information
-- Highlight important strategic diplomatic changes and intelligence
 ${SimpleBriefer.commonGuidelines}
 
 # Resources
 You will receive the following reports:
 ${SimpleStrategistBase.playersInfoPrompt}
 ${SimpleBriefer.citiesPrompt}
-- Events: diplomacy-related events since the last decision-making
+- Events: diplomacy-related events since the last decision-making.
 ${SimpleBriefer.pastBriefingPrompt}
 
 ${SimpleBriefer.instructionFooter}`.trim(),
 
-  getInitialMessages: async (briefer, parameters, input, context) => {
+  eventCategory: 'Diplomacy',
+
+  getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
-    await Briefer.prototype.getInitialMessages.call(briefer, parameters, input.instruction, context);
-    const { YouAre, ...SituationData } = parameters.metadata || {};
-
-    // Filter events to diplomacy category
-    const diplomacyEvents = state.events ? Object.fromEntries(
-      Object.entries(state.events as Record<string, any[]>).map(([turn, events]) => [
-        turn,
-        filterEventsByCategory(events, 'Diplomacy')
-      ])
-    ) : undefined;
-
-    const messages: ModelMessage[] = [{
-      role: "system",
-      content: `
-You are an expert diplomatic analyst for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
-
-# Situation
-${jsonToMarkdown(SituationData)}
-
-# Your Civilization
-${jsonToMarkdown(YouAre)}`.trim(),
-      providerOptions: {
-        anthropic: { cacheControl: { type: 'ephemeral' } }
-      }
-    }, {
-      role: "user",
-      content: `
-# Victory Progress
-Victory Progress: current progress towards each type of victory.
-
-${jsonToMarkdown(state.victory)}
-
+    return `
 # Players
 Players: summary reports about visible players in the world.
 
@@ -335,27 +207,10 @@ ${jsonToMarkdown(state.cities)}
 # Events
 Events: diplomacy-related events since the last decision-making.
 
-${jsonToMarkdown(diplomacyEvents)}
+${jsonToMarkdown(events)}`.trim();
+  },
 
-# Leader's Instruction
-You are writing a diplomatic briefing for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}), after turn ${parameters.turn}.
-
-${input.instruction}`.trim()
-    }];
-
-    // Add past diplomatic briefing if available
-    const lastState = getGameState(parameters, getOffsetedTurn(parameters, -5));
-    if (lastState && lastState.reports["briefing-diplomacy"]) {
-      messages.push({
-        role: "user",
-        content: `# Past Briefing
-Past Briefing: your past diplomatic briefing from ${parameters.turn - lastState.turn} turns ago (turn ${lastState.turn}) for comparison.
-${lastState.reports["briefing-diplomacy"]}`
-      });
-    }
-
-    return messages;
-  }
+  getReportKey: () => "briefing-diplomacy"
 };
 
 /**
@@ -405,7 +260,55 @@ export class SpecializedBriefer extends Briefer<SpecializedBrieferInput> {
     context: VoxContext<StrategistParameters>
   ): Promise<ModelMessage[]> {
     const config = modeConfigs[input.mode];
-    return config.getInitialMessages(this, parameters, input, context);
+    const state = getRecentGameState(parameters)!;
+    await Briefer.prototype.getInitialMessages.call(this, parameters, input.instruction, context);
+    const { YouAre, ...SituationData } = parameters.metadata || {};
+
+    // Filter events to the appropriate category
+    const filteredEvents = state.events ? Object.fromEntries(
+      Object.entries(state.events as Record<string, any[]>).map(([turn, events]) => [
+        turn,
+        filterEventsByCategory(events, config.eventCategory)
+      ])
+    ) : undefined;
+
+    const messages: ModelMessage[] = [{
+      role: "system",
+      content: `
+You are an expert ${config.eventCategory.toLowerCase()} analyst for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}).
+
+# Situation
+${jsonToMarkdown(SituationData)}
+
+# Your Civilization
+${jsonToMarkdown(YouAre)}`.trim(),
+      providerOptions: {
+        anthropic: { cacheControl: { type: 'ephemeral' } }
+      }
+    }, {
+      role: "user",
+      content: `
+${config.getDataPrompt(parameters, filteredEvents)}
+
+# Leader's Instruction
+You are writing a ${config.eventCategory.toLowerCase()} briefing for ${parameters.metadata?.YouAre!.Leader}, leader of ${parameters.metadata?.YouAre!.Name} (Player ${parameters.playerID ?? 0}), after turn ${parameters.turn}.
+
+${input.instruction}`.trim()
+    }];
+
+    // Add past briefing if available
+    const lastState = getGameState(parameters, getOffsetedTurn(parameters, -5));
+    const reportKey = config.getReportKey(input.mode);
+    if (lastState && lastState.reports[reportKey]) {
+      messages.push({
+        role: "user",
+        content: `# Past Briefing
+Past Briefing: your past ${config.eventCategory.toLowerCase()} briefing from ${parameters.turn - lastState.turn} turns ago (turn ${lastState.turn}) for comparison.
+${lastState.reports[reportKey]}`
+      });
+    }
+
+    return messages;
   }
 
   /**
@@ -416,7 +319,8 @@ export class SpecializedBriefer extends Briefer<SpecializedBrieferInput> {
     input: SpecializedBrieferInput,
     output: string
   ): string {
-    const reportKey = `briefing-${input.mode.toLowerCase()}`;
+    const config = modeConfigs[input.mode];
+    const reportKey = config.getReportKey(input.mode);
     parameters.gameStates[parameters.turn].reports[reportKey] = output;
     return output;
   }
@@ -437,18 +341,18 @@ export class SpecializedBriefer extends Briefer<SpecializedBrieferInput> {
    */
   public getExtraTools(context: VoxContext<StrategistParameters>): Record<string, Tool> {
     return {
-      "instruct-specialized-briefer": createSimpleTool({
-        name: "instruct-specialized-briefer",
-        description: "Set writing instructions for your specialized briefer to focus on next turn",
+      "instruct-briefer": createSimpleTool({
+        name: "instruct-briefer",
+        description: "Set writing instructions for one of your briefers to focus on next turn",
         inputSchema: z.object({
-          Mode: z.enum(['Military', 'Economy', 'Diplomacy']).describe("The briefing mode to use"),
+          Mode: z.enum(['Military', 'Economy', 'Diplomacy']).describe("The briefer to instruct"),
           Instruction: z.string().describe("Instructions for the briefer's report writing, e.g. what kind of information to prioritize")
         }),
         execute: async (input, parameters) => {
           // Store the instruction in working memory for the next specialized briefing
-          const key = `specialized-briefer-instruction-${input.Mode.toLowerCase()}`;
+          const key = `briefer-instruction-${input.Mode.toLowerCase()}`;
           parameters.workingMemory[key] = input.Instruction;
-          return `Specialized briefer instruction set for ${input.Mode} mode.`;
+          return `Briefer instruction set for ${input.Mode} mode.`;
         }
       }, context)
     };

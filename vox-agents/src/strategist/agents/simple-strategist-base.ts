@@ -22,6 +22,10 @@ export abstract class SimpleStrategistBase extends Strategist {
    */
   public removeUsedTools: boolean = true;
 
+  // ============================================================
+  // System Section Prompts (for getSystem method)
+  // ============================================================
+
   /**
    * Shared prompt: Expert player introduction
    */
@@ -52,13 +56,39 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
 - You can change the in-game AI's NEXT policy to adopt (when you have enough culture) by calling the \`set-policy\` tool.`;
 
   /**
+   * Shared prompt: Briefer capabilities and limitations
+   */
+  public static readonly brieferCapabilitiesPrompt = ` - Your briefer(s) ONLY have information of the current game state and cannot predict tactical AI's next decision.
+ - Your briefer(s) DO NOT have access to strategic options or control over tactical decisions.
+ - Your briefer(s) DO BEST on summarizing and synthesizing information, not analyzing or calculating (which is your responsibility).`;
+
+  /**
    * Shared prompt: Decision-making description
    */
   public static readonly decisionPrompt = `- Each turn, you must call either \`set-strategy\` or \`keep-status-quo\` tool.
  - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
  - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
- - Strategies change the weight of the in-game AI's NEXT decision. It won't directly change the production item, etc.
+ - Strategies change the weight of the in-game AI's NEXT decision. It won't directly change the ongoing production queue (or other similar things).
 - Always provide a short paragraph of rationale for each tool. You will read this rationale next turn.`;
+
+  // ============================================================
+  // Resource Section Prompts (for Resources section)
+  // ============================================================
+
+  /**
+   * Shared prompt: Options resource description
+   */
+  public static readonly optionsDescriptionPrompt = `- Options: available strategic options for you.
+ - You will receive options and short descriptions for each type of decision.
+ - Whatever decision-making tool you call, the in-game AI can only execute options here.
+ - You must choose options from the relevant lists. Double-check if your choices match.
+ - It is typically preferable to finish existing policy branches before starting new ones.`;
+
+  /**
+   * Shared prompt: Strategies resource description
+   */
+  public static readonly strategiesDescriptionPrompt = `- Strategies: existing strategic decisions and rationale from you.
+ - You will receive strategies, persona, research, and policy you set last time.`;
 
   /**
    * Shared prompt: Victory conditions description
@@ -69,15 +99,6 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
  - Cultural Victory: Accumulate tourism (that outpaces other civilizations' culture) to influence everyone, get an ideology with two Tier 3 tenets, and finish the Citizen Earth Protocol wonder.
  - Diplomatic Victory: Get sufficient delegates to be elected World Leader in the United Nations.
  - Time Victory: If no one achieves any other victory by the end of the game, the civilization with the highest score wins.`;
-
-  /**
-   * Shared prompt: Options resource description
-   */
-  public static readonly optionsDescriptionPrompt = `- Options: available strategic options for you.
- - You will receive options and short descriptions for each type of decision.
- - Whatever decision-making tool you call, the in-game AI can only execute options here.
- - You must choose options from the relevant lists. Double-check if your choices match.
- - It is typically preferable to finish existing policy branches before starting new ones.`;
 
   /**
    * Shared prompt: Players information description
