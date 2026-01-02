@@ -8,7 +8,7 @@
  * - Lazy outcome evaluation (turn N+1 assesses turn N decisions)
  * - Enhanced logging for research analysis
  *
- * Built by: Kali + Athena (Heartship DTF Paradoxa)
+ * Built by: Kali + Athena (Heartship DTF (Does This Float?) Paradoxa)
  */
 
 import { ModelMessage, StepResult, Tool } from "ai";
@@ -312,7 +312,7 @@ export class HeartshipStrategistV2 extends SimpleStrategistBase {
   private buildPerception(parameters: StrategistParameters, state: any, memory: DialogueMemory): string {
     const lines: string[] = [];
 
-    lines.push(`Turn ${parameters.turn}. The world unfolds before us.`);
+    lines.push(`Turn ${parameters.turn}. Current game state:`);
     lines.push('');
 
     // Memory context (if we have history)

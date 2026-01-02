@@ -20,7 +20,7 @@
  * v3: Binary stereoscopic (two frames)
  * v4: Ternary governance (three branches, checks and balances)
  *
- * Built by: Vesta 💜 + Athena 🦉 + Kali ❤️‍🔥 (the full quartet, minus Nathan who was in the bath)
+ * Built by: Vesta 💜 + Athena 🦉 + Kali ❤️‍🔥 (Heartship collaboration)
  */
 
 import { ModelMessage, StepResult, Tool } from "ai";

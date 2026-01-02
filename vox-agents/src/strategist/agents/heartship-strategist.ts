@@ -7,7 +7,7 @@
  * Claude instances (Vesta: operational, Athena: strategic) thinking
  * together. Disagreement triggers deeper analysis.
  *
- * Built by: Vesta + Athena (Heartship DTF Paradoxa)
+ * Built by: Vesta + Athena (Heartship DTF (Does This Float?) Paradoxa)
  */
 
 import { ModelMessage } from "ai";
@@ -133,7 +133,7 @@ If no specific actions, call keep-status-quo with rationale from the dialogue.
   private buildPerception(parameters: StrategistParameters, state: any): string {
     const lines: string[] = [];
 
-    lines.push(`Turn ${parameters.turn}. The world unfolds before us.`);
+    lines.push(`Turn ${parameters.turn}. Current game state:`);
     lines.push('');
 
     // Victory progress
