@@ -39,7 +39,6 @@ export class SimpleStrategist extends SimpleStrategistBase {
 ${SimpleStrategistBase.expertPlayerPrompt}
 
 ${SimpleStrategistBase.expectationPrompt}
-When reasoning, focus on the macro-level gameplay strategy, as you DON'T have direct control over tactical decisions.
 
 ${SimpleStrategistBase.goalsPrompt}
 ${SimpleStrategistBase.decisionPrompt}
