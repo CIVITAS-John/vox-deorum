@@ -113,7 +113,7 @@ if scienceVictory and Game:IsVictoryValid(scienceVictory.ID) then
         end
 
         -- Total spaceship parts needed (excluding Apollo)
-        local totalParts = 6  -- Typically: Booster, Stasis Chamber, Engine (each can be built multiple times)
+        local totalParts = 6  -- Typically: 3 Booster, 1 Chamber, 1 Engine, 1 Cockpit
         local partsPercentage = math.floor((partsCompleted * 100) / totalParts)
         local playerName = player:GetCivilizationShortDescription()
 
