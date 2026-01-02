@@ -10,6 +10,7 @@ import { sessionRegistry } from '../../infra/session-registry.js';
 import { StrategistSession } from '../../strategist/strategist-session.js';
 import { SessionConfig, StrategistSessionConfig } from '../../types/config.js';
 import { createLogger } from '../../utils/logger.js';
+import { getConfigsDir } from '../../utils/config.js';
 import fs from 'fs/promises';
 import path from 'path';
 import type {
@@ -58,7 +59,7 @@ export function createSessionRoutes(): Router {
    */
   router.get('/configs', async (_req: Request, res: Response<SessionConfigsResponse | ErrorResponse>) => {
     try {
-      const configDir = path.join(process.cwd(), 'configs');
+      const configDir = getConfigsDir();
 
       // Check if configs directory exists
       try {
@@ -182,7 +183,7 @@ export function createSessionRoutes(): Router {
 
     try {
       // Ensure configs directory exists
-      const configDir = path.join(process.cwd(), 'configs');
+      const configDir = getConfigsDir();
       try {
         await fs.access(configDir);
       } catch {
@@ -244,7 +245,7 @@ export function createSessionRoutes(): Router {
     const finalFilename = sanitizedName.endsWith('.json') ? sanitizedName : `${sanitizedName}.json`;
 
     try {
-      const configDir = path.join(process.cwd(), 'configs');
+      const configDir = getConfigsDir();
       const configPath = path.join(configDir, finalFilename);
 
       // Check if file exists

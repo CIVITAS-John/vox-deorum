@@ -114,7 +114,8 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     }
-  }
+  },
+  configsDir: 'configs'
 };
 
 /**
@@ -238,7 +239,8 @@ function loadConfig(): VoxAgentsConfig {
     logging: {
       level: process.env.LOG_LEVEL || fileConfig.logging.level
     },
-    llms: fileConfig.llms
+    llms: fileConfig.llms,
+    configsDir: process.env.CONFIGS_DIR || fileConfig.configsDir
   };
 
   // Update logger level based on configuration
@@ -276,6 +278,25 @@ export function refreshConfig(): VoxAgentsConfig {
   logger.info('Refreshing configuration...');
   config = loadConfig();
   return config;
+}
+
+/**
+ * Get the absolute path to the configs directory.
+ * Uses the CONFIGS_DIR environment variable if set, otherwise defaults to 'configs'.
+ * Supports both relative paths (resolved from cwd) and absolute paths.
+ *
+ * @returns Absolute path to the configs directory
+ *
+ * @example
+ * ```typescript
+ * import { getConfigsDir } from './utils/config.js';
+ * const configPath = path.join(getConfigsDir(), 'play-simple.json');
+ * ```
+ */
+export function getConfigsDir(): string {
+  return path.isAbsolute(config.configsDir)
+    ? config.configsDir
+    : path.join(process.cwd(), config.configsDir);
 }
 
 export default config;

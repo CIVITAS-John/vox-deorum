@@ -9,7 +9,14 @@ import * as z from "zod";
 import { getVictoryProgress } from "../../knowledge/getters/victory-progress.js";
 import { readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
 import { stripMutableKnowledgeMetadata } from "../../utils/knowledge/strip-metadata.js";
-import { VictoryProgress, PlayerSummary } from "../../knowledge/schema/timed.js";
+import {
+  VictoryProgress,
+  PlayerSummary,
+  DominationVictoryDataSchema,
+  ScienceVictoryDataSchema,
+  CulturalVictoryDataSchema,
+  DiplomaticVictoryDataSchema
+} from "../../knowledge/schema/timed.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
@@ -17,6 +24,7 @@ import { getPlayerInformations } from "../../knowledge/getters/player-informatio
 import { getPlayerVisibility } from "../../utils/knowledge/visibility.js";
 import { Selectable } from "kysely";
 import { PlayerInformation } from "../../knowledge/schema/public.js";
+import { sortBySchema } from "../../utils/schema.js";
 
 /**
  * Interface for visibility filtering context
@@ -112,20 +120,21 @@ class GetVictoryProgressTool extends ToolBase {
       : undefined;
 
     return {
-      DominationVictory: parseVictoryField(cleanProgress.DominationVictory, filterContext),
-      ScienceVictory: parseVictoryField(cleanProgress.ScienceVictory, filterContext),
-      CulturalVictory: parseVictoryField(cleanProgress.CulturalVictory, filterContext),
-      DiplomaticVictory: parseVictoryField(cleanProgress.DiplomaticVictory, filterContext),
+      DominationVictory: parseVictoryField(cleanProgress.DominationVictory, DominationVictoryDataSchema, filterContext),
+      ScienceVictory: parseVictoryField(cleanProgress.ScienceVictory, ScienceVictoryDataSchema, filterContext),
+      CulturalVictory: parseVictoryField(cleanProgress.CulturalVictory, CulturalVictoryDataSchema, filterContext),
+      DiplomaticVictory: parseVictoryField(cleanProgress.DiplomaticVictory, DiplomaticVictoryDataSchema, filterContext),
     };
   }
 }
 
 /**
- * Parse victory field and apply visibility filtering in one step
- * Parses JSON strings and filters out unmet players if visibility data is provided
+ * Parse victory field and apply visibility filtering and sorting
+ * Parses JSON strings, filters out unmet players if visibility data is provided, and sorts by schema
  */
 function parseVictoryField(
   field: string | object,
+  schema: z.ZodObject<any, any>,
   filterContext?: VisibilityContext
 ): string | object {
   // Parse JSON if it's a string
@@ -139,14 +148,22 @@ function parseVictoryField(
     }
   }
 
-  // Apply visibility filtering if context provided
-  if (filterContext && typeof parsed === "object") {
-    return filterVictoryData(
-      parsed,
-      filterContext.playerSummaries,
-      filterContext.playerInfos,
-      filterContext.viewingPlayerID
-    );
+  // Apply visibility filtering and sorting if it's an object
+  if (typeof parsed === "object") {
+    let result = parsed;
+
+    // Apply visibility filtering if context provided
+    if (filterContext) {
+      result = filterVictoryData(
+        result,
+        filterContext.playerSummaries,
+        filterContext.playerInfos,
+        filterContext.viewingPlayerID
+      );
+    }
+
+    // Apply sorting based on schema
+    return sortBySchema(result, schema);
   }
 
   return parsed;

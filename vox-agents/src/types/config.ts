@@ -64,6 +64,7 @@ export interface VoxAgentsConfig {
     level: string;
   };
   llms: Record<string, string | LLMConfig>;
+  configsDir: string;
 }
 
 /**

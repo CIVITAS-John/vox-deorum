@@ -1,5 +1,6 @@
 import { JSONColumnType } from "kysely";
 import { MutableKnowledge, TimedKnowledge } from "./base";
+import * as z from "zod";
 
 /**
  * Game events with typed payloads
@@ -334,80 +335,52 @@ export interface PlayerOpinions extends MutableKnowledge {
   OpinionTo21: string | null;
 }
 
+// Victory data type schemas
+export const DominationVictoryDataSchema = z.object({
+  CapitalsNeeded: z.number(),
+  Contender: z.string().nullable()
+}).passthrough();
+
+export const ScienceVictoryDataSchema = z.object({
+  Contender: z.string().nullable()
+}).passthrough();
+
+export const CulturalVictoryDataSchema = z.object({
+  CivsNeeded: z.number(),
+  Contender: z.string().nullable()
+}).passthrough();
+
+export const DiplomaticVictoryDataSchema = z.object({
+  VotesNeeded: z.number(),
+  Status: z.string(), // Combined: "{World Congress|United Nations} - {Voting Now|Voting in X turns}"
+  ActiveResolutions: z.record(z.string(), z.any()),
+  Proposals: z.record(z.string(), z.any()),
+  Contender: z.string().nullable()
+}).passthrough();
+
 /**
  * Domination victory progress data
  * Player-keyed object with capital control counts
  */
-export interface DominationVictoryData {
-  CapitalsNeeded: number;
-  Contender: string | undefined;
-  [playerName: string]: {
-    CapitalsControlled: number;
-    CapitalsPercentage: number;
-  } | number | string | undefined;
-}
+export type DominationVictoryData = z.infer<typeof DominationVictoryDataSchema>;
 
 /**
  * Spaceship victory progress data
  * Player-keyed object with spaceship progress
  */
-export interface ScienceVictoryData {
-  Contender: string | undefined;
-  [playerName: string]: {
-    ApolloComplete: number; // 0 or 1 (boolean as number for SQLite)
-    PartsCompleted: number;
-    PartsPercentage: number;
-  } | number | string | undefined;
-}
+export type ScienceVictoryData = z.infer<typeof ScienceVictoryDataSchema>;
 
 /**
  * Cultural victory progress data
  * Player-keyed object with tourism/influence progress
  */
-export interface CulturalVictoryData {
-  CivsNeeded: number;
-  Contender: string | undefined;
-  [playerName: string]: {
-    InfluentialCivs: number;
-    Influences: Record<string, number>;
-    PolicyPercentage: number;
-  } | number | string | undefined;
-}
-
-/**
- * Active resolution information for Diplomatic victory
- */
-export interface ActiveResolution {
-  Description: string; // Resolution details
-  EnactedOn: number; // Turn number when enacted
-}
-
-/**
- * Proposal information for World Congress
- * Only includes active proposals (not on-hold)
- * Keyed by resolution name with direction prefix (e.g., "Enact: World Religion")
- */
-export interface Proposal {
-  Proposer: string; // Civilization name of proposer
-  Description: string; // Detailed resolution description
-}
+export type CulturalVictoryData = z.infer<typeof CulturalVictoryDataSchema>;
 
 /**
  * Diplomatic victory progress data
  * Player-keyed object with delegate counts
  */
-export interface DiplomaticVictoryData {
-  VotesNeeded: number;
-  Status: "WorldCongress" | "UnitedNations";
-  SessionStatus: string; // "Voting Now" or "Voting in X turns"
-  ActiveResolutions: Record<string, ActiveResolution>;
-  Proposals: Record<string, Proposal>; // Active proposals only (excludes on-hold), keyed by name with direction
-  Contender: string | undefined;
-  [playerName: string]: {
-    Delegates: number;
-    VictoryPercentage: number;
-  } | number | string | undefined | Record<string, ActiveResolution> | Record<string, Proposal>;
-}
+export type DiplomaticVictoryData = z.infer<typeof DiplomaticVictoryDataSchema>;
 
 /**
  * Victory progress tracking for all victory types

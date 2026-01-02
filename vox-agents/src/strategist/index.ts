@@ -9,12 +9,13 @@
 
 import { sqliteExporter } from "../instrumentation.js";
 import { createLogger } from "../utils/logger.js";
-import { loadConfigFromFile } from "../utils/config.js";
+import { loadConfigFromFile, getConfigsDir } from "../utils/config.js";
 import { StrategistSession } from "./strategist-session.js";
 import { StrategistSessionConfig } from "../types/config.js";
 import { setTimeout } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import * as readline from 'node:readline';
+import * as path from 'node:path';
 import { startWebServer } from "../web/server.js";
 
 const logger = createLogger('Strategists');
@@ -119,7 +120,7 @@ if (values.repetition !== undefined) {
 
 // Load configuration from file with command line overrides
 const sessionConfig: StrategistSessionConfig = loadConfigFromFile(
-  "configs/" + configFile,
+  path.join(getConfigsDir(), configFile),
   defaultConfig,
   cmdOverrides
 );

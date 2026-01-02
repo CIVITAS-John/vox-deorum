@@ -281,7 +281,7 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
 
   if league then
     local votesNeeded = Game.GetVotesNeededForDiploVictory()
-    local status = "World Congress"
+    local statusPrefix = "World Congress"
 
     -- Check if we have United Nations
     for projectInfo in GameInfo.Projects() do
@@ -290,7 +290,7 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
         for teamID = 0, GameDefines.MAX_TEAMS - 1 do
           local team = Teams[teamID]
           if team and team:GetProjectCount(projectInfo.ID) > 0 then
-            status = "United Nations"
+            statusPrefix = "United Nations"
             break
           end
         end
@@ -298,26 +298,26 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
       end
     end
 
-    local diplomaticData = {
-      VotesNeeded = votesNeeded,
-      Status = status,
-      Contender = nil,
-      SessionStatus = "",
-      ActiveResolutions = {},
-      Proposals = {}
-    }
-
-    -- Generate session status string
+    -- Generate combined status string with session information
+    local sessionStatus = ""
     if league:IsInSession() then
-      diplomaticData.SessionStatus = "Voting Now"
+      sessionStatus = "Voting Now"
     else
       local turnsUntilSession = league:GetTurnsUntilSession()
       if turnsUntilSession == 1 then
-        diplomaticData.SessionStatus = "Voting in 1 turn"
+        sessionStatus = "Voting in 1 turn"
       else
-        diplomaticData.SessionStatus = "Voting in " .. turnsUntilSession .. " turns"
+        sessionStatus = "Voting in " .. turnsUntilSession .. " turns"
       end
     end
+
+    local diplomaticData = {
+      VotesNeeded = votesNeeded,
+      Status = statusPrefix .. " - " .. sessionStatus,
+      Contender = nil,
+      ActiveResolutions = {},
+      Proposals = {}
+    }
 
     -- Extract active proposals (exclude on-hold)
     local function processProposals(proposalList, direction)
