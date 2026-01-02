@@ -156,7 +156,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
   getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
     const filteredPlayers = omitPlayerFields(state.players!, [
-      'OpinionFromMe', 'OpinionToMe', 'MyEvaluations', 'Spies'
+      'OurOpinionToThem', 'TheirOpinionToUs', 'MyEvaluations', 'Spies'
     ]);
     return `
 # Victory Progress
@@ -216,7 +216,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
     const state = getRecentGameState(parameters)!;
     const filteredPlayers = pickPlayerFields(state.players!, [
       'Civilization', 'Leader', 'IsMajor', 'TeamID', 'Era', 'Score', 'Territory',
-      'OpinionFromMe', 'OpinionToMe', 'Relationships', 'MyEvaluation', 'PolicyBranches',
+      'OurOpinionToThem', 'TheirOpinionToUs', 'Relationships', 'MyEvaluation', 'PolicyBranches',
       'FoundedReligion', 'MajorityReligion', 'MajorAlly', 'Quests',
       'GoldenAge', 'HappinessSituation'
     ]);

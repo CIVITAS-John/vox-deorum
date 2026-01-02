@@ -39,8 +39,8 @@ const PlayerDataSchema = z.object({
   Leader: z.string(),
   IsMajor: z.boolean(),
   // Opinion fields
-  OpinionFromMe: z.array(z.string()).optional(),
-  OpinionToMe: z.array(z.string()).optional(),
+  OurOpinionToThem: z.array(z.string()).optional(),
+  TheirOpinionToUs: z.array(z.string()).optional(),
   MyEvaluations: z.array(z.string()).optional(),
   // PlayerSummary fields
   Score: z.number().optional(),
@@ -199,8 +199,8 @@ class GetPlayersTool extends ToolBase {
         if (playerID === args.PlayerID) {
           playerData.MyEvaluations = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
         } else {
-          playerData.OpinionFromMe = (playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
-          playerData.OpinionToMe = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
+          playerData.OurOpinionToThem = (playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
+          playerData.TheirOpinionToUs = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
         }
       }
 

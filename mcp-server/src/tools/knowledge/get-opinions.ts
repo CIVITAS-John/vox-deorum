@@ -32,8 +32,8 @@ const OpinionDataSchema = z.object({
   Leader: z.string(),
   IsMajor: z.boolean(),
   // Opinion fields
-  OpinionFromMe: z.array(z.string()).describe("Opinion from the requesting player TO the target player").optional(),
-  OpinionToMe: z.array(z.string()).describe("Opinion FROM the target player to the requesting player").optional(),
+  OurOpinionToThem: z.array(z.string()).describe("Opinion from the requesting player TO the target player").optional(),
+  TheirOpinionToUs: z.array(z.string()).describe("Opinion FROM the target player to the requesting player").optional(),
   MyEvaluations: z.array(z.string()).describe("My evaluation of other players").optional(),
 });
 
@@ -132,8 +132,8 @@ class GetOpinionsTool extends ToolBase {
           Leader: info.Leader,
           IsMajor: info.IsMajor === 1,
           // Opinion data
-          OpinionFromMe: stripTags(toOpinion)?.split("\n"),
-          OpinionToMe: targetPlayerID === args.PlayerID ? undefined : stripTags(fromOpinion)?.split("\n"),
+          OurOpinionToThem: stripTags(toOpinion)?.split("\n"),
+          TheirOpinionToUs: targetPlayerID === args.PlayerID ? undefined : stripTags(fromOpinion)?.split("\n"),
           MyEvaluations: targetPlayerID !== args.PlayerID ? undefined : stripTags(fromOpinion)?.split("\n")
         };
         
