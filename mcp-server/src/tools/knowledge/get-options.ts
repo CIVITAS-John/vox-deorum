@@ -182,13 +182,13 @@ class GetOptionsTool extends ToolBase {
             ];
           })
         ),
-        Technologies: technologies && cleanOptions.Technologies.length > 0 ?
+        Research: technologies && cleanOptions.Technologies.length > 0 ?
           Object.fromEntries(
             cleanOptions.Technologies.map(techName => {
               const tech = technologies.find(s => s.Name === techName)!;
               let help = tech?.Help ?? "";
               if ((tech?.TechsUnlocked?.length ?? 0) > 0)
-                help += `\nResearching it would unlock: ${tech?.TechsUnlocked?.join(", ")}`;
+                help += `\nCompleting it would unlock: ${tech?.TechsUnlocked?.join(", ")}`;
               return [
                 techName,
                 help.trim()
