@@ -69,7 +69,7 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
   public static readonly decisionPrompt = `- Each turn, you must call either \`set-strategy\` or \`keep-status-quo\` tool.
   - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
   - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
-  - Strategies change the weight of the in-game AI's NEXT decision. It won't directly change the ongoing production queue (or other similar things).
+  - Strategies change the weight of the in-game AI's NEXT decision. It will NOT change existing production queues (or other similar things).
 - Always provide a short paragraph of rationale for each tool. You will read this rationale next turn.`;
 
   // ============================================================
