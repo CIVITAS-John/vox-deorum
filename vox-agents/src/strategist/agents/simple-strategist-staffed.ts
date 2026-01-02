@@ -16,6 +16,37 @@ import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
 import { SpecializedBrieferInput } from "../../briefer/specialized-briefer.js";
 
 /**
+ * Assembles briefing content with optional instructions.
+ * Can handle both single briefings and multiple briefing sections.
+ *
+ * @param briefings - Either a single briefing content string, or an array of briefing sections with titles
+ * @param instruction - Optional instruction for single briefing mode
+ * @returns Formatted briefing markdown
+ */
+export function assembleBriefings(
+  briefings: string | Array<{ title: string; content: string; instruction?: string }>,
+  instruction?: string
+): string {
+  // Single briefing mode (simple-strategist-briefed)
+  if (typeof briefings === "string") {
+    if (instruction) {
+      return `Produced with your instruction: \n\n${instruction}\n\n${briefings}`;
+    }
+    return briefings;
+  }
+
+  // Multiple briefing sections mode (staffed strategist)
+  return briefings
+    .map((b) => {
+      if (b.instruction) {
+        return `## ${b.title}\n(Produced with your instruction: ${b.instruction})\n\n${b.content}`;
+      }
+      return `## ${b.title}\n${b.content}`;
+    })
+    .join("\n\n");
+}
+
+/**
  * A staffed strategist agent that uses specialized briefers for comprehensive analysis.
  * Delegates game state analysis to three specialized briefers (Military, Economy, Diplomacy)
  * running in parallel to provide focused, multi-dimensional strategic insight.
@@ -43,7 +74,7 @@ ${SimpleStrategistBase.expertPlayerPrompt}
 ${SimpleStrategistBase.expectationPrompt}
 
 ${SimpleStrategistBase.goalsPrompt}
-- You can ask your specialized briefers to prepare focused reports (only for) the next turn by calling the \`instruct-briefer\` tool.
+- You can ask your specialized briefers to prepare focused reports (only for) the next turn by calling the \`focus-briefer\` tool.
  - You have three specialized briefers: Military, Economy, and Diplomacy analysts.
 ${SimpleStrategistBase.brieferCapabilitiesPrompt}
 ${SimpleStrategistBase.decisionPrompt}
@@ -63,48 +94,70 @@ ${SimpleStrategistBase.playersInfoPrompt}
    */
   public async getInitialMessages(parameters: StrategistParameters, input: unknown, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     var state = getRecentGameState(parameters)!;
-
-    // Get instructions for each specialized briefer from working memory
+    let briefingsContent: string;
     const militaryInstruction = parameters.workingMemory["briefer-instruction-military"];
     const economyInstruction = parameters.workingMemory["briefer-instruction-economy"];
     const diplomacyInstruction = parameters.workingMemory["briefer-instruction-diplomacy"];
 
-    // Call all three specialized briefers in parallel
-    const [militaryBriefing, economyBriefing, diplomacyBriefing] = await Promise.all([
-      context.callAgent<string>("specialized-briefer", {
-        mode: "Military",
-        instruction: militaryInstruction ?? ""
-      } as SpecializedBrieferInput, parameters),
-      context.callAgent<string>("specialized-briefer", {
-        mode: "Economy",
-        instruction: economyInstruction ?? ""
-      } as SpecializedBrieferInput, parameters),
-      context.callAgent<string>("specialized-briefer", {
-        mode: "Diplomacy",
-        instruction: diplomacyInstruction ?? ""
-      } as SpecializedBrieferInput, parameters)
-    ]);
+    // Check the event length to decide between simple/specialized briefer
+    if (JSON.stringify(state.events!).length <= 2000) {
+      // Assemble combined instruction from specialized instructions
+      const combinedInstruction = [
+        militaryInstruction && `Military: ${militaryInstruction}`,
+        economyInstruction && `Economy: ${economyInstruction}`,
+        diplomacyInstruction && `Diplomacy: ${diplomacyInstruction}`
+      ].filter(Boolean).join("\n");
+
+      // Use simple-briefer for fewer events
+      const briefing = await context.callAgent<string>("simple-briefer", combinedInstruction || "", parameters);
+
+      if (!briefing) {
+        throw new Error("Failed to generate strategic briefing.");
+      }
+
+      briefingsContent = assembleBriefings(briefing, combinedInstruction || undefined);
+    } else {
+      // Use specialized briefers for more complex situations
+      // Call all three specialized briefers in parallel
+      const [militaryBriefing, economyBriefing, diplomacyBriefing] = await Promise.all([
+        context.callAgent<string>("specialized-briefer", {
+          mode: "Military",
+          instruction: militaryInstruction ?? ""
+        } as SpecializedBrieferInput, parameters),
+        context.callAgent<string>("specialized-briefer", {
+          mode: "Economy",
+          instruction: economyInstruction ?? ""
+        } as SpecializedBrieferInput, parameters),
+        context.callAgent<string>("specialized-briefer", {
+          mode: "Diplomacy",
+          instruction: diplomacyInstruction ?? ""
+        } as SpecializedBrieferInput, parameters)
+      ]);
+
+      if (!militaryBriefing || !economyBriefing || !diplomacyBriefing) {
+        throw new Error("Failed to generate strategic briefings.");
+      }
+
+      // Compile briefings with any instructions provided
+      briefingsContent = assembleBriefings([
+        { title: "Military Briefing", content: militaryBriefing, instruction: militaryInstruction },
+        { title: "Economy Briefing", content: economyBriefing, instruction: economyInstruction },
+        { title: "Diplomacy Briefing", content: diplomacyBriefing, instruction: diplomacyInstruction }
+      ]);
+    }
 
     // Clear the instructions from working memory
     delete parameters.workingMemory["briefer-instruction-military"];
     delete parameters.workingMemory["briefer-instruction-economy"];
     delete parameters.workingMemory["briefer-instruction-diplomacy"];
 
-    if (!militaryBriefing || !economyBriefing || !diplomacyBriefing) {
-      throw new Error("Failed to generate strategic briefings.");
-    }
-
     // Get the information
     await super.getInitialMessages(parameters, input, context);
     const { YouAre, ...SituationData } = parameters.metadata || {};
     const { Options, ...Strategy } = state.options || {};
 
-    // Compile briefings with any instructions provided
-    const briefingsContent = [
-      militaryInstruction ? `## Military Briefing\n(Produced with your instruction: ${militaryInstruction})\n\n${militaryBriefing}` : `## Military Briefing\n${militaryBriefing}`,
-      economyInstruction ? `## Economy Briefing\n(Produced with your instruction: ${economyInstruction})\n\n${economyBriefing}` : `## Economy Briefing\n${economyBriefing}`,
-      diplomacyInstruction ? `## Diplomacy Briefing\n(Produced with your instruction: ${diplomacyInstruction})\n\n${diplomacyBriefing}` : `## Diplomacy Briefing\n${diplomacyBriefing}`
-    ].join("\n\n");
+    // Save the assembled briefings for spokesperson use
+    state.reports["briefing"] = briefingsContent;
 
     // Return the messages with all briefings
     return [{
@@ -158,7 +211,7 @@ You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.Yo
    */
   public getActiveTools(parameters: StrategistParameters): string[] | undefined {
     // Return specific tools the strategist needs
-    return ["instruct-briefer", ...(super.getActiveTools(parameters) ?? [])]
+    return ["focus-briefer", ...(super.getActiveTools(parameters) ?? [])]
   }
 
   /**

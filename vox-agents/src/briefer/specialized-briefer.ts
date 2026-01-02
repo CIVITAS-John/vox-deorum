@@ -333,7 +333,7 @@ ${input.instruction}`.trim()
         role: "user",
         content: `# Past Briefing
 Past Briefing: your past ${config.eventCategory.toLowerCase()} briefing from ${parameters.turn - lastState.turn} turns ago (turn ${lastState.turn}) for comparison.
-${lastState.reports[reportKey]}`
+${lastState.reports[reportKey] ?? lastState.reports["briefing"]}`
       });
     }
 
@@ -370,8 +370,8 @@ ${lastState.reports[reportKey]}`
    */
   public getExtraTools(context: VoxContext<StrategistParameters>): Record<string, Tool> {
     return {
-      "instruct-briefer": createSimpleTool({
-        name: "instruct-briefer",
+      "focus-briefer": createSimpleTool({
+        name: "focus-briefer",
         description: "Set writing instructions for one of your briefers to focus on next turn",
         inputSchema: z.object({
           Mode: z.enum(['Military', 'Economy', 'Diplomacy']).describe("The briefer to instruct"),

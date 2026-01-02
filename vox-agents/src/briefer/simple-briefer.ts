@@ -191,11 +191,11 @@ ${lastState.reports["briefing"]}`
    */
   public getExtraTools(context: VoxContext<StrategistParameters>): Record<string, Tool> {
     return {
-      "instruct-briefer": createSimpleTool({
-          name: "instruct-briefer",
-          description: "Set writing instructions for your briefer to focus on next turn",
+      "focus-briefer": createSimpleTool({
+          name: "focus-briefer",
+          description: "Set the focus for your briefer's next report",
           inputSchema: z.object({
-            Instruction: z.string().describe("Instructions for your briefer's **report writing**, e.g. what kind of information to prioritize in the briefing")
+            Instruction: z.string().describe("A short paragraph to focus your briefer's **next report**, e.g. what kind of information to prioritize")
           }),
           execute: async (input, parameters) => {
             // Store the instruction in working memory for the next briefing

@@ -13,6 +13,7 @@ import { getRecentGameState, StrategistParameters } from "../strategy-parameters
 import { getModelConfig } from "../../utils/models/models.js";
 import { Model } from "../../types/index.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
+import { assembleBriefings } from "./simple-strategist-staffed.js";
 
 /**
  * A briefed strategist agent that first requests a briefing before making strategic decisions.
@@ -41,7 +42,7 @@ ${SimpleStrategistBase.expertPlayerPrompt}
 ${SimpleStrategistBase.expectationPrompt}
 
 ${SimpleStrategistBase.goalsPrompt}
-- You can ask your briefer to prepare a focused report (only for) the next turn by calling the \`instruct-briefer\` tool.
+- You can ask your briefer to prepare a focused report (only for) the next turn by calling the \`focus-briefer\` tool.
 ${SimpleStrategistBase.brieferCapabilitiesPrompt}
 ${SimpleStrategistBase.decisionPrompt}
 
@@ -112,7 +113,7 @@ Victory Progress: current progress towards each type of victory.
 ${jsonToMarkdown(state.victory)}
 
 # Briefings
-${instruction ? `Produced with your instruction: \n\n${instruction}\n\n` : ""}${briefing}
+${assembleBriefings(briefing, instruction)}
 
 You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.YouAre!.Name}, Player ${parameters.playerID ?? 0}), are making strategic decisions after turn ${parameters.turn}.
 `.trim()
@@ -124,7 +125,7 @@ You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.Yo
    */
   public getActiveTools(parameters: StrategistParameters): string[] | undefined {
     // Return specific tools the strategist needs
-    return ["instruct-briefer", ...(super.getActiveTools(parameters) ?? [])]
+    return ["focus-briefer", ...(super.getActiveTools(parameters) ?? [])]
   }
 
   /**
