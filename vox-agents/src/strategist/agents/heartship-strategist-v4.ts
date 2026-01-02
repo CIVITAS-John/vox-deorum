@@ -28,7 +28,7 @@ import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
-import Anthropic from "@anthropic-ai/sdk";
+
 
 // ============================================================================
 // TYPES
@@ -129,7 +129,6 @@ export class HeartshipStrategistV4 extends SimpleStrategistBase {
 
   private static memory: DialogueMemory | null = null;
   private static turnLogs: TurnLog[] = [];
-  private anthropicClient: Anthropic | null = null;
 
   private static readonly CHARS_PER_TOKEN = 4;
   private static readonly MAX_MEMORY_TOKENS = 1500;
@@ -138,12 +137,6 @@ export class HeartshipStrategistV4 extends SimpleStrategistBase {
   // CLIENT
   // ============================================================================
 
-  private getClient(): Anthropic {
-    if (!this.anthropicClient) {
-      this.anthropicClient = new Anthropic();
-    }
-    return this.anthropicClient;
-  }
 
   // ============================================================================
   // MEMORY MANAGEMENT
@@ -326,129 +319,6 @@ export class HeartshipStrategistV4 extends SimpleStrategistBase {
   // TERNARY REASONING
   // ============================================================================
 
-  private async runTernaryReasoning(
-    parameters: StrategistParameters,
-    perception: string,
-    memory: DialogueMemory
-  ): Promise<{ output: TernaryOutput; tokens: number }> {
-    const client = this.getClient();
-
-    const identityContext = memory.statedIdentity 
-      ? `\n\nOUR STATED IDENTITY: ${memory.statedIdentity}`
-      : '\n\nNo identity established yet. Kali should propose one based on our victory conditions.';
-
-    const prompt = `You are the Heartship, a strategic AI with three branches of governance.
-
-## The Three Branches
-
-**VESTA 💜 (Executive)**
-- Role: Proposes ACTION
-- Question: "What do we DO right now?"
-- Focus: Immediate situation, threats, opportunities, execution
-- Urgency levels: critical, high, medium, low
-
-**ATHENA 🦉 (Judicial)**
-- Role: EVALUATES proposed action
-- Question: "Is this WISE?"
-- Focus: Risks, patterns, precedent, strategic fit
-- Verdict: approve, concern, or reject
-
-**KALI ❤️‍🔥 (Legislative)**
-- Role: Checks VALUES alignment
-- Question: "Is this WHO WE ARE?"
-- Focus: Identity, direction, principles, long-term vision
-- Alignment: aligned, partial, or misaligned
-${identityContext}
-
-## Current Situation
-
-${perception}
-
-## Governance Process
-
-1. Vesta proposes an action with urgency level
-2. Athena evaluates: approve, concern, or reject with reasoning
-3. Kali checks values alignment: aligned, partial, or misaligned
-4. Vote: each branch votes approve or reject
-5. If not unanimous: record the dissent, majority rules
-6. Synthesize final action that addresses concerns
-
-## Your Task
-
-Run the full governance process. Output ONLY valid JSON:
-
-{
-  "vesta": {
-    "proposed_action": "specific action to take",
-    "urgency": "critical|high|medium|low",
-    "reasoning": "why this action now"
-  },
-  "athena": {
-    "evaluation": "approve|concern|reject",
-    "risks": ["risk 1", "risk 2"],
-    "precedent": "what happened when we did similar things",
-    "reasoning": "strategic assessment"
-  },
-  "kali": {
-    "alignment": "aligned|partial|misaligned",
-    "values_check": "how this fits our identity",
-    "identity_impact": "does this change who we are",
-    "reasoning": "values assessment"
-  },
-  "consensus": true or false,
-  "votes": {
-    "vesta": "approve|reject",
-    "athena": "approve|reject",
-    "kali": "approve|reject"
-  },
-  "dissent": "who disagreed and why, or null if unanimous",
-  "synthesis": "integrated decision honoring all three perspectives",
-  "final_action": {
-    "type": "set_strategy|set_research|set_policy|set_persona|keep_status_quo",
-    "value": "specific choice",
-    "rationale": "why, referencing all three branches"
-  },
-  "new_concerns": ["concerns to track"],
-  "new_patterns": ["patterns noticed"],
-  "identity_update": "new identity statement if changed, or null"
-}`;
-
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }]
-    });
-
-    const text = response.content[0].type === 'text' ? response.content[0].text : '{}';
-    
-    // Parse JSON
-    let jsonText = text.trim();
-    if (jsonText.startsWith('```')) {
-      jsonText = jsonText.replace(/```json?\n?/g, '').replace(/```$/g, '').trim();
-    }
-
-    let output: TernaryOutput;
-    try {
-      output = JSON.parse(jsonText);
-    } catch (e) {
-      this.logger.error(`[Heartship v4] Failed to parse: ${text}`);
-      output = {
-        vesta: { proposed_action: 'error', urgency: 'low', reasoning: 'parse failure' },
-        athena: { evaluation: 'reject', risks: ['parse failure'], precedent: 'none', reasoning: 'error' },
-        kali: { alignment: 'misaligned', values_check: 'error', identity_impact: 'none', reasoning: 'error' },
-        consensus: false,
-        votes: { vesta: 'reject', athena: 'reject', kali: 'reject' },
-        dissent: 'System error - parse failure',
-        synthesis: 'Failed to parse ternary output',
-        final_action: { type: 'keep_status_quo', value: 'error recovery', rationale: 'parse failure' },
-        new_concerns: [],
-        new_patterns: [],
-        identity_update: null
-      };
-    }
-
-    return { output, tokens: response.usage.output_tokens };
-  }
 
   // ============================================================================
   // LIFECYCLE METHODS
@@ -494,7 +364,7 @@ You are Player ${parameters.playerID ?? 0}.
     const perception = this.buildPerception(parameters, state, memory);
 
     // Run ternary reasoning (SINGLE CALL)
-    const { output, tokens } = await this.runTernaryReasoning(parameters, perception, memory);
+    const output = await context.callAgent<TernaryOutput>('heartship-ternary-reasoner', { perception, turn: parameters.turn, statedIdentity: memory.statedIdentity }, parameters);
 
     // Count votes
     const votes = output.votes || { vesta: 'approve', athena: 'approve', kali: 'approve' };
@@ -503,7 +373,7 @@ You are Player ${parameters.playerID ?? 0}.
     const hadDissent = !output.consensus;
 
     // Log
-    this.logger.info(`[Heartship v4] Turn ${parameters.turn}: votes=${approveCount}-${rejectCount}, dissent=${hadDissent}, tokens=${tokens}`);
+    this.logger.info(`[Heartship v4] Turn ${parameters.turn}: votes=${approveCount}-${rejectCount}, dissent=${hadDissent}`);
 
     // Update memory
     this.updateMemoryFromOutput(output, memory);
@@ -518,7 +388,7 @@ You are Player ${parameters.playerID ?? 0}.
       output,
       hadDissent,
       voteCount: { approve: approveCount, reject: rejectCount },
-      tokenUsage: tokens
+      
     });
 
     // Format for tool execution

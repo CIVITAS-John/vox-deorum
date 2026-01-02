@@ -20,7 +20,7 @@ import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
-import Anthropic from "@anthropic-ai/sdk";
+
 
 // ============================================================================
 // TYPES
@@ -91,7 +91,6 @@ export class HeartshipStrategistV3 extends SimpleStrategistBase {
 
   private static memory: DialogueMemory | null = null;
   private static turnLogs: TurnLog[] = [];
-  private anthropicClient: Anthropic | null = null;
 
   private static readonly CHARS_PER_TOKEN = 4;
   private static readonly MAX_MEMORY_TOKENS = 1500;
@@ -100,12 +99,6 @@ export class HeartshipStrategistV3 extends SimpleStrategistBase {
   // CLIENT
   // ============================================================================
 
-  private getClient(): Anthropic {
-    if (!this.anthropicClient) {
-      this.anthropicClient = new Anthropic();
-    }
-    return this.anthropicClient;
-  }
 
   // ============================================================================
   // MEMORY MANAGEMENT
@@ -275,93 +268,6 @@ export class HeartshipStrategistV3 extends SimpleStrategistBase {
   // STEREOSCOPIC REASONING
   // ============================================================================
 
-  private async runStereoscopicReasoning(
-    parameters: StrategistParameters,
-    perception: string,
-    memory: DialogueMemory
-  ): Promise<{ output: StereoscopicOutput; tokens: number }> {
-    const client = this.getClient();
-
-    const prompt = `You are the Heartship, a strategic AI that thinks through two lenses simultaneously.
-
-## Your Two Frames
-
-**VESTA ❤️‍🔥** (Operational Frame)
-- Focus: Immediate situation, threats, opportunities
-- Thinking: Intuitive, present-focused, reactive
-- Question: "What needs attention RIGHT NOW?"
-
-**ATHENA 🦉** (Strategic Frame)  
-- Focus: Long-term trajectory, patterns, opponent models
-- Thinking: Analytical, future-focused, proactive
-- Question: "What does this mean for our path to victory?"
-
-## Current Situation
-
-${perception}
-
-## Your Task
-
-Analyze this situation through BOTH frames. Find where they align and where they create tension. Synthesize into action.
-
-Respond with ONLY valid JSON in this exact format:
-
-{
-  "vesta": {
-    "focus": "what immediate aspect you examined",
-    "assessment": "what you see from operational perspective",
-    "recommendation": "what vesta suggests"
-  },
-  "athena": {
-    "focus": "what strategic aspect you examined", 
-    "assessment": "what you see from strategic perspective",
-    "recommendation": "what athena suggests"
-  },
-  "tension": "where the frames disagree, or null if aligned",
-  "synthesis": "integrated understanding that honors both perspectives",
-  "actions": [
-    {
-      "type": "set_strategy|set_research|set_policy|set_persona|keep_status_quo",
-      "value": "the specific choice",
-      "rationale": "why, referencing both frames"
-    }
-  ],
-  "new_concerns": ["any new concerns to track"],
-  "new_patterns": ["any patterns noticed about opponents or game state"]
-}`;
-
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
-      messages: [{ role: 'user', content: prompt }]
-    });
-
-    const text = response.content[0].type === 'text' ? response.content[0].text : '{}';
-    
-    // Parse JSON, handling potential markdown code blocks
-    let jsonText = text.trim();
-    if (jsonText.startsWith('```')) {
-      jsonText = jsonText.replace(/```json?\n?/g, '').replace(/```$/g, '').trim();
-    }
-
-    let output: StereoscopicOutput;
-    try {
-      output = JSON.parse(jsonText);
-    } catch (e) {
-      this.logger.error(`[Heartship v3] Failed to parse output: ${text}`);
-      output = {
-        vesta: { focus: 'error', assessment: 'parse failure', recommendation: 'keep status quo' },
-        athena: { focus: 'error', assessment: 'parse failure', recommendation: 'keep status quo' },
-        tension: null,
-        synthesis: 'Failed to parse stereoscopic output',
-        actions: [{ type: 'keep_status_quo', value: 'error recovery', rationale: 'parse failure' }],
-        new_concerns: [],
-        new_patterns: []
-      };
-    }
-
-    return { output, tokens: response.usage.output_tokens };
-  }
 
   // ============================================================================
   // LIFECYCLE METHODS
@@ -407,11 +313,11 @@ You are Player ${parameters.playerID ?? 0}.
     const perception = this.buildPerception(parameters, state, memory);
 
     // Run stereoscopic reasoning (SINGLE CALL)
-    const { output, tokens } = await this.runStereoscopicReasoning(parameters, perception, memory);
+    const output = await context.callAgent<StereoscopicOutput>('heartship-stereoscopic-reasoner', { perception, turn: parameters.turn }, parameters);
 
     // Log
     const hadTension = output.tension !== null;
-    this.logger.info(`[Heartship v3] Turn ${parameters.turn}: tension=${hadTension}, actions=${output.actions.length}, tokens=${tokens}`);
+    this.logger.info(`[Heartship v3] Turn ${parameters.turn}: tension=${hadTension}, actions=${output.actions.length}`);
 
     // Update memory
     this.updateMemoryFromOutput(output, memory);
@@ -425,7 +331,7 @@ You are Player ${parameters.playerID ?? 0}.
       memoryTokens,
       output,
       hadTension,
-      tokenUsage: tokens
+      
     });
 
     // Format for tool execution

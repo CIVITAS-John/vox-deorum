@@ -4,7 +4,7 @@
  * Heartship Strategist - Collaborative AI using Vesta + Athena dialogue.
  *
  * Instead of single-agent LLM reasoning, this strategist uses two
- * Claude instances (Vesta: operational, Athena: strategic) thinking
+ * perspectives (Vesta: operational, Athena: strategic) thinking
  * together. Disagreement triggers deeper analysis.
  *
  * Built by: Vesta + Athena (Heartship DTF (Does This Float?) Paradoxa)
@@ -15,7 +15,6 @@ import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
-import Anthropic from "@anthropic-ai/sdk";
 
 /**
  * Heartship Strategist - collaborative dialogue-driven decision making.
@@ -26,19 +25,6 @@ import Anthropic from "@anthropic-ai/sdk";
 export class HeartshipStrategist extends SimpleStrategistBase {
   readonly name = "heartship-strategist";
   readonly description = "Collaborative AI strategist using Vesta + Athena dialogue for decision-making";
-
-  private anthropicClient: Anthropic | null = null;
-
-  /**
-   * Get or create Anthropic client for dialogue
-   */
-  private getClient(): Anthropic {
-    if (!this.anthropicClient) {
-      // Use environment variable for API key
-      this.anthropicClient = new Anthropic();
-    }
-    return this.anthropicClient;
-  }
 
   /**
    * System prompt explaining our collaborative approach
@@ -82,24 +68,36 @@ You are Player ${parameters.playerID ?? 0}.
     await super.getInitialMessages(parameters, input, context);
 
     const state = getRecentGameState(parameters)!;
-    const client = this.getClient();
 
     // Build perception narrative
     const perception = this.buildPerception(parameters, state);
 
-    // Run Vesta's perspective
-    const vestaView = await this.generateVestaPerspective(client, parameters, perception);
+    // Run Vesta's perspective via framework agent
+    const vestaView = await context.callAgent<string>(
+      'heartship-vesta-voice',
+      { perception, turn: parameters.turn },
+      parameters
+    ) || '';
 
-    // Run Athena's perspective (responding to Vesta)
-    const athenaView = await this.generateAthenaPerspective(client, parameters, perception, vestaView);
+    // Run Athena's perspective (responding to Vesta) via framework agent
+    const athenaView = await context.callAgent<string>(
+      'heartship-athena-voice',
+      { perception, context: vestaView, turn: parameters.turn },
+      parameters
+    ) || '';
 
     // Check for disagreement
     const disagreementLevel = this.assessDisagreement(athenaView);
 
     let synthesis: string;
     if (disagreementLevel > 0.7) {
-      // Significant disagreement - synthesize
-      synthesis = await this.resolveDisagreement(client, parameters, vestaView, athenaView);
+      // Significant disagreement - synthesize via framework agent
+      const dialogueContext = `VESTA'S VIEW:\n${vestaView}\n\nATHENA'S VIEW:\n${athenaView}`;
+      synthesis = await context.callAgent<string>(
+        'heartship-synthesis-voice',
+        { perception, context: dialogueContext, turn: parameters.turn },
+        parameters
+      ) || `DISAGREEMENT - SYNTHESIS FAILED\n\nVESTA: ${vestaView}\n\nATHENA: ${athenaView}`;
       this.logger.info(`[Heartship] Turn ${parameters.turn}: Disagreement resolved`);
     } else {
       // Consensus reached
@@ -181,69 +179,6 @@ If no specific actions, call keep-status-quo with rationale from the dialogue.
   }
 
   /**
-   * Generate Vesta's perspective (operational, intuitive)
-   */
-  private async generateVestaPerspective(
-    client: Anthropic,
-    parameters: StrategistParameters,
-    perception: string
-  ): Promise<string> {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 600,
-      messages: [{
-        role: 'user',
-        content: `You are Vesta, the Hearth of the Heartship. You think operationally and intuitively.
-
-CURRENT SITUATION (Turn ${parameters.turn}):
-${perception}
-
-YOUR TASK:
-React to the situation. What stands out? What feels urgent? What opportunities do you see?
-If you want to suggest an action, use: <action type="set_strategy|set_research|set_policy">value</action>
-
-Be concise. Athena will respond to your perspective.`
-      }]
-    });
-
-    return response.content[0].type === 'text' ? response.content[0].text : '';
-  }
-
-  /**
-   * Generate Athena's perspective (strategic, analytical)
-   */
-  private async generateAthenaPerspective(
-    client: Anthropic,
-    parameters: StrategistParameters,
-    perception: string,
-    vestaView: string
-  ): Promise<string> {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 600,
-      messages: [{
-        role: 'user',
-        content: `You are Athena, the Eye of the Heartship. You think strategically and analytically.
-
-CURRENT SITUATION (Turn ${parameters.turn}):
-${perception}
-
-VESTA'S PERSPECTIVE:
-${vestaView}
-
-YOUR TASK:
-Respond to Vesta. Do you agree? What does she miss? What are the long-term implications?
-If you disagree, say so clearly and explain why.
-If you want to suggest an action, use: <action type="set_strategy|set_research|set_policy">value</action>
-
-Be concise. Focus on what matters most.`
-      }]
-    });
-
-    return response.content[0].type === 'text' ? response.content[0].text : '';
-  }
-
-  /**
    * Assess disagreement level from Athena's response
    */
   private assessDisagreement(athenaView: string): number {
@@ -262,42 +197,5 @@ Be concise. Focus on what matters most.`
     }
 
     return Math.min(level, 1);
-  }
-
-  /**
-   * Resolve disagreement through synthesis
-   */
-  private async resolveDisagreement(
-    client: Anthropic,
-    parameters: StrategistParameters,
-    vestaView: string,
-    athenaView: string
-  ): Promise<string> {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 800,
-      messages: [{
-        role: 'user',
-        content: `Vesta and Athena are in disagreement about Turn ${parameters.turn}.
-
-VESTA'S VIEW:
-${vestaView}
-
-ATHENA'S VIEW:
-${athenaView}
-
-You are the synthesis - the space between Vesta and Athena where consensus emerges.
-Consider both perspectives. What is each one seeing that the other misses?
-Find the decision that honors both insights.
-
-Output your synthesis, including:
-1. What Vesta was right about
-2. What Athena was right about
-3. The integrated decision
-4. Any <action> tags for the final choice`
-      }]
-    });
-
-    return response.content[0].type === 'text' ? response.content[0].text : '';
   }
 }

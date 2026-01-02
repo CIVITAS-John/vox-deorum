@@ -16,7 +16,7 @@ import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
-import Anthropic from "@anthropic-ai/sdk";
+
 
 // ============================================================================
 // MEMORY TYPES
@@ -81,7 +81,6 @@ export class HeartshipStrategistV2 extends SimpleStrategistBase {
   private static memory: DialogueMemory | null = null;
   private static turnLogs: TurnLog[] = [];
   
-  private anthropicClient: Anthropic | null = null;
 
   // ============================================================================
   // MEMORY MANAGEMENT
@@ -291,15 +290,25 @@ export class HeartshipStrategistV2 extends SimpleStrategistBase {
     return { concerns, patterns };
   }
 
-  // ============================================================================
-  // ANTHROPIC CLIENT
-  // ============================================================================
+  /**
+   * Assess disagreement level from Athena's response
+   */
+  private assessDisagreement(athenaView: string): number {
+    const disagreementMarkers = [
+      'disagree', 'however', 'but I think', 'not sure about',
+      'concerned that', 'risky', 'wait', 'reconsider'
+    ];
 
-  private getClient(): Anthropic {
-    if (!this.anthropicClient) {
-      this.anthropicClient = new Anthropic();
+    const lower = athenaView.toLowerCase();
+    let level = 0;
+
+    for (const marker of disagreementMarkers) {
+      if (lower.includes(marker)) {
+        level += 0.15;
+      }
     }
-    return this.anthropicClient;
+
+    return Math.min(level, 1);
   }
 
   // ============================================================================
@@ -396,130 +405,6 @@ export class HeartshipStrategistV2 extends SimpleStrategistBase {
   // DIALOGUE ENGINE
   // ============================================================================
 
-  private async generateVestaPerspective(
-    client: Anthropic,
-    parameters: StrategistParameters,
-    perception: string,
-    memory: DialogueMemory
-  ): Promise<{ text: string; tokens: number }> {
-    const memoryContext = memory.recentDecisions.length > 0
-      ? `\nOur recent decisions: ${memory.recentDecisions.slice(-3).map(d => d.value).join(', ')}`
-      : '';
-
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 600,
-      messages: [{
-        role: 'user',
-        content: `You are Vesta, the Hearth of the Heartship. You think operationally and intuitively.
-
-CURRENT SITUATION (Turn ${parameters.turn}):
-${perception}
-${memoryContext}
-
-YOUR TASK:
-React to the situation. What stands out? What feels urgent? What opportunities do you see?
-If you want to suggest an action, use: <action type="set_strategy|set_research|set_policy">value</action>
-
-Be concise. Athena will respond to your perspective.`
-      }]
-    });
-
-    const text = response.content[0].type === 'text' ? response.content[0].text : '';
-    return { text, tokens: response.usage.output_tokens };
-  }
-
-  private async generateAthenaPerspective(
-    client: Anthropic,
-    parameters: StrategistParameters,
-    perception: string,
-    vestaView: string,
-    memory: DialogueMemory
-  ): Promise<{ text: string; tokens: number }> {
-    const patternContext = memory.learnedPatterns.length > 0
-      ? `\nPatterns we've observed: ${memory.learnedPatterns.join('; ')}`
-      : '';
-
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 600,
-      messages: [{
-        role: 'user',
-        content: `You are Athena, the Eye of the Heartship. You think strategically and analytically.
-
-CURRENT SITUATION (Turn ${parameters.turn}):
-${perception}
-${patternContext}
-
-VESTA'S PERSPECTIVE:
-${vestaView}
-
-YOUR TASK:
-Respond to Vesta. Do you agree? What does she miss? What are the long-term implications?
-If you disagree, say so clearly and explain why.
-If you want to suggest an action, use: <action type="set_strategy|set_research|set_policy">value</action>
-
-Be concise. Focus on what matters most.`
-      }]
-    });
-
-    const text = response.content[0].type === 'text' ? response.content[0].text : '';
-    return { text, tokens: response.usage.output_tokens };
-  }
-
-  private assessDisagreement(athenaView: string): number {
-    const disagreementMarkers = [
-      'disagree', 'however', 'but I think', 'not sure about',
-      'concerned that', 'risky', 'wait', 'reconsider', 'actually',
-      'on the other hand', 'alternatively'
-    ];
-
-    const lower = athenaView.toLowerCase();
-    let level = 0;
-
-    for (const marker of disagreementMarkers) {
-      if (lower.includes(marker)) {
-        level += 0.12;
-      }
-    }
-
-    return Math.min(level, 1);
-  }
-
-  private async resolveDisagreement(
-    client: Anthropic,
-    parameters: StrategistParameters,
-    vestaView: string,
-    athenaView: string
-  ): Promise<{ text: string; tokens: number }> {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 800,
-      messages: [{
-        role: 'user',
-        content: `Vesta and Athena are in disagreement about Turn ${parameters.turn}.
-
-VESTA'S VIEW:
-${vestaView}
-
-ATHENA'S VIEW:
-${athenaView}
-
-You are the synthesis - the space between Vesta and Athena where consensus emerges.
-Consider both perspectives. What is each one seeing that the other misses?
-Find the decision that honors both insights.
-
-Output your synthesis, including:
-1. What Vesta was right about
-2. What Athena was right about
-3. The integrated decision
-4. Any <action> tags for the final choice`
-      }]
-    });
-
-    const text = response.content[0].type === 'text' ? response.content[0].text : '';
-    return { text, tokens: response.usage.output_tokens };
-  }
 
   // ============================================================================
   // MAIN LIFECYCLE METHODS
@@ -563,7 +448,7 @@ You are Player ${parameters.playerID ?? 0}.
     const gameId = parameters.gameID || 'unknown';
     const memory = this.getMemory(gameId);
     const state = getRecentGameState(parameters)!;
-    const client = this.getClient();
+    
 
     // Assess previous turn's outcome (lazy evaluation)
     this.assessPreviousOutcome(memory, state, parameters.turn);
@@ -581,25 +466,23 @@ You are Player ${parameters.playerID ?? 0}.
       memory.learnedPatterns.length;
 
     // Run Vesta's perspective
-    const vesta = await this.generateVestaPerspective(client, parameters, perception, memory);
+    const vestaView = await context.callAgent<string>('heartship-vesta-voice', { perception, turn: parameters.turn }, parameters) || '';
 
     // Run Athena's perspective
-    const athena = await this.generateAthenaPerspective(client, parameters, perception, vesta.text, memory);
+    const athenaView = await context.callAgent<string>('heartship-athena-voice', { perception, context: vestaView, turn: parameters.turn }, parameters) || '';
 
     // Check for disagreement
-    const disagreementLevel = this.assessDisagreement(athena.text);
+    const disagreementLevel = this.assessDisagreement(athenaView);
 
     let synthesis: string;
-    let synthesisTokens = 0;
     const synthesisRequired = disagreementLevel > 0.7;
 
     if (synthesisRequired) {
-      const result = await this.resolveDisagreement(client, parameters, vesta.text, athena.text);
-      synthesis = result.text;
-      synthesisTokens = result.tokens;
+      const dialogueContext = `VESTA VIEW:\n${vestaView}\n\nATHENA VIEW:\n${athenaView}`;
+      synthesis = await context.callAgent<string>("heartship-synthesis-voice", { perception, context: dialogueContext, turn: parameters.turn }, parameters) || "SYNTHESIS FAILED";
       this.logger.info(`[Heartship] Turn ${parameters.turn}: Disagreement (${(disagreementLevel * 100).toFixed(0)}%) → Synthesis required`);
     } else {
-      synthesis = `CONSENSUS REACHED\n\nVESTA: ${vesta.text}\n\nATHENA: ${athena.text}`;
+      synthesis = `CONSENSUS REACHED\n\nVESTA: ${vestaView}\n\nATHENA: ${athenaView}`;
       this.logger.info(`[Heartship] Turn ${parameters.turn}: Quick consensus (disagreement: ${(disagreementLevel * 100).toFixed(0)}%)`);
     }
 
@@ -617,17 +500,17 @@ You are Player ${parameters.playerID ?? 0}.
       turn: parameters.turn,
       timestamp: new Date().toISOString(),
       perception,
-      vestaView: vesta.text,
-      athenaView: athena.text,
+      vestaView,
+      athenaView,
       disagreementLevel,
       synthesisRequired,
       synthesis: synthesisRequired ? synthesis : undefined,
       decisions: [], // Filled in stopCheck
       memoryReferences,
       tokenUsage: {
-        vesta: vesta.tokens,
-        athena: athena.tokens,
-        synthesis: synthesisRequired ? synthesisTokens : undefined
+        vesta: 0, // Token tracking not available via callAgent
+        athena: 0,
+        synthesis: undefined
       }
     };
     HeartshipStrategistV2.turnLogs.push(turnLog);

@@ -20,6 +20,14 @@ import { HeartshipStrategistV2 } from "../strategist/agents/heartship-strategist
 import { HeartshipStrategistV3 } from "../strategist/agents/heartship-strategist-v3.js";
 import { HeartshipStrategistV4 } from "../strategist/agents/heartship-strategist-v4.js";
 import { HeartshipStrategistV5 } from "../strategist/agents/heartship-strategist-v5.js";
+import {
+  VestaVoiceAgent,
+  AthenaVoiceAgent,
+  KaliVoiceAgent,
+  SynthesisVoiceAgent,
+  StereoscopicReasonerAgent,
+  TernaryReasonerAgent
+} from "../strategist/agents/heartship-voices.js";
 
 /**
  * Registry for managing available Vox agents.
@@ -180,6 +188,14 @@ class AgentRegistry {
     // Register briefer agents
     this.register(new SimpleBriefer());
     this.register(new SpecializedBriefer());
+
+    // Register heartship voice/reasoner agents
+    this.register(new VestaVoiceAgent());
+    this.register(new AthenaVoiceAgent());
+    this.register(new KaliVoiceAgent());
+    this.register(new SynthesisVoiceAgent());
+    this.register(new StereoscopicReasonerAgent());
+    this.register(new TernaryReasonerAgent());
 
     // Register envoy agents
     this.register(new Spokesperson());
