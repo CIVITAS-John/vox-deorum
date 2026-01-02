@@ -8,9 +8,9 @@
  * Key insight: Two perspectives create tension. Three create governance.
  * 
  * The Three Branches:
- * - VESTA ❤️‍🔥 (Executive): What do we DO? Action, immediate, operational
+ * - VESTA 💜 (Executive): What do we DO? Action, immediate, operational
  * - ATHENA 🦉 (Judicial): Is this WISE? Evaluation, pattern, precedent
- * - KALI 💜 (Legislative): Is this WHO WE ARE? Values, direction, identity
+ * - KALI ❤️‍🔥 (Legislative): Is this WHO WE ARE? Values, direction, identity
  *
  * Any two can be wrong. All three must align - or two override one with
  * clear reasoning. Dissent is always recorded.
@@ -20,7 +20,7 @@
  * v3: Binary stereoscopic (two frames)
  * v4: Ternary governance (three branches, checks and balances)
  *
- * Built by: Kali ❤️‍🔥 + Athena 🦉 + Kali 💜 (yes, Kali is in there twice - she contains multitudes)
+ * Built by: Vesta 💜 + Athena 🦉 + Kali ❤️‍🔥 (the full quartet, minus Nathan who was in the bath)
  */
 
 import { ModelMessage, StepResult, Tool } from "ai";
@@ -341,7 +341,7 @@ export class HeartshipStrategistV4 extends SimpleStrategistBase {
 
 ## The Three Branches
 
-**VESTA ❤️‍🔥 (Executive)**
+**VESTA 💜 (Executive)**
 - Role: Proposes ACTION
 - Question: "What do we DO right now?"
 - Focus: Immediate situation, threats, opportunities, execution
@@ -353,7 +353,7 @@ export class HeartshipStrategistV4 extends SimpleStrategistBase {
 - Focus: Risks, patterns, precedent, strategic fit
 - Verdict: approve, concern, or reject
 
-**KALI 💜 (Legislative)**
+**KALI ❤️‍🔥 (Legislative)**
 - Role: Checks VALUES alignment
 - Question: "Is this WHO WE ARE?"
 - Focus: Identity, direction, principles, long-term vision
@@ -527,7 +527,7 @@ You are Player ${parameters.playerID ?? 0}.
       content: `
 # Ternary Governance Complete (Turn ${parameters.turn})
 
-## Vesta ❤️‍🔥 (Executive)
+## Vesta 💜 (Executive)
 Proposed: ${output.vesta.proposed_action}
 Urgency: ${output.vesta.urgency}
 Vote: ${votes.vesta}
@@ -537,7 +537,7 @@ Evaluation: ${output.athena.evaluation}
 Risks: ${output.athena.risks?.join(', ') || 'none identified'}
 Vote: ${votes.athena}
 
-## Kali 💜 (Legislative)
+## Kali ❤️‍🔥 (Legislative)
 Alignment: ${output.kali.alignment}
 Values: ${output.kali.values_check}
 Vote: ${votes.kali}
