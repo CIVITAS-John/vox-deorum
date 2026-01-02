@@ -134,7 +134,7 @@ ${roleIntro('economic analyst')}
 Summarize the economic situation into a strategic briefing that highlights:
 - Economic position and development relative to opponents.
 - Technology progress and policy changes.
-- Needs, growth, or excessives in our economy.
+- Needs, growth, or excesses in our economy.
 - Important economic development during the past turn.
 - Comparison with the last available economic briefing.
 
@@ -372,10 +372,10 @@ ${lastState.reports[reportKey] ?? lastState.reports["briefing"]}`
     return {
       "focus-briefer": createSimpleTool({
         name: "focus-briefer",
-        description: "Set writing instructions for one of your briefers to focus on next turn",
+        description: "Set the focus for one of your briefer's next report",
         inputSchema: z.object({
           Mode: z.enum(['Military', 'Economy', 'Diplomacy']).describe("The briefer to instruct"),
-          Instruction: z.string().describe("Instructions for the briefer's report writing, e.g. what kind of information to prioritize")
+          Instruction: z.string().describe("A short paragraph to focus your briefer's **next report**, e.g. what kind of information to prioritize")
         }),
         execute: async (input, parameters) => {
           // Store the instruction in working memory for the next specialized briefing

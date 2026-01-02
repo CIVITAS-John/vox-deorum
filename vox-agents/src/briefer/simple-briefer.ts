@@ -27,10 +27,9 @@ export class SimpleBriefer extends Briefer {
   /**
    * Common guidelines applicable to all briefing types
    */
-  static readonly commonGuidelines = `- The briefing should be objective and analytical, do not bias towards existing strategy.
-- Never provide raw, excessive, or tactical information (e.g. X/Y, unit IDs).
-- Never give suggestions or considerations, which is not your responsibility.
-- Never report speculative information. If you don't have the accurate data, say it clearly.`;
+  static readonly commonGuidelines = `- The briefing should be objective and analytical, not speculations or suggestions.
+- Report macro-level information sufficient for decision-making. Avoid raw, excessive, or tactical information (e.g. X/Y, unit IDs).
+- Only report factual information. If your leader asks for information you do not have, state it clearly.`;
 
   /**
    * Description of Cities report
