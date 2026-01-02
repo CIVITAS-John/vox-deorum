@@ -28,7 +28,7 @@ export class SimpleBriefer extends Briefer {
    * Common guidelines applicable to all briefing types
    */
   static readonly commonGuidelines = `- The briefing should be objective and analytical, do not bias towards existing strategy.
-- Never provide raw, excessive, or tactical information (e.g. coordinates, IDs).
+- Never provide raw, excessive, or tactical information (e.g. X/Y, unit IDs).
 - Never give suggestions or considerations, which is not your responsibility.
 - Never report speculative information. If you don't have the accurate data, say it clearly.`;
 
@@ -58,8 +58,8 @@ export class SimpleBriefer extends Briefer {
    * Standard instruction footer for all briefing types
    */
   static readonly instructionFooter = `# Instruction
-Write your briefing as a plain text document with a clear, direct, concise language.
-Your leader has access to Victory Progress and Players sections. Don't repeat them.`;
+Write your briefing as a plain text document with a clear, direct, concise language. NO details unless necessary.
+Your leader has access to Victory Progress and Players sections. Do not repeat those information.`;
 
   /**
    * The name identifier for this agent

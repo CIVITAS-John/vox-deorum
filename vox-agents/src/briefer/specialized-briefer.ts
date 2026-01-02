@@ -67,13 +67,12 @@ ${roleIntro('military intelligence analyst')}
 Summarize the military situation into a strategic briefing that highlights:
 - Active conflicts or potential threats.
 - Military strength and position relative to opponents.
-- Important military-related events during the past turn.
+- Important military development during the past turn.
 - Needs, growth, or excesses of our military forces.
 - Comparison with the last available military briefing.
 
 # Guidelines
 ${SimpleBriefer.commonGuidelines}
-- Remember the military report only contains VISIBLE units.
 
 # Resources
 You will receive the following reports:
@@ -136,7 +135,7 @@ Summarize the economic situation into a strategic briefing that highlights:
 - Economic position and development relative to opponents.
 - Technology progress and policy changes.
 - Needs, growth, or excessives in our economy.
-- Important economic events during the past turn.
+- Important economic development during the past turn.
 - Comparison with the last available economic briefing.
 
 # Guidelines
@@ -196,7 +195,7 @@ Summarize the diplomatic situation into a strategic briefing that highlights:
 - Diplomatic relationships and standing with other civilizations.
 - World Congress activities and resolutions.
 - City-state relationships, quests, and influence changes.
-- Recent diplomatic events (declarations of war, peace treaties, friendship, denouncement).
+- Major diplomatic development (declarations of war, peace treaties, friendship, denouncement).
 - Comparison with the last available diplomatic briefing.
 
 # Guidelines
