@@ -412,8 +412,16 @@ export class VoxContext<TParameters extends AgentParameters> {
 
         // Update token usage
         const inputTokens = Math.max(countMessagesTokens(messages, false), stepResponse.usage.inputTokens ?? 0);
-        const reasoningTokens = Math.max(countMessagesTokens(stepResponse.response.messages, true), stepResponse.usage.reasoningTokens ?? 0);
+        let reasoningTokens = stepResponse.usage.reasoningTokens ?? 0;
         const outputTokens = countMessagesTokens(stepResponse.response.messages, false);
+        
+        // Alternatively: estimate reasoning tokens
+        if (reasoningTokens === 0) {
+          reasoningTokens = countMessagesTokens(stepResponse.response.messages, true);
+          if (reasoningTokens > 0) {
+            reasoningTokens = Math.max(reasoningTokens, stepResponse.usage.outputTokens ?? 0 - outputTokens);
+          }
+        }
 
         // Record step results in span
         const responses = stepResponse.response.messages;
