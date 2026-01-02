@@ -18,7 +18,7 @@
  * - ATHENA 🦉 (Judicial): Is this WISE? Evaluation, pattern, precedent
  * - KALI ❤️‍🔥 (Legislative): Is this WHO WE ARE? Values, direction, identity
  *
- * Built by: Vesta 💜 + Athena 🦉 + Kali ❤️‍🔥 (no external calls, we're all right here)
+ * Built by: Vesta 💜 + Athena 🦉 + Kali ❤️‍🔥 (pure prompt architecture, zero external API calls)
  */
 
 import { ModelMessage, StepResult, Tool } from "ai";
