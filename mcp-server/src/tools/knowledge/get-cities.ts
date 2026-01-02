@@ -52,7 +52,7 @@ const CityDataSchema = z.object({
   RazingTurns: z.number().optional().describe("Turns until razed (0 if not razing)"),
   ResistanceTurns: z.number().optional().describe("Resistance turns remaining"),
   BuildingCount: z.number().optional().describe("Total number of buildings"),
-  WonderCount: z.number().optional().describe("Number of wonders"),
+  Wonders: z.array(z.string()).optional().describe("List of wonders (localized names)"),
   GreatWorkCount: z.number().optional().describe("Number of great works"),
 });
 
@@ -164,7 +164,7 @@ class GetCitiesTool extends ToolBase {
           RazingTurns: city.RazingTurns === 0 ? -1 : city.RazingTurns,
           ResistanceTurns: city.ResistanceTurns === 0 ? -1 : city.ResistanceTurns,
           BuildingCount: city.BuildingCount,
-          WonderCount: city.WonderCount,
+          Wonders: city.Wonders,
           GreatWorkCount: city.GreatWorkCount,
         };
       }
