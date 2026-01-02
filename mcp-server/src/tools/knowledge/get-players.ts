@@ -20,6 +20,7 @@ import { readPlayerKnowledge, readPublicKnowledgeBatch } from "../../utils/knowl
 import { getPlayerVisibility } from "../../utils/knowledge/visibility.js";
 import { PlayerInformation } from "../../knowledge/schema/public.js";
 import { Selectable } from "kysely";
+import { sortBySchema } from "../../utils/schema.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -210,7 +211,7 @@ class GetPlayersTool extends ToolBase {
       // Postprocess to remove things you shouldn't see
       if (visibility !== 2) postProcessData(playerData, playerInfos, playerSummaries, args.PlayerID);
 
-      playersDict[playerID.toString()] = cleanEventData(playerData, false)!;
+      playersDict[playerID.toString()] = sortBySchema(cleanEventData(playerData, false)!, PlayerDataSchema);
     }
     
     return playersDict;

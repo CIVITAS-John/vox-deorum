@@ -10,6 +10,7 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { cleanEventData } from "./get-events.js";
 import { CityInformation } from "../../knowledge/schema/timed.js";
+import { sortBySchema } from "../../utils/schema.js";
 
 /**
  * Input schema for the GetCities tool
@@ -174,7 +175,7 @@ class GetCitiesTool extends ToolBase {
       // Initialize owner object if needed
       if (!citiesByOwner[city.Owner])
         citiesByOwner[city.Owner] = {};
-      citiesByOwner[city.Owner][city.Name] = cleanedData as z.infer<typeof CityDataSchema>;
+      citiesByOwner[city.Owner][city.Name] = sortBySchema(cleanedData as z.infer<typeof CityDataSchema>, CityDataSchema);
     }
 
     return citiesByOwner;
