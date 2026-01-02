@@ -66,7 +66,7 @@ ${SimpleStrategistBase.playersInfoPrompt}
     var instruction = parameters.workingMemory["briefer-instruction"];
 
     // Get the briefing from the simple-briefer agent
-    const briefing = await context.callAgent<string>("simple-briefer", instruction ?? "Nothing in particular", parameters);
+    const briefing = await context.callAgent<string>("simple-briefer", instruction ?? "", parameters);
     delete parameters.workingMemory["briefer-instruction"];
     if (!briefing) throw new Error("Failed to generate strategic briefings.");
 

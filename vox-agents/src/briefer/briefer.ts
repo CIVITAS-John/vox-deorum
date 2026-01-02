@@ -14,7 +14,7 @@ import { StrategistParameters } from "../strategist/strategy-parameters.js";
  * @abstract
  * @class
  */
-export abstract class Briefer extends VoxAgent<StrategistParameters, string, string> {
+export abstract class Briefer<TInput = string> extends VoxAgent<StrategistParameters, TInput, string> {
   /**
    * Post-processes the output before returning it.
    * Override this method to modify the output after getOutput.
@@ -24,7 +24,7 @@ export abstract class Briefer extends VoxAgent<StrategistParameters, string, str
    */
   public postprocessOutput(
     parameters: StrategistParameters,
-    _input: string,
+    _input: TInput,
     output: string
   ): string {
     parameters.gameStates[parameters.turn].reports["briefing"] = output;

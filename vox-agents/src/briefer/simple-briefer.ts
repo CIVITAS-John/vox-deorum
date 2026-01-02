@@ -16,7 +16,6 @@ import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 import { createSimpleTool } from "../utils/tools/simple-tools.js";
 import { getOffsetedTurn } from "../utils/game-speed.js";
 import { SimpleStrategistBase } from "../strategist/agents/simple-strategist-base.js";
-import { anthropic } from "@ai-sdk/anthropic";
 
 /**
  * A simple briefer agent that analyzes the game state and produces a concise briefing.
@@ -25,6 +24,42 @@ import { anthropic } from "@ai-sdk/anthropic";
  * @class
  */
 export class SimpleBriefer extends Briefer {
+  /**
+   * Common guidelines applicable to all briefing types
+   */
+  static readonly commonGuidelines = `- The briefing should be objective and analytical, do not bias towards existing strategy.
+- Never provide raw, excessive, or tactical information (e.g. coordinates, IDs).
+- Never give suggestions or considerations, which is not your responsibility.`;
+
+  /**
+   * Description of Cities report
+   */
+  static readonly citiesPrompt = `- Cities: summary reports about discovered cities in the world.`;
+
+  /**
+   * Description of Military report
+   */
+  static readonly militaryPrompt = `- Military: summary reports about tactical zones and visible units.
+ - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
+ - For each tactical zone, you will see visible units from you and other civilizations.`;
+
+  /**
+   * Description of Events report (generic)
+   */
+  static readonly eventsPrompt = `- Events: events since the last decision-making.`;
+
+  /**
+   * Description of Past Briefing section
+   */
+  static readonly pastBriefingPrompt = `- Past Briefing: your past briefing from a recent turn for comparison.`;
+
+  /**
+   * Standard instruction footer for all briefing types
+   */
+  static readonly instructionFooter = `# Instruction
+Write your briefing as a plain text document with a clear, direct, concise language.
+Your leader has access to Victory Progress and Players sections. Don't repeat them.`;
+
   /**
    * The name identifier for this agent
    */
@@ -40,7 +75,7 @@ export class SimpleBriefer extends Briefer {
    */
   public async getSystem(_parameters: StrategistParameters, _input: string, _context: VoxContext<StrategistParameters>): Promise<string> {
     return `
-You are an export briefing writer for Civilization V with the latest Vox Populi mod.
+You are an expert briefing writer for Civilization V with the latest Vox Populi mod.
 Your role is to produce a concise briefing based on the current game state, following your leader's instruction.
 Your leader only has control over macro-level decision making. Focus on providing relevant information.
 
@@ -52,25 +87,19 @@ Summarize the full game state into a strategic briefing that highlights:
 
 # Guidelines
 - Highlight important strategic changes and intelligence.
-- The briefing should be objective and analytical, do not bias towards existing strategy.
-- Never provide raw, excessive, or tactical information (e.g. coordinates, IDs).
-- Never give suggestions or considerations, which is not your responsibility.
+${SimpleBriefer.commonGuidelines}
 
 # Resources
 You will receive the following reports:
 ${SimpleStrategistBase.victoryConditionsPrompt}
 ${SimpleStrategistBase.playersInfoPrompt}
-- Cities: summary reports about discovered cities in the world.
-- Military: summary reports about tactical zones and visible units.
- - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
- - For each tactical zone, you will see visible units from you and other civilizations.
-- Events: events since the last decision-making.
-- Past Briefing: your past briefing from a recent turn for comparison.
+${SimpleBriefer.citiesPrompt}
+${SimpleBriefer.militaryPrompt}
+${SimpleBriefer.eventsPrompt}
+${SimpleBriefer.pastBriefingPrompt}
  - Your leader can only see your most recent briefing.
 
-# Instruction
-Write your briefing as a plain text document with a clear, direct, concise language.
-Your leader has access to Victory Progress and Players sections. Don't repeat them.`.trim()
+${SimpleBriefer.instructionFooter}`.trim()
   }
 
   /**
