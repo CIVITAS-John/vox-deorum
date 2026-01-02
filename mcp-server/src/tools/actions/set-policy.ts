@@ -122,6 +122,9 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
     // Extract the arguments
     var { PlayerID, Policy, Rationale } = args;
 
+    // Remove parenthetical content for better matching (e.g., "Authority (New Branch)" -> "Authority")
+    Policy = Policy.replace(/\s*\([^)]*\)/g, '').trim();
+
     // Convert policy name to ID - first try as a branch, then as a policy
     let policyID = -1;
     let branchID = -1;
