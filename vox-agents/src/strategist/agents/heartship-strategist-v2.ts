@@ -87,6 +87,70 @@ export class HeartshipStrategist extends SimpleStrategistBase {
   // MEMORY MANAGEMENT
   // ============================================================================
 
+  // Approximate tokens per character (conservative estimate)
+  private static readonly CHARS_PER_TOKEN = 4;
+  
+  // Maximum tokens for memory context in perception
+  private static readonly MAX_MEMORY_TOKENS = 1500;
+
+  /**
+   * Estimate token count for a string
+   */
+  private estimateTokens(text: string): number {
+    return Math.ceil(text.length / HeartshipStrategist.CHARS_PER_TOKEN);
+  }
+
+  /**
+   * Estimate total tokens used by memory context
+   */
+  private estimateMemoryTokens(memory: DialogueMemory): number {
+    let total = 0;
+    
+    // Recent decisions
+    for (const d of memory.recentDecisions) {
+      total += this.estimateTokens(`Turn ${d.turn}: ${d.type} → ${d.value}`);
+    }
+    
+    // Concerns
+    for (const c of memory.ongoingConcerns) {
+      total += this.estimateTokens(c);
+    }
+    
+    // Patterns
+    for (const p of memory.learnedPatterns) {
+      total += this.estimateTokens(p);
+    }
+    
+    // Opponent models
+    for (const [player, model] of Object.entries(memory.opponentModels)) {
+      total += this.estimateTokens(`${player}: ${model}`);
+    }
+    
+    return total;
+  }
+
+  /**
+   * Trim memory to fit within token budget
+   */
+  private trimMemoryToFit(memory: DialogueMemory): void {
+    while (this.estimateMemoryTokens(memory) > HeartshipStrategist.MAX_MEMORY_TOKENS) {
+      // Priority: keep recent decisions, trim older patterns/concerns first
+      if (memory.learnedPatterns.length > 3) {
+        memory.learnedPatterns.shift();
+      } else if (memory.ongoingConcerns.length > 2) {
+        memory.ongoingConcerns.shift();
+      } else if (memory.outcomes.length > 3) {
+        memory.outcomes.shift();
+      } else if (memory.recentDecisions.length > 3) {
+        memory.recentDecisions.shift();
+      } else {
+        // Can't trim further, break to avoid infinite loop
+        this.logger.warn('[Heartship] Memory at minimum, cannot trim further');
+        break;
+      }
+    }
+  }
+
   /**
    * Get or initialize memory for current game
    */
@@ -163,12 +227,39 @@ export class HeartshipStrategist extends SimpleStrategistBase {
   }
 
   /**
+   * Validate a decision object before recording
+   */
+  private validateDecision(decision: Decision): boolean {
+    return (
+      typeof decision.turn === 'number' &&
+      decision.turn >= 0 &&
+      typeof decision.type === 'string' &&
+      decision.type.length > 0 &&
+      typeof decision.value === 'string' &&
+      typeof decision.rationale === 'string'
+    );
+  }
+
+  /**
    * Update memory with new decisions from completed turn
    */
   private recordDecisions(decisions: Decision[]): void {
     if (!HeartshipStrategist.memory) return;
     
-    HeartshipStrategist.memory.recentDecisions.push(...decisions);
+    // Validate and filter decisions
+    const validDecisions = decisions.filter(d => {
+      const isValid = this.validateDecision(d);
+      if (!isValid) {
+        this.logger.warn(`[Heartship] Invalid decision skipped: ${JSON.stringify(d)}`);
+      }
+      return isValid;
+    });
+    
+    if (validDecisions.length !== decisions.length) {
+      this.logger.warn(`[Heartship] ${decisions.length - validDecisions.length} invalid decisions filtered`);
+    }
+    
+    HeartshipStrategist.memory.recentDecisions.push(...validDecisions);
     
     // Keep only last 10 decisions
     if (HeartshipStrategist.memory.recentDecisions.length > 10) {
@@ -477,6 +568,9 @@ You are Player ${parameters.playerID ?? 0}.
     // Assess previous turn's outcome (lazy evaluation)
     this.assessPreviousOutcome(memory, state, parameters.turn);
 
+    // Trim memory to fit within token budget
+    this.trimMemoryToFit(memory);
+    
     // Build perception with memory context
     const perception = this.buildPerception(parameters, state, memory);
 
