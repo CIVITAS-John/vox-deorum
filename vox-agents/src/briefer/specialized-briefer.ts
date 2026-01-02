@@ -192,10 +192,9 @@ ${roleIntro('diplomatic analyst')}
 
 # Objective
 Summarize the diplomatic situation into a strategic briefing that highlights:
-- Diplomatic relationships and standing with other civilizations.
+- Major diplomatic development (declarations of war, peace treaties, friendship, denouncement).
 - World Congress activities and resolutions.
 - City-state relationships, quests, and influence changes.
-- Major diplomatic development (declarations of war, peace treaties, friendship, denouncement).
 - Comparison with the last available diplomatic briefing.
 
 # Guidelines
