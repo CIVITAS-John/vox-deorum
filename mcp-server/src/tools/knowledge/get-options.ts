@@ -15,6 +15,22 @@ import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
 import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
 import { enumMappings } from "../../utils/knowledge/enum.js";
 import { getTool } from "../index.js";
+import * as fs from "fs/promises";
+import * as path from "path";
+
+/**
+ * Load grand strategy descriptions from JSON file
+ */
+async function loadGrandStrategyDescriptions(): Promise<Record<string, string>> {
+  try {
+    const jsonPath = path.join(process.cwd(), 'docs', 'strategies', 'grand-strategy.json');
+    const content = await fs.readFile(jsonPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    // Return empty object if file doesn't exist or can't be read
+    return {};
+  }
+}
 
 /**
  * Input schema for the GetOptions tool
@@ -32,7 +48,7 @@ const GetOptionsOutputSchema = z.object({
     GrandStrategies: z.any(),
     MilitaryStrategies: z.any(),
     EconomicStrategies: z.any(),
-    Technologies: z.any(),
+    Research: z.any(),
     Policies: z.any()
   }),
   // Persona fields
@@ -105,14 +121,15 @@ class GetOptionsTool extends ToolBase {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Get all player options
-    const [allOptions, strategies, persona, economicStrategies, militaryStrategies, technologies, policies] = await Promise.all([
+    const [allOptions, strategies, persona, economicStrategies, militaryStrategies, technologies, policies, grandStrategyDescriptions] = await Promise.all([
       getPlayerOptions(true),
       readPlayerKnowledge(args.PlayerID, "StrategyChanges", getPlayerStrategy),
       readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona),
       getTool("getEconomicStrategy")?.getSummaries(),
       getTool("getMilitaryStrategy")?.getSummaries(),
       getTool("getTechnology")?.getSummaries(),
-      getTool("getPolicy")?.getSummaries()
+      getTool("getPolicy")?.getSummaries(),
+      loadGrandStrategyDescriptions()
     ]);
 
     // Find options for the requested player
@@ -157,7 +174,14 @@ class GetOptionsTool extends ToolBase {
     const result = {
       Persona: persona as Record<string, string | number> | undefined,
       Options: {
-        GrandStrategies: Object.values(enumMappings["GrandStrategy"]).filter(s => s !== "None"),
+        GrandStrategies: Object.fromEntries(
+          Object.values(enumMappings["GrandStrategy"])
+            .filter(s => s !== "None")
+            .map(strategyName => [
+              strategyName,
+              grandStrategyDescriptions[strategyName] ?? strategyName
+            ])
+        ),
         EconomicStrategies: Object.fromEntries(
           cleanOptions.EconomicStrategies.map(strategyName => {
             const strategy = economicStrategies!.find(s => s.Type === strategyName)!;

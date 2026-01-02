@@ -1,0 +1,6 @@
+{
+  "Conquest": "Focus on military domination through offensive warfare. Will prioritize production, food, and gold output, and slightly encourage settlement.",
+  "Culture": "Pursue cultural victory through cultural influence (tourism). Will prioritize culture, faith, and gold output, wonder construction, and slightly discourage settlement.",
+  "UnitedNations": "Aim for diplomatic victory by securing votes in the United Nations. Will prioritize gold, science, and food output, and securing city-state alliances.",
+  "Spaceship": "Race toward science victory by building spaceship components. Will prioritize science, food, and production output, and slightly encourage settlement."
+}
