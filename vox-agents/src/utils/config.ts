@@ -130,7 +130,9 @@ export function loadConfigFromFile<T extends object>(
   defaultConfig: T,
   overrides?: Partial<T>
 ): T {
-  const configPath = path.join(process.cwd(), filename);
+  const configPath = path.isAbsolute(filename)
+    ? filename
+    : path.join(process.cwd(), filename);
 
   let fileConfig: Partial<T> = {};
 
