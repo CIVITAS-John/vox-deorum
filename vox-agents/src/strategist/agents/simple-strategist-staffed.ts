@@ -75,7 +75,8 @@ ${SimpleStrategistBase.expectationPrompt}
 
 ${SimpleStrategistBase.goalsPrompt}
 - You can ask your specialized briefers to prepare focused reports (only for) the next turn by calling the \`focus-briefer\` tool.
- - You have three specialized briefers: Military, Economy, and Diplomacy analysts.
+  - You have three specialized briefers: Military, Economy, and Diplomacy analysts.
+  - Only ask for information relevant to the macro-level decisions in your control. 
 ${SimpleStrategistBase.brieferCapabilitiesPrompt}
 ${SimpleStrategistBase.decisionPrompt}
 
@@ -86,7 +87,7 @@ ${SimpleStrategistBase.strategiesDescriptionPrompt}
 ${SimpleStrategistBase.victoryConditionsPrompt}
 ${SimpleStrategistBase.playersInfoPrompt}
 - Briefings: prepared by your specialized briefers, covering Military, Economy, and Diplomacy aspects.
- - You will make independent and wise judgment based on all briefings.`.trim()
+  - You will make independent and wise judgment based on all briefings.`.trim()
   }
 
   /**
@@ -103,10 +104,10 @@ ${SimpleStrategistBase.playersInfoPrompt}
     if (JSON.stringify(state.events!).length <= 3000 || state.turn <= 1) {
       // Assemble combined instruction from specialized instructions
       const combinedInstruction = [
-        militaryInstruction && `Military: ${militaryInstruction}`,
-        economyInstruction && `Economy: ${economyInstruction}`,
-        diplomacyInstruction && `Diplomacy: ${diplomacyInstruction}`
-      ].filter(Boolean).join("\n");
+        militaryInstruction && `- Military: ${militaryInstruction}`,
+        economyInstruction && `- Economy: ${economyInstruction}`,
+        diplomacyInstruction && `- Diplomacy: ${diplomacyInstruction}`
+      ].filter(Boolean).join("\n\n");
 
       // Use simple-briefer for fewer events
       const briefing = await context.callAgent<string>("simple-briefer", combinedInstruction || "", parameters);

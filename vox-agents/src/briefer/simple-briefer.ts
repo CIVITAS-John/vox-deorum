@@ -40,8 +40,8 @@ export class SimpleBriefer extends Briefer {
    * Description of Military report
    */
   static readonly militaryPrompt = `- Military: summary reports about tactical zones and visible units.
- - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
- - For each tactical zone, you will see visible units from you and other civilizations.`;
+  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
+  - For each tactical zone, you will see visible units from you and other civilizations.`;
 
   /**
    * Description of Events report (generic)
@@ -97,7 +97,7 @@ ${SimpleBriefer.citiesPrompt}
 ${SimpleBriefer.militaryPrompt}
 ${SimpleBriefer.eventsPrompt}
 ${SimpleBriefer.pastBriefingPrompt}
- - Your leader can only see your most recent briefing.
+  - Your leader can only see your most recent briefing.
 
 ${SimpleBriefer.instructionFooter}`.trim()
   }

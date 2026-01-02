@@ -51,8 +51,8 @@ ${SimpleStrategistBase.victoryConditionsPrompt}
 ${SimpleStrategistBase.playersInfoPrompt}
 - Cities: summary reports about discovered cities in the world.
 - Military: summary reports about tactical zones and visible units.
- - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
- - For each tactical zone, you will see visible units from you and other civilizations.
+  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
+  - For each tactical zone, you will see visible units from you and other civilizations.
 - Events: events since you last made a decision.
 `.trim()
   }

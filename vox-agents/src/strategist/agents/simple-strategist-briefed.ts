@@ -43,6 +43,7 @@ ${SimpleStrategistBase.expectationPrompt}
 
 ${SimpleStrategistBase.goalsPrompt}
 - You can ask your briefer to prepare a focused report (only for) the next turn by calling the \`focus-briefer\` tool.
+  - Only ask for information relevant to the macro-level decisions in your control.
 ${SimpleStrategistBase.brieferCapabilitiesPrompt}
 ${SimpleStrategistBase.decisionPrompt}
 
@@ -53,7 +54,7 @@ ${SimpleStrategistBase.strategiesDescriptionPrompt}
 ${SimpleStrategistBase.victoryConditionsPrompt}
 ${SimpleStrategistBase.playersInfoPrompt}
 - Briefing: prepared by your briefer, summarizing the current game situation.
- - You will make independent and wise judgment.`.trim()
+  - You will make independent and wise judgment.`.trim()
   }
 
   /**
