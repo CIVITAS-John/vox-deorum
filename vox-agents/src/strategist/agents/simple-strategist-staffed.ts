@@ -105,10 +105,10 @@ ${SimpleStrategistBase.playersInfoPrompt}
     if (JSON.stringify(state.events!).length <= 5000 || state.turn <= 1) {
       // Assemble combined instruction from specialized instructions
       const combinedInstruction = [
-        militaryInstruction && `- Military: ${militaryInstruction}`,
-        economyInstruction && `- Economy: ${economyInstruction}`,
-        diplomacyInstruction && `- Diplomacy: ${diplomacyInstruction}`
-      ].filter(Boolean).join("\n\n");
+        `- Military: ${militaryInstruction ?? "a general report"}.`,
+        `- Economy: ${economyInstruction ?? "a general report"}.`,
+        `- Diplomacy: ${diplomacyInstruction ?? "a general report"}.`
+      ].join("\n\n");
 
       // Use simple-briefer for fewer events
       const briefing = await context.callAgent<string>("simple-briefer", combinedInstruction || "", parameters);
