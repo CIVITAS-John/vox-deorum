@@ -148,8 +148,17 @@ class GetPlayersTool extends ToolBase {
       playerInfos = await getPlayerInformations(true);
     }
 
+    // Get diplomat points record once for the viewing player
+    let diplomatPointsRecord: Record<string, number> | undefined;
+    if (args.PlayerID !== undefined) {
+      const currentPlayerSummary = playerSummaries.find(s => s.Key === args.PlayerID);
+      if (currentPlayerSummary?.DiplomatPoints) {
+        diplomatPointsRecord = currentPlayerSummary.DiplomatPoints as Record<string, number>;
+      }
+    }
+
     // Combine the data and create dictionary
-    const playersDict: Record<string, z.infer<typeof this.outputSchema>[string]> = {};
+    const playersDict: PlayersReport = {};
     for (const info of playerInfos) {
       const playerID = info.Key;
       const summary = playerSummaries.find(s => s.Key === playerID);
@@ -213,9 +222,12 @@ class GetPlayersTool extends ToolBase {
       // Remove TeamID if you are your team
       if (playerID === playerData.TeamID)
         delete playerData.TeamID;
-      
+
+      // Get diplomat points for this target player from the pre-fetched record
+      const diplomatPoints = diplomatPointsRecord?.[`Player${playerID}`];
+
       // Postprocess to remove things you shouldn't see
-      if (visibility !== 2) postProcessData(playerData, playerInfos, playerSummaries, args.PlayerID);
+      if (visibility !== 2) postProcessData(playerData, playerInfos, playerSummaries, args.PlayerID, diplomatPoints);
 
       playersDict[playerID.toString()] = sortBySchema(cleanEventData(playerData, false)!, PlayerDataSchema);
     }
@@ -238,10 +250,12 @@ function postProcessData(
   summary: z.infer<typeof PlayerDataSchema>,
   playerInfos: Selectable<PlayerInformation>[],
   playerSummaries: Selectable<PlayerSummary>[],
-  viewingPlayerID?: number
+  viewingPlayerID?: number,
+  // Hard-coded this impact for now
+  diplomatPoints: number = 0
 ): z.infer<typeof PlayerDataSchema> {
   // For met players (visibility 1): only show policy branch counts, not details
-  if (summary.PolicyBranches) {
+  if (summary.PolicyBranches && diplomatPoints < 200) {
     const branches = summary.PolicyBranches as Record<string, string[]>;
     const counts: Record<string, number> = {};
     for (const [branch, policies] of Object.entries(branches)) {
@@ -254,9 +268,6 @@ function postProcessData(
   delete summary.CurrentResearch;
   delete summary.NextPolicyTurns;
 
-  // Hide actual happiness number
-  delete summary.HappinessPercentage;
-
   // Hide FaithPerTurn and SciencePerTurn from non-team members (visibility 2 only)
   delete summary.FaithPerTurn;
   delete summary.SciencePerTurn;
@@ -265,12 +276,12 @@ function postProcessData(
   delete summary.OutgoingTradeRoutes;
   delete summary.IncomingTradeRoutes;
   delete summary.Spies;
-  delete summary.DiplomaticDeals;
+  if (diplomatPoints < 800) delete summary.DiplomaticDeals;
   delete summary.DiplomatPoints;
 
   // Hide military supply
   delete summary.MilitarySupply;
-  delete summary.MilitaryUnits;
+  if (diplomatPoints < 500) delete summary.MilitaryUnits;
 
   // Hide golden age if not in one
   if (summary.GoldenAge && !summary.GoldenAge.endsWith("turns remaining"))
@@ -334,6 +345,7 @@ function postProcessData(
     delete summary.FaithPerTurn;
     delete summary.SciencePerTurn;
     delete summary.TourismPerTurn;
+    delete summary.HappinessPercentage;
     if (viewingPlayerID !== -1 && summary.Quests)
       summary.Quests = (summary.Quests as any)[`Player${viewingPlayerID}`];
     else delete summary.Quests;
