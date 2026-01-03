@@ -21,7 +21,8 @@ export const CivilizationReportSchema = CivilizationSummarySchema.extend({
     Type: z.string(),
     Name: z.string(),
     Help: z.string(),
-    Replacing: z.string().optional()
+    Replacing: z.string().optional(),
+    PrereqTech: z.string().optional()
   })),
   PreferredVictory: z.string()
 });
@@ -87,17 +88,19 @@ class GetCivilizationTool extends DatabaseQueryTool<CivilizationSummary, Civiliz
         .innerJoin("Units", "Civilization_UnitClassOverrides.UnitType", "Units.Type")
         .innerJoin("UnitClasses", "Civilization_UnitClassOverrides.UnitClassType", "UnitClasses.Type")
         .innerJoin("Units as DefaultUnit", "UnitClasses.DefaultUnit", "DefaultUnit.Type")
+        .leftJoin("Technologies as t", "Units.PrereqTech", "t.Type")
         .select([
           'Units.Description as UniqueName',
-          'DefaultUnit.Description as ReplacesName'
+          'DefaultUnit.Description as ReplacesName',
+          't.Description as PrereqTechName'
         ])
         .where('Civilization_UnitClassOverrides.CivilizationType', '=', civ.Type)
         .where('Civilization_UnitClassOverrides.UnitType', 'is not', null)
         .execute();
-      
+
       for (const unit of uniqueUnits) {
         if (unit.UniqueName && unit.ReplacesName) {
-          abilities.push(`Unique Unit: ${unit.UniqueName}, Replacing ${unit.ReplacesName}`);
+          abilities.push(`Unique Unit: ${unit.UniqueName}, Replacing ${unit.ReplacesName} (Requires technology: ${unit.PrereqTechName || 'None'})`);
         }
       }
       
@@ -107,9 +110,11 @@ class GetCivilizationTool extends DatabaseQueryTool<CivilizationSummary, Civiliz
         .innerJoin("Buildings", "Civilization_BuildingClassOverrides.BuildingType", "Buildings.Type")
         .innerJoin("BuildingClasses", "Civilization_BuildingClassOverrides.BuildingClassType", "BuildingClasses.Type")
         .innerJoin("Buildings as DefaultBuilding", "BuildingClasses.DefaultBuilding", "DefaultBuilding.Type")
+        .leftJoin("Technologies as t", "Buildings.PrereqTech", "t.Type")
         .select([
           'Buildings.Description as UniqueName',
-          'DefaultBuilding.Description as ReplacesName'
+          'DefaultBuilding.Description as ReplacesName',
+          't.Description as PrereqTechName'
         ])
         .where('Civilization_BuildingClassOverrides.CivilizationType', '=', civ.Type)
         .where('Civilization_BuildingClassOverrides.BuildingType', 'is not', null)
@@ -117,24 +122,27 @@ class GetCivilizationTool extends DatabaseQueryTool<CivilizationSummary, Civiliz
 
       for (const building of uniqueBuildings) {
         if (building.UniqueName && building.ReplacesName) {
-          abilities.push(`Unique Building: ${building.UniqueName}, Replacing ${building.ReplacesName}`);
+          abilities.push(`Unique Building: ${building.UniqueName}, Replacing ${building.ReplacesName} (Requires technology: ${building.PrereqTechName || 'None'})`);
         }
       }
 
       // Get unique improvements
       const uniqueImprovements = await db
         .selectFrom("Improvements")
+        .leftJoin("Builds", "Improvements.Type", "Builds.ImprovementType")
+        .leftJoin("Technologies as t", "Builds.PrereqTech", "t.Type")
         .select([
-          'Description as UniqueName', 
-          'Help as UniqueHelp'
+          'Improvements.Description as UniqueName',
+          'Improvements.Help as UniqueHelp',
+          't.Description as PrereqTechName'
         ])
-        .where('CivilizationType', '=', civ.Type)
-        .where('SpecificCivRequired', '=', 1)
+        .where('Improvements.CivilizationType', '=', civ.Type)
+        .where('Improvements.SpecificCivRequired', '=', 1)
         .execute();
 
       for (const improvement of uniqueImprovements) {
         if (improvement.UniqueName) {
-          abilities.push(`Unique Improvement: ${improvement.UniqueName} (${improvement.UniqueHelp})`);
+          abilities.push(`Unique Improvement: ${improvement.UniqueName} (${improvement.UniqueHelp}); Requires technology: ${improvement.PrereqTechName || 'None'}`);
         }
       }
       
@@ -196,31 +204,34 @@ export async function getCivilization(civType: string) {
   }
   
   // Build detailed abilities list
-  const abilities: Array<{Type: string, Name: string, Help: string, Replacing?: string}> = [];
-  
+  const abilities: Array<{Type: string, Name: string, Help: string, Replacing?: string, PrereqTech?: string}> = [];
+
   // Get unique units with details
   const uniqueUnits = await db
     .selectFrom("Civilization_UnitClassOverrides as o")
     .innerJoin("Units", "o.UnitType", "Units.Type")
     .innerJoin("UnitClasses", "o.UnitClassType", "UnitClasses.Type")
     .innerJoin("Units as DefaultUnit", "UnitClasses.DefaultUnit", "DefaultUnit.Type")
+    .leftJoin("Technologies as prereqTech", "Units.PrereqTech", "prereqTech.Type")
     .select([
       'Units.Description as UniqueName',
       'Units.Help as UniqueHelp',
       'Units.Strategy as UniqueStrategy',
-      'DefaultUnit.Description as ReplacesName'
+      'DefaultUnit.Description as ReplacesName',
+      'prereqTech.Description as PrereqTechName'
     ])
     .where('o.CivilizationType', '=', civType)
     .where('o.UnitType', 'is not', null)
     .execute();
-  
+
   for (const unit of uniqueUnits) {
     if (unit.UniqueName) {
       abilities.push({
         Type: 'Unit',
         Name: unit.UniqueName,
         Help: unit.UniqueStrategy || unit.UniqueHelp || 'Unique unit',
-        Replacing: unit.ReplacesName || undefined
+        Replacing: unit.ReplacesName || undefined,
+        PrereqTech: unit.PrereqTechName || undefined
       });
     }
   }
@@ -231,11 +242,13 @@ export async function getCivilization(civType: string) {
     .innerJoin("Buildings", "Civilization_BuildingClassOverrides.BuildingType", "Buildings.Type")
     .innerJoin("BuildingClasses", "Civilization_BuildingClassOverrides.BuildingClassType", "BuildingClasses.Type")
     .innerJoin("Buildings as DefaultBuilding", "BuildingClasses.DefaultBuilding", "DefaultBuilding.Type")
+    .leftJoin("Technologies as t", "Buildings.PrereqTech", "t.Type")
     .select([
       'Buildings.Description as UniqueName',
       'Buildings.Help as UniqueHelp',
       'Buildings.Strategy as UniqueStrategy',
-      'DefaultBuilding.Description as ReplacesName'
+      'DefaultBuilding.Description as ReplacesName',
+      't.Description as PrereqTechName'
     ])
     .where('Civilization_BuildingClassOverrides.CivilizationType', '=', civType)
     .where('Civilization_BuildingClassOverrides.BuildingType', 'is not', null)
@@ -247,7 +260,8 @@ export async function getCivilization(civType: string) {
         Type: 'Building',
         Name: building.UniqueName,
         Help: building.UniqueStrategy || building.UniqueHelp || 'Unique building',
-        Replacing: building.ReplacesName || undefined
+        Replacing: building.ReplacesName || undefined,
+        PrereqTech: building.PrereqTechName || undefined
       });
     }
   }
@@ -255,12 +269,15 @@ export async function getCivilization(civType: string) {
   // Get unique improvements with details
   const uniqueImprovements = await db
     .selectFrom("Improvements")
+    .leftJoin("Builds", "Improvements.Type", "Builds.ImprovementType")
+    .leftJoin("Technologies as t", "Builds.PrereqTech", "t.Type")
     .select([
-      'Description as UniqueName',
-      'Help as UniqueHelp'
+      'Improvements.Description as UniqueName',
+      'Improvements.Help as UniqueHelp',
+      't.Description as PrereqTechName'
     ])
-    .where('CivilizationType', '=', civType)
-    .where('SpecificCivRequired', '=', 1)
+    .where('Improvements.CivilizationType', '=', civType)
+    .where('Improvements.SpecificCivRequired', '=', 1)
     .execute();
 
   for (const improvement of uniqueImprovements) {
@@ -268,7 +285,8 @@ export async function getCivilization(civType: string) {
       abilities.push({
         Type: 'Improvement',
         Name: improvement.UniqueName,
-        Help: improvement.UniqueHelp || 'Unique improvement'
+        Help: improvement.UniqueHelp || 'Unique improvement',
+        PrereqTech: improvement.PrereqTechName || undefined
       });
     }
   }
