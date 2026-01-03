@@ -26,14 +26,16 @@ local function getCityVisibility(playerID, city)
   end
 
   -- Check if player has a spy with established surveillance in this city
-  if city:HasSpy(playerID) then
+  -- Only applies to major civs (not city-states where spies are diplomats)
+  local cityOwner = Players[cityOwnerID]
+  if not cityOwner:IsMinorCiv() and city:HasSpy(playerID) then
     local spies = player:GetEspionageSpies()
     if spies then
       local cityX = city:GetX()
       local cityY = city:GetY()
       for _, spy in ipairs(spies) do
-        -- Check if this spy is in this city
-        if spy.CityX == cityX and spy.CityY == cityY then
+        -- Check if this spy is in this city and is not a diplomat
+        if spy.CityX == cityX and spy.CityY == cityY and not spy.IsDiplomat then
           -- Check if surveillance is established
           if spy.EstablishedSurveillance then
             return 2  -- Full visibility (spy surveillance)
