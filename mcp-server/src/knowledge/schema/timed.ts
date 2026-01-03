@@ -95,6 +95,7 @@ export interface PlayerSummary extends MutableKnowledge {
   NextPolicyTurns: number | null; // Turns until next policy can be adopted (visibility 2 only)
   MilitaryUnits: number | null; // Current military units needing supply
   MilitarySupply: number | null; // Maximum supply capacity
+  MilitaryMight: number | null; // Total military strength (attack power of all units)
   PolicyBranches: JSONColumnType<Record<string, string[]>> | null; // Policy branch -> array of policy names (details visibility 2 only)
   FoundedReligion: string | null;
   MajorityReligion: string | null;

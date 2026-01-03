@@ -59,6 +59,7 @@ const PlayerDataSchema = z.object({
   HappinessPercentage: z.number().optional(),
   MilitaryUnits: z.number().optional(),
   MilitarySupply: z.number().optional(),
+  MilitaryMight: z.number().optional(),
   TourismPerTurn: z.number().optional(),
   CulturePerTurn: z.number().optional(),
   FaithPerTurn: z.number().optional(),

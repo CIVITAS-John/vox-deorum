@@ -167,6 +167,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         NextPolicyTurns = nextPolicyTurns,  -- Turns until next policy can be adopted
         MilitaryUnits = player:GetNumUnitsToSupply(),  -- Current military units needing supply
         MilitarySupply = player:GetNumUnitsSupplied(),  -- Maximum supply capacity
+        MilitaryMight = player:GetMilitaryMight(),  -- Total military strength (attack power of all units)
         PolicyBranches = nil,  -- Will be populated if player has policies
         FoundedReligion = nil,  -- Will be populated if player founded religion
         MajorityReligion = player:GetStateReligionName(),
