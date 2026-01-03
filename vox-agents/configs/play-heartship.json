@@ -1,0 +1,10 @@
+{
+  "llmPlayers": {
+    "1": {
+      "strategist": "heartship-strategist"
+    }
+  },
+  "autoPlay": false,
+  "gameMode": "start",
+  "repetition": 1
+}
