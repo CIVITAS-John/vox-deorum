@@ -22,7 +22,7 @@
  */
 
 import { ModelMessage, StepResult, Tool } from "ai";
-import { SimpleStrategistBase } from "./simple-strategist-base.js";
+import { Strategist } from "../strategist.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
@@ -68,7 +68,7 @@ interface TurnLog {
 // HEARTSHIP STRATEGIST V5
 // ============================================================================
 
-export class HeartshipStrategist extends SimpleStrategistBase {
+export class HeartshipStrategist extends Strategist {
   readonly name = "heartship-strategist";
   readonly description = "Pure prompt ternary - three branches, zero external calls";
 
