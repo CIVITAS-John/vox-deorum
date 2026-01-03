@@ -16,18 +16,6 @@ import { NoneStrategist } from "../strategist/agents/none-strategist.js";
 import { Spokesperson } from "../envoy/spokesperson.js";
 import { SimpleStrategistStaffed } from "../strategist/agents/simple-strategist-staffed.js";
 import { HeartshipStrategist } from "../strategist/agents/heartship-strategist.js";
-import { HeartshipStrategistV2 } from "../strategist/agents/heartship-strategist-v2.js";
-import { HeartshipStrategistV3 } from "../strategist/agents/heartship-strategist-v3.js";
-import { HeartshipStrategistV4 } from "../strategist/agents/heartship-strategist-v4.js";
-import { HeartshipStrategistV5 } from "../strategist/agents/heartship-strategist-v5.js";
-import {
-  VestaVoiceAgent,
-  AthenaVoiceAgent,
-  KaliVoiceAgent,
-  SynthesisVoiceAgent,
-  StereoscopicReasonerAgent,
-  TernaryReasonerAgent
-} from "../strategist/agents/heartship-voices.js";
 
 /**
  * Registry for managing available Vox agents.
@@ -180,22 +168,10 @@ class AgentRegistry {
     this.register(new SimpleStrategistStaffed());
     this.register(new NoneStrategist());
     this.register(new HeartshipStrategist());
-    this.register(new HeartshipStrategistV2());
-    this.register(new HeartshipStrategistV3());
-    this.register(new HeartshipStrategistV4());
-    this.register(new HeartshipStrategistV5());
 
     // Register briefer agents
     this.register(new SimpleBriefer());
     this.register(new SpecializedBriefer());
-
-    // Register heartship voice/reasoner agents
-    this.register(new VestaVoiceAgent());
-    this.register(new AthenaVoiceAgent());
-    this.register(new KaliVoiceAgent());
-    this.register(new SynthesisVoiceAgent());
-    this.register(new StereoscopicReasonerAgent());
-    this.register(new TernaryReasonerAgent());
 
     // Register envoy agents
     this.register(new Spokesperson());
