@@ -147,6 +147,63 @@ export class HeartshipStrategist extends SimpleStrategistBase {
     if (memory.outcomes.length > 10) memory.outcomes = memory.outcomes.slice(-10);
   }
 
+  /**
+   * Extract patterns, concerns, and identity from LLM reasoning text.
+   * Uses prefix-based extraction (PATTERN:, CONCERN:, IDENTITY:, OPPONENT:)
+   */
+  private extractInsightsFromText(text: string): {
+    patterns: string[];
+    concerns: string[];
+    identity: string | null;
+    opponents: Record<string, string>;
+  } {
+    const patterns: string[] = [];
+    const concerns: string[] = [];
+    const opponents: Record<string, string> = {};
+    let identity: string | null = null;
+
+    // Extract PATTERN: lines
+    const patternRegex = /PATTERN:\s*(.+?)(?:\n|$)/gi;
+    let match;
+    while ((match = patternRegex.exec(text)) !== null) {
+      const pattern = match[1].trim();
+      if (pattern.length > 0 && pattern.length < 200) {
+        patterns.push(pattern);
+      }
+    }
+
+    // Extract CONCERN: lines
+    const concernRegex = /CONCERN:\s*(.+?)(?:\n|$)/gi;
+    while ((match = concernRegex.exec(text)) !== null) {
+      const concern = match[1].trim();
+      if (concern.length > 0 && concern.length < 200) {
+        concerns.push(concern);
+      }
+    }
+
+    // Extract IDENTITY: line (only take the first one)
+    const identityRegex = /IDENTITY:\s*(.+?)(?:\n|$)/i;
+    const identityMatch = identityRegex.exec(text);
+    if (identityMatch) {
+      const id = identityMatch[1].trim();
+      if (id.length > 0 && id.length < 300) {
+        identity = id;
+      }
+    }
+
+    // Extract OPPONENT: lines (format: "OPPONENT PlayerName: description")
+    const opponentRegex = /OPPONENT\s+([^:]+):\s*(.+?)(?:\n|$)/gi;
+    while ((match = opponentRegex.exec(text)) !== null) {
+      const playerName = match[1].trim();
+      const model = match[2].trim();
+      if (playerName.length > 0 && model.length > 0 && model.length < 200) {
+        opponents[playerName] = model;
+      }
+    }
+
+    return { patterns, concerns, identity, opponents };
+  }
+
   // ============================================================================
   // PERCEPTION
   // ============================================================================
@@ -276,10 +333,21 @@ Think through this BEFORE calling any tools:
 
 ## Tools Available
 - set-strategy: Set grand/economic/military strategies
-- set-research: Set next technology to research  
+- set-research: Set next technology to research
 - set-policy: Set next policy to adopt
 - set-persona: Set diplomatic persona
 - keep-status-quo: Make no changes this turn
+
+## Memory System
+
+You can record insights that persist across turns by using these prefixes in your reasoning:
+
+- **PATTERN:** followed by an observation about opponent behavior (e.g., "PATTERN: Rome always attacks after building 3 legions")
+- **CONCERN:** followed by an ongoing worry (e.g., "CONCERN: Our economy cannot sustain a two-front war")
+- **IDENTITY:** followed by who we are/want to be (e.g., "IDENTITY: A peaceful science civilization that defends but never conquers")
+- **OPPONENT PlayerName:** followed by your model of that player (e.g., "OPPONENT Rome: Aggressive expansionist, prioritizes military")
+
+These will appear in future turns under "Learned Patterns", "Ongoing Concerns", etc.
 
 ## Critical Rule
 
@@ -344,7 +412,7 @@ Show their reasoning, take a vote, then call the appropriate tool.
   }
 
   /**
-   * Override stopCheck to capture decisions from tool calls
+   * Override stopCheck to capture decisions from tool calls and extract insights from reasoning
    */
   public stopCheck(
     parameters: StrategistParameters,
@@ -353,7 +421,7 @@ Show their reasoning, take a vote, then call the appropriate tool.
     allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {
     const shouldStop = super.stopCheck(parameters, input, lastStep, allSteps);
-    
+
     if (shouldStop && HeartshipStrategist.memory) {
       // Extract decisions from tool calls
       for (const step of allSteps) {
@@ -369,15 +437,53 @@ Show their reasoning, take a vote, then call the appropriate tool.
         }
       }
 
+      // Extract insights from LLM reasoning text
+      // The reasoning may be in step.text (assistant message content)
+      for (const step of allSteps) {
+        const stepAny = step as any;
+        const text = stepAny.text || '';
+        if (text) {
+          const insights = this.extractInsightsFromText(text);
+
+          // Add new patterns (avoid duplicates)
+          for (const pattern of insights.patterns) {
+            if (!HeartshipStrategist.memory.learnedPatterns.includes(pattern)) {
+              HeartshipStrategist.memory.learnedPatterns.push(pattern);
+              this.logger.debug(`[Heartship] Learned pattern: ${pattern}`);
+            }
+          }
+
+          // Add new concerns (avoid duplicates)
+          for (const concern of insights.concerns) {
+            if (!HeartshipStrategist.memory.ongoingConcerns.includes(concern)) {
+              HeartshipStrategist.memory.ongoingConcerns.push(concern);
+              this.logger.debug(`[Heartship] Added concern: ${concern}`);
+            }
+          }
+
+          // Update identity if stated
+          if (insights.identity) {
+            HeartshipStrategist.memory.statedIdentity = insights.identity;
+            this.logger.debug(`[Heartship] Identity: ${insights.identity}`);
+          }
+
+          // Update opponent models
+          for (const [player, model] of Object.entries(insights.opponents)) {
+            HeartshipStrategist.memory.opponentModels[player] = model;
+            this.logger.debug(`[Heartship] Opponent model ${player}: ${model}`);
+          }
+        }
+      }
+
       // Keep only last 10 decisions
       if (HeartshipStrategist.memory.recentDecisions.length > 10) {
-        HeartshipStrategist.memory.recentDecisions = 
+        HeartshipStrategist.memory.recentDecisions =
           HeartshipStrategist.memory.recentDecisions.slice(-10);
       }
 
       this.logger.info(`[Heartship v5] Turn ${parameters.turn} complete`);
     }
-    
+
     return shouldStop;
   }
 
