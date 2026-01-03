@@ -30,7 +30,7 @@ export class SimpleBriefer extends Briefer {
   static readonly commonGuidelines = `- The briefing should be objective and analytical, not speculations, predictions, or suggestions.
 - Report macro-level information sufficient for decision-making. Avoid raw, excessive, or tactical information (e.g. X/Y, unit IDs).
 - You have NO access to tactical AI's next decisions (e.g. which production is queued), report it honestly.
-- Only report factual information. If your leader asks for information you do not have, state it clearly.`;
+- Independently report factual information. If your leader asks for information you do not have or affirmation you cannot validate, state it clearly.`;
 
   /**
    * Description of Cities report
