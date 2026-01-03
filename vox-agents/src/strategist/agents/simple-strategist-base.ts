@@ -41,7 +41,8 @@ export abstract class SimpleStrategistBase extends Strategist {
 - There is no user (to respond to), so you ALWAYS and ONLY properly call tools to play the game.
 - You can interact with multiple tools at a time. Used tools will be removed from the available list.
 - Focus on the **macro-level** gameplay strategy (instead of coordinates etc.), as you DON'T have direct control over tactical actions.
-- The world is complicated and dynamic. Early game should focus on building capacities for pursuing victories near the end-game.`;
+- The world is complicated and dynamic. Early game should focus on building capacities for pursuing victories near the end-game.
+- Even if you cannot achieve a victory, higher overall score (representing a more developed civilization) is desirable.`;
 
   /**
    * Shared prompt: Goals for strategic decision-making
@@ -94,20 +95,21 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
   /**
    * Shared prompt: Victory conditions description
    */
-  public static readonly victoryConditionsPrompt = `- Victory Progress: current progress towards each type of victory.
+  public static readonly victoryConditionsPrompt = `- Victory Progress:
   - Domination Victory: Control or vassalize all original capitals.
-  - Science Victory: Be the first to finish all spaceship parts and launch the spaceship.
+    - Vassals cannot achieve a domination victory before independence.
+  - Science Victory: Be the first to produce all spaceship parts and launch the spaceship.
   - Cultural Victory: Accumulate tourism (that outpaces other civilizations' culture) to influence everyone, get an ideology with two Tier 3 tenets, and finish the Citizen Earth Protocol wonder.
   - Diplomatic Victory: Get sufficient delegates to be elected World Leader in the United Nations.
+    - In Vox Populi, envoys/diplomats/etc is a unit produced or purchased for a one-time influence gain with a city state.
   - Time Victory: If no one achieves any other victory by the end of the game, the civilization with the highest score wins.`;
 
   /**
    * Shared prompt: Players information description
    */
-  public static readonly playersInfoPrompt = `- Players: summary reports about visible players in the world. Also:
+  public static readonly playersInfoPrompt = `- Players: summary reports about visible players in the world.
   - You will receive in-game AI's diplomatic evaluations.
-  - You will receive each player's publicly available relationships.
-  - Pay attention to master/vassal relationships. If you are a vassal, you cannot achieve a domination victory before independence.`;
+  - You will receive each player's publicly available relationships.`;
 
   /**
    * Gets the list of active tools for this agent

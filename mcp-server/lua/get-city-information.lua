@@ -162,7 +162,8 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS do
         local buildingID = building.ID
         if city:IsHasBuilding(buildingID) then
           local buildingClass = GameInfo.BuildingClasses[building.BuildingClass]
-          if buildingClass and (buildingClass.MaxGlobalInstances == 1 or buildingClass.MaxPlayerInstances == 1) then
+          -- Exclude Palace as it's a starting building, not a wonder
+          if buildingClass and building.BuildingClass ~= "BUILDINGCLASS_PALACE" and (buildingClass.MaxGlobalInstances == 1 or buildingClass.MaxPlayerInstances == 1) then
             -- This is a wonder (world or national)
             table.insert(wonders, Locale.ConvertTextKey(building.Description))
           end

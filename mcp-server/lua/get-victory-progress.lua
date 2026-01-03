@@ -134,7 +134,7 @@ if scienceVictory and Game:IsVictoryValid(scienceVictory.ID) then
     if spaceshipUnlocked then
       victoryProgress.ScienceVictory = scienceData
     else
-      victoryProgress.ScienceVictory = "Unlocked in later eras"
+      victoryProgress.ScienceVictory = "Unlocked in the Information era"
     end
   end
 end
@@ -396,7 +396,7 @@ if diplomaticVictory and Game:IsVictoryValid(diplomaticVictory.ID) then
 
     victoryProgress.DiplomaticVictory = diplomaticData
   else
-    victoryProgress.DiplomaticVictory = "Unlocked in later eras"
+    victoryProgress.DiplomaticVictory = "Unlocked in Atomic or Information eras"
   end
 end
 
