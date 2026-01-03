@@ -332,7 +332,7 @@ ${input.instruction}`.trim()
     // Add past briefing if available
     const lastState = getGameState(parameters, getOffsetedTurn(parameters, -5));
     const reportKey = config.getReportKey(input.mode);
-    if (lastState && lastState.reports[reportKey]) {
+    if (lastState && (lastState.reports[reportKey] || lastState.reports["briefing"])) {
       messages.push({
         role: "user",
         content: `# Past Briefing
