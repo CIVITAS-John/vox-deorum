@@ -27,7 +27,7 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
    */
   readonly inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
-    Rationale: z.string().describe("Explanation for why the current strategic direction should be maintained")
+    Rationale: z.string().describe("Briefly explain why the current strategic direction should be maintained")
   });
 
   /**

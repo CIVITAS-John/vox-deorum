@@ -42,7 +42,7 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
     Technology: z.string().describe("Technology name to research next (None to clear)"),
-    Rationale: z.string().describe("Explain your rationale for selecting this technology in a paragraph")
+    Rationale: z.string().describe("Briefly explain your rationale for selecting this technology")
   });
 
   /**

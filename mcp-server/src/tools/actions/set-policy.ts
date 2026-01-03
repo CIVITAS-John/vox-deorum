@@ -45,7 +45,7 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
     Policy: z.string().describe("Policy name or branch name to adopt next (None to clear)"),
-    Rationale: z.string().describe(" Explain your rationale for selecting this policy in a paragraph")
+    Rationale: z.string().describe("Briefly explain your rationale for selecting this policy")
   });
 
   /**
