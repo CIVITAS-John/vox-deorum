@@ -25,6 +25,24 @@ local function getCityVisibility(playerID, city)
     return 2  -- Full visibility (team member)
   end
 
+  -- Check if player has a spy with established surveillance in this city
+  if city:HasSpy(playerID) then
+    local spies = player:GetEspionageSpies()
+    if spies then
+      local cityX = city:GetX()
+      local cityY = city:GetY()
+      for _, spy in ipairs(spies) do
+        -- Check if this spy is in this city
+        if spy.CityX == cityX and spy.CityY == cityY then
+          -- Check if surveillance is established
+          if spy.EstablishedSurveillance then
+            return 2  -- Full visibility (spy surveillance)
+          end
+        end
+      end
+    end
+  end
+
   -- Check if city plot is revealed to the player
   local plot = city:Plot()
   if plot and plot:IsRevealed(playerTeamID, false) then

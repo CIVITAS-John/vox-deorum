@@ -14,6 +14,7 @@ import { getModelConfig } from "../../utils/models/models.js";
 import { Model } from "../../types/index.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
 import { assembleBriefings } from "./simple-strategist-staffed.js";
+import { getStrategicPlayersReport } from "../../utils/report-filters.js";
 
 /**
  * A briefed strategist agent that first requests a briefing before making strategic decisions.
@@ -73,6 +74,7 @@ ${SimpleStrategistBase.playersInfoPrompt}
     await super.getInitialMessages(parameters, input, context);
     const { YouAre, ...SituationData } = parameters.metadata || {};
     const { Options, ...Strategy } = state.options || {};
+    const filteredPlayers = getStrategicPlayersReport(state.players!);
 
     // Return the messages with briefing instead of full state
     return [{
@@ -89,9 +91,7 @@ ${jsonToMarkdown(YouAre)}
 # Options
 Options: available strategic options for you.
 
-${jsonToMarkdown(Options, {
-  configs: [{}]
-})}`.trim(),
+${jsonToMarkdown(Options, { configs: [{}] })}`.trim(),
       providerOptions: {
         anthropic: { cacheControl: { type: 'ephemeral' } }
       }
@@ -106,7 +106,7 @@ ${jsonToMarkdown(Strategy)}
 # Players
 Players: summary reports about visible players in the world.
 
-${jsonToMarkdown(state.players)}
+${jsonToMarkdown(filteredPlayers)}
 
 # Victory Progress
 Victory Progress: current progress towards each type of victory.

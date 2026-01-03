@@ -170,3 +170,19 @@ export function omitCityFields<K extends keyof CityData>(
 
   return preserveMarkdownConfig(cities, result);
 }
+
+/**
+ * Filters players report by removing detailed fields that are not needed for high-level strategic decisions.
+ * Removes: Spies, Quests, IncomingTradeRoutes, OutgoingTradeRoutes, ResourcesAvailable
+ *
+ * @param players - The full players report
+ * @returns Filtered players report for strategic analysis
+ *
+ * @example
+ * const filtered = getStrategicPlayersReport(state.players!);
+ */
+export function getStrategicPlayersReport(players: PlayersReport) {
+  return omitPlayerFields(players, [
+    'Spies', 'Quests', 'IncomingTradeRoutes', 'OutgoingTradeRoutes', 'ResourcesAvailable'
+  ]);
+}

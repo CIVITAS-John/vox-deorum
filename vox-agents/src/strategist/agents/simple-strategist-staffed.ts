@@ -14,6 +14,7 @@ import { getModelConfig } from "../../utils/models/models.js";
 import { Model } from "../../types/index.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
 import { SpecializedBrieferInput } from "../../briefer/specialized-briefer.js";
+import { getStrategicPlayersReport } from "../../utils/report-filters.js";
 
 /**
  * Assembles briefing content with optional instructions.
@@ -192,7 +193,7 @@ ${jsonToMarkdown(Strategy)}
 # Players
 Players: summary reports about visible players in the world.
 
-${jsonToMarkdown(state.players)}
+${jsonToMarkdown(getStrategicPlayersReport(state.players!))}
 
 # Victory Progress
 Victory Progress: current progress towards each type of victory.
