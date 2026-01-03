@@ -155,6 +155,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('OutgoingTradeRoutes', 'text')
     .addColumn('IncomingTradeRoutes', 'text')
     .addColumn('Spies', 'text')
+    .addColumn('DiplomaticDeals', 'text')
     .addColumn('Quests', 'text')
     .execute();
   // Create indexes for PlayerSummaries table

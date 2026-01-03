@@ -72,6 +72,15 @@ export interface SpyDetails {
 }
 
 /**
+ * Diplomatic deal details for a specific deal
+ */
+export interface DiplomaticDealDetails {
+  TurnsRemaining: number; // Turns until the deal expires
+  WeGive: string[]; // Array of items the player is giving (formatted strings)
+  TheyGive: string[]; // Array of items the other player is giving (formatted strings)
+}
+
+/**
  * Player summary information (visible to met players)
  */
 export interface PlayerSummary extends MutableKnowledge {
@@ -104,6 +113,7 @@ export interface PlayerSummary extends MutableKnowledge {
   OutgoingTradeRoutes: JSONColumnType<Record<string, number | TradeRouteDetails>> | null; // "Not assigned": count or "FromCity => ToCity (Civ)": route details
   IncomingTradeRoutes: JSONColumnType<Record<string, TradeRouteDetails>> | null; // "FromCity (Civ) => ToCity": route details
   Spies: JSONColumnType<Record<string, SpyDetails>> | null; // "Rank Name" -> spy details (visibility 2 only)
+  DiplomaticDeals: JSONColumnType<Record<string, DiplomaticDealDetails>> | null; // Civ name -> deal details (visibility 2 only)
   Quests: JSONColumnType<Record<number, string[]>> | null; // Civ name -> city-state quests (minor civs only)
 
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)

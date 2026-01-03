@@ -183,6 +183,6 @@ export function omitCityFields<K extends keyof CityData>(
  */
 export function getStrategicPlayersReport(players: PlayersReport) {
   return omitPlayerFields(players, [
-    'Spies', 'Quests', 'IncomingTradeRoutes', 'OutgoingTradeRoutes', 'ResourcesAvailable'
+    'Spies', 'Quests', 'IncomingTradeRoutes', 'OutgoingTradeRoutes', 'ResourcesAvailable', 'DiplomaticDeals'
   ]);
 }

@@ -41,23 +41,121 @@ local function getVisibility(fromPlayerID, toPlayerID)
   if fromPlayerID == toPlayerID then
     return 2  -- Self
   end
-  
+
   local fromPlayer = Players[fromPlayerID]
   local toPlayer = Players[toPlayerID]
-  
+
   if not fromPlayer or not toPlayer then
     return 0
   end
-  
+
   local fromTeamID = fromPlayer:GetTeam()
   local toTeamID = toPlayer:GetTeam()
-  
+
   if fromTeamID == toTeamID then
     return 2  -- Team member
   elseif Teams[fromTeamID]:IsHasMet(toTeamID) then
     return 1  -- Met
   else
     return 0  -- Not met
+  end
+end
+
+-- Helper function to format a single deal item as a readable string
+local function formatDealItem(itemType, data1, data2, data3, flag1, fromPlayer, toPlayer)
+  if itemType == TradeableItems.TRADE_ITEM_GOLD then
+    return string.format("%d Gold", data1)
+
+  elseif itemType == TradeableItems.TRADE_ITEM_GOLD_PER_TURN then
+    return string.format("%d Gold per Turn", data1)
+
+  elseif itemType == TradeableItems.TRADE_ITEM_MAPS then
+    return "World Map"
+
+  elseif itemType == TradeableItems.TRADE_ITEM_RESOURCES then
+    local resource = GameInfo.Resources[data1]
+    if resource then
+      local resourceName = Locale.ConvertTextKey(resource.Description)
+      return string.format("%d %s", data2, resourceName)
+    end
+    return string.format("%d Resource (ID: %d)", data2, data1)
+
+  elseif itemType == TradeableItems.TRADE_ITEM_CITIES then
+    local plot = Map.GetPlot(data1, data2)
+    if plot then
+      local city = plot:GetPlotCity()
+      if city then
+        return string.format("City of %s", city:GetName())
+      end
+    end
+    return string.format("City at (%d, %d)", data1, data2)
+
+  elseif itemType == TradeableItems.TRADE_ITEM_OPEN_BORDERS then
+    return "Open Borders"
+
+  elseif itemType == TradeableItems.TRADE_ITEM_DEFENSIVE_PACT then
+    return "Defensive Pact"
+
+  elseif itemType == TradeableItems.TRADE_ITEM_RESEARCH_AGREEMENT then
+    local cost = Game.GetResearchAgreementCost(fromPlayer, toPlayer)
+    return string.format("Research Agreement (%d Gold)", cost)
+
+  elseif itemType == TradeableItems.TRADE_ITEM_PEACE_TREATY then
+    return "Peace Treaty"
+
+  elseif itemType == TradeableItems.TRADE_ITEM_THIRD_PARTY_PEACE then
+    local teamName = "Unknown"
+    if data1 and Teams[data1] then
+      local team = Teams[data1]
+      local leaderID = team:GetLeaderID()
+      if leaderID >= 0 then
+        local leader = Players[leaderID]
+        if leader then
+          teamName = getCivName(leader)
+        end
+      end
+    end
+    return string.format("Make Peace with %s", teamName)
+
+  elseif itemType == TradeableItems.TRADE_ITEM_THIRD_PARTY_WAR then
+    local teamName = "Unknown"
+    if data1 and Teams[data1] then
+      local team = Teams[data1]
+      local leaderID = team:GetLeaderID()
+      if leaderID >= 0 then
+        local leader = Players[leaderID]
+        if leader then
+          teamName = getCivName(leader)
+        end
+      end
+    end
+    return string.format("Declare War on %s", teamName)
+
+  elseif itemType == TradeableItems.TRADE_ITEM_ALLOW_EMBASSY then
+    return "Embassy"
+
+  elseif itemType == TradeableItems.TRADE_ITEM_DECLARATION_OF_FRIENDSHIP then
+    return "Declaration of Friendship"
+
+  elseif itemType == TradeableItems.TRADE_ITEM_VOTE_COMMITMENT then
+    return "Vote Commitment (World Congress)"
+
+  elseif itemType == TradeableItems.TRADE_ITEM_TECHS then
+    local tech = GameInfo.Technologies[data1]
+    if tech then
+      local techName = Locale.ConvertTextKey(tech.Description)
+      return string.format("Technology: %s", techName)
+    end
+    return string.format("Technology (ID: %d)", data1)
+
+  elseif itemType == TradeableItems.TRADE_ITEM_VASSALAGE then
+    return "Vassalage"
+
+  elseif itemType == TradeableItems.TRADE_ITEM_VASSALAGE_REVOKE then
+    return "End Vassalage"
+
+  else
+    return string.format("Unknown Item (Type: %d)", itemType or -1)
   end
 end
 
@@ -175,7 +273,8 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         Relationships = nil,  -- Will be populated if player has diplomatic relationships
         OutgoingTradeRoutes = nil,  -- Will be populated if player has outgoing trade routes
         IncomingTradeRoutes = nil,  -- Will be populated if player has incoming trade routes
-        Spies = nil  -- Will be populated if player has spies
+        Spies = nil,  -- Will be populated if player has spies
+        DiplomaticDeals = nil  -- Will be populated if player has active deals
       }
       
       -- Add relative visibility to all other players
@@ -446,6 +545,55 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         end
         summary.Spies = spies
       end
+
+      -- Get diplomatic deals with other major civilizations
+      local diplomaticDeals = nil
+      local numDeals = UI.GetNumCurrentDeals(playerID)
+
+      if numDeals > 0 then
+        for i = 0, numDeals - 1 do
+          UI.LoadCurrentDeal(playerID, i)
+          local deal = UI.GetScratchDeal()
+          local otherPlayerID = deal:GetOtherPlayer(playerID)
+          local otherPlayer = Players[otherPlayerID]
+
+          if otherPlayer and not otherPlayer:IsMinorCiv() then
+            local weGive = {}
+            local theyGive = {}
+
+            deal:ResetIterator()
+            local itemType, duration, finalTurn, data1, data2, data3, flag1, fromPlayer = deal:GetNextItem()
+
+            while itemType ~= nil do
+              local itemStr = formatDealItem(itemType, data1, data2, data3, flag1, playerID, otherPlayerID)
+
+              if fromPlayer == playerID then
+                table.insert(weGive, itemStr)
+              else
+                table.insert(theyGive, itemStr)
+              end
+
+              itemType, duration, finalTurn, data1, data2, data3, flag1, fromPlayer = deal:GetNextItem()
+            end
+
+            if #weGive > 0 or #theyGive > 0 then
+              if not diplomaticDeals then diplomaticDeals = {} end
+              local turnsLeft = finalTurn - Game.GetGameTurn()
+              diplomaticDeals[getCivName(otherPlayer)] = {
+                TurnsRemaining = turnsLeft,
+                WeGive = weGive,
+                TheyGive = theyGive
+              }
+            end
+          end
+
+          if deal ~= nil then
+            deal:ClearItems()
+          end
+        end
+      end
+
+      summary.DiplomaticDeals = diplomaticDeals
 
       -- Add to results
       table.insert(summaries, summary)

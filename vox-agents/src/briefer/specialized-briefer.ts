@@ -156,7 +156,10 @@ ${SimpleBriefer.instructionFooter}`.trim(),
   getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
     const filteredPlayers = omitPlayerFields(state.players!, [
-      'OurOpinionToThem', 'TheirOpinionToUs', 'MyEvaluations', 'MilitaryMight', 'Spies'
+      'OurOpinionToThem', 'TheirOpinionToUs', 'MyEvaluations', 'Spies'
+    ]);
+    const filteredCities = omitCityFields(state.cities!, [
+      'MajorityReligion'
     ]);
     return `
 # Victory Progress
@@ -172,7 +175,7 @@ ${jsonToMarkdown(filteredPlayers)}
 # Cities
 Cities: summary reports about discovered cities in the world.
 
-${jsonToMarkdown(state.cities!)}
+${jsonToMarkdown(filteredCities)}
 
 # Events
 Events: economy-related events since the last decision-making.
@@ -217,7 +220,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
     const filteredPlayers = pickPlayerFields(state.players!, [
       'Civilization', 'Leader', 'IsMajor', 'TeamID', 'Era', 'Score', 'Territory', 'MilitaryMight',
       'OurOpinionToThem', 'TheirOpinionToUs', 'Relationships', 'MyEvaluation', 'PolicyBranches',
-      'FoundedReligion', 'MajorityReligion', 'MajorAlly', 'Quests',
+      'FoundedReligion', 'MajorityReligion', 'MajorAlly', 'Quests', 'DiplomaticDeals',
       'GoldenAge', 'HappinessSituation'
     ]);
     const filteredCities = pickCityFields(state.cities!, [
