@@ -147,7 +147,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('NextPolicyTurns', 'integer') // Turns until next policy can be adopted
     .addColumn('MilitaryUnits', 'integer') // Current military units needing supply
     .addColumn('MilitarySupply', 'integer') // Maximum supply capacity
-    .addColumn('MilitaryMight', 'integer') // Total military strength (attack power of all units)
+    .addColumn('MilitaryStrength', 'integer') // Total military strength (attack power of all units)
     .addColumn('ResourcesAvailable', 'text')
     .addColumn('FoundedReligion', 'text')
     .addColumn('MajorityReligion', 'text')

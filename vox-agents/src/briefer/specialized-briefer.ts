@@ -89,7 +89,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
   getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
     const filteredPlayers = pickPlayerFields(state.players!, [
-      'Civilization', 'Leader', 'TeamID', 'IsMajor', 'Era', 'MilitaryMight',
+      'Civilization', 'Leader', 'TeamID', 'IsMajor', 'Era', 'MilitaryStrength',
       'Score', 'Territory', 'Cities', 'Population', 'GoldenAge', 'Technologies',
       'MilitaryUnits', 'MilitarySupply', 'HappinessSituation', 'Relationships', 'PolicyBranches'
     ]);
@@ -218,7 +218,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
   getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
     const filteredPlayers = pickPlayerFields(state.players!, [
-      'Civilization', 'Leader', 'IsMajor', 'TeamID', 'Era', 'Score', 'Territory', 'MilitaryMight',
+      'Civilization', 'Leader', 'IsMajor', 'TeamID', 'Era', 'Score', 'Territory', 'MilitaryStrength',
       'OurOpinionToThem', 'TheirOpinionToUs', 'Relationships', 'MyEvaluation', 'PolicyBranches',
       'FoundedReligion', 'MajorityReligion', 'MajorAlly', 'Quests', 'DiplomaticDeals',
       'GoldenAge', 'HappinessSituation'
