@@ -27,7 +27,7 @@ export class SimpleBriefer extends Briefer {
   /**
    * Common guidelines applicable to all briefing types
    */
-  static readonly commonGuidelines = `- The briefing should be objective and analytical, not speculations or suggestions.
+  static readonly commonGuidelines = `- The briefing should be objective and analytical, not speculations, predictions, or suggestions.
 - Report macro-level information sufficient for decision-making. Avoid raw, excessive, or tactical information (e.g. X/Y, unit IDs).
 - Only report factual information. If your leader asks for information you do not have, state it clearly.`;
 

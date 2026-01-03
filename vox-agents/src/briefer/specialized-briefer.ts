@@ -90,8 +90,8 @@ ${SimpleBriefer.instructionFooter}`.trim(),
     const state = getRecentGameState(parameters)!;
     const filteredPlayers = pickPlayerFields(state.players!, [
       'Civilization', 'Leader', 'TeamID', 'IsMajor', 'Era', 'MilitaryStrength',
-      'Score', 'Territory', 'Cities', 'Population', 'GoldenAge', 'Technologies',
-      'MilitaryUnits', 'MilitarySupply', 'HappinessSituation', 'Relationships', 'PolicyBranches'
+      'Score', 'Territory', 'Cities', 'Population', 'GoldenAge', 'Gold', 'GoldPerTurn', 'Technologies', 'PolicyBranches',
+      'MilitaryUnits', 'MilitarySupply', 'HappinessSituation', 'Relationships'
     ]);
     const filteredCities = pickCityFields(state.cities!, [
       'ID', 'X', 'Y', 'Population', 'DefenseStrength', 'Health',
@@ -219,14 +219,15 @@ ${SimpleBriefer.instructionFooter}`.trim(),
   getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
     const filteredPlayers = pickPlayerFields(state.players!, [
-      'Civilization', 'Leader', 'IsMajor', 'TeamID', 'Era', 'Score', 'Territory', 'MilitaryStrength',
+      'Civilization', 'Leader', 'IsMajor', 'TeamID', 'Era', 
+      'Score', 'Territory', 'MilitaryStrength', 'Cities', 'Population', 'Gold', 'GoldPerTurn',
       'OurOpinionToThem', 'TheirOpinionToUs', 'Relationships', 'MyEvaluation', 'PolicyBranches',
       'FoundedReligion', 'MajorityReligion', 'MajorAlly', 'Quests', 'DiplomaticDeals',
-      'GoldenAge', 'HappinessSituation', 'Spies'
+      'GoldenAge', 'HappinessSituation', 'ResourcesAvailable', 'IncomingTradeRoutes', 'OutgoingTradeRoutes', 'Spies'
     ]);
     const filteredCities = pickCityFields(state.cities!, [
       'ID', 'X', 'Y', 'Population', 'MajorityReligion',
-      'IsCapital', 'IsPuppet', 'IsCoastal', 'IsOccupied', 'Wonders'
+      'IsCapital', 'IsPuppet', 'IsCoastal', 'IsOccupied', 'Wonders', 'FaithPerTurn'
     ]);
     return `
 # World Congress
