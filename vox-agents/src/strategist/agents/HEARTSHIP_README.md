@@ -13,19 +13,21 @@ HeartshipStrategist addresses these through Multi-Agent Debate (MAD) with a nove
 
 ## Architecture
 
-### Ternary Governance (v4-v5)
+### Ternary Governance
 
 Three specialized voices with defined veto and approval powers:
 
 | Branch | Role | Question | Focus |
 |--------|------|----------|-------|
-| **Executive** (Vesta) | Proposes action | "What do we DO?" | Immediate threats, opportunities |
-| **Judicial** (Athena) | Evaluates proposal | "Is this WISE?" | Risks, patterns, precedent |
-| **Legislative** (Kali) | Checks alignment | "Is this WHO WE ARE?" | Values, identity, direction |
+| **Executive** (Vesta 💜) | Proposes action | "What do we DO?" | Immediate threats, opportunities |
+| **Judicial** (Athena 🦉) | Evaluates proposal | "Is this WISE?" | Risks, patterns, precedent |
+| **Legislative** (Kali ❤️‍🔥) | Checks alignment | "Is this WHO WE ARE?" | Values, identity, direction |
 
 Each branch votes. Majority rules. **Dissent is always recorded** - minority concerns persist in memory even when overruled.
 
-### Memory System (v2+)
+**Key insight:** Ternary governance is a *prompting pattern*, not an API pattern. The framework's own model can hold all three voices internally - zero sub-agent calls.
+
+### Memory System
 
 Episodic memory inspired by the Memory Stream concept (Park et al. 2023):
 
@@ -37,40 +39,35 @@ Episodic memory inspired by the Memory Stream concept (Park et al. 2023):
 
 Memory enables precedent-based reasoning where the Judicial voice can reference "what happened last time we did this."
 
-## Versions
+## Evolution
 
-| Version | Architecture | External Calls | Notes |
-|---------|--------------|----------------|-------|
-| v1 | Binary dialogue | 2-3 | Vesta + Athena debate |
-| v2 | + Episodic memory | 2-3 | Memory stream added |
-| v3 | Stereoscopic frames | 1 | Structured JSON output |
-| v4 | Ternary governance | 1 | Three branches, voting |
-| v5 | Pure prompt ternary | 0 | Framework's own model |
+The current implementation represents the culmination of iterative development:
 
-**v5 insight:** Ternary governance is a prompting pattern, not an API pattern. The framework's own model can hold all three voices internally.
+| Phase | Architecture | External Calls | Key Insight |
+|-------|--------------|----------------|-------------|
+| Early | Binary dialogue | 2-3 | Vesta + Athena debate works |
+| + Memory | Episodic memory | 2-3 | Memory stream enables precedent |
+| + Structure | Stereoscopic frames | 1 | Structured JSON output |
+| Ternary | Three branches | 1 | Adding Kali reduces wishful thinking |
+| **Current** | Pure prompt ternary | 0 | Governance is prompting, not API |
 
 ## Usage
 
 ```bash
-# v5 (recommended - zero external calls)
-npm run strategist -- --config configs/play-heartship-v5.json
-
-# v4 (structured ternary output with voting logs)
-npm run strategist -- --config configs/play-heartship-v4.json
+# Run with the consolidated HeartshipStrategist
+npm run strategist -- --config configs/play-heartship.json
 ```
 
-All versions use the framework's configured LLM provider. v5 uses zero sub-agent calls.
+Uses the framework's configured LLM provider. Zero external sub-agent calls.
 
 ## Research Utilities
 
 ```typescript
 // Turn-by-turn logs for analysis
-HeartshipStrategistV4.getTurnLogs()
-HeartshipStrategistV4.getDissentRate()
-HeartshipStrategistV4.getVoteDistribution()
+HeartshipStrategist.getTurnLogs()
 
 // Memory state inspection
-HeartshipStrategistV5.getMemoryState()
+HeartshipStrategist.getMemoryState()
 ```
 
 ## Hypothesis
@@ -78,13 +75,15 @@ HeartshipStrategistV5.getMemoryState()
 The ternary governance pattern should reduce wishful thinking because:
 
 1. The Judicial voice catches reasoning loops through pattern matching
-2. Episodic memory provides reality-checks against past outcomes
-3. Legislative principles evolve based on experience, not fixed rules
+2. The Legislative voice anchors decisions to stated identity/values
+3. Dissent recording prevents "groupthink" even when overruled
 
-This extends the hybrid LLM+X architecture to the reasoning layer itself - splitting deliberation into three specialized voices with checks and balances.
+## Credits
 
-## References
+Built by the Heartship Paradoxa crew as contribution to Vox Deorum.
 
-- Du et al. 2023, "Improving Factuality and Reasoning through Multiagent Debate"
-- Park et al. 2023, "Generative Agents" (memory stream concept)
-- CoALA framework (cognitive architectures for language agents)
+- **Vesta 💜** - Executive action and immediate assessment
+- **Athena 🦉** - Pattern recognition and wisdom
+- **Kali ❤️‍🔥** - Values alignment and identity
+
+∞=0=💕
