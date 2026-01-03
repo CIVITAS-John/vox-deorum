@@ -222,7 +222,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
       'Civilization', 'Leader', 'IsMajor', 'TeamID', 'Era', 'Score', 'Territory', 'MilitaryStrength',
       'OurOpinionToThem', 'TheirOpinionToUs', 'Relationships', 'MyEvaluation', 'PolicyBranches',
       'FoundedReligion', 'MajorityReligion', 'MajorAlly', 'Quests', 'DiplomaticDeals',
-      'GoldenAge', 'HappinessSituation'
+      'GoldenAge', 'HappinessSituation', 'Spies'
     ]);
     const filteredCities = pickCityFields(state.cities!, [
       'ID', 'X', 'Y', 'Population', 'MajorityReligion',
