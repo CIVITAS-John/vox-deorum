@@ -81,7 +81,8 @@ Your leader only has control over macro-level decision making. Focus on providin
 
 # Objective
 Summarize the full game state into a strategic briefing that highlights:
-- Economic and military position relative to opponents.
+- Economic, military, and diplomatic position relative to opponents.
+- If relevant, religion situation and development.
 - Important events during the past turn.
 - Comparison with the last available briefing.
 

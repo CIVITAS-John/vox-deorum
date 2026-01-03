@@ -198,6 +198,7 @@ Summarize the diplomatic situation into a strategic briefing that highlights:
 - Major diplomatic development (declarations of war, peace treaties, friendship, denouncement).
 - World Congress activities and resolutions.
 - City-state relationships, quests, and influence changes.
+- If relevant, religion situation and development. 
 - Comparison with the last available diplomatic briefing.
 
 # Guidelines
