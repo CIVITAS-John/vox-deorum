@@ -59,7 +59,7 @@ npm run strategist -- --config configs/play-heartship-v5.json
 npm run strategist -- --config configs/play-heartship-v4.json
 ```
 
-v1-v4 require `ANTHROPIC_API_KEY`. v5 requires no additional configuration.
+All versions use the framework's configured LLM provider. v5 uses zero sub-agent calls.
 
 ## Research Utilities
 
