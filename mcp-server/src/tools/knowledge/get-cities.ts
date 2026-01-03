@@ -144,6 +144,9 @@ class GetCitiesTool extends ToolBase {
           IsPuppet: city.IsPuppet === 1,
           IsOccupied: city.IsOccupied === 1,
           IsCoastal: city.IsCoastal === 1,
+          Wonders: city.Wonders,
+          RazingTurns: city.RazingTurns === 0 ? -1 : city.RazingTurns,
+          ResistanceTurns: city.ResistanceTurns === 0 ? -1 : city.ResistanceTurns,
         };
       }
       if (visibility === 2) {
@@ -162,10 +165,7 @@ class GetCitiesTool extends ToolBase {
           FaithPerTurn: city.FaithPerTurn,
           TourismPerTurn: city.TourismPerTurn,
           HappinessDelta: city.HappinessDelta,
-          RazingTurns: city.RazingTurns === 0 ? -1 : city.RazingTurns,
-          ResistanceTurns: city.ResistanceTurns === 0 ? -1 : city.ResistanceTurns,
           BuildingCount: city.BuildingCount,
-          Wonders: city.Wonders,
           GreatWorkCount: city.GreatWorkCount,
         };
       }
