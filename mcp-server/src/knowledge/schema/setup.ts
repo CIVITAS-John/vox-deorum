@@ -157,6 +157,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('Spies', 'text')
     .addColumn('DiplomaticDeals', 'text')
     .addColumn('Quests', 'text')
+    .addColumn('DiplomatPoints', 'text') // JSON object: "Player0" -> network points
     .execute();
   // Create indexes for PlayerSummaries table
   await createMutableKnowledgeIndexes(db, 'PlayerSummaries');
@@ -254,5 +255,24 @@ export async function setupKnowledgeDatabase(
   // Create indexes for TacticalZones table
   await createTimedKnowledgeIndexes(db, 'TacticalZones', 'PlayerID');
 
+  // Run migrations for schema updates
+  await runMigrations(db);
+
   return db;
+}
+
+/**
+ * Run database migrations to update schema
+ * Migrations are idempotent and can be run multiple times safely
+ */
+async function runMigrations(db: Kysely<KnowledgeDatabase>): Promise<void> {
+  // Migration: Add DiplomatPoints column to PlayerSummaries table
+  try {
+    await db.schema
+      .alterTable('PlayerSummaries')
+      .addColumn('DiplomatPoints', 'text')
+      .execute();
+  } catch (error) {
+    // Column already exists, ignore error
+  }
 }

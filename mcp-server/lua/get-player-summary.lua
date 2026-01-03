@@ -418,6 +418,26 @@ Game.RegisterFunction("${Name}", function(${Arguments})
       end
       summary.Relationships = relationships
 
+      -- Get diplomat network points with other major civilizations
+      local diplomatPoints = nil
+      local espionageSpies = player:GetEspionageSpies()
+
+      if espionageSpies then
+        for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
+          if otherPlayerID ~= playerID then
+            -- Find diplomat for this target player
+            for _, spy in ipairs(espionageSpies) do
+              if spy.IsDiplomat and spy.CityOwner == otherPlayerID then
+                if not diplomatPoints then diplomatPoints = {} end
+                diplomatPoints["Player" .. otherPlayerID] = spy.NetworkPointsStored or 0
+                break
+              end
+            end
+          end
+        end
+      end
+      summary.DiplomatPoints = diplomatPoints
+
       -- Get outgoing trade routes
       local outgoingTradeRoutes = {}
       local playerTradeRoutes = player:GetTradeRoutes()
@@ -560,11 +580,17 @@ Game.RegisterFunction("${Name}", function(${Arguments})
           if otherPlayer and not otherPlayer:IsMinorCiv() then
             local weGive = {}
             local theyGive = {}
+            local dealFinalTurn = nil
 
             deal:ResetIterator()
             local itemType, duration, finalTurn, data1, data2, data3, flag1, fromPlayer = deal:GetNextItem()
 
             while itemType ~= nil do
+              -- Capture finalTurn from any item that has it
+              if finalTurn and not dealFinalTurn then
+                dealFinalTurn = finalTurn
+              end
+
               local itemStr = formatDealItem(itemType, data1, data2, data3, flag1, playerID, otherPlayerID)
 
               if fromPlayer == playerID then
@@ -578,12 +604,22 @@ Game.RegisterFunction("${Name}", function(${Arguments})
 
             if #weGive > 0 or #theyGive > 0 then
               if not diplomaticDeals then diplomaticDeals = {} end
-              local turnsLeft = finalTurn - Game.GetGameTurn()
-              diplomaticDeals[getCivName(otherPlayer)] = {
+              local civName = getCivName(otherPlayer)
+
+              -- Initialize array for this civ if it doesn't exist
+              if not diplomaticDeals[civName] then
+                diplomaticDeals[civName] = {}
+              end
+
+              -- Set turnsLeft to -1 if finalTurn is still nil
+              local turnsLeft = dealFinalTurn and (dealFinalTurn - Game.GetGameTurn()) or -1
+
+              -- Add this deal to the array
+              table.insert(diplomaticDeals[civName], {
                 TurnsRemaining = turnsLeft,
                 WeGive = weGive,
                 TheyGive = theyGive
-              }
+              })
             end
           end
 

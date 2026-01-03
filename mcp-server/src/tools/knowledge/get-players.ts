@@ -72,11 +72,11 @@ const PlayerDataSchema = z.object({
   OutgoingTradeRoutes: z.record(z.string(), z.union([z.string(), z.record(z.string(), z.any())])).optional(),
   IncomingTradeRoutes: z.record(z.string(), z.union([z.string(), z.record(z.string(), z.any())])).optional(),
   Spies: z.record(z.string(), z.record(z.string(), z.any())).optional(),
-  DiplomaticDeals: z.record(z.string(), z.object({
+  DiplomaticDeals: z.record(z.string(), z.array(z.object({
     TurnsRemaining: z.number(),
     WeGive: z.array(z.string()),
     TheyGive: z.array(z.string())
-  })).optional(),
+  }))).optional(),
   Quests: z.array(z.string()).optional(),
 }).passthrough();
 
@@ -266,6 +266,7 @@ function postProcessData(
   delete summary.IncomingTradeRoutes;
   delete summary.Spies;
   delete summary.DiplomaticDeals;
+  delete summary.DiplomatPoints;
 
   // Hide military supply
   delete summary.MilitarySupply;

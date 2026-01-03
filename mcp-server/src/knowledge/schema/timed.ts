@@ -113,8 +113,9 @@ export interface PlayerSummary extends MutableKnowledge {
   OutgoingTradeRoutes: JSONColumnType<Record<string, number | TradeRouteDetails>> | null; // "Not assigned": count or "FromCity => ToCity (Civ)": route details
   IncomingTradeRoutes: JSONColumnType<Record<string, TradeRouteDetails>> | null; // "FromCity (Civ) => ToCity": route details
   Spies: JSONColumnType<Record<string, SpyDetails>> | null; // "Rank Name" -> spy details (visibility 2 only)
-  DiplomaticDeals: JSONColumnType<Record<string, DiplomaticDealDetails>> | null; // Civ name -> deal details (visibility 2 only)
+  DiplomaticDeals: JSONColumnType<Record<string, DiplomaticDealDetails[]>> | null; // Civ name -> array of deal details (visibility 2 only)
   Quests: JSONColumnType<Record<number, string[]>> | null; // Civ name -> city-state quests (minor civs only)
+  DiplomatPoints: JSONColumnType<Record<string, number>> | null; // "Player0" -> diplomat network points (null if no diplomats)
 
   // Diplomacy visibility documented by the Visibility columns (2: team, 1: met, 0: unmet)
 }
