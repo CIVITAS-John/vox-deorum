@@ -430,7 +430,7 @@ Show their reasoning, take a vote, then call the appropriate tool.
             HeartshipStrategist.memory.recentDecisions.push({
               turn: parameters.turn,
               type: result.toolName,
-              value: JSON.stringify(result.args),
+              value: typeof result.output === 'string' ? result.output : JSON.stringify(result.output),
               rationale: 'From ternary governance'
             });
           }
