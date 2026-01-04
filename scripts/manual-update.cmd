@@ -2,7 +2,7 @@ call cleanup-data
 
 call cleanup-logs
 
-git restore .
+git checkout main
 
 git pull
 
