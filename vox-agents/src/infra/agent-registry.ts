@@ -15,6 +15,7 @@ import { SpecializedBriefer } from "../briefer/specialized-briefer.js";
 import { NoneStrategist } from "../strategist/agents/none-strategist.js";
 import { Spokesperson } from "../envoy/spokesperson.js";
 import { SimpleStrategistStaffed } from "../strategist/agents/simple-strategist-staffed.js";
+import { HeartshipStrategist } from "../strategist/agents/heartship-strategist.js";
 
 /**
  * Registry for managing available Vox agents.
@@ -166,6 +167,7 @@ class AgentRegistry {
     this.register(new SimpleStrategistBriefed());
     this.register(new SimpleStrategistStaffed());
     this.register(new NoneStrategist());
+    this.register(new HeartshipStrategist());
 
     // Register briefer agents
     this.register(new SimpleBriefer());
