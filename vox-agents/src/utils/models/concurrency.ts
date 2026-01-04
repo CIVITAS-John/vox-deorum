@@ -82,14 +82,16 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
       // Call streamText with all the original parameters
       // Modify onChunk to call the update function for retry timeout reset
       const originalOnChunk = params.onChunk;
+      const originalOnStepFinish = params.onStepFinish;
       const modifiedParams = {
         ...params,
         onChunk: (args: any) => {
           update(); // Reset the timeout
           originalOnChunk?.(args);
         },
-        onStepFinish: () => {
+        onStepFinish: (results: any) => {
           update(true);
+          originalOnStepFinish?.(results);
         }
       };
 
