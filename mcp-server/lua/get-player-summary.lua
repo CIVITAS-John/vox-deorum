@@ -686,15 +686,15 @@ Game.RegisterFunction("${Name}", function(${Arguments})
             else
               status = "War"
             end
-          -- Check if peace is blocked
-          elseif player:IsPeaceBlocked(majorTeam) then
-            status = "Peace Blocked"
           -- Check if major is the ally
           elseif player:IsAllies(majorID) then
             status = "Ally"
           -- Check if major is friends
           elseif player:IsFriends(majorID) then
             status = "Friends"
+          -- Check if peace is blocked
+          elseif player:IsPeaceBlocked(majorTeam) then
+            status = "Peace Blocked"
           -- Neutral
           else
             status = "Neutral"
