@@ -26,7 +26,7 @@ export async function exponentialRetry<T>(
   initialDelay: number = 2000,
   maxDelay: number = 30000,
   backoffFactor: number = 1.5,
-  executionTimeout: number = 600000 // 10 minutes
+  executionTimeout: number = 120000 // 2 minutes
 ): Promise<T> {
   let lastError: Error;
   let delay = initialDelay;
@@ -42,7 +42,7 @@ export async function exponentialRetry<T>(
         timeoutReject = reject;
       });
 
-      const resetTimeout = (completed?: boolean) => {
+      const resetTimeout = (completed?: boolean, initial?: boolean) => {
         if (timeoutHandle) {
           clearTimeout(timeoutHandle);
         }
@@ -50,12 +50,12 @@ export async function exponentialRetry<T>(
           timeoutHandle = setTimeout(() => {
             isTimedOut = true;
             timeoutReject(new Error(`Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes) of inactivity`));
-          }, executionTimeout);
+          }, executionTimeout * (initial === true ? 1 : 10)); // Shorter timeout on initial call
         }
       };
       
       // Start initial timeout
-      resetTimeout();
+      resetTimeout(false, true);
 
       // Race between the function execution and timeout
       const result = await Promise.race([
