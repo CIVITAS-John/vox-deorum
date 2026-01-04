@@ -20,7 +20,7 @@ import { Logger } from "winston";
  * @throws The last error if all retries are exhausted
  */
 export async function exponentialRetry<T>(
-  fn: (updateProgress: () => void) => Promise<T>,
+  fn: (updateProgress: (completed?: boolean) => void) => Promise<T>,
   logger: Logger,
   maxRetries: number = 20,
   initialDelay: number = 2000,
@@ -42,11 +42,11 @@ export async function exponentialRetry<T>(
         timeoutReject = reject;
       });
 
-      const resetTimeout = () => {
+      const resetTimeout = (completed?: boolean) => {
         if (timeoutHandle) {
           clearTimeout(timeoutHandle);
         }
-        if (!isTimedOut) {
+        if (!isTimedOut && completed !== true) {
           timeoutHandle = setTimeout(() => {
             isTimedOut = true;
             timeoutReject(new Error(`Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes) of inactivity`));

@@ -87,6 +87,9 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         onChunk: (args: any) => {
           update(); // Reset the timeout
           originalOnChunk?.(args);
+        },
+        onStepFinish: () => {
+          update(true);
         }
       };
 
