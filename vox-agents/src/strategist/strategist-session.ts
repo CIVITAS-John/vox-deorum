@@ -241,8 +241,8 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     }
 
     await mcpClient.callTool("set-metadata", { Key: `experiment`, Value: this.config.name });
-    if (this.config.autoPlay && params.turn === 0) {
-      // Autoplay
+    if (this.config.autoPlay) {
+      // Autoplay - start AI regardless of current turn
       await setTimeout(3000);
       await mcpClient.callTool("lua-executor", {
         Script: `

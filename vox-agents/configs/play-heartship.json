@@ -4,7 +4,7 @@
       "strategist": "heartship-strategist"
     }
   },
-  "autoPlay": false,
+  "autoPlay": true,
   "gameMode": "start",
   "repetition": 1
 }
