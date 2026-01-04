@@ -227,7 +227,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
     ]);
     const filteredCities = pickCityFields(state.cities!, [
       'ID', 'X', 'Y', 'Population', 'MajorityReligion',
-      'IsCapital', 'IsPuppet', 'IsCoastal', 'IsOccupied', 'Wonders', 'FaithPerTurn'
+      'IsCapital', 'IsPuppet', 'IsCoastal', 'IsOccupied', 'FaithPerTurn'
     ]);
     return `
 # World Congress
