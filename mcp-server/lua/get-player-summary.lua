@@ -683,6 +683,9 @@ Game.RegisterFunction("${Name}", function(${Arguments})
           if fromTeam:IsAtWar(major:GetTeam()) then
             if player:IsMinorPermanentWar(majorTeam) then
               status = "Permanent War"
+            -- Check if peace is blocked
+            elseif player:IsPeaceBlocked(majorTeam) then
+              status = "War - Peace Currently Blocked"
             else
               status = "War"
             end
@@ -692,9 +695,6 @@ Game.RegisterFunction("${Name}", function(${Arguments})
           -- Check if major is friends
           elseif player:IsFriends(majorID) then
             status = "Friends"
-          -- Check if peace is blocked
-          elseif player:IsPeaceBlocked(majorTeam) then
-            status = "Peace Blocked"
           -- Neutral
           else
             status = "Neutral"
