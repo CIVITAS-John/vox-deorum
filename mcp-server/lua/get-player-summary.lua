@@ -267,6 +267,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         Cities = player:GetNumCities(),
         Population = player:GetTotalPopulation(),
         Territory = player:GetNumPlots(),  -- Number of plots owned (major civs only)
+        BestSettlementLocation = "None",  -- Will be populated if the player has a best settlement location
         Gold = player:GetGold(),
         GoldPerTurn = player:CalculateGoldRate(),
         HappinessPercentage = player:GetExcessHappiness(),  -- Excess happiness (can be negative)
@@ -291,7 +292,13 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         Spies = nil,  -- Will be populated if player has spies
         DiplomaticDeals = nil  -- Will be populated if player has active deals
       }
-      
+
+      -- Get best settlement location (major civs only)
+      local hasPlot, settlementInfo = player:GetBestSettlementInfo()
+      if hasPlot then
+        summary.BestSettlementLocation = settlementInfo
+      end
+
       -- Add relative visibility to all other players
       for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
         local otherPlayer = Players[otherPlayerID]

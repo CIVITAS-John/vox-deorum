@@ -133,6 +133,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('Cities', 'integer', (col) => col.notNull())
     .addColumn('Population', 'integer', (col) => col.notNull())
     .addColumn('Territory', 'integer') // Number of plots owned (major civs only)
+    .addColumn('BestSettlementLocation', 'text')
     .addColumn('Gold', 'integer', (col) => col.notNull())
     .addColumn('GoldPerTurn', 'real', (col) => col.notNull())
     .addColumn('HappinessPercentage', 'integer') // Excess happiness percentage (can be negative)
@@ -271,6 +272,16 @@ async function runMigrations(db: Kysely<KnowledgeDatabase>): Promise<void> {
     await db.schema
       .alterTable('PlayerSummaries')
       .addColumn('DiplomatPoints', 'text')
+      .execute();
+  } catch (error) {
+    // Column already exists, ignore error
+  }
+
+  // Migration: Add BestSettlementLocation column to PlayerSummaries table
+  try {
+    await db.schema
+      .alterTable('PlayerSummaries')
+      .addColumn('BestSettlementLocation', 'text')
       .execute();
   } catch (error) {
     // Column already exists, ignore error

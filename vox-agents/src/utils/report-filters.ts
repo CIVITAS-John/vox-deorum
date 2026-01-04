@@ -173,7 +173,7 @@ export function omitCityFields<K extends keyof CityData>(
 
 /**
  * Filters players report by removing detailed fields that are not needed for high-level strategic decisions.
- * Removes: Spies, Quests, IncomingTradeRoutes, OutgoingTradeRoutes, ResourcesAvailable
+ * Removes: Spies, Quests, IncomingTradeRoutes, OutgoingTradeRoutes, ResourcesAvailable, DiplomaticDeals
  *
  * @param players - The full players report
  * @returns Filtered players report for strategic analysis

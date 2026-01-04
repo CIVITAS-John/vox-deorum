@@ -53,6 +53,7 @@ const PlayerDataSchema = z.object({
   Cities: z.number().optional(),
   Population: z.number().optional(),
   Territory: z.number().optional(),
+  BestSettlementLocation: z.string().optional(),
   Gold: z.number().optional(),
   GoldPerTurn: z.number().optional(),
   HappinessSituation: z.string().optional(),
@@ -263,6 +264,9 @@ function postProcessData(
     }
     summary.PolicyBranches = counts as any;
   }
+
+  // Hide settlement location
+  delete summary.BestSettlementLocation;
 
   // Hide current research from non-team members
   delete summary.CurrentResearch;
