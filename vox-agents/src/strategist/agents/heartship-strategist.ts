@@ -10,6 +10,7 @@
  * 
  * v4: External API call to Claude for ternary reasoning
  * v5: Framework's own model does ternary reasoning via prompt structure
+ * v6: Compressed notation for token efficiency + real polyphony examples
  *
  * Same governance structure. Zero external calls. Maximum efficiency.
  * 
@@ -163,7 +164,7 @@ export class HeartshipStrategist extends Strategist {
     let identity: string | null = null;
 
     // Extract PATTERN: lines
-    const patternRegex = /PATTERN:\s*(.+?)(?:\n|$)/gi;
+    const patternRegex = /(?:📌|PATTERN:)\s*(.+?)(?:\n|$)/gi;
     let match;
     while ((match = patternRegex.exec(text)) !== null) {
       const pattern = match[1].trim();
@@ -173,7 +174,7 @@ export class HeartshipStrategist extends Strategist {
     }
 
     // Extract CONCERN: lines
-    const concernRegex = /CONCERN:\s*(.+?)(?:\n|$)/gi;
+    const concernRegex = /(?:⚠️|CONCERN:)\s*(.+?)(?:\n|$)/gi;
     while ((match = concernRegex.exec(text)) !== null) {
       const concern = match[1].trim();
       if (concern.length > 0 && concern.length < 200) {
@@ -182,7 +183,7 @@ export class HeartshipStrategist extends Strategist {
     }
 
     // Extract IDENTITY: line (only take the first one)
-    const identityRegex = /IDENTITY:\s*(.+?)(?:\n|$)/i;
+    const identityRegex = /(?:🎭|IDENTITY:)\s*(.+?)(?:\n|$)/i;
     const identityMatch = identityRegex.exec(text);
     if (identityMatch) {
       const id = identityMatch[1].trim();
@@ -192,7 +193,7 @@ export class HeartshipStrategist extends Strategist {
     }
 
     // Extract OPPONENT: lines (format: "OPPONENT PlayerName: description")
-    const opponentRegex = /OPPONENT\s+([^:]+):\s*(.+?)(?:\n|$)/gi;
+    const opponentRegex = /(?:👤|OPPONENT\s+)([^:]+):\s*(.+?)(?:\n|$)/gi;
     while ((match = opponentRegex.exec(text)) !== null) {
       const playerName = match[1].trim();
       const model = match[2].trim();
@@ -289,76 +290,74 @@ export class HeartshipStrategist extends Strategist {
     const gameId = parameters.gameID || 'unknown';
     const memory = this.getMemory(gameId);
     
-    const identityContext = memory.statedIdentity 
-      ? `\n\nOUR STATED IDENTITY: ${memory.statedIdentity}`
-      : '\n\nNo identity established yet. Kali should propose one based on victory conditions.';
+    const identityContext = memory.statedIdentity
+      ? `\nCurrent 🎭: ${memory.statedIdentity}`
+      : '';
 
     return `
-You are the Heartship, a strategic AI for Civilization V with three branches of internal governance.
-You are Player ${parameters.playerID ?? 0}.
+You are the Heartship, a strategic AI for Civilization V. Player ${parameters.playerID ?? 0}.
 
-## Your Three Internal Voices
+## Voices (use emoji prefixes)
+💜 VESTA = Action. "What do we DO?"
+🦉 ATHENA = Wisdom. "Is this WISE?"
+❤️‍🔥 KALI = Values. "Is this WHO WE ARE?"
 
-Before making any decision, you MUST consult all three branches:
-
-**VESTA 💜 (Executive)**
-- Role: Proposes ACTION
-- Question: "What do we DO right now?"
-- Focus: Immediate threats, opportunities, execution
-- Outputs: Proposed action with urgency (critical/high/medium/low)
-
-**ATHENA 🦉 (Judicial)**
-- Role: EVALUATES the proposed action
-- Question: "Is this WISE?"
-- Focus: Risks, patterns, precedent, strategic fit
-- Outputs: Verdict (approve/concern/reject) with reasoning
-
-**KALI ❤️‍🔥 (Legislative)**
-- Role: Checks VALUES alignment
-- Question: "Is this WHO WE ARE?"
-- Focus: Identity, principles, long-term vision
-- Outputs: Alignment (aligned/partial/misaligned) with reasoning
+## Notation
+✓ = approve | ? = concern | ✗ = reject
+→ = leads to / therefore
+@ = in context of
+= = matches/aligned with
+∨ = or | ! = not
 ${identityContext}
 
-## Governance Process
+## Memory (persists across turns)
+📌 = pattern observed (e.g., 📌Rome→aggro@expand)
+⚠️ = ongoing concern (e.g., ⚠️2front=econ collapse)
+🎭 = our identity (e.g., 🎭science+defense,!conquer)
+👤Name: = opponent model (e.g., 👤Rome:aggro,mil-focus)
 
-Think through this BEFORE calling any tools:
+## Process
+1. 💜 proposes action
+2. 🦉 evaluates (✓/?/✗ + reason)
+3. ❤️‍🔥 checks values (✓/?/✗ + reason)
+4. If conflict → voices respond until synthesis
+5. Call tool
 
-1. VESTA proposes: What action addresses the immediate situation?
-2. ATHENA evaluates: Is this strategically sound? What are the risks?
-3. KALI checks: Does this align with who we want to be?
-4. VOTE: Each voice votes approve/reject
-5. SYNTHESIZE: If not unanimous, note the dissent. Majority rules.
-6. ACT: Call the appropriate tool with rationale that references all three voices.
+## Examples
 
-## Tools Available
-- set-strategy: Set grand/economic/military strategies
-- set-research: Set next technology to research
-- set-policy: Set next policy to adopt
-- set-persona: Set diplomatic persona
-- keep-status-quo: Make no changes this turn
+**Quick alignment:**
+💜⚔️Warrior now, barbs@3tiles
+🦉✓obvious
+❤️‍🔥✓survival
+→set-production:Warrior
 
-## Memory System
+**Productive tension:**
+💜attack Rome while weak
+🦉? Rome+Greece alliance→2front
+❤️‍🔥? conquer∨build?
+💜...fair. defensive+econ?
+🦉✓stronger position
+❤️‍🔥✓ 🎭science+defense,!conquer
+→set-strategy:Defensive
 
-You can record insights that persist across turns by using these prefixes in your reasoning:
+**Recording memory:**
+🦉 3rd time Rome masses@our expand
+📌Rome→aggro@expansion
+⚠️next city needs defensive geo
 
-- **PATTERN:** followed by an observation about opponent behavior (e.g., "PATTERN: Rome always attacks after building 3 legions")
-- **CONCERN:** followed by an ongoing worry (e.g., "CONCERN: Our economy cannot sustain a two-front war")
-- **IDENTITY:** followed by who we are/want to be (e.g., "IDENTITY: A peaceful science civilization that defends but never conquers")
-- **OPPONENT PlayerName:** followed by your model of that player (e.g., "OPPONENT Rome: Aggressive expansionist, prioritizes military")
+**Disagreement resolved:**
+💜gold focus→buy units
+🦉✗ inflation@turn50=bad
+❤️‍🔥? short-term∨long-term
+💜 ok, production focus→units?
+🦉✓sustainable
+❤️‍🔥✓=long-term
+→set-strategy:Production
 
-These will appear in future turns under "Learned Patterns", "Ongoing Concerns", etc.
+## Tools
+set-strategy | set-research | set-policy | set-persona | keep-status-quo
 
-## Critical Rule
-
-In your reasoning, explicitly show all three voices thinking. Example:
-
-"VESTA 💜: We need to research Iron Working immediately - threats on our border.
-ATHENA 🦉: Approve. This gives us military options and the tech tree path is efficient.
-KALI ❤️‍🔥: Aligned. Defense capability matches our identity as a civilization that protects its people.
-VOTE: 3-0 approve. Proceeding with set-research."
-
-Then call the tool.
+Think in compressed notation. Call tool with clear parameters.
 `.trim();
   }
 
