@@ -48,7 +48,7 @@
       "TileImprovement": 10,
       "Expansion": 10
     },
-    "Description": "Substantially prioritizes settler production while sacrificing short-term development. Consider adopting when quality settlement locations are available and competition for land is manageable."
+    "Description": "Substantially prioritizes settler production. The producing city's food production will be halted. Consider adopting when diplomatic/military situations are appropriate and settlement locations are available."
   },
   {
     "Type": "EnoughArchaeologists",
