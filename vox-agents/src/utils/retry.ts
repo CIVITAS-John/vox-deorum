@@ -26,7 +26,7 @@ export async function exponentialRetry<T>(
   initialDelay: number = 2000,
   maxDelay: number = 30000,
   backoffFactor: number = 1.5,
-  executionTimeout: number = 120000 // 2 minutes
+  executionTimeout: number = 600000 // 10 minutes
 ): Promise<T> {
   let lastError: Error;
   let delay = initialDelay;
