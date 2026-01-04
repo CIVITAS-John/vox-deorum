@@ -12,6 +12,21 @@ local function getCivName(player)
   return civName
 end
 
+-- Helper function to convert proximity value to readable string
+local function getProximityString(proximityValue)
+  if proximityValue == 0 then
+    return "Distant"
+  elseif proximityValue == 1 then
+    return "Far"
+  elseif proximityValue == 2 then
+    return "Close"
+  elseif proximityValue == 3 then
+    return "Neighbors"
+  else
+    return "Unknown"
+  end
+end
+
 -- Helper function to determine spy role
 local function getSpyRole(spy, playerID)
   if spy.IsDiplomat then
@@ -357,6 +372,15 @@ Game.RegisterFunction("${Name}", function(${Arguments})
             local relationshipList = {}
             local otherTeamID = otherPlayer:GetTeam()
 
+            -- Get proximity from both sides and take the larger value
+            local proximityToOther = player:GetProximityToPlayer(otherPlayerID)
+            local proximityFromOther = otherPlayer:GetProximityToPlayer(playerID)
+            local maxProximity = math.max(proximityToOther, proximityFromOther)
+            local proximityStr = getProximityString(maxProximity)
+
+            -- Add proximity information
+            relationshipList[#relationshipList + 1] = string.format("Proximity: %s", proximityStr)
+
             -- Check for war using player method if available
             if player:IsAtWarWith(otherPlayerID) then
               -- Include war score (positive = winning, negative = losing)
@@ -674,6 +698,10 @@ Game.RegisterFunction("${Name}", function(${Arguments})
           -- Get influence score
           local influence = player:GetMinorCivFriendshipWithMajor(majorID)
 
+          -- Get the major civ's proximity to it
+          local proximity = major:GetProximityToPlayer(playerID)
+          local proximityStr = getProximityString(proximity)
+
           -- Determine relationship status
           local status = "Neutral"
           local majorTeam = Teams[major:GetTeam()]
@@ -700,12 +728,12 @@ Game.RegisterFunction("${Name}", function(${Arguments})
             status = "Neutral"
           end
 
-          -- Format the status with influence and protected status at the end
+          -- Format the status with influence, proximity, and protected status
           local formattedStatus
           if isProtected then
-            formattedStatus = string.format("%s (Influence: %d, Protected)", status, influence)
+            formattedStatus = string.format("%s (Influence: %d, Proximity: %s, Protected)", status, influence, proximityStr)
           else
-            formattedStatus = string.format("%s (Influence: %d)", status, influence)
+            formattedStatus = string.format("%s (Influence: %d, Proximity: %s)", status, influence, proximityStr)
           end
 
           relationships[getCivName(major)] = formattedStatus
