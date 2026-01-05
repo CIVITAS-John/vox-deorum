@@ -66,7 +66,7 @@
     "Overall": {
       "Expansion": -10
     },
-    "Description": "Overwhelmingly halts settler production. Consider adopting when quality settlement locations are exhausted or when facing severe happiness or military crises."
+    "Description": "Overwhelmingly reduces settler production. Consider adopting when quality settlement locations are exhausted or when facing severe happiness or military crises."
   },
   {
     "Type": "EnoughRecon",
@@ -82,7 +82,7 @@
       "NavalRecon": -200
     },
     "Overall": {},
-    "Description": "Overwhelmingly halts naval scout production. Consider adopting when ocean reconnaissance is complete or when military threats demand immediate attention."
+    "Description": "Overwhelmingly reduces naval scout production. Consider adopting when ocean reconnaissance is complete or when military threats demand immediate attention."
   },
   {
     "Type": "ExpandToOtherContinents",
@@ -268,7 +268,7 @@
     "Overall": {
       "Gold": 25
     },
-    "Description": "Overwhelmingly halts military spending while dramatically increasing gold and trade route production. Consider adopting when facing severe financial crisis with treasury depletion imminent."
+    "Description": "Overwhelmingly reduces military spending while dramatically increasing gold and trade route production. Consider adopting when facing severe financial crisis with treasury depletion imminent."
   },
   {
     "Type": "MostlyOnTheCoast",
@@ -352,7 +352,7 @@
       "Growth": -10,
       "Diplomacy": 11
     },
-    "Description": "Overwhelmingly prioritizes happiness buildings while halting expansion and growth. Consider adopting when facing severe unrest."
+    "Description": "Overwhelmingly prioritizes happiness buildings while reducing expansion and growth. Consider adopting when facing severe unrest."
   },
   {
     "Type": "NeedImprovementFood",
@@ -469,7 +469,7 @@
       "Wonder": 5,
       "Diplomacy": -10
     },
-    "Description": "Overwhelmingly halts military production while moderately prioritizing economic output. Consider adopting when unit costs severely drain treasury or when facing bankruptcy with continued military spending."
+    "Description": "Overwhelmingly reduces military production while moderately prioritizing economic output. Consider adopting when unit costs severely drain treasury or when facing bankruptcy with continued military spending."
   },
   {
     "Type": "TradeWithCityState",

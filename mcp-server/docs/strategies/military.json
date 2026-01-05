@@ -58,7 +58,7 @@
       "Recon": -10,
       "Diplomacy": -25
     },
-    "Description": "Substantially focuses on military production across all unit types while halting cultural, religious, diplomatic, and Wonder-building efforts. Consider adopting this strategy when engaged in active warfare with one or more civilizations."
+    "Description": "Substantially focuses on military production across all unit types while reducingcultural, religious, diplomatic, and Wonder-building efforts. Consider adopting this strategy when engaged in active warfare with one or more civilizations."
   },
   {
     "Type": "EmpireDefense",
@@ -112,7 +112,7 @@
       "Nuke": 50,
       "Diplomacy": -35
     },
-    "Description": "Overwhelmingly prioritizes defensive warfare and military production across all domains while halting cultural, wonder, and infrastructure development. Consider adopting this strategy when forces fall below critical defensive thresholds or when cities face direct siege."
+    "Description": "Overwhelmingly prioritizes defensive warfare and military production across all domains while reducing cultural, wonder, and infrastructure development. Consider adopting this strategy when forces fall below critical defensive thresholds or when cities face direct siege."
   },
   {
     "Type": "EnoughAir",
@@ -162,7 +162,7 @@
     "Overall": {
       "Naval": 10
     },
-    "Description": "Dramatically halts construction of new naval vessels while maintaining strategic focus on existing fleet operations. Consider adopting this strategy when the current fleets are sufficient."
+    "Description": "Dramatically reduces construction of new naval vessels while maintaining strategic focus on existing fleet operations. Consider adopting this strategy when the current fleets are sufficient."
   },
   {
     "Type": "EnoughRanged",
@@ -267,7 +267,7 @@
       "Nuke": 30,
       "Diplomacy": -20
     },
-    "Description": "Overwhelming focus on survival and territorial protection while halting all long-term development including wonders, expansion, culture, science, and trade. Consider adopting this strategy when losing wars or under severe military pressure."
+    "Description": "Overwhelming focus on survival and territorial protection while deprioritizing all long-term development including wonders, expansion, culture, science, and trade. Consider adopting this strategy when losing wars or under severe military pressure."
   },
   {
     "Type": "MinorCivGeneralDefense",
@@ -401,7 +401,7 @@
     "Overall": {
       "Ranged": 15
     },
-    "Description": "Substantially prioritizes ranged unit production while de-emphasizing other forces. Consider adopting this strategy when ranged forces are insufficient."
+   "Description": "Substantially prioritizes ranged unit production while de-emphasizing other forces. Consider adopting this strategy when ranged forces are insufficient."
   },
   {
     "Type": "NeedRangedEarly",
@@ -444,7 +444,7 @@
       "Nuke": 10,
       "Diplomacy": -15
     },
-    "Description": "Substantially prioritizes military production while halting peaceful development including wonders, growth, and cultural pursuits. Consider adopting this strategy when preparing for military operations, facing hostile relations from multiple civilizations, or pursuing conquest."
+    "Description": "Substantially prioritizes military production while deprioritizing peaceful development including wonders, growth, and cultural pursuits. Consider adopting this strategy when preparing for military operations, facing hostile relations from multiple civilizations, or pursuing conquest."
   },
   {
     "Type": "WinningWars",
