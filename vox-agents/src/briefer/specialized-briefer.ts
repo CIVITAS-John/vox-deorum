@@ -133,9 +133,9 @@ ${roleIntro('economic analyst')}
 # Objective
 Summarize the economic situation into a strategic briefing that highlights:
 - Economic position and development relative to opponents.
-- Technology progress and policy changes.
 - Needs, growth, or excesses in our economy.
-- Important economic development during the past turn.
+- Peaceful expansion (settlement) opportunities (if eligible).
+- Important economic development, technology progress, and policy changes during the past turn.
 - Comparison with the last available economic briefing.
 
 # Guidelines
