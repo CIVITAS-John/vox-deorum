@@ -13,6 +13,7 @@ import { getRecentGameState, StrategistParameters } from "../strategy-parameters
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
 import { getModelConfig } from "../../utils/models/models.js";
 import { Model } from "../../types/index.js";
+import { SimpleBriefer } from "../../briefer/simple-briefer.js";
 
 /**
  * A simple strategist agent that analyzes the game state and sets an appropriate strategy.
@@ -49,12 +50,9 @@ ${SimpleStrategistBase.optionsDescriptionPrompt}
 ${SimpleStrategistBase.strategiesDescriptionPrompt}
 ${SimpleStrategistBase.victoryConditionsPrompt}
 ${SimpleStrategistBase.playersInfoPrompt}
-- Cities: summary reports about discovered cities in the world.
-- Military: summary reports about tactical zones and visible units.
-  - Tactical zones are analyzed by in-game AI to determine the value, relative strength, and tactical posture.
-  - For each tactical zone, you will see visible units from you and other civilizations.
-- Events: events since you last made a decision.
-`.trim()
+${SimpleBriefer.citiesPrompt}
+${SimpleBriefer.militaryPrompt}
+${SimpleBriefer.eventsPrompt}`.trim()
   }
   
   /**

@@ -35,7 +35,8 @@ export class SimpleBriefer extends Briefer {
   /**
    * Description of Cities report
    */
-  static readonly citiesPrompt = `- Cities: summary reports about discovered cities in the world.`;
+  static readonly citiesPrompt = `- Cities: summary reports about discovered cities in the world.
+  - Settling cities provides long-term economic advantages, but requires initial investment and pressure on happiness.`;
 
   /**
    * Description of Military report

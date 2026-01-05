@@ -71,6 +71,7 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
   - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
   - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
   - Strategies change the weight of the in-game AI's NEXT decision. It will NOT change existing production queues (or other similar things).
+  - While only one grand strategy can be active, you can pursue multiple synergistic victory pathways.
 - Always provide a short paragraph of rationale for each tool. You will read this rationale next turn.`;
 
   // ============================================================
@@ -81,10 +82,9 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
    * Shared prompt: Options resource description
    */
   public static readonly optionsDescriptionPrompt = `- Options: available strategic options for you.
-  - You will receive options and short descriptions for each type of decision.
   - Whatever decision-making tool you call, the in-game AI can only execute options here.
-  - You must choose options from the relevant lists. Double-check if your choices match.
-  - It is typically preferable to finish existing policy branches before starting new ones.`;
+  - You must choose strategic options from the relevant lists. Double-check if your choices match.
+  - It is often preferable to adopt branches unlocked in later eras; and to finish existing branches before starting new ones.`;
 
   /**
    * Shared prompt: Strategies resource description
@@ -109,7 +109,8 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
    */
   public static readonly playersInfoPrompt = `- Players: summary reports about visible players in the world.
   - You will receive in-game AI's diplomatic evaluations.
-  - You will receive each player's publicly available relationships.`;
+  - You will receive each player's publicly available relationships.
+  - You will receive the best available location for your next settlement.`;
 
   /**
    * Gets the list of active tools for this agent
