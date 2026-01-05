@@ -62,7 +62,7 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
    */
   public static readonly brieferCapabilitiesPrompt = ` - Your briefer(s) ONLY have limited information of the current game state.
   - Your briefer(s) DO NOT have control over tactical decisions and cannot predict tactical AI's next decision.
-  - Your briefer(s) ARE BEST on summarizing and synthesizing information, NOT analyzing or calculating (which is your responsibility).`;
+  - Your briefer(s) ARE BEST on summarizing and synthesizing factual information, NOT analyzing, projecting, or predicting.`;
 
   /**
    * Shared prompt: Decision-making description
