@@ -294,7 +294,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
       }
 
       -- Get best settlement locations (major civs only)
-      local settlements = player:GetBestSettlementInfo()
+      local settlements = player:GetBestSettlementInfo(5)
       if settlements and #settlements > 0 then
         summary.BestSettlementLocation = settlements
       end
