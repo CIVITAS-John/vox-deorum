@@ -293,10 +293,10 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         DiplomaticDeals = nil  -- Will be populated if player has active deals
       }
 
-      -- Get best settlement location (major civs only)
-      local hasPlot, settlementInfo = player:GetBestSettlementInfo()
-      if hasPlot then
-        summary.BestSettlementLocation = settlementInfo
+      -- Get best settlement locations (major civs only)
+      local settlements = player:GetBestSettlementInfo()
+      if settlements and #settlements > 0 then
+        summary.BestSettlementLocation = settlements
       end
 
       -- Add relative visibility to all other players
@@ -386,7 +386,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
             local proximityStr = getProximityString(maxProximity)
 
             -- Add proximity information
-            relationshipList[#relationshipList + 1] = string.format("Proximity: %s", proximityStr)
+            relationshipList[#relationshipList + 1] = string.format("Distance: %s", proximityStr)
 
             -- Check for war using player method if available
             if player:IsAtWarWith(otherPlayerID) then
@@ -738,9 +738,9 @@ Game.RegisterFunction("${Name}", function(${Arguments})
           -- Format the status with influence, proximity, and protected status
           local formattedStatus
           if isProtected then
-            formattedStatus = string.format("%s (Influence: %d, Proximity: %s, Protected)", status, influence, proximityStr)
+            formattedStatus = string.format("%s (Influence: %d, Distance: %s, Protected)", status, influence, proximityStr)
           else
-            formattedStatus = string.format("%s (Influence: %d, Proximity: %s)", status, influence, proximityStr)
+            formattedStatus = string.format("%s (Influence: %d, Distance: %s)", status, influence, proximityStr)
           end
 
           relationships[getCivName(major)] = formattedStatus

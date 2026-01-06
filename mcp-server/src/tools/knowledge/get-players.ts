@@ -53,7 +53,7 @@ const PlayerDataSchema = z.object({
   Cities: z.number().optional(),
   Population: z.number().optional(),
   Territory: z.number().optional(),
-  BestSettlementLocation: z.string().optional(),
+  BestSettlementLocation: z.array(z.string()).optional(),
   Gold: z.number().optional(),
   GoldPerTurn: z.number().optional(),
   HappinessSituation: z.string().optional(),

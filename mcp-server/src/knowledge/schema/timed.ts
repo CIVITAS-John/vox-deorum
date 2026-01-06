@@ -91,7 +91,7 @@ export interface PlayerSummary extends MutableKnowledge {
   Cities: number | null;
   Population: number;
   Territory: number | null; // Number of plots owned by the player (major civs only)
-  BestSettlementLocation: string | null; // Best settlement location info (major civs only, visibility 1+)
+  BestSettlementLocation: JSONColumnType<string[]> | null; // Best settlement locations (major civs only, visibility 1+)
   Gold: number | null;
   GoldPerTurn: number | null; // Player:CalculateGoldRateTimes100() / 100
   HappinessPercentage: number | null; // Excess happiness percentage (can be negative)
