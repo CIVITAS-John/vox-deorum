@@ -24,6 +24,8 @@ import type { VoxContext, ToolCall, AIMessage } from '@/utils/types';
 - Check [PrimeVue docs](https://primevue.org) before custom solutions
 - Prefer component props over custom CSS
 - Use theme CSS variables for consistency
+- **Design tokens**: Use `--p-content-*` for data displays (tables, panels), avoid `--p-surface-*` for UI elements
+- **Spacing**: Avoid excessive padding/margins - prefer compact layouts using existing stylesheet spacing
 
 ### State Patterns
 - **Stores**: Reactive refs exported directly (see `stores/health.ts`)
@@ -49,6 +51,29 @@ import type { VoxContext, ToolCall, AIMessage } from '@/utils/types';
   <i class="pi pi-inbox" />
   <p>No data available</p>
 </div>
+```
+
+### Polling & Real-Time Data
+```vue
+<script setup>
+// Poll data while dialog is visible
+const dialogVisible = ref(false);
+let pollInterval = null;
+
+watch(dialogVisible, (visible) => {
+  if (visible) {
+    loadData();
+    pollInterval = setInterval(loadData, 60000); // 60s
+  } else {
+    if (pollInterval) clearInterval(pollInterval);
+  }
+});
+
+// Always cleanup on unmount
+onUnmounted(() => {
+  if (pollInterval) clearInterval(pollInterval);
+});
+</script>
 ```
 
 ### Real Examples to Follow
@@ -81,6 +106,13 @@ src/
 - Config from `config.json` via API
 - Telemetry SQLite via Kysely
 
+## Data Display Patterns
+
+### Backend/Frontend Separation
+- **Backend**: Send complete data structures without pre-formatting
+- **Frontend**: Handle formatting, filtering, sorting for display
+- Example: Backend returns full `PlayersReport`, frontend filters to major players and formats values
+
 ## Commands
 ```bash
 cd vox-agents/ui
@@ -102,8 +134,10 @@ npm run webui:dev     # Backend + frontend together
 
 ## When Adding Features
 1. Check PrimeVue catalog first
-2. Look at existing components for patterns
+2. Look at existing components for patterns (especially similar ones)
 3. Use types from `@/utils/types`
-4. Use existing CSS classes from `styles/`
-5. Handle loading, error, and empty states
-6. Test with real game data
+4. Use existing CSS classes from `styles/` - minimize component-specific styles
+5. Sort data by stable identifiers (IDs) for predictable ordering
+6. Backend sends full data, frontend formats and filters for display
+7. Handle loading, error, and empty states
+8. Test with real game data

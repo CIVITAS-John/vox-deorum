@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Communication Protocol
 - When asked to commit, always only commit the staged changes
 - When asked to implement a feature, always delegate work to appropriate sub-agents and coordinate their work
-- Refer to each submodule's CLAUDE.md for component-specific patterns
+- **Always review the relevant submodule's CLAUDE.md before working in that directory** - Each module has specific patterns and conventions
 - Always delegate to subagents when the task is complicated
 
 ## Project Overview
@@ -108,17 +108,19 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 - **Prefer Bash tool over file system commands** when possible
 
 ### Implementation Philosophy
-- **Check existing infrastructure first** - Never reinvent the wheel
+- **Check existing infrastructure first** - Never reinvent the wheel. Research similar components/patterns before implementing new features
 - **Keep implementations simple** - Straightforward code focused on goals
 - **Avoid redundant error handling** - Don't add unnecessary layers
 - **Use existing utilities** - Check utils/ directories before creating new helpers
-- **Follow established patterns** - Consistency over cleverness
+- **Follow established patterns** - Consistency over cleverness. Review submodule CLAUDE.md for component-specific conventions
+- **Data layer separation** - Backend sends complete data structures, frontend decides formatting and display filtering
 
 ### Planning
 - Use TodoWrite tool for task management
 - Don't present action plans until requested
 - Focus on conceptual level, not excessive technical details
 - Don't change test scripts unless explicitly asked
+- When working in submodules (bridge-service, mcp-server, vox-agents/ui), consult that module's CLAUDE.md for specific guidance
 
 ### Code Conventions
 - Straightforward implementation focused on goals
