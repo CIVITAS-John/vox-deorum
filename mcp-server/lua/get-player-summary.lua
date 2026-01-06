@@ -375,9 +375,10 @@ Game.RegisterFunction("${Name}", function(${Arguments})
       for otherPlayerID = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
         if otherPlayerID ~= playerID then
           local otherPlayer = Players[otherPlayerID]
-          if otherPlayer and otherPlayer:IsAlive() and not otherPlayer:IsMinorCiv() then
+          local otherTeamID = otherPlayer:GetTeam()
+          local otherTeam = Teams[otherTeamID]
+          if otherPlayer and otherPlayer:IsAlive() and not otherPlayer:IsMinorCiv() and fromTeam:HasMet(otherTeamID) then
             local relationshipList = {}
-            local otherTeamID = otherPlayer:GetTeam()
 
             -- Get proximity from both sides and take the larger value
             local proximityToOther = player:GetProximityToPlayer(otherPlayerID)
@@ -394,7 +395,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
               local warScore = player:GetWarScore(otherPlayerID)
               local weariness = player:GetWarWearinessPercent(otherPlayerID)
               relationshipList[#relationshipList + 1] = string.format("War (Our Score: %d%%; Our War Weariness: %d%%)", warScore, weariness)
-            elseif fromTeam and fromTeam:IsDefensivePact(otherTeamID) then
+            elseif fromTeam:IsDefensivePact(otherTeamID) then
               -- Defensive pacts still need team check
               relationshipList[#relationshipList + 1] = "Defensive Pact"
             end
@@ -404,8 +405,6 @@ Game.RegisterFunction("${Name}", function(${Arguments})
               relationshipList[#relationshipList + 1] = "Peace Treaty"
             end
 
-            -- Check vassal/master relationships at team level
-            local otherTeam = Teams[otherTeamID]
             -- Check if other team is our vassal
             if otherTeam:IsVassal(teamID) then
               local voluntary = otherTeam:IsVoluntaryVassal(player:GetTeam())
