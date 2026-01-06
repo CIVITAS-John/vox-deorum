@@ -6,6 +6,7 @@ import * as changeCase from "change-case";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { createLogger } from "../../utils/logger.js";
+import { writeJsonIfChanged } from "../../utils/file-utils.js";
 
 const logger = createLogger('GetEconomicStrategyTool');
 
@@ -131,10 +132,9 @@ class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, Econom
       });
     }
 
-    // Write back to JSON file
+    // Write back to JSON file only if content differs (ignoring whitespace)
     try {
-      await fs.mkdir(path.dirname(jsonPath), { recursive: true });
-      await fs.writeFile(jsonPath, JSON.stringify(results, null, 2), 'utf-8');
+      await writeJsonIfChanged(jsonPath, results, 'economic.json');
     } catch (error: any) {
       logger.warn(`Warning writing economic.json: ${error.message}`);
     }
