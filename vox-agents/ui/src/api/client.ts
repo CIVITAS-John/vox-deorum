@@ -22,6 +22,7 @@ import type {
   SaveSessionConfigResponse,
   DeleteSessionConfigResponse,
   StopSessionResponse,
+  PlayersSummaryResponse,
   SessionConfig,
   // Config types
   ConfigFile,
@@ -328,6 +329,13 @@ class ApiClient {
     return this.fetchJson<StopSessionResponse>(`${this.baseUrl}/api/session/stop`, {
       method: 'POST'
     });
+  }
+
+  /**
+   * Get player summaries for the active session
+   */
+  async getPlayersSummary(): Promise<PlayersSummaryResponse> {
+    return this.fetchJson<PlayersSummaryResponse>(`${this.baseUrl}/api/session/players-summary`);
   }
 
   /**

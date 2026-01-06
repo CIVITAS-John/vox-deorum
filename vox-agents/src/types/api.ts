@@ -7,6 +7,7 @@
 
 import type { Span, TelemetryMetadata, TelemetrySession } from './telemetry.js';
 import type { EnvoyThread } from './chat.js';
+import type { PlayersReport } from '../../../mcp-server/dist/tools/knowledge/get-players.js';
 
 // ============================================================================
 // Core API Response Types
@@ -361,4 +362,12 @@ export interface StopSessionResponse {
   success: boolean;
   /** Success message */
   message: string;
+}
+
+/**
+ * GET /api/session/players-summary response
+ */
+export interface PlayersSummaryResponse {
+  /** Players report containing all major player data */
+  players: PlayersReport;
 }

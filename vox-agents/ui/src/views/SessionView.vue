@@ -9,6 +9,7 @@ import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
 import ConfigDialog from '../components/ConfigDialog.vue';
 import GameModeDialog from '../components/GameModeDialog.vue';
+import PlayersSummaryDialog from '../components/PlayersSummaryDialog.vue';
 import type { GameMode } from '../components/GameModeDialog.vue';
 import { apiClient } from '../api/client';
 import {
@@ -40,6 +41,9 @@ const editingConfigName = ref('');
 // Game mode dialog state
 const showGameModeDialog = ref(false);
 const pendingConfig = ref<SessionConfig | null>(null);
+
+// Players summary dialog state
+const showPlayersDialog = ref(false);
 
 // Starting session state
 const startingSession = ref(false);
@@ -308,6 +312,15 @@ onUnmounted(() => {
         </template>
         <template #end>
           <Button
+            label="View Players"
+            icon="pi pi-users"
+            severity="info"
+            size="small"
+            @click="showPlayersDialog = true"
+            :disabled="sessionLoading"
+            class="mr-2"
+          />
+          <Button
             label="Stop Session"
             icon="pi pi-stop"
             severity="danger"
@@ -477,6 +490,11 @@ onUnmounted(() => {
       v-model:visible="showGameModeDialog"
       :loading="startingSession"
       @select="startSessionWithGameMode"
+    />
+
+    <!-- Players Summary Dialog -->
+    <PlayersSummaryDialog
+      v-model:visible="showPlayersDialog"
     />
   </div>
 </template>

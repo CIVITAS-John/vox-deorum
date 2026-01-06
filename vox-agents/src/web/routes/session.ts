@@ -22,8 +22,10 @@ import type {
   SaveSessionConfigResponse,
   DeleteSessionConfigResponse,
   StopSessionResponse,
+  PlayersSummaryResponse,
   ErrorResponse
 } from '../../types/api.js';
+import { mcpClient } from '../../utils/models/mcp-client.js';
 
 const logger = createLogger('webui:session-routes');
 
@@ -301,6 +303,46 @@ export function createSessionRoutes(): Router {
     } catch (error) {
       logger.error('Failed to stop session', { error });
       const errorResponse: ErrorResponse = { error: `Failed to stop session: ${(error as Error).message}` };
+      res.status(500).json(errorResponse);
+    }
+  });
+
+  /**
+   * GET /api/session/players-summary
+   *
+   * Get summary of all major players in the active session
+   */
+  router.get('/players-summary', async (_req: Request, res: Response<PlayersSummaryResponse | ErrorResponse>) => {
+    const session = sessionRegistry.getActive();
+
+    if (!session) {
+      const errorResponse: ErrorResponse = { error: 'No active session' };
+      res.status(404).json(errorResponse);
+      return;
+    }
+
+    try {
+      // Get all players from MCP server
+      const playersData = await mcpClient.callTool('get-players', {});
+
+      // Filter to only major players (IsMajor: true and data is object, not string)
+      const filteredPlayers: Record<string, any> = {};
+
+      for (const [playerId, playerData] of Object.entries(playersData)) {
+        if (typeof playerData === 'object' && playerData !== null && (playerData as any).IsMajor === true) {
+          filteredPlayers[playerId] = playerData;
+        }
+      }
+
+      const response: PlayersSummaryResponse = {
+        players: filteredPlayers as any
+      };
+      res.json(response);
+    } catch (error) {
+      logger.error('Failed to get players summary', { error });
+      const errorResponse: ErrorResponse = {
+        error: `Failed to get players summary: ${(error as Error).message}`
+      };
       res.status(500).json(errorResponse);
     }
   });
