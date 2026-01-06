@@ -35,7 +35,7 @@ All major components extend EventEmitter and are exported as singleton instances
 - Handle errors gracefully without affecting other connections
 
 ### Keep-Alive Pattern
-Always implement 30-second keep-alive pings for SSE connections to prevent timeout.
+Always implement 5-second keep-alive pings for SSE connections to prevent timeout.
 
 ## IPC Communication
 
@@ -53,12 +53,13 @@ Always implement 30-second keep-alive pings for SSE connections to prevent timeo
 
 ## State Management
 
-### Game Mutex Pattern
+### Game Pause Manager Pattern
 - Track paused player IDs using a Set for efficient lookups
 - Distinguish between manual and automatic pauses with separate flags
 - Auto-pause for registered players when they become active
 - Auto-resume for unregistered players to maintain game flow
 - **Always distinguish manual from automatic state changes** to prevent conflicts
+- Syncs pause state with DLL via IPC messages
 
 ### Function Registry Pattern
 - Use Map for dynamic function registration and management

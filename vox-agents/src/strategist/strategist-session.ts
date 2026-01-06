@@ -260,7 +260,7 @@ Game.SetAIAutoPlay(2000, -1);`
 
   private async handleDLLConnected(params: any): Promise<void> {
     if (this.state === 'recovering') {
-      logger.info('Game successfully recovered from crash');
+      logger.warn(`Game successfully recovered from crash, resuming play... (autoplay: ${this.config.autoPlay})`);
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
       if (this.config.autoPlay) {
         await setTimeout(3000);

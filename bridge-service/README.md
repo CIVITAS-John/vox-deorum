@@ -6,7 +6,7 @@ The Bridge Service is the critical communication layer between Civilization V's 
 
 - **Full REST API with SSE** - Complete HTTP endpoints for Lua function execution and real-time game event streaming
 - **Named Pipe IPC** - Robust Windows named pipe connection with automatic reconnection and exponential backoff
-- **Game Pause System** - Intelligent mutex-based pause/resume with per-player auto-pause for AI processing
+- **Game Pause System** - Intelligent pause/resume with per-player auto-pause for AI processing
 - **Message Batching** - High-performance IPC using custom delimiter protocol (`!@#$%^!`) for bulk operations
 - **External Functions** - Register HTTP endpoints as Lua-callable functions with timeout management
 - **Comprehensive Error Handling** - Typed error codes with automatic recovery mechanisms
@@ -17,17 +17,29 @@ The Bridge Service is the critical communication layer between Civilization V's 
 External Services ← REST/SSE → Bridge Service ← Named Pipe → Civ5 DLL
                                      ↓
                           State Management & Events
-                         (Mutex, Functions, Broadcasting)
+                         (Pause, Functions, Broadcasting)
 ```
 
 ### Core Components
 
-- **DLL Connector** (`dll-connector.ts`) - Named pipe communication with message batching and infinite retry
-- **Lua Manager** (`lua-manager.ts`) - Function registry and script execution with validation
-- **External Manager** (`external-manager.ts`) - HTTP endpoint registration with re-registration on reconnect
-- **Game Mutex** (`mutex.ts`) - Windows mutex-based pausing with manual/auto state tracking
+- **DLL Connector** ([src/services/dll-connector.ts](src/services/dll-connector.ts)) - Named pipe communication with message batching and infinite retry
+- **Lua Manager** ([src/services/lua-manager.ts](src/services/lua-manager.ts)) - Function registry and script execution with validation
+- **External Manager** ([src/services/external-manager.ts](src/services/external-manager.ts)) - HTTP endpoint registration with re-registration on reconnect
+- **Pause Manager** ([src/services/pause-manager.ts](src/services/pause-manager.ts)) - Game pause control with manual/auto state tracking
+- **Event Pipe** ([src/services/event-pipe.ts](src/services/event-pipe.ts)) - Named pipe event broadcasting (alternative to SSE)
 
-## API Reference
+## Quick Start
+
+```bash
+npm install
+npm run build
+npm start       # Production mode
+
+# Development
+npm run dev     # With hot reload and watch mode
+```
+
+## API Overview
 
 ### Lua Operations
 ```bash
@@ -59,10 +71,10 @@ POST /external/register
 }
 
 # Game control
-POST /external/pause          # Manual pause
-POST /external/resume         # Resume game
-POST /external/pause-player/1 # Auto-pause for player 1
-DELETE /external/pause-player/1
+POST /external/pause               # Manual pause
+POST /external/resume              # Resume game
+POST /external/pause-player/:id    # Auto-pause for player
+DELETE /external/pause-player/:id  # Remove auto-pause
 ```
 
 ### Event Streaming
@@ -71,35 +83,29 @@ DELETE /external/pause-player/1
 const events = new EventSource('http://127.0.0.1:5000/events');
 events.onmessage = (e) => {
   const event = JSON.parse(e.data);
-  // Event ID format: (turn * 1000000) + sequence
-  console.log(`Turn ${Math.floor(event.id / 1000000)}: ${event.type}`);
+  console.log(`Event ${event.id}: ${event.type}`);
 };
 ```
 
-## Quick Start
-
-```bash
-npm install
-npm run build
-npm start       # Production mode
-
-# Development
-npm run dev     # With hot reload
-npm run dev:with-mock  # Mock DLL for testing
-```
+**Complete API documentation:** [docs/API-REFERENCE.md](docs/API-REFERENCE.md)
 
 ## Configuration
 
-Edit `config.json`:
+Create `config.json` in the bridge-service root:
+
 ```json
 {
   "rest": {
     "port": 5000,
     "host": "127.0.0.1"
   },
-  "namedpipe": {
+  "gamepipe": {
     "id": "vox-deorum-bridge",
     "retry": 5000
+  },
+  "eventpipe": {
+    "enabled": true,
+    "name": "vox-deorum-events"
   },
   "logging": {
     "level": "info"
@@ -107,35 +113,14 @@ Edit `config.json`:
 }
 ```
 
-Note: Timeouts are hardcoded in the implementation:
-- Lua function calls: 30 seconds
-- External function calls: 5 seconds (configurable per registration)
-- SSE keep-alive: 30 seconds
-- CORS is enabled for all origins in development
+**Configuration details:** [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
 
-## Key Implementation Details
+### Key Settings
 
-### Message Protocol
-- Uses JSON with `!@#$%^!` delimiter for batching
-- Thread-safe request tracking with unique IDs
-- 30-second timeout with automatic cleanup
-
-### Auto-Pause System
-- Tracks manual vs automatic pause states
-- Per-player registration for turn-based pausing
-- Smart resume logic (only if not manually paused)
-
-### Error Recovery
-- Exponential backoff (100ms to 5s max)
-- Infinite reconnection attempts (maxRetries: false)
-- Function re-registration after reconnection
-- Graceful degradation when DLL unavailable
-
-### Performance Optimizations
-- Batch API reduces IPC overhead by 10x
-- Connection pooling for external services
-- Efficient SSE client management
-- Request queuing with overflow protection
+- **Lua function timeout**: 120 seconds (hardcoded)
+- **External function timeout**: 5 seconds default (configurable per registration)
+- **SSE keep-alive**: 5 seconds
+- **Pipe name format**: `\\.\pipe\tmp-app.{gamepipe.id}` (node-ipc adds prefix)
 
 ## Testing
 
@@ -151,44 +136,77 @@ The test suite includes:
 - Extended timeouts for async operations
 - Comprehensive error scenario coverage
 
-## Development Tips
+**Testing guide:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#testing)
 
-### With Mock DLL
-```bash
-# Terminal 1
-npm run mock  # Starts mock DLL server
+## Key Implementation Details
 
-# Terminal 2
-npm run dev   # Bridge service connects to mock
-```
+### Message Protocol
+- Uses JSON with `!@#$%^!` delimiter for batching
+- Thread-safe request tracking with unique IDs
+- 120-second timeout with automatic cleanup
+
+### Auto-Pause System
+- Tracks manual vs automatic pause states
+- Per-player registration for turn-based pausing
+- Smart resume logic (only if not manually paused)
+- Synced with DLL for reliable pause control
+
+### Error Recovery
+- Exponential backoff (200ms to 5s max)
+- Infinite reconnection attempts to DLL
+- Function re-registration after reconnection
+- Graceful degradation when DLL unavailable
+
+### Performance Optimizations
+- Batch API reduces IPC overhead by 10x
+- Event batching (50ms/100 events) for SSE and event pipe
+- Efficient SSE client management
+- Request queuing with overflow protection
+
+**Implementation patterns:** [CLAUDE.md](CLAUDE.md)
+
+## Development
 
 ### Debugging
-- Set `logging.level: "debug"` in config
-- Use `LOG_LEVEL=debug npm start` for override
-- Check `logs/` directory for file output
-- Monitor named pipe with Windows tools
+
+Enable debug logging:
+```bash
+LOG_LEVEL=debug npm run dev
+```
+
+Or in `config.json`:
+```json
+{
+  "logging": {
+    "level": "debug"
+  }
+}
+```
 
 ### Common Issues
 
 **DLL Connection Failed**
 - Ensure Civ5 running with modified DLL
-- Check pipe name matches DLL config
+- Check pipe name matches DLL config (`gamepipe.id`)
+- Remember the `tmp-app.` prefix is added automatically
 - Verify Windows Firewall settings
 
 **Timeout Errors**
-- Increase timeouts in config.json
+- Default timeout is 120s for Lua calls
 - Check DLL performance/blocking
 - Enable batch mode for bulk operations
 
 **Event Stream Drops**
-- SSE has 30s keep-alive
+- SSE has 5s keep-alive
 - Check network proxy settings
 - Monitor client reconnection
+
+**Troubleshooting guide:** [docs/ERROR-HANDLING.md](docs/ERROR-HANDLING.md)
 
 ## Integration Points
 
 ### With Civ5 DLL
-- Named pipe: `\\.\pipe\vox-deorum-bridge`
+- Named pipe: `\\.\pipe\tmp-app.vox-deorum-bridge` (node-ipc adds `tmp-app.` prefix)
 - JSON protocol with delimited batching
 - Function registration synchronization
 - Event forwarding with structured payloads
@@ -204,6 +222,19 @@ npm run dev   # Bridge service connects to mock
 - Support for sync/async execution
 - Configurable timeouts per function
 - Automatic retry on network failures
+
+**Protocol details:** [docs/PROTOCOL.md](docs/PROTOCOL.md)
+
+## Documentation
+
+- **[API Reference](docs/API-REFERENCE.md)** - Complete HTTP API documentation
+- **[Configuration](docs/CONFIGURATION.md)** - Configuration options and examples
+- **[Development Guide](docs/DEVELOPMENT.md)** - Development workflow, testing, debugging
+- **[Message Types](docs/MESSAGE-TYPES.md)** - IPC message format reference
+- **[Error Handling](docs/ERROR-HANDLING.md)** - Error codes and recovery strategies
+- **[Protocol](docs/PROTOCOL.md)** - Communication protocol flows
+- **[Event Pipe](docs/EVENT-PIPE.md)** - Named pipe event broadcasting
+- **[Development Patterns](CLAUDE.md)** - Internal development conventions
 
 ## Security Considerations
 
@@ -223,5 +254,7 @@ bridge-service/
 │   ├── types/           # TypeScript interfaces
 │   └── utils/           # Helpers & config
 ├── tests/               # Vitest test suite
+├── docs/                # Documentation
+├── examples/            # Example client code
 └── config.json          # Runtime configuration
 ```

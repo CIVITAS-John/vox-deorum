@@ -21,7 +21,8 @@ Or use environment variables:
 
 ## Connection Details
 
-- Pipe path: `\\.\pipe\{name}` (e.g., `\\.\pipe\vox-deorum-events`)
+- Pipe path: `\\.\pipe\tmp-app.{name}` (e.g., `\\.\pipe\tmp-app.vox-deorum-events`)
+- Note: node-ipc automatically adds `tmp-app.` prefix to the configured pipe name
 
 
 ## Protocol
@@ -86,23 +87,31 @@ Sent before server shutdown:
 
 ## Example Clients
 
-### Using node-ipc (Recommended)
+### Complete Example
 
-See `examples/event-pipe-client.js` for a complete Node.js client implementation using node-ipc with raw buffer support.
+See [examples/event-pipe-client.js](../examples/event-pipe-client.js) for a complete working Node.js client implementation using node-ipc with raw buffer support.
+
+The example includes:
+- Proper connection handling with error recovery
+- Message buffering and delimiter splitting
+- Event statistics tracking
+- Graceful shutdown handling
+
+### Basic Connection Pattern
+
+**Using node-ipc (Recommended):**
 
 ```javascript
 const ipc = require('node-ipc');
 
-ipc.config.id = 'my-client';
-ipc.config.silent = true;
-ipc.config.rawBuffer = true; // Important: match server configuration
+ipc.config.rawBuffer = true;  // Important: match server configuration
 ipc.config.encoding = 'utf8';
 
 let messageBuffer = '';
 
 ipc.connectTo('vox-deorum-events', () => {
   ipc.of['vox-deorum-events'].on('data', (data) => {
-    // Append to buffer and split by delimiter
+    // Buffer incoming data and split by delimiter
     messageBuffer += data.toString();
     const messages = messageBuffer.split('!@#$%^!');
     messageBuffer = messages.pop() || '';
@@ -111,45 +120,27 @@ ipc.connectTo('vox-deorum-events', () => {
     messages.forEach(message => {
       if (message.trim()) {
         const event = JSON.parse(message.trim());
-        console.log('Event:', event);
+        // Handle event
       }
     });
   });
 });
 ```
 
-### Using Raw Sockets
+**Alternative:** Raw sockets (`net.createConnection`) work similarly with the same buffering logic.
 
-You can also connect directly to the named pipe using raw sockets:
-
-```javascript
-const net = require('net');
-const pipe = '\\\\.\\pipe\\tmp-app.vox-deorum-events';
-
-let messageBuffer = '';
-const client = net.createConnection(pipe);
-
-client.on('data', (data) => {
-  // Messages use !@#$%^! delimiter
-  messageBuffer += data.toString();
-  const messages = messageBuffer.split('!@#$%^!');
-  messageBuffer = messages.pop() || '';
-
-  messages.forEach(message => {
-    if (message.trim()) {
-      const event = JSON.parse(message.trim());
-      console.log('Event:', event);
-    }
-  });
-});
-```
+**Key Points:**
+- Always use `rawBuffer: true` for node-ipc
+- Buffer data and split by `!@#$%^!` delimiter
+- Parse each complete message as JSON
+- Handle partial messages (keep incomplete part in buffer)
 
 ## Monitoring
 
 Check the event pipe status via the service stats endpoint:
 
 ```bash
-curl http://localhost:5000/health/stats
+curl http://localhost:5000/stats
 ```
 
 Response includes:
