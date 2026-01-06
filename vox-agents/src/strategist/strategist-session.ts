@@ -30,7 +30,6 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
   private finishPromise: Promise<void>;
   private victoryResolve?: () => void;
   private lastGameID?: string;
-  private lastGameState: 'running' | 'crashed' | 'victory' | 'initializing' = 'initializing';
   private crashRecoveryAttempts = 0;
   private dllConnected = false;
   private readonly MAX_RECOVERY_ATTEMPTS = 3;
@@ -95,7 +94,8 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
           // Kill the game when the game hangs
           logger.warn(`The DLL is no longer connected. Waiting for 60 seconds...`);
           await setTimeout(60000);
-          if (!this.dllConnected && this.lastGameState !== 'crashed' && this.lastGameState !== 'victory') {
+          if (!this.dllConnected && this.state === 'running') {
+            this.onStateChange('error');
             logger.warn(`The DLL is no longer connected. Trying to restart the game...`);
             await voxCivilization.killGame();
           }
@@ -205,19 +205,13 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     if (this.turn !== params.turn)
       this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 0.5);
     if (player) {
-      this.lastGameState = 'running';
+      player.notifyTurn(params.turn, params.latestID);
       this.onStateChange('running');
       this.turn = params.turn;  // Update current turn
     }
   }
 
   private async handleGameSwitched(params: any): Promise<void> {
-    // If in wait mode and this is the initial game load, treat it like load mode
-    if (this.config.gameMode === 'wait' && this.lastGameState === 'initializing') {
-      this.lastGameState = 'running';
-      this.onStateChange('running');
-    }
-
     // If nothing is changing, ignore this
     if (params.gameID === this.lastGameID) return;
     this.lastGameID = params.gameID;
@@ -266,6 +260,8 @@ Game.SetAIAutoPlay(2000, -1);`
         await setTimeout(3000);
         await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
       }
+    } else {
+      logger.info(`The DLL is now connected at the state '${this.state}'.`);
     }
     
     this.onStateChange('running');
@@ -274,26 +270,28 @@ Game.SetAIAutoPlay(2000, -1);`
   private async handlePlayerVictory(params: any): Promise<void> {
     logger.warn(`Player ${params.playerID} has won the game on turn ${params.turn}!`);
 
-    // Mark game as victory state
-    this.lastGameState = 'victory';
-
-    // Abort all existing players
-    for (const player of this.activePlayers.values()) {
-      player.abort(true);
-    }
-    this.activePlayers.clear();
-
-    // Stop autoplay
-    mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` }).catch((any) => null);
-
-    // Stop the game
+    // Stop the game when autoplay
     if (this.config.autoPlay) {
+      this.onStateChange('stopping');
+      // Abort all existing players
+      for (const player of this.activePlayers.values()) {
+        player.abort(true);
+      }
+      this.activePlayers.clear();
+
+      // Stop autoplay
+      mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` }).catch((any) => null);
+
+      // Stop the game
       await setTimeout(5000);
       logger.info(`Requesting voluntary shutdown of the game...`);
       mcpClient.callTool("lua-executor", { Script: `Events.UserRequestClose();` }).catch((any) => null);
       await setTimeout(5000);
+
+      // Kill the process
       const killed = await voxCivilization.killGame();
       logger.info(`Sent killing signals to the game: ${killed}`);
+      this.onStateChange('stopped');
     }
 
     // Resolve the victory promise to complete the session
@@ -312,18 +310,17 @@ Game.SetAIAutoPlay(2000, -1);`
    */
   private async handleGameExit(exitCode: number | null): Promise<void> {
     // Don't attempt recovery if we're shutting down or victory was achieved
-    if (this.abortController.signal.aborted || this.lastGameState === 'victory') {
+    if (this.abortController.signal.aborted || this.state === 'stopping' || this.state === 'stopped') {
       logger.info('Game exited normally during shutdown or after victory');
       return;
     }
 
     // If the game wasn't initialized, use the appropriate script based on mode
-    const luaScript = this.config.gameMode === 'start' && this.lastGameState === 'initializing' ? 'StartGame.lua' :
+    const luaScript = this.config.gameMode === 'start' && this.state === 'starting' ? 'StartGame.lua' :
                       this.config.gameMode === 'wait' ? 'LoadMods.lua' : 'LoadGame.lua';
 
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
-    this.lastGameState = 'crashed';
     this.onStateChange('error');
 
     // Check if we've exceeded recovery attempts
