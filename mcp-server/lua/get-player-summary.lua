@@ -376,8 +376,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         if otherPlayerID ~= playerID then
           local otherPlayer = Players[otherPlayerID]
           local otherTeamID = otherPlayer:GetTeam()
-          local otherTeam = Teams[otherTeamID]
-          if otherPlayer and otherPlayer:IsAlive() and not otherPlayer:IsMinorCiv() and fromTeam:HasMet(otherTeamID) then
+          if otherPlayer and otherPlayer:IsAlive() and not otherPlayer:IsMinorCiv() and fromTeam:IsHasMet(otherTeamID) then
             local relationshipList = {}
 
             -- Get proximity from both sides and take the larger value
@@ -406,6 +405,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
             end
 
             -- Check if other team is our vassal
+            local otherTeam = Teams[otherTeamID]
             if otherTeam:IsVassal(teamID) then
               local voluntary = otherTeam:IsVoluntaryVassal(player:GetTeam())
               relationshipList[#relationshipList + 1] = voluntary and "Our Vassal (Voluntary)" or "Our Vassal (Capitulated)"
