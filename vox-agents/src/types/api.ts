@@ -9,6 +9,9 @@ import type { Span, TelemetryMetadata, TelemetrySession } from './telemetry.js';
 import type { EnvoyThread } from './chat.js';
 import type { PlayersReport } from '../../../mcp-server/dist/tools/knowledge/get-players.js';
 
+// Re-export types that are used in API responses
+export type { PlayersReport };
+
 // ============================================================================
 // Core API Response Types
 // ============================================================================

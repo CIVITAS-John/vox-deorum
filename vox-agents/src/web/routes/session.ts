@@ -23,7 +23,8 @@ import type {
   DeleteSessionConfigResponse,
   StopSessionResponse,
   PlayersSummaryResponse,
-  ErrorResponse
+  ErrorResponse,
+  PlayersReport
 } from '../../types/api.js';
 import { mcpClient } from '../../utils/models/mcp-client.js';
 
@@ -323,19 +324,26 @@ export function createSessionRoutes(): Router {
 
     try {
       // Get all players from MCP server
-      const playersData = await mcpClient.callTool('get-players', {});
+      const result = await mcpClient.callTool('get-players', {});
+
+      // Extract the actual data from the MCP result structure
+      let playersData = result.structuredContent ?? result;
+      playersData = playersData.Result ?? playersData;
+
+      // Type the data properly as PlayersReport
+      const allPlayers = playersData as PlayersReport;
 
       // Filter to only major players (IsMajor: true and data is object, not string)
-      const filteredPlayers: Record<string, any> = {};
+      const filteredPlayers: PlayersReport = {};
 
-      for (const [playerId, playerData] of Object.entries(playersData)) {
-        if (typeof playerData === 'object' && playerData !== null && (playerData as any).IsMajor === true) {
+      for (const [playerId, playerData] of Object.entries(allPlayers)) {
+        if (typeof playerData === 'object' && playerData !== null && playerData.IsMajor === true) {
           filteredPlayers[playerId] = playerData;
         }
       }
 
       const response: PlayersSummaryResponse = {
-        players: filteredPlayers as any
+        players: filteredPlayers
       };
       res.json(response);
     } catch (error) {
