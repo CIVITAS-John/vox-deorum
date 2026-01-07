@@ -12,26 +12,26 @@ import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 
 const personaSchema = z.object({
   // Core Competitiveness & Ambition
-  VictoryCompetitiveness: z.number().min(1).max(10).optional().describe("How competitive the AI is toward victory (0-10)"),
-  WonderCompetitiveness: z.number().min(1).max(10).optional().describe("How aggressively the AI pursues wonders (0-10)"),
-  MinorCivCompetitiveness: z.number().min(1).max(10).optional().describe("How aggressively the AI competes for city-state influence (0-10)"),
-  Boldness: z.number().min(1).max(10).optional().describe("General boldness in decision-making (0-10)"),
+  VictoryCompetitiveness: z.number().min(1).max(10).optional().describe("How aggressively the AI reacts to others pursuing victories (0-10)"),
+  WonderCompetitiveness: z.number().min(1).max(10).optional().describe("How aggressively the AI reacts to others competing for wonders (0-10)"),
+  MinorCivCompetitiveness: z.number().min(1).max(10).optional().describe("How aggressively the AI reacts to others competing for city-state influence (0-10)"),
+  Boldness: z.number().min(1).max(10).optional().describe("Military risk-taking and conquest desire. Higher value decreases peace willingness (0-10)"),
 
   // War & Peace Tendencies
-  WarBias: z.number().min(1).max(10).optional().describe("Likelihood to declare war (0-10)"),
-  HostileBias: z.number().min(1).max(10).optional().describe("Tendency toward hostile relationships (0-10)"),
-  WarmongerHate: z.number().min(1).max(10).optional().describe("How much they dislike warmongers (0-10)"),
+  WarBias: z.number().min(1).max(10).optional().describe("Likelihood to plan for or declare offensive war (0-10)"),
+  HostileBias: z.number().min(1).max(10).optional().describe("Tendency toward hostile relationships without direct wars (0-10)"),
+  WarmongerHate: z.number().min(1).max(10).optional().describe("How negatively AI reacts to warlike behaviors (0-10)"),
   NeutralBias: z.number().min(1).max(10).optional().describe("Tendency toward neutral relationships (0-10)"),
   FriendlyBias: z.number().min(1).max(10).optional().describe("Tendency toward friendly relationships (0-10)"),
-  GuardedBias: z.number().min(1).max(10).optional().describe("Tendency to be guarded in diplomacy (0-10)"),
+  GuardedBias: z.number().min(1).max(10).optional().describe("Tendency to be guarded or cautiously defensive in diplomacy (0-10)"),
   AfraidBias: z.number().min(1).max(10).optional().describe("Tendency to be afraid of stronger civs (0-10)"),
 
   // Diplomacy & Cooperation
-  DiplomaticBalance: z.number().min(1).max(10).optional().describe("Balance in diplomatic approach (0-10)"),
-  Friendliness: z.number().min(1).max(10).optional().describe("Overall friendliness level (0-10)"),
-  WorkWithWillingness: z.number().min(1).max(10).optional().describe("Willingness to cooperate with others (0-10)"),
-  WorkAgainstWillingness: z.number().min(1).max(10).optional().describe("Willingness to work against others (0-10)"),
-  Loyalty: z.number().min(1).max(10).optional().describe("Loyalty to friends and allies (0-10)"),
+  DiplomaticBalance: z.number().min(1).max(10).optional().describe("Increases relationship with non-competitive civilizations and peaceful resolution of wars (0-10)"),
+  Friendliness: z.number().min(1).max(10).optional().describe("Desire for friendship declarations and increases maximum DoFs (0-10)"),
+  WorkWithWillingness: z.number().min(1).max(10).optional().describe("Tendency to support or collaborate with allies. Increase opinions to shared friends (0-10)"),
+  WorkAgainstWillingness: z.number().min(1).max(10).optional().describe("Tendency to bond over shared enemies and jointly act against them (0-10)"),
+  Loyalty: z.number().min(1).max(10).optional().describe("Loyalty to allies. Lower values allow for backstabbing (0-10)"),
 
   // Minor Civ Relations
   MinorCivFriendlyBias: z.number().min(1).max(10).optional().describe("Tendency to be friendly with city-states (0-10)"),
@@ -40,12 +40,12 @@ const personaSchema = z.object({
   MinorCivWarBias: z.number().min(1).max(10).optional().describe("Likelihood to attack city-states (0-10)"),
 
   // Personality Traits
-  DenounceWillingness: z.number().min(1).max(10).optional().describe("Willingness to denounce other civs (0-10)"),
-  Forgiveness: z.number().min(1).max(10).optional().describe("How quickly they forgive past transgressions (0-10)"),
-  Meanness: z.number().min(1).max(10).optional().describe("General meanness in behavior (0-10)"),
-  Neediness: z.number().min(1).max(10).optional().describe("How needy they are in trades and deals (0-10)"),
+  DenounceWillingness: z.number().min(1).max(10).optional().describe("Readiness to denounce other civs (0-10)"),
+  Forgiveness: z.number().min(1).max(10).optional().describe("How quickly to forgive past transgressions (0-10)"),
+  Meanness: z.number().min(1).max(10).optional().describe("Aggressiveness in general. Demanding/bullying more while less likely to accept peace (0-10)"),
+  Neediness: z.number().min(1).max(10).optional().describe("Desire for support from friends (0-10)"),
   Chattiness: z.number().min(1).max(10).optional().describe("How often they initiate diplomatic contact (0-10)"),
-  DeceptiveBias: z.number().min(1).max(10).optional().describe("Tendency to be deceptive (0-10)"),
+  DeceptiveBias: z.number().min(1).max(10).optional().describe("Tendency to be deceptively friendly (0-10)"),
 });
 
 /**
