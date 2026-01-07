@@ -185,7 +185,7 @@ onUnmounted(() => {
           :key="player.playerId"
           class="table-row"
         >
-          <div class="col-fixed-150">{{ player.Civilization || 'Unknown' }}</div>
+          <div class="col-fixed-150">{{ player.playerId }}: {{ player.Civilization || 'Unknown' }}</div>
           <div class="col-fixed-80">{{ player.Score ?? 'N/A' }}</div>
           <div class="col-fixed-120">{{ formatEra(player.Era) }}</div>
           <div class="col-fixed-100">{{ player.Cities ?? 0 }} / {{ player.Population ?? 0 }}</div>
