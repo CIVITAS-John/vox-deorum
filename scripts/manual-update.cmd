@@ -6,9 +6,7 @@ git checkout main --force
 
 git pull
 
-cd ../civ5-dll
-
-git pull
+git submodule update
 
 cd scripts
 
