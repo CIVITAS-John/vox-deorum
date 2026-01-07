@@ -48,10 +48,20 @@ const availableModels = computed(() => {
 
 // Computed agent types from dynamic registry
 const agentTypes = computed(() => {
-  return agents.value.map(agent => ({
-    label: agent.description || agent.name,
-    value: agent.name
-  }));
+  // Add "default" as the first option (it's not a registered agent, but a config key)
+  const types = [
+    { label: 'Default', value: 'default' }
+  ];
+
+  // Add all registered agents
+  agents.value.forEach(agent => {
+    types.push({
+      label: agent.name,
+      value: agent.name
+    });
+  });
+
+  return types;
 });
 
 // Load configuration and agents on mount
