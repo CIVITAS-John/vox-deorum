@@ -96,6 +96,10 @@ Name: "{app}\vox-agents"
 Name: "{app}\scripts"
 Name: "{app}\node"
 
+[InstallDelete]
+; Delete civ5-dll directory on reinstall to ensure clean installation
+Type: filesandordirs; Name: "{app}\civ5-dll"
+
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\scripts\vox-deorum.cmd"; IconFilename: "{app}\scripts\vox-deorum.ico"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\scripts\vox-deorum.cmd"; IconFilename: "{app}\scripts\vox-deorum.ico"; Tasks: desktopicon
