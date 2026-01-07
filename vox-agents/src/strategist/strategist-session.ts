@@ -201,12 +201,12 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
   }
 
   private async handlePlayerDoneTurn(params: any): Promise<void> {
-    const player = this.activePlayers.get(params.playerID);
+    await this.recoverGame();
     if (this.turn !== params.turn)
       this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 0.5);
+    const player = this.activePlayers.get(params.playerID);
     if (player) {
       player.notifyTurn(params.turn, params.latestID);
-      this.onStateChange('running');
       this.turn = params.turn;  // Update current turn
     }
   }
@@ -253,6 +253,10 @@ Game.SetAIAutoPlay(2000, -1);`
   }
 
   private async handleDLLConnected(params: any): Promise<void> {
+    await this.recoverGame();
+  }
+
+  private async recoverGame(): Promise<void> {
     if (this.state === 'recovering') {
       logger.warn(`Game successfully recovered from crash, resuming play... (autoplay: ${this.config.autoPlay})`);
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
@@ -260,10 +264,7 @@ Game.SetAIAutoPlay(2000, -1);`
         await setTimeout(3000);
         await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
       }
-    } else {
-      logger.info(`The DLL is now connected at the state '${this.state}'.`);
     }
-    
     this.onStateChange('running');
   }
 
