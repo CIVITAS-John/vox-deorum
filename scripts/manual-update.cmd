@@ -6,10 +6,10 @@ git checkout main --force
 
 git pull
 
-cd ../../civ5-dll
+cd ../civ5-dll
 
 git pull
 
-cd ../scripts
+cd scripts
 
 call install
