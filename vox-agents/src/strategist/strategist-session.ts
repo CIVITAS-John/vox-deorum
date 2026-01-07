@@ -282,6 +282,7 @@ Game.SetAIAutoPlay(2000, -1);`
 
       // Stop autoplay
       mcpClient.callTool("lua-executor", { Script: `Game.SetAIAutoPlay(-1);` }).catch((any) => null);
+      this.onStateChange('stopping');
 
       // Stop the game
       await setTimeout(5000);
