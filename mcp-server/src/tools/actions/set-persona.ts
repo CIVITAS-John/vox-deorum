@@ -15,7 +15,7 @@ const personaSchema = z.object({
   VictoryCompetitiveness: z.number().min(1).max(10).optional().describe("How aggressively the AI reacts to others pursuing victories (0-10)"),
   WonderCompetitiveness: z.number().min(1).max(10).optional().describe("How aggressively the AI reacts to others competing for wonders (0-10)"),
   MinorCivCompetitiveness: z.number().min(1).max(10).optional().describe("How aggressively the AI reacts to others competing for city-state influence (0-10)"),
-  Boldness: z.number().min(1).max(10).optional().describe("Military risk-taking and conquest desire. Higher value decreases peace willingness (0-10)"),
+  Boldness: z.number().min(1).max(10).optional().describe("Military risk-taking, territorial claim, and conquest desire (0-10)"),
 
   // War & Peace Tendencies
   WarBias: z.number().min(1).max(10).optional().describe("Likelihood to plan for or declare offensive war (0-10)"),
@@ -60,7 +60,7 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Set a player's personality values (1-10). These values control the in-game AI's diplomatic patterns and decision-making.";
+  readonly description = "Set a player's diplomatic personality (1-10). These values control the in-game AI's diplomatic patterns and decision-making.";
 
   /**
    * Input schema for the set-persona tool
