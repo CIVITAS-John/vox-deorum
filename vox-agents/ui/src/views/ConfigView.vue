@@ -10,15 +10,14 @@ import Dropdown from 'primevue/dropdown';
 import Tooltip from 'primevue/tooltip';
 import { useConfirm } from 'primevue/useconfirm';
 import { apiClient } from '../api/client';
-import type { AgentMapping, LLMConfig, VoxAgentsConfig, ToolMiddlewareType } from '../utils/types';
+import type { AgentMapping, LLMConfig, VoxAgentsConfig, ToolMiddlewareType, AgentInfo } from '../utils/types';
 import { llmProviders, apiKeyFields, toolMiddlewareOptions } from '../utils/types';
 import {
   parseLLMConfig,
   buildLLMConfig,
   updateModelId,
   getAgentsUsingModel,
-  validateMappings,
-  agentTypes
+  validateMappings
 } from '../utils/config-utils';
 
 // State
@@ -33,6 +32,9 @@ const config = ref<VoxAgentsConfig | null>(null);
 const agentMappings = ref<AgentMapping[]>([]);
 const modelDefinitions = ref<LLMConfig[]>([]);
 
+// Agent registry state
+const agents = ref<AgentInfo[]>([]);
+
 // Initialize confirmation service
 const confirm = useConfirm();
 
@@ -44,10 +46,29 @@ const availableModels = computed(() => {
   }));
 });
 
-// Load configuration on mount
-onMounted(async () => {
-  await loadConfig();
+// Computed agent types from dynamic registry
+const agentTypes = computed(() => {
+  return agents.value.map(agent => ({
+    label: agent.description || agent.name,
+    value: agent.name
+  }));
 });
+
+// Load configuration and agents on mount
+onMounted(async () => {
+  await Promise.all([loadConfig(), loadAgents()]);
+});
+
+// Load agents from server
+async function loadAgents() {
+  try {
+    const data = await apiClient.getAgents();
+    agents.value = data.agents;
+  } catch (err: any) {
+    error.value = err.message || 'Failed to load agents';
+    console.error('Error loading agents:', err);
+  }
+}
 
 // Load configuration from server
 async function loadConfig() {
@@ -86,7 +107,7 @@ async function loadConfig() {
 // LLM Configuration Functions
 function addMapping() {
   agentMappings.value.push({
-    agent: 'default',
+    agent: agentTypes.value[0]?.value || 'default',
     model: availableModels.value[0]?.value || ''
   });
 }
