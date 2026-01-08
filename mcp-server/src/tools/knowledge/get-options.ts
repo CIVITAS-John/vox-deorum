@@ -224,8 +224,15 @@ class GetOptionsTool extends ToolBase {
             cleanOptions.Policies.map(policyName => {
               const current = policies.find(s => s.Name === policyName)!;
               var Help = current?.Help ?? "";
+              // Add tenet level information for ideology policies
+              let displayName = policyName;
+              if (current?.Level) {
+                displayName += ` (Level ${current.Level} Tenet of Ideology ${current?.Branch})`;
+              } else {
+                displayName += ` (Continuing ${current?.Branch} Branch)`;
+              }
               return [
-                policyName + ` (Continuing ${current?.Branch} Branch)`,
+                displayName,
                 formatPolicyHelp(Help, policyName)
               ];
             }).concat(cleanOptions.PolicyBranches.map(policyName => {

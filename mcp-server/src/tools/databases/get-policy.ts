@@ -11,7 +11,8 @@ const PolicySummarySchema = z.object({
   Name: z.string(),
   Help: z.string(),
   Era: z.string().optional(),
-  Branch: z.string().nullable()
+  Branch: z.string().nullable(),
+  Level: z.number().nullable()
 });
 
 /**
@@ -66,9 +67,10 @@ class GetPolicyTool extends DatabaseQueryTool<PolicySummary, PolicyReport> {
       .leftJoin('PolicyBranchTypes as b', 'b.Type', 'PolicyBranchType')
       .leftJoin('PolicyBranchTypes as c', 'c.FreePolicy', 'Policies.Type')
       .select([
-        'Policies.Type', 
-        'Policies.Description as Name', 
-        'Policies.Help', 
+        'Policies.Type',
+        'Policies.Description as Name',
+        'Policies.Help',
+        'Policies.Level',
         'b.EraPrereq as Era',
         'c.EraPrereq as Era2',
         'b.Description as Branch',
