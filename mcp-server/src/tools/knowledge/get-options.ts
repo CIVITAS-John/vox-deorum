@@ -272,15 +272,13 @@ class GetOptionsTool extends ToolBase {
 
     // Add mode-specific result fields
     if (isFlavorMode) {
-      // In Flavor mode: Add current flavors if they exist
-      if (flavors) {
-        const { Key, Rationale, ...flavorValues } = flavors;
-        result.Strategy = {
-          Rationale: Rationale,
-          GrandStrategy: strategies?.GrandStrategy,
-          Flavors: flavorValues
-        };
-      }
+      // In Flavor mode: Add current flavors
+      const { Key, Rationale, ...flavorValues } = flavors!;
+      result.Strategy = {
+        Rationale: Rationale,
+        GrandStrategy: strategies?.GrandStrategy,
+        Flavors: flavorValues
+      };
     } else {
       // In Strategy mode: Add strategy information
       result.Strategy = {
