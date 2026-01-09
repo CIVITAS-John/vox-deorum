@@ -226,7 +226,8 @@ export interface CityInformation extends MutableKnowledge, CityInformationBasic 
   RazingTurns: number; // Turns until razed (0 if not razing)
   ResistanceTurns: number; // Resistance turns remaining
   BuildingCount: number; // Total number of buildings
-  Wonders: JSONColumnType<string[]>; // List of wonders (localized names)
+  RecentBuildings: JSONColumnType<string[]>; // List of recent buildings (localized names, prerequisites filtered)
+  Wonders: JSONColumnType<string[]>; // List of wonders (localized names, Palace excluded)
   GreatWorkCount: number; // Number of great works
   CurrentProduction: string | null; // What is being produced (localized)
   ProductionTurnsLeft: number; // Turns to complete production

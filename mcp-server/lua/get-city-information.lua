@@ -156,20 +156,31 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS do
       -- Building and wonder information
       cityData.BuildingCount = city:GetNumBuildings()
 
-      -- Collect wonder names
+      -- Collect wonders and regular buildings separately
       local wonders = {}
+      local buildings = {}
+
       for building in GameInfo.Buildings() do
         local buildingID = building.ID
         if city:IsHasBuilding(buildingID) then
           local buildingClass = GameInfo.BuildingClasses[building.BuildingClass]
-          -- Exclude Palace as it's a starting building, not a wonder
-          if buildingClass and building.BuildingClass ~= "BUILDINGCLASS_PALACE" and (buildingClass.MaxGlobalInstances == 1 or buildingClass.MaxPlayerInstances == 1) then
-            -- This is a wonder (world or national)
-            table.insert(wonders, Locale.ConvertTextKey(building.Description))
+          local buildingName = Locale.ConvertTextKey(building.Description)
+
+          -- Check if it's a wonder (world or national)
+          if buildingClass and (buildingClass.MaxGlobalInstances == 1 or buildingClass.MaxPlayerInstances == 1) then
+            -- It's a wonder - add to wonders list (but not Palace)
+            if building.BuildingClass ~= "BUILDINGCLASS_PALACE" then
+              table.insert(wonders, buildingName)
+            end
+          else
+            -- It's a regular building - add to buildings list
+            table.insert(buildings, buildingName)
           end
         end
       end
+
       cityData.Wonders = wonders
+      cityData.Buildings = buildings
 
       cityData.GreatWorkCount = city:GetNumGreatWorks()
 

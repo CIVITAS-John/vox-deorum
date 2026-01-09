@@ -53,6 +53,7 @@ const CityDataSchema = z.object({
   RazingTurns: z.number().optional().describe("Turns until razed (0 if not razing)"),
   ResistanceTurns: z.number().optional().describe("Resistance turns remaining"),
   BuildingCount: z.number().optional().describe("Total number of buildings"),
+  RecentBuildings: z.array(z.string()).optional().describe("List of recent buildings (filtered by prerequisites)"),
   Wonders: z.array(z.string()).optional().describe("List of wonders (localized names)"),
   GreatWorkCount: z.number().optional().describe("Number of great works"),
 });
@@ -166,6 +167,7 @@ class GetCitiesTool extends ToolBase {
           TourismPerTurn: city.TourismPerTurn,
           HappinessDelta: city.HappinessDelta,
           BuildingCount: city.BuildingCount,
+          RecentBuildings: city.RecentBuildings,
           GreatWorkCount: city.GreatWorkCount,
         };
       }
