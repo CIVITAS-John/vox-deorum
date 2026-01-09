@@ -259,13 +259,13 @@ Game.SetAIAutoPlay(2000, -1);`
   private async recoverGame(): Promise<void> {
     if (this.state === 'recovering') {
       logger.warn(`Game successfully recovered from crash, resuming play... (autoplay: ${this.config.autoPlay})`);
+      this.onStateChange('running');
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
       if (this.config.autoPlay) {
         await setTimeout(3000);
         await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
       }
     }
-    this.onStateChange('running');
   }
 
   private async handlePlayerVictory(params: any): Promise<void> {
