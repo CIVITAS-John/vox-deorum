@@ -62,7 +62,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Set flavor values and/or grand strategy to shape tactical AI preferences for next actions without changing ongoing queues.";
+  readonly description = "Set flavor values and/or grand strategy to shape tactical AI preferences without changing ongoing queues. Only send in values you intend to change.";
 
   /**
    * Input schema for the set-flavors tool
@@ -72,8 +72,8 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     GrandStrategy: z.string().optional().describe("The grand strategy name to set (and override)"),
     Flavors: z.record(
       z.string(),
-      z.number().min(0).max(20)
-    ).optional().describe("Flavor values to set (0-20 scale). Available flavors: Military (Offense, Defense, CityDefense, MilitaryTraining, Recon, Ranged, Mobile, Nuke, UseNuke, Naval, NavalRecon, NavalGrowth, NavalTileImprovement, Air, AirCarrier, AntiAir, Airlift), Economy (Expansion, Growth, TileImprovement, Infrastructure, Production, WaterConnection, Gold, Science, Culture), Development (Happiness, GreatPeople, Wonder, Religion, Diplomacy, Spaceship, Espionage)"),
+      z.number().min(-300).max(300)
+    ).optional().describe("Flavor values to set."),
     Rationale: z.string().describe("Briefly explain your rationale for these adjustments")
   });
 

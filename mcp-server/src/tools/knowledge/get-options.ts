@@ -240,10 +240,10 @@ class GetOptionsTool extends ToolBase {
     // Add mode-specific result fields
     if (isFlavorMode) {
       // In Flavor mode: Add current flavors
-      const { Key, Rationale, ...flavorValues } = flavors!;
+      const { Key, Rationale, GrandStrategy, ...flavorValues } = flavors!;
       result.Strategy = {
         Rationale: Rationale,
-        GrandStrategy: strategies?.GrandStrategy,
+        GrandStrategy: GrandStrategy,
         Flavors: flavorValues
       };
       optionsObject.Flavors = flavorDescriptions;

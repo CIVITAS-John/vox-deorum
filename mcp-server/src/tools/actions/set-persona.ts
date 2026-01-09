@@ -60,7 +60,7 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Set a player's diplomatic personality (1-10). These values control the in-game AI's diplomatic patterns and decision-making.";
+  readonly description = "Set a player's diplomatic personality (1-10). These values control the in-game AI's diplomatic patterns and decision-making. Only send in values you intend to change.";
 
   /**
    * Input schema for the set-persona tool
