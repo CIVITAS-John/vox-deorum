@@ -15,7 +15,7 @@ import createGetMetadataTool from "./knowledge/get-metadata.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
 import createSetPersonaTool from "./actions/set-persona.js";
 import createSetFlavorsTool from "./actions/set-flavors.js";
-import createGetFlavorsTool from "./actions/get-flavors.js";
+import createGetFlavorsTool from "./databases/get-flavors.js";
 import createUnsetFlavorsTool from "./actions/unset-flavors.js";
 import createPauseGameTool from "./actions/pause-game.js";
 import createResumeGameTool from "./actions/resume-game.js";

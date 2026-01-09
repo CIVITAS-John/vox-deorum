@@ -9,7 +9,7 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
-import { constantCase, pascalCase } from "change-case";
+import { pascalCase } from "change-case";
 import { retrieveEnumName, retrieveEnumValue } from "../../utils/knowledge/enum.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
 
@@ -28,8 +28,24 @@ type SetFlavorsResultType = z.infer<typeof SetFlavorsResultSchema>;
  * Convert PascalCase flavor keys to FLAVOR_ format
  */
 function convertToFlavorFormat(key: string): string {
-  // Convert to CONSTANT_CASE and add FLAVOR_ prefix
-  return 'FLAVOR_' + constantCase(key);
+  // Split at capital letters, but keep consecutive capitals together
+  let result = '';
+  for (let i = 0; i < key.length; i++) {
+    const char = key[i];
+    const nextChar = key[i + 1];
+
+    // Add underscore before capital letter if:
+    // - It's not the first character
+    // - Previous char was lowercase OR next char is lowercase
+    if (i > 0 && char === char.toUpperCase() &&
+        (key[i - 1] === key[i - 1].toLowerCase() ||
+         (nextChar && nextChar === nextChar.toLowerCase()))) {
+      result += '_';
+    }
+    result += char.toUpperCase();
+  }
+
+  return 'FLAVOR_' + result;
 }
 
 /**

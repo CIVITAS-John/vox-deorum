@@ -188,7 +188,6 @@ export interface PersonaChange extends MutableKnowledge {
  * AI Flavor values for major civilizations
  * Visible only to the player themselves (like strategy data)
  * Tracks custom flavor overrides for AI decision-making
- * Custom flavors auto-expire after 10 turns in-game
  */
 export interface FlavorChange extends MutableKnowledge {
   // Military Flavors (17)
