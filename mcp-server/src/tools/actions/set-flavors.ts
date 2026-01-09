@@ -210,7 +210,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
 
       // Compare and send replay messages for actual changes
       if (changeDescriptions.length > 0) {
-        const message = `Changed AI preferences: ${changeDescriptions.join("; ")}. Rationale: ${args.Rationale}`;
+        const message = `AI preferences: ${changeDescriptions.join("; ")}. Rationale: ${args.Rationale}`;
         await addReplayMessages(args.PlayerID, message);
       }
     }

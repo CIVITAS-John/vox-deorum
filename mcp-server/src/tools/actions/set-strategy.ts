@@ -194,7 +194,7 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
           }
         });
 
-        const message = `Changed strategies: ${changeDescriptions.join("; ")}. Rationale: ${args.Rationale}`;
+        const message = `Strategies: ${changeDescriptions.join("; ")}. Rationale: ${args.Rationale}`;
         await addReplayMessages(args.PlayerID, message);
       }
     }

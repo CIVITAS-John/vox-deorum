@@ -171,7 +171,7 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
       }
 
       if (changeDescriptions.length > 0) {
-        const message = `Changed persona values: ${changeDescriptions.join("; ")}. Rationale: ${Rationale}`;
+        const message = `Diplomatic persona: ${changeDescriptions.join("; ")}. Rationale: ${Rationale}`;
         await addReplayMessages(PlayerID, message);
       }
     }
