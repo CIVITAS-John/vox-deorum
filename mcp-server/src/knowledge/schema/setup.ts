@@ -166,6 +166,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('Espionage', 'integer')
 
     // Metadata
+    .addColumn('GrandStrategy', 'text', (col) => col.notNull())
     .addColumn('Rationale', 'text', (col) => col.notNull())
     .execute();
   // Create indexes for FlavorChanges table

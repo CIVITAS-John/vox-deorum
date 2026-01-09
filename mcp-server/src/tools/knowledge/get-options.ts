@@ -274,9 +274,12 @@ class GetOptionsTool extends ToolBase {
     if (isFlavorMode) {
       // In Flavor mode: Add current flavors if they exist
       if (flavors) {
-        // Remove metadata fields from flavors
-        const { PlayerID, Rationale, ...flavorValues } = flavors;
-        result.Flavors = flavorValues;
+        const { Key, Rationale, ...flavorValues } = flavors;
+        result.Strategy = {
+          Rationale: Rationale,
+          GrandStrategy: strategies?.GrandStrategy,
+          Flavors: flavorValues
+        };
       }
     } else {
       // In Strategy mode: Add strategy information

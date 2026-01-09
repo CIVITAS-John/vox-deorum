@@ -230,6 +230,7 @@ export interface FlavorChange extends MutableKnowledge {
   Espionage: number;
 
   // Metadata
+  GrandStrategy: string;
   Rationale: string;
 }
 

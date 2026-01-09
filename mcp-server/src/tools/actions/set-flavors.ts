@@ -12,6 +12,8 @@ import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 import { pascalCase } from "change-case";
 import { retrieveEnumName, retrieveEnumValue } from "../../utils/knowledge/enum.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
+import { FlavorChange } from "../../knowledge/schema/timed.js";
+import { Insertable } from "kysely";
 
 /**
  * Schema for the result returned by the Lua script
@@ -148,12 +150,13 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
 
     // Convert PascalCase keys to FLAVOR_ format if flavors are provided
     // Only include flavors that exist in the JSON file
-    const flavorsTable: Record<string, number> | null = args.Flavors ? {} : null;
+    const flavorsTable: Record<string, number> = {};
+    const newFlavors: Record<string, number> = {};
     if (args.Flavors) {
       for (const [key, value] of Object.entries(args.Flavors)) {
-        // Gracefully drop invalid flavor keys
         if (validFlavorKeys.includes(key)) {
-          flavorsTable![convertToFlavorFormat(key)] = value;
+          flavorsTable[convertToFlavorFormat(key)] = value;
+          newFlavors[key] = value;
         }
       }
     }
@@ -167,22 +170,17 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       const previous = result.Result!;
 
       // Build the complete flavor state to store
-      const flavorChange: any = {
-        Rationale: args.Rationale,
-        GrandStrategy: args.GrandStrategy ?? null
+      const flavorChange: Partial<Insertable<FlavorChange>> = {
+        Rationale: args.Rationale
       };
 
       // Start with all existing flavor values from GetCustomFlavors
       const currentFlavors: Record<string, number> = {};
-
-      // Convert previous flavors from FLAVOR_ format to PascalCase
-      if (previous.Flavors) {
-        for (const [key, value] of Object.entries(previous.Flavors)) {
-          // Use pascalCase from change-case for consistency
-          const withoutPrefix = key.replace(/^FLAVOR_/, '');
-          const pascalKey = pascalCase(withoutPrefix);
-          currentFlavors[pascalKey] = value as number;
-        }
+      for (const [key, value] of Object.entries(previous.Flavors)) {
+        // Use pascalCase from change-case for consistency
+        const withoutPrefix = key.replace(/^FLAVOR_/, '');
+        const pascalKey = pascalCase(withoutPrefix);
+        currentFlavors[pascalKey] = value as number;
       }
 
       const changeDescriptions: string[] = [];
@@ -191,21 +189,20 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       if (args.GrandStrategy && previousGrandStrategy !== args.GrandStrategy) {
         changeDescriptions.push(`Grand Strategy: ${previousGrandStrategy} → ${args.GrandStrategy}`);
       }
+      flavorChange.GrandStrategy = args.GrandStrategy ? retrieveEnumName("GrandStrategy", grandStrategyId) : previousGrandStrategy;
 
       // Compare values and apply the new flavors
-      if (args.Flavors) {
-        for (const [key, value] of Object.entries(args.Flavors)) {
-          const beforeValue = currentFlavors?.[key];
-          if (beforeValue !== undefined && beforeValue !== value) {
-            changeDescriptions.push(`${key}: ${beforeValue} → ${value}`);
-          }
+      for (const [key, value] of Object.entries(newFlavors)) {
+        const beforeValue = currentFlavors?.[key];
+        if (beforeValue !== undefined && beforeValue !== value) {
+          changeDescriptions.push(`${key}: ${beforeValue} → ${value}`);
         }
-        Object.assign(currentFlavors, args.Flavors);
       }
+      Object.assign(currentFlavors, newFlavors);
 
       // Store ALL flavors (both existing and new) in the knowledge store
       for (const key of validFlavorKeys) {
-        flavorChange[key] = currentFlavors[key] ?? 0;
+        (flavorChange as any)[key] = currentFlavors[key] ?? 0;
       }
 
       // Store in the database
