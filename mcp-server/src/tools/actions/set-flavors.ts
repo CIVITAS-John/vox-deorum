@@ -109,14 +109,14 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     local activePlayer = Players[playerID]
 
     -- Capture previous grand strategy
-    local previousGrandStrategy = activePlayer:GetGrandStrategyType()
+    local previousGrandStrategy = activePlayer:GetGrandStrategy()
 
     -- Get ALL current custom flavors using GetCustomFlavors
     local previousFlavors = activePlayer:GetCustomFlavors()
 
     -- Set grand strategy if provided
     if grandStrategy then
-      activePlayer:SetGrandStrategyType(grandStrategy)
+      activePlayer:SetGrandStrategy(grandStrategy)
     end
 
     -- Set custom flavors if provided
