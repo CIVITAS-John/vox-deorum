@@ -69,8 +69,8 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
    * Shared prompt: Decision-making description in the Strategy mode
    */
   public static getDecisionPrompt(mode: StrategyDecisionType) {
-    return `- Each turn, you must call either \`${mode == "Flavor" ? "set-flavor" : "set-strategy"}\` or \`keep-status-quo\` tool.
-  - Set an appropriate grand strategy and ${mode == "Flavor" ? "additional flavors" : "supporting economic/military strategies"} by calling the \`${mode == "Flavor" ? "set-flavor" : "set-strategy"}\` tool.
+    return `- Each turn, you must call either \`${mode == "Flavor" ? "set-flavors" : "set-strategy"}\` or \`keep-status-quo\` tool.
+  - Set an appropriate grand strategy and ${mode == "Flavor" ? "additional flavors" : "supporting economic/military strategies"} by calling the \`${mode == "Flavor" ? "set-flavors" : "set-strategy"}\` tool.
   - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
   - ${mode === "Flavor" ? "Flavors" : "Strategies"} change the weight of the in-game AI's NEXT decision. It will NOT change existing production queues, etc.
   - While only one grand strategy can be active, you can pursue multiple synergistic victory pathways.
@@ -123,7 +123,7 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
   public getActiveTools(parameters: StrategistParameters): string[] | undefined {
     // Return specific tools the strategist needs
     return [
-      parameters.mode === "Strategy" ? "set-strategy" : "set-flavor",
+      parameters.mode === "Strategy" ? "set-strategy" : "set-flavors",
       "set-persona",
       "set-research",
       "set-policy",
@@ -147,8 +147,8 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
           this.logger.debug("Set-strategy tool executed, stopping agent");
           return true;
         }
-        if (result.toolName === "set-flavor" && result.output) {
-          this.logger.debug("Set-flavor tool executed, stopping agent");
+        if (result.toolName === "set-flavors" && result.output) {
+          this.logger.debug("Set-flavors tool executed, stopping agent");
           return true;
         }
         if (result.toolName === "keep-status-quo" && result.output) {
