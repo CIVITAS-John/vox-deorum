@@ -10,104 +10,150 @@ import { Selectable } from 'kysely';
 
 const logger = createLogger('CityInformation');
 
-// Cache for prerequisite map (module-level) - maps display names
-let prereqNameMapCache: Map<string, string> | null = null;
+/**
+ * Building relationship data structure
+ */
+interface BuildingRelationship {
+  buildingClass: string;
+  prerequisites: Set<string>;  // BuildingClass types this needs
+  unlocks: Set<string>;        // BuildingClass types this unlocks
+  prereqTech: string | null;   // Technology required to build
+  techEra: string | null;      // Era of the prerequisite technology
+}
+
+// Module-level cache for building relationships
+let buildingRelationshipCache: Map<string, BuildingRelationship> | null = null;
+// Map from building description to building class
+let descriptionToClassCache: Map<string, string> | null = null;
 
 /**
- * Get prerequisite relationships from database, cached for performance
- * Maps building display names to their prerequisite display names
+ * Build comprehensive building relationship cache
+ * Creates a unified cache with all building prerequisites and unlock relationships
  */
-async function getPrerequisiteNameMap(): Promise<Map<string, string>> {
-  // Return cached data if available
-  if (prereqNameMapCache !== null) {
-    return prereqNameMapCache;
+async function buildRelationshipCache(): Promise<void> {
+  // Return if already cached
+  if (buildingRelationshipCache !== null && descriptionToClassCache !== null) {
+    return;
   }
 
   const db = gameDatabase.getDatabase();
 
-  // Query database for prerequisite relationships
-  // We need to map both building type and building class relationships
-  // to handle unique buildings properly
-  const prereqsByClass = await db
-    .selectFrom('Building_ClassesNeededInCity as bcn')
-    .innerJoin('Buildings as b', 'b.Type', 'bcn.BuildingType')
-    .innerJoin('BuildingClasses as bc1', 'bc1.Type', 'b.BuildingClass')
-    .innerJoin('BuildingClasses as bc2', 'bc2.Type', 'bcn.BuildingClassType')
-    .where('bc1.MaxGlobalInstances', 'is', null) // Not a world wonder
-    .where('bc1.MaxPlayerInstances', 'is', null) // Not a national wonder
-    .select([
-      'b.Description as BuildingName',
-      'bc2.Description as PrereqClassName'
-    ])
-    .execute();
-
-  // Also get all buildings in each class for mapping
-  const buildingsByClass = await db
+  // Get all buildings with their classes and tech info (excluding wonders)
+  const allBuildings = await db
     .selectFrom('Buildings as b')
     .innerJoin('BuildingClasses as bc', 'bc.Type', 'b.BuildingClass')
-    .where('bc.MaxGlobalInstances', 'is', null) // Not a world wonder
-    .where('bc.MaxPlayerInstances', 'is', null) // Not a national wonder
+    .leftJoin('Technologies as t', 't.Type', 'b.PrereqTech')
     .select([
-      'b.Description as BuildingName',
-      'bc.Description as ClassName'
+      'b.Type as BuildingType',
+      'b.Description as BuildingDescription',
+      'b.BuildingClass as BuildingClass',
+      'b.PrereqTech as PrereqTech',
+      't.Era as TechEra'
     ])
     .execute();
 
-  // Build a map from building class to all buildings in that class
-  const classToBuildingNames = new Map<string, string[]>();
-  for (const row of buildingsByClass) {
-    if (row.ClassName) {
-      const buildings = classToBuildingNames.get(row.ClassName) || [];
-      buildings.push(row.BuildingName || '');
-      classToBuildingNames.set(row.ClassName, buildings);
-    }
-  }
+  // Get all prerequisite relationships (what each building needs)
+  const prerequisites = await db
+    .selectFrom('Building_ClassesNeededInCity')
+    .select([
+      'BuildingType',
+      'BuildingClassType as PrerequisiteClass'
+    ])
+    .execute();
 
-  // Build the prerequisite map
-  // For each building, map it to all possible prerequisite buildings
-  prereqNameMapCache = new Map<string, string>();
-  for (const row of prereqsByClass) {
-    if (row.BuildingName && row.PrereqClassName) {
-      // Get all buildings in the prerequisite class
-      const prereqBuildings = classToBuildingNames.get(row.PrereqClassName) || [];
-      // For each prerequisite building, map it as a prerequisite
-      for (const prereqBuilding of prereqBuildings) {
-        prereqNameMapCache.set(row.BuildingName, prereqBuilding);
+  // Initialize caches
+  buildingRelationshipCache = new Map<string, BuildingRelationship>();
+  descriptionToClassCache = new Map<string, string>();
+
+  // Build description to class mapping and initialize relationship objects
+  for (const building of allBuildings) {
+    if (building.BuildingDescription && building.BuildingClass) {
+      descriptionToClassCache.set(await gameDatabase.localize(building.BuildingDescription), building.BuildingClass);
+
+      // Initialize relationship object if not exists
+      if (!buildingRelationshipCache.has(building.BuildingClass)) {
+        buildingRelationshipCache.set(building.BuildingClass, {
+          buildingClass: building.BuildingClass,
+          prerequisites: new Set<string>(),
+          unlocks: new Set<string>(),
+          prereqTech: building.PrereqTech,
+          techEra: building.TechEra
+        });
       }
     }
   }
 
-  logger.info(`Cached ${prereqNameMapCache.size} building prerequisite relationships`);
-  console.log(JSON.stringify(prereqNameMapCache));
-  return prereqNameMapCache;
+  // Populate prerequisites and unlocks
+  for (const prereq of prerequisites) {
+    if (!prereq.BuildingType || !prereq.PrerequisiteClass) continue;
+
+    // Find the building class for this building type
+    const buildingInfo = allBuildings.find(b => b.BuildingType === prereq.BuildingType);
+    if (!buildingInfo || !buildingInfo.BuildingClass) continue;
+
+    // Add prerequisite to the building
+    const relationship = buildingRelationshipCache.get(buildingInfo.BuildingClass);
+    if (relationship) {
+      relationship.prerequisites.add(prereq.PrerequisiteClass);
+    }
+
+    // Add this building as "unlocked by" the prerequisite
+    const prereqRelationship = buildingRelationshipCache.get(prereq.PrerequisiteClass);
+    if (prereqRelationship) {
+      prereqRelationship.unlocks.add(buildingInfo.BuildingClass);
+    }
+  }
+
+  logger.info(`Cached ${buildingRelationshipCache.size} building relationships and ${descriptionToClassCache.size} description mappings`);
 }
 
 /**
  * Filter buildings to show only the most advanced in each chain
- * Removes any building that is a prerequisite for another building in the list
+ * Removes:
+ * 1. Buildings that have no prereq tech
+ * 2. Buildings that have prereq tech in ancient era AND have no unlocked buildings
+ * 3. Buildings that are superseded (their unlocked buildings are in the list)
  */
 async function filterBuildings(allBuildings: string[]): Promise<string[]> {
-  if (!allBuildings || allBuildings.length === 0) {
-    return [];
+  if (!allBuildings || allBuildings.length === 0) return [];
+
+  // Ensure cache is built
+  await buildRelationshipCache();
+
+  // Map building descriptions to their classes
+  const buildingClassesInCity = new Set<string>();
+  for (const buildingDesc of allBuildings) {
+    const buildingClass = descriptionToClassCache!.get(buildingDesc);
+    if (buildingClass) {
+      buildingClassesInCity.add(buildingClass);
+    }
   }
 
-  const prereqMap = await getPrerequisiteNameMap();
-
-  // Simple filter: if prerequisite is also in list, hide the prerequisite
+  // Filter buildings
   const filtered: string[] = [];
 
-  for (const building of allBuildings) {
-    // Check if this building is a prerequisite for another building in the list
-    let isPrereqForAnother = false;
-    for (const other of allBuildings) {
-      if (prereqMap.get(other) === building) {
-        isPrereqForAnother = true;
+  for (const buildingDesc of allBuildings) {
+    const buildingClass = descriptionToClassCache!.get(buildingDesc);
+    if (!buildingClass) continue;
+    const relationship = buildingRelationshipCache!.get(buildingClass);
+    if (!relationship) continue;
+
+    // Filter out buildings with no prereq tech
+    if (!relationship.prereqTech) continue;
+    // Filter out buildings with ancient era tech AND no unlocked buildings
+    if (relationship.techEra === 'ERA_ANCIENT' && relationship.unlocks.size === 0) continue;
+    // Check if this building is superseded (its unlocked buildings are in the city)
+    let isSuperseded = false;
+    for (const unlockedClass of relationship.unlocks) {
+      if (buildingClassesInCity.has(unlockedClass)) {
+        // This building unlocks something that's already in the city
+        isSuperseded = true;
         break;
       }
     }
 
-    if (!isPrereqForAnother) {
-      filtered.push(building);
+    if (!isSuperseded) {
+      filtered.push(buildingDesc);
     }
   }
 
@@ -140,8 +186,8 @@ export async function getCityInformations(): Promise<Selectable<CityInformation>
 
   // Filter building lists to show only most advanced buildings
   for (const city of cities) {
-    if (city.RecentBuildings && Array.isArray(city.RecentBuildings))
-      city.RecentBuildings = await filterBuildings(city.RecentBuildings);
+    if (city.ImportantBuildings && Array.isArray(city.ImportantBuildings))
+      city.ImportantBuildings = await filterBuildings(city.ImportantBuildings);
   }
 
   // Store all cities as mutable knowledge in batch

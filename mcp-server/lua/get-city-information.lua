@@ -180,7 +180,7 @@ for playerID = 0, GameDefines.MAX_CIV_PLAYERS do
       end
 
       cityData.Wonders = wonders
-      cityData.RecentBuildings = buildings
+      cityData.ImportantBuildings = buildings
 
       cityData.GreatWorkCount = city:GetNumGreatWorks()
 

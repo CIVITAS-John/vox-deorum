@@ -13,6 +13,7 @@ import {
   PlayerOpinions,
   CityInformation,
   PersonaChange,
+  FlavorChange,
   PlayerOptions,
   VictoryProgress,
   TacticalZones
@@ -112,6 +113,7 @@ export interface KnowledgeDatabase {
   PlayerOpinions: PlayerOpinions;
   CityInformations: CityInformation;
   PersonaChanges: PersonaChange;
+  FlavorChanges: FlavorChange;
   StrategyChanges: StrategyChange;
   PolicyChanges: PolicyChange;
   ResearchChanges: ResearchChange;

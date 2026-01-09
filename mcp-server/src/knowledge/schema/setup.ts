@@ -124,6 +124,53 @@ export async function setupKnowledgeDatabase(
   // Create indexes for PersonaChanges table
   await createMutableKnowledgeIndexes(db, 'PersonaChanges');
 
+  // Create FlavorChanges table (MutableKnowledge implementation)
+  await createMutableKnowledgeTable(db, 'FlavorChanges')
+    // Military Flavors (17)
+    .addColumn('Offense', 'integer')
+    .addColumn('Defense', 'integer')
+    .addColumn('CityDefense', 'integer')
+    .addColumn('MilitaryTraining', 'integer')
+    .addColumn('Recon', 'integer')
+    .addColumn('Ranged', 'integer')
+    .addColumn('Mobile', 'integer')
+    .addColumn('Nuke', 'integer')
+    .addColumn('UseNuke', 'integer')
+    .addColumn('Naval', 'integer')
+    .addColumn('NavalRecon', 'integer')
+    .addColumn('NavalGrowth', 'integer')
+    .addColumn('NavalTileImprovement', 'integer')
+    .addColumn('Air', 'integer')
+    .addColumn('AirCarrier', 'integer')
+    .addColumn('AntiAir', 'integer')
+    .addColumn('Airlift', 'integer')
+
+    // Economy Flavors (9)
+    .addColumn('Expansion', 'integer')
+    .addColumn('Growth', 'integer')
+    .addColumn('TileImprovement', 'integer')
+    .addColumn('Infrastructure', 'integer')
+    .addColumn('Production', 'integer')
+    .addColumn('WaterConnection', 'integer')
+    .addColumn('Gold', 'integer')
+    .addColumn('Science', 'integer')
+    .addColumn('Culture', 'integer')
+
+    // Development Flavors (7)
+    .addColumn('Happiness', 'integer')
+    .addColumn('GreatPeople', 'integer')
+    .addColumn('Wonder', 'integer')
+    .addColumn('Religion', 'integer')
+    .addColumn('Diplomacy', 'integer')
+    .addColumn('Spaceship', 'integer')
+    .addColumn('Espionage', 'integer')
+
+    // Metadata
+    .addColumn('Rationale', 'text', (col) => col.notNull())
+    .execute();
+  // Create indexes for FlavorChanges table
+  await createMutableKnowledgeIndexes(db, 'FlavorChanges');
+
   // Create PlayerSummaries table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'PlayerSummaries')
     .addColumn('Score', 'integer') // Player's current score (major civs only)
@@ -205,7 +252,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('ResistanceTurns', 'integer', (col) => col.notNull())
     .addColumn('BuildingCount', 'integer', (col) => col.notNull())
     .addColumn('Wonders', 'text', (col) => col.notNull()) // JSON array of wonder names
-    .addColumn('RecentBuildings', 'text', (col) => col.notNull()) // JSON array of wonder names
+    .addColumn('ImportantBuildings', 'text', (col) => col.notNull()) // JSON array of wonder names
     .addColumn('GreatWorkCount', 'integer', (col) => col.notNull())
     .addColumn('CurrentProduction', 'text')
     .addColumn('ProductionTurnsLeft', 'integer', (col) => col.notNull())

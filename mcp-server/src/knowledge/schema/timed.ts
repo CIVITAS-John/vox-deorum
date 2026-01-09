@@ -185,6 +185,56 @@ export interface PersonaChange extends MutableKnowledge {
 }
 
 /**
+ * AI Flavor values for major civilizations
+ * Visible only to the player themselves (like strategy data)
+ * Tracks custom flavor overrides for AI decision-making
+ * Custom flavors auto-expire after 10 turns in-game
+ */
+export interface FlavorChange extends MutableKnowledge {
+  // Military Flavors (17)
+  Offense: number | null;
+  Defense: number | null;
+  CityDefense: number | null;
+  MilitaryTraining: number | null;
+  Recon: number | null;
+  Ranged: number | null;
+  Mobile: number | null;
+  Nuke: number | null;
+  UseNuke: number | null;
+  Naval: number | null;
+  NavalRecon: number | null;
+  NavalGrowth: number | null;
+  NavalTileImprovement: number | null;
+  Air: number | null;
+  AirCarrier: number | null;
+  AntiAir: number | null;
+  Airlift: number | null;
+
+  // Economy Flavors (9)
+  Expansion: number | null;
+  Growth: number | null;
+  TileImprovement: number | null;
+  Infrastructure: number | null;
+  Production: number | null;
+  WaterConnection: number | null;
+  Gold: number | null;
+  Science: number | null;
+  Culture: number | null;
+
+  // Development Flavors (7)
+  Happiness: number | null;
+  GreatPeople: number | null;
+  Wonder: number | null;
+  Religion: number | null;
+  Diplomacy: number | null;
+  Spaceship: number | null;
+  Espionage: number | null;
+
+  // Metadata
+  Rationale: string;
+}
+
+/**
  * Basic city information (visibility level 1 - revealed)
  * Contains fundamental city data visible to players who have revealed the city
  * This does not inherit from any knowledge base as it's not persisted directly
@@ -226,7 +276,7 @@ export interface CityInformation extends MutableKnowledge, CityInformationBasic 
   RazingTurns: number; // Turns until razed (0 if not razing)
   ResistanceTurns: number; // Resistance turns remaining
   BuildingCount: number; // Total number of buildings
-  RecentBuildings: JSONColumnType<string[]>; // List of recent buildings (localized names, prerequisites filtered)
+  ImportantBuildings: JSONColumnType<string[]>; // List of recent buildings (localized names, prerequisites filtered)
   Wonders: JSONColumnType<string[]>; // List of wonders (localized names, Palace excluded)
   GreatWorkCount: number; // Number of great works
   CurrentProduction: string | null; // What is being produced (localized)
