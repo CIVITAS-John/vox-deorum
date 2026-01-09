@@ -1,6 +1,7 @@
 import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
 import { getEraName } from "../../utils/database/enums.js";
+import { formatPolicyHelp } from "../../utils/database/format.js";
 import * as z from "zod";
 
 /**
@@ -81,7 +82,7 @@ class GetPolicyTool extends DatabaseQueryTool<PolicySummary, PolicyReport> {
     Summaries.forEach(p => {
       p.Era = getEraName(p.Era ?? p.Era2) ?? null,
       p.Branch = p.Branch ?? p.Branch2;
-      p.Help = p.Help2 ?? p.Help;
+      p.Help = formatPolicyHelp(p.Help2 ?? p.Help, p.Type).join('\n');
       delete (p as any).Era2;
       delete (p as any).Branch2;
       delete (p as any).Help2;
@@ -139,7 +140,7 @@ export async function getPolicy(policyType: string) {
   return {
     Type: policy.Type,
     Name: policy.Name!,
-    Help: policy.Help2 ?? policy.Help!,
+    Help: formatPolicyHelp(policy.Help2 ?? policy.Help!, policy.Type).join('\n'),
     Era: getEraName(policy.Era ?? policy.Era2 ?? "ERA_ANCIENT"),
     Branch: policy.Branch ?? policy.Branch2,
     Level: policy.Level,

@@ -17,6 +17,7 @@ import { enumMappings } from "../../utils/knowledge/enum.js";
 import { getTool } from "../index.js";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { formatPolicyHelp } from "../../utils/database/format.js";
 
 /**
  * Load grand strategy descriptions from JSON file
@@ -163,12 +164,6 @@ class GetOptionsTool extends ToolBase {
 
     // Strip metadata from the options
     const cleanOptions = stripTimedKnowledgeMetadata<PlayerOptions>(playerOptions as any);
-    // Format policy help info.
-    const formatPolicyHelp = (help: string, name: string) => {
-      const lines = help.split(/\n+/g).map(line => line.trim()).filter(line => line !== "" && line !== name);
-      if (lines.length === 0) return "";
-      return lines.length > 1 ? lines : lines[0];
-    }
 
     // Chime in more data
     const result = {
@@ -223,7 +218,7 @@ class GetOptionsTool extends ToolBase {
           Object.fromEntries(
             cleanOptions.Policies.map(policyName => {
               const current = policies.find(s => s.Name === policyName)!;
-              var Help = current?.Help ?? "";
+              var Help = formatPolicyHelp(current?.Help ?? "", policyName);
               // Add tenet level information for ideology policies
               let displayName = policyName;
               if (current?.Level) {
@@ -233,16 +228,14 @@ class GetOptionsTool extends ToolBase {
               }
               return [
                 displayName,
-                formatPolicyHelp(Help, policyName)
+                Help.length > 1 ? Help : Help[0]
               ];
             }).concat(cleanOptions.PolicyBranches.map(policyName => {
               const current = policies.find(s => s.Name === policyName)!;
-              var Help = current?.Help ?? "";
-              if (policy?.Policy !== undefined && policy?.Policy !== "None")
-                Help = Help.replaceAll(/\n+/g, " ");
+              var Help = formatPolicyHelp(current?.Help ?? "", policyName);
               return [
                 policyName + " (New Branch)",
-                formatPolicyHelp(Help, policyName)
+                Help.length > 1 ? Help : Help[0]
               ];
             }))
           ) : cleanOptions.Policies.concat(cleanOptions.PolicyBranches)
