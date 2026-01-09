@@ -5,8 +5,6 @@
  * Contains transport, LLM, and main configuration structures.
  */
 
-import { StrategyDecisionType } from "../strategist/strategy-parameters";
-
 /**
  * Transport types supported by the MCP Client
  */
@@ -129,6 +127,11 @@ export interface PlayerConfig {
   /** Optional LLM model overrides per voxcontext (e.g., per agent name) */
   llms?: Record<string, Model | string>;
 }
+
+/**
+ * Decision type the strategist is going to make. Either through in-game preset strategy, or through flavors.
+ */
+export type StrategyDecisionType = "Strategy" | "Flavor";
 
 /**
  * Configuration specific to Strategist sessions.

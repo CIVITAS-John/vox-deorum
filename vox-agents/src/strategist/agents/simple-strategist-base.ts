@@ -7,7 +7,8 @@
 
 import { StepResult, Tool } from "ai";
 import { Strategist } from "../strategist.js";
-import { StrategistParameters, StrategyDecisionType } from "../strategy-parameters.js";
+import { StrategistParameters } from "../strategy-parameters.js";
+import { StrategyDecisionType } from "../../types/config.js";
 
 /**
  * Base class for simple strategist agents.

@@ -7,7 +7,7 @@ import type { MilitaryReport } from "../../../mcp-server/dist/tools/knowledge/ge
 import type { OptionsReport } from "../../../mcp-server/dist/tools/knowledge/get-options.js";
 import type { VictoryProgressReport } from "../../../mcp-server/dist/tools/knowledge/get-victory-progress.js";
 import type { GameMetadata } from "../../../mcp-server/dist/tools/knowledge/get-metadata.js"
-import { Strategist } from "./strategist.js";
+import { StrategyDecisionType } from "../types/config.js";
 
 /**
  * Parameters for the strategist agent
@@ -26,11 +26,6 @@ export interface StrategistParameters extends AgentParameters {
   /** Decision type the strategist is going to make. */
   mode: StrategyDecisionType;
 }
-
-/**
- * Decision type the strategist is going to make. Either through in-game preset strategy, or through flavors.
- */
-export type StrategyDecisionType = "Strategy" | "Flavor";
 
 /**
  * Game state snapshot containing all relevant game information at a specific turn
