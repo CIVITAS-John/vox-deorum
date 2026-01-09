@@ -68,7 +68,7 @@ export class SimpleStrategistStaffed extends SimpleStrategistBase {
   /**
    * Gets the system prompt for the strategist
    */
-  public async getSystem(_parameters: StrategistParameters, _context: VoxContext<StrategistParameters>): Promise<string> {
+  public async getSystem(parameters: StrategistParameters, _context: VoxContext<StrategistParameters>): Promise<string> {
     return `
 ${SimpleStrategistBase.expertPlayerPrompt}
 
@@ -79,7 +79,7 @@ ${SimpleStrategistBase.goalsPrompt}
   - You have three specialized briefers: Military, Economy, and Diplomacy analysts.
   - Only ask for information relevant to the macro-level decisions in your control. 
 ${SimpleStrategistBase.brieferCapabilitiesPrompt}
-${SimpleStrategistBase.decisionPrompt}
+${SimpleStrategistBase.getDecisionPrompt(parameters.mode)}
 
 # Resources
 You will receive the following reports:

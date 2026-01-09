@@ -27,10 +27,10 @@ export class SimpleBriefer extends Briefer {
   /**
    * Common guidelines applicable to all briefing types
    */
-  static readonly commonGuidelines = `- The briefing should be objective and analytical, not speculations, predictions, or suggestions.
+  static readonly commonGuidelines = `- The briefing should be objective and analytical, not speculations, predictions, or estimations.
 - Report macro-level information sufficient for decision-making. Avoid raw, excessive, or tactical information (e.g. X/Y, unit IDs).
-- You have NO access to tactical AI's next decisions (e.g. which production is queued), report it honestly.
-- Independently report factual information. If your leader asks for information you do not have or affirmation you cannot validate, state it clearly.`;
+- Focus on factual information from the game state input. You have NO access to tactical AI's next decisions (e.g. which production is queued).
+- If your leader asks for information you do not have or cannot validate, respond faithfully and explain the reason.`;
 
   /**
    * Description of Cities report

@@ -181,6 +181,8 @@ class GetOptionsTool extends ToolBase {
             grandStrategyDescriptions?.[strategyName] ?? strategyName
           ])
       ),
+      Flavors: undefined,
+      Strategies: undefined,
       Research: technologies && Array.isArray(technologies) && cleanOptions.Technologies.length > 0 ?
         Object.fromEntries(
           cleanOptions.Technologies.map(techName => {
@@ -221,41 +223,6 @@ class GetOptionsTool extends ToolBase {
         ) : cleanOptions.Policies.concat(cleanOptions.PolicyBranches)
     };
 
-    if (isFlavorMode) {
-      // In Flavor mode: Add flavors, hide economic/military strategies
-      optionsObject.Flavors = flavorDescriptions;
-    } else {
-      // In Strategy mode: Add economic and military strategies
-      if (economicStrategies && Array.isArray(economicStrategies)) {
-        optionsObject.EconomicStrategies = Object.fromEntries(
-          cleanOptions.EconomicStrategies.map(strategyName => {
-            const strategy = economicStrategies.find((s: any) => s.Type === strategyName);
-            return [
-              strategyName,
-              strategy?.Description ?? {
-                Production: strategy?.Production,
-                Overall: strategy?.Overall
-              }
-            ];
-          })
-        );
-      }
-      if (militaryStrategies && Array.isArray(militaryStrategies)) {
-        optionsObject.MilitaryStrategies = Object.fromEntries(
-          cleanOptions.MilitaryStrategies.map(strategyName => {
-            const strategy = militaryStrategies.find((s: any) => s.Type === strategyName);
-            return [
-              strategyName,
-              strategy?.Description ?? {
-                Production: strategy?.Production,
-                Overall: strategy?.Overall
-              }
-            ];
-          })
-        );
-      }
-    }
-
     // Build result object
     const result: any = {
       Persona: persona as Record<string, string | number> | undefined,
@@ -279,6 +246,7 @@ class GetOptionsTool extends ToolBase {
         GrandStrategy: strategies?.GrandStrategy,
         Flavors: flavorValues
       };
+      optionsObject.Flavors = flavorDescriptions;
     } else {
       // In Strategy mode: Add strategy information
       result.Strategy = {
@@ -287,6 +255,30 @@ class GetOptionsTool extends ToolBase {
         EconomicStrategies: strategies?.EconomicStrategies,
         MilitaryStrategies: strategies?.MilitaryStrategies
       };
+      optionsObject.EconomicStrategies = Object.fromEntries(
+        cleanOptions.EconomicStrategies.map(strategyName => {
+          const strategy = economicStrategies!.find((s: any) => s.Type === strategyName);
+          return [
+            strategyName,
+            strategy?.Description ?? {
+              Production: strategy?.Production,
+              Overall: strategy?.Overall
+            }
+          ];
+        })
+      );
+      optionsObject.MilitaryStrategies = Object.fromEntries(
+        cleanOptions.MilitaryStrategies.map(strategyName => {
+          const strategy = militaryStrategies!.find((s: any) => s.Type === strategyName);
+          return [
+            strategyName,
+            strategy?.Description ?? {
+              Production: strategy?.Production,
+              Overall: strategy?.Overall
+            }
+          ];
+        })
+      );
     }
 
     return result;

@@ -7,7 +7,7 @@
 
 import { StepResult, Tool } from "ai";
 import { Strategist } from "../strategist.js";
-import { StrategistParameters } from "../strategy-parameters.js";
+import { StrategistParameters, StrategyDecisionType } from "../strategy-parameters.js";
 
 /**
  * Base class for simple strategist agents.
@@ -65,14 +65,16 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
   - Your briefer(s) ARE BEST on summarizing and synthesizing factual information, NOT analyzing, projecting, or predicting.`;
 
   /**
-   * Shared prompt: Decision-making description
+   * Shared prompt: Decision-making description in the Strategy mode
    */
-  public static readonly decisionPrompt = `- Each turn, you must call either \`set-strategy\` or \`keep-status-quo\` tool.
-  - Set an appropriate grand strategy and supporting economic/military strategies by calling the \`set-strategy\` tool.
+  public static getDecisionPrompt(mode: StrategyDecisionType) {
+    return `- Each turn, you must call either \`${mode == "Flavor" ? "set-flavor" : "set-strategy"}\` or \`keep-status-quo\` tool.
+  - Set an appropriate grand strategy and ${mode == "Flavor" ? "additional flavors" : "supporting economic/military strategies"} by calling the \`${mode == "Flavor" ? "set-flavor" : "set-strategy"}\` tool.
   - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
-  - Strategies change the weight of the in-game AI's NEXT decision. It will NOT change existing production queues (or other similar things).
+  - ${mode === "Flavor" ? "Flavors" : "Strategies"} change the weight of the in-game AI's NEXT decision. It will NOT change existing production queues, etc.
   - While only one grand strategy can be active, you can pursue multiple synergistic victory pathways.
 - Always provide a short paragraph of rationale for each tool. You will read this rationale next turn.`;
+  }
 
   // ============================================================
   // Resource Section Prompts (for Resources section)
@@ -117,10 +119,10 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
   /**
    * Gets the list of active tools for this agent
    */
-  public getActiveTools(_parameters: StrategistParameters): string[] | undefined {
+  public getActiveTools(parameters: StrategistParameters): string[] | undefined {
     // Return specific tools the strategist needs
     return [
-      "set-strategy",
+      parameters.mode === "Strategy" ? "set-strategy" : "set-flavor",
       "set-persona",
       "set-research",
       "set-policy",
@@ -142,6 +144,10 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
       for (const result of step.toolResults) {
         if (result.toolName === "set-strategy" && result.output) {
           this.logger.debug("Set-strategy tool executed, stopping agent");
+          return true;
+        }
+        if (result.toolName === "set-flavor" && result.output) {
+          this.logger.debug("Set-flavor tool executed, stopping agent");
           return true;
         }
         if (result.toolName === "keep-status-quo" && result.output) {

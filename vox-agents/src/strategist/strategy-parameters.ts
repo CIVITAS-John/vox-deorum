@@ -7,6 +7,7 @@ import type { MilitaryReport } from "../../../mcp-server/dist/tools/knowledge/ge
 import type { OptionsReport } from "../../../mcp-server/dist/tools/knowledge/get-options.js";
 import type { VictoryProgressReport } from "../../../mcp-server/dist/tools/knowledge/get-victory-progress.js";
 import type { GameMetadata } from "../../../mcp-server/dist/tools/knowledge/get-metadata.js"
+import { Strategist } from "./strategist.js";
 
 /**
  * Parameters for the strategist agent
@@ -22,7 +23,14 @@ export interface StrategistParameters extends AgentParameters {
   workingMemory: Record<string, string>;
   /** Map of turn numbers to game states as a memory store */
   gameStates: Record<number, GameState>;
+  /** Decision type the strategist is going to make. */
+  mode: StrategyDecisionType;
 }
+
+/**
+ * Decision type the strategist is going to make. Either through in-game preset strategy, or through flavors.
+ */
+export type StrategyDecisionType = "Strategy" | "Flavor";
 
 /**
  * Game state snapshot containing all relevant game information at a specific turn
@@ -87,7 +95,7 @@ export async function refreshGameState(
     context.callTool("get-players", {}, parameters),
     context.callTool("get-events", {}, parameters),
     context.callTool("get-cities", {}, parameters),
-    context.callTool("get-options", {}, parameters),
+    context.callTool("get-options", { Mode: parameters.mode }, parameters),
     context.callTool("get-victory-progress", {}, parameters),
     context.callTool("get-military-report", {}, parameters),
   ]);

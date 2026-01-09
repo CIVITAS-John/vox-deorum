@@ -54,7 +54,8 @@ export class VoxPlayer {
       after: initialTurn * 1000000,
       before: 0,
       workingMemory: {},
-      gameStates: {}
+      gameStates: {},
+      mode: playerConfig.mode ?? "Flavor"
     };
   }
 
