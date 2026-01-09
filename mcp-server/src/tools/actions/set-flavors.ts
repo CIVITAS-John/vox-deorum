@@ -10,6 +10,7 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 import { constantCase, pascalCase } from "change-case";
+import { retrieveEnumName, retrieveEnumValue } from "../../utils/knowledge/enum.js";
 
 /**
  * All available flavor types in PascalCase
@@ -32,8 +33,9 @@ const flavorKeys = [
  * Schema for the result returned by the Lua script
  */
 const SetFlavorsResultSchema = z.object({
-  previousGrandStrategy: z.string().optional(),
-  previousFlavors: z.record(z.string(), z.number())
+  Changed: z.boolean(),
+  GrandStrategy: z.number(),
+  Flavors: z.record(z.string(), z.number())
 });
 
 type SetFlavorsResultType = z.infer<typeof SetFlavorsResultSchema>;
@@ -58,19 +60,14 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Set custom flavor values and/or grand strategy for a player that override default AI preferences. Custom flavors auto-expire after 10 turns.";
+  readonly description = "Set flavor values and/or grand strategy to shape tactical AI preferences for next actions without changing ongoing queues.";
 
   /**
    * Input schema for the set-flavors tool
    */
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
-    GrandStrategy: z.enum([
-      "AIGRANDSTRATEGY_CONQUEST",
-      "AIGRANDSTRATEGY_CULTURE",
-      "AIGRANDSTRATEGY_UNITED_NATIONS",
-      "AIGRANDSTRATEGY_SPACESHIP"
-    ]).optional().describe("Grand strategy to set for the player (optional)"),
+    GrandStrategy: z.string().optional().describe("The grand strategy name to set (and override)"),
     Flavors: z.record(
       z.enum(flavorKeys),
       z.number().min(0).max(20)
@@ -86,7 +83,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
   /**
    * The Lua function arguments
    */
-  protected arguments = ["playerID", "flavors", "grandStrategy"];
+  protected arguments = ["playerID", "flavors", "grandId"];
 
   /**
    * Optional annotations for the Lua executor tool
@@ -107,6 +104,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
    */
   protected script = `
     local activePlayer = Players[playerID]
+    local changed = false
 
     -- Capture previous grand strategy
     local previousGrandStrategy = activePlayer:GetGrandStrategy()
@@ -115,13 +113,17 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     local previousFlavors = activePlayer:GetCustomFlavors()
 
     -- Set grand strategy if provided
-    if grandStrategy then
-      activePlayer:SetGrandStrategy(grandStrategy)
+    if grandId ~= -1 then
+      if activePlayer:SetGrandStrategy(grandId) then
+        changed = true
+      end
     end
 
     -- Set custom flavors if provided
     if flavors then
-      activePlayer:SetCustomFlavors(flavors)
+      if activePlayer:SetCustomFlavors(flavors) then
+        changed = true
+      end
     end
 
     -- Clear the military/economic strategies as we don't need them
@@ -130,8 +132,9 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
 
     -- Return the previous values
     return {
-      previousGrandStrategy = previousGrandStrategy,
-      previousFlavors = previousFlavors
+      Changed = changed,
+      GrandStrategy = previousGrandStrategy,
+      Flavors = previousFlavors
     }
   `;
 
@@ -148,11 +151,12 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     }
 
     // Call the parent execute with the converted flavors and grand strategy
-    const result = await super.call(args.PlayerID, flavorsTable, args.GrandStrategy || null);
+    let grandStrategyId = retrieveEnumValue("GrandStrategy", args.GrandStrategy)
+    const result = await super.call(args.PlayerID, flavorsTable, grandStrategyId);
 
     if (result.Success) {
       const store = knowledgeManager.getStore();
-      const { previousGrandStrategy, previousFlavors } = result.Result!;
+      const previous = result.Result!;
 
       // Build the complete flavor state to store
       const flavorChange: any = {
@@ -164,8 +168,8 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       const currentFlavors: Record<string, number> = {};
 
       // Convert previous flavors from FLAVOR_ format to PascalCase
-      if (previousFlavors) {
-        for (const [key, value] of Object.entries(previousFlavors)) {
+      if (previous.Flavors) {
+        for (const [key, value] of Object.entries(previous.Flavors)) {
           // Use pascalCase from change-case for consistency
           const withoutPrefix = key.replace(/^FLAVOR_/, '');
           const pascalKey = pascalCase(withoutPrefix);
@@ -173,14 +177,27 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
         }
       }
 
-      // Apply the new flavor values (overwriting existing ones)
+      const changeDescriptions: string[] = [];
+      // Add grand strategy change if provided
+      let previousGrandStrategy = retrieveEnumName("GrandStrategy", previous.GrandStrategy);
+      if (args.GrandStrategy && previousGrandStrategy !== args.GrandStrategy) {
+        changeDescriptions.push(`Grand Strategy: ${previousGrandStrategy} → ${args.GrandStrategy}`);
+      }
+
+      // Compare values and apply the new flavors
       if (args.Flavors) {
+        for (const [key, value] of Object.entries(args.Flavors)) {
+          const beforeValue = currentFlavors?.[key];
+          if (beforeValue !== undefined && beforeValue !== value) {
+            changeDescriptions.push(`${key}: ${beforeValue} → ${value}`);
+          }
+        }
         Object.assign(currentFlavors, args.Flavors);
       }
 
       // Store ALL flavors (both existing and new) in the knowledge store
       for (const key of flavorKeys) {
-        flavorChange[key] = currentFlavors[key] ?? null;
+        flavorChange[key] = currentFlavors[key] ?? 0;
       }
 
       // Store in the database
@@ -192,24 +209,6 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       );
 
       // Compare and send replay messages for actual changes
-      const changeDescriptions: string[] = [];
-
-      // Add grand strategy change if provided
-      if (args.GrandStrategy && previousGrandStrategy !== args.GrandStrategy) {
-        changeDescriptions.push(`Grand Strategy: ${previousGrandStrategy} → ${args.GrandStrategy}`);
-      }
-
-      // Add flavor changes if provided
-      if (args.Flavors) {
-        for (const [key, value] of Object.entries(args.Flavors)) {
-          const flavorKey = convertToFlavorFormat(key);
-          const beforeValue = previousFlavors?.[flavorKey];
-          if (beforeValue !== undefined && beforeValue !== value) {
-            changeDescriptions.push(`${key}: ${beforeValue} → ${value}`);
-          }
-        }
-      }
-
       if (changeDescriptions.length > 0) {
         const message = `Changed AI preferences: ${changeDescriptions.join("; ")}. Rationale: ${args.Rationale}`;
         await addReplayMessages(args.PlayerID, message);

@@ -192,43 +192,43 @@ export interface PersonaChange extends MutableKnowledge {
  */
 export interface FlavorChange extends MutableKnowledge {
   // Military Flavors (17)
-  Offense: number | null;
-  Defense: number | null;
-  CityDefense: number | null;
-  MilitaryTraining: number | null;
-  Recon: number | null;
-  Ranged: number | null;
-  Mobile: number | null;
-  Nuke: number | null;
-  UseNuke: number | null;
-  Naval: number | null;
-  NavalRecon: number | null;
-  NavalGrowth: number | null;
-  NavalTileImprovement: number | null;
-  Air: number | null;
-  AirCarrier: number | null;
-  AntiAir: number | null;
-  Airlift: number | null;
+  Offense: number;
+  Defense: number;
+  CityDefense: number;
+  MilitaryTraining: number;
+  Recon: number;
+  Ranged: number;
+  Mobile: number;
+  Nuke: number;
+  UseNuke: number;
+  Naval: number;
+  NavalRecon: number;
+  NavalGrowth: number;
+  NavalTileImprovement: number;
+  Air: number;
+  AirCarrier: number;
+  AntiAir: number;
+  Airlift: number;
 
   // Economy Flavors (9)
-  Expansion: number | null;
-  Growth: number | null;
-  TileImprovement: number | null;
-  Infrastructure: number | null;
-  Production: number | null;
-  WaterConnection: number | null;
-  Gold: number | null;
-  Science: number | null;
-  Culture: number | null;
+  Expansion: number;
+  Growth: number;
+  TileImprovement: number;
+  Infrastructure: number;
+  Production: number;
+  WaterConnection: number;
+  Gold: number;
+  Science: number;
+  Culture: number;
 
   // Development Flavors (7)
-  Happiness: number | null;
-  GreatPeople: number | null;
-  Wonder: number | null;
-  Religion: number | null;
-  Diplomacy: number | null;
-  Spaceship: number | null;
-  Espionage: number | null;
+  Happiness: number;
+  GreatPeople: number;
+  Wonder: number;
+  Religion: number;
+  Diplomacy: number;
+  Spaceship: number;
+  Espionage: number;
 
   // Metadata
   Rationale: string;
