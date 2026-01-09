@@ -3,10 +3,10 @@ import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
 import * as z from "zod";
 import * as changeCase from "change-case";
-import * as fs from "fs/promises";
 import * as path from "path";
 import { createLogger } from "../../utils/logger.js";
 import { writeJsonIfChanged } from "../../utils/file-utils.js";
+import { loadEconomicStrategies, type EconomicStrategy } from "../../utils/strategies/loader.js";
 
 const logger = createLogger('GetEconomicStrategyTool');
 
@@ -19,8 +19,6 @@ const EconomicStrategySchema = z.object({
   Overall: z.record(z.string(), z.number()),
   Description: z.string().optional()
 });
-
-type EconomicStrategy = z.infer<typeof EconomicStrategySchema>;
 
 /**
  * Tool for querying AI economic strategies from the game database
@@ -88,25 +86,18 @@ class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, Econom
       OverallWeightsByStrategy.get(flavor.AIEconomicStrategyType!)!.push(flavor);
     }
 
-    // Read existing descriptions from JSON file
-    const jsonPath = path.join(process.cwd(), 'docs', 'strategies', 'economic.json');
+    // Read existing descriptions from JSON file using cached loader
     let existingDescriptions = new Map<string, string>();
+    const existingData = await loadEconomicStrategies();
 
-    try {
-      const fileContent = await fs.readFile(jsonPath, 'utf-8');
-      const existingData = JSON.parse(fileContent) as EconomicStrategy[];
-
-      for (const item of existingData) {
-        if (item.Description) {
-          existingDescriptions.set(item.Type, item.Description);
-        }
-      }
-    } catch (error: any) {
-      // File doesn't exist or is invalid, will create it below
-      if (error.code !== 'ENOENT') {
-        logger.warn(`Warning reading economic.json: ${error.message}`);
+    for (const item of existingData) {
+      if (item.Description) {
+        existingDescriptions.set(item.Type, item.Description);
       }
     }
+
+    // Path for writing the file (still needed for updates)
+    const jsonPath = path.join(process.cwd(), 'docs', 'strategies', 'economic.json');
 
     const results: EconomicStrategy[] = [];
 

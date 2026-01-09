@@ -3,10 +3,10 @@ import { gameDatabase } from "../../server.js";
 import { DatabaseQueryTool } from "../abstract/database-query.js";
 import * as z from "zod";
 import * as changeCase from "change-case";
-import * as fs from "fs/promises";
 import * as path from "path";
 import { createLogger } from "../../utils/logger.js";
 import { writeJsonIfChanged } from "../../utils/file-utils.js";
+import { loadMilitaryStrategies, type MilitaryStrategy } from "../../utils/strategies/loader.js";
 
 const logger = createLogger('GetMilitaryStrategyTool');
 
@@ -19,8 +19,6 @@ const MilitaryStrategySchema = z.object({
   Overall: z.record(z.string(), z.number()),
   Description: z.string().optional()
 });
-
-type MilitaryStrategy = z.infer<typeof MilitaryStrategySchema>;
 
 /**
  * Tool for querying AI military strategies from the game database
@@ -88,25 +86,18 @@ class GetMilitaryStrategyTool extends DatabaseQueryTool<MilitaryStrategy, Milita
       OverallWeightsByStrategy.get(flavor.AIMilitaryStrategyType!)!.push(flavor);
     }
 
-    // Read existing descriptions from JSON file
-    const jsonPath = path.join(process.cwd(), 'docs', 'strategies', 'military.json');
+    // Read existing descriptions from JSON file using cached loader
     let existingDescriptions = new Map<string, string>();
+    const existingData = await loadMilitaryStrategies();
 
-    try {
-      const fileContent = await fs.readFile(jsonPath, 'utf-8');
-      const existingData = JSON.parse(fileContent) as MilitaryStrategy[];
-
-      for (const item of existingData) {
-        if (item.Description) {
-          existingDescriptions.set(item.Type, item.Description);
-        }
-      }
-    } catch (error: any) {
-      // File doesn't exist or is invalid, will create it below
-      if (error.code !== 'ENOENT') {
-        logger.warn(`Warning reading military.json: ${error.message}`);
+    for (const item of existingData) {
+      if (item.Description) {
+        existingDescriptions.set(item.Type, item.Description);
       }
     }
+
+    // Path for writing the file (still needed for updates)
+    const jsonPath = path.join(process.cwd(), 'docs', 'strategies', 'military.json');
 
     const results: MilitaryStrategy[] = [];
 

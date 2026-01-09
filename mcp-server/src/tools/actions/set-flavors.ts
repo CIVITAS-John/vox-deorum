@@ -11,23 +11,7 @@ import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 import { constantCase, pascalCase } from "change-case";
 import { retrieveEnumName, retrieveEnumValue } from "../../utils/knowledge/enum.js";
-
-/**
- * All available flavor types in PascalCase
- */
-const flavorKeys = [
-  // Military (17)
-  "Offense", "Defense", "CityDefense", "MilitaryTraining",
-  "Recon", "Ranged", "Mobile", "Nuke", "UseNuke",
-  "Naval", "NavalRecon", "NavalGrowth", "NavalTileImprovement",
-  "Air", "AirCarrier", "AntiAir", "Airlift",
-  // Economy (9)
-  "Expansion", "Growth", "TileImprovement", "Infrastructure",
-  "Production", "WaterConnection", "Gold", "Science", "Culture",
-  // Development (7)
-  "Happiness", "GreatPeople", "Wonder", "Religion",
-  "Diplomacy", "Spaceship", "Espionage"
-] as const;
+import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -69,7 +53,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
     GrandStrategy: z.string().optional().describe("The grand strategy name to set (and override)"),
     Flavors: z.record(
-      z.enum(flavorKeys),
+      z.string(),
       z.number().min(0).max(20)
     ).optional().describe("Flavor values to set (0-20 scale). Available flavors: Military (Offense, Defense, CityDefense, MilitaryTraining, Recon, Ranged, Mobile, Nuke, UseNuke, Naval, NavalRecon, NavalGrowth, NavalTileImprovement, Air, AirCarrier, AntiAir, Airlift), Economy (Expansion, Growth, TileImprovement, Infrastructure, Production, WaterConnection, Gold, Science, Culture), Development (Happiness, GreatPeople, Wonder, Religion, Diplomacy, Spaceship, Espionage)"),
     Rationale: z.string().describe("Briefly explain your rationale for these adjustments")
@@ -142,11 +126,19 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
    * Execute the set-flavors command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
+    // Load valid flavor keys from JSON
+    const validFlavors = await loadFlavorDescriptions();
+    const validFlavorKeys = Object.keys(validFlavors);
+
     // Convert PascalCase keys to FLAVOR_ format if flavors are provided
+    // Only include flavors that exist in the JSON file
     const flavorsTable: Record<string, number> | null = args.Flavors ? {} : null;
     if (args.Flavors) {
       for (const [key, value] of Object.entries(args.Flavors)) {
-        flavorsTable![convertToFlavorFormat(key)] = value;
+        // Gracefully drop invalid flavor keys
+        if (validFlavorKeys.includes(key)) {
+          flavorsTable![convertToFlavorFormat(key)] = value;
+        }
       }
     }
 
@@ -196,7 +188,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       }
 
       // Store ALL flavors (both existing and new) in the knowledge store
-      for (const key of flavorKeys) {
+      for (const key of validFlavorKeys) {
         flavorChange[key] = currentFlavors[key] ?? 0;
       }
 

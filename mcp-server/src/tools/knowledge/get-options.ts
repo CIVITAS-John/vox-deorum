@@ -15,23 +15,8 @@ import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
 import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
 import { enumMappings } from "../../utils/knowledge/enum.js";
 import { getTool } from "../index.js";
-import * as fs from "fs/promises";
-import * as path from "path";
 import { formatPolicyHelp } from "../../utils/database/format.js";
-
-/**
- * Load grand strategy descriptions from JSON file
- */
-async function loadGrandStrategyDescriptions(): Promise<Record<string, string>> {
-  try {
-    const jsonPath = path.join(process.cwd(), 'docs', 'strategies', 'grand-strategy.json');
-    const content = await fs.readFile(jsonPath, 'utf-8');
-    return JSON.parse(content);
-  } catch (error) {
-    // Return empty object if file doesn't exist or can't be read
-    return {};
-  }
-}
+import { loadGrandStrategyDescriptions } from "../../utils/strategies/loader.js";
 
 /**
  * Input schema for the GetOptions tool
