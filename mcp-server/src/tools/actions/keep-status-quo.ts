@@ -57,7 +57,7 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
    * Optional metadata
    */
   readonly metadata = {
-    autoComplete: ["PlayerID"]
+    autoComplete: ["PlayerID", "Mode"]
   }
 
   /**
