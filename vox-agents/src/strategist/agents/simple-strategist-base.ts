@@ -72,7 +72,7 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
     return `- Each turn, you must call either \`${mode == "Flavor" ? "set-flavors" : "set-strategy"}\` or \`keep-status-quo\` tool.
   - Set an appropriate grand strategy and ${mode == "Flavor" ? "additional flavors" : "supporting economic/military strategies"} by calling the \`${mode == "Flavor" ? "set-flavors" : "set-strategy"}\` tool.
   - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
-  - ${mode === "Flavor" ? "Flavors" : "Strategies"} change the weight of the in-game AI's NEXT decision. It will NOT change existing production queues, etc.${mode === "Flavor" ? "\n  - Flavor values are typically -100 (deprioritize a lot) to 100 (prioritize a lot). Larger numbers will change tactical decisions more, e.g. -200 for blocking a decision." : ""}
+  - ${mode === "Flavor" ? "Flavors" : "Strategies"} change the weight of the in-game AI's NEXT decision. It will NOT change existing production queues, etc.${mode === "Flavor" ? "\n  - Flavor numbers has 50 as baseline. Multiple competing priorities will weaken each flavor's impact." : ""}
   - While only one grand strategy can be active, you can pursue multiple synergistic victory pathways.
 - Always provide a short paragraph of rationale for each tool. You will read this rationale next turn.`;
   }

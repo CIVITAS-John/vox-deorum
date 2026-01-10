@@ -14,6 +14,7 @@ import { retrieveEnumName, retrieveEnumValue } from "../../utils/knowledge/enum.
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
 import { FlavorChange } from "../../knowledge/schema/timed.js";
 import { Insertable } from "kysely";
+import { mcpToGameFlavor, gameToMcpFlavor } from "../../utils/flavor-mapping.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -62,7 +63,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Set flavor values and/or grand strategy to shape tactical AI preferences without changing ongoing queues. Only send in values you intend to change.";
+  readonly description = "Set flavor values (0-100, 50 is balanced) and/or grand strategy to shape tactical AI preferences without changing ongoing queues. Only send in values you intend to change.";
 
   /**
    * Input schema for the set-flavors tool
@@ -72,8 +73,8 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     GrandStrategy: z.string().optional().describe("The grand strategy name to set (and override)"),
     Flavors: z.record(
       z.string(),
-      z.number().min(-300).max(300)
-    ).optional().describe("Flavor values to set. Positive for prioritizing, negative for deprioritizing."),
+      z.number()
+    ).optional().describe("Flavor values to set: 0 = completely deprioritize, 50 = balanced, 100 = overwhelmingly prioritize."),
     Rationale: z.string().describe("Briefly explain your rationale for these adjustments")
   });
 
@@ -150,13 +151,19 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
 
     // Convert PascalCase keys to FLAVOR_ format if flavors are provided
     // Only include flavors that exist in the JSON file
+    // Clamp values to 0-100 range and convert to in-game range (-300 to 300 or 0-10)
     const flavorsTable: Record<string, number> = {};
     const newFlavors: Record<string, number> = {};
     if (args.Flavors) {
       for (const [key, value] of Object.entries(args.Flavors)) {
         if (validFlavorKeys.includes(key)) {
-          flavorsTable[convertToFlavorFormat(key)] = value;
-          newFlavors[key] = value;
+          // Clamp to MCP range (0-100)
+          const clampedMcpValue = Math.max(0, Math.min(100, value));
+          // Convert to in-game range (-300 to 300 or 0-10 for special flavors)
+          const gameValue = mcpToGameFlavor(clampedMcpValue, key);
+
+          flavorsTable[convertToFlavorFormat(key)] = gameValue;
+          newFlavors[key] = clampedMcpValue;
         }
       }
     }
@@ -175,12 +182,13 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       };
 
       // Start with all existing flavor values from GetCustomFlavors
+      // Convert from in-game range (-300 to 300 or 0-10) to MCP range (0-100)
       const currentFlavors: Record<string, number> = {};
       for (const [key, value] of Object.entries(previous.Flavors)) {
         // Use pascalCase from change-case for consistency
         const withoutPrefix = key.replace(/^FLAVOR_/, '');
         const pascalKey = pascalCase(withoutPrefix);
-        currentFlavors[pascalKey] = value as number;
+        currentFlavors[pascalKey] = gameToMcpFlavor(value as number, pascalKey);
       }
 
       const changeDescriptions: string[] = [];

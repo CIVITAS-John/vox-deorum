@@ -214,10 +214,12 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
   private async handleGameSwitched(params: any): Promise<void> {
     // If nothing is changing, ignore this
     if (params.gameID === this.lastGameID) return;
+    if (this.state === 'stopping' || this.state === 'stopped') return;
     this.lastGameID = params.gameID;
     this.gameID = params.gameID;  // Update current game ID
     this.turn = params.turn;  // Update current turn
     logger.warn(`Game context switching to ${params.gameID} at turn ${params.turn}`);
+    if (this.state === 'starting') this.onStateChange('running');
 
     // Abort all existing players
     for (const player of this.activePlayers.values()) {

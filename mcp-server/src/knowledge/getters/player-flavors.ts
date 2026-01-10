@@ -8,6 +8,7 @@ import { knowledgeManager } from "../../server.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { FlavorChange } from "../schema/timed.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
+import { gameToMcpFlavor } from "../../utils/flavor-mapping.js";
 
 const logger = createLogger("ReadPlayerFlavors");
 
@@ -53,16 +54,17 @@ export async function getPlayerFlavors(playerId: number): Promise<FlavorChange |
   // Load all available flavors from the cache to ensure we include zeros
   const allFlavors = await loadFlavorDescriptions();
 
-  // Initialize cleanedFlavors with all flavors set to 0
+  // Initialize cleanedFlavors with all flavors set to 50 (balanced in MCP range)
   const cleanedFlavors: Record<string, number> = {};
   for (const flavorName of Object.keys(allFlavors)) {
-    cleanedFlavors[flavorName] = 0;
+    cleanedFlavors[flavorName] = 50;
   }
 
   // Update with actual values from the game, removing "FLAVOR_" prefix
+  // Convert from in-game range (-300 to 300 or 0-10) to MCP range (0-100)
   for (const [key, value] of Object.entries(flavors)) {
     const cleanKey = key.replace(/^FLAVOR_/, '');
-    cleanedFlavors[cleanKey] = value as number;
+    cleanedFlavors[cleanKey] = gameToMcpFlavor(value as number, cleanKey);
   }
 
   // Store the flavors in the knowledge database
