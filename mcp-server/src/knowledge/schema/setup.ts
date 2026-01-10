@@ -3,10 +3,10 @@
  * Handles SQLite database creation and schema migration using Kysely
  */
 
-import { Kysely } from 'kysely';
+import { Kysely, sql } from 'kysely';
 import { MaxMajorCivs, type KnowledgeDatabase } from './base.js';
-import { 
-  createPublicKnowledgeTable, 
+import {
+  createPublicKnowledgeTable,
   createTimedKnowledgeTable,
   createTimedKnowledgeIndexes,
   createPublicKnowledgeIndexes,
@@ -65,15 +65,23 @@ export async function setupKnowledgeDatabase(
   // Create indexes for ResearchChanges table
   await createMutableKnowledgeIndexes(db, 'ResearchChanges');
 
-  // Create RelationshipChanges table (MutableKnowledge implementation)
-  await createMutableKnowledgeTable(db, 'RelationshipChanges')
-    .addColumn('TargetPlayerID', 'integer', (col) => col.notNull())
+  // Create RelationshipChanges table (TimedKnowledge implementation)
+  await createTimedKnowledgeTable(db, 'RelationshipChanges')
+    .addColumn('PlayerID', 'integer', (col) => col.notNull())
+    .addColumn('TargetID', 'integer', (col) => col.notNull())
     .addColumn('PublicValue', 'integer', (col) => col.notNull())
     .addColumn('PrivateValue', 'integer', (col) => col.notNull())
     .addColumn('Rationale', 'text', (col) => col.notNull())
     .execute();
   // Create indexes for RelationshipChanges table
-  await createMutableKnowledgeIndexes(db, 'RelationshipChanges');
+  await createTimedKnowledgeIndexes(db, 'RelationshipChanges', 'PlayerID');
+  // Create additional index for TargetID
+  await db.schema
+    .createIndex('idx_relationshipchanges_targetid')
+    .on('RelationshipChanges')
+    .columns(['TargetID', 'Turn'])
+    .ifNotExists()
+    .execute();
 
   // Create PlayerOptions table (TimedKnowledge implementation)
   await createTimedKnowledgeTable(db, 'PlayerOptions')
@@ -136,9 +144,10 @@ export async function setupKnowledgeDatabase(
 
   // Create FlavorChanges table (MutableKnowledge implementation)
   await createMutableKnowledgeTable(db, 'FlavorChanges')
-    // Military Flavors (17)
+    // Military Flavors (18)
     .addColumn('Offense', 'integer')
     .addColumn('Defense', 'integer')
+    .addColumn('Mobilization', 'integer')
     .addColumn('CityDefense', 'integer')
     .addColumn('MilitaryTraining', 'integer')
     .addColumn('Recon', 'integer')
@@ -315,34 +324,5 @@ export async function setupKnowledgeDatabase(
   // Create indexes for TacticalZones table
   await createTimedKnowledgeIndexes(db, 'TacticalZones', 'PlayerID');
 
-  // Run migrations for schema updates
-  await runMigrations(db);
-
   return db;
-}
-
-/**
- * Run database migrations to update schema
- * Migrations are idempotent and can be run multiple times safely
- */
-async function runMigrations(db: Kysely<KnowledgeDatabase>): Promise<void> {
-  // Migration: Add DiplomatPoints column to PlayerSummaries table
-  try {
-    await db.schema
-      .alterTable('PlayerSummaries')
-      .addColumn('DiplomatPoints', 'text')
-      .execute();
-  } catch (error) {
-    // Column already exists, ignore error
-  }
-
-  // Migration: Add BestSettlementLocation column to PlayerSummaries table
-  try {
-    await db.schema
-      .alterTable('PlayerSummaries')
-      .addColumn('BestSettlementLocation', 'text')
-      .execute();
-  } catch (error) {
-    // Column already exists, ignore error
-  }
 }

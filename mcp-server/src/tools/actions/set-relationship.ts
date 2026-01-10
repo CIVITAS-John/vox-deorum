@@ -41,7 +41,7 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
    */
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player setting the relationship"),
-    TargetPlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the target player"),
+    TargetID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the target player"),
     Public: z.number().default(0).describe("Public relationship modifier - visible diplomatic stance"),
     Private: z.number().default(0).describe("Private relationship modifier - hidden feelings/attitudes"),
     Rationale: z.string().describe("Briefly explain your rationale for this relationship change")
@@ -102,10 +102,10 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Extract the arguments
-    const { PlayerID, TargetPlayerID, Public, Private, Rationale } = args;
+    const { PlayerID, TargetID, Public, Private, Rationale } = args;
 
     // Call the parent execute with the relationship values
-    const result = await super.call(PlayerID, TargetPlayerID, Public, Private);
+    const result = await super.call(PlayerID, TargetID, Public, Private);
 
     if (result.Success && result.Result) {
       // Use the target player name from Lua result
@@ -113,15 +113,17 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
 
       // Store the relationship change in the knowledge database
       const store = knowledgeManager.getStore();
-      await store.storeMutableKnowledge(
+      await store.storeTimedKnowledgeBatch(
         'RelationshipChanges',
-        PlayerID,
-        {
-          TargetPlayerID,
-          PublicValue: Public,
-          PrivateValue: Private,
-          Rationale
-        }
+        [{
+          data: {
+            PlayerID,
+            TargetID,
+            PublicValue: Public,
+            PrivateValue: Private,
+            Rationale
+          }
+        }]
       );
 
       // Generate replay messages for changes

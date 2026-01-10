@@ -190,8 +190,9 @@ export interface PersonaChange extends MutableKnowledge {
  * Tracks both public and private relationship modifiers
  * Values are additive in diplomacy calculations
  */
-export interface RelationshipChange extends MutableKnowledge {
-  TargetPlayerID: number; // The player whose relationship is being modified
+export interface RelationshipChange extends TimedKnowledge {
+  PlayerID: number; // The player who sets the relationship
+  TargetID: number; // The player whose relationship is being modified
   PublicValue: number; // ScenarioModifier1 - visible diplomatic stance
   PrivateValue: number; // ScenarioModifier2 - hidden feelings/attitudes
   Rationale: string; // Explanation for the relationship change
