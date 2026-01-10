@@ -128,10 +128,6 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       end
     end
 
-    -- Clear the military/economic strategies as we don't need them
-    activePlayer:SetEconomicStrategies({})
-    activePlayer:SetMilitaryStrategies({})
-
     -- Return the previous values
     return {
       Changed = changed,

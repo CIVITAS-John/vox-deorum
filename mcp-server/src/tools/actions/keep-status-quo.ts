@@ -74,9 +74,7 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
       local currentFlavors = activePlayer:GetCustomFlavors()
 
       -- Re-apply the same custom flavors to refresh them
-      if currentFlavors then
-        activePlayer:SetCustomFlavors(currentFlavors)
-      end
+      activePlayer:SetCustomFlavors(currentFlavors)
     else
       -- Get current strategies
       local currentEconomic = activePlayer:GetEconomicStrategies()
