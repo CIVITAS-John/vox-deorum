@@ -80,21 +80,23 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
     local activePlayer = Players[playerID]
     local targetPlayer = Players[targetPlayerID]
 
+    -- Civ 5's score is defined reversely: +100 means very unhappy
+
     -- Get previous values
     local previousPublic = activePlayer:GetScenarioModifier1(targetPlayerID)
     local previousPrivate = activePlayer:GetScenarioModifier2(targetPlayerID)
 
     -- Set new values
-    activePlayer:SetScenarioModifier1(targetPlayerID, publicValue)
-    activePlayer:SetScenarioModifier2(targetPlayerID, privateValue)
+    activePlayer:SetScenarioModifier1(targetPlayerID, -1 * publicValue)
+    activePlayer:SetScenarioModifier2(targetPlayerID, -1 * privateValue)
 
     -- Get target player name
     local targetPlayerName = targetPlayer:GetCivilizationShortDescription()
 
     -- Return the previous values and target player name
     return {
-      PreviousPublic = previousPublic,
-      PreviousPrivate = previousPrivate,
+      PreviousPublic = -1 * previousPublic,
+      PreviousPrivate = -1 * previousPrivate,
       TargetPlayerName = targetPlayerName
     }
   `;

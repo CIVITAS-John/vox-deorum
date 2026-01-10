@@ -38,7 +38,7 @@ const GetOptionsOutputSchema = z.object({
     MilitaryStrategies: z.any().optional(),
     EconomicStrategies: z.any().optional(),
     Flavors: z.any().optional(),
-    Research: z.any(),
+    Technologies: z.any(),
     Policies: z.any()
   }),
   // Persona fields
@@ -53,13 +53,13 @@ const GetOptionsOutputSchema = z.object({
     // Flavors - current custom flavor values (only in Flavor mode)
     Flavors: z.record(z.string(), z.number()).optional(),
   }),
-  // Research - current selection
-  Research: z.object({
+  // Technology - current selection
+  Technology: z.object({
     Next: z.string(),
     Rationale: z.string().optional()
   }),
-  // Policies - current selection
-  Policies: z.object({
+  // Policy - current selection
+  Policy: z.object({
     Next: z.string(),
     Rationale: z.string().optional()
   }),
@@ -193,7 +193,7 @@ class GetOptionsTool extends ToolBase {
       ),
       Flavors: undefined,
       Strategies: undefined,
-      Research: technologies && Array.isArray(technologies) && cleanOptions.Technologies.length > 0 ?
+      Technologies: technologies && Array.isArray(technologies) && cleanOptions.Technologies.length > 0 ?
         Object.fromEntries(
           cleanOptions.Technologies.map(techName => {
             const tech = technologies.find((s) => s.Name === techName);
@@ -237,11 +237,11 @@ class GetOptionsTool extends ToolBase {
     const result: any = {
       Persona: persona as Record<string, string | number> | undefined,
       Options: optionsObject,
-      Research: {
+      Technology: {
         Next: research?.Technology ?? "None",
         Rationale: research?.Rationale
       },
-      Policies: {
+      Policy: {
         Next: policy?.Policy ? `${policy.Policy} (${policy.IsBranch ? "New Branch" : "Policy"})` : "None",
         Rationale: policy?.Rationale
       },

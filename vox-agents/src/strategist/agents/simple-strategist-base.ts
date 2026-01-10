@@ -50,7 +50,7 @@ export abstract class SimpleStrategistBase extends Strategist {
    */
   public static readonly goalsPrompt = `# Goals
 Your goal is to **call as many tools as you need** to make high-level decisions for the in-game AI.
-- Each tool has a list of acceptable options, and you must use them.
+- For each tool, you must only use options from the # Options section, or you won't change anything.
 - Carefully reason about the current situation and available options, and what kind of change each option will bring.
   - When the situation requires, do not shy away from pivoting strategies.
   - Analyze both your situation and your opponents. Avoid wishful thinking.
@@ -89,8 +89,8 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
    */
   public static readonly optionsDescriptionPrompt = `- Options: available strategic options for you.
   - Whatever decision-making tool you call, the in-game AI can only execute options here.
-  - You must choose strategic options from the relevant lists. Double-check if your choices match.
-  - It is often preferable to adopt branches unlocked in later eras; and to finish existing branches before starting new ones.`;
+  - When using tools, you must choose available options from # Options. Double-check if your choices match.
+  - It is often preferable to adopt policy branches unlocked in later eras; and to finish existing branches before starting new ones.`;
 
   /**
    * Shared prompt: Strategies resource description
