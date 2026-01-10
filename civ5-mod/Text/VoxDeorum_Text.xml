@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameData>
+	<Language_en_US>
+		<Row Tag="TXT_KEY_SPECIFIC_DIPLO_STRING_1">
+			<Text>The leader has expressed a public opinion to you.</Text>
+		</Row>
+		<Row Tag="TXT_KEY_SPECIFIC_DIPLO_STRING_2">
+			<Text>The leader has a private opinion of you.</Text>
+		</Row>
+	</Language_en_US>
+</GameData>
