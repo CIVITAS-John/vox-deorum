@@ -23,9 +23,9 @@ import { detectChanges } from '../utils/knowledge/changes.js';
 import { MCPServer } from '../server.js';
 import { getPlayerInformations } from './getters/player-information.js';
 import { archiveGameData } from '../utils/knowledge/archive.js';
-// import { getPlayerStrategy } from './getters/player-strategy.js';
-// import { getPlayerPersona } from './getters/player-persona.js';
-// import { getPlayerOpinions } from './getters/player-opinions.js';
+import { getPlayerStrategy } from './getters/player-strategy.js';
+import { getPlayerPersona } from './getters/player-persona.js';
+import { getPlayerOpinions } from './getters/player-opinions.js';
 import { getPlayerSummaries } from './getters/player-summary.js';
 import { getCityInformations } from './getters/city-information.js';
 import { setTimeout } from 'node:timers/promises';
@@ -276,14 +276,13 @@ export class KnowledgeStore {
               ]);
             }
             // Store game data for examination
-            // Not necessary since our experiments now run all players as strategists
-            /*if (data.PlayerID < MaxMajorCivs) {
+            if (data.PlayerID < MaxMajorCivs) {
               await Promise.all([
                 getPlayerOpinions(data.PlayerID),
                 getPlayerStrategy(data.PlayerID),
                 getPlayerPersona(data.PlayerID)
               ]);
-            }*/
+            }
             knowledgeManager.updateActivePlayer(data.NextPlayerID);
           }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);
