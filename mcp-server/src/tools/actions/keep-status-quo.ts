@@ -9,7 +9,12 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
- * Tool that refreshes the current strategies and records the decision to keep the status quo
+ * Mode enum for keep-status-quo tool
+ */
+const ModeEnum = z.enum(["Flavor", "Strategy"]).default("Strategy");
+
+/**
+ * Tool that refreshes the current strategies/flavors and records the decision to keep the status quo
  */
 class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
   /**
@@ -27,6 +32,7 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
    */
   readonly inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
+    Mode: ModeEnum.describe("'Flavor' to reapply custom flavors, 'Strategy' to reapply strategies (default)"),
     Rationale: z.string().describe("Briefly explain why the current strategic direction should be maintained")
   });
 
@@ -38,7 +44,7 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
   /**
    * The Lua function arguments
    */
-  protected arguments = ["playerID"];
+  protected arguments = ["playerID", "mode"];
 
   /**
    * Optional annotations for the Lua executor tool
@@ -55,20 +61,31 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
   }
 
   /**
-   * The Lua script to execute - refreshes current strategies by reading and re-applying them
+   * The Lua script to execute - refreshes current strategies or flavors by reading and re-applying them
    */
   protected script = `
     local activePlayer = Players[playerID]
 
-    -- Get current strategies
     local currentGrand = activePlayer:GetGrandStrategy()
-    local currentEconomic = activePlayer:GetEconomicStrategies()
-    local currentMilitary = activePlayer:GetMilitaryStrategies()
-
-    -- Re-apply the same strategies to refresh them
     activePlayer:SetGrandStrategy(currentGrand)
-    activePlayer:SetEconomicStrategies(currentEconomic)
-    activePlayer:SetMilitaryStrategies(currentMilitary)
+
+    if mode == "Flavor" then
+      -- Get current custom flavors
+      local currentFlavors = activePlayer:GetCustomFlavors()
+
+      -- Re-apply the same custom flavors to refresh them
+      if currentFlavors then
+        activePlayer:SetCustomFlavors(currentFlavors)
+      end
+    else
+      -- Get current strategies
+      local currentEconomic = activePlayer:GetEconomicStrategies()
+      local currentMilitary = activePlayer:GetMilitaryStrategies()
+
+      -- Re-apply the same strategies to refresh them
+      activePlayer:SetEconomicStrategies(currentEconomic)
+      activePlayer:SetMilitaryStrategies(currentMilitary)
+    end
 
     return true
   `;
@@ -77,26 +94,43 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
    * Execute the keep-status-quo command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Call the Lua function to refresh strategies
-    const result = await super.call(args.PlayerID);
+    // Call the Lua function to refresh strategies or flavors
+    const result = await super.call(args.PlayerID, args.Mode);
 
     if (result.Success) {
       const store = knowledgeManager.getStore();
 
-      // Get the current strategies from the knowledge store
-      const previous = await store.getMutableKnowledge("StrategyChanges", args.PlayerID);
+      if (args.Mode === "Flavor") {
+        // Get the current flavors from the knowledge store
+        const previous = await store.getMutableKnowledge("FlavorChanges", args.PlayerID);
 
-      // Store the strategy (always) with the rationale
-      await store.storeMutableKnowledge(
-        'StrategyChanges',
-        args.PlayerID,
-        {
-          GrandStrategy: previous?.GrandStrategy,
-          MilitaryStrategies: previous?.MilitaryStrategies ?? [],
-          EconomicStrategies: previous?.EconomicStrategies ?? [],
-          Rationale: args.Rationale
+        if (previous) {
+          // Store the flavors with the rationale
+          await store.storeMutableKnowledge(
+            'FlavorChanges',
+            args.PlayerID,
+            {
+              ...previous,
+              Rationale: args.Rationale
+            }
+          );
         }
-      );
+      } else {
+        // Get the current strategies from the knowledge store
+        const previous = await store.getMutableKnowledge("StrategyChanges", args.PlayerID);
+
+        // Store the strategy (always) with the rationale
+        await store.storeMutableKnowledge(
+          'StrategyChanges',
+          args.PlayerID,
+          {
+            GrandStrategy: previous?.GrandStrategy,
+            MilitaryStrategies: previous?.MilitaryStrategies ?? [],
+            EconomicStrategies: previous?.EconomicStrategies ?? [],
+            Rationale: args.Rationale
+          }
+        );
+      }
     }
 
     return result;

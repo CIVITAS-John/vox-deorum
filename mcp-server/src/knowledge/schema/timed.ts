@@ -205,7 +205,9 @@ export interface RelationshipChange extends MutableKnowledge {
 export interface FlavorChange extends MutableKnowledge {
   // Military Flavors (17)
   Offense: number;
+  Offensive: number;
   Defense: number;
+  Defensive: number;
   CityDefense: number;
   MilitaryTraining: number;
   Recon: number;
