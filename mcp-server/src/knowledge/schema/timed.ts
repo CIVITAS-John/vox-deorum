@@ -204,11 +204,10 @@ export interface RelationshipChange extends TimedKnowledge {
  * Tracks custom flavor overrides for AI decision-making
  */
 export interface FlavorChange extends MutableKnowledge {
-  // Military Flavors (17)
+  // Military Flavors (18)
   Offense: number;
-  Offensive: number;
   Defense: number;
-  Defensive: number;
+  Mobilization: number;
   CityDefense: number;
   MilitaryTraining: number;
   Recon: number;
