@@ -73,7 +73,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     Flavors: z.record(
       z.string(),
       z.number().min(-300).max(300)
-    ).optional().describe("Flavor values to set."),
+    ).optional().describe("Flavor values to set. Positive for prioritizing, negative for deprioritizing."),
     Rationale: z.string().describe("Briefly explain your rationale for these adjustments")
   });
 
