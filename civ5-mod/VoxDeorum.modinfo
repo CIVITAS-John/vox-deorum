@@ -27,12 +27,14 @@
   <Files>
     <File import="0">SQL/VoxDeorum_Options.sql</File>
     <File import="0">Text/VoxDeorum_Text.xml</File>
+    <File import="0">Text/VoxDeorum_Text.lua</File>
     <File import="1">Mapscripts/Vox_Deorum.lua</File>
   </Files>
   <Actions>
     <OnModActivated>
       <UpdateDatabase>SQL/VoxDeorum_Options.sql</UpdateDatabase>
       <UpdateDatabase>Text/VoxDeorum_Text.xml</UpdateDatabase>
+      <UpdateDatabase>Text/VoxDeorum_Text.lua</UpdateDatabase>
     </OnModActivated>
   </Actions>
   <EntryPoints>
