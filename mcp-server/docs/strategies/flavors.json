@@ -19,7 +19,7 @@
 
   "NavalGrowth": "Prioritizes naval economic infrastructure in coastal cities.",
   "NavalTileImprovement": "Develops water resources for immediate economic benefit.",
-  "Expansion": "Prioritizes settler production and lowers settlement location criteria for more cities.",
+  "Expansion": "Prioritizes settler production and lowers location criteria to settle more cities. Essential in early game.",
   "Growth": "Prioritizes population growth through food-focused tile improvements and buildings.",
   "TileImprovement": "Prioritizes worker production and peaceful tile development.",
   "Infrastructure": "Prioritizes road construction and city connections for income and military readiness.",
