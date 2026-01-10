@@ -14,7 +14,6 @@ import { retrieveEnumName, retrieveEnumValue } from "../../utils/knowledge/enum.
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
 import { FlavorChange } from "../../knowledge/schema/timed.js";
 import { Insertable } from "kysely";
-import { mcpToGameFlavor, gameToMcpFlavor } from "../../utils/flavor-mapping.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -151,7 +150,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
 
     // Convert PascalCase keys to FLAVOR_ format if flavors are provided
     // Only include flavors that exist in the JSON file
-    // Clamp values to 0-100 range and convert to in-game range (-300 to 300 or 0-10)
+    // Clamp values to MCP range (0-100) - CvFlavorManager handles conversion to game range
     const flavorsTable: Record<string, number> = {};
     const newFlavors: Record<string, number> = {};
     if (args.Flavors) {
@@ -159,10 +158,8 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
         if (validFlavorKeys.includes(key)) {
           // Clamp to MCP range (0-100)
           const clampedMcpValue = Math.max(0, Math.min(100, value));
-          // Convert to in-game range (-300 to 300 or 0-10 for special flavors)
-          const gameValue = mcpToGameFlavor(clampedMcpValue, key);
 
-          flavorsTable[convertToFlavorFormat(key)] = gameValue;
+          flavorsTable[convertToFlavorFormat(key)] = clampedMcpValue;
           newFlavors[key] = clampedMcpValue;
         }
       }
@@ -181,14 +178,13 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
         Rationale: args.Rationale
       };
 
-      // Start with all existing flavor values from GetCustomFlavors
-      // Convert from in-game range (-300 to 300 or 0-10) to MCP range (0-100)
+      // GetCustomFlavors now returns MCP range (0-100) directly
       const currentFlavors: Record<string, number> = {};
       for (const [key, value] of Object.entries(previous.Flavors)) {
         // Use pascalCase from change-case for consistency
         const withoutPrefix = key.replace(/^FLAVOR_/, '');
         const pascalKey = pascalCase(withoutPrefix);
-        currentFlavors[pascalKey] = gameToMcpFlavor(value as number, pascalKey);
+        currentFlavors[pascalKey] = value as number; // Already in MCP range
       }
 
       const changeDescriptions: string[] = [];

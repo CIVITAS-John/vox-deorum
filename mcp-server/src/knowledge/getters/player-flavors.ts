@@ -8,7 +8,6 @@ import { knowledgeManager } from "../../server.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { FlavorChange } from "../schema/timed.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
-import { gameToMcpFlavor } from "../../utils/flavor-mapping.js";
 
 const logger = createLogger("ReadPlayerFlavors");
 
@@ -61,10 +60,10 @@ export async function getPlayerFlavors(playerId: number): Promise<FlavorChange |
   }
 
   // Update with actual values from the game, removing "FLAVOR_" prefix
-  // Convert from in-game range (-300 to 300 or 0-10) to MCP range (0-100)
+  // GetCustomFlavors now returns MCP range (0-100) directly
   for (const [key, value] of Object.entries(flavors)) {
     const cleanKey = key.replace(/^FLAVOR_/, '');
-    cleanedFlavors[cleanKey] = gameToMcpFlavor(value as number, cleanKey);
+    cleanedFlavors[cleanKey] = value as number; // Already in MCP range
   }
 
   // Store the flavors in the knowledge database
