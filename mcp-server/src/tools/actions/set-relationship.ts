@@ -9,6 +9,8 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
+import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -33,7 +35,7 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Set diplomatic relationship modifiers between players.";
+  readonly description = "Set additive diplomatic modifiers (-100 to 100) between you and another player. When both modifiers are 0, the record will be removed.";
 
   //  Public affects visible diplomacy, Private affects hidden attitudes. The values are additive in diplomacy calculations.
   /**
@@ -103,6 +105,19 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Extract the arguments
     const { PlayerID, TargetID, Public, Private, Rationale } = args;
+
+    // Validate that both players exist
+    const playerInfos = await readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations);
+
+    const playerInfo = playerInfos.find(info => info.Key === PlayerID);
+    if (!playerInfo) {
+      throw new Error(`Player with ID ${PlayerID} not found.`);
+    }
+
+    const targetInfo = playerInfos.find(info => info.Key === TargetID);
+    if (!targetInfo) {
+      throw new Error(`Target player with ID ${TargetID} not found.`);
+    }
 
     // Call the parent execute with the relationship values
     const result = await super.call(PlayerID, TargetID, Public, Private);

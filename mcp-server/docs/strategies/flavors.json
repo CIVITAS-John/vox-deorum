@@ -14,7 +14,7 @@
   "NavalRecon": "Increases the production of more naval melee units for sea control and exploration.",
   "Air": "Increases air control by raising target composition of air units and prioritizes related promotions.",
   "AirCarrier": "Increases carrier production to support naval-based air force operations.",
-  "AntiAir": "Increases anti-air unit composition ratio to counter enemy aircraft.",
+  "Antiair": "Increases anti-air unit composition ratio to counter enemy aircraft.",
   "Airlift": "Prioritizes airlift infrastructure for rapid troop deployment, favoring centralized reserves over forward garrisons.",
 
   "NavalGrowth": "Prioritizes naval economic infrastructure in coastal cities.",

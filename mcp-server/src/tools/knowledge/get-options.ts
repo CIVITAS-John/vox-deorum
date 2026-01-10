@@ -14,6 +14,7 @@ import { readPlayerKnowledge } from "../../utils/knowledge/cached.js";
 import { getPlayerStrategy } from "../../knowledge/getters/player-strategy.js";
 import { getPlayerPersona } from "../../knowledge/getters/player-persona.js";
 import { getPlayerFlavors } from "../../knowledge/getters/player-flavors.js";
+import { getPlayerRelationships } from "../../knowledge/getters/player-relationships.js";
 import { enumMappings } from "../../utils/knowledge/enum.js";
 import { getTool } from "../index.js";
 import { formatPolicyHelp } from "../../utils/database/format.js";
@@ -61,7 +62,14 @@ const GetOptionsOutputSchema = z.object({
   Policies: z.object({
     Next: z.string(),
     Rationale: z.string().optional()
-  })
+  }),
+  // Relationships - diplomatic relationship modifiers set by the player
+  Relationships: z.record(z.string(), z.object({
+    Public: z.number().describe("Public relationship modifier - visible diplomatic stance"),
+    Private: z.number().describe("Private relationship modifier - hidden feelings/attitudes"),
+    Rationale: z.string().describe("Explanation for the relationship change"),
+    Turn: z.number().describe("Turn when the relationship was last modified")
+  })).optional().describe("Diplomatic relationship modifiers by civilization name")
 }).passthrough();
 
 /**
@@ -126,7 +134,8 @@ class GetOptionsTool extends ToolBase {
       economicStrategies,
       militaryStrategies,
       flavors,
-      flavorDescriptions
+      flavorDescriptions,
+      relationships
     ] = await Promise.all([
       getPlayerOptions(true),
       readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona),
@@ -143,7 +152,8 @@ class GetOptionsTool extends ToolBase {
       isFlavorMode ? null : getTool("getEconomicStrategy")?.getSummaries(),
       isFlavorMode ? null : getTool("getMilitaryStrategy")?.getSummaries(),
       !isFlavorMode ? null : readPlayerKnowledge(args.PlayerID, "FlavorChanges", getPlayerFlavors),
-      !isFlavorMode ? null : loadFlavorDescriptions()
+      !isFlavorMode ? null : loadFlavorDescriptions(),
+      getPlayerRelationships(args.PlayerID)
     ]);
 
     // Find options for the requested player
@@ -234,7 +244,8 @@ class GetOptionsTool extends ToolBase {
       Policies: {
         Next: policy?.Policy ? `${policy.Policy} (${policy.IsBranch ? "New Branch" : "Policy"})` : "None",
         Rationale: policy?.Rationale
-      }
+      },
+      Relationships: Object.keys(relationships).length > 0 ? relationships : undefined
     };
 
     // Add mode-specific result fields

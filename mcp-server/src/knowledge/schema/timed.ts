@@ -222,7 +222,7 @@ export interface FlavorChange extends MutableKnowledge {
   NavalTileImprovement: number;
   Air: number;
   AirCarrier: number;
-  AntiAir: number;
+  Antiair: number;
   Airlift: number;
 
   // Economy Flavors (9)

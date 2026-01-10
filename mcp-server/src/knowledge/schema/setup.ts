@@ -161,7 +161,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('NavalTileImprovement', 'integer')
     .addColumn('Air', 'integer')
     .addColumn('AirCarrier', 'integer')
-    .addColumn('AntiAir', 'integer')
+    .addColumn('Antiair', 'integer')
     .addColumn('Airlift', 'integer')
 
     // Economy Flavors (9)
