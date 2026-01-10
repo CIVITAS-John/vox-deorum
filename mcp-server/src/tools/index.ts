@@ -14,6 +14,7 @@ import createGetCitiesTool from "./knowledge/get-cities.js";
 import createGetMetadataTool from "./knowledge/get-metadata.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
 import createSetPersonaTool from "./actions/set-persona.js";
+import createSetRelationshipTool from "./actions/set-relationship.js";
 import createSetFlavorsTool from "./actions/set-flavors.js";
 import createGetFlavorsTool from "./databases/get-flavors.js";
 import createUnsetFlavorsTool from "./actions/unset-flavors.js";
@@ -51,6 +52,7 @@ const toolFactories = {
     getOptions: createGetOptionsTool,
     setStrategy: createSetStrategyTool,
     setPersona: createSetPersonaTool,
+    setRelationship: createSetRelationshipTool,
     setFlavors: createSetFlavorsTool,
     getFlavors: createGetFlavorsTool,
     unsetFlavors: createUnsetFlavorsTool,
