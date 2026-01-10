@@ -7,6 +7,7 @@ import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
 
 /**
  * Mode enum for keep-status-quo tool
@@ -103,14 +104,28 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
         const previous = await store.getMutableKnowledge("FlavorChanges", args.PlayerID);
 
         if (previous) {
+          // Load valid flavor keys
+          const validFlavors = await loadFlavorDescriptions();
+          const validFlavorKeys = Object.keys(validFlavors);
+
+          // Extract only flavor columns and metadata
+          const flavorData: Record<string, any> = {
+            GrandStrategy: previous.GrandStrategy,
+            Rationale: args.Rationale
+          };
+
+          // Copy only the flavor columns
+          for (const key of validFlavorKeys) {
+            if (key in previous) {
+              flavorData[key] = previous[key as keyof typeof previous];
+            }
+          }
+
           // Store the flavors with the rationale
           await store.storeMutableKnowledge(
             'FlavorChanges',
             args.PlayerID,
-            {
-              ...previous,
-              Rationale: args.Rationale
-            }
+            flavorData
           );
         }
       } else {
