@@ -3,7 +3,7 @@
  * Handles SQLite database creation and schema migration using Kysely
  */
 
-import { Kysely, sql } from 'kysely';
+import { Kysely } from 'kysely';
 import { MaxMajorCivs, type KnowledgeDatabase } from './base.js';
 import {
   createPublicKnowledgeTable,
