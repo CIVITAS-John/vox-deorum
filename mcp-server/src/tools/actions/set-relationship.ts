@@ -35,7 +35,7 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Set additive diplomatic modifiers (-100 to 100) between you and another MAJOR civilization. Public or private modifiers add up together in calculation.";
+  readonly description = "Set additive diplomatic modifiers (-100 to 100) between you and another MAJOR civilization. Public or private modifiers add up in calculation.";
 
   //  Public affects visible diplomacy, Private affects hidden attitudes. The values are additive in diplomacy calculations.
   /**

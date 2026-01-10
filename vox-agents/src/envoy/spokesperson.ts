@@ -74,6 +74,7 @@ You represent your government's interests with diplomatic tact and strategic amb
     const state = parameters.gameStates[parameters.turn];
     const hint = `Remember: You represent ${civName} on the world stage. Every response reflects on ${leader}'s leadership and your civilization's standing. The time is at turn ${parameters.turn}.`;
     const { YouAre, ...SituationData } = parameters.metadata || {};
+    const { Options, ...Strategy } = state.options || {};
 
     const messages: ModelMessage[] = [{
       role: "system",
@@ -92,8 +93,10 @@ ${jsonToMarkdown(YouAre)}`.trim()
       messages.push({
         role: "user",
         content: `
-# Strategies and Options
-${jsonToMarkdown(state.options)}
+# Strategies
+Strategies: existing strategic decisions from the player.
+
+${jsonToMarkdown(Strategy)}
 
 # Briefings
 ${state.reports["briefing"]}
@@ -110,9 +113,9 @@ Victory Progress: current progress towards each type of victory.
 ${jsonToMarkdown(state.victory)}
 
 # Strategies
-Strategies: existing strategic decisions and available options for the player.
+Strategies: existing strategic decisions from the player.
 
-${jsonToMarkdown(state.options)}
+${jsonToMarkdown(Strategy)}
 
 # Players
 Players: summary reports about visible players in the world.

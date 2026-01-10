@@ -276,13 +276,14 @@ export class KnowledgeStore {
               ]);
             }
             // Store game data for examination
-            if (data.PlayerID < MaxMajorCivs) {
+            // Not necessary since our experiments now run all players as strategists
+            /*if (data.PlayerID < MaxMajorCivs) {
               await Promise.all([
                 getPlayerOpinions(data.PlayerID),
                 getPlayerStrategy(data.PlayerID),
                 getPlayerPersona(data.PlayerID)
               ]);
-            }
+            }*/
             knowledgeManager.updateActivePlayer(data.NextPlayerID);
           }
           MCPServer.getInstance().sendNotification(type, data.PlayerID, knowledgeManager.getTurn(), id);
