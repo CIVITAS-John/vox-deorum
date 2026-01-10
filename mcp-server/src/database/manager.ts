@@ -42,59 +42,63 @@ export class DatabaseManager {
     }
 
     logger.info('Initializing DatabaseManager');
-    
-    const documentsPath = await getDocumentsPath();
-    const civ5Path = path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5', 'cache');
-    
-    const mainDbPath = path.join(civ5Path, 'Civ5DebugDatabase.db');
-    const localizationDbPath = path.join(civ5Path, 'Localization-Merged.db');
 
-    try {
-      // Check if database files exist
-      await fs.access(mainDbPath);
-      await fs.access(localizationDbPath);
-    } catch (error) {
-      const errorMsg = `Database files not found. Please ensure Civilization V is installed and has been run at least once. Expected paths:\n` +
-                       `  Main DB: ${mainDbPath}\n` +
-                       `  Localization DB: ${localizationDbPath}`;
-      logger.error(errorMsg);
-      throw new Error(errorMsg);
-    }
+    await this.loadDatabaseWithRetry();
 
-    try {
-      // Create Kysely instance for main database
-      this.mainDb = new Kysely<MainDB>({
-        dialect: new SqliteDialect({
-          database: new Database(mainDbPath, { readonly: true }),
-        }),
-      });
-      logger.info('Connected to main database');
+    this.initialized = true;
+  }
 
-      // Sanity check: Wait for GreatPersons table to exist
-      const hadToWait = await this.waitForTable('GreatPersons');
+  /**
+   * Load database with retry logic - keeps retrying every 5 seconds until successful
+   */
+  private async loadDatabaseWithRetry(): Promise<void> {
+    while (true) {
+      try {
+        const documentsPath = await getDocumentsPath();
+        const civ5Path = path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5', 'cache');
 
-      // Wait an additional 10 seconds for full database setup only if table was initially missing
-      if (hadToWait) {
-        logger.info('Waiting 10 seconds for database to fully initialize...');
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        logger.info('Database initialization wait complete');
+        const mainDbPath = path.join(civ5Path, 'Civ5DebugDatabase.db');
+        const localizationDbPath = path.join(civ5Path, 'Localization-Merged.db');
+
+        // Check if database files exist
+        await fs.access(mainDbPath);
+        await fs.access(localizationDbPath);
+
+        // Create Kysely instance for main database
+        this.mainDb = new Kysely<MainDB>({
+          dialect: new SqliteDialect({
+            database: new Database(mainDbPath, { readonly: true }),
+          }),
+        });
+        logger.info('Connected to main database');
+
+        // Sanity check: Wait for GreatPersons table to exist
+        const hadToWait = await this.waitForTable('GreatPersons');
+
+        // Wait an additional 10 seconds for full database setup only if table was initially missing
+        if (hadToWait) {
+          logger.info('Waiting 10 seconds for database to fully initialize...');
+          await new Promise(resolve => setTimeout(resolve, 10000));
+          logger.info('Database initialization wait complete');
+        }
+
+        // Create Kysely instance for localization database
+        this.localizationDb = new Kysely<LocalizationDB>({
+          dialect: new SqliteDialect({
+            database: new Database(localizationDbPath, { readonly: true }),
+          }),
+        });
+        logger.info('Connected to localization database');
+
+        // Initialize enum mappings
+        await this.initializeMappings();
+
+        // Success - exit retry loop
+        return;
+      } catch (error) {
+        logger.error('Failed to load database, retrying in 5 seconds...', error);
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
-
-      // Create Kysely instance for localization database
-      this.localizationDb = new Kysely<LocalizationDB>({
-        dialect: new SqliteDialect({
-          database: new Database(localizationDbPath, { readonly: true }),
-        }),
-      });
-      logger.info('Connected to localization database');
-
-      // More initialization
-      await this.initializeMappings();
-
-      this.initialized = true;
-    } catch (error) {
-      logger.error('Failed to open database:', error);
-      throw new Error(`Failed to open database: ${error}`);
     }
   }
 

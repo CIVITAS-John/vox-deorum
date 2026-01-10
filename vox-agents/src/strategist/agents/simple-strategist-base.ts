@@ -55,9 +55,9 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
   - When the situation requires, do not shy away from pivoting strategies.
   - Analyze both your situation and your opponents. Avoid wishful thinking.
 - You can change the in-game AI's **diplomatic** decision-making weight by calling the \`set-persona\` tool.
-- You can set **additive** weights for in-game AI's diplomatic decision-making about another MAJOR civilization using the \`set-relationship\` tool.
+- You can set **additive** weights for in-game AI's diplomatic decision-making about another MAJOR civilization (not city-states) using the \`set-relationship\` tool.
   - Public and private weights add together for the calculation.
-  - The tool does not work for city-states. You would need to complete quests, send envoys, etc.
+  - The relationship you set takes effect until cancelled (set value = 0).
 - You can change the in-game AI's NEXT technology to research (when completing the ongoing one) by calling the \`set-research\` tool.
 - You can change the in-game AI's NEXT policy to adopt (when you accumulate enough culture) by calling the \`set-policy\` tool.`;
 

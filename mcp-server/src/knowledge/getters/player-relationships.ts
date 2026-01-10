@@ -16,7 +16,7 @@ export interface RelationshipData {
   Public: number;
   Private: number;
   Rationale: string;
-  Turn: number;
+  UpdatedTurn: number;
 }
 
 /**
@@ -67,7 +67,7 @@ export async function getPlayerRelationships(playerId: number): Promise<Record<s
           Public: record.PublicValue,
           Private: record.PrivateValue,
           Rationale: record.Rationale,
-          Turn: record.Turn
+          UpdatedTurn: record.Turn
         };
       }
     }

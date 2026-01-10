@@ -68,7 +68,7 @@ const GetOptionsOutputSchema = z.object({
     Public: z.number().describe("Public relationship modifier - visible diplomatic stance"),
     Private: z.number().describe("Private relationship modifier - hidden feelings/attitudes"),
     Rationale: z.string().describe("Explanation for the relationship change"),
-    Turn: z.number().describe("Turn when the relationship was last modified")
+    UpdatedTurn: z.number().describe("Turn when the relationship was last updated")
   })).optional().describe("Diplomatic relationship modifiers by civilization name")
 }).passthrough();
 
