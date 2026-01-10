@@ -9,6 +9,7 @@ import {
   StrategyChange,
   PolicyChange,
   ResearchChange,
+  RelationshipChange,
   PlayerSummary,
   PlayerOpinions,
   CityInformation,
@@ -117,6 +118,7 @@ export interface KnowledgeDatabase {
   StrategyChanges: StrategyChange;
   PolicyChanges: PolicyChange;
   ResearchChanges: ResearchChange;
+  RelationshipChanges: RelationshipChange;
   VictoryProgress: VictoryProgress;
   // Public Knowledge
   PlayerInformations: PlayerInformation;

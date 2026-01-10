@@ -185,6 +185,19 @@ export interface PersonaChange extends MutableKnowledge {
 }
 
 /**
+ * Diplomatic relationship modifiers for AI players
+ * Visible only to the player themselves (self-knowledge)
+ * Tracks both public and private relationship modifiers
+ * Values are additive in diplomacy calculations
+ */
+export interface RelationshipChange extends MutableKnowledge {
+  TargetPlayerID: number; // The player whose relationship is being modified
+  PublicValue: number; // ScenarioModifier1 - visible diplomatic stance
+  PrivateValue: number; // ScenarioModifier2 - hidden feelings/attitudes
+  Rationale: string; // Explanation for the relationship change
+}
+
+/**
  * AI Flavor values for major civilizations
  * Visible only to the player themselves (like strategy data)
  * Tracks custom flavor overrides for AI decision-making
