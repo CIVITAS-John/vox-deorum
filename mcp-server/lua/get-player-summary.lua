@@ -316,6 +316,8 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         -- Check if player has unlocked this policy branch
         if player:IsPolicyBranchUnlocked(branchType) then
           if not policyBranches then policyBranches = {} end  -- Lazy allocate
+          local branchName = Locale.ConvertTextKey(policyBranchInfo.Description)
+          
           -- Initialize policies array
           local policies = {}
 
