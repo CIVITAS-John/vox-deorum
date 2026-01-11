@@ -127,6 +127,9 @@ class SearchDatabaseTool extends ToolBase {
               const itemName = (item.Name || item.Type || 'Unknown') as string;
               const key = `${typeName}: ${itemName}`;
 
+              // Delete the item.
+              delete item.Type;
+
               return {
                 key,
                 data: item
