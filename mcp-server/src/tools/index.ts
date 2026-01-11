@@ -28,11 +28,13 @@ import createSetResearchTool from "./actions/set-research.js";
 import createSetPolicyTool from "./actions/set-policy.js";
 import createGetVictoryProgressTool from "./knowledge/get-victory-progress.js";
 import createGetMilitaryReportTool from "./knowledge/get-military-report.js";
+import createSearchDatabaseTool from "./general/search-database.js";
 
 // Tool factory configuration - one line per tool
 const toolFactories = {
     calculator: createCalculatorTool,
     luaExecutor: createLuaExecutorTool,
+    searchDatabase: createSearchDatabaseTool,
     getTechnology: createGetTechnologyTool,
     getPolicy: createGetPolicyTool,
     getBuilding: createGetBuildingTool,

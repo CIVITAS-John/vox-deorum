@@ -68,7 +68,7 @@ Summarize the military situation into a strategic briefing that highlights:
 - Active conflicts or potential threats.
 - Military strength and position relative to opponents.
 - Important military development during the past turn.
-- Needs, growth, or excesses of our military forces.
+- High-level needs, growth, or excesses of our military forces.
 - Comparison with the last available military briefing.
 
 # Guidelines
@@ -133,7 +133,7 @@ ${roleIntro('economic analyst')}
 # Objective
 Summarize the economic situation into a strategic briefing that highlights:
 - Economic position and development relative to opponents.
-- Needs, growth, or excesses in our economy.
+- High-level needs, growth, or excesses in our economy.
 - Peaceful expansion (settlement) opportunities (if eligible).
 - Important economic development, technology progress, and policy changes during the past turn.
 - Comparison with the last available economic briefing.
