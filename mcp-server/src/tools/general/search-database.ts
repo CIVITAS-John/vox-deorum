@@ -4,11 +4,11 @@
 
 import { ToolBase } from "../base.js";
 import * as z from "zod";
-import { search } from "fast-fuzzy";
 import { reciprocalRankFusion } from "rerank";
 import { getTool } from "../index.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { createLogger } from "../../utils/logger.js";
+import { weightedFuzzySearch, defaultFieldWeights } from "../../utils/search-weights.js";
 
 const logger = createLogger('SearchDatabaseTool');
 
@@ -102,27 +102,11 @@ class SearchDatabaseTool extends ToolBase {
             // Get cached summaries
             const summaries = await (tool as any).getSummaries();
 
-            // Perform fuzzy search
-            const matches = search(keyword, summaries, {
-              keySelector: (item: any) => {
-                const fields: string[] = [];
-                // Get common searchable fields
-                if (item.Name) fields.push(item.Name);
-                if (item.Type) fields.push(item.Type);
-                if (item.Help) fields.push(item.Help);
-                if (item.Description) fields.push(item.Description);
-                if (item.Strategy) fields.push(item.Strategy);
-                if (item.Branch) fields.push(item.Branch);
-                if (item.Era) fields.push(item.Era);
-                return fields;
-              },
-              threshold: 0.6,
-              returnMatchData: true
-            });
+            // Perform weighted fuzzy search
+            const matches = weightedFuzzySearch(keyword, summaries, defaultFieldWeights, 0.6);
 
             // Convert matches to ranked list with unique keys
-            const rankedList = matches.map(match => {
-              const item = match.item as any;
+            const rankedList = matches.map(item => {
               const typeName = toolTypeNames[toolName];
               const itemName = (item.Name || item.Type || 'Unknown') as string;
               const key = `${typeName}: ${itemName}`;
