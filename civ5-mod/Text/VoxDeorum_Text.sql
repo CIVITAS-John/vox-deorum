@@ -1,7 +1,5 @@
-UPDATE Language_en_US
-SET Text = 'The leader has expressed a public opinion to you (%d).'
-WHERE Tag = 'TXT_KEY_SPECIFIC_DIPLO_STRING_1';
+INSERT OR REPLACE INTO Language_en_US (Tag, Text)
+VALUES ('TXT_KEY_SPECIFIC_DIPLO_STRING_1', 'The leader has expressed a public opinion to you (%d).');
 
-UPDATE Language_en_US
-SET Text = 'The leader has formed a private opinion of you (%d).'
-WHERE Tag = 'TXT_KEY_SPECIFIC_DIPLO_STRING_2';
+INSERT OR REPLACE INTO Language_en_US (Tag, Text)
+VALUES ('TXT_KEY_SPECIFIC_DIPLO_STRING_2', 'The leader has formed a private opinion of you (%d).');
