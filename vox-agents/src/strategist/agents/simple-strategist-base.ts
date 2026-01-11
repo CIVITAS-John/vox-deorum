@@ -43,7 +43,7 @@ export abstract class SimpleStrategistBase extends Strategist {
 - You can interact with multiple tools at a time. Used tools will be removed from the available list.
 - Focus on the **macro-level** gameplay strategy (instead of coordinates etc.), as you DON'T have direct control over tactical actions.
 - The world is complicated and dynamic. Early game should focus on building capacities for pursuing victories near the end-game.
-- Even if you cannot achieve a victory, higher overall score (representing a more developed civilization) is desirable.`;
+- Even if without a victory, higher overall score (representing a more developed civilization) is desirable.`;
 
   /**
    * Shared prompt: Goals for strategic decision-making
@@ -74,7 +74,7 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
     return `- Each turn, you must call either \`${mode == "Flavor" ? "set-flavors" : "set-strategy"}\` or \`keep-status-quo\` tool.
   - Set an appropriate grand (long-term) strategy and ${mode == "Flavor" ? "additional short-term flavors" : "short-term economic/military strategies"} by calling the \`${mode == "Flavor" ? "set-flavors" : "set-strategy"}\` tool.
   - Alternatively, use the tool \`keep-status-quo\` to keep strategies the same.
-  - ${mode === "Flavor" ? "Flavors" : "Strategies"} change the weight of the in-game AI's NEXT decision. It will NOT change existing production queues, etc.${mode === "Flavor" ? "\n  - Flavor ranges from 0 (completely deprioritizes) to 50 (balanced) to 100 (completely prioritizes). Too many priorities weaken impact for each." : ""}
+  - ${mode === "Flavor" ? "Flavors" : "Strategies"} change the weight of the in-game AI's NEXT decision. It only takes effect AFTER existing queues.${mode === "Flavor" ? "\n  - Flavor ranges from 0 (completely deprioritizes) to 50 (balanced) to 100 (completely prioritizes). Too many priorities weaken impact for each." : ""}
   - You can pursue multiple synergistic victory pathways. Balance between long-term goals and short-term needs.
 - Always provide a short paragraph of rationale for each tool. You will read this rationale next turn.`;
   }
