@@ -1,4 +1,4 @@
---[[
+﻿--[[
 
 -- Communitu_79a map script --
 -- For Vox Populi only --
