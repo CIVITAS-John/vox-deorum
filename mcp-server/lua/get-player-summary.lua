@@ -315,25 +315,25 @@ Game.RegisterFunction("${Name}", function(${Arguments})
 
         -- Check if player has unlocked this policy branch
         if player:IsPolicyBranchUnlocked(branchType) then
+          if not policyBranches then policyBranches = {} end  -- Lazy allocate
+          local branchName = Locale.ConvertTextKey(policyBranchInfo.Description)
+
+          -- Initialize policies array with the branch name as the first entry
+          local policies = {branchName}
+
           -- Get individual policies in this branch
-          local policies = nil  -- Start with nil to avoid allocation
           for policyInfo in GameInfo.Policies() do
             if policyInfo.PolicyBranchType == policyBranchInfo.Type then
               -- Check if player has this specific policy
               if player:HasPolicy(policyInfo.ID) then
-                if not policies then policies = {} end  -- Lazy allocate
                 local policyName = Locale.ConvertTextKey(policyInfo.Description)
                 policies[#policies + 1] = policyName
               end
             end
           end
 
-          -- Only add the branch if it has policies
-          if policies then
-            if not policyBranches then policyBranches = {} end  -- Lazy allocate
-            local branchName = Locale.ConvertTextKey(policyBranchInfo.Description)
-            policyBranches[branchName] = policies
-          end
+          -- Add the branch with its policies
+          policyBranches[branchName] = policies
         end
       end
       summary.PolicyBranches = policyBranches
