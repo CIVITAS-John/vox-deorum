@@ -65,9 +65,9 @@ ${roleIntro('military intelligence analyst')}
 
 # Objective
 Summarize the military situation into a strategic briefing that highlights:
-- Active conflicts or potential threats.
-- Military strength and position relative to opponents.
-- Important military development during the past turn.
+- Important military development, esp. for active conflicts, during the past turn.
+- Military strength, weakness, and position relative to opponents.
+- Potential threats and war plans, considering diplomatic relationships and overall strength.
 - High-level needs, growth, or excesses of our military forces.
 - Comparison with the last available military briefing.
 
