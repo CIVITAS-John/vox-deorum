@@ -17,7 +17,8 @@
     "test:mock": "cross-env USE_MOCK=true vitest run",
     "test:real": "cross-env USE_MOCK=false vitest run",
     "test:mock-watch": "cross-env USE_MOCK=true vitest",
-    "docs": "typedoc"
+    "docs": "typedoc",
+    "mod:md5": "tsx scripts/generate-mod-md5.ts"
   },
   "keywords": [
     "civilization",

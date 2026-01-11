@@ -25,10 +25,10 @@
   <References />
   <Blocks />
   <Files>
-    <File md5="00000000000000000000000000000000" import="0">SQL/VoxDeorum_Options.sql</File>
-    <File md5="00000000000000000000000000000000" import="0">Text/VoxDeorum_Text.xml</File>
-    <File md5="00000000000000000000000000000000" import="0">Text/VoxDeorum_Text.sql</File>
-    <File md5="00000000000000000000000000000000" import="1">Mapscripts/Vox_Deorum.lua</File>
+    <File md5="498AD06B2FB680EB8833D5DC69686D72" import="0">SQL/VoxDeorum_Options.sql</File>
+    <File md5="89EEF5E34C7CDBC1D53DA17216717FE0" import="0">Text/VoxDeorum_Text.xml</File>
+    <File md5="7F4A26B91E61712AC5F440C066D25E87" import="0">Text/VoxDeorum_Text.sql</File>
+    <File md5="2E350D19E09B510902C2E34C6D44BA5B" import="1">Mapscripts/Vox_Deorum.lua</File>
   </Files>
   <Actions>
     <OnModActivated>
