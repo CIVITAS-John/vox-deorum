@@ -35,7 +35,7 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
   /**
    * Human-readable description of the tool
    */
-  readonly description = "Set additive diplomatic modifiers (-100 to 100) between you and another MAJOR civilization. Public or private modifiers add up in calculation.";
+  readonly description = "Set additive diplomatic modifiers between you and another MAJOR civilization. Public or private modifiers add up in calculation.";
 
   //  Public affects visible diplomacy, Private affects hidden attitudes. The values are additive in diplomacy calculations.
   /**
@@ -44,8 +44,8 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player setting the relationship"),
     TargetID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the target player"),
-    Public: z.number().default(0).describe("Public relationship modifier - visible diplomatic stance"),
-    Private: z.number().default(0).describe("Private relationship modifier - hidden feelings/attitudes"),
+    Public: z.number().default(0).describe("Visible diplomatic stance (-100 to 100)"),
+    Private: z.number().default(0).describe("Hidden feelings/attitudes (-100 to 100)"),
     Rationale: z.string().describe("Briefly explain your rationale for this relationship change")
   });
 
