@@ -133,17 +133,20 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   
   /**
    * Manually post-process LLM results and send back the output.
+   * Can be async to allow tool calls or other asynchronous processing.
    *
    * @param parameters - The execution parameters
    * @param input - The starting input
    * @param finalText - The final generated text
-   * @returns True if the agent should stop, false to continue
+   * @param context - The VoxContext for calling tools
+   * @returns The processed output or undefined
    */
-  public getOutput(
+  public async getOutput(
     _parameters: TParameters,
     _input: TInput,
-    finalText: string
-  ): TOutput | undefined {
+    finalText: string,
+    _context: VoxContext<TParameters>
+  ): Promise<TOutput | undefined> {
     if (finalText === "") return;
     if (this.outputSchema) {
       return this.outputSchema.parse(finalText);

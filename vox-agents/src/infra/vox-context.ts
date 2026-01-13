@@ -283,9 +283,9 @@ export class VoxContext<TParameters extends AgentParameters> {
             'tokens.output': outputTokens,
           });
           span.setStatus({ code: SpanStatusCode.OK });
-          
-          // Convert into the output
-          const output = agent.getOutput(parameters, input, finalText);
+
+          // Convert into the output (now async)
+          const output = await agent.getOutput(parameters, input, finalText, this);
           if (!output) return;
           return agent.postprocessOutput(parameters, input, output);
         } else {
