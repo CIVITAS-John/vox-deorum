@@ -16,6 +16,7 @@ import { NoneStrategist } from "../strategist/agents/none-strategist.js";
 import { Spokesperson } from "../envoy/spokesperson.js";
 import { SimpleStrategistStaffed } from "../strategist/agents/simple-strategist-staffed.js";
 import { KeywordLibrarian } from "../librarian/keyword-librarian.js";
+import { ParadoxaStrategist } from "../strategist/agents/paradoxa-strategist.js";
 
 /**
  * Registry for managing available Vox agents.
@@ -166,6 +167,7 @@ class AgentRegistry {
     this.register(new SimpleStrategist());
     this.register(new SimpleStrategistBriefed());
     this.register(new SimpleStrategistStaffed());
+    this.register(new ParadoxaStrategist());
     this.register(new NoneStrategist());
 
     // Register briefer agents

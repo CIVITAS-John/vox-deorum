@@ -1,0 +1,15 @@
+{
+  "name": "observe-paradoxa",
+  "type": "strategist",
+  "autoPlay": true,
+  "gameMode": "wait",
+  "llmPlayers": {
+    "0": {
+      "strategist": "paradoxa-strategist",
+      "llms": {
+        "paradoxa-strategist": "anthropic/claude-sonnet-4-5"
+      }
+    }
+  },
+  "repetition": null
+}
