@@ -11,6 +11,7 @@ import { spawn, exec } from 'child_process';
 import { join } from 'path';
 import { promisify } from 'util';
 import { setTimeout } from 'node:timers/promises'
+import { readFile, writeFile } from 'fs/promises';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('VoxCivilization');
@@ -141,27 +142,91 @@ export class VoxCivilization {
   }
 
   /**
+   * Calculates the appropriate world size based on player count.
+   * Maps player counts to Civ5 world sizes (Duel to Huge).
+   *
+   * @private
+   * @param playerCount - Number of players
+   * @returns World size index (0=Duel, 1=Tiny, 2=Small, 3=Standard, 4=Large, 5=Huge)
+   */
+  private calculateWorldSize(playerCount: number): number {
+    if (playerCount <= 2) return 0; // Duel
+    if (playerCount <= 4) return 1; // Tiny
+    if (playerCount <= 6) return 2; // Small
+    if (playerCount <= 8) return 3; // Standard
+    if (playerCount <= 10) return 4; // Large
+    return 5; // Huge (12+ players)
+  }
+
+  /**
+   * Generates a StartGame.lua file from the template with dynamic player count and map size.
+   *
+   * @private
+   * @param playerCount - Number of players to configure
+   */
+  private async generateStartGameLua(playerCount: number): Promise<void> {
+    const templatePath = join('scripts', 'StartGame.template.lua');
+    const outputPath = join('scripts', 'StartGame.temp.lua');
+
+    // Round player count to nearest even number
+    const roundedPlayerCount = Math.ceil(playerCount / 2) * 2;
+
+    // Calculate appropriate world size
+    const worldSize = this.calculateWorldSize(roundedPlayerCount);
+
+    // Generate player slots array (all AI = 2)
+    const playerSlots = Array(roundedPlayerCount).fill(2).join(', ');
+
+    logger.info(`Generating StartGame.lua for ${roundedPlayerCount} players (requested: ${playerCount}) with world size ${worldSize}`);
+
+    try {
+      // Read template
+      const template = await readFile(templatePath, 'utf-8');
+
+      // Replace placeholders
+      const generated = template
+        .replace('{{WORLD_SIZE}}', worldSize.toString())
+        .replace('{{PLAYER_SLOTS}}', `{ ${playerSlots} }`);
+
+      // Write generated file
+      await writeFile(outputPath, generated, 'utf-8');
+      logger.debug(`Generated ${outputPath}`);
+    } catch (error) {
+      logger.error('Failed to generate StartGame.lua from template:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Starts a Civilization V game with the specified Lua script.
    * Waits for the game process to fully initialize before returning.
    *
    * @param luaName - Name of the Lua script to run (default: 'LoadMods.lua')
+   * @param playerCount - Optional number of players for StartGame.lua (generates from template)
    * @returns True if game started successfully, false if already running
    */
-  async startGame(luaName: string = 'LoadMods.lua'): Promise<boolean> {
+  async startGame(luaName: string = 'LoadMods.lua', playerCount?: number): Promise<boolean> {
     // Check if game is already running
     if (await this.bindToExistingProcess() || this.isGameRunning()) {
       logger.info('Game instance already exists, monitoring it...');
       return true;
     }
 
+    // Generate StartGame.temp.lua if using StartGame.lua with player count
+    let actualLuaName = luaName;
+    if (luaName === 'StartGame.lua' && playerCount !== undefined) {
+      await this.generateStartGameLua(playerCount);
+      actualLuaName = 'StartGame.temp.lua';
+    }
+
     const scriptPath = join('scripts', 'launch-civ5.cmd');
 
     try {
-      logger.info(`Launching Civilization V with script: ${luaName}`);
+      logger.info(`Launching Civilization V with script: ${actualLuaName}`);
 
       // Launch the cmd script and wait for it to complete
       await new Promise<void>((resolve, reject) => {
-        const cmdProcess = spawn('cmd', ['/c', scriptPath, luaName], {
+        const cmdProcess = spawn('cmd', ['/c', scriptPath, actualLuaName], {
           detached: false,
           stdio: 'inherit',
           shell: false

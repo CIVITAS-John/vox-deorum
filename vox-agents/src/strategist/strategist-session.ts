@@ -55,6 +55,16 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       const luaScript = this.config.gameMode === 'start' ? 'StartGame.lua' :
                         this.config.gameMode === 'wait' ? 'LoadMods.lua' : 'LoadGame.lua';
 
+      // Calculate player count from llmPlayers configuration
+      let playerCount: number | undefined;
+      if (this.config.gameMode === 'start' && luaScript === 'StartGame.lua') {
+        const playerIds = Object.keys(this.config.llmPlayers).map(Number);
+        if (playerIds.length > 0) {
+          playerCount = Math.max(...playerIds) + 1;
+          logger.info(`Calculated player count: ${playerCount} from player IDs: ${playerIds.join(', ')}`);
+        }
+      }
+
       logger.info(`Starting strategist session ${this.id} in ${this.config.gameMode} mode`, this.config);
 
     // In wait mode, prompt the user to start the game manually
@@ -64,7 +74,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     }
 
     // Register game exit handler for crash recovery
-    await voxCivilization.startGame(luaScript);
+    await voxCivilization.startGame(luaScript, playerCount);
 
     // Connect to MCP server
     await mcpClient.connect();
@@ -323,6 +333,15 @@ Game.SetAIAutoPlay(2000, -1);`
     const luaScript = this.config.gameMode === 'start' && this.state === 'starting' ? 'StartGame.lua' :
                       this.config.gameMode === 'wait' ? 'LoadMods.lua' : 'LoadGame.lua';
 
+    // Calculate player count for recovery (same as in start())
+    let playerCount: number | undefined;
+    if (this.config.gameMode === 'start' && luaScript === 'StartGame.lua') {
+      const playerIds = Object.keys(this.config.llmPlayers).map(Number);
+      if (playerIds.length > 0) {
+        playerCount = Math.max(...playerIds) + 1;
+      }
+    }
+
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
     this.onStateChange('error');
@@ -348,7 +367,7 @@ Game.SetAIAutoPlay(2000, -1);`
     } else {
       logger.info(`Starting Civilization V with ${luaScript} to recover from crash...`);
     }
-    const started = await voxCivilization.startGame(luaScript);
+    const started = await voxCivilization.startGame(luaScript, playerCount);
 
     if (!started) {
       logger.error('Failed to restart the game');

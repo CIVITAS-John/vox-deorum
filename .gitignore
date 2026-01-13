@@ -8,3 +8,6 @@ dist
 # DLL cache directory
 scripts/.dll-cache
 /*.bat
+
+# Generated Lua files
+vox-agents/scripts/StartGame.temp.lua

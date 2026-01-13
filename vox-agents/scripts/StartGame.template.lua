@@ -13,7 +13,7 @@ function onEndFrame()
     Automation.SetEventFunction("EndFrame", nil);
     -- Game settings
     local t = {};
-    t.worldSize = 3; -- Standard
+    t.worldSize = {{WORLD_SIZE}};
     t.climate = 0; -- Temperate
     t.seaLevel = 0; -- Medium
     t.era = 0; -- Ancient
@@ -21,7 +21,7 @@ function onEndFrame()
     -- 0 = empty
     -- 1 = human
     -- 2 = computer
-    t.slot = { 2, 2, 2, 2, 2, 2, 2, 2 }; -- 8 Players for standard
+    t.slot = {{PLAYER_SLOTS}};
     -- Set how many turns we want to play
     -- t.autorunTurnLimit = 10;
     -- Set the delay between AI turns, in seconds.  Can be 0.
@@ -33,7 +33,7 @@ function onEndFrame()
     Events.SerialEventStartGame(0);
   end
 end
-  
+
 Events.AfterModsActivate.Add(function()
   if (modActivating == -1) then
     print("Vanilla game activated!");
