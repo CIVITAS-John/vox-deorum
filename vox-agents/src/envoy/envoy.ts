@@ -25,11 +25,11 @@ export abstract class Envoy extends VoxAgent<StrategistParameters, EnvoyThread, 
    * @param finalText - The final generated text
    * @returns True if the agent should stop, false to continue
    */
-  public getOutput(
+  public async getOutput(
     _parameters: StrategistParameters,
     input: EnvoyThread,
     _finalText: string
-  ): EnvoyThread {
+  ): Promise<EnvoyThread> {
     return input;
   }
 
