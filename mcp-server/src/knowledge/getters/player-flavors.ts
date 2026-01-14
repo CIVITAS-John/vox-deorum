@@ -8,6 +8,7 @@ import { knowledgeManager } from "../../server.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { FlavorChange } from "../schema/timed.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
+import { pascalCase } from "change-case";
 
 const logger = createLogger("ReadPlayerFlavors");
 
