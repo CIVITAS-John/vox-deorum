@@ -9,10 +9,11 @@ import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { FlavorChange } from "../schema/timed.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
 import { pascalCase } from "change-case";
+import { retrieveEnumName } from "../../utils/knowledge/enum.js";
 
 const logger = createLogger("ReadPlayerFlavors");
 
-// Create a reusable LuaFunction for reading player custom flavors
+// Create a reusable LuaFunction for reading player custom flavors and grand strategy
 const readPlayerFlavorsFunction = new LuaFunction(
   "readPlayerFlavors",
   ["playerId"],
@@ -24,18 +25,23 @@ const readPlayerFlavorsFunction = new LuaFunction(
 
     -- Get custom flavor values (only those explicitly set via SetCustomFlavors)
     local flavors = player:GetCustomFlavors()
-    return flavors
+    local grandStrategy = player:GetGrandStrategy()
+
+    return {
+      Flavors = flavors,
+      GrandStrategy = grandStrategy
+    }
   `
 );
 
 /**
- * Reads the current custom flavor values and stores them in the knowledge database
+ * Reads the current custom flavor values and grand strategy, stores them in the knowledge database
  *
  * @param playerId - The ID of the player (0 to MaxMajorCivs - 1)
- * @returns Object containing the current custom flavors or null if none are set
+ * @returns Object containing the current custom flavors and grand strategy or null if none are set
  */
 export async function getPlayerFlavors(playerId: number): Promise<FlavorChange | null> {
-  // Execute the Lua function to get custom flavors
+  // Execute the Lua function to get custom flavors and grand strategy
   const result = await readPlayerFlavorsFunction.execute(playerId);
 
   if (!result || !result.success || !result.result) {
@@ -43,7 +49,9 @@ export async function getPlayerFlavors(playerId: number): Promise<FlavorChange |
     return null;
   }
 
-  const flavors = result.result;
+  const data = result.result;
+  const flavors = data.Flavors;
+  const grandStrategyId = data.GrandStrategy;
 
   // Check if any custom flavors are set
   if (!flavors || Object.keys(flavors).length === 0) {
@@ -68,7 +76,10 @@ export async function getPlayerFlavors(playerId: number): Promise<FlavorChange |
     cleanedFlavors[pascalKey] = value as number; // Already in MCP range
   }
 
-  // Store the flavors in the knowledge database
+  // Convert grand strategy ID to name
+  const grandStrategyName = retrieveEnumName("GrandStrategy", grandStrategyId) ?? "Unknown";
+
+  // Store the flavors and grand strategy in the knowledge database
   const store = knowledgeManager.getStore();
   const lastRationale = (await store.getMutableKnowledge("FlavorChanges", playerId))?.Rationale ?? "Unknown";
 
@@ -78,6 +89,7 @@ export async function getPlayerFlavors(playerId: number): Promise<FlavorChange |
     {
       Key: playerId,
       ...cleanedFlavors,
+      GrandStrategy: grandStrategyName,
       Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI(${lastRationale.trim()})`
     },
     composeVisibility([playerId]),
@@ -87,6 +99,7 @@ export async function getPlayerFlavors(playerId: number): Promise<FlavorChange |
   return {
     Key: playerId,
     ...cleanedFlavors,
+    GrandStrategy: grandStrategyName,
     Rationale: lastRationale
   } as FlavorChange;
 }
