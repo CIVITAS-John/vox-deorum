@@ -155,7 +155,8 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
 
       // Send replay messages if there were changes
       if (messages.length > 0) {
-        await addReplayMessages(PlayerID, messages);
+        const message = `${messages.join("; ")}. Rationale: ${Rationale}`;
+        await addReplayMessages(PlayerID, message);
       }
 
       // Clean up the result
