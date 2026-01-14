@@ -60,11 +60,12 @@ export async function getPlayerFlavors(playerId: number): Promise<FlavorChange |
     cleanedFlavors[flavorName] = 50;
   }
 
-  // Update with actual values from the game, removing "FLAVOR_" prefix
+  // Update with actual values from the game, converting to PascalCase
   // GetCustomFlavors now returns MCP range (0-100) directly
   for (const [key, value] of Object.entries(flavors)) {
-    const cleanKey = key.replace(/^FLAVOR_/, '');
-    cleanedFlavors[cleanKey] = value as number; // Already in MCP range
+    const withoutPrefix = key.replace(/^FLAVOR_/, '');
+    const pascalKey = pascalCase(withoutPrefix);
+    cleanedFlavors[pascalKey] = value as number; // Already in MCP range
   }
 
   // Store the flavors in the knowledge database
