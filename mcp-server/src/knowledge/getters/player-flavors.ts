@@ -74,7 +74,7 @@ export async function getPlayerFlavors(playerId: number): Promise<FlavorChange |
     'FlavorChanges',
     playerId,
     {
-      PlayerID: playerId,
+      Key: playerId,
       ...cleanedFlavors,
       Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI(${lastRationale.trim()})`
     },
