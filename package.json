@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@ai-sdk-tool/parser": "^2.1.7",
+    "@ai-sdk/amazon-bedrock": "^3.0.73",
     "@ai-sdk/anthropic": "^2.0.56",
     "@ai-sdk/google": "^2.0.13",
     "@ai-sdk/openai": "^2.0.27",

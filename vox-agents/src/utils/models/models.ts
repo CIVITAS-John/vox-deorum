@@ -15,6 +15,7 @@ import { gemmaToolMiddleware } from '@ai-sdk-tool/parser';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import dotenv from 'dotenv';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { toolRescueMiddleware } from './tool-rescue.js';
 
 dotenv.config();
@@ -114,6 +115,9 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
       break;
     case "anthropic":
       result = createAnthropic()(config.name);
+      break;
+    case "aws":
+      result = createAmazonBedrock()(config.name);
       break;
     default:
       if (!process.env.OPENAI_COMPATIBLE_URL)
