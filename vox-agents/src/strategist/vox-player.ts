@@ -70,6 +70,7 @@ export class VoxPlayer {
   notifyTurn(turn: number, latestID: number): boolean {
     if (this.running) {
       this.logger.warn(`The ${this.playerConfig.strategist} is still working on turn ${this.parameters.turn}. Skipping turn ${turn}...`);
+      this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
       return this.pendingTurn?.turn !== turn;
     }
 
@@ -175,6 +176,8 @@ export class VoxPlayer {
               code: SpanStatusCode.ERROR,
               message: error instanceof Error ? error.message : String(error)
             });
+            // Still need to resume the game to avoid a total block.
+            await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
           } finally {
             this.running = false;
             turnSpan.end();
