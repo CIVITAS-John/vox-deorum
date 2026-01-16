@@ -292,7 +292,7 @@ export class MCPClient extends EventEmitter {
       try {
         // Out potato servers can be *really* slow
         const result = await this.client.callTool({ name, arguments: args }, undefined, {
-          timeout: 300000,
+          timeout: 600000,
           resetTimeoutOnProgress: true
         });
         return result;
