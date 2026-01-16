@@ -272,7 +272,7 @@ export class DLLConnector extends EventEmitter {
    *
    * @template T - Type of expected response data
    * @param messages - Array of IPC messages to send
-   * @param timeout - Timeout in milliseconds for each message (default: 120000ms)
+   * @param timeout - Timeout in milliseconds for each message (default: 300000ms)
    * @returns Promise resolving to array of API responses, one per message
    *
    * @example
@@ -286,7 +286,7 @@ export class DLLConnector extends EventEmitter {
    * console.log('Era:', responses[1].result);
    * ```
    */
-  public async sendBatch<T>(messages: IPCMessage[], timeout: number = 120000): Promise<APIResponse<T>[]> {
+  public async sendBatch<T>(messages: IPCMessage[], timeout: number = 300000): Promise<APIResponse<T>[]> {
     if (!this.connected) {
       logger.warn('Cannot send messages, DLL is disconnected');
       return messages.map(() => respondError(ErrorCode.DLL_DISCONNECTED));
@@ -343,7 +343,7 @@ export class DLLConnector extends EventEmitter {
    *
    * @template T - Type of expected response data
    * @param message - IPC message to send
-   * @param timeout - Timeout in milliseconds (default: 120000ms)
+   * @param timeout - Timeout in milliseconds (default: 300000ms)
    * @returns Promise resolving to API response
    *
    * @example
@@ -358,7 +358,7 @@ export class DLLConnector extends EventEmitter {
    * }
    * ```
    */
-  public async send<T>(message: IPCMessage, timeout: number = 120000): Promise<APIResponse<T>> {
+  public async send<T>(message: IPCMessage, timeout: number = 300000): Promise<APIResponse<T>> {
     const results = await this.sendBatch<T>([message], timeout);
     return results[0];
   }

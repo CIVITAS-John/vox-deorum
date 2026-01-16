@@ -85,7 +85,7 @@ Or in `config.json`:
 [bridge:dll] Connection established
 [bridge:dll] → {"type":"lua_call",...}
 [bridge:dll] ← {"type":"lua_response",...}
-[bridge:dll] Request timeout after 120000ms: uuid
+[bridge:dll] Request timeout after 300000ms: uuid
 ```
 
 ## Troubleshooting Quick Reference
