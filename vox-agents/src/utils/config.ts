@@ -85,9 +85,9 @@ export const defaultConfig: VoxAgentsConfig = {
       provider: 'anthropic',
       name: 'claude-opus-4-5'
     },
-    'aws/anthropic.claude-sonnet-4-5-20250929-v1:0': {
+    'aws/anthropic/claude-sonnet-4-5': {
       provider: 'aws',
-      name: 'anthropic.claude-sonnet-4-5-20250929-v1:0'
+      name: 'arn:aws:bedrock:us-east-2:147032477449:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0'
     },
     'chutes/openai/gpt-oss-120b': {
       provider: 'chutes',
