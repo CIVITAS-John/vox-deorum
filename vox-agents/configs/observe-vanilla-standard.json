@@ -1,0 +1,11 @@
+{
+  "name": "observe-vanilla-standard",
+  "llmPlayers": {
+    "7": {
+      "strategist": "none-strategist"
+    }
+  },
+  "autoPlay": true,
+  "gameMode": "start",
+  "repetition": 1
+}

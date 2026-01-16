@@ -1,7 +1,8 @@
 {
+  "name": "observe-vanilla-tiny",
   "llmPlayers": {
     "0": {
-      "strategist": "simple-strategist"
+      "strategist": "none-strategist"
     }
   },
   "autoPlay": true,
