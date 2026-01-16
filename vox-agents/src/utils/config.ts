@@ -119,6 +119,20 @@ export const defaultConfig: VoxAgentsConfig = {
       options: {
         toolMiddleware: 'prompt'
       }
+    },
+    'openai-compatible/openai/gpt-oss-20b': {
+      provider: 'openai-compatible',
+      name: 'openai/gpt-oss-120b',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
+    'openai-compatible/openai/gpt-oss-120b': {
+      provider: 'openai-compatible',
+      name: 'openai/gpt-oss-120b',
+      options: {
+        toolMiddleware: 'prompt'
+      }
     }
   },
   configsDir: 'configs'
