@@ -158,6 +158,7 @@ export class VoxPlayer {
               this.parameters.after = turnData.latestID;
 
               // Recording the tokens and resume the game
+              this.running = false;
               await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
 
               // Update the status
@@ -177,9 +178,9 @@ export class VoxPlayer {
               message: error instanceof Error ? error.message : String(error)
             });
             // Still need to resume the game to avoid a total block.
+            this.running = false;
             await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
           } finally {
-            this.running = false;
             turnSpan.end();
             await spanProcessor.forceFlush();
           }
