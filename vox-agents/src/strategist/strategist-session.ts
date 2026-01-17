@@ -247,20 +247,22 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     }
 
     await mcpClient.callTool("set-metadata", { Key: `experiment`, Value: this.config.name });
+    await setTimeout(3000);
+
     if (this.config.autoPlay && params.turn === 0) {
       // Autoplay
-      await setTimeout(3000);
       await mcpClient.callTool("lua-executor", {
         Script: `
 Events.LoadScreenClose();
 Game.SetPausePlayer(-1);
 Game.SetAIAutoPlay(2000, -1);`
       });
+    } else {
+      await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
+    }
+    if (this.config.autoPlay) {
       await setTimeout(3000);
       await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
-    } else {
-      await setTimeout(1000);
-      await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
     }
   }
 
