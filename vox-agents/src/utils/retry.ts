@@ -23,7 +23,7 @@ export async function exponentialRetry<T>(
   fn: (updateProgress: (completed?: boolean) => void) => Promise<T>,
   logger: Logger,
   maxRetries: number = 20,
-  initialDelay: number = 2000,
+  initialDelay: number = 3000,
   maxDelay: number = 30000,
   backoffFactor: number = 1.5,
   executionTimeout: number = 180000 // 3 minutes
