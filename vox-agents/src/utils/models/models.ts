@@ -17,6 +17,7 @@ import dotenv from 'dotenv';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { toolRescueMiddleware } from './tool-rescue.js';
+import { Agent } from 'undici';
 
 dotenv.config();
 
@@ -104,7 +105,7 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
       result = createOpenAICompatible({
         baseURL: "https://llm.chutes.ai/v1",
         name: "chutes",
-        apiKey: process.env.CHUTES_API_KEY,
+        apiKey: process.env.CHUTES_API_KEY
       }).chatModel(config.name);
       break;
     case "synthetic":
@@ -112,6 +113,17 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
         baseURL: "https://api.synthetic.new/openai/v1",
         name: "synthetic",
         apiKey: process.env.SYNTHETIC_API_KEY,
+        fetch: (url, options) => {
+          return fetch(url, {
+            ...options,
+            dispatcher: new Agent({
+              headersTimeout: 600_000,
+              bodyTimeout: 600_000,
+              connectTimeout: 600_000,
+              keepAliveTimeout: 600_000,
+            }),
+          })
+        },
       }).chatModel(config.name);
       break;
     case "openai":

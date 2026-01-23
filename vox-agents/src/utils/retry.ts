@@ -89,7 +89,7 @@ export async function exponentialRetry<T>(
       const totalDelay = currentDelay + jitter;
 
       // Log retry attempt
-      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error, delaying ${totalDelay}ms`, lastError);
+      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error, delaying ${Math.round(totalDelay)}ms`, lastError);
       await new Promise(resolve => setTimeout(resolve, totalDelay));
 
       // Increase delay for next attempt
