@@ -50,7 +50,7 @@ export async function exponentialRetry<T>(
           timeoutHandle = setTimeout(() => {
             isTimedOut = true;
             timeoutReject(new Error(`Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes) of inactivity`));
-          }, executionTimeout * (initial === true ? 1 : 10)); // Shorter timeout on initial call
+          }, executionTimeout * (initial === true ? 1 : 2)); // Shorter timeout on initial call
         }
       };
       
@@ -81,9 +81,6 @@ export async function exponentialRetry<T>(
         throw lastError;
       }
 
-      // Log retry attempt
-      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error`, lastError);
-
       // Calculate next delay with exponential backoff
       const currentDelay = Math.min(delay, maxDelay);
 
@@ -91,6 +88,8 @@ export async function exponentialRetry<T>(
       const jitter = Math.random() * 0.1 * currentDelay;
       const totalDelay = currentDelay + jitter;
 
+      // Log retry attempt
+      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error, delaying ${totalDelay}ms`, lastError);
       await new Promise(resolve => setTimeout(resolve, totalDelay));
 
       // Increase delay for next attempt
