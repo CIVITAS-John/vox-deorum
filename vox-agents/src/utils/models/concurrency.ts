@@ -74,6 +74,11 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
     ? getModelLimiter(modelConfig)
     : pLimit(3); // Default fallback
 
+  // Get model name for logging
+  const modelName = modelConfig
+    ? `${modelConfig.provider}/${modelConfig.name}`
+    : 'unknown-model';
+
   // Wrap the streamText call with both concurrency limiting and exponential retry
   return limiter(async () =>
     exponentialRetry(async (update) => {
@@ -100,7 +105,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         ...result,
         steps: await result.steps
       };
-    }, logger)
+    }, logger, modelName)
   );
 }
 

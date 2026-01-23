@@ -110,6 +110,10 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
+    'synthetic/hf:zai-org/GLM-4.7': {
+      provider: 'synthetic',
+      name: 'hf:zai-org/GLM-4.7'
+    },
     'synthetic/hf:deepseek-ai/DeepSeek-V3.2': {
       provider: 'synthetic',
       name: 'hf:deepseek-ai/DeepSeek-V3.2'

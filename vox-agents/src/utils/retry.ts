@@ -11,6 +11,7 @@ import { Logger } from "winston";
  * Executes an async function with exponential backoff retry logic
  * @param fn - The async function to execute, receives a progress callback to prevent timeout
  * @param logger - Winston logger instance for logging retry attempts
+ * @param source - Source identifier for logging (e.g., model name)
  * @param maxRetries - Maximum number of retry attempts (default: 20)
  * @param initialDelay - Initial delay in milliseconds (default: 2000)
  * @param maxDelay - Maximum delay in milliseconds (default: 15000)
@@ -22,6 +23,7 @@ import { Logger } from "winston";
 export async function exponentialRetry<T>(
   fn: (updateProgress: (completed?: boolean) => void) => Promise<T>,
   logger: Logger,
+  source: string = 'unknown',
   maxRetries: number = 100,
   initialDelay: number = 3000,
   maxDelay: number = 60000,
@@ -49,7 +51,7 @@ export async function exponentialRetry<T>(
         if (!isTimedOut && completed !== true) {
           timeoutHandle = setTimeout(() => {
             isTimedOut = true;
-            timeoutReject(new Error(`Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes) of inactivity`));
+            timeoutReject(new Error(`[${source}] Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes) of inactivity`));
           }, executionTimeout);
         }
       };
@@ -73,7 +75,7 @@ export async function exponentialRetry<T>(
       const isNonRetryable = error && typeof error === 'object' && 'isRetryable' in error && error.isRetryable === false;
 
       if (attempt === maxRetries) {
-        logger.warn(`Non-retryable error`, lastError);
+        logger.warn(`[${source}] Non-retryable error`, lastError);
         throw lastError;
       }
 
@@ -89,7 +91,7 @@ export async function exponentialRetry<T>(
       const totalDelay = currentDelay + jitter;
 
       // Log retry attempt
-      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after error, delaying ${Math.round(totalDelay)}ms`, lastError);
+      logger.warn(`[${source}] Retry attempt ${attempt + 1}/${maxRetries} after error, delaying ${Math.round(totalDelay)}ms`, lastError);
       await new Promise(resolve => setTimeout(resolve, totalDelay));
 
       // Increase delay for next attempt
