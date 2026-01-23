@@ -116,7 +116,10 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'synthetic/hf:deepseek-ai/DeepSeek-V3.2': {
       provider: 'synthetic',
-      name: 'hf:deepseek-ai/DeepSeek-V3.2'
+      name: 'hf:deepseek-ai/DeepSeek-V3.2',
+      options: {
+        toolMiddleware: 'prompt'
+      }
     },
     'synthetic/hf:moonshotai/Kimi-K2-Thinking': {
       provider: 'synthetic',
