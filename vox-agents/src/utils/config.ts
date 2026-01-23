@@ -110,6 +110,18 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
+    'synthetic/hf:deepseek-ai/DeepSeek-V3.2': {
+      provider: 'synthetic',
+      name: 'hf:deepseek-ai/DeepSeek-V3.2'
+    },
+    'synthetic/hf:moonshotai/Kimi-K2-Thinking': {
+      provider: 'synthetic',
+      name: 'hf:moonshotai/Kimi-K2-Thinking'
+    },
+    'synthetic/hf:MiniMaxAI/MiniMax-M2.1': {
+      provider: 'synthetic',
+      name: 'hf:MiniMaxAI/MiniMax-M2.1'
+    },
     'openai-compatible/gpt-oss-20b': {
       provider: 'openai-compatible',
       name: 'gpt-oss-120b',

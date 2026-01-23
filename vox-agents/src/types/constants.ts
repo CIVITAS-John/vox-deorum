@@ -28,7 +28,8 @@ export const llmProviders = [
   { label: 'OpenAI', value: 'openai' },
   { label: 'Google AI', value: 'google' },
   { label: 'OpenAI Compatible', value: 'openai-compatible' },
-  { label: 'Chutes', value: 'chutes' }
+  { label: 'Chutes.ai', value: 'chutes' },
+  { label: 'Synthetic.new', value: 'synthetic' }
 ];
 
 /**
@@ -92,6 +93,13 @@ export const apiKeyFields: ApiKeyField[] = [
     type: 'password',
     helpLink: 'https://chutes.ai/',
     helpTooltip: 'Get your Chutes API key from the Chutes dashboard'
+  },
+  {
+    key: 'SYNTHETIC_API_KEY',
+    label: 'Synthetic API Key',
+    type: 'password',
+    helpLink: 'https://synthetic.new/',
+    helpTooltip: 'Get your Synthetic API key from the Synthetic dashboard'
   },
   {
     key: 'OPENROUTER_API_KEY',

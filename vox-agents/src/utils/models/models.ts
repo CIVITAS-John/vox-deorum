@@ -107,6 +107,13 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
         apiKey: process.env.CHUTES_API_KEY,
       }).chatModel(config.name);
       break;
+    case "synthetic":
+      result = createOpenAICompatible({
+        baseURL: "https://api.synthetic.new/openai/v1",
+        name: "synthetic",
+        apiKey: process.env.SYNTHETIC_API_KEY,
+      }).chatModel(config.name);
+      break;
     case "openai":
       result = createOpenAI()(config.name);
       break;
