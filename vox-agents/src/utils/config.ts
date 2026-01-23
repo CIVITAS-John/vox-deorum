@@ -120,7 +120,10 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'synthetic/hf:moonshotai/Kimi-K2-Thinking': {
       provider: 'synthetic',
-      name: 'hf:moonshotai/Kimi-K2-Thinking'
+      name: 'hf:moonshotai/Kimi-K2-Thinking',
+      options: {
+        toolMiddleware: 'prompt'
+      }
     },
     'synthetic/hf:MiniMaxAI/MiniMax-M2.1': {
       provider: 'synthetic',
