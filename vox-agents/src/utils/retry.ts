@@ -26,7 +26,7 @@ export async function exponentialRetry<T>(
   initialDelay: number = 3000,
   maxDelay: number = 60000,
   backoffFactor: number = 1.5,
-  executionTimeout: number = 180000 // 3 minutes
+  executionTimeout: number = 300000 // 5 minutes
 ): Promise<T> {
   let lastError: Error;
   let delay = initialDelay;
@@ -50,7 +50,7 @@ export async function exponentialRetry<T>(
           timeoutHandle = setTimeout(() => {
             isTimedOut = true;
             timeoutReject(new Error(`Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes) of inactivity`));
-          }, executionTimeout * (initial === true ? 1 : 2)); // Shorter timeout on initial call
+          }, executionTimeout);
         }
       };
       
