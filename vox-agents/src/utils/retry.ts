@@ -26,7 +26,7 @@ export async function exponentialRetry<T>(
   source: string = 'unknown',
   maxRetries: number = 100,
   initialDelay: number = 3000,
-  maxDelay: number = 90000,
+  maxDelay: number = 120000,
   backoffFactor: number = 1.5,
   executionTimeout: number = 300000 // 5 minutes
 ): Promise<T> {
