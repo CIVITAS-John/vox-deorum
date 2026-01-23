@@ -13,8 +13,8 @@ import { Logger } from "winston";
  * @param logger - Winston logger instance for logging retry attempts
  * @param source - Source identifier for logging (e.g., model name)
  * @param maxRetries - Maximum number of retry attempts (default: 100)
- * @param initialDelay - Initial delay in milliseconds (default: 3000)
- * @param maxDelay - Maximum delay in milliseconds (default: 90000)
+ * @param initialDelay - Initial delay in milliseconds (default: 5000)
+ * @param maxDelay - Maximum delay in milliseconds (default: 120000)
  * @param backoffFactor - Exponential backoff multiplier (default: 1.5)
  * @param executionTimeout - Maximum time to wait after each progress update (default: 5 minutes)
  * @returns The result of the successful function execution
@@ -25,7 +25,7 @@ export async function exponentialRetry<T>(
   logger: Logger,
   source: string = 'unknown',
   maxRetries: number = 100,
-  initialDelay: number = 3000,
+  initialDelay: number = 5000,
   maxDelay: number = 120000,
   backoffFactor: number = 1.5,
   executionTimeout: number = 300000 // 5 minutes
