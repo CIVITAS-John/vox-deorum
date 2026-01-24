@@ -70,7 +70,9 @@ export class VoxPlayer {
   notifyTurn(turn: number, latestID: number): boolean {
     if (this.running) {
       this.logger.warn(`The ${this.playerConfig.strategist} is still working on turn ${this.parameters.turn}. Skipping turn ${turn}...`);
-      this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
+      this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters).then(() => {
+        if (!this.running) this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
+      });
       return this.pendingTurn?.turn !== turn;
     }
 
