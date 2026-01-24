@@ -9,6 +9,7 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { trimRationale } from "../../utils/text.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -119,8 +120,9 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
    * Execute the set-policy command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Extract the arguments
-    var { PlayerID, Policy, Rationale } = args;
+    // Extract the arguments and trim rationale
+    var { PlayerID, Policy, Rationale: rawRationale } = args;
+    const Rationale = trimRationale(rawRationale);
 
     // Remove parenthetical content for better matching (e.g., "Authority (New Branch)" -> "Authority")
     Policy = Policy.replace(/\s*\([^)]*\)/g, '').trim();

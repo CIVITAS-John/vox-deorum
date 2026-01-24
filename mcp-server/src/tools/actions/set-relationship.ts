@@ -10,6 +10,7 @@ import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
 import { readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
+import { trimRationale } from "../../utils/text.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -104,8 +105,9 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
    * Execute the set-relationship command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Extract the arguments
-    const { PlayerID, TargetID, Public, Private, Rationale } = args;
+    // Extract the arguments and trim rationale
+    const { PlayerID, TargetID, Public, Private, Rationale: rawRationale } = args;
+    const Rationale = trimRationale(rawRationale);
 
     // Validate that both players exist
     const playerInfos = await readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations);

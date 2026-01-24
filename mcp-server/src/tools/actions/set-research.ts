@@ -9,6 +9,7 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { trimRationale } from "../../utils/text.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -101,8 +102,9 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
    * Execute the set-research command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Extract the arguments
-    const { PlayerID, Technology, Rationale } = args;
+    // Extract the arguments and trim rationale
+    const { PlayerID, Technology, Rationale: rawRationale } = args;
+    const Rationale = trimRationale(rawRationale);
 
     // Convert technology name to ID
     const techID = Technology.toLowerCase() === "none" ? -1 : retrieveEnumValue("TechID", Technology);

@@ -11,6 +11,7 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { detectChanges } from "../../utils/knowledge/changes.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { trimRationale } from "../../utils/text.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -115,18 +116,22 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
    * Execute the set-strategy command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
+    // Trim rationale
+    const { Rationale: rawRationale, ...otherArgs } = args;
+    const Rationale = trimRationale(rawRationale);
+
     // Find the strategy ID from the string name
-    let grandStrategyId = retrieveEnumValue("GrandStrategy", args.GrandStrategy)
-    let economicStrategyIds = args.EconomicStrategies?.
+    let grandStrategyId = retrieveEnumValue("GrandStrategy", otherArgs.GrandStrategy)
+    let economicStrategyIds = otherArgs.EconomicStrategies?.
       map(s => retrieveEnumValue("EconomicStrategy", s)).filter(s => s !== -1);
-    let militaryStrategyIds = args.MilitaryStrategies?.
+    let militaryStrategyIds = otherArgs.MilitaryStrategies?.
       map(s => retrieveEnumValue("MilitaryStrategy", s)).filter(s => s !== -1);
 
     // Call the parent execute with the strategy ID
-    var result = await super.call(args.PlayerID, grandStrategyId, economicStrategyIds, militaryStrategyIds);
+    var result = await super.call(otherArgs.PlayerID, grandStrategyId, economicStrategyIds, militaryStrategyIds);
     if (result.Success) {
       const store = knowledgeManager.getStore();
-      const lastRationale = (await store.getMutableKnowledge("StrategyChanges", args.PlayerID))?.Rationale ?? "Unknown";
+      const lastRationale = (await store.getMutableKnowledge("StrategyChanges", otherArgs.PlayerID))?.Rationale ?? "Unknown";
 
       // Store the previous strategy with reason "Tweaked by In-Game AI"
       const previous = result.Result!;
@@ -148,14 +153,14 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
       const before = convertStrategyToNames(normalizedPrevious);
       await store.storeMutableKnowledge(
         'StrategyChanges',
-        args.PlayerID,
+        otherArgs.PlayerID,
         {
           GrandStrategy: before.GrandStrategy,
           EconomicStrategies: before.EconomicStrategies,
           MilitaryStrategies: before.MilitaryStrategies,
           Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI(${lastRationale.trim()})`
         },
-        composeVisibility([args.PlayerID]),
+        composeVisibility([otherArgs.PlayerID]),
         ["Rationale"] // Only ignore Rationale when checking for changes
       );
 
@@ -169,12 +174,12 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
       // Store the new strategy change in the database
       await store.storeMutableKnowledge(
         'StrategyChanges',
-        args.PlayerID,
+        otherArgs.PlayerID,
         {
           ...after,
-          Rationale: args.Rationale
+          Rationale: Rationale
         },
-        composeVisibility([args.PlayerID])
+        composeVisibility([otherArgs.PlayerID])
       );
 
       // Compare and send replay messages
@@ -194,8 +199,8 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
           }
         });
 
-        const message = `Strategies: ${changeDescriptions.join("; ")}. Rationale: ${args.Rationale}`;
-        await addReplayMessages(args.PlayerID, message);
+        const message = `Strategies: ${changeDescriptions.join("; ")}. Rationale: ${Rationale}`;
+        await addReplayMessages(otherArgs.PlayerID, message);
       }
     }
 

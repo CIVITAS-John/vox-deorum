@@ -13,6 +13,7 @@ import { pascalCase } from "change-case";
 import { retrieveEnumName, retrieveEnumValue } from "../../utils/knowledge/enum.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
 import { FlavorChange } from "../../knowledge/schema/timed.js";
+import { trimRationale } from "../../utils/text.js";
 import { Insertable } from "kysely";
 
 /**
@@ -140,6 +141,10 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
    * Execute the set-flavors command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
+    // Trim rationale
+    const { Rationale: rawRationale, ...otherArgs } = args;
+    const Rationale = trimRationale(rawRationale);
+
     // Load valid flavor keys from JSON
     const validFlavors = await loadFlavorDescriptions();
     const validFlavorKeys = Object.keys(validFlavors);
@@ -149,8 +154,8 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     // Clamp values to MCP range (0-100) - CvFlavorManager handles conversion to game range
     const flavorsTable: Record<string, number> = {};
     const newFlavors: Record<string, number> = {};
-    if (args.Flavors) {
-      for (const [key, value] of Object.entries(args.Flavors)) {
+    if (otherArgs.Flavors) {
+      for (const [key, value] of Object.entries(otherArgs.Flavors)) {
         if (validFlavorKeys.includes(key)) {
           // Clamp to MCP range (0-100)
           const clampedMcpValue = Math.max(0, Math.min(100, value));
@@ -162,8 +167,8 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     }
 
     // Call the parent execute with the converted flavors and grand strategy
-    let grandStrategyId = retrieveEnumValue("GrandStrategy", args.GrandStrategy)
-    const result = await super.call(args.PlayerID, flavorsTable, grandStrategyId);
+    let grandStrategyId = retrieveEnumValue("GrandStrategy", otherArgs.GrandStrategy)
+    const result = await super.call(otherArgs.PlayerID, flavorsTable, grandStrategyId);
 
     if (result.Success) {
       const store = knowledgeManager.getStore();
@@ -171,7 +176,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
 
       // Build the complete flavor state to store
       const flavorChange: Partial<Insertable<FlavorChange>> = {
-        Rationale: args.Rationale
+        Rationale: Rationale
       };
 
       // GetCustomFlavors now returns MCP range (0-100) directly
@@ -186,10 +191,10 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       const changeDescriptions: string[] = [];
       // Add grand strategy change if provided
       let previousGrandStrategy = retrieveEnumName("GrandStrategy", previous.GrandStrategy);
-      if (args.GrandStrategy && previousGrandStrategy !== args.GrandStrategy) {
-        changeDescriptions.push(`Grand Strategy: ${previousGrandStrategy} → ${args.GrandStrategy}`);
+      if (otherArgs.GrandStrategy && previousGrandStrategy !== otherArgs.GrandStrategy) {
+        changeDescriptions.push(`Grand Strategy: ${previousGrandStrategy} → ${otherArgs.GrandStrategy}`);
       }
-      flavorChange.GrandStrategy = args.GrandStrategy ? retrieveEnumName("GrandStrategy", grandStrategyId) : previousGrandStrategy;
+      flavorChange.GrandStrategy = otherArgs.GrandStrategy ? retrieveEnumName("GrandStrategy", grandStrategyId) : previousGrandStrategy;
 
       // Compare values and apply the new flavors
       for (const [key, value] of Object.entries(newFlavors)) {
@@ -208,15 +213,15 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       // Store in the database
       await store.storeMutableKnowledge(
         'FlavorChanges',
-        args.PlayerID,
+        otherArgs.PlayerID,
         flavorChange,
-        composeVisibility([args.PlayerID])
+        composeVisibility([otherArgs.PlayerID])
       );
 
       // Compare and send replay messages for actual changes
       if (changeDescriptions.length > 0) {
-        const message = `AI preferences: ${changeDescriptions.join("; ")}. Rationale: ${args.Rationale}`;
-        await addReplayMessages(args.PlayerID, message);
+        const message = `AI preferences: ${changeDescriptions.join("; ")}. Rationale: ${Rationale}`;
+        await addReplayMessages(otherArgs.PlayerID, message);
       }
     }
 

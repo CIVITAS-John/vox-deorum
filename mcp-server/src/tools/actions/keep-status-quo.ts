@@ -8,6 +8,7 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
+import { trimRationale } from "../../utils/text.js";
 
 /**
  * Mode enum for keep-status-quo tool
@@ -93,15 +94,19 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
    * Execute the keep-status-quo command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
+    // Trim rationale
+    const { Rationale: rawRationale, ...otherArgs } = args;
+    const Rationale = trimRationale(rawRationale);
+
     // Call the Lua function to refresh strategies or flavors
-    const result = await super.call(args.PlayerID, args.Mode);
+    const result = await super.call(otherArgs.PlayerID, otherArgs.Mode);
 
     if (result.Success) {
       const store = knowledgeManager.getStore();
 
-      if (args.Mode === "Flavor") {
+      if (otherArgs.Mode === "Flavor") {
         // Get the current flavors from the knowledge store
-        const previous = await store.getMutableKnowledge("FlavorChanges", args.PlayerID);
+        const previous = await store.getMutableKnowledge("FlavorChanges", otherArgs.PlayerID);
 
         if (previous) {
           // Load valid flavor keys
@@ -111,7 +116,7 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
           // Extract only flavor columns and metadata
           const flavorData: Record<string, any> = {
             GrandStrategy: previous.GrandStrategy,
-            Rationale: args.Rationale
+            Rationale: Rationale
           };
 
           // Copy only the flavor columns
@@ -124,23 +129,23 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
           // Store the flavors with the rationale
           await store.storeMutableKnowledge(
             'FlavorChanges',
-            args.PlayerID,
+            otherArgs.PlayerID,
             flavorData
           );
         }
       } else {
         // Get the current strategies from the knowledge store
-        const previous = await store.getMutableKnowledge("StrategyChanges", args.PlayerID);
+        const previous = await store.getMutableKnowledge("StrategyChanges", otherArgs.PlayerID);
 
         // Store the strategy (always) with the rationale
         await store.storeMutableKnowledge(
           'StrategyChanges',
-          args.PlayerID,
+          otherArgs.PlayerID,
           {
             GrandStrategy: previous?.GrandStrategy,
             MilitaryStrategies: previous?.MilitaryStrategies ?? [],
             EconomicStrategies: previous?.EconomicStrategies ?? [],
-            Rationale: args.Rationale
+            Rationale: Rationale
           }
         );
       }

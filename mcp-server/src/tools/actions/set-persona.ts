@@ -9,6 +9,7 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { trimRationale } from "../../utils/text.js";
 
 const personaSchema = z.object({
   // Core Competitiveness & Ambition
@@ -114,8 +115,9 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
    * Execute the set-persona command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Extract the rationale and player ID
-    const { Rationale, PlayerID, ...personaValues } = args;
+    // Extract the rationale and player ID, trim rationale
+    const { Rationale: rawRationale, PlayerID, ...personaValues } = args;
+    const Rationale = trimRationale(rawRationale);
 
     // Filter out undefined values and clamp to 1-10 range
     const filteredPersona = Object.fromEntries(
