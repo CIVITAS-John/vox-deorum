@@ -112,7 +112,10 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'synthetic/hf:zai-org/GLM-4.7': {
       provider: 'synthetic',
-      name: 'hf:zai-org/GLM-4.7'
+      name: 'hf:zai-org/GLM-4.7',
+      options: {
+        toolMiddleware: 'prompt'
+      }
     },
     'synthetic/hf:deepseek-ai/DeepSeek-V3.2': {
       provider: 'synthetic',
@@ -130,7 +133,10 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'synthetic/hf:MiniMaxAI/MiniMax-M2.1': {
       provider: 'synthetic',
-      name: 'hf:MiniMaxAI/MiniMax-M2.1'
+      name: 'hf:MiniMaxAI/MiniMax-M2.1',
+      options: {
+        toolMiddleware: 'prompt'
+      }
     },
     'openai-compatible/gpt-oss-20b': {
       provider: 'openai-compatible',
