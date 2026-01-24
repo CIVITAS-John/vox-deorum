@@ -48,7 +48,7 @@
     "express": "^4.21.2",
     "fast-fuzzy": "^1.12.0",
     "guard-timeout": "^2.0.0",
-    "jaison": "^2.0.2",
+    "jaison": "~2.0.2",
     "kysely": "^0.28.5",
     "mathjs": "^14.6.0",
     "multer": "^2.0.2",
