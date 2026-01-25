@@ -29,6 +29,7 @@
     <File md5="3847BD8F67C81B24B13D5DB36F8F737B" import="0">Text/VoxDeorum_Text.xml</File>
     <File md5="C3A72CC7D49D2E54948ABFCFA473E519" import="0">Text/VoxDeorum_Text.sql</File>
     <File md5="3A42737A457702DFE8A466F6C000BC18" import="1">Mapscripts/Vox_Deorum.lua</File>
+    <File md5="00000000000000000000000000000000" import="0">UI/PopupBroadcaster.lua</File>
   </Files>
   <Actions>
     <OnModActivated>
@@ -41,6 +42,10 @@
     <EntryPoint type="MapScript" file="Mapscripts/Vox_Deorum.lua">
       <Name>Vox_Deorum</Name>
       <Description>Communitas rewrite by tu_79 and azum4roll - fixed parameters for Vox Deorum research</Description>
+    </EntryPoint>
+    <EntryPoint type="InGameUIAddin" file="UI/PopupBroadcaster.lua">
+      <Name>PopupBroadcaster</Name>
+      <Description>Broadcasts popup events to MapModData for bridge visibility</Description>
     </EntryPoint>
   </EntryPoints>
 </Mod>
