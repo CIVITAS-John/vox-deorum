@@ -42,6 +42,18 @@ import createRangedAttackTool from "./actions/ranged-attack.js";
 import createSetCityProductionTool from "./actions/set-city-production.js";
 import createBuildImprovementTool from "./actions/build-improvement.js";
 import createFoundCityTool from "./actions/found-city.js";
+import createDeclareWarTool from "./actions/declare-war.js";
+import createMakePeaceTool from "./actions/make-peace.js";
+import createUnitCommandTool from "./actions/unit-command.js";
+import createUpgradeUnitTool from "./actions/upgrade-unit.js";
+import createCityPurchaseTool from "./actions/city-purchase.js";
+import createAssignTradeRouteTool from "./actions/assign-trade-route.js";
+import createMoveSpyTool from "./actions/move-spy.js";
+import createUseGreatPersonTool from "./actions/use-great-person.js";
+import createWorldCongressVoteTool from "./actions/world-congress-vote.js";
+import createSellBuildingTool from "./actions/sell-building.js";
+import createSpreadReligionTool from "./actions/spread-religion.js";
+import createDenounceTool from "./actions/denounce.js";
 
 // Tool factory configuration - one line per tool
 const toolFactories = {
@@ -83,13 +95,28 @@ const toolFactories = {
     keepStatusQuo: createKeepStatusQuoTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
-    // Direct control tools
+    // Direct control tools - units
     moveUnit: createMoveUnitTool,
     attackUnit: createAttackUnitTool,
     rangedAttack: createRangedAttackTool,
-    setCityProduction: createSetCityProductionTool,
+    unitCommand: createUnitCommandTool,
+    upgradeUnit: createUpgradeUnitTool,
     buildImprovement: createBuildImprovementTool,
     foundCity: createFoundCityTool,
+    useGreatPerson: createUseGreatPersonTool,
+    spreadReligion: createSpreadReligionTool,
+    // Direct control tools - cities
+    setCityProduction: createSetCityProductionTool,
+    cityPurchase: createCityPurchaseTool,
+    sellBuilding: createSellBuildingTool,
+    // Direct control tools - diplomacy
+    declareWar: createDeclareWarTool,
+    makePeace: createMakePeaceTool,
+    denounce: createDenounceTool,
+    // Direct control tools - systems
+    assignTradeRoute: createAssignTradeRouteTool,
+    moveSpy: createMoveSpyTool,
+    worldCongressVote: createWorldCongressVoteTool,
 } as const;
  
 // Type for the tools object (inferred from factories)
