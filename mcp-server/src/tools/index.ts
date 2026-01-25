@@ -36,6 +36,12 @@ import createGetTradeRoutesTool from "./knowledge/get-trade-routes.js";
 import createGetEspionageTool from "./knowledge/get-espionage.js";
 import createGetCultureInfluenceTool from "./knowledge/get-culture-influence.js";
 import createSearchDatabaseTool from "./general/search-database.js";
+import createMoveUnitTool from "./actions/move-unit.js";
+import createAttackUnitTool from "./actions/attack-unit.js";
+import createRangedAttackTool from "./actions/ranged-attack.js";
+import createSetCityProductionTool from "./actions/set-city-production.js";
+import createBuildImprovementTool from "./actions/build-improvement.js";
+import createFoundCityTool from "./actions/found-city.js";
 
 // Tool factory configuration - one line per tool
 const toolFactories = {
@@ -77,6 +83,13 @@ const toolFactories = {
     keepStatusQuo: createKeepStatusQuoTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
+    // Direct control tools
+    moveUnit: createMoveUnitTool,
+    attackUnit: createAttackUnitTool,
+    rangedAttack: createRangedAttackTool,
+    setCityProduction: createSetCityProductionTool,
+    buildImprovement: createBuildImprovementTool,
+    foundCity: createFoundCityTool,
 } as const;
  
 // Type for the tools object (inferred from factories)
