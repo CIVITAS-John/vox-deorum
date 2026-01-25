@@ -28,6 +28,13 @@ import createSetResearchTool from "./actions/set-research.js";
 import createSetPolicyTool from "./actions/set-policy.js";
 import createGetVictoryProgressTool from "./knowledge/get-victory-progress.js";
 import createGetMilitaryReportTool from "./knowledge/get-military-report.js";
+import createGetMapRegionTool from "./knowledge/get-map-region.js";
+import createGetCombatPreviewTool from "./knowledge/get-combat-preview.js";
+import createGetHappinessTool from "./knowledge/get-happiness.js";
+import createGetWorldCongressTool from "./knowledge/get-world-congress.js";
+import createGetTradeRoutesTool from "./knowledge/get-trade-routes.js";
+import createGetEspionageTool from "./knowledge/get-espionage.js";
+import createGetCultureInfluenceTool from "./knowledge/get-culture-influence.js";
 import createSearchDatabaseTool from "./general/search-database.js";
 
 // Tool factory configuration - one line per tool
@@ -44,6 +51,13 @@ const toolFactories = {
     getMilitaryStrategy: createGetMilitaryStrategyTool,
     getVictoryProgress: createGetVictoryProgressTool,
     getMilitaryReport: createGetMilitaryReportTool,
+    getMapRegion: createGetMapRegionTool,
+    getCombatPreview: createGetCombatPreviewTool,
+    getHappiness: createGetHappinessTool,
+    getWorldCongress: createGetWorldCongressTool,
+    getTradeRoutes: createGetTradeRoutesTool,
+    getEspionage: createGetEspionageTool,
+    getCultureInfluence: createGetCultureInfluenceTool,
     getEvents: createGetEventsTool,
     getPlayers: createGetPlayersTool,
     getOpinions: createGetOpinionsTool,
