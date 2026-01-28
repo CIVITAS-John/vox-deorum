@@ -98,14 +98,14 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'chutes/zai-org/glm-4.6': {
       provider: 'chutes',
-      name: 'zai-org/GLM-4.6-TEE',
+      name: 'zai-org/GLM-4.6-FP8',
       options: {
         toolMiddleware: 'prompt'
       }
     },
     'chutes/zai-org/glm-4.7': {
       provider: 'chutes',
-      name: 'zai-org/GLM-4.7-TEE',
+      name: 'zai-org/GLM-4.7-FP8',
       options: {
         toolMiddleware: 'prompt'
       }
