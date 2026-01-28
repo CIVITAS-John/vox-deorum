@@ -131,6 +131,13 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
+    'synthetic/hf:moonshotai/Kimi-K2.5': {
+      provider: 'synthetic',
+      name: 'hf:moonshotai/Kimi-K2.5',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
     'synthetic/hf:MiniMaxAI/MiniMax-M2.1': {
       provider: 'synthetic',
       name: 'hf:MiniMaxAI/MiniMax-M2.1',
