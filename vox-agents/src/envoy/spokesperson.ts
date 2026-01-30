@@ -142,7 +142,7 @@ ${hint}`.trim()});
 
     // Add the conversation history from the thread
     if (input.messages && input.messages.length > 0) {
-      messages.push(...input.messages);
+      messages.push(...this.convertToModelMessages(input.messages));
     }
 
     return messages;

@@ -4,10 +4,10 @@
  * Base envoy agent implementation for chat-based interactions.
  */
 
-import { StepResult, Tool } from "ai";
+import { ModelMessage, StepResult, Tool } from "ai";
 import { VoxAgent } from "../infra/vox-agent.js";
 import { StrategistParameters } from "../strategist/strategy-parameters.js";
-import { EnvoyThread } from "../types/index.js";
+import { EnvoyThread, MessageWithMetadata } from "../types/index.js";
 
 /**
  * Base envoy agent that can chat with the user.
@@ -34,17 +34,44 @@ export abstract class Envoy extends VoxAgent<StrategistParameters, EnvoyThread, 
   }
 
   /**
+   * Converts an array of MessageWithMetadata to ModelMessage array.
+   * Formats turn information into the message content for user messages.
+   *
+   * @param messages - Array of messages with metadata
+   * @returns Array of ModelMessage objects
+   */
+  protected convertToModelMessages(messages: MessageWithMetadata[]): ModelMessage[] {
+    return messages.map(item => {
+      const message = { ...item.message };
+      // Format turn into messages for context
+      if (typeof message.content === 'string') {
+        message.content = `[Turn ${item.metadata.turn}] ${message.content}`;
+      }
+      return message;
+    });
+  }
+
+  /**
    * Determines whether the agent should stop execution
    */
   public stopCheck(
-    _parameters: StrategistParameters,
+    parameters: StrategistParameters,
     input: EnvoyThread,
     lastStep: StepResult<Record<string, Tool>>,
     allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {
-    // Add the message to the record
+    // Add the messages to the record with metadata
+    const currentTurn = parameters.turn;
+    const currentDatetime = new Date();
+
     lastStep.response.messages.forEach(element => {
-      input.messages.push(element);
+      input.messages.push({
+        message: element,
+        metadata: {
+          datetime: currentDatetime,
+          turn: currentTurn
+        }
+      });
     });
 
     // Continue if we have executed a tool

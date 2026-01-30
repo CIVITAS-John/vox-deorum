@@ -14,8 +14,9 @@
     >
       <template #default="{ item, index }">
         <ChatMessage
-          :key="`${item.role}-${index}`"
-          :message="item"
+          :key="`${item.message.role}-${index}`"
+          :message="item.message"
+          :metadata="item.metadata"
         />
       </template>
     </VList>
@@ -23,14 +24,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue';
 import { VList } from 'virtua/vue';
 import Button from 'primevue/button';
 import type { ModelMessage } from 'ai';
+import type { MessageWithMetadata } from '../../utils/types';
 import ChatMessage from './ChatMessage.vue';
 
 interface Props {
-  messages: ModelMessage[];
+  messages: MessageWithMetadata[];
   autoScroll?: boolean;
   scrollTrigger?: number;
 }

@@ -20,6 +20,24 @@ export interface StreamingEventCallback {
 import type { ModelMessage } from "ai";
 
 /**
+ * Represents a message with associated metadata.
+ * Wraps a ModelMessage with additional context about when and where it was created.
+ */
+export interface MessageWithMetadata {
+  /** The actual message content */
+  message: ModelMessage;
+
+  /** Metadata about this message */
+  metadata: {
+    /** When this message was created */
+    datetime: Date;
+
+    /** Game turn when this message was created */
+    turn: number;
+  };
+}
+
+/**
  * Represents a chat thread for the Envoy agent.
  * Contains all the metadata and messages for a conversation.
  */
@@ -38,7 +56,7 @@ export interface EnvoyThread {
 
   /** Player ID this thread is associated with */
   playerID: number;
-  
+
   /** Player ID the user is associated with */
   userPlayerID?: number;
 
@@ -51,8 +69,8 @@ export interface EnvoyThread {
   /** Database file path for database sessions */
   databasePath?: string;
 
-  /** The conversation messages in this thread */
-  messages: ModelMessage[];
+  /** The conversation messages in this thread with metadata */
+  messages: MessageWithMetadata[];
 
   /** Optional metadata for the thread */
   metadata?: {

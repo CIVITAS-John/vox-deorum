@@ -217,12 +217,19 @@ export function createAgentRoutes(): Router {
       return;
     }
 
-    // Add user message to thread
+    // Add user message to thread with metadata
+    const currentTurn = voxContext.lastParameter?.turn || 0;
     const userMessage: ModelMessage = {
       role: 'user',
       content: message
     };
-    thread.messages.push(userMessage);
+    thread.messages.push({
+      message: userMessage,
+      metadata: {
+        datetime: new Date(),
+        turn: currentTurn
+      }
+    });
     thread.metadata!.updatedAt = new Date();
 
     // Set up SSE stream

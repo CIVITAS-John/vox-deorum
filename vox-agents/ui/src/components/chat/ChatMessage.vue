@@ -34,6 +34,10 @@ import ToolResultMessage from './ToolResultMessage.vue';
 
 interface Props {
   message: ModelMessage;
+  metadata?: {
+    datetime: Date;
+    turn: number;
+  };
 }
 
 const props = defineProps<Props>();

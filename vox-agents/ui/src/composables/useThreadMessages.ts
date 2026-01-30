@@ -49,17 +49,30 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
       return;
     }
 
-    // Add user message to thread
+    // Add user message to thread with metadata
+    const currentTurn = thread.value.metadata?.turn || 0;
     const userMessage: ModelMessage = { role: "user", content: message };
-    thread.value.messages.push(userMessage);
+    thread.value.messages.push({
+      message: userMessage,
+      metadata: {
+        datetime: new Date(),
+        turn: currentTurn
+      }
+    });
 
     // Start streaming
     isStreaming.value = true;
 
     // Prepare for assistant response with array content for multi-part support
     const assistantMessage: ModelMessage = { role: "assistant", content: [] };
-    thread.value.messages.push(assistantMessage);
-    contents = thread.value.messages[thread.value.messages.length - 1]!.content as any;
+    thread.value.messages.push({
+      message: assistantMessage,
+      metadata: {
+        datetime: new Date(),
+        turn: currentTurn
+      }
+    });
+    contents = thread.value.messages[thread.value.messages.length - 1]!.message.content as any;
 
     // Prepare for each type
     let currentText: LanguageModelV2TextPart | null = null;
