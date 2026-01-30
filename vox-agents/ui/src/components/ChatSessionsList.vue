@@ -87,7 +87,7 @@ function getSessionTitle(session: EnvoyThread): string {
         <div class="col-fixed-120">Agent</div>
         <div class="col-fixed-250">Game</div>
         <div class="col-fixed-60">Player</div>
-        <div v-if="showActions" class="col-fixed-140">Actions</div>
+        <div v-if="showActions" class="col-fixed-150">Actions</div>
       </div>
 
       <!-- Table Body -->
@@ -107,7 +107,7 @@ function getSessionTitle(session: EnvoyThread): string {
           <div class="col-fixed-60">
             {{ session.playerID }}
           </div>
-          <div v-if="showActions" class="col-fixed-140">
+          <div v-if="showActions" class="col-fixed-150">
             <Button label="Resume" icon="pi pi-play" text size="small"
                     @click.stop="handleResumeClick(session.id)" />
             <Button icon="pi pi-trash" text size="small"
