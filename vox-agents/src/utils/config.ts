@@ -331,13 +331,26 @@ export let config = loadConfig();
 
 /**
  * Refresh the configuration by reloading from config.json and environment variables.
- * Updates the singleton instance with fresh values.
+ * Updates the singleton instance with fresh values by mutating the existing object
+ * to preserve references held by other modules.
  *
  * @returns The refreshed configuration object
  */
 export function refreshConfig(): VoxAgentsConfig {
   logger.info('Refreshing configuration...');
-  config = loadConfig();
+  const newConfig = loadConfig();
+
+  // Clear existing properties (except those we're about to replace)
+  for (const key in config) {
+    if (config.hasOwnProperty(key)) {
+      delete (config as any)[key];
+    }
+  }
+
+  // Copy all properties from new config to existing config object
+  // This preserves the object reference while updating its contents
+  Object.assign(config, newConfig);
+
   return config;
 }
 
