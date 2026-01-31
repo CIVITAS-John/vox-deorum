@@ -412,57 +412,58 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
             switch (chunk.type) {
               case "text-delta": {
                 // Process the incoming delta
-                let currentDelta = chunk.delta;
                 let incompleteBuffer = incompleteBuffers[chunk.id] ?? "";
+                let currentDelta = incompleteBuffer + chunk.delta;
 
-                // If we detect JSON start, add to buffer
-                if (incompleteBuffer === "") {
-                  // Check for both { and [ as JSON start characters
-                  const objStartIndex = currentDelta.indexOf('{');
-                  const arrStartIndex = currentDelta.indexOf('[');
-                  let jsonStartIndex = -1;
+                // Check for both { and [ as JSON start characters
+                const objStartIndex = currentDelta.indexOf('{');
+                const arrStartIndex = currentDelta.indexOf('[');
+                const markdownStartIndex = currentDelta.indexOf('```json');
+                let jsonStartIndex = -1;
 
-                  // Find the first occurrence of either { or [
-                  if (objStartIndex !== -1 && arrStartIndex !== -1) {
-                    jsonStartIndex = Math.min(objStartIndex, arrStartIndex);
-                  } else if (objStartIndex !== -1) {
-                    jsonStartIndex = objStartIndex;
-                  } else if (arrStartIndex !== -1) {
-                    jsonStartIndex = arrStartIndex;
-                  }
-
-                  if (jsonStartIndex !== -1) {
-                    // Output text before JSON, start buffering from JSON
-                    chunk.delta = currentDelta.substring(0, jsonStartIndex);
-                    incompleteBuffer = currentDelta.substring(jsonStartIndex);
-                  }
+                // Find the first occurrence of either { or [
+                if (markdownStartIndex !== -1) {
+                  jsonStartIndex = markdownStartIndex;
+                } else if (objStartIndex !== -1 && arrStartIndex !== -1) {
+                  jsonStartIndex = Math.min(objStartIndex, arrStartIndex);
+                } else if (arrStartIndex !== -1) {
+                  jsonStartIndex = arrStartIndex;
+                } else if (objStartIndex !== -1) {
+                  jsonStartIndex = objStartIndex;
                 } else {
-                  // Already buffering, add to buffer
-                  incompleteBuffer += currentDelta;
-                  chunk.delta = "";
+                  chunk.delta = currentDelta;
                 }
 
-                // If we're already buffering or detect JSON start, add to buffer
-                if (incompleteBuffer !== "") {
-                  // Try to rescue tool calls from accumulated buffer - strict first
-                  const processed = rescueToolCallsFromText(incompleteBuffer, toolNames, false);
-                  if (processed.toolCalls.length > 0) {
-                    toolCallsFound = true;
-                    // Emit remaining text if any
-                    if (processed.remainingText)
-                      chunk.delta = processed.remainingText;
-                    // Emit tool calls as proper stream chunks
-                    emitToolCallChunks(processed.toolCalls, controller);
-                    // Clear the buffer and stop buffering
-                    incompleteBuffers[chunk.id] = "";
+                if (jsonStartIndex !== -1) {
+                  // Output text before JSON, start buffering from JSON
+                  chunk.delta = currentDelta.substring(0, jsonStartIndex);
+                  incompleteBuffer = currentDelta.substring(jsonStartIndex);
+
+                  if (!incompleteBuffer.startsWith('```json')) {
+                    // Try to rescue tool calls from accumulated buffer - strict first
+                    const processed = rescueToolCallsFromText(incompleteBuffer, toolNames, false);
+                    if (processed.toolCalls.length > 0) {
+                      toolCallsFound = true;
+                      // Emit tool calls as proper stream chunks
+                      emitToolCallChunks(processed.toolCalls, controller);
+                      // Clear the buffer and put remaining text there
+                      let remaining = processed.remainingText ?? "";
+                      if (remaining.indexOf("{") !== -1)
+                        incompleteBuffers[chunk.id] = remaining;
+                      else {
+                        incompleteBuffers[chunk.id] = "";
+                        chunk.delta += remaining;
+                      }
+                    } else {
+                      incompleteBuffers[chunk.id] = incompleteBuffer;
+                    }
                   } else {
-                    // Store the buffer in case we need to update it
                     incompleteBuffers[chunk.id] = incompleteBuffer;
                   }
                 }
 
                 // Pass through the remaining text
-                if (chunk.delta !== "") controller.enqueue(chunk);
+                controller.enqueue(chunk);
                 break;
               }
               case "text-end": {
