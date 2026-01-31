@@ -91,7 +91,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
       const modifiedParams = {
         ...params,
         onChunk: (args: any) => {
-          update(); // Reset the timeout
+          update(true); // Clear the timeout once we get a real chunk
           originalOnChunk?.(args);
         },
         onStepFinish: (results: any) => {
