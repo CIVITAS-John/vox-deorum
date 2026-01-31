@@ -53,9 +53,11 @@ export function createToolPrompts(tools: (LanguageModelV2FunctionTool | Language
     case "required":
       return `## Tool Calling
 You must use one or more tools from the list below. Respond ONLY with a JSON array in this exact format:
+\`\`\`json
 [
   { "tool": "<tool_name>", "arguments": { <parameters> } },
 ]
+\`\`\`
 
 ## Available Tools
 ${descriptions}`;
@@ -70,9 +72,11 @@ ${descriptions}`;
     default:
       return `## Tool Calling
 You have access to tools. If you decide to invoke any of the tool(s), respond ONLY with a JSON array in this exact format:
+\`\`\`json
 [
   { "tool": "<tool_name>", "arguments": { <parameters> } },
 ]
+\`\`\`
 
 ## Available Tools
 ${descriptions}`;
