@@ -156,6 +156,9 @@ export function rescueToolCallsFromText(
     return blocks;
   }
 
+  // If in strict mode and the json block is incomplete, skip it
+  if (!useJaison && text.indexOf("```json") !== -1) return { toolCalls: [], remainingText: text };
+
   // First check for markdown code blocks with ```json syntax
   const codeBlockRegex = /\`\`\`json\s*\n([\s\S]*?)\n\`\`\`/;
   const codeBlockMatch = text.match(codeBlockRegex);
