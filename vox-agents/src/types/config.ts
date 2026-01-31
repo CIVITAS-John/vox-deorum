@@ -25,6 +25,7 @@ export interface LLMConfig {
   options?: {
     toolMiddleware?: ToolMiddlewareType;
     concurrencyLimit?: number;
+    reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high';
     [key: string]: any;
   };
 }

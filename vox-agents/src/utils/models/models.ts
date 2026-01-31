@@ -38,7 +38,7 @@ dotenv.config();
  */
 export function getModelConfig(
   name: string = 'default',
-  reasoning?: 'minimal' | 'low' | 'medium' | 'high',
+  reasoning?: 'minimal' | 'low' | 'medium' | 'high' | 'default',
   overrides?: Record<string, Model | string>
 ): Model {
   // Check overrides first
@@ -49,10 +49,10 @@ export function getModelConfig(
       return getModelConfig(override, reasoning, overrides);
     }
     // It's a Model object - apply reasoning if needed
-    if (reasoning) {
+    if (reasoning && (reasoning !== 'default' || !override.options?.reasoningEffort)) {
       return {
         ...override,
-        options: { ...override.options, reasoningEffort: reasoning }
+        options: { ...override.options, reasoningEffort: reasoning === 'default' ? 'medium' : reasoning }
       };
     }
     return override;
@@ -67,10 +67,10 @@ export function getModelConfig(
   if (typeof(model) === "string") {
     // console.log(name + " parsed to " + model);
     return getModelConfig(model, reasoning);
-  } else if (reasoning) {
+  } else if (reasoning && (reasoning !== 'default' || !model.options?.reasoningEffort)) {
     return {
       ...model,
-      options: { ...model.options, reasoningEffort: reasoning }
+      options: { ...model.options, reasoningEffort: reasoning === 'default' ? 'medium' : reasoning }
     };
   } else return model;
 }

@@ -10,8 +10,6 @@ import { ModelMessage } from "ai";
 import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
-import { getModelConfig } from "../../utils/models/models.js";
-import { Model } from "../../types/index.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
 import { assembleBriefings } from "./simple-strategist-staffed.js";
 import { getStrategicPlayersReport } from "../../utils/report-filters.js";
@@ -127,16 +125,5 @@ You, ${parameters.metadata?.YouAre!.Leader} (leader of ${parameters.metadata?.Yo
   public getActiveTools(parameters: StrategistParameters): string[] | undefined {
     // Return specific tools the strategist needs
     return ["focus-briefer", ...(super.getActiveTools(parameters) ?? [])]
-  }
-
-  /**
-   * Gets the language model to use for this agent execution.
-   * Can return undefined to use the default model from VoxContext.
-   * 
-   * @param parameters - The execution parameters
-   * @returns The language model to use, or undefined for default
-   */
-  public getModel(_parameters: StrategistParameters, _input: unknown, overrides: Record<string, Model | string>): Model {
-    return getModelConfig(this.name, "medium", overrides);
   }
 }
