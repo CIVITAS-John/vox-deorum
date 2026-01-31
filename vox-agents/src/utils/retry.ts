@@ -21,14 +21,14 @@ import { Logger } from "winston";
  * @throws The last error if all retries are exhausted
  */
 export async function exponentialRetry<T>(
-  fn: (updateProgress: (completed?: boolean) => void) => Promise<T>,
+  fn: (updateProgress: (completed?: boolean) => void, iteration: number) => Promise<T>,
   logger: Logger,
   source: string = 'unknown',
   maxRetries: number = 100,
   initialDelay: number = 5000,
-  maxDelay: number = 120000,
-  backoffFactor: number = 1.5,
-  executionTimeout: number = 300000 // 5 minutes
+  maxDelay: number = 180000,
+  backoffFactor: number = 1.2,
+  executionTimeout: number = 600000 // 10 minutes
 ): Promise<T> {
   let lastError: Error;
   let delay = initialDelay;
@@ -44,12 +44,14 @@ export async function exponentialRetry<T>(
         timeoutReject = reject;
       });
 
-      const resetTimeout = (completed?: boolean, initial?: boolean) => {
+      const resetTimeout = (completed?: boolean) => {
         if (timeoutHandle) {
           clearTimeout(timeoutHandle);
         }
+        if (completed) isTimedOut = true;
         if (!isTimedOut && completed !== true) {
           timeoutHandle = setTimeout(() => {
+            if (isTimedOut) return;
             isTimedOut = true;
             timeoutReject(new Error(`[${source}] Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes) of inactivity`));
           }, executionTimeout);
@@ -57,11 +59,11 @@ export async function exponentialRetry<T>(
       };
       
       // Start initial timeout
-      resetTimeout(false, true);
+      resetTimeout(false);
 
       // Race between the function execution and timeout
       const result = await Promise.race([
-        fn(resetTimeout),
+        fn(resetTimeout, attempt),
         timeoutPromise
       ]);
 

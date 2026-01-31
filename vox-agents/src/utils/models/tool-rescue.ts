@@ -152,20 +152,31 @@ export function rescueToolCallsFromText(
     return blocks;
   }
 
-  // Find all potential JSON blocks and select the largest one
-  const jsonBlocks = findJsonBlocks(text);
-  let largestBlock = '';
-  let largestBlockSize = 0;
+  // First check for markdown code blocks with ```json syntax
+  const codeBlockRegex = /\`\`\`json\s*\n([\s\S]*?)\n\`\`\`/;
+  const codeBlockMatch = text.match(codeBlockRegex);
 
-  for (const block of jsonBlocks) {
-    if (block.length > largestBlockSize) {
-      largestBlock = block;
-      largestBlockSize = block.length;
+  let jsonText: string;
+
+  if (codeBlockMatch) {
+    // If markdown code block found, use its content directly
+    jsonText = codeBlockMatch[1].trim();
+  } else {
+    // Otherwise, find all potential JSON blocks and select the largest one
+    const jsonBlocks = findJsonBlocks(text);
+    let largestBlock = '';
+    let largestBlockSize = 0;
+
+    for (const block of jsonBlocks) {
+      if (block.length > largestBlockSize) {
+        largestBlock = block;
+        largestBlockSize = block.length;
+      }
     }
-  }
 
-  // If no JSON block found, try to parse the entire text
-  const jsonText = largestBlock || text;
+    // If no JSON block found, try to parse the entire text
+    jsonText = largestBlock || text;
+  }
 
   // Try to parse the JSON using jaison
   let parsed: any;
@@ -228,14 +239,19 @@ export function rescueToolCallsFromText(
   if (rescuedToolCalls.length > 0 && allToolCallsValid) {
     // If we extracted a JSON block, calculate remaining text
     let remainingText: string | undefined;
-    if (largestBlock && largestBlock !== text) {
-      // Remove the JSON block from the original text
-      const blockIndex = text.indexOf(largestBlock);
+
+    // Determine what was extracted - either the full markdown block or just the JSON content
+    const extractedContent = codeBlockMatch ? codeBlockMatch[0] : jsonText;
+
+    if (extractedContent && extractedContent !== text) {
+      // Remove the extracted content from the original text
+      const blockIndex = text.indexOf(extractedContent);
       const before = text.substring(0, blockIndex).trim();
-      const after = text.substring(blockIndex + largestBlock.length).trim();
+      const after = text.substring(blockIndex + extractedContent.length).trim();
       remainingText = (before + ' ' + after).trim();
       if (!remainingText) remainingText = undefined;
     }
+    
     return { toolCalls: rescuedToolCalls, remainingText };
   }
 

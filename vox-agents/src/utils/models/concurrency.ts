@@ -80,23 +80,26 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
     : 'unknown-model';
 
   // Wrap the streamText call with both concurrency limiting and exponential retry
-  return limiter(async () =>
-    exponentialRetry(async (update) => {
+  return limiter(async () => {
+    let maxIteration = 0;
+    return exponentialRetry(async (update, iteration) => {
       if (params.abortSignal?.aborted) return;
+      maxIteration = iteration;
       
       // Call streamText with all the original parameters
       // Modify onChunk to call the update function for retry timeout reset
+      // Also discard late returns if a previous aborted attempt gets resurrected
       const originalOnChunk = params.onChunk;
       const originalOnStepFinish = params.onStepFinish;
       const modifiedParams = {
         ...params,
         onChunk: (args: any) => {
-          update(true); // Clear the timeout once we get a real chunk
-          originalOnChunk?.(args);
+          update(false);
+          if (maxIteration === iteration) originalOnChunk?.(args);
         },
         onStepFinish: (results: any) => {
           update(true);
-          originalOnStepFinish?.(results);
+          if (maxIteration === iteration) originalOnStepFinish?.(results);
         }
       };
 
@@ -106,7 +109,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         steps: await result.steps
       };
     }, logger, modelName)
-  );
+  });
 }
 
 /**
