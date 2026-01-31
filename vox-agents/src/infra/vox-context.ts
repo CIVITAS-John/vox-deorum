@@ -22,6 +22,7 @@ import { agentRegistry } from "./agent-registry.js";
 import { contextRegistry } from "./context-registry.js";
 import { createAgentTool } from "../utils/tools/agent-tools.js";
 import { wrapMCPTools } from "../utils/tools/mcp-tools.js";
+import winston from "winston";
 
 /**
  * Runtime context for executing Vox Agents.
@@ -30,7 +31,7 @@ import { wrapMCPTools } from "../utils/tools/mcp-tools.js";
  * @template TParameters - The type of parameters that agents will receive
  */
 export class VoxContext<TParameters extends AgentParameters> {
-  private logger = createLogger('VoxContext');
+  public logger: winston.Logger;
   private tracer = trace.getTracer('vox-agents');
 
   /**
@@ -52,6 +53,10 @@ export class VoxContext<TParameters extends AgentParameters> {
    * AbortController for managing generation cancellation
    */
   private abortController: AbortController;
+  /**
+   * A callback for refreshing LLM timeouts
+   */
+  public timeoutRefresh: () => void = () => {};
 
   /**
    * Total input tokens
@@ -80,6 +85,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     this.id = id || uuidv4();
     this.modelOverrides = modelOverrides;
     this.abortController = new AbortController();
+    this.logger = createLogger(`VoxContext-${this.id}`);
     this.logger.info(`VoxContext initialized with ID: ${this.id}`);
 
     // Automatically register this context in the registry
@@ -402,7 +408,7 @@ export class VoxContext<TParameters extends AgentParameters> {
               callback?.OnChunk(args);
             }
           }, stepModel),
-          this.logger
+          this
         );
 
         if (!result || this.abortController.signal.aborted) throw new Error("Operation aborted.");

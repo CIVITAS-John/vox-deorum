@@ -61,6 +61,8 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
     description: tool.description || `MCP tool: ${tool.name}`,
     inputSchema: jsonSchema(filteredSchema),
     execute: async (args: any, options) => {
+      context.timeoutRefresh?.();
+      
       const span = tracer.startSpan(`mcp-tool.${tool.name}`, {
         kind: SpanKind.CLIENT,
         attributes: {

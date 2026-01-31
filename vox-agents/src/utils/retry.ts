@@ -46,12 +46,12 @@ export async function exponentialRetry<T>(
       });
 
       const resetTimeout = (completed?: boolean) => {
+        lastKnown = new Date();
         if (timeoutHandle) {
           clearTimeout(timeoutHandle);
         }
         if (completed) isTimedOut = true;
         if (!isTimedOut && completed !== true) {
-          lastKnown = new Date();
           timeoutHandle = setTimeout(() => {
             if (isTimedOut) return;
             isTimedOut = true;

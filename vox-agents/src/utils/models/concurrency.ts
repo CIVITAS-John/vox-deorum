@@ -6,10 +6,11 @@
  */
 
 import pLimit from 'p-limit';
-import { streamText } from 'ai';
-import type { Logger } from 'winston';
+import { streamText, TextStreamPart, ToolSet } from 'ai';
 import { exponentialRetry } from '../retry.js';
 import type { Model } from '../../types/index.js';
+import { VoxContext } from '../../infra/vox-context.js';
+import { AgentParameters } from '../../infra/vox-agent.js';
 
 /** Map of model IDs to their p-limit instances */
 const modelLimiters = new Map<string, ReturnType<typeof pLimit>>();
@@ -45,7 +46,7 @@ function getModelLimiter(model: Model): ReturnType<typeof pLimit> {
  * during streaming by awaiting the steps Promise within the retry mechanism.
  *
  * @param params - Same parameters as streamText, but model must be a Model object from getModel()
- * @param logger - Winston logger for retry logging
+ * @param context - VoxContext
  * @param awaitSteps - Whether to await the steps Promise within the retry (default: true)
  * @returns Promise that resolves to either StreamTextResult or the resolved steps array
  *
@@ -56,13 +57,14 @@ function getModelLimiter(model: Model): ReturnType<typeof pLimit> {
  *   model: getModel(stepModel),
  *   messages: messages,
  *   // ... other streamText parameters
- * }, logger);
+ * }, context);
  * ```
  */
 export async function streamTextWithConcurrency<T extends Parameters<typeof streamText>[0]>(
   params: T & { model: any }, // model is from getModel() which returns LanguageModel
-  logger: Logger
+  context: VoxContext<AgentParameters>
 ) {
+  context.timeoutRefresh = () => {};
   // Extract the model config from params
   // The model parameter comes from getModel(stepModel) where stepModel is our Model type
   // We need to get the original Model config to determine concurrency limits
@@ -84,6 +86,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
     let maxIteration = 0;
     return exponentialRetry(async (update, iteration) => {
       if (params.abortSignal?.aborted) return;
+      context.timeoutRefresh = update;
       maxIteration = iteration;
       
       // Call streamText with all the original parameters
@@ -94,12 +97,19 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
       const modifiedParams = {
         ...params,
         onChunk: (args: any) => {
-          update(false);
           if (maxIteration === iteration) originalOnChunk?.(args);
         },
         onStepFinish: (results: any) => {
           update(true);
           if (maxIteration === iteration) originalOnStepFinish?.(results);
+        },
+        experimental_transform: (args: any) => {
+          return new TransformStream<TextStreamPart<ToolSet>, TextStreamPart<ToolSet>>({
+            transform(chunk, controller) {
+              update(false);
+              controller.enqueue(chunk);
+            }
+          });
         }
       };
 
@@ -108,7 +118,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         ...result,
         steps: await result.steps
       };
-    }, logger, modelName)
+    }, context.logger, modelName)
   });
 }
 
