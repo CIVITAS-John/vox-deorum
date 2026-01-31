@@ -38,6 +38,7 @@ export async function exponentialRetry<T>(
       // Timeout support
       let timeoutHandle: NodeJS.Timeout | null = null;
       let isTimedOut = false;
+      let lastKnown = new Date();
       let timeoutReject: (reason: Error) => void;
 
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -50,10 +51,16 @@ export async function exponentialRetry<T>(
         }
         if (completed) isTimedOut = true;
         if (!isTimedOut && completed !== true) {
+          lastKnown = new Date();
           timeoutHandle = setTimeout(() => {
             if (isTimedOut) return;
             isTimedOut = true;
-            timeoutReject(new Error(`[${source}] Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes) of inactivity`));
+            timeoutReject(new Error(`[${source}] Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes). Last known activity: ${lastKnown.toLocaleTimeString('en-US', {
+              hour12: false,
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            })}`));
           }, executionTimeout);
         }
       };
