@@ -112,8 +112,11 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
           update(true);
           if (maxIteration === iteration) originalOnStepFinish?.(results);
         },
-        experimental_transform: (options: any, stopStream: () => {}) => {
-          stopStreaming = stopStream;
+        experimental_transform: (options: {
+              tools: ToolSet;
+              stopStream: () => void;
+          }) => {
+          stopStreaming = options.stopStream;
           return new TransformStream<TextStreamPart<ToolSet>, TextStreamPart<ToolSet>>({
             transform(chunk, controller) {
               if (maxIteration !== iteration) return;
