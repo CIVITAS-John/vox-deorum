@@ -43,6 +43,7 @@ export async function exponentialRetry<T>(
       let isTimedOut = false;
       let lastKnown = new Date();
       let timeoutReject: (reason: Error) => void;
+      let request: Promise<T> | undefined;
 
       const timeoutPromise = new Promise<never>((_, reject) => {
         timeoutReject = reject;
@@ -78,10 +79,11 @@ export async function exponentialRetry<T>(
       
       // Start initial timeout
       resetTimeout(false);
+      request = fn(resetTimeout, attempt).then((value) => { hasCompleted = true; return value; });
 
       // Race between the function execution and timeout
       const result = await Promise.race([
-        fn(resetTimeout, attempt),
+        request,
         timeoutPromise
       ]);
 

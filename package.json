@@ -37,7 +37,7 @@
     "@opentelemetry/sdk-trace-base": "^2.2.0",
     "@opentelemetry/sdk-trace-node": "^2.1.0",
     "@opentelemetry/semantic-conventions": "^1.38.0",
-    "ai": "^5.0.116",
+    "ai": "^5.0.124",
     "axios": "^1.6.2",
     "better-sqlite3": "^12.5.0",
     "better-sse": "^0.15.1",

@@ -140,9 +140,9 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
 
       try {
         stopStreaming();
-        context.logger.warn(`A request has timed out but has ${toolCount} successful tool calls. Trying to rescue...`);
+        context.logger.warn(`[${modelName}] A request has stalled but has ${toolCount} successful tool calls. Trying to rescue...`);
       } catch {
-        context.logger.warn(`A request has timed out but has ${toolCount} successful tool calls. Seems that it has been completed?`);
+        context.logger.warn(`[${modelName}] A request has stalled but has ${toolCount} successful tool calls. Seems that it has been completed?`);
         // If we can't stop, it must have been succeeded?
         return true;
       }
