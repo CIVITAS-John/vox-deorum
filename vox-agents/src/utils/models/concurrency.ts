@@ -84,6 +84,11 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
   // Wrap the streamText call with both concurrency limiting and exponential retry
   return limiter(async () => {
     let maxIteration = 0;
+    let stopStream = () => {};
+    let streamController: TransformStreamDefaultController<TextStreamPart<ToolSet>> | undefined;
+    let toolCount = 0;
+
+    // Retry with caveats
     return exponentialRetry(async (update, iteration) => {
       if (params.abortSignal?.aborted) return;
       context.timeoutRefresh = update;
@@ -103,10 +108,13 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
           update(true);
           if (maxIteration === iteration) originalOnStepFinish?.(results);
         },
-        experimental_transform: (args: any) => {
+        experimental_transform: (options: any, stopStream: () => {}) => {
           return new TransformStream<TextStreamPart<ToolSet>, TextStreamPart<ToolSet>>({
             transform(chunk, controller) {
               update(false);
+              if (chunk.type === "tool-call")
+                toolCount++;
+              streamController = controller;
               controller.enqueue(chunk);
             }
           });
@@ -118,7 +126,44 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         ...result,
         steps: await result.steps
       };
-    }, context.logger, modelName)
+    }, context.logger, () => {
+      stopStream();
+
+      // If there are tools, simulate a successful ending (and the agent can move to the next step)
+      if (toolCount === 0) return false;
+      
+      // simulate the finish-step event
+      streamController?.enqueue({
+        type: 'finish-step',
+        finishReason: 'stop',
+        usage: {
+          inputTokens: undefined,
+          outputTokens: undefined,
+          reasoningTokens: undefined,
+          totalTokens: undefined,
+        },
+        response: {
+          id: 'response-id',
+          modelId: modelName,
+          timestamp: new Date(0),
+        },
+        providerMetadata: undefined,
+      });
+
+      // simulate the finish event
+      streamController?.enqueue({
+        type: 'finish',
+        finishReason: 'stop',
+        totalUsage: {
+          inputTokens: undefined,
+          outputTokens: undefined,
+          reasoningTokens: undefined,
+          totalTokens: undefined,
+        },
+      });
+
+      return true;
+    }, modelName)
   });
 }
 

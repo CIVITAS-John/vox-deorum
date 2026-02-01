@@ -11,6 +11,7 @@ import { Logger } from "winston";
  * Executes an async function with exponential backoff retry logic
  * @param fn - The async function to execute, receives a progress callback to prevent timeout
  * @param logger - Winston logger instance for logging retry attempts
+ * @param handleReject - A custom handler for timeout reject. True = log as a warning only.
  * @param source - Source identifier for logging (e.g., model name)
  * @param maxRetries - Maximum number of retry attempts (default: 100)
  * @param initialDelay - Initial delay in milliseconds (default: 5000)
@@ -23,6 +24,7 @@ import { Logger } from "winston";
 export async function exponentialRetry<T>(
   fn: (updateProgress: (completed?: boolean) => void, iteration: number) => Promise<T>,
   logger: Logger,
+  handleReject?: () => boolean,
   source: string = 'unknown',
   maxRetries: number = 100,
   initialDelay: number = 5000,
@@ -55,12 +57,19 @@ export async function exponentialRetry<T>(
           timeoutHandle = setTimeout(() => {
             if (isTimedOut) return;
             isTimedOut = true;
-            timeoutReject(new Error(`[${source}] Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes). Last known activity: ${lastKnown.toLocaleTimeString('en-US', {
+            // Build the message
+            let message = `[${source}] Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes). Last known activity: ${lastKnown.toLocaleTimeString('en-US', {
               hour12: false,
               hour: '2-digit',
               minute: '2-digit',
               second: '2-digit'
-            })}`));
+            })}`;
+            // If a custom reject handler doesn't want to throw, log as a warning
+            if (handleReject && handleReject()) {
+              logger.warn(message + ", rescued");
+            } else {
+              timeoutReject(new Error(message));
+            }
           }, executionTimeout);
         }
       };
