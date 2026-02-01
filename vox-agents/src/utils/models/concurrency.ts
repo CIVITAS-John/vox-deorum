@@ -138,9 +138,15 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
       // If there are tools, simulate a successful ending (and the agent can move to the next step)
       if (toolCount === 0) return false;
 
-      context.logger.warn(`A request has timed out but has ${toolCount} successful tool calls. Trying to rescue...`);
-      
-      stopStreaming();
+      try {
+        stopStreaming();
+        context.logger.warn(`A request has timed out but has ${toolCount} successful tool calls. Trying to rescue...`);
+      } catch {
+        context.logger.warn(`A request has timed out but has ${toolCount} successful tool calls. Seems that it has been completed?`);
+        // If we can't stop, it must have been succeeded?
+        return true;
+      }
+
       // simulate the finish-step event
       streamController?.enqueue({
         type: 'finish-step',

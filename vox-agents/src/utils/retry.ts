@@ -34,6 +34,7 @@ export async function exponentialRetry<T>(
 ): Promise<T> {
   let lastError: Error;
   let delay = initialDelay;
+  let hasCompleted = false;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -49,13 +50,14 @@ export async function exponentialRetry<T>(
 
       const resetTimeout = (completed?: boolean) => {
         lastKnown = new Date();
+        hasCompleted  = hasCompleted ?? completed;
         if (timeoutHandle) {
           clearTimeout(timeoutHandle);
         }
         if (completed) isTimedOut = true;
-        if (!isTimedOut && completed !== true) {
+        if (!isTimedOut && !hasCompleted) {
           timeoutHandle = setTimeout(() => {
-            if (isTimedOut) return;
+            if (isTimedOut || hasCompleted) return;
             isTimedOut = true;
             // Build the message
             let message = `[${source}] Function execution timed out after ${executionTimeout}ms (${executionTimeout / 60000} minutes). Last known activity: ${lastKnown.toLocaleTimeString('en-US', {
