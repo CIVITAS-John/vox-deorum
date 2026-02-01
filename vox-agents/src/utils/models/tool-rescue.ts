@@ -202,6 +202,8 @@ export function rescueToolCallsFromText(
   const rescuedToolCalls: LanguageModelV2ToolCall[] = [];
 
   for (const toolCall of toolCalls) {
+    if (!toolCall) continue;
+    
     // Try each field pattern to find valid tool call structure
     let toolName: string | undefined;
     let toolParameters: Record<string, unknown> | undefined;

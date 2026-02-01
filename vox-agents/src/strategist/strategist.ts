@@ -43,10 +43,11 @@ export abstract class Strategist extends VoxAgent<StrategistParameters> {
       );
 
       // Add recovery message to enforce tool calling
-      modifiedMessages.push({
-        role: 'user',
-        content: 'Your previous response did not include any tool calls. Please follow the tool calling format using the available tools.'
-      });
+      if (modifiedMessages[modifiedMessages.length - 1].role !== "user")
+        modifiedMessages.push({
+          role: 'user',
+          content: 'Your previous response did not include any tool calls. Please follow the tool calling format using the available tools.'
+        });
 
       config.messages = modifiedMessages;
     }

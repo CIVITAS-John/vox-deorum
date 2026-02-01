@@ -109,7 +109,6 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
           if (maxIteration === iteration) originalOnChunk?.(args);
         },
         onStepFinish: (results: any) => {
-          update(true);
           if (maxIteration === iteration) originalOnStepFinish?.(results);
         },
         experimental_transform: (options: {
@@ -120,7 +119,6 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
           return new TransformStream<TextStreamPart<ToolSet>, TextStreamPart<ToolSet>>({
             transform(chunk, controller) {
               if (maxIteration !== iteration) return;
-              update(false);
               streamController = controller;
               controller.enqueue(chunk);
             }
@@ -128,7 +126,17 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         }
       };
 
+      // Consume the raw stream
       const result = streamText(modifiedParams);
+      const reader = result.fullStream.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        update(false);
+      }
+      update(true);
+      
+      // And return the found steps
       var response = {
         ...result,
         steps: await result.steps
