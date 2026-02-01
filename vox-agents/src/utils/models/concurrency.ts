@@ -84,15 +84,19 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
   // Wrap the streamText call with both concurrency limiting and exponential retry
   return limiter(async () => {
     let maxIteration = 0;
-    let stopStream = () => {};
+    let stopStreaming = () => {};
     let streamController: TransformStreamDefaultController<TextStreamPart<ToolSet>> | undefined;
     let toolCount = 0;
 
     // Retry with caveats
     return exponentialRetry(async (update, iteration) => {
       if (params.abortSignal?.aborted) return;
-      context.timeoutRefresh = update;
+      context.timeoutRefresh = () => {
+        update();
+        toolCount++;
+      }
       maxIteration = iteration;
+      toolCount = 0;
       
       // Call streamText with all the original parameters
       // Modify onChunk to call the update function for retry timeout reset
@@ -109,11 +113,11 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
           if (maxIteration === iteration) originalOnStepFinish?.(results);
         },
         experimental_transform: (options: any, stopStream: () => {}) => {
+          stopStreaming = stopStream;
           return new TransformStream<TextStreamPart<ToolSet>, TextStreamPart<ToolSet>>({
             transform(chunk, controller) {
+              if (maxIteration !== iteration) return;
               update(false);
-              if (chunk.type === "tool-call")
-                toolCount++;
               streamController = controller;
               controller.enqueue(chunk);
             }
@@ -122,16 +126,18 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
       };
 
       const result = streamText(modifiedParams);
-      return {
+      var response = {
         ...result,
         steps: await result.steps
       };
+      return response;
     }, context.logger, () => {
-      stopStream();
-
       // If there are tools, simulate a successful ending (and the agent can move to the next step)
       if (toolCount === 0) return false;
+
+      context.logger.warn(`A request has timed out but has ${toolCount} successful tool calls. Trying to rescue...`);
       
+      stopStreaming();
       // simulate the finish-step event
       streamController?.enqueue({
         type: 'finish-step',
