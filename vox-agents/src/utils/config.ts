@@ -174,28 +174,41 @@ export const defaultConfig: VoxAgentsConfig = {
         reasoningEffort: 'high'
       }
     },
-    'openai-compatible/openai/gpt-oss-20b': {
+    'openai-compatible/GLM-4.7': {
       provider: 'openai-compatible',
-      name: 'openai/gpt-oss-120b',
+      name: 'GLM-4.7',
       options: {
         toolMiddleware: 'prompt'
       }
     },
-    'openai-compatible/openai/gpt-oss-120b': {
+    'openai-compatible/DeepSeek-V3.2': {
       provider: 'openai-compatible',
-      name: 'openai/gpt-oss-120b',
+      name: 'DeepSeek-V3.2',
       options: {
         toolMiddleware: 'prompt'
       }
     },
-    'openai-compatible/openai/gpt-oss-120b-high': {
+    'openai-compatible/Kimi-K2-Thinking': {
       provider: 'openai-compatible',
-      name: 'openai/gpt-oss-120b',
+      name: 'Kimi-K2-Thinking',
       options: {
-        toolMiddleware: 'prompt',
-        reasoningEffort: 'high'
+        toolMiddleware: 'prompt'
       }
-    }
+    },
+    'openai-compatible/Kimi-K2.5': {
+      provider: 'openai-compatible',
+      name: 'Kimi-K2.5',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
+    'openai-compatible/MiniMax-M2.1': {
+      provider: 'openai-compatible',
+      name: 'MiniMax-M2.1',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
   },
   configsDir: 'configs'
 };
