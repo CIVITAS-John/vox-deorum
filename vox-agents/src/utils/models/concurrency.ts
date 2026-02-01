@@ -142,51 +142,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         steps: await result.steps
       };
       return response;
-    }, context.logger, () => {
-      // If there are tools, simulate a successful ending (and the agent can move to the next step)
-      if (toolCount === 0) return false;
-
-      try {
-        stopStreaming();
-        context.logger.warn(`[${modelName}] A request has stalled but has ${toolCount} successful tool calls. Trying to rescue...`);
-      } catch {
-        context.logger.warn(`[${modelName}] A request has stalled but has ${toolCount} successful tool calls. Couldn't rescue, retrying...`);
-        // If we can't stop, it must have been succeeded?
-        return false;
-      }
-
-      // simulate the finish-step event
-      streamController?.enqueue({
-        type: 'finish-step',
-        finishReason: 'stop',
-        usage: {
-          inputTokens: undefined,
-          outputTokens: undefined,
-          reasoningTokens: undefined,
-          totalTokens: undefined,
-        },
-        response: {
-          id: 'response-id',
-          modelId: modelName,
-          timestamp: new Date(0),
-        },
-        providerMetadata: undefined,
-      });
-
-      // simulate the finish event
-      streamController?.enqueue({
-        type: 'finish',
-        finishReason: 'stop',
-        totalUsage: {
-          inputTokens: undefined,
-          outputTokens: undefined,
-          reasoningTokens: undefined,
-          totalTokens: undefined,
-        },
-      });
-
-      return true;
-    }, modelName)
+    }, context.logger, undefined, modelName)
   });
 }
 
