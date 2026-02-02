@@ -145,7 +145,7 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
         baseURL: process.env.OPENAI_COMPATIBLE_URL,
         name: config.provider,
         apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
-      }).chatModel(config.name);
+      }).chatModel((process.env.OPENAI_COMPATIBLE_URL.indexOf("cloudflare.com") !== -1 ? "dynamic/" : "") + config.name);
       break;
   }
   // Wrap it for tool calling
