@@ -216,6 +216,16 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
     };
   }
 
+  // Handle LiteLLM's reasoning format
+  if (model.provider === 'openai-compatible' && model.options.reasoningEffort) {
+    return {
+      'openai-compatible': {
+        ...model.options,
+        allowed_openai_params: ['reasoning_effort']
+      }
+    };
+  }
+
   // Handle Anthropic's reasoning format
   if (model.provider === 'anthropic' && model.options.reasoningEffort && model.options.reasoningEffort !== "minimal") {
     const { reasoningEffort, ...otherOptions } = model.options;
