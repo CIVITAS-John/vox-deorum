@@ -19,8 +19,7 @@ import {
   parseDatabaseIdentifier,
   createTelepathicContextId
 } from '../../utils/identifier-parser.js';
-import { StrategistParameters } from '../../strategist/strategy-parameters.js';
-import { mcpClient } from '../../utils/models/mcp-client.js';
+import { StrategistParameters, getRecentGameState } from '../../strategist/strategy-parameters.js';
 import {
   ListAgentsResponse,
   CreateChatRequest,
@@ -89,6 +88,7 @@ export function createAgentRoutes(): Router {
       let playerID = 0;
       const contextType = databasePath ? 'database' : 'live';
       let effectiveContextId = contextId;
+      let civilizationName: string | undefined;
 
       if (contextId) {
         // First check if this is an existing VoxContext
@@ -100,6 +100,15 @@ export function createAgentRoutes(): Router {
           const identifierInfo = parseContextIdentifier(contextId);
           gameID = identifierInfo.gameID;
           playerID = identifierInfo.playerID;
+          // Look up civilization name from cached game state
+          const params = existingContext.lastParameter;
+          if (params && 'gameStates' in params) {
+            const recentState = getRecentGameState(params as StrategistParameters);
+            const playerData = recentState?.players?.[playerID.toString()];
+            if (typeof playerData === 'object' && playerData?.Civilization) {
+              civilizationName = playerData.Civilization;
+            }
+          }
         } else {
           return res.status(400).json({ error: `Connection not found: ${contextId}` } as any);
         }
@@ -120,20 +129,6 @@ export function createAgentRoutes(): Router {
         } catch {
           return res.status(400).json({ error: `Database file not found: ${databasePath}` } as any);
         }
-      }
-
-      // Look up civilization name from MCP server
-      let civilizationName: string | undefined;
-      try {
-        const result = await mcpClient.callTool('get-players', {});
-        let playersData = result.structuredContent ?? result;
-        playersData = playersData.Result ?? playersData;
-        const playerData = playersData[playerID.toString()];
-        if (typeof playerData === 'object' && playerData?.Civilization) {
-          civilizationName = playerData.Civilization;
-        }
-      } catch (error) {
-        logger.warn('Failed to look up civilization name', { error, playerID });
       }
 
       // Create new session

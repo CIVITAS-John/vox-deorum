@@ -107,7 +107,7 @@ const newChunkEvent = ref(0);
 
 // Computed
 const sessionId = computed(() => route.params.sessionId as string);
-const userLabel = computed(() => thread.value?.userIdentity ? "You" :
+const userLabel = computed(() => !thread.value?.userIdentity ? "You" :
   `${thread.value?.userIdentity?.role}, ${thread.value?.userIdentity?.displayName}`);
 const agentLabel = computed(() => {
   const name = thread.value?.agent;
