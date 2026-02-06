@@ -70,16 +70,16 @@
   padding-right: 0.5rem;
 }
 
-.col-fixed-50  { flex: 0 0 50px;  width: 50px; }
-.col-fixed-60  { flex: 0 0 60px;  width: 60px; }
-.col-fixed-80  { flex: 0 0 80px;  width: 80px; }
-.col-fixed-100 { flex: 0 0 100px; width: 100px; }
-.col-fixed-120 { flex: 0 0 120px; width: 120px; }
-.col-fixed-150 { flex: 0 0 150px; width: 150px; }
-.col-fixed-200 { flex: 0 0 200px; width: 200px; }
-.col-fixed-250 { flex: 0 0 250px; width: 250px; }
+.col-fixed-50  { flex: 0 0 50px; }
+.col-fixed-60  { flex: 0 0 60px; }
+.col-fixed-80  { flex: 0 0 80px; }
+.col-fixed-100 { flex: 0 0 100px; }
+.col-fixed-120 { flex: 0 0 120px; }
+.col-fixed-150 { flex: 0 0 150px; }
+.col-fixed-200 { flex: 0 0 200px; }
+.col-fixed-250 { flex: 0 0 250px; }
 
-/* Table-specific text utilities (not duplicated elsewhere) */
+/* Text utilities (note: .col-expand already includes truncation) */
 .text-truncate {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -144,17 +144,12 @@
   .table-header,
   .table-row {
     padding: 0.5rem;
+    font-size: 0.8rem;
   }
 
   .col-fixed-150,
   .col-fixed-200 {
     flex: 0 0 100px;
-    width: 100px;
-  }
-
-  .table-header,
-  .table-row {
-    font-size: 0.8rem;
   }
 }
 

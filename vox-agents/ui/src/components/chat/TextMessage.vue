@@ -15,13 +15,18 @@ import DOMPurify from 'dompurify';
 interface Props {
   role: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
+  userLabel?: string;
+  agentLabel?: string;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  userLabel: 'You',
+  agentLabel: 'Agent'
+});
 
 const displayRole = computed(() => ({
-  user: 'You',
-  assistant: 'Agent',
+  user: props.userLabel,
+  assistant: props.agentLabel,
   system: 'System',
   tool: 'Tool'
 }[props.role] || props.role));

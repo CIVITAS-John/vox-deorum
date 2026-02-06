@@ -442,7 +442,7 @@ onUnmounted(() => {
 .ai-messages-container {
   flex: 1;
   border: 1px solid var(--p-content-border-color);
-  border-radius: 4px;
+  border-radius: var(--p-border-radius);
 }
 
 .json-container {
@@ -507,7 +507,7 @@ onUnmounted(() => {
   font-size: 0.875rem;
   padding: 0.25rem 0.5rem;
   background: var(--p-primary-50);
-  border-radius: 4px;
+  border-radius: var(--p-border-radius);
   animation: pulse 2s infinite;
 }
 </style>

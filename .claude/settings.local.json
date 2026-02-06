@@ -50,7 +50,7 @@
       "Bash(npm run:*)",
       "Bash(cd:*)",
       "Bash(mv:*)",
-      "Read(//f//**)"
+      "Bash(xargs find:*)"
     ],
     "deny": [],
     "ask": []

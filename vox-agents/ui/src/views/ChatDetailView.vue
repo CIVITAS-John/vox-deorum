@@ -16,7 +16,6 @@ Purpose: Main chat interface for interacting with agents
         <h1>{{ thread?.title || `${thread?.agent || 'Loading'} Chat` }}</h1>
         <div v-if="thread" class="flex align-items-center gap-2" style="margin-left: 1rem">
           <Tag :value="thread.contextType" :severity="thread.contextType === 'live' ? 'success' : 'info'" />
-          <Tag v-if="thread.userIdentity" :value="`Playing as: ${thread.userIdentity.displayName || 'Observer'} (${thread.userIdentity.role})`" severity="warn" />
           <span class="text-sm text-muted">Game: {{ thread.gameID }} | Player: {{ thread.playerID }}</span>
         </div>
       </div>
@@ -38,6 +37,8 @@ Purpose: Main chat interface for interacting with agents
         v-if="thread"
         :messages="thread.messages"
         :scroll-trigger="newChunkEvent"
+        :user-label="userLabel"
+        :agent-label="agentLabel"
       />
       <div v-else class="loading-container">
         <ProgressSpinner />
@@ -106,6 +107,11 @@ const newChunkEvent = ref(0);
 
 // Computed
 const sessionId = computed(() => route.params.sessionId as string);
+const userLabel = computed(() => thread.value?.userIdentity?.displayName || 'You');
+const agentLabel = computed(() => {
+  const name = thread.value?.agent;
+  return name ? name.charAt(0).toUpperCase() + name.slice(1) : 'Agent';
+});
 
 // Use the thread messages composable
 const { sendMessage: sendThreadMessage } = useThreadMessages({

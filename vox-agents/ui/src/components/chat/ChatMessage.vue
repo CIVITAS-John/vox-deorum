@@ -9,6 +9,8 @@
         v-if="part.type === 'text'"
         :role="message.role"
         :content="part.text"
+        :user-label="userLabel"
+        :agent-label="agentLabel"
       />
       <ToolCallMessage
         v-if="part.type === 'tool-call'"
@@ -38,6 +40,8 @@ interface Props {
     datetime: Date;
     turn: number;
   };
+  userLabel?: string;
+  agentLabel?: string;
 }
 
 const props = defineProps<Props>();

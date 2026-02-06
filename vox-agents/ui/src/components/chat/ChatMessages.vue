@@ -17,6 +17,8 @@
           :key="`${item.message.role}-${index}`"
           :message="item.message"
           :metadata="item.metadata"
+          :user-label="userLabel"
+          :agent-label="agentLabel"
         />
       </template>
     </VList>
@@ -35,6 +37,8 @@ interface Props {
   messages: MessageWithMetadata[];
   autoScroll?: boolean;
   scrollTrigger?: number;
+  userLabel?: string;
+  agentLabel?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
