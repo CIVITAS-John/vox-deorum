@@ -20,6 +20,7 @@ import {
   createTelepathicContextId
 } from '../../utils/identifier-parser.js';
 import { StrategistParameters } from '../../strategist/strategy-parameters.js';
+import { mcpClient } from '../../utils/models/mcp-client.js';
 import {
   ListAgentsResponse,
   CreateChatRequest,
@@ -121,6 +122,20 @@ export function createAgentRoutes(): Router {
         }
       }
 
+      // Look up civilization name from MCP server
+      let civilizationName: string | undefined;
+      try {
+        const result = await mcpClient.callTool('get-players', {});
+        let playersData = result.structuredContent ?? result;
+        playersData = playersData.Result ?? playersData;
+        const playerData = playersData[playerID.toString()];
+        if (typeof playerData === 'object' && playerData?.Civilization) {
+          civilizationName = playerData.Civilization;
+        }
+      } catch (error) {
+        logger.warn('Failed to look up civilization name', { error, playerID });
+      }
+
       // Create new session
       const sessionId = uuidv4();
 
@@ -131,6 +146,7 @@ export function createAgentRoutes(): Router {
         title: `${agentName} - ${new Date().toLocaleString()}`,
         gameID,
         playerID,
+        civilizationName,
         userIdentity,
         contextType,
         contextId: effectiveContextId!,
@@ -195,11 +211,6 @@ export function createAgentRoutes(): Router {
   router.post('/agents/message', async (req: Request<{}, {}, ChatMessageRequest>, res: Response): Promise<void> => {
     const { chatId, message } = req.body;
 
-    if (!message) {
-      res.status(400).json({ error: 'Message is required' });
-      return;
-    }
-
     if (!chatId) {
       res.status(400).json({ error: 'Chat ID is required' });
       return;
@@ -212,25 +223,33 @@ export function createAgentRoutes(): Router {
       return;
     }
 
+    // Empty message is only allowed for greeting mode (empty thread)
+    if (!message && thread.messages.length > 0) {
+      res.status(400).json({ error: 'Message is required' });
+      return;
+    }
+
     const voxContext = contextRegistry.get<StrategistParameters>(thread.contextId);
     if (!voxContext) {
       res.status(400).json({ error: 'Context not found. It may have been shut down.' });
       return;
     }
 
-    // Add user message to thread with metadata
+    // Add user message to thread (skip for greeting mode)
     const currentTurn = voxContext.lastParameter?.turn || 0;
-    const userMessage: ModelMessage = {
-      role: 'user',
-      content: message
-    };
-    thread.messages.push({
-      message: userMessage,
-      metadata: {
-        datetime: new Date(),
-        turn: currentTurn
-      }
-    });
+    if (message) {
+      const userMessage: ModelMessage = {
+        role: 'user',
+        content: message
+      };
+      thread.messages.push({
+        message: userMessage,
+        metadata: {
+          datetime: new Date(),
+          turn: currentTurn
+        }
+      });
+    }
     thread.metadata!.updatedAt = new Date();
 
     // Set up SSE stream

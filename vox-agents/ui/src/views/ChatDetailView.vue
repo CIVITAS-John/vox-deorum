@@ -107,14 +107,17 @@ const newChunkEvent = ref(0);
 
 // Computed
 const sessionId = computed(() => route.params.sessionId as string);
-const userLabel = computed(() => thread.value?.userIdentity?.displayName || 'You');
+const userLabel = computed(() => thread.value?.userIdentity ? "You" :
+  `${thread.value?.userIdentity?.role}, ${thread.value?.userIdentity?.displayName}`);
 const agentLabel = computed(() => {
   const name = thread.value?.agent;
-  return name ? name.charAt(0).toUpperCase() + name.slice(1) : 'Agent';
+  const agentName = name ? name.charAt(0).toUpperCase() + name.slice(1) : 'Agent';
+  const civ = thread.value?.civilizationName;
+  return civ ? `${agentName} of ${civ}` : agentName;
 });
 
 // Use the thread messages composable
-const { sendMessage: sendThreadMessage } = useThreadMessages({
+const { sendMessage: sendThreadMessage, requestGreeting } = useThreadMessages({
   thread,
   sessionId,
   isStreaming,
@@ -131,6 +134,14 @@ const goBack = () => {
 
 const loadSession = async () => {
   thread.value = await api.getAgentChat(sessionId.value);
+
+  // Auto-greet on new chat sessions (empty thread)
+  if (thread.value && thread.value.messages.length === 0) {
+    const cleanup = await requestGreeting();
+    if (cleanup) {
+      sseCleanup = cleanup;
+    }
+  }
 };
 
 const handleEnterKey = (event: KeyboardEvent) => {

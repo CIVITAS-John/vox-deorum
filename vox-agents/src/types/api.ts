@@ -238,8 +238,8 @@ export type GetChatResponse = EnvoyThread;
 export interface ChatMessageRequest {
   /** Chat thread ID to send the message to */
   chatId: string;
-  /** The message content */
-  message: string;
+  /** The message content. Omit for greeting mode (empty thread). */
+  message?: string;
 }
 
 /**

@@ -50,7 +50,8 @@
       "Bash(npm run:*)",
       "Bash(cd:*)",
       "Bash(mv:*)",
-      "Bash(xargs find:*)"
+      "Bash(xargs find:*)",
+      "Bash(npx vue-tsc:*)"
     ],
     "deny": [],
     "ask": []

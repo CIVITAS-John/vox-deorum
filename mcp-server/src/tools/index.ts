@@ -29,6 +29,7 @@ import createSetPolicyTool from "./actions/set-policy.js";
 import createGetVictoryProgressTool from "./knowledge/get-victory-progress.js";
 import createGetMilitaryReportTool from "./knowledge/get-military-report.js";
 import createSearchDatabaseTool from "./general/search-database.js";
+import createGetDiplomaticEventsTool from "./knowledge/get-diplomatic-events.js";
 
 // Tool factory configuration - one line per tool
 const toolFactories = {
@@ -63,6 +64,7 @@ const toolFactories = {
     keepStatusQuo: createKeepStatusQuoTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
+    getDiplomaticEvents: createGetDiplomaticEventsTool,
 } as const;
  
 // Type for the tools object (inferred from factories)

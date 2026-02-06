@@ -72,6 +72,9 @@ export interface EnvoyThread {
   /** Player ID this thread is associated with */
   playerID: number;
 
+  /** Civilization name for the thread's player (e.g., "Germany") */
+  civilizationName?: string;
+
   /** The user's identity for this conversation */
   userIdentity?: UserIdentity;
 
