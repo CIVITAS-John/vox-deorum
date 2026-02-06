@@ -91,5 +91,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import '@/styles/states.css';
 @import '@/styles/chat.css';
 </style>

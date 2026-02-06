@@ -40,19 +40,17 @@
 }
 
 /* List Layouts */
-.config-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
+.config-list,
 .mappings-list,
 .models-list,
-.players-list {
+.players-list,
+.settings-grid {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
+
+.config-list { gap: 1rem; }
+.mappings-list, .models-list, .players-list, .settings-grid { gap: 0.75rem; }
 
 /* Field Layouts - Unified row styles */
 .field-row {
@@ -134,13 +132,6 @@
   margin: 0;
   font-weight: normal;
   color: var(--p-text-muted-color);
-}
-
-/* Settings Grid */
-.settings-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
 }
 
 /* Responsive adjustments */

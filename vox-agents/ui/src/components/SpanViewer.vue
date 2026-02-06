@@ -438,21 +438,22 @@ onUnmounted(() => {
   white-space: pre-wrap;
 }
 
-.json-container {
+.json-container,
+.ai-messages-container {
   flex: 1;
-  padding: 0.5rem;
-  background: var(--p-content-hover-background);
   border: 1px solid var(--p-content-border-color);
   border-radius: 4px;
+}
+
+.json-container {
+  padding: 0.5rem;
+  background: var(--p-content-hover-background);
   overflow-x: auto;
 }
 
 .ai-messages-container {
-  flex: 1;
   max-height: 600px;
   overflow-y: auto;
-  border: 1px solid var(--p-content-border-color);
-  border-radius: 4px;
 }
 
 .json-pretty {
@@ -508,14 +509,5 @@ onUnmounted(() => {
   background: var(--p-primary-50);
   border-radius: 4px;
   animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
 }
 </style>

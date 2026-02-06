@@ -158,15 +158,9 @@
   box-shadow: 0 2px 8px var(--p-shadow-color);
 }
 
-/* Empty state styling */
+/* Chat-specific empty state override (base in states.css) */
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   height: 100%;
-  color: var(--p-text-secondary-color);
-  text-align: center;
   padding: 2rem;
 }
 

@@ -458,14 +458,14 @@ async function saveConfig() {
 
 .api-keys-table .help-link,
 .api-keys-table .help-icon {
-  color: var(--text-color-secondary);
+  color: var(--p-text-secondary-color);
   font-size: 0.875rem;
   vertical-align: middle;
   transition: color 0.2s;
 }
 
 .api-keys-table .help-link:hover {
-  color: var(--primary-color);
+  color: var(--p-primary-color);
 }
 
 .api-keys-table .input-cell input,

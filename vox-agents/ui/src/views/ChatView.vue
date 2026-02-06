@@ -176,7 +176,7 @@ fetchChatData();
 }
 
 .telemetry-link {
-  color: var(--primary-color);
+  color: var(--p-primary-color);
   cursor: pointer;
   text-decoration: underline;
 }

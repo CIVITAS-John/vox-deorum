@@ -274,7 +274,7 @@ onMounted(() => {
                 severity="danger"
                 text
                 @click="removePlayer(Number(playerId))"
-                class="delete-btn"
+                class="delete-btn in-row"
               />
             </div>
           </div>
@@ -310,10 +310,5 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
-
-/* Override delete button to have auto margin in field rows */
-.field-row .delete-btn {
-  margin-left: auto;
 }
 </style>

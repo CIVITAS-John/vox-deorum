@@ -203,7 +203,7 @@ const clearLogs = () => clearLogsStore();
 
 /* Params container styling */
 .params-list {
-  color: var(--text-color-secondary);
+  color: var(--p-text-secondary-color);
   display: block;
   font-size: 0.75rem;
   margin-top: 0.25rem;

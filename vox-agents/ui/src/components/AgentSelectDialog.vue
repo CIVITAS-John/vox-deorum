@@ -319,7 +319,7 @@ onMounted(() => {
             @click="selectedAgent = agent"
           >
             <div class="col-fixed-150">{{ agent.name }}</div>
-            <div class="col-expand description-col">{{ agent.description }}</div>
+            <div class="col-expand text-wrap">{{ agent.description }}</div>
             <div class="col-fixed-250">
               <Tag
                 v-for="tag in agent.tags"
@@ -411,15 +411,7 @@ onMounted(() => {
 
 .selected {
   font-weight: bold;
-  background-color: var(--p-hover-background);
-}
-
-/* Multi-line description support */
-.description-col {
-  white-space: pre-wrap !important;
-  word-wrap: break-word;
-  overflow: visible !important;
-  text-overflow: unset !important;
+  background-color: var(--p-content-hover-background);
 }
 
 /* Identity step styles */

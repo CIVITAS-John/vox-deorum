@@ -11,7 +11,7 @@
   width: 100%;
   font-size: 0.875rem;
   border: 1px solid var(--p-content-border-color);
-  border-radius: var(--border-radius);
+  border-radius: var(--p-border-radius);
   background: var(--p-content-background);
   overflow: hidden;
 }
@@ -66,53 +66,18 @@
   white-space: nowrap;
 }
 
-.col-fixed-50 {
-  flex: 0 0 50px;
-  width: 50px;
+[class^="col-fixed-"] {
   padding-right: 0.5rem;
 }
 
-.col-fixed-60 {
-  flex: 0 0 60px;
-  width: 60px;
-  padding-right: 0.5rem;
-}
-
-.col-fixed-80 {
-  flex: 0 0 80px;
-  width: 80px;
-  padding-right: 0.5rem;
-}
-
-.col-fixed-100 {
-  flex: 0 0 100px;
-  width: 100px;
-  padding-right: 0.5rem;
-}
-
-.col-fixed-120 {
-  flex: 0 0 120px;
-  width: 120px;
-  padding-right: 0.5rem;
-}
-
-.col-fixed-150 {
-  flex: 0 0 150px;
-  width: 150px;
-  padding-right: 0.5rem;
-}
-
-.col-fixed-200 {
-  flex: 0 0 200px;
-  width: 200px;
-  padding-right: 0.5rem;
-}
-
-.col-fixed-250 {
-  flex: 0 0 250px;
-  width: 250px;
-  padding-right: 0.5rem;
-}
+.col-fixed-50  { flex: 0 0 50px;  width: 50px; }
+.col-fixed-60  { flex: 0 0 60px;  width: 60px; }
+.col-fixed-80  { flex: 0 0 80px;  width: 80px; }
+.col-fixed-100 { flex: 0 0 100px; width: 100px; }
+.col-fixed-120 { flex: 0 0 120px; width: 120px; }
+.col-fixed-150 { flex: 0 0 150px; width: 150px; }
+.col-fixed-200 { flex: 0 0 200px; width: 200px; }
+.col-fixed-250 { flex: 0 0 250px; width: 250px; }
 
 /* Table-specific text utilities (not duplicated elsewhere) */
 .text-truncate {
@@ -187,10 +152,7 @@
     width: 100px;
   }
 
-  .table-header {
-    font-size: 0.8rem;
-  }
-
+  .table-header,
   .table-row {
     font-size: 0.8rem;
   }
