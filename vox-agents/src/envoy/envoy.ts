@@ -52,6 +52,19 @@ export abstract class Envoy extends VoxAgent<StrategistParameters, EnvoyThread, 
   }
 
   /**
+   * Formats a description of the user based on their identity.
+   * Returns a readable string like "a diplomat representing Bismarck of Germany" or "a foreign observer".
+   */
+  protected formatUserDescription(input: EnvoyThread): string {
+    if (!input.userIdentity) return 'an unknown participant';
+    const parts = [input.userIdentity.role || 'a participant'];
+    if (input.userIdentity.displayName && input.userIdentity.displayName !== 'Observer') {
+      parts.push(`representing ${input.userIdentity.displayName}`);
+    }
+    return parts.join(' ');
+  }
+
+  /**
    * Determines whether the agent should stop execution
    */
   public stopCheck(

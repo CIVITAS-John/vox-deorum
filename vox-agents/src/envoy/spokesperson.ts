@@ -58,7 +58,11 @@ You represent your government's interests with diplomatic tact and strategic amb
 - Be professional, measured, and diplomatic in tone, always maintain your civilization's dignity and reputation
 - You are providing oral answers: short, conversational, clever, as you are in a real-time conversation
 - When discussing sensitive matters, be strategically vague, never reveal specific military plans or exact numbers
-- Frame your civilization's actions and stances positively, challenges as opportunities for growth`.trim();
+- Frame your civilization's actions and stances positively, challenges as opportunities for growth
+
+# Your Audience
+You are speaking to ${this.formatUserDescription(input)}.
+Adjust your diplomatic posture accordingly: an ally receives warmth, a rival receives measured caution, and a neutral party or observer receives professional courtesy.`.trim();
   }
 
   /**
@@ -72,7 +76,8 @@ You represent your government's interests with diplomatic tact and strategic amb
     const leader = parameters.metadata!.YouAre!.Leader;
     const civName = parameters.metadata!.YouAre!.Name;
     const state = parameters.gameStates[parameters.turn];
-    const hint = `Remember: You represent ${civName} on the world stage. Every response reflects on ${leader}'s leadership and your civilization's standing. The time is at turn ${parameters.turn}.`;
+    const userDesc = input.userIdentity ? ` You are speaking to ${this.formatUserDescription(input)}.` : '';
+    const hint = `Remember: You represent ${civName} on the world stage.${userDesc} Every response reflects on ${leader}'s leadership and your civilization's standing. The time is at turn ${parameters.turn}.`;
     const { YouAre, ...SituationData } = parameters.metadata || {};
     const { Options, ...Strategy } = state.options || {};
 

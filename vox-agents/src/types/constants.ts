@@ -63,6 +63,24 @@ export const toolMiddlewareOptions: ToolMiddlewareOption[] = [
 ];
 
 /**
+ * Predefined role suggestions for user identity autocomplete in chat
+ */
+export const userRoleSuggestions = [
+  'the leader',
+  'a diplomat',
+  'an advisor',
+  'a military general',
+  'a scholar',
+  'a spy',
+  'a merchant',
+  'a religious leader',
+  'a court historian',
+  'an ambassador',
+  'a foreign observer',
+  'a citizen'
+];
+
+/**
  * API key field definitions for UI forms
  */
 export const apiKeyFields: ApiKeyField[] = [

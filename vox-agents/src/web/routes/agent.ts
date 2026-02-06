@@ -71,7 +71,7 @@ export function createAgentRoutes(): Router {
    */
   router.post('/agents/chat', async (req: Request<{}, {}, CreateChatRequest>, res: Response<CreateChatResponse>): Promise<Response> => {
     try {
-      const { agentName, contextId, databasePath, turn } = req.body;
+      const { agentName, contextId, databasePath, turn, userIdentity } = req.body;
 
       if (!agentName) {
         return res.status(400).json({ error: 'Agent name is required' } as any);
@@ -131,6 +131,7 @@ export function createAgentRoutes(): Router {
         title: `${agentName} - ${new Date().toLocaleString()}`,
         gameID,
         playerID,
+        userIdentity,
         contextType,
         contextId: effectiveContextId!,
         databasePath,

@@ -38,6 +38,21 @@ export interface MessageWithMetadata {
 }
 
 /**
+ * Represents the user's identity in a conversation.
+ * Describes who is talking to the agent and their affiliation.
+ */
+export interface UserIdentity {
+  /** The user's role in the conversation (e.g., "a diplomat", "the leader") */
+  role: string;
+
+  /** Player ID the user is representing (undefined for observer) */
+  playerID?: number;
+
+  /** Display name for the user's affiliation (e.g., "Bismarck of Germany") */
+  displayName?: string;
+}
+
+/**
  * Represents a chat thread for the Envoy agent.
  * Contains all the metadata and messages for a conversation.
  */
@@ -57,8 +72,8 @@ export interface EnvoyThread {
   /** Player ID this thread is associated with */
   playerID: number;
 
-  /** Player ID the user is associated with */
-  userPlayerID?: number;
+  /** The user's identity for this conversation */
+  userIdentity?: UserIdentity;
 
   /** Type of context: live VoxContext or database */
   contextType: 'live' | 'database';
