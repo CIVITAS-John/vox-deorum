@@ -21,6 +21,8 @@ import { PlayerInformation } from "../../knowledge/schema/public.js";
 
 /** Context for resolving player/team/city IDs to display names */
 interface FormatContext {
+  /** Current game turn number */
+  currentTurn: number;
   /** Resolve a player ID to a display name */
   player: (id: number) => string;
   /** Resolve a team ID to a display name (joined member names) */
@@ -59,17 +61,27 @@ function fmtDealSide(items: Record<string, any>[], ctx: FormatContext): string {
   return items.map(i => fmtTradeItem(i, ctx)).join(", ");
 }
 
-/** Extract city name from enriched payload (handles both CityID and CityX/CityY enrichment patterns) */
-function getCityName(payload: Record<string, any>): string {
-  return payload.Capital?.Name ?? payload.City?.Name ?? "a city";
+/** Extract city name from enriched payload, falling back to ctx.city coordinate lookup */
+function getCityName(payload: Record<string, any>, ctx: FormatContext): string {
+  // Try enriched names first
+  const enriched = payload.Capital?.Name ?? payload.City?.Name;
+  if (enriched) return enriched;
+  // Fall back to coordinate-based lookup (CityX/CityY or CapitalX/CapitalY)
+  const x = payload.CityX ?? payload.CapitalX;
+  const y = payload.CityY ?? payload.CapitalY;
+  if (x !== undefined && y !== undefined) return ctx.city(x, y);
+  return "a city";
 }
 
-/** Compute deal expiration suffix from TradedItems and StartTurn */
-function getDealExpiry(e: Record<string, any>): string {
+/** Compute deal expiration suffix from TradedItems and StartTurn, marking expired deals */
+function getDealExpiry(e: Record<string, any>, ctx: FormatContext): string {
   const items = (e.TradedItems as any[]) ?? [];
   const duration = items.find((i: any) => i.Duration > 0)?.Duration;
-  if (duration && e.StartTurn !== undefined)
-    return ` (expires turn ${e.StartTurn + duration})`;
+  if (duration && e.StartTurn !== undefined) {
+    const expiryTurn = e.StartTurn + duration;
+    if (ctx.currentTurn >= expiryTurn) return " (expired)";
+    return ` (expires turn ${expiryTurn})`;
+  }
   return "";
 }
 
@@ -81,8 +93,8 @@ interface DiploEventConfig {
   playerIdFields: string[];
   /** Payload fields containing team IDs for relevance filtering */
   teamIdFields?: string[];
-  /** Convert event payload to a markdown summary line */
-  toMarkdown: (payload: Record<string, any>, ctx: FormatContext) => string;
+  /** Convert event payload to a markdown summary line, or null to skip irrelevant events */
+  toMarkdown: (payload: Record<string, any>, ctx: FormatContext) => string | null;
 }
 
 /**
@@ -99,7 +111,7 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
     teamIdFields: ["TargetTeamID"],
     toMarkdown: (e, ctx) => {
       const aggressor = e.IsAggressor ? " (aggressor)" : "";
-      return `**${ctx.player(e.OriginatingPlayerID)}** declared war on **${ctx.team(e.TargetTeamID)}**${aggressor}`;
+      return `**${ctx.player(e.OriginatingPlayerID)}**  declared war on **${ctx.team(e.TargetTeamID)}**${aggressor}`;
     }
   },
   MakePeace: {
@@ -116,7 +128,7 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
       const items = (e.TradedItems as any[]) ?? [];
       const fromGives = items.filter((i: any) => i.FromPlayerID === e.FromPlayerID);
       const toGives = items.filter((i: any) => i.FromPlayerID === e.ToPlayerID);
-      return `Deal: **${from}** gives [${fmtDealSide(fromGives, ctx)}] ↔ **${to}** gives [${fmtDealSide(toGives, ctx)}]${getDealExpiry(e)}`;
+      return `Deal: **${from}** gives [${fmtDealSide(fromGives, ctx)}] ↔ **${to}** gives [${fmtDealSide(toGives, ctx)}]${getDealExpiry(e, ctx)}`;
     }
   },
   TeamMeet: {
@@ -132,18 +144,18 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
     playerIdFields: ["OldOwnerID", "NewOwnerID"],
     toMarkdown: (e, ctx) => {
       const method = e.IsConquest ? "conquered" : "acquired";
-      return `**${ctx.player(e.NewOwnerID)}** ${method} **${getCityName(e)}** from **${ctx.player(e.OldOwnerID)}** (pop ${e.Population})`;
+      return `**${ctx.player(e.NewOwnerID)}** ${method} **${getCityName(e, ctx)}** from **${ctx.player(e.OldOwnerID)}** (pop ${e.Population})`;
     }
   },
   CityFlipped: {
     playerIdFields: ["OldOwnerID", "NewOwnerID"],
     toMarkdown: (e, ctx) =>
-      `**${getCityName(e)}** flipped from **${ctx.player(e.OldOwnerID)}** to **${ctx.player(e.NewOwnerID)}**`
+      `**${getCityName(e, ctx)}** flipped from **${ctx.player(e.OldOwnerID)}** to **${ctx.player(e.NewOwnerID)}**`
   },
   PlayerLiberated: {
     playerIdFields: ["LiberatingPlayerID", "LiberatedPlayerID"],
     toMarkdown: (e, ctx) =>
-      `**${ctx.player(e.LiberatingPlayerID)}** liberated **${getCityName(e)}**, restoring **${ctx.player(e.LiberatedPlayerID)}**`
+      `**${ctx.player(e.LiberatingPlayerID)}** liberated **${getCityName(e, ctx)}**, restoring **${ctx.player(e.LiberatedPlayerID)}**`
   },
 
   // ── City-State Relations ──
@@ -220,12 +232,14 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
   ElectionResultSuccess: {
     playerIdFields: ["PlayerID"],
     toMarkdown: (e, ctx) =>
-      `**${ctx.player(e.PlayerID)}** successfully rigged election of ${getCityName(e)} (+${e.Value} influence)`
+      `**${ctx.player(e.PlayerID)}** successfully rigged election of ${getCityName(e, ctx)} (+${e.Value} influence)`
   },
   ElectionResultFailure: {
     playerIdFields: ["PlayerID"],
-    toMarkdown: (e, ctx) =>
-      `**${ctx.player(e.PlayerID)}** failed to rig election of ${getCityName(e)} (-${e.DiminishAmount} influence)`
+    toMarkdown: (e, ctx) => {
+      if (e.DiminishAmount === 0) return null;
+      return `**${ctx.player(e.PlayerID)}** failed to rig election of ${getCityName(e, ctx)} (-${e.DiminishAmount} influence)`;
+    }
   },
 
   // ── Trade ──
@@ -328,6 +342,7 @@ class GetDiplomaticEventsTool extends ToolBase {
 
     // Build format context with resolvers
     const ctx: FormatContext = {
+      currentTurn: knowledgeManager.getTurn(),
       player: (id) => playerNames.get(id) ?? `Player ${id}`,
       team: (teamId) => {
         const members = teamMembers.get(teamId);
@@ -377,14 +392,17 @@ class GetDiplomaticEventsTool extends ToolBase {
         if (!playerMatch && !teamMatch) continue;
       }
 
-      const turnKey = String(event.Turn);
-      if (!result[turnKey]) result[turnKey] = [];
-
       if (args.Formatted) {
-        // Formatted mode: markdown summaries
-        result[turnKey].push(config.toMarkdown(payload, ctx));
+        // Formatted mode: markdown summaries (skip irrelevant events returning null)
+        const line = config.toMarkdown(payload, ctx);
+        if (line === null) continue;
+        const turnKey = String(event.Turn);
+        if (!result[turnKey]) result[turnKey] = [];
+        result[turnKey].push(line);
       } else {
         // Raw mode: cleaned event payloads with type
+        const turnKey = String(event.Turn);
+        if (!result[turnKey]) result[turnKey] = [];
         result[turnKey].push(cleanEventData({ Type: event.Type, ...payload }, false));
       }
     }
