@@ -35,6 +35,8 @@ import createGetDiplomaticEventsTool from "./knowledge/get-diplomatic-events.js"
 const toolFactories = {
     calculator: createCalculatorTool,
     luaExecutor: createLuaExecutorTool,
+    getMetadata: createGetMetadataTool,
+    setMetadata: createSetMetadataTool,
     searchDatabase: createSearchDatabaseTool,
     getTechnology: createGetTechnologyTool,
     getPolicy: createGetPolicyTool,
@@ -46,11 +48,10 @@ const toolFactories = {
     getVictoryProgress: createGetVictoryProgressTool,
     getMilitaryReport: createGetMilitaryReportTool,
     getEvents: createGetEventsTool,
+    getDiplomaticEvents: createGetDiplomaticEventsTool,
     getPlayers: createGetPlayersTool,
     getOpinions: createGetOpinionsTool,
     getCities: createGetCitiesTool,
-    getMetadata: createGetMetadataTool,
-    setMetadata: createSetMetadataTool,
     summarizeUnits: createSummarizeUnitsTool,
     getOptions: createGetOptionsTool,
     setStrategy: createSetStrategyTool,
@@ -64,7 +65,6 @@ const toolFactories = {
     keepStatusQuo: createKeepStatusQuoTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
-    getDiplomaticEvents: createGetDiplomaticEventsTool,
 } as const;
  
 // Type for the tools object (inferred from factories)

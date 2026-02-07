@@ -1,6 +1,6 @@
 /**
  * Tool for retrieving diplomatic game events from the knowledge database,
- * formatted as markdown summaries grouped by turn.
+ * with optional markdown formatting grouped by turn.
  */
 
 import { knowledgeManager } from "../../server.js";
@@ -11,27 +11,32 @@ import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
+import { getCityInformations } from "../../knowledge/getters/city-information.js";
+import { retrieveEnumName } from "../../utils/knowledge/enum.js";
+import { cleanEventData } from "./get-events.js";
 import { Selectable } from "kysely";
 import { PlayerInformation } from "../../knowledge/schema/public.js";
 
 // ─── Formatting Helpers ───────────────────────────────────────────────
 
-/** Context for resolving player/team IDs to display names */
+/** Context for resolving player/team/city IDs to display names */
 interface FormatContext {
   /** Resolve a player ID to a display name */
   player: (id: number) => string;
   /** Resolve a team ID to a display name (joined member names) */
   team: (teamId: number) => string;
+  /** Resolve city coordinates to a display name */
+  city: (x: number, y: number) => string;
 }
 
 /** Format a single trade item from a DealMade event */
 function fmtTradeItem(item: Record<string, any>, ctx: FormatContext): string {
   switch (item.ItemType) {
     case "Gold": return `${item.Data1} Gold`;
-    case "GoldPerTurn": return `${item.Data1} GPT`;
+    case "GoldPerTurn": return `${item.Data1} Gold Per Turn`;
     case "Maps": return "World Map";
-    case "Resources": return "Resource";
-    case "Cities": return "City";
+    case "Resources": return `${item.Data2} ${retrieveEnumName("ResourceType", item.Data1) ?? `Resource ${item.Data1}`}`;
+    case "Cities": return `City of ${ctx.city(item.Data1, item.Data2)}`;
     case "OpenBorders": return "Open Borders";
     case "DefensivePact": return "Defensive Pact";
     case "ResearchAgreement": return "Research Agreement";
@@ -40,8 +45,8 @@ function fmtTradeItem(item: Record<string, any>, ctx: FormatContext): string {
     case "ThirdPartyWar": return `War against ${ctx.player(item.Data1)}`;
     case "AllowEmbassy": return "Embassy";
     case "DeclarationOfFriendship": return "Declaration of Friendship";
-    case "VoteCommitment": return "Vote Commitment";
-    case "Techs": return "Technology";
+    case "VoteCommitment": return `Vote Commitment: ${retrieveEnumName("ResolutionType", item.Data1) ?? "World Congress"}`;
+    case "Techs": return `Technology: ${retrieveEnumName("TechID", item.Data1) ?? `Tech ${item.Data1}`}`;
     case "Vassalage": return "Vassalage";
     case "VassalageRevoke": return "Vassalage Revoked";
     default: return String(item.ItemType);
@@ -56,7 +61,16 @@ function fmtDealSide(items: Record<string, any>[], ctx: FormatContext): string {
 
 /** Extract city name from enriched payload (handles both CityID and CityX/CityY enrichment patterns) */
 function getCityName(payload: Record<string, any>): string {
-  return payload.City?.Name ?? payload.City?.City ?? "a city";
+  return payload.Capital?.Name ?? payload.City?.Name ?? "a city";
+}
+
+/** Compute deal expiration suffix from TradedItems and StartTurn */
+function getDealExpiry(e: Record<string, any>): string {
+  const items = (e.TradedItems as any[]) ?? [];
+  const duration = items.find((i: any) => i.Duration > 0)?.Duration;
+  if (duration && e.StartTurn !== undefined)
+    return ` (expires turn ${e.StartTurn + duration})`;
+  return "";
 }
 
 // ─── Diplomatic Event Configuration ───────────────────────────────────
@@ -102,7 +116,7 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
       const items = (e.TradedItems as any[]) ?? [];
       const fromGives = items.filter((i: any) => i.FromPlayerID === e.FromPlayerID);
       const toGives = items.filter((i: any) => i.FromPlayerID === e.ToPlayerID);
-      return `Deal: **${from}** gives [${fmtDealSide(fromGives, ctx)}] ↔ **${to}** gives [${fmtDealSide(toGives, ctx)}]`;
+      return `Deal: **${from}** gives [${fmtDealSide(fromGives, ctx)}] ↔ **${to}** gives [${fmtDealSide(toGives, ctx)}]${getDealExpiry(e)}`;
     }
   },
   TeamMeet: {
@@ -138,14 +152,14 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
     playerIdFields: ["MinorPlayerID", "MajorPlayerID"],
     toMarkdown: (e, ctx) => {
       const status = e.IsNowAlly ? "became ally of" : "lost alliance with";
-      return `**${ctx.player(e.MajorPlayerID)}** ${status} **${ctx.player(e.MinorPlayerID)}** (${e.OldFriendship}→${e.NewFriendship})`;
+      return `**${ctx.player(e.MajorPlayerID)}** ${status} **${ctx.player(e.MinorPlayerID)}**`;
     }
   },
   MinorFriendsChanged: {
     playerIdFields: ["MinorPlayerID", "MajorPlayerID"],
     toMarkdown: (e, ctx) => {
       const status = e.IsNowFriend ? "became friend of" : "lost friendship with";
-      return `**${ctx.player(e.MajorPlayerID)}** ${status} **${ctx.player(e.MinorPlayerID)}** (${e.OldFriendship}→${e.NewFriendship})`;
+      return `**${ctx.player(e.MajorPlayerID)}** ${status} **${ctx.player(e.MinorPlayerID)}**`;
     }
   },
   SetAlly: {
@@ -159,7 +173,7 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
   MinorGift: {
     playerIdFields: ["MinorPlayerID", "MajorPlayerID"],
     toMarkdown: (e, ctx) =>
-      `**${ctx.player(e.MinorPlayerID)}** gave first-contact gift to **${ctx.player(e.MajorPlayerID)}** (+${e.FriendshipBoost} influence)`
+      `**${ctx.player(e.MinorPlayerID)}** gave first-contact gift to **${ctx.player(e.MajorPlayerID)}** (+${e.Value} influence)`
   },
   MinorGiftUnit: {
     playerIdFields: ["MinorPlayerID", "MajorPlayerID"],
@@ -206,12 +220,12 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
   ElectionResultSuccess: {
     playerIdFields: ["PlayerID"],
     toMarkdown: (e, ctx) =>
-      `**${ctx.player(e.PlayerID)}** successfully rigged election (+${e.Value} influence)`
+      `**${ctx.player(e.PlayerID)}** successfully rigged election of ${getCityName(e)} (+${e.Value} influence)`
   },
   ElectionResultFailure: {
     playerIdFields: ["PlayerID"],
     toMarkdown: (e, ctx) =>
-      `**${ctx.player(e.PlayerID)}** failed to rig election (-${e.DiminishAmount} influence)`
+      `**${ctx.player(e.PlayerID)}** failed to rig election of ${getCityName(e)} (-${e.DiminishAmount} influence)`
   },
 
   // ── Trade ──
@@ -220,6 +234,18 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
     playerIdFields: ["PlunderingPlayerID", "OriginOwnerID", "DestinationOwnerID"],
     toMarkdown: (e, ctx) =>
       `**${ctx.player(e.PlunderingPlayerID)}** plundered trade route between **${ctx.player(e.OriginOwnerID)}** and **${ctx.player(e.DestinationOwnerID)}** (+${e.PlunderGoldValue} gold)`
+  },
+
+  // ── World Congress ──
+
+  ResolutionResult: {
+    playerIdFields: ["ProposerPlayerID"],
+    toMarkdown: (e, ctx) => {
+      const action = e.IsEnact ? "Enact" : "Repeal";
+      const result = e.Passed ? "passed" : "failed";
+      const resolution = retrieveEnumName("ResolutionType", e.ResolutionType) ?? `Resolution ${e.ResolutionType}`;
+      return `World Congress ${action}: **${resolution}** ${result} (proposed by **${ctx.player(e.ProposerPlayerID)}**)`;
+    }
   }
 };
 
@@ -238,22 +264,27 @@ const GetDiplomaticEventsInputSchema = z.object({
     .describe("Only show events from this turn onwards"),
   ToTurn: z.number().optional()
     .describe("Only show events up to and including this turn"),
+  Formatted: z.boolean().optional().default(false)
+    .describe("Return formatted markdown summaries instead of raw event data"),
 });
 
-/** Output schema: turn number keys mapping to arrays of markdown summary lines */
-const GetDiplomaticEventsOutputSchema = z.record(z.string(), z.array(z.string()));
+/** Output schema: either markdown summaries or raw event payloads, grouped by turn */
+const GetDiplomaticEventsOutputSchema = z.union([
+  z.record(z.string(), z.array(z.string())),
+  z.record(z.string(), z.array(z.any()))
+]);
 
 /**
  * Tool that retrieves diplomatic game events (wars, peace treaties, deals,
- * city-state relations, espionage, trade route plundering) visible to a player,
- * formatted as markdown summaries grouped by turn.
+ * city-state relations, espionage, trade route plundering, world congress)
+ * visible to a player, grouped by turn.
  */
 class GetDiplomaticEventsTool extends ToolBase {
   /** Unique identifier for the tool */
   readonly name = "get-diplomatic-events";
 
   /** Human-readable description of the tool */
-  readonly description = "Retrieves diplomatic events (wars, peace, deals, city-state relations, espionage) formatted as markdown summaries grouped by turn";
+  readonly description = "Retrieves diplomatic events (wars, peace, deals, city-state relations, espionage, world congress) grouped by turn";
 
   /** Input schema for the tool */
   readonly inputSchema = GetDiplomaticEventsInputSchema;
@@ -266,7 +297,7 @@ class GetDiplomaticEventsTool extends ToolBase {
 
   /** Rendering hints for MCP clients */
   readonly metadata = {
-    autoComplete: ["PlayerID", "OtherPlayerID"],
+    autoComplete: ["PlayerID", "OtherPlayerID", "Formatted"],
     markdownConfig: ["Turn {key}", "{key}"]
   };
 
@@ -288,6 +319,13 @@ class GetDiplomaticEventsTool extends ToolBase {
       teamMembers.get(p.TeamID)!.push(p.Key);
     }
 
+    // Build city coordinate map for resolving traded cities
+    const cities = await getCityInformations();
+    const cityMap = new Map<string, string>();
+    for (const city of cities) {
+      cityMap.set(`${city.X},${city.Y}`, city.Name);
+    }
+
     // Build format context with resolvers
     const ctx: FormatContext = {
       player: (id) => playerNames.get(id) ?? `Player ${id}`,
@@ -295,7 +333,8 @@ class GetDiplomaticEventsTool extends ToolBase {
         const members = teamMembers.get(teamId);
         if (!members || members.length === 0) return `Team ${teamId}`;
         return members.map(id => playerNames.get(id) ?? `Player ${id}`).join(" & ");
-      }
+      },
+      city: (x, y) => cityMap.get(`${x},${y}`) ?? `(${x},${y})`
     };
 
     // Resolve OtherPlayer's team ID for team-based relevance filtering
@@ -317,8 +356,8 @@ class GetDiplomaticEventsTool extends ToolBase {
 
     const events = await query.execute();
 
-    // Process events: apply relevance filter and format to markdown
-    const result: Record<string, string[]> = {};
+    // Process events with relevance filtering
+    const result: Record<string, any[]> = {};
 
     for (const event of events) {
       const config = diplomaticEvents[event.Type];
@@ -338,12 +377,16 @@ class GetDiplomaticEventsTool extends ToolBase {
         if (!playerMatch && !teamMatch) continue;
       }
 
-      // Format to markdown and group by turn
-      const markdown = config.toMarkdown(payload, ctx);
       const turnKey = String(event.Turn);
-
       if (!result[turnKey]) result[turnKey] = [];
-      result[turnKey].push(markdown);
+
+      if (args.Formatted) {
+        // Formatted mode: markdown summaries
+        result[turnKey].push(config.toMarkdown(payload, ctx));
+      } else {
+        // Raw mode: cleaned event payloads with type
+        result[turnKey].push(cleanEventData({ Type: event.Type, ...payload }, false));
+      }
     }
 
     return result;
