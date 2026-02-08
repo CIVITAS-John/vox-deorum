@@ -8,7 +8,7 @@
 
 import { ModelMessage } from "ai";
 import { Envoy } from "./envoy.js";
-import { StrategistParameters } from "../strategist/strategy-parameters.js";
+import { StrategistParameters, getGameState } from "../strategist/strategy-parameters.js";
 import { EnvoyThread, Model } from "../types/index.js";
 import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 
@@ -31,7 +31,10 @@ export abstract class SimpleEnvoy extends Envoy {
   protected getContextMessages(parameters: StrategistParameters, input: EnvoyThread): ModelMessage[] {
     const leader = parameters.metadata!.YouAre!.Leader;
     const civName = parameters.metadata!.YouAre!.Name;
-    const state = parameters.gameStates[parameters.turn];
+    const state = getGameState(parameters, parameters.turn);
+    if (!state) {
+      throw new Error(`No game state available near turn ${parameters.turn}`);
+    }
     const hint = this.getHint(parameters, input);
     const { YouAre, ...SituationData } = parameters.metadata || {};
     const { Options, ...Strategy } = state.options || {};
