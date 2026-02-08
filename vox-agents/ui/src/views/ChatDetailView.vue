@@ -108,7 +108,7 @@ const newChunkEvent = ref(0);
 // Computed
 const sessionId = computed(() => route.params.sessionId as string);
 const userLabel = computed(() => !thread.value?.userIdentity ? "You" :
-  `${thread.value?.userIdentity?.role}, ${thread.value?.userIdentity?.displayName}`);
+  `${thread.value?.userIdentity?.role.charAt(0).toUpperCase()}${thread.value?.userIdentity?.role.slice(1)}, ${thread.value?.userIdentity?.displayName}`);
 const agentLabel = computed(() => {
   const name = thread.value?.agent;
   const agentName = name ? name.charAt(0).toUpperCase() + name.slice(1) : 'Agent';

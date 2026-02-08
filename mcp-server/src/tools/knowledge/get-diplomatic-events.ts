@@ -79,8 +79,8 @@ function getDealExpiry(e: Record<string, any>, ctx: FormatContext): string {
   const duration = items.find((i: any) => i.Duration > 0)?.Duration;
   if (duration && e.StartTurn !== undefined) {
     const expiryTurn = e.StartTurn + duration;
-    if (ctx.currentTurn >= expiryTurn) return " (expired)";
-    return ` (expires turn ${expiryTurn})`;
+    if (ctx.currentTurn > expiryTurn) return " (expired at turn ${expiryTurn})";
+    return ` (will expire at turn ${expiryTurn})`;
   }
   return "";
 }
@@ -155,7 +155,7 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
   PlayerLiberated: {
     playerIdFields: ["LiberatingPlayerID", "LiberatedPlayerID"],
     toMarkdown: (e, ctx) =>
-      `**${ctx.player(e.LiberatingPlayerID)}** liberated **${getCityName(e, ctx)}**, restoring **${ctx.player(e.LiberatedPlayerID)}**`
+      `**${ctx.player(e.LiberatingPlayerID)}** liberated **${getCityName(e, ctx)}**, restoring the rule of **${ctx.player(e.LiberatedPlayerID)}**`
   },
 
   // ── City-State Relations ──
@@ -164,14 +164,14 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
     playerIdFields: ["MinorPlayerID", "MajorPlayerID"],
     toMarkdown: (e, ctx) => {
       const status = e.IsNowAlly ? "became ally of" : "lost alliance with";
-      return `**${ctx.player(e.MajorPlayerID)}** ${status} **${ctx.player(e.MinorPlayerID)}**`;
+      return `**${ctx.player(e.MajorPlayerID)}** ${status} **${ctx.player(e.MinorPlayerID)}** (at ${e.NewFriendship} influence)`;
     }
   },
   MinorFriendsChanged: {
     playerIdFields: ["MinorPlayerID", "MajorPlayerID"],
     toMarkdown: (e, ctx) => {
       const status = e.IsNowFriend ? "became friend of" : "lost friendship with";
-      return `**${ctx.player(e.MajorPlayerID)}** ${status} **${ctx.player(e.MinorPlayerID)}**`;
+      return `**${ctx.player(e.MajorPlayerID)}** ${status} **${ctx.player(e.MinorPlayerID)}** (at ${e.NewFriendship} influence)`;
     }
   },
   SetAlly: {
@@ -181,11 +181,6 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
       const newAlly = e.NewAllyPlayerID >= 0 ? ctx.player(e.NewAllyPlayerID) : "none";
       return `**${ctx.player(e.MinorPlayerID)}** ally changed: **${oldAlly}** → **${newAlly}**`;
     }
-  },
-  MinorGift: {
-    playerIdFields: ["MinorPlayerID", "MajorPlayerID"],
-    toMarkdown: (e, ctx) =>
-      `**${ctx.player(e.MinorPlayerID)}** gave first-contact gift to **${ctx.player(e.MajorPlayerID)}** (+${e.Value} influence)`
   },
   MinorGiftUnit: {
     playerIdFields: ["MinorPlayerID", "MajorPlayerID"],
