@@ -162,7 +162,7 @@ onUnmounted(() => {
           label="Chat"
           severity="primary"
           size="small"
-          class="mr-2"
+          class="mr-1"
         />
         <Button
           :icon="isStreaming ? 'pi pi-pause' : 'pi pi-play'"
@@ -170,7 +170,7 @@ onUnmounted(() => {
           :label="isStreaming ? 'Pause' : 'Resume'"
           severity="secondary"
           size="small"
-          class="mr-2"
+          class="mr-1"
         />
         <Button
           icon="pi pi-refresh"

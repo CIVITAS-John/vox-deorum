@@ -19,7 +19,7 @@
           label="Auto-scroll"
           severity="secondary"
           size="small"
-          class="mr-2"
+          class="mr-1"
           v-if="isStreaming"
         />
         <Button
@@ -28,7 +28,7 @@
           text
           size="small"
           @click="toggleAllSpans(true)"
-          class="mr-2"
+          class="mr-1"
         />
         <Button
           icon="pi pi-minus"
