@@ -26,7 +26,7 @@ import createKeepStatusQuoTool from "./actions/keep-status-quo.js";
 import createGetOptionsTool from "./knowledge/get-options.js";
 import createSetResearchTool from "./actions/set-research.js";
 import createSetPolicyTool from "./actions/set-policy.js";
-import createRelayDiplomaticMessageTool from "./actions/relay-diplomatic-message.js";
+import createRelayMessageTool from "./actions/relay-message.js";
 import createGetVictoryProgressTool from "./knowledge/get-victory-progress.js";
 import createGetMilitaryReportTool from "./knowledge/get-military-report.js";
 import createSearchDatabaseTool from "./general/search-database.js";
@@ -64,7 +64,7 @@ const toolFactories = {
     setResearch: createSetResearchTool,
     setPolicy: createSetPolicyTool,
     keepStatusQuo: createKeepStatusQuoTool,
-    relayDiplomaticMessage: createRelayDiplomaticMessageTool,
+    relayMessage: createRelayMessageTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
 } as const;

@@ -83,6 +83,12 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   public onlyLastRound: boolean = false;
 
   /**
+   * When true, agent-tool invocations return immediately without waiting for completion.
+   * The agent runs asynchronously in a detached trace context (root span).
+   */
+  public fireAndForget: boolean = false;
+
+  /**
    * Gets the language model to use for this agent execution.
    * Can return undefined to use the default model from VoxContext.
    * 

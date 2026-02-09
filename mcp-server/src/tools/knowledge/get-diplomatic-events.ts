@@ -287,10 +287,13 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
 
   // ── Dynamic Events ──
 
-  DiplomaticMessage: {
+  RelayedMessage: {
     playerIdFields: ["ToPlayerID", "FromPlayerID"],
-    toMarkdown: (e, ctx) =>
-      `**${ctx.player(e.FromPlayerID)}** sent **${ctx.player(e.ToPlayerID)}** a message. Diplomat's summary: "${e.Message}" Reaction: "${e.Reaction}"`
+    toMarkdown: (e, ctx) => {
+      const typeLabel = e.Type === "intelligence" ? "Intelligence" : "Diplomatic message";
+      const categories = Array.isArray(e.Categories) ? ` {${e.Categories.join(", ")}}` : "";
+      return `${typeLabel} [${e.Confidence ?? "?"}/9]${categories}: **${ctx.player(e.FromPlayerID)}** → **${ctx.player(e.ToPlayerID)}**: "${e.Message}" — Memo: "${e.Memo}"`;
+    }
   }
 };
 

@@ -14,6 +14,8 @@ import { SimpleBriefer } from "../briefer/simple-briefer.js";
 import { SpecializedBriefer } from "../briefer/specialized-briefer.js";
 import { NoneStrategist } from "../strategist/agents/none-strategist.js";
 import { Spokesperson } from "../envoy/spokesperson.js";
+import { Diplomat } from "../envoy/diplomat.js";
+import { DiplomaticAnalyst } from "../analyst/diplomatic-analyst.js";
 import { SimpleStrategistStaffed } from "../strategist/agents/simple-strategist-staffed.js";
 import { KeywordLibrarian } from "../librarian/keyword-librarian.js";
 
@@ -177,6 +179,8 @@ class AgentRegistry {
 
     // Register envoy agents
     this.register(new Spokesperson());
+    this.register(new Diplomat());
+    this.register(new DiplomaticAnalyst());
 
     this.defaultsInitialized = true;
     this.logger.info(`Default agents initialized: ${this.agents.size} agents registered`);

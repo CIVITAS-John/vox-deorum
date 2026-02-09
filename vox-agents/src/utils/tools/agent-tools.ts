@@ -11,7 +11,7 @@ import { AgentParameters, VoxAgent } from "../../infra/vox-agent.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { createLogger } from "../logger.js";
 import { Tool as VercelTool, dynamicTool } from 'ai';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { trace, SpanStatusCode, ROOT_CONTEXT, context as otelContext } from '@opentelemetry/api';
 
 const tracer = trace.getTracer('vox-tools');
 
@@ -62,6 +62,18 @@ export function createAgentTool<TParameters extends AgentParameters, TInput = un
         });
 
         let parameters = toolsGetter();
+
+        // Fire-and-forget: detach from current trace and return immediately
+        if (agent.fireAndForget) {
+          otelContext.with(ROOT_CONTEXT, () => {
+            context.execute(agent.name, parameters, input).catch(error => {
+              logger.error(`Async agent-tool ${agent.name} failed:`, error);
+            });
+          });
+          span.setStatus({ code: SpanStatusCode.OK });
+          span.end();
+          return { result: "Submitted for asynchronous processing." };
+        }
 
         // Execute the agent through the context
         const result = await context.execute(agent.name, parameters, input);
