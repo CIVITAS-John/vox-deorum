@@ -9,6 +9,7 @@
         v-if="part.type === 'text'"
         :role="message.role"
         :content="part.text"
+        :turn="metadata?.turn"
         :user-label="userLabel"
         :agent-label="agentLabel"
       />

@@ -3,25 +3,34 @@
  *
  * Live game envoy that handles StrategistParameters-specific behavior.
  * Combines special message detection with game context assembly for live game interactions.
- * Replaces the former SimpleEnvoy class.
+ * Provides a get-briefing internal tool for on-demand briefing retrieval.
  */
 
-import { ModelMessage } from "ai";
+import { ModelMessage, Tool } from "ai";
+import { z } from "zod";
 import { Envoy } from "./envoy.js";
 import { StrategistParameters, getGameState } from "../strategist/strategy-parameters.js";
 import { EnvoyThread, MessageWithMetadata, SpecialMessageConfig } from "../types/index.js";
 import { VoxContext } from "../infra/vox-context.js";
 import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
+import { createSimpleTool } from "../utils/tools/simple-tools.js";
+import { requestBriefings } from "../briefer/briefing-utils.js";
 
 /**
  * Envoy specialized for live game sessions with StrategistParameters.
  * Handles special message detection (e.g., {{{Greeting}}}) and assembles
- * full game context for normal conversations.
+ * game context for conversations. Provides a get-briefing tool for
+ * on-demand briefing retrieval and generation.
  *
  * @abstract
  * @class
  */
 export abstract class LiveEnvoy extends Envoy<StrategistParameters> {
+  /**
+   * Allow the LLM to decide when to call tools rather than forcing it
+   */
+  public override toolChoice: string = "auto";
+
   /**
    * Orchestrates initial messages with special message support.
    * Detects special messages in the last user message and generates
@@ -33,11 +42,61 @@ export abstract class LiveEnvoy extends Envoy<StrategistParameters> {
     _context: VoxContext<StrategistParameters>
   ): Promise<ModelMessage[]> {
     const specialConfig = this.findLastSpecialMessage(input);
-    const messages = this.getContextMessages(parameters, input, specialConfig);
-    if (!specialConfig) messages.push(...this.convertToModelMessages(
+    const messages = this.getContextMessages(parameters, input);
+
+    if (specialConfig) {
+      // Special mode: ignore the rest
+      messages.push({
+        role: "user",
+        content: `
+# Special Instruction
+${specialConfig.prompt}`.trim()
+      })
+      return messages;
+    } else {
+      // Normal mode: add hint, the LLM calls get-briefing if it needs detailed context
+      messages.push(...this.convertToModelMessages(
         this.filterSpecialMessages(input.messages)
       ));
+      messages.push({
+        role: "user",
+        content: this.getHint(parameters, input)
+      });
+    }
     return messages;
+  }
+
+  /**
+   * Restricts the envoy to only the get-briefing tool
+   */
+  public override getActiveTools(_parameters: StrategistParameters): string[] | undefined {
+    return ["get-briefing"];
+  }
+
+  /**
+   * Provides the get-briefing internal tool for on-demand briefing retrieval.
+   * Fetches existing briefings from the current game state, or generates new ones
+   * via the specialized-briefer agent if they don't exist.
+   */
+  public override getExtraTools(context: VoxContext<StrategistParameters>): Record<string, Tool> {
+    return {
+      "get-briefing": createSimpleTool({
+        name: "get-briefing",
+        description: "Retrieve strategic briefings for one or more categories. Returns existing briefings or generates new ones if unavailable.",
+        inputSchema: z.object({
+          Categories: z.array(z.enum(['Military', 'Economy', 'Diplomacy']))
+            .min(1)
+            .describe("The briefing categories to retrieve")
+        }),
+        execute: async (input, parameters) => {
+          const state = getGameState(parameters, parameters.turn);
+          if (!state) {
+            return "No game state available for briefing retrieval.";
+          }
+          return requestBriefings(input.Categories, state, context, parameters);
+        }
+      }, context)
+    };
   }
 
   // Special message detection
@@ -69,20 +128,17 @@ export abstract class LiveEnvoy extends Envoy<StrategistParameters> {
     });
   }
 
-  // Game context assembly (absorbed from SimpleEnvoy)
+  // Game context assembly
 
   /**
-   * Returns the full game context messages: civilization identity + game state.
-   * Uses briefing when available, otherwise includes raw game reports.
+   * Returns the game context messages: civilization identity, players, and strategies.
+   * Briefings are fetched on-demand via the get-briefing tool rather than injected here.
    */
-  protected getContextMessages(parameters: StrategistParameters, input: EnvoyThread, special?: SpecialMessageConfig): ModelMessage[] {
-    const leader = parameters.metadata!.YouAre!.Leader;
-    const civName = parameters.metadata!.YouAre!.Name;
+  protected getContextMessages(parameters: StrategistParameters, input: EnvoyThread): ModelMessage[] {
     const state = getGameState(parameters, parameters.turn);
     if (!state) {
       throw new Error(`No game state available near turn ${parameters.turn}`);
     }
-    const hint = this.getHint(parameters, input);
     const { YouAre, ...SituationData } = parameters.metadata || {};
     const { Options, ...Strategy } = state.options || {};
 
@@ -105,54 +161,6 @@ Strategies: existing strategic decisions from your leader.
 
 ${jsonToMarkdown(Strategy)}`.trim()
     }];
-
-    // Special mode: ignore the rest
-    if (special) { 
-      messages.push({
-        role: "user", 
-        content: `
-# Special Instruction
-${special.prompt}`.trim()
-      })
-      return messages;
-    }
-
-    // If there is a briefing, use it
-    if (state.reports["briefing"]) {
-      messages.push({
-        role: "user",
-        content: `
-# Briefings
-${state.reports["briefing"]}
-
-${hint}`.trim()
-      });
-    } else {
-      messages.push({
-        role: "user",
-        content: `
-# Victory Progress
-Victory Progress: current progress towards each type of victory.
-
-${jsonToMarkdown(state.victory)}
-
-# Cities
-Cities: summary reports about discovered cities in the world.
-
-${jsonToMarkdown(state.cities)}
-
-# Military
-Military: summary reports about tactical zones and visible units.
-
-${jsonToMarkdown(state.military)}
-
-# Events
-Events: events since the last decision-making.
-
-${jsonToMarkdown(state.events)}
-
-${hint}`.trim()});
-    }
 
     return messages;
   }

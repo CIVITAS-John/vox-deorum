@@ -11,7 +11,7 @@ import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
-import { assembleBriefings } from "./simple-strategist-staffed.js";
+import { assembleBriefings } from "../../briefer/briefing-utils.js";
 import { getStrategicPlayersReport } from "../../utils/report-filters.js";
 
 /**

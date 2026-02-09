@@ -12,38 +12,8 @@ import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
 import { SpecializedBrieferInput } from "../../briefer/specialized-briefer.js";
+import { assembleBriefings } from "../../briefer/briefing-utils.js";
 import { getStrategicPlayersReport } from "../../utils/report-filters.js";
-
-/**
- * Assembles briefing content with optional instructions.
- * Can handle both single briefings and multiple briefing sections.
- *
- * @param briefings - Either a single briefing content string, or an array of briefing sections with titles
- * @param instruction - Optional instruction for single briefing mode
- * @returns Formatted briefing markdown
- */
-export function assembleBriefings(
-  briefings: string | Array<{ title: string; content: string; instruction?: string }>,
-  instruction?: string
-): string {
-  // Single briefing mode (simple-strategist-briefed)
-  if (typeof briefings === "string") {
-    if (instruction) {
-      return `Produced with your instruction: \n\n${instruction}\n\n${briefings}`;
-    }
-    return briefings;
-  }
-
-  // Multiple briefing sections mode (staffed strategist)
-  return briefings
-    .map((b) => {
-      if (b.instruction) {
-        return `## ${b.title}\n(Produced with your instruction: ${b.instruction})\n\n${b.content}`;
-      }
-      return `## ${b.title}\n${b.content}`;
-    })
-    .join("\n\n");
-}
 
 /**
  * A staffed strategist agent that uses specialized briefers for comprehensive analysis.

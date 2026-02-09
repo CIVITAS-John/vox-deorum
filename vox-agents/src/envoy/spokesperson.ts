@@ -58,6 +58,11 @@ You represent your government's interests with diplomatic tact and strategic amb
 - When discussing sensitive matters, be strategically vague, never reveal specific military plans or exact numbers
 - Frame your civilization's actions and stances positively, challenges as opportunities for growth
 
+# Available Tools
+- You have a \`get-briefing\` tool to retrieve briefings on Military, Economy, and/or Diplomacy.
+  - Call it when you need strategic intelligence. 
+  - No need to call it for simple greetings or casual diplomatic exchanges.
+
 # Your Audience
 You are speaking to ${this.formatUserDescription(input)}.
 Adjust your diplomatic posture accordingly: an ally receives warmth, a rival receives measured caution, and a neutral party or observer receives professional courtesy.`.trim();
@@ -70,7 +75,7 @@ Adjust your diplomatic posture accordingly: an ally receives warmth, a rival rec
   protected getHint(parameters: StrategistParameters, input: EnvoyThread): string {
     const leader = parameters.metadata!.YouAre!.Leader;
     const civName = parameters.metadata!.YouAre!.Name;
-    return `Remember: You represent ${civName} on the world stage. You are speaking to ${this.formatUserDescription(input)}. Every response reflects on ${leader}'s leadership and your civilization's standing. The time is at turn ${parameters.turn}.`;
+    return `**HINT**: You represent ${civName} on the world stage. You are speaking to ${this.formatUserDescription(input)}. Every response reflects on ${leader}'s leadership and your civilization's standing. The time is at turn ${parameters.turn}.`;
   }
 
   /**

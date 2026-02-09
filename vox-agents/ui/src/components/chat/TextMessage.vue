@@ -2,6 +2,7 @@
   <div :class="`msg msg-${role}`">
     <div class="flex justify-content-between align-items-center text-sm">
       <span class="font-semibold text-secondary">{{ displayRole }}</span>
+      <span v-if="turn" class="text-muted text-xs ml-2">Turn {{ turn }}</span>
     </div>
     <div class="message-content" v-html="renderedContent"></div>
   </div>
@@ -15,6 +16,7 @@ import DOMPurify from 'dompurify';
 interface Props {
   role: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
+  turn?: number;
   userLabel?: string;
   agentLabel?: string;
 }

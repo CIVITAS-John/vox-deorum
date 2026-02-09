@@ -55,17 +55,15 @@ export abstract class Envoy<TParameters extends AgentParameters = AgentParameter
       });
     });
 
-    // Continue if we have executed a tool
-    for (var step of allSteps) {
-      for (const result of step.content) {
-        if (result.type === "tool-call") {
-          // Unless after 3 steps to prevent infinite loops
-          if (allSteps.length >= 3) {
-            this.logger.warn("Reached maximum step limit (3), stopping agent");
-            return true;
-          }
-          return false;
+    // Continue if the last step executed a tool (to get the model's response to it)
+    for (const result of lastStep.content) {
+      if (result.type === "tool-call") {
+        // Unless after 3 steps to prevent infinite loops
+        if (allSteps.length >= 3) {
+          this.logger.warn("Reached maximum step limit (3), stopping agent");
+          return true;
         }
+        return false;
       }
     }
 
