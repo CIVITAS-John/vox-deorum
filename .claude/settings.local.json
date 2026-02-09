@@ -51,7 +51,8 @@
       "Bash(cd:*)",
       "Bash(mv:*)",
       "Bash(xargs find:*)",
-      "Bash(npx vue-tsc:*)"
+      "Bash(npx vue-tsc:*)",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []

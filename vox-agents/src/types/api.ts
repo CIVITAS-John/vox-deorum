@@ -228,9 +228,12 @@ export interface ListChatsResponse {
 }
 
 /**
- * Response containing a single chat thread
+ * Response containing a single chat thread with optional current game turn
  */
-export type GetChatResponse = EnvoyThread;
+export type GetChatResponse = EnvoyThread & {
+  /** Current game turn from the live context, for stale-turn detection */
+  currentTurn?: number;
+};
 
 /**
  * Request to send a chat message

@@ -1,33 +1,30 @@
 /**
  * @module envoy/envoy
  *
- * Base envoy agent implementation for chat-based interactions.
+ * Generic base envoy agent for chat-based interactions.
+ * Parameterized over TParameters to allow specialization for different game contexts.
  */
 
 import { ModelMessage, StepResult, Tool } from "ai";
-import { VoxAgent } from "../infra/vox-agent.js";
-import { StrategistParameters } from "../strategist/strategy-parameters.js";
-import { EnvoyThread, MessageWithMetadata, Model } from "../types/index.js";
-import { VoxContext } from "../infra/vox-context.js";
+import { VoxAgent, AgentParameters } from "../infra/vox-agent.js";
+import { EnvoyThread, MessageWithMetadata, SpecialMessageConfig } from "../types/index.js";
 
 /**
- * Base envoy agent that can chat with the user.
+ * Generic base envoy agent that can chat with the user.
  * Accepts and returns EnvoyThread for maintaining conversation context.
+ * Subclasses specialize for specific parameter types (e.g., LiveEnvoy for StrategistParameters).
  *
  * @abstract
  * @class
  */
-export abstract class Envoy extends VoxAgent<StrategistParameters, EnvoyThread, EnvoyThread> {
+export abstract class Envoy<TParameters extends AgentParameters = AgentParameters>
+  extends VoxAgent<TParameters, EnvoyThread, EnvoyThread> {
+
   /**
    * Manually post-process LLM results and send back the output.
-   *
-   * @param parameters - The execution parameters
-   * @param input - The starting input
-   * @param finalText - The final generated text
-   * @returns True if the agent should stop, false to continue
    */
   public async getOutput(
-    _parameters: StrategistParameters,
+    _parameters: TParameters,
     input: EnvoyThread,
     _finalText: string
   ): Promise<EnvoyThread> {
@@ -35,33 +32,11 @@ export abstract class Envoy extends VoxAgent<StrategistParameters, EnvoyThread, 
   }
 
   /**
-   * Orchestrates initial messages with greeting mode support.
-   * Empty thread → greeting mode (hint only). Otherwise → full context + history.
-   */
-  public async getInitialMessages(
-    parameters: StrategistParameters,
-    input: EnvoyThread,
-    _context: VoxContext<StrategistParameters>
-  ): Promise<ModelMessage[]> {
-    // Greeting mode: empty thread → minimal context for a brief introduction
-    if (!input.messages || input.messages.length === 0) {
-      return [{ role: "system", content: `
-Send out a short message greeting the ${this.formatUserDescription(input)} based on your diplomatic relationship.
-
-${this.getHint(parameters, input)}`.trim() }];
-    }
-
-    // Normal mode: full game context + conversation history
-    const messages = this.getContextMessages(parameters, input);
-    messages.push(...this.convertToModelMessages(input.messages));
-    return messages;
-  }
-
-  /**
-   * Determines whether the agent should stop execution
+   * Determines whether the agent should stop execution.
+   * Adds response messages to the thread with metadata and limits tool-call loops.
    */
   public stopCheck(
-    parameters: StrategistParameters,
+    parameters: TParameters,
     input: EnvoyThread,
     lastStep: StepResult<Record<string, Tool>>,
     allSteps: StepResult<Record<string, Tool>>[]
@@ -97,27 +72,26 @@ ${this.getHint(parameters, input)}`.trim() }];
     return true;
   }
 
-  // Downstream customization
+  // Special messages
   /**
-   * Returns a short contextual reminder that anchors the LLM on its role,
-   * audience, and current turn. Used as the sole user message in greeting mode,
-   * and typically appended to game state messages in normal mode.
+   * Returns the map of special message tokens to their configurations.
+   * Special messages are triple-brace-enclosed tokens (e.g., "{{{Greeting}}}") that
+   * trigger specific agent behavior without appearing as user messages.
+   * Override in concrete subclasses to define supported special messages.
    */
-  protected abstract getHint(parameters: StrategistParameters, input: EnvoyThread): string;
+  protected abstract getSpecialMessages(): Record<string, SpecialMessageConfig>;
 
   /**
-   * Returns the full game context messages (identity, situation, game state).
-   * Should NOT include thread conversation history — that is handled by the base class.
+   * Checks if a message string is a registered special message token.
    */
-  protected abstract getContextMessages(parameters: StrategistParameters, input: EnvoyThread): ModelMessage[];
+  protected isSpecialMessage(message: string): boolean {
+    return message in this.getSpecialMessages();
+  }
 
   // Utilities
   /**
    * Converts an array of MessageWithMetadata to ModelMessage array.
    * Formats turn information into the message content for user messages.
-   *
-   * @param messages - Array of messages with metadata
-   * @returns Array of ModelMessage objects
    */
   protected convertToModelMessages(messages: MessageWithMetadata[]): ModelMessage[] {
     return messages.map(item => {

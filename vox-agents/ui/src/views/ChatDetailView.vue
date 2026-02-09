@@ -35,7 +35,7 @@ Purpose: Main chat interface for interacting with agents
     <div class="messages-wrapper">
       <ChatMessages
         v-if="thread"
-        :messages="thread.messages"
+        :messages="visibleMessages"
         :scroll-trigger="newChunkEvent"
         :user-label="userLabel"
         :agent-label="agentLabel"
@@ -85,8 +85,7 @@ import Textarea from 'primevue/textarea';
 import ProgressSpinner from 'primevue/progressspinner';
 import { useToast } from 'primevue/usetoast';
 import { api } from '../api/client';
-import type { EnvoyThread, ChatMessageRequest } from '../utils/types';
-import type { ModelMessage } from 'ai';
+import type { EnvoyThread } from '../utils/types';
 import ChatMessages from '../components/chat/ChatMessages.vue';
 import DeleteSessionDialog from '../components/DeleteSessionDialog.vue';
 import { useThreadMessages } from '../composables/useThreadMessages';
@@ -116,6 +115,17 @@ const agentLabel = computed(() => {
   return civ ? `${agentName} of ${civ}` : agentName;
 });
 
+/** Messages filtered to hide special message tokens (e.g., {{{Greeting}}}) from display */
+const visibleMessages = computed(() => {
+  if (!thread.value) return [];
+  return thread.value.messages.filter(msg => {
+    if (msg.message.role === 'user' && typeof msg.message.content === 'string') {
+      return !/^\{\{\{.+\}\}\}$/.test(msg.message.content);
+    }
+    return true;
+  });
+});
+
 // Use the thread messages composable
 const { sendMessage: sendThreadMessage, requestGreeting } = useThreadMessages({
   thread,
@@ -133,15 +143,26 @@ const goBack = () => {
 };
 
 const loadSession = async () => {
-  thread.value = await api.getAgentChat(sessionId.value);
+  const response = await api.getAgentChat(sessionId.value);
+  thread.value = response;
 
-  // Auto-greet on new chat sessions (empty thread)
-  if (thread.value && thread.value.messages.length === 0) {
+  if (!thread.value) return;
+
+  // Auto-greet on empty thread or when last message is from a previous game turn
+  if (shouldRequestGreeting(thread.value, response.currentTurn)) {
     const cleanup = await requestGreeting();
     if (cleanup) {
       sseCleanup = cleanup;
     }
   }
+};
+
+/** Greet on empty thread or when last message is from a previous turn */
+const shouldRequestGreeting = (t: EnvoyThread, currentTurn?: number): boolean => {
+  if (t.messages.length === 0) return true;
+  if (currentTurn == null) return false;
+  const lastMessage = t.messages[t.messages.length - 1];
+  return lastMessage ? lastMessage.metadata.turn < currentTurn : false;
 };
 
 const handleEnterKey = (event: KeyboardEvent) => {

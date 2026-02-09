@@ -195,8 +195,8 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
   };
 
   /**
-   * Request a greeting from the agent without sending a user message.
-   * Triggers greeting mode on the backend (empty thread detection).
+   * Request a greeting from the agent by sending the {{{Greeting}}} special message.
+   * Can be called at any time — on new threads or when re-entering a stale conversation.
    * @returns Cleanup function for SSE or undefined
    */
   const requestGreeting = async (): Promise<(() => void) | undefined> => {
@@ -207,7 +207,7 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
     isStreaming.value = true;
 
     try {
-      return streamResponse({ chatId: sessionId.value });
+      return streamResponse({ chatId: sessionId.value, message: '{{{Greeting}}}' });
     } catch (error) {
       console.error('Failed to request greeting:', error);
       pushErrorMessage(error instanceof Error ? error : 'Failed to request greeting');

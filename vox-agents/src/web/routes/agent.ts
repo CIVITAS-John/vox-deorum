@@ -191,8 +191,11 @@ export function createAgentRoutes(): Router {
         return res.status(404).json({ error: 'Chat thread not found' } as any);
       }
 
-      // Return the full EnvoyThread
-      return res.json(thread);
+      // Enrich with current turn from live context for stale-turn detection
+      const voxContext = contextRegistry.get<StrategistParameters>(thread.contextId);
+      const currentTurn = voxContext?.lastParameter?.turn;
+
+      return res.json({ ...thread, currentTurn });
     } catch (error) {
       logger.error('Failed to get chat thread', { error });
       return res.status(500).json({ error: 'Failed to get chat thread' } as any);
@@ -218,8 +221,8 @@ export function createAgentRoutes(): Router {
       return;
     }
 
-    // Empty message is only allowed for greeting mode (empty thread)
-    if (!message && thread.messages.length > 0) {
+    // Message is always required (use special messages like {{{Greeting}}} for agent-initiated responses)
+    if (!message) {
       res.status(400).json({ error: 'Message is required' });
       return;
     }
@@ -230,21 +233,19 @@ export function createAgentRoutes(): Router {
       return;
     }
 
-    // Add user message to thread (skip for greeting mode)
+    // Add user message to thread (includes special messages like {{{Greeting}}} for agent detection)
     const currentTurn = voxContext.lastParameter?.turn || 0;
-    if (message) {
-      const userMessage: ModelMessage = {
-        role: 'user',
-        content: message
-      };
-      thread.messages.push({
-        message: userMessage,
-        metadata: {
-          datetime: new Date(),
-          turn: currentTurn
-        }
-      });
-    }
+    const userMessage: ModelMessage = {
+      role: 'user',
+      content: message
+    };
+    thread.messages.push({
+      message: userMessage,
+      metadata: {
+        datetime: new Date(),
+        turn: currentTurn
+      }
+    });
     thread.metadata!.updatedAt = new Date();
 
     // Set up SSE stream
