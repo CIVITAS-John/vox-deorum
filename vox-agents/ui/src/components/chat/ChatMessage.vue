@@ -17,12 +17,9 @@
         v-if="part.type === 'tool-call'"
         :tool-name="part.toolName"
         :args="part.args"
+        :completed="completedToolCallIds.has(part.toolCallId)"
       />
-      <ToolResultMessage
-        v-if="part.type === 'tool-result'"
-        :tool-name="part.toolName"
-        :result="part.result"
-      />
+      <!-- Tool results are shown inline on the tool-call block -->
     </template>
   </div>
 </template>
@@ -33,7 +30,15 @@ import type { ModelMessage } from 'ai';
 import TextMessage from './TextMessage.vue';
 import ReasoningMessage from './ReasoningMessage.vue';
 import ToolCallMessage from './ToolCallMessage.vue';
-import ToolResultMessage from './ToolResultMessage.vue';
+
+/** Strips structural artifacts left behind by tool call extraction from LLM text. */
+function cleanToolArtifacts(text: string): string {
+  return text
+    .replace(/\[\s*(?:,\s*)*\]/g, '')
+    .replace(/```(?:json)?\s*```/g, '')
+    .replace(/^\s*```(?:json)?\s*$/gm, '')
+    .trim();
+}
 
 interface Props {
   message: ModelMessage;
@@ -47,32 +52,44 @@ interface Props {
 
 const props = defineProps<Props>();
 
+// Collect tool call IDs that have a matching tool-result
+const completedToolCallIds = computed(() => {
+  const ids = new Set<string>();
+  if (Array.isArray(props.message.content)) {
+    for (const part of props.message.content) {
+      if (part.type === 'tool-result') {
+        ids.add(part.toolCallId);
+      }
+    }
+  }
+  return ids;
+});
+
 // Normalize content to always be an array of parts, with reasoning parts first
+// Tool-result parts are filtered out (their status is shown on the tool-call block)
 const contentParts = computed(() => {
-  const parts: any[] = [];
   const reasoningParts: any[] = [];
   const otherParts: any[] = [];
 
   if (typeof props.message.content === 'string') {
-    // Convert string to a single text part
-    otherParts.push({ type: 'text', text: props.message.content });
+    const cleaned = cleanToolArtifacts(props.message.content);
+    if (cleaned) otherParts.push({ type: 'text', text: cleaned });
   } else if (Array.isArray(props.message.content)) {
-    // Separate reasoning parts from other parts
     for (const part of props.message.content) {
       if (part.type === 'reasoning') {
         reasoningParts.push(part);
+      } else if (part.type === 'tool-result') {
+        // Skip - shown inline on the tool-call block
+      } else if (part.type === 'text') {
+        const cleaned = cleanToolArtifacts(part.text);
+        if (cleaned) otherParts.push({ ...part, text: cleaned });
       } else {
         otherParts.push(part);
       }
     }
   }
 
-  // Reasoning parts first, then everything else
   return [...reasoningParts, ...otherParts];
-});
-
-const hasReasoningFirst = computed(() => {
-  return contentParts.value.length > 0 && contentParts.value[0].type === 'reasoning';
 });
 </script>
 

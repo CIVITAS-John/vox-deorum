@@ -30,6 +30,29 @@
   border-left-color: var(--p-green-500);
 }
 
+/* Compact inline tool status */
+.tool-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  color: var(--p-text-secondary-color);
+  font-size: 0.875rem;
+}
+
+.tool-status-icon {
+  font-size: 0.9rem;
+}
+
+.tool-success-icon {
+  color: var(--p-green-500);
+}
+
+.tool-status-name {
+  color: var(--p-primary-600);
+  font-weight: 500;
+}
+
 /** Message content styles **/
 .message-content :deep(p) {
   margin: 0 0 0.5rem;

@@ -18,6 +18,7 @@ import { trace, SpanStatusCode, context } from '@opentelemetry/api';
 import { spanProcessor } from '../instrumentation.js';
 import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
 import { countMessagesTokens } from "../utils/token-counter.js";
+import { cleanToolArtifacts } from "../utils/text-cleaning.js";
 import { agentRegistry } from "./agent-registry.js";
 import { contextRegistry } from "./context-registry.js";
 import { createAgentTool } from "../utils/tools/agent-tools.js";
@@ -447,6 +448,21 @@ export class VoxContext<TParameters extends AgentParameters> {
         if (stepResults.length > 0) {
           allSteps.push(...stepResults);
           finalText = stepResponse.text;
+
+          // Clean tool rescue artifacts from response messages
+          for (const msg of stepResponse.response.messages) {
+            if (Array.isArray(msg.content)) {
+              msg.content = msg.content.filter(part => {
+                if (part.type === 'text') {
+                  part.text = cleanToolArtifacts(part.text);
+                  return part.text.length > 0;
+                }
+                return true;
+              });
+            } else if (typeof msg.content === 'string') {
+              msg.content = cleanToolArtifacts(msg.content);
+            }
+          }
 
           // Update messages with the response
           messages = messages.concat(stepResponse.response.messages);
