@@ -263,6 +263,34 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
       const resolution = retrieveEnumName("ResolutionType", e.ResolutionType) ?? `Resolution ${e.ResolutionType}`;
       return `World Congress ${action}: **${resolution}** ${result} (proposed by **${ctx.player(e.ProposerPlayerID)}**)`;
     }
+  },
+
+  // ── Multi-Civ Events (synced from event-categories.json) ──
+
+  UnitConverted: {
+    playerIdFields: ["OldOwnerID", "NewOwnerID"],
+    toMarkdown: (e, ctx) =>
+      `**${ctx.player(e.NewOwnerID)}** converted a unit from **${ctx.player(e.OldOwnerID)}**`
+  },
+  PlayerTradeRouteCompleted: {
+    playerIdFields: ["OriginPlayerID", "DestinationPlayerID"],
+    toMarkdown: (e, ctx) =>
+      `Trade route completed: **${ctx.player(e.OriginPlayerID)}** → **${ctx.player(e.DestinationPlayerID)}**`
+  },
+  NuclearDetonation: {
+    playerIdFields: ["PlayerID"],
+    toMarkdown: (e, ctx) => {
+      const bystander = e.HurtBystander ? " (and hurt bystanders)" : "";
+      return `**${ctx.player(e.PlayerID)}** detonated a nuclear weapon${bystander}`;
+    }
+  },
+
+  // ── Dynamic Events ──
+
+  DiplomaticMessage: {
+    playerIdFields: ["ToPlayerID", "FromPlayerID"],
+    toMarkdown: (e, ctx) =>
+      `**${ctx.player(e.FromPlayerID)}** sent **${ctx.player(e.ToPlayerID)}** a message. Diplomat's summary: "${e.Message}" Reaction: "${e.Reaction}"`
   }
 };
 
