@@ -19,11 +19,6 @@ import { StrategistParameters } from "../strategist/strategy-parameters.js";
  */
 export abstract class Analyst<TInput = unknown> extends VoxAgent<StrategistParameters, TInput, string> {
   /**
-   * Tags for categorizing analyst agents
-   */
-  public tags = ["active-game", "analyst"];
-
-  /**
    * Allow the LLM to decide when to call tools
    */
   public override toolChoice: string = "auto";
