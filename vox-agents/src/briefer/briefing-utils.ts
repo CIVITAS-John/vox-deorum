@@ -5,9 +5,13 @@
  * Used by both strategist agents (for pre-turn briefings) and envoy agents (for on-demand briefings).
  */
 
+import { z } from "zod";
+import { Tool } from "ai";
 import type { BriefingMode, SpecializedBrieferInput } from "./specialized-briefer.js";
 import type { StrategistParameters, GameState } from "../strategist/strategy-parameters.js";
+import { getGameState } from "../strategist/strategy-parameters.js";
 import type { VoxContext } from "../infra/vox-context.js";
+import { createSimpleTool } from "../utils/tools/simple-tools.js";
 
 /**
  * Maps each briefing mode to its report storage key in GameState.reports
@@ -77,6 +81,32 @@ export async function requestBriefings(
  * @param instruction - Optional instruction for single briefing mode
  * @returns Formatted briefing markdown
  */
+/**
+ * Creates the get-briefing internal tool for on-demand briefing retrieval.
+ * Shared by LiveEnvoy and Analyst base classes.
+ *
+ * @param context - VoxContext for calling briefer agents when briefings are missing
+ * @returns A Tool instance for the get-briefing tool
+ */
+export function createBriefingTool(context: VoxContext<StrategistParameters>): Tool {
+  return createSimpleTool({
+    name: "get-briefing",
+    description: "Retrieve strategic briefings for one or more categories. Returns existing briefings or generates new ones if unavailable.",
+    inputSchema: z.object({
+      Categories: z.array(z.enum(['Military', 'Economy', 'Diplomacy']))
+        .min(1)
+        .describe("The briefing categories to retrieve")
+    }),
+    execute: async (input, parameters) => {
+      const state = getGameState(parameters, parameters.turn);
+      if (!state) {
+        return "No game state available for briefing retrieval.";
+      }
+      return requestBriefings(input.Categories, state, context, parameters);
+    }
+  }, context);
+}
+
 export function assembleBriefings(
   briefings: string | Array<{ title: string; content: string; instruction?: string }>,
   instruction?: string

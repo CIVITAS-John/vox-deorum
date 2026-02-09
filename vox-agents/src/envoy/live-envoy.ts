@@ -7,14 +7,12 @@
  */
 
 import { ModelMessage, Tool } from "ai";
-import { z } from "zod";
 import { Envoy } from "./envoy.js";
 import { StrategistParameters, getGameState } from "../strategist/strategy-parameters.js";
 import { EnvoyThread, MessageWithMetadata, SpecialMessageConfig } from "../types/index.js";
 import { VoxContext } from "../infra/vox-context.js";
 import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
-import { createSimpleTool } from "../utils/tools/simple-tools.js";
-import { requestBriefings } from "../briefer/briefing-utils.js";
+import { createBriefingTool } from "../briefer/briefing-utils.js";
 
 /**
  * Envoy specialized for live game sessions with StrategistParameters.
@@ -79,24 +77,7 @@ ${specialConfig.prompt}`.trim()
    * via the specialized-briefer agent if they don't exist.
    */
   public override getExtraTools(context: VoxContext<StrategistParameters>): Record<string, Tool> {
-    return {
-      "get-briefing": createSimpleTool({
-        name: "get-briefing",
-        description: "Retrieve strategic briefings for one or more categories. Returns existing briefings or generates new ones if unavailable.",
-        inputSchema: z.object({
-          Categories: z.array(z.enum(['Military', 'Economy', 'Diplomacy']))
-            .min(1)
-            .describe("The briefing categories to retrieve")
-        }),
-        execute: async (input, parameters) => {
-          const state = getGameState(parameters, parameters.turn);
-          if (!state) {
-            return "No game state available for briefing retrieval.";
-          }
-          return requestBriefings(input.Categories, state, context, parameters);
-        }
-      }, context)
-    };
+    return { "get-briefing": createBriefingTool(context) };
   }
 
   // Special message detection

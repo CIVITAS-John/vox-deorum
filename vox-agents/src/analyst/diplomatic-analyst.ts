@@ -8,19 +8,9 @@
 
 import { z } from "zod";
 import { ModelMessage } from "ai";
-import { Analyst } from "./analyst.js";
+import { Analyst, AnalystInput } from "./analyst.js";
 import { VoxContext } from "../infra/vox-context.js";
 import { StrategistParameters } from "../strategist/strategy-parameters.js";
-
-/** Input type for the DiplomaticAnalyst, provided by the Diplomat via the call-diplomatic-analyst tool */
-export interface DiplomaticAnalystInput {
-  /** Raw report from the diplomatic interaction */
-  Report: string;
-  /** The player ID this report concerns */
-  AboutPlayerID: number;
-  /** Brief context about the interaction (who the diplomat spoke with, circumstances) */
-  Context: string;
-}
 
 /**
  * Diplomatic analyst that processes reports from field diplomats and relays
@@ -29,7 +19,7 @@ export interface DiplomaticAnalystInput {
  *
  * @class
  */
-export class DiplomaticAnalyst extends Analyst<DiplomaticAnalystInput> {
+export class DiplomaticAnalyst extends Analyst {
   /**
    * The name identifier for this agent
    */
@@ -43,7 +33,7 @@ export class DiplomaticAnalyst extends Analyst<DiplomaticAnalystInput> {
   /**
    * Tags for categorizing this agent
    */
-  public override tags = ["active-game", "analyst", "diplomatic"];
+  public tags = ["active-game", "diplomatic", "analyst"];
 
   /**
    * Tool description shown to agents that can invoke this analyst
@@ -54,24 +44,18 @@ export class DiplomaticAnalyst extends Analyst<DiplomaticAnalystInput> {
    * Input schema for the call-diplomatic-analyst tool
    */
   public override inputSchema = z.object({
-    Report: z.string().describe("Raw report from the diplomatic interaction"),
-    AboutPlayerID: z.number().describe("The player ID this report concerns"),
+    PlayerID: z.number().describe("The player ID this report concerns"),
+    Turn: z.number().describe("The game turn this information relates to"),
+    Content: z.string().describe("Raw report from the diplomatic interaction"),
     Context: z.string().describe("Brief context: who you spoke with and circumstances")
   });
-
-  /**
-   * Restricts the analyst to only the relay-message MCP tool
-   */
-  public override getActiveTools(_parameters: StrategistParameters): string[] | undefined {
-    return ["relay-message"];
-  }
 
   /**
    * Gets the system prompt defining the analyst's role
    */
   public async getSystem(
     _parameters: StrategistParameters,
-    _input: DiplomaticAnalystInput,
+    _input: AnalystInput,
     _context: VoxContext<StrategistParameters>
   ): Promise<string> {
     return `
@@ -91,12 +75,19 @@ You receive raw diplomatic reports from field diplomats and process them into fo
 - Assign searchable categories (e.g., "military", "trade", "espionage", "territorial", "alliance", "culture", "religion", "science")
 - Write a concise Memo that includes your assessment and the diplomat's reaction to the situation
 
+# Available Tools
+- You have a \`get-briefing\` tool to retrieve briefings on Military, Economy, and/or Diplomacy.
+  - Use it when you need strategic context to better assess the report.
+- You have a \`get-diplomatic-events\` tool to retrieve recent diplomatic history with another player.
+  - Use it when you need to cross-reference past interactions.
+
 # Instructions
 1. Read the diplomat's report carefully
-2. Determine the appropriate Type, Confidence, and Categories
-3. Call the \`relay-message\` tool with your assessed information
-4. The Message field should contain a clear, concise summary of the key information
-5. The Memo field should contain your professional assessment and the diplomat's observed reaction`.trim();
+2. Optionally retrieve briefings or diplomatic events for context
+3. Determine the appropriate Type, Confidence, and Categories
+4. Call the \`relay-message\` tool with your assessed information
+5. The Message field should contain a clear, concise summary of the key information
+6. The Memo field should contain your professional assessment and the diplomat's observed reaction`.trim();
   }
 
   /**
@@ -104,7 +95,7 @@ You receive raw diplomatic reports from field diplomats and process them into fo
    */
   public async getInitialMessages(
     parameters: StrategistParameters,
-    input: DiplomaticAnalystInput,
+    input: AnalystInput,
     _context: VoxContext<StrategistParameters>
   ): Promise<ModelMessage[]> {
     return [{
@@ -112,12 +103,13 @@ You receive raw diplomatic reports from field diplomats and process them into fo
       content: `
 # Diplomatic Report
 
-**About Player ID:** ${input.AboutPlayerID}
+**About Player ID:** ${input.PlayerID}
 **Our Player ID:** ${parameters.playerID}
+**Turn:** ${input.Turn}
 **Context:** ${input.Context}
 
 ## Raw Report
-${input.Report}
+${input.Content}
 
 Process this report and relay the assessed information to the leader using the relay-message tool.`.trim()
     }];

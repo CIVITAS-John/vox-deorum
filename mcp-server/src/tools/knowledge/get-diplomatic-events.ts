@@ -93,8 +93,8 @@ interface DiploEventConfig {
   playerIdFields: string[];
   /** Payload fields containing team IDs for relevance filtering */
   teamIdFields?: string[];
-  /** Convert event payload to a markdown summary line, or null to skip irrelevant events */
-  toMarkdown: (payload: Record<string, any>, ctx: FormatContext) => string | null;
+  /** Convert event payload to a formatted summary (string for most events, object for structured ones), or null to skip */
+  toMarkdown: (payload: Record<string, any>, ctx: FormatContext) => string | Record<string, any> | null;
 }
 
 /**
@@ -289,11 +289,14 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
 
   RelayedMessage: {
     playerIdFields: ["ToPlayerID", "FromPlayerID"],
-    toMarkdown: (e, ctx) => {
-      const typeLabel = e.Type === "intelligence" ? "Intelligence" : "Diplomatic message";
-      const categories = Array.isArray(e.Categories) ? ` {${e.Categories.join(", ")}}` : "";
-      return `${typeLabel} [${e.Confidence ?? "?"}/9]${categories}: **${ctx.player(e.FromPlayerID)}** → **${ctx.player(e.ToPlayerID)}**: "${e.Message}" — Memo: "${e.Memo}"`;
-    }
+    toMarkdown: (e, ctx) => ({
+      Title: `${ctx.player(e.FromPlayerID)} → ${ctx.player(e.ToPlayerID)}`,
+      Type: e.Type === "intelligence" ? "Intelligence" : "Diplomatic message",
+      Confidence: e.Confidence,
+      Categories: Array.isArray(e.Categories) ? e.Categories.join(", ") : "",
+      Message: e.Message,
+      Memo: e.Memo
+    })
   }
 };
 
@@ -318,7 +321,7 @@ const GetDiplomaticEventsInputSchema = z.object({
 
 /** Output schema: either markdown summaries or raw event payloads, grouped by turn */
 const GetDiplomaticEventsOutputSchema = z.union([
-  z.record(z.string(), z.array(z.string())),
+  z.record(z.string(), z.array(z.union([z.string(), z.record(z.string(), z.any())]))),
   z.record(z.string(), z.array(z.any()))
 ]);
 

@@ -58,7 +58,7 @@ class MessageRelayTool extends DynamicEventTool {
       FromPlayer: resolvePlayerName(playerMap, args.FromPlayerID),
       Type: args.Type,
       Message: args.Message,
-      Confidence: args.Confidence,
+      Confidence: `${args.Confidence}/9`,
       Categories: args.Categories,
       Memo: args.Memo
     };
