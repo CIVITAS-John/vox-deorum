@@ -170,6 +170,7 @@ export default function createGetEventsTool() {
  * Maps event types to their matching field paths (uses ID sub-field for matching)
  */
 const consolidationConfig: Record<string, string[]> = {
+  "StealPlot": ["FromPlayer", "ToPlayer"],
   "TileRevealed": ["Unit", "Player"],
   "UnitMoved": ["Unit", "Player"],
   "UnitPromoted": ["Unit", "Player"]

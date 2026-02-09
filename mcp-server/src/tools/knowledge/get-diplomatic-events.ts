@@ -245,6 +245,14 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
       `**${ctx.player(e.PlunderingPlayerID)}** plundered trade route between **${ctx.player(e.OriginOwnerID)}** and **${ctx.player(e.DestinationOwnerID)}** (+${e.PlunderGoldValue} gold)`
   },
 
+  // ── Territory ──
+
+  StealPlot: {
+    playerIdFields: ["FromPlayerID", "ToPlayerID"],
+    toMarkdown: (e, ctx) =>
+      `**${ctx.player(e.ToPlayerID)}** stole territory from **${ctx.player(e.FromPlayerID)}** at (${e.PlotX},${e.PlotY})`
+  },
+
   // ── World Congress ──
 
   ResolutionResult: {

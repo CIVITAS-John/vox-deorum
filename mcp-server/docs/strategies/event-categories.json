@@ -112,6 +112,7 @@
   "TerraformingMap": ["Economy"],
   "TerraformingPlot": ["Economy"],
   "TestEvent": ["System"],
+  "StealPlot": ["Military", "Diplomacy"],
   "TileFeatureChanged": ["Economy"],
   "TileImprovementChanged": ["Economy"],
   "TileOwnershipChanged": ["Economy", "Diplomacy"],

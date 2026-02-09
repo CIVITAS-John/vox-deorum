@@ -109,6 +109,7 @@ import { SetAlly } from './SetAlly.js';
 import { SetPopulation } from './SetPopulation.js';
 import { StateReligionAdopted } from './StateReligionAdopted.js';
 import { StateReligionChanged } from './StateReligionChanged.js';
+import { StealPlot } from './StealPlot.js';
 import { TeamMeet } from './TeamMeet.js';
 import { TeamSetEra } from './TeamSetEra.js';
 import { TeamSetHasTech } from './TeamSetHasTech.js';
@@ -168,8 +169,8 @@ export const eventSchemas = {
   'ContractEnded': ContractEnded,
   'ContractStarted': ContractStarted,
   'ContractsRefreshed': ContractsRefreshed,
-  'DeclareWar': DeclareWar,
   'DealMade': DealMade,
+  'DeclareWar': DeclareWar,
   'ElectionResultFailure': ElectionResultFailure,
   'ElectionResultSuccess': ElectionResultSuccess,
   'EspionageNotificationData': EspionageNotificationData,
@@ -243,6 +244,7 @@ export const eventSchemas = {
   'SetPopulation': SetPopulation,
   'StateReligionAdopted': StateReligionAdopted,
   'StateReligionChanged': StateReligionChanged,
+  'StealPlot': StealPlot,
   'TeamMeet': TeamMeet,
   'TeamSetEra': TeamSetEra,
   'TeamSetHasTech': TeamSetHasTech,
