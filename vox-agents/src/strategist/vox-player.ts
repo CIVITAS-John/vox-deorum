@@ -12,7 +12,7 @@ import { createLogger } from "../utils/logger.js";
 import { setTimeout } from 'node:timers/promises';
 import { sqliteExporter, spanProcessor } from "../instrumentation.js";
 import { config } from "../utils/config.js";
-import { refreshGameState, StrategistParameters } from "./strategy-parameters.js";
+import { ensureGameState, StrategistParameters } from "./strategy-parameters.js";
 import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";
 import { PlayerConfig } from "../types/config.js";
 
@@ -146,7 +146,7 @@ export class VoxPlayer {
             // Create a new root context for this turn's trace
             await context.with(trace.setSpan(context.active(), turnSpan), async () => {
               // Refresh all strategy parameters
-              await refreshGameState(this.context, this.parameters)
+              await ensureGameState(this.context, this.parameters)
               await this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
 
               // Without strategists, we just fake one

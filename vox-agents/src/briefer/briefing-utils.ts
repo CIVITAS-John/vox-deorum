@@ -2,7 +2,8 @@
  * @module briefer/briefing-utils
  *
  * Shared utilities for briefing assembly, report key management, and on-demand briefing retrieval.
- * Used by both strategist agents (for pre-turn briefings) and envoy agents (for on-demand briefings).
+ * Provides promise-based deduplication so concurrent callers share in-flight briefing generation.
+ * Used by strategist agents (for pre-turn briefings) and envoy/analyst agents (for on-demand briefings).
  */
 
 import { z } from "zod";
@@ -23,67 +24,89 @@ export const briefingReportKeys: Record<BriefingMode, string> = {
 };
 
 /**
- * Retrieves briefings for the requested categories from a game state.
- * Returns cached briefings when available, generates missing ones via specialized-briefer agents in parallel.
- *
- * @param categories - The briefing categories to retrieve
- * @param state - The game state to check for existing briefings
- * @param context - VoxContext for calling briefer agents when briefings are missing
- * @param parameters - Agent parameters passed to the briefer agents
- * @returns Assembled briefing markdown string
+ * Instruction keys in workingMemory for each briefing mode.
+ * Strategists set these via the focus-briefer tool.
  */
-export async function requestBriefings(
-  categories: BriefingMode[],
+export const briefingInstructionKeys: Record<BriefingMode | "combined", string> = {
+  combined: "briefer-instruction",
+  Military: "briefer-instruction-military",
+  Economy: "briefer-instruction-economy",
+  Diplomacy: "briefer-instruction-diplomacy"
+};
+
+/**
+ * Requests a single briefing with promise-based deduplication.
+ * Returns cached results, awaits in-flight generation, or starts new generation.
+ * If a combined ("briefing") result exists or is pending, it serves as fallback for any specific mode.
+ * Instructions are read from parameters.workingMemory automatically (set by the strategist's focus-briefer tool).
+ *
+ * @param mode - The briefing mode: "Military", "Economy", "Diplomacy", or "combined"
+ * @param state - The game state containing cached reports and pending promises
+ * @param context - VoxContext for calling briefer agents
+ * @param parameters - Agent parameters passed to the briefer agents
+ * @param agent - Override the default briefer agent ("simple-briefer" for combined, "specialized-briefer" for modes)
+ * @returns The briefing content, or undefined if generation fails
+ */
+export async function requestBriefing(
+  mode: BriefingMode | "combined",
   state: GameState,
   context: VoxContext<StrategistParameters>,
-  parameters: StrategistParameters
-): Promise<string> {
-  const sections: Array<{ title: string; content: string }> = [];
-  const missing: BriefingMode[] = [];
+  parameters: StrategistParameters,
+  agent?: string
+): Promise<string | undefined> {
+  const reportKey = mode === "combined" ? "briefing" : briefingReportKeys[mode as BriefingMode];
 
-  for (const category of categories) {
-    const reportKey = briefingReportKeys[category];
-    const existing = state.reports[reportKey] || state.reports["briefing"];
-    if (existing) {
-      sections.push({ title: `${category} Briefing`, content: existing });
-    } else {
-      missing.push(category);
-    }
+  // 1. Return cached mode-specific result
+  if (state.reports[reportKey]) {
+    return state.reports[reportKey];
   }
 
-  // Generate missing briefings in parallel
-  if (missing.length > 0) {
-    const results = await Promise.all(
-      missing.map(mode =>
-        context.callAgent<string>("specialized-briefer", {
-          mode,
-          instruction: ""
-        } as SpecializedBrieferInput, parameters)
-      )
-    );
-
-    for (let i = 0; i < missing.length; i++) {
-      sections.push({
-        title: `${missing[i]} Briefing`,
-        content: results[i] ?? "(Briefing unavailable for this category)"
-      });
-    }
+  // 2. For specific modes, check combined result as fallback
+  if (mode !== "combined" && state.reports["briefing"]) {
+    return state.reports["briefing"];
   }
 
-  return assembleBriefings(sections);
+  // Initialize pending registry if needed
+  state._pendingBriefings = state._pendingBriefings || {};
+
+  // 3. Await in-flight mode-specific generation
+  if (reportKey in state._pendingBriefings) {
+    return state._pendingBriefings[reportKey];
+  }
+
+  // 4. For specific modes, await in-flight combined generation as fallback
+  if (mode !== "combined" && "briefing" in state._pendingBriefings) {
+    return state._pendingBriefings["briefing"];
+  }
+
+  // 5. Start new generation with the specified or default briefer agent
+  const defaultAgent = mode === "combined" ? "simple-briefer" : "specialized-briefer";
+  const agentName = agent ?? defaultAgent;
+
+  // Read instruction from working memory (set by strategist's focus-briefer tool)
+  const instruction = parameters.workingMemory[briefingInstructionKeys[mode]] ?? "";
+
+  const input = agentName === "simple-briefer"
+    ? instruction
+    : { mode, instruction } as SpecializedBrieferInput;
+
+  const promise = context.callAgent<string>(agentName, input, parameters);
+
+  // Track and clean up the promise
+  const tracked = promise.finally(() => {
+    if (state._pendingBriefings?.[reportKey] === tracked) {
+      delete state._pendingBriefings[reportKey];
+    }
+  });
+
+  state._pendingBriefings[reportKey] = tracked;
+  return tracked;
 }
 
 /**
- * Assembles briefing content with optional instructions.
- * Can handle both single briefings and multiple briefing sections.
- *
- * @param briefings - Either a single briefing content string, or an array of briefing sections with titles
- * @param instruction - Optional instruction for single briefing mode
- * @returns Formatted briefing markdown
- */
-/**
  * Creates the get-briefing internal tool for on-demand briefing retrieval.
  * Shared by LiveEnvoy and Analyst base classes.
+ * Uses requestBriefing() for deduplication — concurrent callers share in-flight generation.
  *
  * @param context - VoxContext for calling briefer agents when briefings are missing
  * @returns A Tool instance for the get-briefing tool
@@ -102,11 +125,25 @@ export function createBriefingTool(context: VoxContext<StrategistParameters>): T
       if (!state) {
         return "No game state available for briefing retrieval.";
       }
-      return requestBriefings(input.Categories, state, context, parameters);
+      const sections = await Promise.all(
+        input.Categories.map(async (cat: BriefingMode) => ({
+          title: `${cat} Briefing`,
+          content: (await requestBriefing(cat, state, context, parameters)) ?? "(Briefing unavailable for this category)"
+        }))
+      );
+      return assembleBriefings(sections);
     }
   }, context);
 }
 
+/**
+ * Assembles briefing content with optional instructions.
+ * Can handle both single briefings and multiple briefing sections.
+ *
+ * @param briefings - Either a single briefing content string, or an array of briefing sections with titles
+ * @param instruction - Optional instruction for single briefing mode
+ * @returns Formatted briefing markdown
+ */
 export function assembleBriefings(
   briefings: string | Array<{ title: string; content: string; instruction?: string }>,
   instruction?: string

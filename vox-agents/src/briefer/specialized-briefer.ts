@@ -16,6 +16,7 @@ import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 import { createSimpleTool } from "../utils/tools/simple-tools.js";
 import { getOffsetedTurn } from "../utils/game-speed.js";
 import { SimpleBriefer } from "./simple-briefer.js";
+import { briefingInstructionKeys } from "./briefing-utils.js";
 import { filterEventsByCategory, EventCategory } from "../utils/event-filters.js";
 import { pickPlayerFields, omitPlayerFields, pickCityFields, omitCityFields } from "../utils/report-filters.js";
 import type { ConsolidatedEventsReport } from '../../../mcp-server/dist/tools/knowledge/get-events.js';
@@ -384,8 +385,7 @@ ${lastState.reports[reportKey] ?? lastState.reports["briefing"]}`
         }),
         execute: async (input, parameters) => {
           // Store the instruction in working memory for the next specialized briefing
-          const key = `briefer-instruction-${input.Mode.toLowerCase()}`;
-          parameters.workingMemory[key] = input.Instruction;
+          parameters.workingMemory[briefingInstructionKeys[input.Mode]] = input.Instruction;
           return `Briefer instruction set for ${input.Mode} mode.`;
         }
       }, context)

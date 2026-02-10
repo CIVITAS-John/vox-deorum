@@ -19,7 +19,7 @@ import {
   parseDatabaseIdentifier,
   createTelepathicContextId
 } from '../../utils/identifier-parser.js';
-import { StrategistParameters, getRecentGameState } from '../../strategist/strategy-parameters.js';
+import { StrategistParameters, getRecentGameState, ensureGameState } from '../../strategist/strategy-parameters.js';
 import {
   ListAgentsResponse,
   CreateChatRequest,
@@ -273,9 +273,15 @@ export function createAgentRoutes(): Router {
         }
       };
 
+      // Ensure the current turn's game state is available before executing the envoy
+      const params = voxContext.lastParameter! as StrategistParameters;
+      if (params.gameStates && !params.gameStates[params.turn]) {
+        await ensureGameState(voxContext as VoxContext<StrategistParameters>, params);
+      }
+
       await voxContext.execute(
         thread.agent,
-        voxContext.lastParameter!,
+        params,
         thread,
         streamCallback
       );

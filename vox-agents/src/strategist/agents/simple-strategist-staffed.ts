@@ -11,8 +11,7 @@ import { SimpleStrategistBase } from "./simple-strategist-base.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { getRecentGameState, StrategistParameters } from "../strategy-parameters.js";
 import { jsonToMarkdown } from "../../utils/tools/json-to-markdown.js";
-import { SpecializedBrieferInput } from "../../briefer/specialized-briefer.js";
-import { assembleBriefings } from "../../briefer/briefing-utils.js";
+import { requestBriefing, assembleBriefings, briefingInstructionKeys } from "../../briefer/briefing-utils.js";
 import { getStrategicPlayersReport } from "../../utils/report-filters.js";
 
 /**
@@ -65,43 +64,33 @@ ${SimpleStrategistBase.playersInfoPrompt}
   public async getInitialMessages(parameters: StrategistParameters, input: unknown, context: VoxContext<StrategistParameters>): Promise<ModelMessage[]> {
     var state = getRecentGameState(parameters)!;
     let briefingsContent: string;
-    const militaryInstruction = parameters.workingMemory["briefer-instruction-military"];
-    const economyInstruction = parameters.workingMemory["briefer-instruction-economy"];
-    const diplomacyInstruction = parameters.workingMemory["briefer-instruction-diplomacy"];
+    const militaryInstruction = parameters.workingMemory[briefingInstructionKeys.Military];
+    const economyInstruction = parameters.workingMemory[briefingInstructionKeys.Economy];
+    const diplomacyInstruction = parameters.workingMemory[briefingInstructionKeys.Diplomacy];
 
     // Check the event length to decide between simple/specialized briefer
     if (JSON.stringify(state.events!).length <= 5000 || state.turn <= 1) {
-      // Assemble combined instruction from specialized instructions
-      const combinedInstruction = [
+      // Assemble combined instruction from specialized instructions and store for simple-briefer
+      parameters.workingMemory[briefingInstructionKeys.combined] = [
         `- Military: ${militaryInstruction ?? "a general report."}`,
         `- Economy: ${economyInstruction ?? "a general report."}`,
         `- Diplomacy: ${diplomacyInstruction ?? "a general report."}`
       ].join("\n\n");
 
-      // Use simple-briefer for fewer events
-      const briefing = await context.callAgent<string>("simple-briefer", combinedInstruction || "", parameters);
+      // Use simple-briefer for fewer events (requestBriefing reads instruction from workingMemory)
+      const briefing = await requestBriefing("combined", state, context, parameters);
 
       if (!briefing) {
         throw new Error("Failed to generate strategic briefing.");
       }
 
-      briefingsContent = assembleBriefings(briefing, combinedInstruction || undefined);
+      briefingsContent = assembleBriefings(briefing, parameters.workingMemory[briefingInstructionKeys.combined] || undefined);
     } else {
-      // Use specialized briefers for more complex situations
-      // Call all three specialized briefers in parallel
+      // Use specialized briefers for more complex situations (requestBriefing reads instructions from workingMemory)
       const [militaryBriefing, economyBriefing, diplomacyBriefing] = await Promise.all([
-        context.callAgent<string>("specialized-briefer", {
-          mode: "Military",
-          instruction: militaryInstruction ?? ""
-        } as SpecializedBrieferInput, parameters),
-        context.callAgent<string>("specialized-briefer", {
-          mode: "Economy",
-          instruction: economyInstruction ?? ""
-        } as SpecializedBrieferInput, parameters),
-        context.callAgent<string>("specialized-briefer", {
-          mode: "Diplomacy",
-          instruction: diplomacyInstruction ?? ""
-        } as SpecializedBrieferInput, parameters)
+        requestBriefing("Military", state, context, parameters),
+        requestBriefing("Economy", state, context, parameters),
+        requestBriefing("Diplomacy", state, context, parameters),
       ]);
 
       if (!militaryBriefing || !economyBriefing || !diplomacyBriefing) {
@@ -117,9 +106,10 @@ ${SimpleStrategistBase.playersInfoPrompt}
     }
 
     // Clear the instructions from working memory
-    delete parameters.workingMemory["briefer-instruction-military"];
-    delete parameters.workingMemory["briefer-instruction-economy"];
-    delete parameters.workingMemory["briefer-instruction-diplomacy"];
+    delete parameters.workingMemory[briefingInstructionKeys.Military];
+    delete parameters.workingMemory[briefingInstructionKeys.Economy];
+    delete parameters.workingMemory[briefingInstructionKeys.Diplomacy];
+    delete parameters.workingMemory[briefingInstructionKeys.combined];
 
     // Get the information
     await super.getInitialMessages(parameters, input, context);

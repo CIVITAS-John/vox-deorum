@@ -25,6 +25,8 @@ export interface StrategistParameters extends AgentParameters {
   gameStates: Record<number, GameState>;
   /** Decision type the strategist is going to make. */
   mode: StrategyDecisionType;
+  /** Internal: in-flight game state refresh promise for deduplication (not serialized) */
+  _pendingRefresh?: Promise<GameState>;
 }
 
 /**
@@ -47,6 +49,8 @@ export interface GameState {
   victory?: VictoryProgressReport;
   /** Additional reports (e.g. briefings) */
   reports: Record<string, string>;
+  /** Internal: pending briefing generation promises for deduplication (not serialized) */
+  _pendingBriefings?: Record<string, Promise<string | undefined>>;
 }
 
 /**
@@ -132,6 +136,42 @@ export async function refreshGameState(
   }
 
   return currentState;
+}
+
+/**
+ * Returns the game state for the current turn, deduplicating concurrent refresh calls.
+ * If the state is already cached, returns immediately. If a refresh is in-flight, awaits it.
+ * Otherwise starts a new refresh and registers the promise for deduplication.
+ * @param context - The VoxContext to use for calling tools
+ * @param parameters - The strategy parameters to check/refresh
+ * @param cullLimit - Number of past turns to keep (default: 10)
+ * @returns The game state for the current turn
+ */
+export async function ensureGameState(
+  context: VoxContext<StrategistParameters>,
+  parameters: StrategistParameters,
+  cullLimit: number = 10
+): Promise<GameState> {
+  // Return cached state if available
+  if (parameters.gameStates[parameters.turn]) {
+    return parameters.gameStates[parameters.turn];
+  }
+
+  // Await in-flight refresh if one exists
+  if (parameters._pendingRefresh) {
+    return parameters._pendingRefresh;
+  }
+
+  // Start a new refresh and track the promise
+  const refreshPromise = refreshGameState(context, parameters, cullLimit)
+    .finally(() => {
+      if (parameters._pendingRefresh === refreshPromise) {
+        parameters._pendingRefresh = undefined;
+      }
+    });
+
+  parameters._pendingRefresh = refreshPromise;
+  return refreshPromise;
 }
 
 /**

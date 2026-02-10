@@ -16,6 +16,7 @@ import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 import { createSimpleTool } from "../utils/tools/simple-tools.js";
 import { getOffsetedTurn } from "../utils/game-speed.js";
 import { SimpleStrategistBase } from "../strategist/agents/simple-strategist-base.js";
+import { briefingInstructionKeys } from "./briefing-utils.js";
 
 /**
  * A simple briefer agent that analyzes the game state and produces a concise briefing.
@@ -203,7 +204,7 @@ ${lastState.reports["briefing"]}`
           }),
           execute: async (input, parameters) => {
             // Store the instruction in working memory for the next briefing
-            parameters.workingMemory["briefer-instruction"] = input.Instruction;
+            parameters.workingMemory[briefingInstructionKeys.combined] = input.Instruction;
             return `Briefer instruction set.`;
           }
         }, context)
