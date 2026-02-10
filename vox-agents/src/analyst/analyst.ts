@@ -3,31 +3,33 @@
  *
  * Base analyst agent implementation. All analysts inherit from this class.
  * Analysts run as fire-and-forget agent-tools, processing information asynchronously
- * and relaying assessed results via MCP tools.
+ * and relaying assessed results via MCP tools. They share game context (identity,
+ * players, strategies) and decide whether information warrants relay to the leader.
  */
 
-import { StepResult, Tool } from "ai";
+import { z } from "zod";
+import { ModelMessage, StepResult, Tool } from "ai";
 import { VoxAgent } from "../infra/vox-agent.js";
 import { VoxContext } from "../infra/vox-context.js";
-import { StrategistParameters } from "../strategist/strategy-parameters.js";
+import { StrategistParameters, getGameState } from "../strategist/strategy-parameters.js";
 import { createBriefingTool } from "../briefer/briefing-utils.js";
+import { jsonToMarkdown } from "../utils/tools/json-to-markdown.js";
 
-/** Base input type for all analysts */
+/** Base input type for all analysts — fields provided by the calling agent */
 export interface AnalystInput {
-  /** The player ID this information concerns */
-  PlayerID: number;
-  /** The game turn this information relates to */
-  Turn: number;
   /** The main content/report to analyze */
   Content: string;
   /** Context about the situation or source */
   Context: string;
+  /** The diplomat's assessment and planned response */
+  Memo: string;
 }
 
 /**
  * Base analyst agent that processes information asynchronously.
  * Runs as a fire-and-forget agent-tool with a detached trace context.
- * Provides all analysts with relay-message, get-briefing, and get-diplomatic-events tools.
+ * Provides all analysts with relay-message, get-briefing, and get-diplomatic-events tools,
+ * plus game context (identity, players, strategies) via getContextMessages().
  *
  * @abstract
  * @class
@@ -42,6 +44,16 @@ export abstract class Analyst<TInput extends AnalystInput = AnalystInput> extend
    * Run asynchronously — the calling agent does not wait for completion
    */
   public override fireAndForget: boolean = true;
+
+  /**
+   * Base input schema for all analysts: Content, Context, and Memo.
+   * PlayerID and Turn are read from parameters (auto-completed).
+   */
+  public override inputSchema = z.object({
+    Content: z.string().describe("The main content/report to analyze"),
+    Context: z.string().describe("Brief context about the situation or source"),
+    Memo: z.string().describe("The diplomat's assessment and planned response")
+  }) as unknown as z.ZodSchema<TInput>;
 
   /**
    * Base active tools for all analysts: relay-message for output, get-briefing and get-diplomatic-events for context
@@ -67,5 +79,39 @@ export abstract class Analyst<TInput extends AnalystInput = AnalystInput> extend
     allSteps: StepResult<Record<string, Tool>>[]
   ): boolean {
     return allSteps.length >= 3;
+  }
+
+  /**
+   * Returns game context messages: civilization identity, players, and strategies.
+   * Mirrors the LiveEnvoy.getContextMessages() pattern so analysts have the same
+   * baseline information access as envoys.
+   */
+  protected getContextMessages(parameters: StrategistParameters): ModelMessage[] {
+    const state = getGameState(parameters, parameters.turn);
+    if (!state) {
+      throw new Error(`No game state available near turn ${parameters.turn}`);
+    }
+    const { YouAre, ...SituationData } = parameters.metadata || {};
+    const { Options, ...Strategy } = state.options || {};
+
+    return [{
+      role: "system",
+      content: `
+# Situation
+${jsonToMarkdown(SituationData)}
+
+# Your Civilization
+${jsonToMarkdown(YouAre)}
+
+# Players
+Players: summary reports about visible players in the world.
+
+${jsonToMarkdown(state.players)}
+
+# Strategies
+Strategies: existing strategic decisions from your leader.
+
+${jsonToMarkdown(Strategy)}`.trim()
+    }];
   }
 }
