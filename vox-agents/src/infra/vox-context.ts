@@ -406,7 +406,7 @@ export class VoxContext<TParameters extends AgentParameters> {
             // Tools
             tools: this.tools,
             activeTools: stepActiveTools,
-            toolChoice: stepModel.provider === "anthropic" && stepToolChoice === "required" ? "auto" : stepToolChoice,
+            toolChoice: stepModel.provider === "anthropic" && stepToolChoice === "required" ? "auto" : stepToolChoice as any,
             experimental_context: parameters,
             // Output schema for tool as agent
             experimental_output: stepOutputSchema ? Output.object({ schema: stepOutputSchema }) : undefined,
