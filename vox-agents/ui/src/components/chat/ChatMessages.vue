@@ -11,6 +11,7 @@
       :data="messages"
       :overscan="3"
       class="virtual-list"
+      @scroll="handleScroll"
     >
       <template #default="{ item, index }">
         <ChatMessage
@@ -26,10 +27,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue';
+import { ref, watch, nextTick, onMounted } from 'vue';
 import { VList } from 'virtua/vue';
-import Button from 'primevue/button';
-import type { ModelMessage } from 'ai';
 import type { MessageWithMetadata } from '../../utils/types';
 import ChatMessage from './ChatMessage.vue';
 
@@ -49,37 +48,39 @@ const props = withDefaults(defineProps<Props>(), {
 // Template refs
 const virtualScroller = ref<InstanceType<typeof VList>>();
 
-// State
-const showScrollButton = ref(false);
+// State for user-scroll-aware auto-scroll
+const userScrolledAway = ref(false);
+let isProgrammaticScroll = false;
 
-// Scroll to bottom of the list
+// Scroll to the absolute bottom of the scroll container.
+// Uses scrollTo(scrollSize) instead of scrollToIndex to handle items that
+// grow taller than the viewport during streaming.
 const scrollToBottom = () => {
-  const targetIndex = props.messages.length - 1;
-  if (virtualScroller.value && targetIndex >= 0) {
-    requestAnimationFrame(() => {
-      // Virtua uses scrollToIndex method directly on the ref
-      virtualScroller.value!.scrollToIndex(targetIndex);
-    });
-  }
-};
-
-// Handle scroll events to show/hide scroll button
-const handleScroll = () => {
   if (!virtualScroller.value) return;
-
-  // Get the internal scroll container from Virtua
-  const scrollElement = (virtualScroller.value as any)?.$el?.firstElementChild;
-  if (!scrollElement) return;
-
-  const { scrollTop, scrollHeight, clientHeight } = scrollElement;
-  const atBottom = scrollHeight - scrollTop - clientHeight < 100;
-  showScrollButton.value = !atBottom && props.messages.length > 5;
+  isProgrammaticScroll = true;
+  requestAnimationFrame(() => {
+    if (!virtualScroller.value) return;
+    virtualScroller.value.scrollTo(virtualScroller.value.scrollSize);
+    // Clear the flag after the scroll event fires
+    requestAnimationFrame(() => {
+      isProgrammaticScroll = false;
+    });
+  });
 };
 
-// Watch for scroll trigger events to handle autoscroll
+// Detect user scrolling away from bottom to pause auto-scroll.
+// Auto-scroll resumes when the user scrolls back within 100px of the bottom.
+const handleScroll = () => {
+  if (!virtualScroller.value || isProgrammaticScroll) return;
+
+  const scroller = virtualScroller.value;
+  const distanceFromBottom = scroller.scrollSize - scroller.scrollOffset - scroller.viewportSize;
+  userScrolledAway.value = distanceFromBottom > 100;
+};
+
+// Watch for scroll trigger events (streaming chunks)
 watch(() => props.scrollTrigger, () => {
-  // Scroll to bottom when a new meaningful chunk is received
-  if (props.autoScroll && virtualScroller.value) {
+  if (props.autoScroll && !userScrolledAway.value && virtualScroller.value) {
     nextTick(() => {
       scrollToBottom();
     });
@@ -87,7 +88,6 @@ watch(() => props.scrollTrigger, () => {
 });
 
 onMounted(() => {
-  // Wait for next tick to ensure virtual scroller is rendered
   nextTick(() => {
     scrollToBottom();
   });
