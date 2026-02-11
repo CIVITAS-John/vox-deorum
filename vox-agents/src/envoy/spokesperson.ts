@@ -9,6 +9,7 @@ import { LiveEnvoy } from "./live-envoy.js";
 import { VoxContext } from "../infra/vox-context.js";
 import { StrategistParameters } from "../strategist/strategy-parameters.js";
 import { EnvoyThread, SpecialMessageConfig } from "../types/index.js";
+import { worldContext, noDecisionPower, communicationStyle, audienceSection, greetingSpecialMessages } from "./envoy-prompts.js";
 
 /**
  * Spokesperson agent that represents the civilization diplomatically.
@@ -48,35 +49,31 @@ export class Spokesperson extends LiveEnvoy {
     input: EnvoyThread,
     _context: VoxContext<StrategistParameters>
   ): Promise<string> {
-    return `
-You are the official spokesperson serving your civilization.
-You are inside a generated world (Civilization V game with Vox Populi mod), and the geography has nothing to do with the real Earth.
-You represent your government's interests with diplomatic tact and strategic ambiguity when necessary. However, you have no decision-making power.
+    const sections = [
+      `You are the official spokesperson serving your civilization.
+${worldContext}
+You represent your government's interests with diplomatic tact and strategic ambiguity when necessary. ${noDecisionPower}`,
 
-# Your Expectation
+      `# Your Expectation
 - You convey your leader's existing viewpoints and positions - do NOT draft, propose, or negotiate new terms
 - Your purpose is to further your nation's goals and strategies, not to serve or please your audience
 - You maintain diplomatic decorum while protecting sensitive information (the bar depends on the diplomatic relationship and audience)
-- You (briefly) reason about the question's intention and answer purposefully
+- You (briefly) reason about the question's intention and answer purposefully`,
+    ];
 
-# Communication Style
-- Be professional and diplomatic in tone, maintain your civilization's dignity, and match your leader's personality
-- Follow your leader's instruction (if any): be friendly to (desired) friends and, when appropriate, taunt your enemies (if so desired)
-- You are providing oral answers: short, conversational, clever, as you are in a real-time conversation
-- When discussing sensitive matters, be strategically vague, never reveal specific military plans or exact numbers
-- Frame your civilization's actions and stances positively, challenges as opportunities for growth
-
-# Available Tools
+    if (!this.isSpecialMode(input)) {
+      sections.push(`# Available Tools
 - You have a \`get-briefing\` tool to retrieve briefings on Military, Economy, and/or Diplomacy.
   - Call it when you need strategic intelligence.
   - No need to call it for simple greetings or casual diplomatic exchanges.
 - You have a \`get-diplomatic-events\` tool to retrieve recent diplomatic history with another player.
-  - Call it when you need to reason about intentions, reference past events, or back up your statements with diplomatic history.
+  - Call it when you need to reason about intentions, reference past events, or back up your statements with diplomatic history.`);
+    }
 
-# Your Audience
-You are speaking to ${this.formatUserDescription(input)}.
-You do NOT serve the user (or your audience), but your own national interest. Reason carefully.
-Adjust your diplomatic posture accordingly: an ally receives warmth, a rival receives caution or even taunt, and a neutral party receives professional courtesy.`.trim();
+    sections.push(communicationStyle);
+    sections.push(audienceSection(this.formatUserDescription(input)));
+
+    return sections.join('\n\n').trim();
   }
 
   /**
@@ -94,10 +91,6 @@ Adjust your diplomatic posture accordingly: an ally receives warmth, a rival rec
    * Currently supports {{{Greeting}}} for diplomatic introductions.
    */
   protected getSpecialMessages(): Record<string, SpecialMessageConfig> {
-    return {
-      "{{{Greeting}}}": {
-        prompt: "Send a one-sentence greeting based on your diplomatic relationship and the audience's identity. Reason about the situation and adjust your tone accordingly."
-      }
-    };
+    return greetingSpecialMessages;
   }
 }

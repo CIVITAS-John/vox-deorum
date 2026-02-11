@@ -10,6 +10,8 @@
  */
 export function cleanToolArtifacts(text: string): string {
   return text
+    // Remove delimiter-based tool call markers: <|tool_call_begin|>, <|tool_call_argument_begin|>, <|tool_call_end|>
+    .replace(/<\|tool_call(?:_argument)?_(?:begin|end)\|>/g, '')
     // Remove empty/comma-only JSON arrays: [], [,], [ , , ], etc.
     .replace(/\[\s*(?:,\s*)*\]/g, '')
     // Remove empty markdown code blocks: ```json\n\n```, ```\n```

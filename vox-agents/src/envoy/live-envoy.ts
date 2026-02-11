@@ -6,7 +6,7 @@
  * Provides a get-briefing internal tool for on-demand briefing retrieval.
  */
 
-import { ModelMessage, Tool } from "ai";
+import { ModelMessage, StepResult, Tool } from "ai";
 import { Envoy } from "./envoy.js";
 import { StrategistParameters, getGameState } from "../strategist/strategy-parameters.js";
 import { EnvoyThread, MessageWithMetadata, SpecialMessageConfig } from "../types/index.js";
@@ -80,7 +80,34 @@ ${specialConfig.prompt}`.trim()
     return { "get-briefing": createBriefingTool(context) };
   }
 
+  /**
+   * Disables tools when in special message mode.
+   * Special prompts (e.g., greetings) only need text generation, not tool calls.
+   */
+  public override async prepareStep(
+    parameters: StrategistParameters,
+    input: EnvoyThread,
+    lastStep: StepResult<Record<string, Tool>> | null,
+    allSteps: StepResult<Record<string, Tool>>[],
+    messages: ModelMessage[],
+    context: VoxContext<StrategistParameters>
+  ) {
+    const config = await super.prepareStep(parameters, input, lastStep, allSteps, messages, context);
+    if (this.isSpecialMode(input)) {
+      config.activeTools = [];
+    }
+    return config;
+  }
+
   // Special message detection
+
+  /**
+   * Checks if the current interaction is in special message mode.
+   * Returns true when the last message is a recognized special message token.
+   */
+  protected isSpecialMode(input: EnvoyThread): boolean {
+    return this.findLastSpecialMessage(input) !== undefined;
+  }
 
   /**
    * Checks if the very last message in the thread is a special message.

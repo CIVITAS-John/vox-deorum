@@ -98,6 +98,44 @@ export function rescueToolCallsFromText(
   availableTools: Set<string>,
   useJaison: boolean = true
 ): { remainingText?: string, toolCalls: LanguageModelV2ToolCall[] } {
+  // Check for delimiter-based tool call format: <|tool_call_begin|> functions.name:N <|tool_call_argument_begin|> {...} <|tool_call_end|>
+  const delimiterRegex = /<\|tool_call_begin\|>\s*(?:functions\.)?(.+?)(?::(\d+))?\s*<\|tool_call_argument_begin\|>\s*([\s\S]*?)\s*<\|tool_call_end\|>/g;
+  let delimiterMatch;
+  const delimiterToolCalls: LanguageModelV2ToolCall[] = [];
+  let remainingAfterDelimiters = text;
+
+  while ((delimiterMatch = delimiterRegex.exec(text)) !== null) {
+    const rawToolName = delimiterMatch[1].trim().replaceAll(/_/g, '-');
+    const argsText = delimiterMatch[3].trim();
+
+    let parsedArgs: Record<string, unknown>;
+    try {
+      parsedArgs = jaison(argsText);
+    } catch {
+      logger.log("warn", `Failed to parse delimiter tool call arguments for ${rawToolName}: ${argsText}`);
+      continue;
+    }
+
+    if (!availableTools.has(rawToolName)) {
+      if (useJaison) logger.log("warn", `Failed to rescue delimiter tool call: non-existent or unavailable tool ${rawToolName}`, parsedArgs);
+      continue;
+    }
+
+    logger.log("debug", `Rescued delimiter tool call: ${rawToolName}`, parsedArgs);
+    delimiterToolCalls.push({
+      type: 'tool-call',
+      toolCallId: generateId(),
+      toolName: rawToolName,
+      input: JSON.stringify(parsedArgs),
+    });
+  }
+
+  if (delimiterToolCalls.length > 0) {
+    // Remove matched delimiter blocks from text
+    remainingAfterDelimiters = text.replace(delimiterRegex, '').trim() || undefined!;
+    return { toolCalls: delimiterToolCalls, remainingText: remainingAfterDelimiters || undefined };
+  }
+
   // Define common field name patterns to check
   const fieldPatterns = [
     { nameField: 'name', parametersField: 'parameters' },
@@ -421,21 +459,23 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
                 let incompleteBuffer = incompleteBuffers[chunk.id] ?? "";
                 let currentDelta = incompleteBuffer + chunk.delta;
 
-                // Check for both { and [ as JSON start characters
+                // Check for JSON start characters and delimiter-based tool call markers
                 const objStartIndex = currentDelta.indexOf('{');
                 const arrStartIndex = currentDelta.indexOf('[');
                 const markdownStartIndex = currentDelta.indexOf('```json');
+                const delimiterStartIndex = currentDelta.indexOf('<|tool_call');
                 let jsonStartIndex = -1;
 
-                // Find the first occurrence of either { or [
-                if (markdownStartIndex !== -1) {
-                  jsonStartIndex = markdownStartIndex;
-                } else if (objStartIndex !== -1 && arrStartIndex !== -1) {
-                  jsonStartIndex = Math.min(objStartIndex, arrStartIndex);
-                } else if (arrStartIndex !== -1) {
-                  jsonStartIndex = arrStartIndex;
-                } else if (objStartIndex !== -1) {
-                  jsonStartIndex = objStartIndex;
+                // Find the earliest occurrence of any start marker
+                const candidates = [
+                  markdownStartIndex,
+                  objStartIndex,
+                  arrStartIndex,
+                  delimiterStartIndex
+                ].filter(i => i !== -1);
+
+                if (candidates.length > 0) {
+                  jsonStartIndex = Math.min(...candidates);
                 } else {
                   chunk.delta = currentDelta;
                 }
@@ -454,7 +494,7 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
                       emitToolCallChunks(processed.toolCalls, controller);
                       // Clear the buffer and put remaining text there
                       let remaining = processed.remainingText ?? "";
-                      if (remaining.indexOf("{") !== -1)
+                      if (remaining.indexOf("{") !== -1 || remaining.indexOf("<|tool_call") !== -1)
                         incompleteBuffers[chunk.id] = remaining;
                       else {
                         incompleteBuffers[chunk.id] = "";
