@@ -112,7 +112,7 @@ export function rescueToolCallsFromText(
     try {
       parsedArgs = jaison(argsText);
     } catch {
-      logger.log("warn", `Failed to parse delimiter tool call arguments for ${rawToolName}: ${argsText}`);
+      if (useJaison) logger.log("warn", `Failed to parse delimiter tool call arguments for ${rawToolName}: ${argsText}`);
       continue;
     }
 
@@ -131,8 +131,9 @@ export function rescueToolCallsFromText(
   }
 
   if (delimiterToolCalls.length > 0) {
-    // Remove matched delimiter blocks from text
-    remainingAfterDelimiters = text.replace(delimiterRegex, '').trim() || undefined!;
+    // Remove matched delimiter blocks and orphaned section markers from text
+    remainingAfterDelimiters = text.replace(delimiterRegex, '')
+      .trim() || undefined!;
     return { toolCalls: delimiterToolCalls, remainingText: remainingAfterDelimiters || undefined };
   }
 

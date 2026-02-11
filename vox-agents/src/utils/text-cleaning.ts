@@ -20,6 +20,10 @@ export function cleanToolArtifacts(text: string): string {
     .replace(/<\|tool_call_begin\|>[\s\S]*$/, '')
     // Remove any leftover individual markers
     .replace(/<\|tool_call(?:_argument)?_(?:begin|end)\|>/g, '')
+    // Remove standalone section markers: <|tool_calls_section_begin|>, <|tool_calls_section_end|>
+    .replace(/<\|tool_calls_section_(?:begin|end)\|>/g, '')
+    // Remove standalone section markers: <|tool_call_begin|>, <|tool_call_end|>
+    .replace(/<\|tool_call_(?:begin|end)\|>/g, '')
     // Remove empty/comma-only JSON arrays: [], [,], [ , , ], etc.
     .replace(/\[\s*(?:,\s*)*\]/g, '')
     // Remove empty markdown code blocks: ```json\n\n```, ```\n```
@@ -27,4 +31,15 @@ export function cleanToolArtifacts(text: string): string {
     // Remove standalone fence markers on their own line
     .replace(/^\s*```(?:json)?\s*$/gm, '')
     .trim();
+}
+
+/**
+ * Builds a recovery prompt for empty response rescue.
+ * The prompt varies based on the effective toolChoice to guide the model appropriately.
+ */
+export function buildRescuePrompt(toolChoice: string): string {
+  if (toolChoice === "required" || toolChoice === "tool") {
+    return 'Your previous response was empty and did not include any tool calls. You MUST call one or more of the available tools. Please try again.';
+  }
+  return 'Your previous response was empty. Please provide either a text response or call one or more of the available tools.';
 }

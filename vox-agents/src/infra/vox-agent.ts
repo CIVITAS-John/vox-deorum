@@ -13,6 +13,7 @@ import { Model } from "../types/index.js";
 import { VoxContext } from "./vox-context.js";
 import { getModelConfig } from "../utils/models/models.js";
 import { hasOnlyTerminalCalls } from "../utils/tools/terminal-tools.js";
+import { buildRescuePrompt } from "../utils/text-cleaning.js";
 
 /**
  * Parameters for configuring agent execution.
@@ -137,6 +138,11 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
     allSteps: StepResult<Record<string, Tool>>[],
     context: VoxContext<TParameters>
   ): boolean {
+    // Don't stop on empty responses (no tool calls AND no text)
+    if (lastStep.toolCalls.length === 0 && !lastStep.text?.trim()) {
+      return allSteps.length >= 3;
+    }
+    // Stop when no tools or only terminal calls are issued
     if (hasOnlyTerminalCalls(lastStep, context.mcpToolMap)) {
       return true;
     }
@@ -227,7 +233,7 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   ) {
     const config: {
       model?: Model;
-      toolChoice?: any;
+      toolChoice?: string;
       activeTools?: string[];
       messages?: ModelMessage[];
       outputSchema?: ZodObject;
@@ -253,8 +259,19 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
     }
 
     // Handle messages
+    const toolChoice = config.toolChoice || this.toolChoice;
     if (lastStep === null) {
       config.messages = [...messages, ...await this.getInitialMessages(parameters, input, context)];
+    } else if (lastStep.toolCalls.length === 0 && (toolChoice === "required" || toolChoice === "tool" || !lastStep.text?.trim())) {
+      // Empty response rescue: no tool calls and no text — strip response and prompt to retry
+      const baseMessages = config.messages || messages;
+      const responseMessages = lastStep.response.messages;
+      const cleaned = baseMessages.filter(
+        msg => !responseMessages.some(respMsg => respMsg === msg)
+      );
+      if (cleaned[cleaned.length - 1]?.role !== "user")
+        cleaned.push({ role: 'user', content: buildRescuePrompt(toolChoice) });
+      config.messages = cleaned;
     } else if (this.onlyLastRound) {
       // Keep all system and user messages, but only the last round of assistant/tool messages
       const filteredMessages: ModelMessage[] = [];
