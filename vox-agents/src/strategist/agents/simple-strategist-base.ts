@@ -161,9 +161,9 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
       }
     }
 
-    // Also stop after 10 steps to prevent infinite loops
-    if (allSteps.length >= 10) {
-      this.logger.warn("Reached maximum step limit (10), stopping agent");
+    // Also stop after 5 steps to prevent infinite loops
+    if (allSteps.length >= 5) {
+      this.logger.warn("Reached maximum step limit (5), stopping agent");
       return true;
     }
 

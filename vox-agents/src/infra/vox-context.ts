@@ -7,6 +7,7 @@
  */
 
 import { Output, Tool, StepResult, ToolSet, ModelMessage } from "ai";
+import { Tool as MCPTool } from "@modelcontextprotocol/sdk/types.js";
 import { AgentParameters, VoxAgent } from "./vox-agent.js";
 import { createLogger } from "../utils/logger.js";
 import { mcpClient } from "../utils/models/mcp-client.js";
@@ -44,6 +45,11 @@ export class VoxContext<TParameters extends AgentParameters> {
    * Registry of available tools indexed by name
    */
   public tools: Record<string, Tool> = {};
+
+  /**
+   * Map of raw MCP tool definitions indexed by name, used for annotation lookups
+   */
+  public mcpToolMap: Map<string, MCPTool> = new Map();
 
   /**
    * Model configuration overrides (replaces config.json definitions)
@@ -99,7 +105,9 @@ export class VoxContext<TParameters extends AgentParameters> {
    */
   public async registerTools() {
     // MCP tools
-    var mcpTools = wrapMCPTools(await mcpClient.getTools(), this);
+    const rawMcpTools = await mcpClient.getTools();
+    this.mcpToolMap = new Map(rawMcpTools.map(t => [t.name, t]));
+    var mcpTools = wrapMCPTools(rawMcpTools, this);
     for (var tool of Object.keys(mcpTools)) {
       this.tools[tool] = mcpTools[tool];
     }
@@ -469,7 +477,7 @@ export class VoxContext<TParameters extends AgentParameters> {
 
           // Check stop condition
           shouldStop = this.abortController.signal.aborted ||
-            agent.stopCheck(parameters, input, stepResponse, allSteps);
+            agent.stopCheck(parameters, input, stepResponse, allSteps, this);
 
           this.logger.debug(`Stop check for ${agent.name}: ${shouldStop}`, {
             stepNumber: stepCount + 1,

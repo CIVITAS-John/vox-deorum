@@ -12,6 +12,7 @@ import { z, ZodObject } from "zod";
 import { Model } from "../types/index.js";
 import { VoxContext } from "./vox-context.js";
 import { getModelConfig } from "../utils/models/models.js";
+import { hasOnlyTerminalCalls } from "../utils/tools/terminal-tools.js";
 
 /**
  * Parameters for configuring agent execution.
@@ -122,19 +123,24 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   /**
    * Determines whether the agent should stop execution.
    * Called after each step to check if the generation should continue.
-   * 
+   *
    * @param parameters - The execution parameters
    * @param lastStep - The most recent step result
    * @param allSteps - All steps executed so far
+   * @param context - The VoxContext for looking up tool metadata
    * @returns True if the agent should stop, false to continue
    */
   public stopCheck(
     _parameters: TParameters,
     _input: TInput,
-    _lastStep: StepResult<Record<string, Tool>>,
-    _allSteps: StepResult<Record<string, Tool>>[]
+    lastStep: StepResult<Record<string, Tool>>,
+    allSteps: StepResult<Record<string, Tool>>[],
+    context: VoxContext<TParameters>
   ): boolean {
-    return _allSteps.length >= 10;
+    if (hasOnlyTerminalCalls(lastStep, context.mcpToolMap)) {
+      return true;
+    }
+    return allSteps.length >= 3;
   }
   
   /**

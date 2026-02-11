@@ -69,9 +69,10 @@ You must use the tool defined below. Respond ONLY with a JSON object in this exa
 ${descriptions}`;
     case "none":
       return undefined;
+
     default:
       return `## Tool Calling
-You have access to tools. If you decide to invoke any of the tool(s), respond ONLY with a JSON array in this exact format:
+You have access to tools. If you decide to invoke any of the tool(s), respond with a JSON array in this EXACT format:
 \`\`\`json
 [
   { "tool": "<tool_name>", "arguments": { <parameters> } },

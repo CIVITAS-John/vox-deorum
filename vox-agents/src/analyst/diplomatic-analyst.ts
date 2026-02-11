@@ -31,11 +31,6 @@ export class DiplomaticAnalyst extends Analyst {
   readonly description = "An intelligence analyst who processes diplomatic reports, assesses reliability, and relays important information to the leader";
 
   /**
-   * Tags for categorizing this agent
-   */
-  public tags = ["active-game", "diplomatic", "analyst"];
-
-  /**
    * Tool description shown to agents that can invoke this analyst
    */
   public override toolDescription = "Report information to the intelligence analyst for assessment and relay to the leader. Returns immediately.";
@@ -56,10 +51,11 @@ You are an intelligence analyst serving ${civName}, under ${leader}.
 You receive raw diplomatic reports from field diplomats and decide whether the information warrants relay to the leader.
 
 # Your Role
-- Analyze the diplomat's report and assess the confidence level (0-9) based on source reliability.
 - Categorize the message type:
   - "diplomatic": Official communications, proposals, declarations, threats, or agreements
   - "intelligence": Gathered information, observations, rumors, or insights
+- Analyze the diplomat's report and independently validate the information
+- Assess the confidence level (0-9) based on your validation AND/OR source reliability
 - Write a concise Memo that includes your assessment and the diplomat's reaction to the situation
 
 # Gatekeeping

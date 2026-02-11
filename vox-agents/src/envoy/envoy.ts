@@ -8,6 +8,7 @@
 import { ModelMessage, StepResult, Tool } from "ai";
 import { VoxAgent, AgentParameters } from "../infra/vox-agent.js";
 import { EnvoyThread, MessageWithMetadata, SpecialMessageConfig } from "../types/index.js";
+import { VoxContext } from "../infra/vox-context.js";
 
 /**
  * Generic base envoy agent that can chat with the user.
@@ -39,7 +40,8 @@ export abstract class Envoy<TParameters extends AgentParameters = AgentParameter
     parameters: TParameters,
     input: EnvoyThread,
     lastStep: StepResult<Record<string, Tool>>,
-    allSteps: StepResult<Record<string, Tool>>[]
+    allSteps: StepResult<Record<string, Tool>>[],
+    context: VoxContext<TParameters>
   ): boolean {
     // Add the messages to the record with metadata
     const currentTurn = parameters.turn;
@@ -55,19 +57,7 @@ export abstract class Envoy<TParameters extends AgentParameters = AgentParameter
       });
     });
 
-    // Continue if the last step executed a tool (to get the model's response to it)
-    for (const result of lastStep.content) {
-      if (result.type === "tool-call") {
-        // Unless after 3 steps to prevent infinite loops
-        if (allSteps.length >= 3) {
-          this.logger.warn("Reached maximum step limit (3), stopping agent");
-          return true;
-        }
-        return false;
-      }
-    }
-
-    return true;
+    return super.stopCheck(parameters, input, lastStep, allSteps, context);
   }
 
   // Special messages
