@@ -117,7 +117,7 @@ export class VoxPlayer {
           // Initializing
           this.pendingTurn = undefined;
           this.parameters.turn = turnData.turn;
-          this.parameters.before = turnData.latestID;
+          this.parameters.before = turnData.turn * 1000000 + 999999;
           this.running = true;
 
           // Logging
