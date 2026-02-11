@@ -30,15 +30,7 @@ import type { ModelMessage } from 'ai';
 import TextMessage from './TextMessage.vue';
 import ReasoningMessage from './ReasoningMessage.vue';
 import ToolCallMessage from './ToolCallMessage.vue';
-
-/** Strips structural artifacts left behind by tool call extraction from LLM text. */
-function cleanToolArtifacts(text: string): string {
-  return text
-    .replace(/\[\s*(?:,\s*)*\]/g, '')
-    .replace(/```(?:json)?\s*```/g, '')
-    .replace(/^\s*```(?:json)?\s*$/gm, '')
-    .trim();
-}
+import { cleanToolArtifacts } from '@vox/utils/text-cleaning.js';
 
 interface Props {
   message: ModelMessage;

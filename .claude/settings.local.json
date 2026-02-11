@@ -54,7 +54,11 @@
       "Bash(npx vue-tsc:*)",
       "Bash(xargs:*)"
     ],
-    "deny": [],
+    "deny": [
+      "Read(**/.env*)",
+      "Bash(printenv)",
+      "Bash(export)"
+    ],
     "ask": []
   },
   "outputStyle": "default"

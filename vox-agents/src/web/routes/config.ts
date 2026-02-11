@@ -119,9 +119,17 @@ router.post('/', async (req: Request<{}, {}, Partial<ConfigResponse>>, res: Resp
     if (apiKeys) {
       const envPath = path.join(process.cwd(), '.env');
 
-      // Override with the provided API keys (no merging)
-      // Write updated .env
-      await fs.writeFile(envPath, formatEnvFile(apiKeys));
+      // Read existing .env and merge — new keys override, existing keys preserved
+      let existingKeys: Record<string, string> = {};
+      try {
+        const existingContent = await fs.readFile(envPath, 'utf-8');
+        existingKeys = dotenv.parse(existingContent);
+      } catch {
+        // .env doesn't exist yet, start fresh
+      }
+
+      const mergedKeys = { ...existingKeys, ...apiKeys };
+      await fs.writeFile(envPath, formatEnvFile(mergedKeys));
       logger.info('Updated .env file');
 
       // Reload the environment variables into process.env

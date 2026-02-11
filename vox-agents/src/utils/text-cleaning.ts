@@ -10,7 +10,15 @@
  */
 export function cleanToolArtifacts(text: string): string {
   return text
-    // Remove delimiter-based tool call markers: <|tool_call_begin|>, <|tool_call_argument_begin|>, <|tool_call_end|>
+    // Remove complete delimiter-based tool calls block: <|tool_calls_section_begin|> ... <|tool_calls_section_end|>
+    .replace(/<\|tool_calls_section_begin\|>[\s\S]*?<\|tool_calls_section_end\|>/g, '')
+    // Truncate incomplete tool calls block (beginning marker arrived but no end marker yet)
+    .replace(/<\|tool_calls_section_begin\|>[\s\S]*$/, '')
+    // Remove complete delimiter-based tool call blocks: <|tool_call_begin|> ... <|tool_call_end|>
+    .replace(/<\|tool_call_begin\|>[\s\S]*?<\|tool_call_end\|>/g, '')
+    // Truncate incomplete tool call blocks (beginning marker arrived but no end marker yet)
+    .replace(/<\|tool_call_begin\|>[\s\S]*$/, '')
+    // Remove any leftover individual markers
     .replace(/<\|tool_call(?:_argument)?_(?:begin|end)\|>/g, '')
     // Remove empty/comma-only JSON arrays: [], [,], [ , , ], etc.
     .replace(/\[\s*(?:,\s*)*\]/g, '')
