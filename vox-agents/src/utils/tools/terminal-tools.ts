@@ -31,11 +31,10 @@ export function isTerminalTool(toolName: string, mcpToolMap: Map<string, MCPTool
   return false;
 }
 
-/** Checks if ALL tool calls in a step are terminal */
+/** Checks if ALL tool calls in a step are terminal (or no tool calls at all) */
 export function hasOnlyTerminalCalls(
   step: { toolCalls: Array<{ toolName: string }> },
   mcpToolMap: Map<string, MCPTool>
 ): boolean {
-  return step.toolCalls.length > 0
-    && step.toolCalls.every(tc => isTerminalTool(tc.toolName, mcpToolMap));
+  return step.toolCalls.every(tc => isTerminalTool(tc.toolName, mcpToolMap));
 }
