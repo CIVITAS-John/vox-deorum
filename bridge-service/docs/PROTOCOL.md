@@ -14,7 +14,6 @@ The Bridge Service acts as a communication hub using three primary channels:
 - **Pipe Name**: `\\.\pipe\tmp-app.vox-deorum-bridge` (node-ipc adds `tmp-app.` prefix to configured ID)
 - **Message Format**: JSON messages delimited by `!@#$%^!`
 - **Batching**: Multiple messages can be sent in a single pipe write, separated by the delimiter
-- **Queue Management**: Outgoing messages are queued if the pipe is busy, with throttling at 5+ queued messages
 
 For complete message type reference, see [MESSAGE-TYPES.md](MESSAGE-TYPES.md).
 
@@ -303,9 +302,9 @@ Quick reference:
 
 ### Timeout Behavior
 
-- **Lua Function Calls**: Default 120 second timeout
+- **Lua Function Calls**: Default 300 second timeout
 - **External Function Calls**: Configurable per function (default 5 seconds)
-- **DLL Communication**: 120 second timeout for socket operations
+- **DLL Communication**: 300 second timeout for IPC operations
 - **SSE Connections**: Keep-alive every 5 seconds
 
 ### Connection Recovery

@@ -101,14 +101,13 @@ Some settings are hardcoded and cannot be configured:
 
 | Setting | Value | Location |
 |---------|-------|----------|
-| Lua function timeout | 120s | [dll-connector.ts](../src/services/dll-connector.ts) |
+| Lua function timeout | 300s | [dll-connector.ts](../src/services/dll-connector.ts) |
 | External function timeout | 5s default | Configurable per function via `/external/register` |
 | SSE keep-alive | 5s | [routes/events.ts](../src/routes/events.ts) |
 | Message delimiter | `!@#$%^!` | Throughout |
-| Event batch timeout | 50ms | [event-pipe.ts](../src/services/event-pipe.ts) |
-| Event batch size | 100 events | [event-pipe.ts](../src/services/event-pipe.ts) |
+| Event batch timeout | 50ms | [routes/events.ts](../src/routes/events.ts) |
+| Event batch size | 100 events | [routes/events.ts](../src/routes/events.ts) |
 | Request body limit | 10MB | [index.ts](../src/index.ts) |
-| Queue threshold | 50 messages | [dll-connector.ts](../src/services/dll-connector.ts) |
 
 ## Validation
 

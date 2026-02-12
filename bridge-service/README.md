@@ -45,11 +45,11 @@ npm run dev     # With hot reload and watch mode
 ```bash
 # Execute single function
 POST /lua/call
-{"function": "GetGameState", "args": []}
+{"function": "GetGameState", "args": {}}
 
 # Batch multiple calls (optimized)
 POST /lua/batch
-[{"function": "GetUnit", "args": [1]}, {"function": "GetCity", "args": [2]}]
+[{"function": "GetUnit", "args": {"id": 1}}, {"function": "GetCity", "args": {"id": 2}}]
 
 # Execute raw Lua script
 POST /lua/execute
@@ -117,7 +117,7 @@ Create `config.json` in the bridge-service root:
 
 ### Key Settings
 
-- **Lua function timeout**: 120 seconds (hardcoded)
+- **Lua function timeout**: 300 seconds (hardcoded)
 - **External function timeout**: 5 seconds default (configurable per registration)
 - **SSE keep-alive**: 5 seconds
 - **Pipe name format**: `\\.\pipe\tmp-app.{gamepipe.id}` (node-ipc adds prefix)
@@ -143,7 +143,7 @@ The test suite includes:
 ### Message Protocol
 - Uses JSON with `!@#$%^!` delimiter for batching
 - Thread-safe request tracking with unique IDs
-- 120-second timeout with automatic cleanup
+- 300-second timeout with automatic cleanup
 
 ### Auto-Pause System
 - Tracks manual vs automatic pause states
@@ -192,7 +192,7 @@ Or in `config.json`:
 - Verify Windows Firewall settings
 
 **Timeout Errors**
-- Default timeout is 120s for Lua calls
+- Default timeout is 300s for Lua calls
 - Check DLL performance/blocking
 - Enable batch mode for bulk operations
 

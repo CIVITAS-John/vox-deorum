@@ -50,7 +50,7 @@ Execute a registered Lua function and return its result.
 ```typescript
 {
   "function": string,  // Function name (must be registered)
-  "args": any[]        // Arguments array (can be any JSON-compatible values)
+  "args": any          // Arguments (any JSON-compatible value, defaults to {})
 }
 ```
 
@@ -66,10 +66,10 @@ Execute a registered Lua function and return its result.
 ```bash
 curl -X POST http://127.0.0.1:5000/lua/call \
   -H "Content-Type: application/json" \
-  -d '{"function": "GetGameTurn", "args": []}'
+  -d '{"function": "GetGameTurn", "args": {}}'
 ```
 
-**Timeout:** 120 seconds
+**Timeout:** 300 seconds
 
 ### Execute Batch Functions
 
@@ -81,7 +81,7 @@ Execute multiple Lua functions in sequence. Optimized for performance - up to 10
 ```typescript
 Array<{
   "function": string,
-  "args": any[]
+  "args": any
 }>
 ```
 
@@ -89,7 +89,9 @@ Array<{
 ```typescript
 {
   "success": true,
-  "result": Array<any>  // Results in same order as requests
+  "result": {
+    "results": Array<any>  // Results in same order as requests
+  }
 }
 ```
 
@@ -98,8 +100,8 @@ Array<{
 curl -X POST http://127.0.0.1:5000/lua/batch \
   -H "Content-Type: application/json" \
   -d '[
-    {"function": "GetUnit", "args": [5]},
-    {"function": "GetCity", "args": [10]}
+    {"function": "GetUnit", "args": {"id": 5}},
+    {"function": "GetCity", "args": {"id": 10}}
   ]'
 ```
 
@@ -148,10 +150,12 @@ Get all currently registered Lua functions.
 ```typescript
 {
   "success": true,
-  "result": Array<{
-    "name": string,
-    "description"?: string
-  }>
+  "result": {
+    "functions": Array<{
+      "name": string,
+      "description"?: string
+    }>
+  }
 }
 ```
 
@@ -206,22 +210,23 @@ curl -X POST http://127.0.0.1:5000/external/register \
 
 ### Unregister External Function
 
-**POST** `/external/unregister`
+**DELETE** `/external/register/:name`
 
 Remove a registered external function.
 
-**Request Body:**
-```typescript
-{
-  "name": string  // Function name to unregister
-}
-```
+**Path Parameters:**
+- `name` (string): The function name to unregister
 
 **Success Response:**
 ```typescript
 {
   "success": true
 }
+```
+
+**Example:**
+```bash
+curl -X DELETE http://127.0.0.1:5000/external/register/AnalyzeThreat
 ```
 
 ### List External Functions
@@ -290,7 +295,7 @@ Resume a manually paused game.
 Automatically pause the game when a specific player's turn begins.
 
 **Path Parameters:**
-- `id` (number): Player ID (0-based index)
+- `id` (number): Player ID (0-based index, valid range: 0-63)
 
 **Success Response:**
 ```typescript
@@ -320,7 +325,7 @@ curl -X POST http://127.0.0.1:5000/external/pause-player/0 \
 Remove a player from auto-pause list.
 
 **Path Parameters:**
-- `id` (number): Player ID to unregister
+- `id` (number): Player ID to unregister (valid range: 0-63)
 
 **Success Response:**
 ```typescript
@@ -433,19 +438,45 @@ curl http://127.0.0.1:5000/health
 
 **GET** `/stats`
 
-Get detailed service statistics including connection info and event pipe status.
+Get detailed service statistics including connection info, function counts, event pipe, and memory usage.
 
 **Success Response:**
 ```typescript
 {
   "success": true,
-  "dll_connected": boolean,
-  "uptime": number,
-  "version": string,
-  "eventPipe"?: {
-    "enabled": boolean,
-    "clients": number,
-    "pipeName": string
+  "result": {
+    "uptime": number,              // Seconds since service started
+    "dll": {
+      "connected": boolean,
+      "pendingRequests": number,
+      "reconnectAttempts": number
+    },
+    "lua": {
+      "registeredFunctions": number
+    },
+    "external": {
+      "registeredFunctions": number,
+      "functionNames": string[]
+    },
+    "eventPipe": {
+      "enabled": boolean,
+      "clients": number,
+      "pipeName": string
+    },
+    "memory": {
+      "used": number,             // RSS in MB
+      "total": number,            // RSS in MB
+      "heapUsed": number,         // Heap used in MB
+      "heapTotal": number         // Heap total in MB
+    },
+    "sse": {
+      "activeClients": number,
+      "eventPipeStats": {
+        "enabled": boolean,
+        "clients": number,
+        "pipeName": string
+      }
+    }
   }
 }
 ```

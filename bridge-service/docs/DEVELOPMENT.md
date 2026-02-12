@@ -120,12 +120,15 @@ logger.debug('Message sent:', message);
 Use standardized response helpers:
 
 ```typescript
-import { respondSuccess, respondError, handleAPIError } from './utils/api-utils.js';
+import { respondSuccess, respondError } from './types/api.js';
+import { handleAPIError } from './utils/api.js';
 
-app.post('/lua/call', handleAPIError(async (req, res) => {
-  const result = await luaManager.call(req.body.function, req.body.args);
-  respondSuccess(res, result);
-}));
+router.post('/lua/call', async (req, res) => {
+  await handleAPIError(res, '/lua/call', async () => {
+    const result = await luaManager.callFunction(req.body);
+    return result;
+  });
+});
 ```
 
 ### Singletons

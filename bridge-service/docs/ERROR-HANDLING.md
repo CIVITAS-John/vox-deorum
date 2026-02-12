@@ -10,7 +10,7 @@ All errors follow the `ErrorCode` enum defined in [src/types/api.ts](../src/type
 |------------|-------------|---------------|-------------|
 | **DLL_DISCONNECTED** | Lost connection to DLL | Infinite retry with exponential backoff (200ms→5s), re-registers functions | Verify game running, check mod enabled, confirm pipe name matches (`gamepipe.id`) |
 | **LUA_EXECUTION_ERROR** | Lua script/function failed | None | Check `/lua/functions`, verify name spelling, review game logs for Lua errors |
-| **CALL_TIMEOUT** | Call exceeded timeout (120s Lua, configurable external) | Cancels request, cleans up queue | Check game not paused, monitor service response times, use batch API |
+| **CALL_TIMEOUT** | Call exceeded timeout (300s Lua, configurable external) | Cancels request, cleans up pending requests | Check game not paused, monitor service response times, use batch API |
 | **CALL_FAILED** | External HTTP endpoint error | None, function stays registered | Check external service logs, test endpoint with curl, verify arguments |
 | **INVALID_FUNCTION** | Function not registered | None | List functions via `/lua/functions` or `/external/functions`, check spelling |
 | **INVALID_SCRIPT** | Malformed Lua code | None | Validate syntax, test in Lua interpreter, ensure `return` statement |
@@ -169,7 +169,7 @@ async function callLuaFunction(func, args) {
 ## Configuration
 
 **Timeout settings:**
-- Lua calls: 120s (hardcoded in [dll-connector.ts](../src/services/dll-connector.ts))
+- Lua calls: 300s (hardcoded in [dll-connector.ts](../src/services/dll-connector.ts))
 - External calls: 5s default, configurable via `/external/register` `timeout` field
 - SSE keep-alive: 5s (hardcoded in [routes/events.ts](../src/routes/events.ts))
 

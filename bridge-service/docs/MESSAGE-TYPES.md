@@ -382,7 +382,7 @@ The following high-frequency or low-value events are NOT forwarded:
 2. DLL processes and responds with same `id`
 3. Bridge matches response to pending request
 
-**Timeout:** 120 seconds (configurable in code)
+**Timeout:** 300 seconds (configurable in code)
 
 ### Registration Pattern
 

@@ -75,15 +75,10 @@ Always implement 5-second keep-alive pings for SSE connections to prevent timeou
 - Prefer batch calls when performing multiple operations
 - Limit batch size to prevent timeout issues
 
-### Connection Pooling
-- Use separate connection pools for different priority levels
-- Standard pool: Higher connection count for regular operations (50 connections)
-- Fast pool: Lower connection count for time-critical operations like pause/resume (5 connections)
-
-### Queue Management
-- Auto-pause game when queue reaches threshold (50 items)
-- Track overflow state to trigger resume when queue drains
-- Implement backpressure to prevent memory issues
+### IPC Connection
+- Single named pipe connection to the DLL via node-ipc
+- Automatic reconnection with exponential backoff (200ms base, capped at 5s)
+- Request tracking with UUID-based message correlation and 300s timeout
 
 ## Module System
 - **ESM imports**: When you see `import from '*.js'`, read the corresponding .ts file instead
@@ -133,7 +128,7 @@ Always implement 5-second keep-alive pings for SSE connections to prevent timeou
 5. Add error recovery logic
 
 ### Debugging
-- Enable debug logs: `DEBUG=bridge:*`
+- Enable debug logs: `LOG_LEVEL=debug`
 - Monitor IPC traffic in console
 - Check SSE connections via `/events` endpoint
 - Use mock DLL server for isolated testing
