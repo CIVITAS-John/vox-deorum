@@ -136,9 +136,10 @@ The test setup detects if CivilizationV.exe is already running and **aborts all 
 ## Entry Points & Workflows
 
 ### Multiple Entry Points
-- `npm run dev` - Development mode with hot reload (standalone.ts)
+- `npm run dev` - Development mode with hot reload (index.ts)
 - `npm run strategist` - Run strategist workflow (strategist/index.ts)
 - `npm run briefer` - Run briefer workflow (briefer/index.ts)
+- `npm run telepathist` - Run telepathist console (telepathist/console.ts)
 - **Each workflow has dedicated entry point** with shared instrumentation
 - Instrumentation loaded via --import flag for telemetry
 
@@ -197,22 +198,38 @@ The test setup detects if CivilizationV.exe is already running and **aborts all 
 ```
 VoxAgent (Base)
 ├── Briefer (Game state analysis)
-│   └── SimpleBriefer
+│   ├── SimpleBriefer (General briefing)
+│   └── SpecializedBriefer (Military, Economy, Diplomacy)
 ├── Strategist (Strategic decisions)
 │   ├── NoneStrategist (Baseline)
 │   ├── SimpleStrategist (Direct)
-│   └── SimpleStrategistBriefed (Two-stage)
-└── Envoy (Diplomatic interactions)
-    └── (In development)
+│   ├── SimpleStrategistBriefed (Single-briefer)
+│   └── SimpleStrategistStaffed (Multi-briefer collaborative)
+├── Analyst (Fire-and-forget analysis)
+│   └── DiplomaticAnalyst (Intelligence gatekeeping)
+├── Librarian (Database research)
+│   └── KeywordLibrarian (Keyword-based search)
+└── Envoy (Chat-based interactions)
+    ├── LiveEnvoy (Game-specific chat)
+    │   ├── Diplomat (Intelligence gathering)
+    │   └── Spokesperson (Official representative)
+    └── Telepathist (Database-backed conversations)
+        └── TalkativeTelepathist (Post-game analysis)
 ```
 
 ### Creating New Agents
-1. Choose base class (Briefer or Strategist)
+1. Choose base class (Briefer, Strategist, Analyst, Librarian, or Envoy)
 2. Define parameter types (input, output, store)
-3. Implement abstract methods:
-   - `buildPrompt()` - Create LLM prompt
-   - `stopCheck()` - Determine when to stop
-   - `extractResult()` - Process agent output
+3. Implement lifecycle hooks as needed:
+   - `getModel()` - Select LLM model for execution
+   - `getSystem()` - Build system prompt
+   - `getActiveTools()` - Specify available MCP tools
+   - `getExtraTools()` - Provide internal agent-tools
+   - `getInitialMessages()` - Construct initial message context
+   - `prepareStep()` - Configure step execution
+   - `stopCheck()` - Determine when to stop execution
+   - `getOutput()` - Extract and format final output
+   - `postprocessOutput()` - Transform output before return
 4. Register in appropriate factory/registry
 5. Add configuration support
 
@@ -232,6 +249,38 @@ VoxAgent (Base)
 - **Batch operations** when feasible
 - **Use AbortController** for cancellation
 - **Implement timeouts** for external calls
+
+### Advanced Patterns
+
+#### Fire-and-Forget Agents
+- Set `fireAndForget: true` on agents that run asynchronously in the background
+- Agent runs in a detached trace context (new root span)
+- Calling agent continues immediately without waiting for results
+- Used by Analyst agents for background intelligence processing
+
+#### Special Messages (Triple-Brace Tokens)
+- Use `{{{MessageType}}}` tokens to trigger special agent behaviors
+- Handled by `getSpecialMessages()` mapping in Envoy subclasses
+- Custom prompts injected without appearing as user messages
+- Common tokens: `{{{Initialize}}}`, `{{{Greeting}}}`
+
+#### Dual-Database Pattern
+- Used by Telepathist agents for post-game analysis
+- Factory creates connections to read-only telemetry DB + read-write analysis DB
+- Enables cross-database queries and persistent summaries
+- Pattern: `createTelepathistParameters()` manages both connections
+
+#### Tool Rescue Middleware
+- Extracts JSON tool calls from malformed LLM text responses
+- Handles models without native tool calling support
+- Operates in prompt mode (instructs model) and rescue mode (extracts from text)
+- Applied via `toolRescueMiddleware()` in model configuration
+
+#### Concurrency Management
+- Per-model rate limiting via `streamTextWithConcurrency()`
+- Configurable concurrent request limits per LLM provider
+- Integrated with exponential retry and timeout refresh
+- Prevents API overload with semaphore-like request tracking
 
 ## Integration Points
 

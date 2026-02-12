@@ -15,6 +15,8 @@ import { getModel, buildProviderOptions } from "../utils/models/models.js";
 import { Model, StreamingEventCallback } from "../types/index.js";
 import { streamTextWithConcurrency, withModelConfig } from "../utils/models/concurrency.js";
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'node:fs';
+import path from 'node:path';
 import { trace, SpanStatusCode, context } from '@opentelemetry/api';
 import { spanProcessor } from '../instrumentation.js';
 import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
@@ -106,16 +108,20 @@ export class VoxContext<TParameters extends AgentParameters> {
     contextRegistry.register(this);
   }
 
+  /** Path to the MCP tool metadata cache file */
+  private static readonly toolCachePath = path.join('cache', 'mcp-tools.json');
+
   /**
    * Register all tools.
    * Fetches available tools from the MCP server and wraps them for use with AI SDK.
+   * Persists MCP tool metadata to disk for offline use.
    */
   public async registerTools() {
     // MCP tools
     const rawMcpTools = await mcpClient.getTools();
     this.mcpToolMap = new Map(rawMcpTools.map(t => [t.name, t]));
     var mcpTools = wrapMCPTools(rawMcpTools, this);
-    
+
     for (var tool of Object.keys(mcpTools)) {
       this.tools[tool] = mcpTools[tool];
     }
@@ -135,6 +141,46 @@ export class VoxContext<TParameters extends AgentParameters> {
       for (const [toolName, tool] of Object.entries(extraTools)) {
         this.tools[toolName] = tool;
       }
+    }
+
+    // Persist MCP tool metadata for offline use
+    this.saveToolCache(rawMcpTools);
+  }
+
+  /**
+   * Save MCP tool metadata to a JSON cache file.
+   * Only persists name and _meta (markdownConfig) since that's all offline consumers need.
+   */
+  private saveToolCache(tools: MCPTool[]): void {
+    try {
+      const cacheDir = path.dirname(VoxContext.toolCachePath);
+      if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir, { recursive: true });
+      }
+      const cacheData = tools.map(t => ({ name: t.name, _meta: t._meta }));
+      fs.writeFileSync(VoxContext.toolCachePath, JSON.stringify(cacheData, null, 2));
+      this.logger.debug(`Saved MCP tool cache (${tools.length} tools)`);
+    } catch (error) {
+      this.logger.warn('Failed to save MCP tool cache', { error });
+    }
+  }
+
+  /**
+   * Load MCP tool metadata from cache. Used when MCP server is offline (e.g. -p mode).
+   * Populates mcpToolMap so formatToolOutput can find markdownConfig.
+   */
+  public loadToolCache(): void {
+    try {
+      if (!fs.existsSync(VoxContext.toolCachePath)) {
+        this.logger.warn('No MCP tool cache found — formatToolOutput will use default formatting');
+        return;
+      }
+      const raw = fs.readFileSync(VoxContext.toolCachePath, 'utf-8');
+      const tools: Pick<MCPTool, 'name' | '_meta'>[] = JSON.parse(raw);
+      this.mcpToolMap = new Map(tools.map(t => [t.name, t as MCPTool]));
+      this.logger.info(`Loaded MCP tool cache (${tools.length} tools)`);
+    } catch (error) {
+      this.logger.warn('Failed to load MCP tool cache', { error });
     }
   }
 

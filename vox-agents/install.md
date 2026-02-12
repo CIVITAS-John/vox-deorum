@@ -16,6 +16,8 @@ cd vox-agents
 npm install
 ```
 
+Note: You can also run `npm install` from the project root to install dependencies for all workspace modules.
+
 ### 2. Configure Environment
 
 Copy the default environment template and configure your API keys:
@@ -72,6 +74,11 @@ npm run dev
 npm run strategist
 # Or with custom config
 npm run strategist -- --config=custom.json
+```
+
+### Telepathist Console (post-game analysis)
+```bash
+npm run telepathist
 ```
 
 ## Troubleshooting

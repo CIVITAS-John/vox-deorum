@@ -110,10 +110,12 @@ async function main() {
   const voxContext = new VoxContext<TelepathistParameters>({}, contextId);
   voxContext.lastParameter = params;
 
-  // Register tools when running the full agent (not prepare-only mode)
+  // Register tools when running the full agent; load cached metadata in prepare-only mode
   if (!prepareOnly) {
     await mcpClient.connect();
     await voxContext.registerTools();
+  } else {
+    voxContext.loadToolCache();
   }
 
   // Wire up streaming to logger

@@ -6,25 +6,41 @@ LLM-powered strategic AI agents for Civilization V. This module implements sophi
 
 - **Agent Framework** - Flexible base classes (`VoxAgent`/`VoxContext`) for building AI workflows
 - **Briefer Agents** - Game state summarization agents for strategic analysis
+  - `SimpleBriefer` - General game state briefing
+  - `SpecializedBriefer` - Domain-specific briefing (military, economy, diplomacy)
 - **Strategist Agents** - Turn-based decision agents with comprehensive game analysis
   - `NoneStrategist` - Baseline agent for testing
   - `SimpleStrategist` - Direct strategy implementation
   - `SimpleStrategistBriefed` - Two-stage analysis with briefing
-- **Envoy Agents** - Diplomatic and negotiation agents (in development)
+  - `SimpleStrategistStaffed` - Multi-briefer collaborative analysis
+- **Envoy Agents** - Chat-based agents for diplomacy and conversation
+  - `LiveEnvoy` - Game-specific chat with briefing tools
+  - `Diplomat` - Intelligence-gathering envoy
+  - `Spokesperson` - Official representative
+- **Analyst Agents** - Fire-and-forget intelligence assessment
+  - `DiplomaticAnalyst` - Intelligence gatekeeping and relay decisions
+- **Librarian Agents** - Database research for knowledge retrieval
+  - `KeywordLibrarian` - Keyword-based database search
+- **Telepathist Agents** - Post-game analysis via telemetry databases
+  - `TalkativeTelepathist` - Conversational interface to game history
 - **MCP Client** - Robust HTTP/SSE client for MCP server communication
-- **Tool Integration** - Dynamic tool wrapping and composition for game actions
-- **Multi-LLM Support** - OpenRouter, OpenAI, Google AI, and Anthropic providers
+- **Tool Integration** - Dynamic tool wrapping, composition, and rescue middleware
+- **Multi-LLM Support** - OpenRouter, OpenAI, Google AI, Anthropic, AWS Bedrock, and compatible providers
 - **Session Management** - Persistent session tracking with game state storage
 - **Web UI** - Vue 3 dashboard for monitoring and control
-- **Observability** - OpenTelemetry integration with SQLite and Parquet export
+- **Observability** - OpenTelemetry integration with SQLite export
 
 ## Architecture
 
 ```
 LLM Providers ← Vox Agents → MCP Server → Bridge Service → Civ V
                     ↓
+              Agent Framework
+         (Strategist, Briefer, Analyst,
+          Librarian, Envoy, Telepathist)
+                    ↓
               Tool Middleware
-              (Wrapping, Composition)
+         (Wrapping, Composition, Rescue)
 ```
 
 ### Core Components
@@ -32,11 +48,16 @@ LLM Providers ← Vox Agents → MCP Server → Bridge Service → Civ V
 - **VoxAgent** ([vox-agent.ts](src/infra/vox-agent.ts)) - Base class with step execution and tool integration
 - **VoxContext** ([vox-context.ts](src/infra/vox-context.ts)) - Execution context with MCP client management
 - **VoxCivilization** ([vox-civilization.ts](src/infra/vox-civilization.ts)) - Game process lifecycle management
+- **VoxSession** ([vox-session.ts](src/infra/vox-session.ts)) - Base session management with lifecycle hooks
+- **SessionRegistry** ([session-registry.ts](src/infra/session-registry.ts)) - Global session tracking and coordination
+- **ContextRegistry** ([context-registry.ts](src/infra/context-registry.ts)) - Global context lifecycle management
 - **Briefer** ([briefer.ts](src/briefer/briefer.ts)) - Base class for game state analysis
 - **Strategist** ([strategist.ts](src/strategist/strategist.ts)) - Base class for strategic decisions
-- **Envoy** ([envoy.ts](src/envoy/envoy.ts)) - Base class for diplomatic interactions
+- **Envoy** ([envoy.ts](src/envoy/envoy.ts)) - Base class for chat-based interactions
+- **Analyst** ([analyst.ts](src/analyst/analyst.ts)) - Base class for fire-and-forget analysis agents
+- **Librarian** ([librarian.ts](src/librarian/librarian.ts)) - Base class for database research agents
+- **Telepathist** ([telepathist.ts](src/telepathist/telepathist.ts)) - Base class for database-backed chat agents
 - **MCP Client** ([mcp-client.ts](src/utils/models/mcp-client.ts)) - Event-driven MCP communication
-- **Tool Wrapper** ([wrapper.ts](src/utils/tools/wrapper.ts)) - Dynamic tool adaptation for LLMs
 - **Session Manager** ([strategist-session.ts](src/strategist/strategist-session.ts)) - Game session with state persistence
 - **Web Server** ([server.ts](src/web/server.ts)) - Express API and Vue UI hosting
 - **Agent Registry** ([agent-registry.ts](src/infra/agent-registry.ts)) - Dynamic agent discovery and loading
@@ -50,11 +71,12 @@ cp .env.default .env
 
 npm install
 npm run build
-npm start         # Run strategist
+npm start            # Run strategist
 
 # Development
-npm run dev       # Hot reload
-npm test          # Test suite
+npm run dev          # Hot reload
+npm run telepathist  # Post-game analysis console
+npm test             # Test suite
 ```
 
 ## Configuration
@@ -73,30 +95,27 @@ GOOGLE_GENERATIVE_AI_API_KEY=... # Google AI
 See `.env.default` for all available options and documentation.
 
 ### Model Configuration
-**Default Model**: The system uses `openai/gpt-oss-20b` from OpenRouter by default. This is a cost-effective open-source model.
+**Default Model**: The system uses `openai-compatible/gpt-oss-120b` by default. This is a cost-effective open-source model.
 
 To change the default model or add custom models, edit `vox-agents/config.json`:
 ```json
 {
   "llms": {
-    "default": "gpt-oss-20b",  // Change this to use a different default
-    "gpt-oss-20b": {
-      "provider": "openrouter",
-      "name": "openai/gpt-oss-20b"
-    },
-    // Add your custom models here
-    "gpt-4-turbo": {
+    "default": "openai-compatible/gpt-oss-120b",
+    "openai/gpt-5-mini": {
       "provider": "openai",
-      "name": "gpt-4-turbo"
+      "name": "gpt-5-mini"
     }
   }
 }
 ```
 
-Popular alternatives:
-- OpenAI: `gpt-4-turbo`, `gpt-4o`, `gpt-3.5-turbo`
-- OpenRouter: `anthropic/claude-3-5-sonnet`, `google/gemini-pro`
-- Google: `gemini-1.5-pro`, `gemini-1.5-flash`
+Pre-configured models include:
+- OpenAI: `openai/gpt-5-mini`, `openai/gpt-5-nano`
+- Anthropic: `anthropic/claude-haiku-4-5`, `anthropic/claude-sonnet-4-5`, `anthropic/claude-opus-4-5`
+- OpenRouter: `openrouter/openai/gpt-oss-120b`, `openrouter/google/gemini-2.5-flash-lite`
+- AWS Bedrock: `aws/anthropic/claude-sonnet-4-5`
+- Chutes: `chutes/deepseek-ai/DeepSeek-V3.2`, `chutes/zai-org/glm-4.7`
 
 ### Strategist Configuration
 The strategist can be configured via JSON files in the `configs/` directory or through command-line arguments.
@@ -132,6 +151,7 @@ Available strategists:
 - `"none-strategist"` - No strategy changes (baseline)
 - `"simple-strategist"` - Direct strategy implementation
 - `"simple-strategist-briefed"` - Two-stage with briefing first
+- `"simple-strategist-staffed"` - Multi-briefer collaborative analysis
 
 #### Command-Line Usage
 ```bash
@@ -164,15 +184,7 @@ npm run strategist
 # Custom player assignment
 npm run strategist -- --players 2,3,4  # AI controls players 2, 3, 4
 
-# Or use configuration file:
-# configs/my-game.json:
-{
-  "llmPlayers": [1, 2],       # AI controls players 1 and 2
-  "autoPlay": false,          # Game pauses for human turns
-  "strategist": "simple-strategist",
-  "gameMode": "start"
-}
-
+# Or use configuration file (see Configuration Files section for format)
 npm run strategist -- --config=my-game.json
 ```
 
@@ -226,7 +238,7 @@ cd ui && npm run dev
 cd ui && npm run preview
 ```
 
-The web server starts automatically with the agents and serves the UI at http://localhost:3333
+The web server starts automatically with the agents and serves the UI at http://localhost:5555
 
 Features:
 - **Real-time Logs** - Stream logs from all components with filtering
@@ -329,46 +341,83 @@ If CivilizationV.exe is already running when tests start, the entire suite abort
 ```
 vox-agents/
 ├── src/
-│   ├── infra/                 # Core framework
-│   │   ├── vox-agent.ts       # Base agent class
-│   │   ├── vox-context.ts     # Execution context
-│   │   ├── vox-civilization.ts # Game lifecycle
-│   │   └── agent-registry.ts  # Dynamic agent loading
-│   ├── briefer/               # Briefing agents
-│   │   ├── briefer.ts         # Base briefer
-│   │   ├── simple-briefer.ts  # Simple implementation
-│   │   └── index.ts           # Entry point
-│   ├── strategist/            # Strategy agents
-│   │   ├── agents/            # Agent implementations
+│   ├── infra/                     # Core framework
+│   │   ├── vox-agent.ts           # Base agent with lifecycle hooks
+│   │   ├── vox-context.ts         # Execution context management
+│   │   ├── vox-civilization.ts    # Game process lifecycle
+│   │   ├── vox-session.ts         # Base session management
+│   │   ├── agent-registry.ts      # Dynamic agent discovery
+│   │   ├── session-registry.ts    # Global session tracking
+│   │   └── context-registry.ts    # Global context tracking
+│   ├── strategist/                # Strategy agents
+│   │   ├── agents/
 │   │   │   ├── none-strategist.ts
 │   │   │   ├── simple-strategist.ts
 │   │   │   ├── simple-strategist-base.ts
-│   │   │   └── simple-strategist-briefed.ts
-│   │   ├── strategist.ts      # Base strategist
-│   │   ├── strategist-session.ts # Session management
-│   │   ├── strategy-parameters.ts # Typed parameters
-│   │   ├── vox-player.ts      # Player management
-│   │   └── index.ts           # Entry point
-│   ├── envoy/                 # Diplomatic agents
-│   │   ├── envoy.ts           # Base envoy class
-│   │   └── envoy-thread.ts    # Conversation threading
-│   ├── web/                   # Web UI backend
-│   │   ├── server.ts          # Express server
-│   │   ├── sse-manager.ts     # Server-sent events
-│   │   └── routes/            # API endpoints
-│   ├── utils/                 # Utilities
-│   │   ├── models/            # LLM clients & middleware
-│   │   ├── telemetry/         # Observability & export
-│   │   ├── tools/             # Tool wrappers & helpers
-│   │   ├── config.ts          # Configuration loader
-│   │   ├── logger.ts          # Winston logger
-│   │   └── retry.ts           # Exponential backoff
-│   ├── types/                 # TypeScript types
-│   └── instrumentation.ts     # OpenTelemetry setup
-├── ui/                        # Vue 3 dashboard
-│   ├── src/                   # Frontend source
-│   └── vite.config.ts         # Vite configuration
-├── tests/                     # Vitest suite
-├── configs/                   # Game configurations
+│   │   │   ├── simple-strategist-briefed.ts
+│   │   │   └── simple-strategist-staffed.ts
+│   │   ├── strategist.ts         # Base strategist
+│   │   ├── strategist-session.ts  # Session management
+│   │   ├── strategy-parameters.ts
+│   │   ├── vox-player.ts
+│   │   └── index.ts              # Entry point
+│   ├── briefer/                   # Briefing agents
+│   │   ├── briefer.ts            # Base briefer
+│   │   ├── simple-briefer.ts     # General briefing
+│   │   ├── specialized-briefer.ts # Domain-specific (military/economy/diplomacy)
+│   │   └── briefing-utils.ts
+│   ├── analyst/                   # Analysis agents
+│   │   ├── analyst.ts            # Base analyst (fire-and-forget)
+│   │   └── diplomatic-analyst.ts  # Intelligence gatekeeping
+│   ├── librarian/                 # Research agents
+│   │   ├── librarian.ts          # Base librarian
+│   │   └── keyword-librarian.ts   # Keyword-based DB search
+│   ├── envoy/                     # Chat agents
+│   │   ├── envoy.ts              # Base chat agent
+│   │   ├── live-envoy.ts         # Game-specific chat
+│   │   ├── diplomat.ts           # Intelligence gathering
+│   │   ├── spokesperson.ts       # Official representative
+│   │   └── envoy-prompts.ts      # Shared prompt library
+│   ├── telepathist/               # Post-game analysis agents
+│   │   ├── telepathist.ts        # Base telepathist
+│   │   ├── talkative-telepathist.ts
+│   │   ├── turn-summarizer.ts
+│   │   ├── phase-summarizer.ts
+│   │   ├── telepathist-parameters.ts
+│   │   ├── telepathist-tool.ts   # Base tool class
+│   │   ├── console.ts            # CLI entry point
+│   │   └── tools/                # Database query tools
+│   ├── web/                       # Web UI backend
+│   │   ├── server.ts             # Express + Vue hosting
+│   │   ├── sse-manager.ts        # Real-time streaming
+│   │   └── routes/               # API endpoints
+│   ├── utils/
+│   │   ├── models/               # LLM integration
+│   │   │   ├── models.ts
+│   │   │   ├── mcp-client.ts
+│   │   │   ├── concurrency.ts    # Per-model rate limiting
+│   │   │   └── tool-rescue.ts    # JSON extraction middleware
+│   │   ├── telemetry/            # Observability
+│   │   │   ├── vox-exporter.ts
+│   │   │   ├── sqlite-exporter.ts
+│   │   │   └── schema.ts
+│   │   ├── tools/                # Tool utilities
+│   │   ├── config.ts             # Configuration loader
+│   │   ├── logger.ts             # Winston logging
+│   │   ├── retry.ts              # Exponential backoff
+│   │   ├── token-counter.ts      # tiktoken-based counting
+│   │   ├── game-speed.ts         # Turn calculations
+│   │   ├── event-filters.ts      # Event categorization
+│   │   ├── report-filters.ts     # Field filtering
+│   │   ├── text-cleaning.ts      # Artifact removal
+│   │   ├── identifier-parser.ts  # ID parsing
+│   │   └── librarian-utils.ts    # Context extraction
+│   ├── types/                     # TypeScript definitions
+│   └── instrumentation.ts        # OpenTelemetry setup
+├── ui/                            # Vue 3 dashboard
+│   ├── src/                       # Frontend source
+│   └── vite.config.ts
+├── tests/                         # Vitest suite
+├── configs/                       # Game configurations
 └── package.json
 ```
