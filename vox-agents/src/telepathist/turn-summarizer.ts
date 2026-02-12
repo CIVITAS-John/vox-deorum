@@ -67,9 +67,11 @@ Respond with a JSON object containing:
 - Mention specific civilizations, cities, technologies, and policies by name
 
 # Guidelines
-- Focus on what changed or is notable, not routine information
-- Note any wars, peace treaties, or diplomatic shifts
-- Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions)`.trim();
+- Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts
+- Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions)
+- Carefully distinguish between what is truth (game state) and what is perception of the leader
+  - "Rationale" under the Options heading reflects the leader's perspective and can deviate from the reality
+  - "RelayedMessage" type of events reflects the intelligence gathered by the government and can be incorrect`.trim();
   }
 
   public async getInitialMessages(

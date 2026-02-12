@@ -31,6 +31,7 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'node:path';
 import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";
 import { startWebServer } from "../web/server.js";
+import { mcpClient } from "../utils/models/mcp-client.js";
 
 const logger = createLogger('Telepathist');
 
@@ -111,6 +112,7 @@ async function main() {
 
   // Register tools when running the full agent (not prepare-only mode)
   if (!prepareOnly) {
+    await mcpClient.connect();
     await voxContext.registerTools();
   }
 

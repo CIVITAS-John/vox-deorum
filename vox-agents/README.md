@@ -264,17 +264,21 @@ Features:
 ## Testing
 
 ```bash
-npm test                  # All tests
+npm test                  # All tests (once)
 npm run test:watch        # Watch mode
-npm run test:coverage     # Coverage
-npm run test:integration  # With real Civ5
+npm run test:unit         # Unit tests only (no game needed)
+npm run test:game         # Game tests (launches Civilization V)
+npm run test:coverage     # Coverage report
 ```
 
-Test categories:
-- Unit tests for core logic
-- Integration tests with MCP
-- Session management tests
-- Tool wrapping validation
+### Test Categories
+
+- **Unit tests** (`tests/utils/`) - Pure logic, no external dependencies. Utility functions, data transformations, agent logic with mocks.
+- **Game tests** (`tests/infra/`) - Full game lifecycle management. Launches CivilizationV.exe, monitors process, tests start/kill cycle. Requires Windows with Civ V installed. Extended timeouts (90-180s).
+
+### Safety Guard
+
+If CivilizationV.exe is already running when tests start, the entire suite aborts with an error message. Only one Civ5 instance can run at a time, and tests will not kill an active game session.
 
 ## Development Tips
 

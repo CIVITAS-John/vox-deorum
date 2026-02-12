@@ -88,24 +88,43 @@ The system supports standalone and component modes:
 ### Framework
 - **Use Vitest for all testing** (not Jest)
 - Test files in `tests/` directory with `.test.ts` extension
-- Commands:
-  - `npm test` - Run tests
-  - `npm run test:watch` - Watch mode
-  - `npm run test:coverage` - Coverage report
-- Test setup file: `tests/setup.ts` for global configuration
+- Test setup file: `tests/setup.ts` for global configuration and Civ5 guard
+
+### Commands
+- `npm test` - Run all tests once
+- `npm run test:watch` - Watch mode for development
+- `npm run test:unit` - Unit tests only (excludes game tests)
+- `npm run test:game` - Game tests only (requires Civilization V)
+- `npm run test:coverage` - Coverage report
+- `npm run test:ui` - Vitest browser UI
+
+### Test Pathways
+
+Different features require different testing infrastructure:
+
+#### Unit Tests (`tests/utils/`, agent logic with mocks)
+- No external dependencies required
+- Pure function testing, data transformations, mocked agent logic
+- Fast execution, safe to run anywhere
+
+#### Game Tests (`tests/infra/`)
+- **Requires Windows** with Civilization V installed
+- Actually launches and manages CivilizationV.exe
+- Extended per-test timeouts (90-180 seconds)
+- Sequential execution enforced via `singleFork: true`
+
+### Global Civ5 Guard
+The test setup detects if CivilizationV.exe is already running and **aborts all tests immediately**. Only one Civ5 instance can run at a time. The guard will not kill an existing process — it may be an active game session.
 
 ### Configuration
 - Extended timeouts: 15 seconds for tests and hooks
 - Retry on CI: 1 retry in CI environment, none locally
-- Pool type: forks for process isolation
-- Sequential execution: singleFork for IPC tests
-- **Extended timeouts and sequential execution** for game integration
+- Pool type: forks with `singleFork: true` for sequential execution
 
 ### Test Organization
 - Use nested describe blocks for clear structure
 - Group related tests under feature categories
 - Use descriptive test names with "should" convention
-- **Pattern**: Nested describe blocks for clear test organization
 - Keep test files focused on single components or features
 
 ## MCP Integration
