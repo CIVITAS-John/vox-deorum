@@ -38,7 +38,7 @@ const agentRoles: Record<string, string> = {
 
 const inputSchema = z.object({
   turns: z.string().describe(
-    'Turn(s) to retrieve decisions for. Single ("30"), comma-separated ("10,20,30"), or range ("30-50").'
+    'Turn(s) to retrieve decisions for. Single ("30"), comma-separated ("10,20,30"), or range ("30-40"). No more than 10 turns at a time.'
   )
 });
 

@@ -55,8 +55,9 @@ export abstract class TelepathistTool<TInput = any> {
    * Parse flexible turn input into number[].
    * Supports single turn ("30"), comma-separated ("10,20,30"), or range ("30-50").
    */
-  protected parseTurns(turns: string, available: number[]): number[] {
+  protected parseTurns(turns: string, available: number[], maxLength = 10): number[] {
     const trimmed = turns.trim();
+    let result: number[] = [];
 
     // Range format: "30-50"
     if (trimmed.includes('-') && !trimmed.includes(',')) {
@@ -64,23 +65,25 @@ export abstract class TelepathistTool<TInput = any> {
       const start = parseInt(startStr, 10);
       const end = parseInt(endStr, 10);
       if (!isNaN(start) && !isNaN(end)) {
-        return available.filter(t => t >= start && t <= end);
+        result = available.filter(t => t >= start && t <= end);
       }
     }
 
     // Comma-separated: "10,20,30"
     if (trimmed.includes(',')) {
       const requested = trimmed.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-      return available.filter(t => requested.includes(t));
+      result = available.filter(t => requested.includes(t));
     }
 
     // Single turn: "30"
     const single = parseInt(trimmed, 10);
     if (!isNaN(single)) {
-      return available.filter(t => t === single);
+      result = available.filter(t => t === single);
     }
 
-    return [];
+    // Trim down to maxLength
+    if (result.length > maxLength) result = result.slice(0, maxLength);
+    return result;
   }
 
   /**

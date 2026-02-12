@@ -34,7 +34,7 @@ const categoryLabelMap: Record<string, string> = {
 
 const inputSchema = z.object({
   turns: z.string().describe(
-    'Turn(s) to retrieve game state for. Single ("30"), comma-separated ("10,20,30"), or range ("30-50").'
+    'Turn(s) to retrieve game state for. Single ("30"), comma-separated ("10,20,30"), or range ("30-40"). No more than 10 turns at a time.'
   ),
   categories: z.array(z.string()).optional().describe(
     `Optional filter for specific data categories: ${allCategories.join(', ')}. If omitted, returns all available data.`

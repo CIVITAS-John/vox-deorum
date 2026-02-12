@@ -46,6 +46,7 @@ You have access to the complete historical record: every world state it observed
 
     if (!this.isSpecialMode(input)) {
       sections.push(`# Available Tools
+- You have a limitation on how much data you can see for once, but you have multiple chances to inquiry deeper.
 - Only answer after collecting sufficient data or, when no more data is available, make an educated guess (toned accordingly).
 - **get-game-overview**: Use it to get per-turn summaries for a range of turns, e.g. "what happened between turns X and Y?"
 - **get-game-state**: Use it to get the actual game data (players, cities, military, etc.) for ground truth verification

@@ -11,8 +11,8 @@ import { TelepathistTool } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 
 const inputSchema = z.object({
-  turns: z.string().optional().describe(
-    'Turn range to get overviews for. Single turn ("30"), comma-separated ("10,20,30"), or range ("30-50"). Defaults to all turns.'
+  turns: z.string().describe(
+    'Turn range to get overviews for. Single turn ("30"), comma-separated ("10,20,30"), or range ("30-40"). No more than 10 turns at a time.'
   )
 });
 
@@ -28,9 +28,7 @@ export class GetGameOverviewTool extends TelepathistTool<GetGameOverviewInput> {
   readonly inputSchema = inputSchema;
 
   async execute(input: GetGameOverviewInput, params: TelepathistParameters): Promise<string> {
-    const turns = input.turns
-      ? this.parseTurns(input.turns, params.availableTurns)
-      : params.availableTurns;
+    const turns = this.parseTurns(input.turns, params.availableTurns);
 
     if (turns.length === 0) {
       return 'No turns found in the requested range.';
