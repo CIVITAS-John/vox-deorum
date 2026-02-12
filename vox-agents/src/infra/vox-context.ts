@@ -115,9 +115,11 @@ export class VoxContext<TParameters extends AgentParameters> {
     const rawMcpTools = await mcpClient.getTools();
     this.mcpToolMap = new Map(rawMcpTools.map(t => [t.name, t]));
     var mcpTools = wrapMCPTools(rawMcpTools, this);
+    
     for (var tool of Object.keys(mcpTools)) {
       this.tools[tool] = mcpTools[tool];
     }
+
     // Agent tools
     const allAgents = agentRegistry.getAllAsRecord();
     for (const [agentName, agent] of Object.entries(allAgents)) {
@@ -134,7 +136,6 @@ export class VoxContext<TParameters extends AgentParameters> {
         this.tools[toolName] = tool;
       }
     }
-    // console.log(Object.keys(this.tools).join("; "));
   }
 
   /**

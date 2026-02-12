@@ -79,7 +79,7 @@ Respond with a JSON object containing:
   ) {
     return [{
       role: 'user' as const,
-      content: `# Game State — Turn ${input.turn}\n\n${input.gameStateText}`
+      content: input.gameStateText
     }];
   }
 }

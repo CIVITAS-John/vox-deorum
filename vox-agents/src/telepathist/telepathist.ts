@@ -183,9 +183,9 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
     let phaseSummaryText = '';
     if (phaseSummaries.length > 0) {
       const parts = phaseSummaries.map(
-        ps => `### Turns ${ps.fromTurn}–${ps.toTurn}\n${ps.summary}`
+        ps => `### Turns ${ps.fromTurn}-${ps.toTurn}\n${ps.summary}`
       );
-      phaseSummaryText = `\n\n# Game History\n${parts.join('\n\n')}`;
+      phaseSummaryText = `\n\n# Game Summary\n${parts.join('\n\n')}`;
     }
 
     const turnRange = parameters.availableTurns.length > 0
@@ -197,7 +197,6 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
       content: `# Player Identity
 - **Civilization**: ${parameters.civilizationName}
 - **Leader**: ${parameters.leaderName}
-- **Game ID**: ${parameters.gameID}
 - **Available Data**: ${turnRange} (${parameters.availableTurns.length} turns)${phaseSummaryText}`.trim()
     }];
   }
@@ -245,6 +244,7 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
             gameStateText
           };
 
+          parameters.turn = turn;
           const summary = await context.callAgent<TurnSummary>(
             'turn-summarizer',
             summaryInput,
@@ -320,11 +320,13 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
           turnSummaries[s.turn] = s.shortSummary;
         }
 
+        parameters.turn = phase.fromTurn;
         const input: PhaseSummarizerInput = {
           fromTurn: phase.fromTurn,
           toTurn: phase.toTurn,
           turnSummaries
         };
+        parameters.turn = phase.toTurn;
 
         const phaseSummary = await context.callAgent<string>(
           'phase-summarizer',

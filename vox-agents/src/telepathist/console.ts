@@ -30,6 +30,7 @@ import { StreamingEventCallback, EnvoyThread } from '../types/index.js';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'node:path';
 import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";
+import { startWebServer } from "../web/server.js";
 
 const logger = createLogger('Telepathist');
 
@@ -84,6 +85,9 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGBREAK', () => shutdown('SIGBREAK'));
 process.on('SIGHUP', () => shutdown('SIGHUP'));
+
+// Web UI
+await startWebServer();
 
 /**
  * Main entry point.
