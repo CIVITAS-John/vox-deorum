@@ -25,11 +25,11 @@ import {
 } from './telepathist-parameters.js';
 import {
   parseDatabaseIdentifier,
-  createContextId
 } from '../utils/identifier-parser.js';
 import { StreamingEventCallback, EnvoyThread } from '../types/index.js';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'node:path';
+import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";
 
 const logger = createLogger('Telepathist');
 
@@ -99,9 +99,9 @@ async function main() {
 
   // Create parameters (opens DBs, extracts identity, queries available turns)
   const params = await createTelepathistParameters(databasePath, identifierInfo);
-
   // Create context
-  const contextId = createContextId(identifierInfo.gameID, identifierInfo.playerID);
+  const contextId =  `${identifierInfo.gameID}-telepath-${identifierInfo.playerID}`;
+  VoxSpanExporter.getInstance().createContext(contextId, "telepathist");
   const voxContext = new VoxContext<TelepathistParameters>({}, contextId);
   voxContext.lastParameter = params;
 

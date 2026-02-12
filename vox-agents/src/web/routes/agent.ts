@@ -15,7 +15,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { ModelMessage } from 'ai';
 import fs from 'fs/promises';
 import {
-  createContextId,
   parseContextIdentifier,
   parseDatabaseIdentifier,
 } from '../../utils/identifier-parser.js';
@@ -33,6 +32,7 @@ import {
   StreamingEventCallback,
   EnvoyThread
 } from '../../types/index.js';
+import { VoxSpanExporter } from '../../utils/telemetry/vox-exporter.js';
 
 const logger = createLogger('webui:agent-routes');
 
@@ -88,8 +88,8 @@ export function createAgentRoutes(): Router {
       let gameID = 'unknown';
       let playerID = 0;
       const contextType = databasePath ? 'database' : 'live';
-      let effectiveContextId = contextId;
       let civilizationName: string | undefined;
+      let effectiveContextId: string | undefined = contextId;
 
       if (contextId) {
         // First check if this is an existing VoxContext
@@ -123,7 +123,8 @@ export function createAgentRoutes(): Router {
           playerID = identifierInfo.playerID;
 
           // Create a new VoxContext for telepathist mode (database-based)
-          effectiveContextId = createContextId(gameID, playerID);
+          effectiveContextId = `${gameID}-telepath-${playerID}`
+          VoxSpanExporter.getInstance().createContext(effectiveContextId, "telepathist");
           const context = new VoxContext<TelepathistParameters>({}, effectiveContextId);
           await context.registerTools();
 

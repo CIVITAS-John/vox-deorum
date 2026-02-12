@@ -19,8 +19,8 @@ export interface GameIdentifierInfo {
 /**
  * Parse game and player ID from a context identifier.
  * Handles formats like:
- * - `{gameID}-player-{playerID}` (VoxContext format)
- * - `{gameID}-{playerID}` (telemetry format)
+ * - `{gameID}-(player|*)-{playerID}`
+ * - `{gameID}-{playerID}`
  *
  * @param contextId - The context identifier to parse
  * @returns Parsed game and player information
@@ -28,14 +28,14 @@ export interface GameIdentifierInfo {
 export function parseContextIdentifier(contextId: string): GameIdentifierInfo {
   const parts = contextId.split('-');
 
-  // Handle VoxContext format: {gameID}-player-{playerID}
-  if (parts.length >= 3 && parts[parts.length - 2] === 'player') {
+  // {gameID}-player-{playerID}
+  if (parts.length >= 3) {
     const playerID = parseInt(parts[parts.length - 1] || '0', 10);
     const gameID = parts.slice(0, -2).join('-') || contextId;
     return { gameID, playerID };
   }
 
-  // Handle telemetry format: {gameID}-{playerID}
+  //  {gameID}-{playerID}
   if (parts.length >= 2) {
     const playerID = parseInt(parts[parts.length - 1] || '0', 10);
     const gameID = parts.slice(0, -1).join('-') || contextId;
@@ -57,18 +57,7 @@ export function parseContextIdentifier(contextId: string): GameIdentifierInfo {
  */
 export function parseDatabaseIdentifier(databasePath: string, basePath?: string): GameIdentifierInfo {
   const nameWithoutExt = path.basename(databasePath, '.db');
-  const parts = nameWithoutExt.split('-');
-
-  let result: GameIdentifierInfo;
-
-  if (parts.length >= 2) {
-    const playerID = parseInt(parts[parts.length - 1] || '0', 10);
-    const gameID = parts.slice(0, -1).join('-') || 'unknown';
-    result = { gameID, playerID };
-  } else {
-    // Fallback for unknown formats
-    result = { gameID: nameWithoutExt || 'unknown', playerID: 0 };
-  }
+  let result: GameIdentifierInfo = parseContextIdentifier(nameWithoutExt);
 
   // Extract folder path if base path is provided
   if (basePath) {
@@ -78,16 +67,4 @@ export function parseDatabaseIdentifier(databasePath: string, basePath?: string)
   }
 
   return result;
-}
-
-/**
- * Create a VoxContext identifier from game and player IDs.
- * Returns format: `{gameID}-player-{playerID}`
- *
- * @param gameID - The game identifier
- * @param playerID - The player identifier
- * @returns Formatted context ID
- */
-export function createContextId(gameID: string, playerID: number): string {
-  return `${gameID}-player-${playerID}`;
 }
