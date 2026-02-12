@@ -19,9 +19,7 @@ import { TurnSummarizerInput, TurnSummary } from './turn-summarizer.js';
 import { PhaseSummarizerInput } from './phase-summarizer.js';
 import { EnvoyThread, SpecialMessageConfig, MessageWithMetadata } from '../types/index.js';
 import { VoxContext } from '../infra/vox-context.js';
-import { jsonToMarkdown } from '../utils/tools/json-to-markdown.js';
 import { createLogger } from '../utils/logger.js';
-import type { Span } from '../utils/telemetry/schema.js';
 
 const logger = createLogger('Telepathist');
 
@@ -235,8 +233,9 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
         context.streamProgress?.(`Analyzing turn ${turn} (${i + 1}/${turnsToSummarize.length})...`);
 
         try {
-          const gameStateText = await this.extractGameStateForTurn(parameters, turn);
-          if (!gameStateText) {
+          const gameStateTool = toolInstances.find(t => t.name === 'get-game-state') as GetGameStateTool;
+          const gameStateText = await gameStateTool.execute({ turns: String(turn) }, parameters);
+          if (!gameStateText.includes('## ')) {
             logger.warn(`No game state data found for turn ${turn}, skipping`);
             continue;
           }
@@ -350,65 +349,6 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
         logger.error(`Failed to summarize phase ${phase.fromTurn}-${phase.toTurn}`, { error: e });
       }
     }
-  }
-
-  /**
-   * Extracts game state data for a single turn from telemetry spans.
-   * Returns formatted markdown text suitable for the TurnSummarizer.
-   */
-  private async extractGameStateForTurn(
-    parameters: TelepathistParameters,
-    turn: number
-  ): Promise<string | null> {
-    // Use a temporary tool instance to access query helpers
-    const helper = new GetGameStateTool();
-    // We need to provide mcpToolMap for formatting
-    (helper as any).mcpToolMap = undefined; // Will use default jsonToMarkdown
-
-    // Find valid root spans for this turn
-    const rootSpans = await (helper as any).getRootSpans(parameters.db, [turn]);
-
-    const validTraceIds = new Set<string>();
-    for (const agentSpans of Object.values(rootSpans) as Span[][]) {
-      for (const span of agentSpans) {
-        validTraceIds.add(span.traceId);
-      }
-    }
-
-    if (validTraceIds.size === 0) return null;
-
-    // Categories to extract
-    const categories: Record<string, string> = {
-      'get-players': 'Players',
-      'get-cities': 'Cities',
-      'get-events': 'Events',
-      'get-military-report': 'Military',
-      'get-options': 'Options',
-      'get-victory-progress': 'Victory Progress',
-    };
-
-    const sections: string[] = [];
-
-    for (const [toolName, label] of Object.entries(categories)) {
-      const spans = await parameters.db
-        .selectFrom('spans')
-        .selectAll()
-        .where('turn', '=', turn)
-        .where('name', '=', `mcp-tool.${toolName}`)
-        .where('traceId', 'in', [...validTraceIds])
-        .orderBy('startTime', 'desc')
-        .limit(1)
-        .execute();
-
-      if (spans.length > 0) {
-        const output = (helper as any).getToolOutput(spans[0]);
-        if (output) {
-          sections.push(`## ${label}\n${jsonToMarkdown(output)}`);
-        }
-      }
-    }
-
-    return sections.length > 0 ? sections.join('\n\n') : null;
   }
 
   // --- Abstract methods ---

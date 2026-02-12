@@ -13,14 +13,24 @@ import { TelepathistParameters } from '../telepathist-parameters.js';
 /** Maps category names to MCP tool names */
 const categoryToolMap: Record<string, string> = {
   players: 'get-players',
+  victory: 'get-victory-progress',
+  options: 'get-options',
+  military: 'get-military-report',
   cities: 'get-cities',
   events: 'get-events',
-  military: 'get-military-report',
-  options: 'get-options',
-  victory: 'get-victory-progress',
 };
 
 const allCategories = Object.keys(categoryToolMap);
+
+/** Human-friendly labels for each category */
+const categoryLabelMap: Record<string, string> = {
+  players: 'Players',
+  victory: 'Victory Progress',
+  options: 'Options',
+  military: 'Military',
+  cities: 'Cities',
+  events: 'Events',
+};
 
 const inputSchema = z.object({
   turns: z.string().describe(
@@ -98,7 +108,7 @@ export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
         if (toolSpans.length > 0) {
           const output = this.getToolOutput(toolSpans[0]);
           if (output) {
-            turnSections.push(`## ${category.charAt(0).toUpperCase() + category.slice(1)}`);
+            turnSections.push(`## ${categoryLabelMap[category]}`);
             turnSections.push(this.formatToolOutput(toolName, output));
           }
         }

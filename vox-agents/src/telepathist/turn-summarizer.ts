@@ -8,7 +8,7 @@
  */
 
 import { z } from 'zod';
-import { VoxAgent, AgentParameters } from '../infra/vox-agent.js';
+import { VoxAgent } from '../infra/vox-agent.js';
 import { TelepathistParameters } from './telepathist-parameters.js';
 import { VoxContext } from '../infra/vox-context.js';
 
@@ -52,22 +52,24 @@ export class TurnSummarizer extends VoxAgent<TelepathistParameters, TurnSummariz
     input: TurnSummarizerInput,
     _context: VoxContext<TelepathistParameters>
   ): Promise<string> {
-    return `You are a game historian analyzing a Civilization V game played by ${params.leaderName} of ${params.civilizationName}.
+    return `You are a senior historian analyzing a Civilization V game played by ${params.leaderName} of ${params.civilizationName}.
 
 # Task
-Summarize the game state for turn ${input.turn}. You will receive the raw game data that the AI player saw during this turn.
+Summarize the game state for turn ${input.turn}. You will receive the raw game data that the leader saw during this turn.
 
 # Output Format
 Respond with a JSON object containing:
-- "shortSummary": 1-2 sentences capturing the most important events/decisions of this turn
 - "fullSummary": A detailed paragraph covering all significant aspects: military situation, economic state, diplomatic changes, research progress, and strategic direction
+- "shortSummary": 1-2 sentences capturing the most important events/decisions of this turn
+
+# Writing
+- Write in past tense from a historian's perspective, not the leader's
+- Mention specific civilizations, cities, technologies, and policies by name
 
 # Guidelines
 - Focus on what changed or is notable, not routine information
-- Mention specific civilizations, cities, technologies, and policies by name
 - Note any wars, peace treaties, or diplomatic shifts
-- Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions)
-- Write from a historian's perspective, not the player's`.trim();
+- Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions)`.trim();
   }
 
   public async getInitialMessages(
