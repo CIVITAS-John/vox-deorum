@@ -20,6 +20,7 @@ import {
   createTelepathicContextId
 } from '../../utils/identifier-parser.js';
 import { StrategistParameters, getRecentGameState, ensureGameState } from '../../strategist/strategy-parameters.js';
+import { createTelepathistParameters, TelepathistParameters } from '../../telepathist/telepathist-parameters.js';
 import {
   ListAgentsResponse,
   CreateChatRequest,
@@ -123,11 +124,18 @@ export function createAgentRoutes(): Router {
 
           // Create a new VoxContext for telepathist mode (database-based)
           effectiveContextId = createTelepathicContextId(gameID, playerID);
-          const context = new VoxContext<StrategistParameters>({}, effectiveContextId);
+          const context = new VoxContext<TelepathistParameters>({}, effectiveContextId);
           await context.registerTools();
+
+          // Create and store TelepathistParameters
+          const telepathistParams = await createTelepathistParameters(databasePath, identifierInfo);
+          context.lastParameter = telepathistParams;
+          civilizationName = telepathistParams.civilizationName;
+
           logger.info(`Created new VoxContext for telepathist mode: ${effectiveContextId}`);
-        } catch {
-          return res.status(400).json({ error: `Database file not found: ${databasePath}` } as any);
+        } catch (err) {
+          logger.error('Failed to create telepathist context', { error: err });
+          return res.status(400).json({ error: `Failed to initialize database: ${databasePath}` } as any);
         }
       }
 
@@ -273,10 +281,19 @@ export function createAgentRoutes(): Router {
         }
       };
 
-      // Ensure the current turn's game state is available before executing the envoy
-      const params = voxContext.lastParameter! as StrategistParameters;
-      if (params.gameStates && !params.gameStates[params.turn]) {
-        await ensureGameState(voxContext as VoxContext<StrategistParameters>, params);
+      // Set up streamProgress for non-LLM progress updates (e.g., telepathist initialization)
+      voxContext.streamProgress = (message: string) => {
+        sendEvent('message', { type: 'text-delta', textDelta: message + '\n' });
+      };
+
+      const params = voxContext.lastParameter!;
+
+      // Only ensure game state for live contexts (not database-backed telepathist sessions)
+      if (thread.contextType === 'live') {
+        const stratParams = params as StrategistParameters;
+        if (stratParams.gameStates && !stratParams.gameStates[stratParams.turn]) {
+          await ensureGameState(voxContext as VoxContext<StrategistParameters>, stratParams);
+        }
       }
 
       await voxContext.execute(

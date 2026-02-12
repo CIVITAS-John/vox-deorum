@@ -26,6 +26,8 @@ export interface AgentParameters {
   gameID: string;
   /** Current game turn number */
   turn: number;
+  /** Optional cleanup method for releasing resources (database connections, etc.) */
+  close?: () => Promise<void>;
 }
 
 /**

@@ -18,6 +18,9 @@ import { Diplomat } from "../envoy/diplomat.js";
 import { DiplomaticAnalyst } from "../analyst/diplomatic-analyst.js";
 import { SimpleStrategistStaffed } from "../strategist/agents/simple-strategist-staffed.js";
 import { KeywordLibrarian } from "../librarian/keyword-librarian.js";
+import { TalkativeTelepathist } from "../telepathist/talkative-telepathist.js";
+import { TurnSummarizer } from "../telepathist/turn-summarizer.js";
+import { PhaseSummarizer } from "../telepathist/phase-summarizer.js";
 
 /**
  * Registry for managing available Vox agents.
@@ -181,6 +184,11 @@ class AgentRegistry {
     this.register(new Spokesperson());
     this.register(new Diplomat());
     this.register(new DiplomaticAnalyst());
+
+    // Register telepathist agents
+    this.register(new TalkativeTelepathist());
+    this.register(new TurnSummarizer());
+    this.register(new PhaseSummarizer());
 
     this.defaultsInitialized = true;
     this.logger.info(`Default agents initialized: ${this.agents.size} agents registered`);

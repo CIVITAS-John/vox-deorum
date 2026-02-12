@@ -13,6 +13,28 @@ Envoy<TParameters> (existing)
       └── (future: AgenticTelepathist)
 ```
 
+## Span Conventions
+
+### Span Naming (from `vox-context.ts`)
+- Root turn span: `strategist.turn.{turn}` (created by `vox-player.ts` with `root: true`)
+- Agent spans: `{agentName}.turn.{turn}` (child of root)
+- Step spans: `{agentName}.turn.{turn}.step.{N}` (child of agent span)
+- MCP tool spans: `mcp-tool.{toolName}` (child of step span)
+- Simple tool spans: `simple-tool.{toolName}` (child of step span)
+
+### Botched Turns
+Multiple root spans (`strategist.turn.{turn}`) may exist for the same turn number — earlier ones are botched/failed calls. **Only use the last `strategist.*` root span per turn** (the one with the highest `startTime`). All child spans are linked via `traceId`, so once we identify the valid root span, filter by its `traceId` to get only the valid execution's data.
+
+This logic is encapsulated in `getRootSpans()` — the single entry point for all turn-level queries.
+
+### Non-Strategist Agents
+During a turn, the strategist may call other agents as tools:
+- **Briefers**: `simple-briefer`, `specialized-briefer` — run as child spans within the strategist trace
+- **Envoys**: `diplomat`, `spokesperson` — run as child spans within the strategist trace
+- **Analysts**: `diplomatic-analyst` — runs **fire-and-forget** (`fireAndForget = true`), creating a **detached root trace** (separate `traceId`)
+
+For fire-and-forget agents, their spans share the same `turn` number but have different `traceId`. Tools that need to find these agents query by turn number AND span name pattern, not by `traceId`.
+
 ## New Files
 
 ### 1. `src/telepathist/telepathist-parameters.ts`
@@ -42,7 +64,7 @@ interface TelepathistParameters extends AgentParameters {
   - Send out a warning for that
 6. Sets `turn` to the last available turn
 
-**`closeTelepathistParameters(params)`**: destroys both Kysely connections. Called automatically during `VoxContext.shutdown()` when the context holds a `TelepathistParameters` instance (detected by checking for `db`/`telepathistDb` properties).
+**`close()`**: The returned params object has a `close()` method (from `AgentParameters.close`) that destroys both Kysely connections. Called automatically during `VoxContext.shutdown()` via the generic `params.close?.()` call — no type-checking needed.
 
 ---
 
@@ -56,8 +78,13 @@ abstract class TelepathistTool<TInput = any> {
   abstract readonly description: string;
   abstract readonly inputSchema: ZodType<TInput>;
 
-  /** Create the AI SDK tool (delegates to createSimpleTool for telemetry tracing) */
+  /** Reference to MCP tool definitions for dynamic markdownConfig lookup */
+  protected mcpToolMap?: Map<string, MCPTool>;
+
+  /** Create the AI SDK tool (delegates to createSimpleTool for telemetry tracing).
+   *  Also captures context.mcpToolMap for dynamic markdownConfig access. */
   createTool(context: VoxContext<TelepathistParameters>): Tool {
+    this.mcpToolMap = context.mcpToolMap;
     return createSimpleTool({
       name: this.name,
       description: this.description,
@@ -68,7 +95,7 @@ abstract class TelepathistTool<TInput = any> {
 
   abstract execute(input: TInput, params: TelepathistParameters): Promise<string>;
 
-  // --- Shared query helpers ---
+  // --- Shared query helpers (pipeline: turns → agent spans → step spans → tool call spans) ---
 
   /** Parse flexible turn input ("30", "10,20,30", or range string "30-50") into number[] */
   protected parseTurns(
@@ -76,21 +103,35 @@ abstract class TelepathistTool<TInput = any> {
     available: number[]
   ): number[];
 
-  /** Get root spans for given turns (name like '%.turn.%') */
-  protected async getRootSpans(db, turns: number[]): Promise<Span[]>;
+  /** Get all agent spans for given turns, grouped by agent type.
+   *  Handles botched turns: for each turn, finds the LAST strategist root span
+   *  (highest startTime) and uses its traceId to filter in-trace agents.
+   *  Also discovers fire-and-forget agents (e.g. diplomatic-analyst) by turn + name pattern.
+   *  Returns Record<agentType, Span[]> — keys are agent names, values are spans across turns. */
+  protected async getRootSpans(db, turns: number[]): Promise<Record<string, Span[]>>;
 
-  /** Get agent step spans for given turns (name like '%.turn.%.step.%') */
-  protected async getAgentSteps(db, turns: number[]): Promise<Span[]>;
+  /** Get step spans for a specific agent type.
+   *  Queries steps that are children of the given agent's spans (by parentSpanId).
+   *  Input: agent type string used to look up spans from getRootSpans result. */
+  protected async getAgentSteps(db, turns: number[], agentType: string): Promise<Span[]>;
 
-  /** Get MCP tool call spans for given turns, optionally filtered by tool name */
-  protected async getToolCallSpans(db, turns: number[], toolNames?: string[]): Promise<Span[]>;
+  /** Get MCP tool call spans from step spans.
+   *  Takes step spans as input (from getAgentSteps) and finds their child tool call spans.
+   *  Avoids re-filtering by turn/traceId since steps already have the right scope.
+   *  Optional toolNames filter for specific tools (e.g., ["get-options", "set-strategy"]). */
+  protected async getToolCallSpans(db, stepSpans: Span[], toolNames?: string[]): Promise<Span[]>;
 
-  /** Extract tool.output from a tool call span (parsed JSON) */
+  /** Extract tool.input from a tool call span (parsed JSON from attributes) */
+  protected getToolInput(span: Span): any;
+
+  /** Extract tool.output from a tool call span (parsed JSON from attributes) */
   protected getToolOutput(span: Span): any;
 
-  /** Format a tool output using jsonToMarkdown with the tool's markdownConfig */
+  /** Format a tool output using jsonToMarkdown with dynamically looked-up markdownConfig.
+   *  Reads markdownConfig from mcpToolMap (captured at createTool time) via
+   *  tool._meta?.markdownConfig — same source as mcp-tools.ts line 110-117.
+   *  No static map needed. */
   protected formatToolOutput(toolName: string, output: any): string;
-  // Uses a static map of tool name → markdownConfig (same configs as MCP server)
 
   /** Safely parse JSON attributes from a span */
   protected parseAttributes(span: Span): SpanAttributes;
@@ -169,6 +210,14 @@ A non-interactive agent that generates summaries **one turn at a time**:
 - Output: `{ shortSummary: string, fullSummary: string }`
 - Called in a loop by the Telepathist during initialization
 
+##### PhaseSummarizer Agent (`src/telepathist/phase-summarizer.ts`)
+A non-interactive agent that generates phase summaries from turn summaries:
+- Extends `VoxAgent<TelepathistParameters, PhaseSummarizerInput, string>`
+- Input: `turnSummaries: string[]` — individual turn summaries, concatenated by the agent itself
+- No tools needed — just text generation
+- Output: phase summary string
+- Called after all turn summaries are generated
+
 ##### Streaming Pattern (`context.streamProgress`)
 Add a `streamProgress` callback to `VoxContext`:
 ```ts
@@ -180,30 +229,20 @@ public streamProgress?: (message: string) => void;
 - Progress messages are sent as SSE `message` events to the client
 
 #### `get-game-state.ts` — Ground Truth
-**Input**: `{ turns: number | number[] | string, categories?: string[] }`
+**Input**: `{ turns: string, categories?: string[] }`
 
 The actual game data the AI had access to — reconstructed from MCP tool outputs stored in span attributes:
 - **Categories** (optional filter): `players`, `cities`, `events`, `military`, `options`, `victory`
 - If no category filter: returns all available data for the turn
 - Data extracted from `mcp-tool.get-*` spans' `tool.output` attributes
+- Uses valid traceId per turn to skip botched spans
 
-**Formatting**: reuses `jsonToMarkdown()` (from `src/utils/tools/json-to-markdown.ts`) with each tool's markdownConfig, matching what agents see during live play:
-
-| Span Source | markdownConfig |
-|-------------|---------------|
-| `mcp-tool.get-players` | `["Player {key}"]` |
-| `mcp-tool.get-cities` | `["Player: {key}", "{key}"]` |
-| `mcp-tool.get-events` | `["Turn {key}", "{key}"]` |
-| `mcp-tool.get-military-report` | `["{key}"]` |
-| `mcp-tool.get-options` | `["{key}", "{key}", "{key}"]` |
-| `mcp-tool.get-victory-progress` | `["{key}"]` |
-
-The tool parses `tool.output` JSON, attaches `_markdownConfig` (same pattern as `mcp-tools.ts` line 110-117), then calls `jsonToMarkdown()`.
+**Formatting**: reuses `jsonToMarkdown()` (from `src/utils/tools/json-to-markdown.ts`) with each tool's `markdownConfig`, matching what agents see during live play. The `markdownConfig` is looked up **dynamically** from `mcpToolMap` (captured at `createTool` time) via `tool._meta?.markdownConfig` — the same source that `mcp-tools.ts` uses at line 110-117. No static config map to maintain.
 
 Self-contained answer to "What was the situation on turn X?" — the ground truth for verifying AI decisions.
 
 #### `get-decisions.ts` — AI Choices
-**Input**: `{ turns: number | number[] | string }`
+**Input**: `{ turns: string }`
 
 What the AI decided and did — full decision context:
 
@@ -213,7 +252,12 @@ What the AI decided and did — full decision context:
    - Relationship standings
    - This reveals what the AI *could* have done, not just what it did
 
-2. **Agents involved**: describes which agents ran and their roles (e.g., "specialized-briefer generated an Economy briefing, simple-strategist-briefed made strategy decisions")
+2. **Agents involved**: lists all agents that ran on the turn (discovered via `getRootSpans()` keys), including:
+   - Strategists: `simple-strategist`, `simple-strategist-briefed`, `simple-strategist-staffed`
+   - Briefers: `simple-briefer`, `specialized-briefer` (with mode: Military/Economy/Diplomacy)
+   - Envoys: `diplomat`, `spokesperson` (diplomatic interactions during the turn)
+   - Analysts: `diplomatic-analyst` (fire-and-forget intelligence processing)
+   - Describes each agent's role and what it did
 
 3. **AI reasoning**: per agent, the decision text from `step.responses` attributes
 
@@ -225,6 +269,7 @@ What the AI decided and did — full decision context:
    - `set-persona` → persona traits + Rationale
    - `set-relationship` → relationship changes + Rationale
    - `keep-status-quo` → decision NOT to change + Rationale
+   - `relay-message` → diplomatic intelligence relayed by analysts
    - Other MCP tool calls (game actions like lua-executor, etc.)
 
 Self-contained answer to "What did the AI do on turn X and why?" — includes both the options landscape and the choices made.
@@ -234,6 +279,8 @@ Self-contained answer to "What did the AI do on turn X and why?" — includes bo
 
 Full LLM conversation for a turn:
 - Organized **per agent** (not per step): combines all steps for each agent into one coherent conversation
+- Includes ALL agents that ran on the turn: strategists, briefers, envoys (diplomat, spokesperson), and analysts (diplomatic-analyst)
+- For fire-and-forget agents (diplomatic-analyst): queries by turn + name pattern since they have separate traceIds
 - Skips malformed/empty steps — only shows meaningful exchanges
 - System prompt → messages → responses, presented as a continuous dialogue
 - If `agent` specified: only that agent; otherwise all agents that ran on the turn
@@ -242,7 +289,7 @@ Self-contained deep dive into the exact AI conversation.
 
 ---
 
-*(TurnSummarizer agent described above in the Session Initialization section)*
+*(TurnSummarizer and PhaseSummarizer agents described above in the Session Initialization section)*
 
 ---
 
@@ -274,12 +321,12 @@ Self-contained deep dive into the exact AI conversation.
 ## Modified Files
 
 ### 7. `src/infra/agent-registry.ts`
-- Import and register `TalkativeTelepathist` and `TurnSummarizer` in `initializeDefaults()`
+- Import and register `TalkativeTelepathist`, `TurnSummarizer`, and `PhaseSummarizer` in `initializeDefaults()`
 
 ### 8. `src/infra/vox-context.ts`
 - Add `public streamProgress?: (message: string) => void` callback property
 - Reusable for any agent that needs to stream non-LLM progress
-- In `shutdown()`: detect if `lastParameter` has `TelepathistParameters` shape (has `db` and `telepathistDb` properties) and call `closeTelepathistParameters()` to destroy both Kysely connections
+- In `shutdown()`: calls `lastParameter?.close?.()` — the generic `AgentParameters.close` method handles resource cleanup for any parameter type
 
 ### 9. `src/web/routes/agent.ts`
 
@@ -328,3 +375,4 @@ VoxContext.shutdown()
 7. "What did the AI do on turns 30-50?" → `get-decisions` with range → options + reasoning + actions
 8. "Was building a settler on turn 45 the right call?" → `get-game-state` for ground truth + `get-decisions` for reasoning
 9. "Show me the full AI conversation on turn 30" → `get-conversation-log`
+10. "What did the diplomat do on turn 30?" → `get-conversation-log` with `agent: "diplomat"` → full diplomat conversation

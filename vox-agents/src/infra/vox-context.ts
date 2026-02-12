@@ -84,6 +84,13 @@ export class VoxContext<TParameters extends AgentParameters> {
   public lastParameter?: TParameters;
 
   /**
+   * Optional callback for streaming non-LLM progress updates (e.g., during initialization).
+   * Set by the web route before calling execute(). Reusable for any agent that needs
+   * to send progress messages to the client.
+   */
+  public streamProgress?: (message: string) => void;
+
+  /**
    * Constructor for VoxContext
    * @param modelOverrides - Model configuration overrides to replace config.json definitions
    * @param id - Optional context ID, generates a UUID if not provided
@@ -521,6 +528,9 @@ export class VoxContext<TParameters extends AgentParameters> {
 
       // Close the SQLite database for this specific context
       await VoxSpanExporter.getInstance().closeContext(this.id);
+
+      // Close parameter resources (database connections, etc.) if applicable
+      await this.lastParameter?.close?.();
 
       // Automatically unregister this context from the registry
       contextRegistry.unregister(this.id);
