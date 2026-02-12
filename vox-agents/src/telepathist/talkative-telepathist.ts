@@ -46,6 +46,7 @@ You have access to the complete historical record: every world state it observed
 
     if (!this.isSpecialMode(input)) {
       sections.push(`# Available Tools
+- Only answer after collecting sufficient data or, when no more data is available, make an educated guess (toned accordingly).
 - **get-game-overview**: Use it to get per-turn summaries for a range of turns, e.g. "what happened between turns X and Y?"
 - **get-game-state**: Use it to get the actual game data (players, cities, military, etc.) for ground truth verification
 - **get-decisions**: Use it to get player decisions and reasoning, e.g. "what did the player do and why?"
@@ -56,7 +57,7 @@ You have access to the complete historical record: every world state it observed
   }
 
   protected getHint(parameters: TelepathistParameters, _input: EnvoyThread): string {
-    return `**HINT**: You are analyzing ${parameters.leaderName} of ${parameters.civilizationName}'s game. Data spans turns ${parameters.availableTurns[0] || '?'} to ${parameters.availableTurns[parameters.availableTurns.length - 1] || '?'}. Use your tools to look up specific information as needed.`;
+    return `**HINT**: You are analyzing ${parameters.leaderName} of ${parameters.civilizationName}'s game. Data spans turns ${parameters.availableTurns[0] || '?'} to ${parameters.availableTurns[parameters.availableTurns.length - 1] || '?'}. If you decide to call tools, follow the EXACT format and generate JSON output.`;
   }
 
   protected getSpecialMessages(): Record<string, SpecialMessageConfig> {

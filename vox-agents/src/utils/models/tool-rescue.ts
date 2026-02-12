@@ -72,7 +72,7 @@ ${descriptions}`;
 
     default:
       return `## Tool Calling
-You have access to tools. If you decide to invoke any of the tool(s), ONLY respond with a JSON array in this EXACT format (NEVER use plain text):
+You have access to tools. If you decide to invoke any of the tool(s), ONLY respond with a JSON array in this EXACT format as the text output:
 \`\`\`json
 [
   { "tool": "<tool_name>", "arguments": { <parameters> } },

@@ -271,14 +271,15 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
     if (lastStep === null) {
       config.messages = [...messages, ...await this.getInitialMessages(parameters, input, context)];
     } else if (lastStep.toolCalls.length === 0 && (toolChoice === "required" || toolChoice === "tool" || !lastStep.text?.trim())) {
-      // Empty response rescue: no tool calls and no text — strip response and prompt to retry
+      // Empty response rescue: no tool calls and no text: strip response and prompt to retry
       const baseMessages = config.messages || messages;
       const responseMessages = lastStep.response.messages;
       const cleaned = baseMessages.filter(
         msg => !responseMessages.some(respMsg => respMsg === msg)
       );
-      if (cleaned[cleaned.length - 1]?.role !== "user")
-        cleaned.push({ role: 'user', content: buildRescuePrompt(toolChoice) });
+      const rescue = buildRescuePrompt(toolChoice);
+      if (cleaned[cleaned.length - 1]?.content !== rescue)
+        cleaned.push({ role: 'user', content: rescue });
       config.messages = cleaned;
     } else if (this.onlyLastRound) {
       // Keep all system and user messages, but only the last round of assistant/tool messages

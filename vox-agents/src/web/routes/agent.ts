@@ -33,6 +33,7 @@ import {
   EnvoyThread
 } from '../../types/index.js';
 import { VoxSpanExporter } from '../../utils/telemetry/vox-exporter.js';
+import { mcpClient } from '../../utils/models/mcp-client.js';
 
 const logger = createLogger('webui:agent-routes');
 
@@ -126,6 +127,8 @@ export function createAgentRoutes(): Router {
           effectiveContextId = `${gameID}-telepath-${playerID}`
           VoxSpanExporter.getInstance().createContext(effectiveContextId, "telepathist");
           const context = new VoxContext<TelepathistParameters>({}, effectiveContextId);
+
+          await mcpClient.connect();
           await context.registerTools();
 
           // Create and store TelepathistParameters
@@ -135,7 +138,7 @@ export function createAgentRoutes(): Router {
 
           logger.info(`Created new VoxContext for telepathist mode: ${effectiveContextId}`);
         } catch (err) {
-          logger.error('Failed to create telepathist context', { error: err });
+          logger.error('Failed to create telepathist context', err);
           return res.status(400).json({ error: `Failed to initialize database: ${databasePath}` } as any);
         }
       }

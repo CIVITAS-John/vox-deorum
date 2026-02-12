@@ -29,7 +29,6 @@ export interface PhaseSummarizerInput {
 export class PhaseSummarizer extends VoxAgent<TelepathistParameters, PhaseSummarizerInput, string> {
   readonly name = 'phase-summarizer';
   readonly description = 'Generates phase summaries from turn summaries for the telepathist system';
-  public tags = ['telepathist', 'internal'];
 
   public async getSystem(
     params: TelepathistParameters,

@@ -17,9 +17,11 @@ import { GetDecisionsTool } from './tools/get-decisions.js';
 import { GetConversationLogTool } from './tools/get-conversation-log.js';
 import { TurnSummarizerInput, TurnSummary } from './turn-summarizer.js';
 import { PhaseSummarizerInput } from './phase-summarizer.js';
-import { EnvoyThread, SpecialMessageConfig, MessageWithMetadata } from '../types/index.js';
+import { EnvoyThread, SpecialMessageConfig, MessageWithMetadata, Model } from '../types/index.js';
 import { VoxContext } from '../infra/vox-context.js';
 import { createLogger } from '../utils/logger.js';
+import { hasOnlyTerminalCalls } from '../utils/tools/terminal-tools.js';
+import { getModelConfig } from '../utils/models/models.js';
 
 const logger = createLogger('Telepathist');
 
@@ -108,6 +110,45 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
     });
 
     return messages;
+  }
+
+  /**
+   * Determines whether the agent should stop execution.
+   * Called after each step to check if the generation should continue.
+   *
+   * @param parameters - The execution parameters
+   * @param lastStep - The most recent step result
+   * @param allSteps - All steps executed so far
+   * @param context - The VoxContext for looking up tool metadata
+   * @returns True if the agent should stop, false to continue
+   */
+  public stopCheck(
+    _parameters: TelepathistParameters,
+    _input: EnvoyThread,
+    lastStep: StepResult<Record<string, Tool>>,
+    allSteps: StepResult<Record<string, Tool>>[],
+    context: VoxContext<TelepathistParameters>
+  ): boolean {
+    // Don't stop on empty responses (no tool calls AND no text)
+    if (lastStep.toolCalls.length === 0 && !lastStep.text?.trim()) {
+      return allSteps.length >= 50;
+    }
+    // Stop when no tools or only terminal calls are issued
+    if (hasOnlyTerminalCalls(lastStep, context.mcpToolMap)) {
+      return true;
+    }
+    return allSteps.length >= 50;
+  }
+
+  /**
+   * Gets the language model to use for this agent execution.
+   * Can return undefined to use the default model from VoxContext.
+   *
+   * @param parameters - The execution parameters
+   * @returns The language model to use, or undefined for default
+   */
+  public getModel(_parameters: TelepathistParameters, _input: unknown, overrides: Record<string, Model | string>): Model {
+    return getModelConfig(this.name, "high", overrides);
   }
 
   /**

@@ -44,7 +44,6 @@ const outputSchema = z.object({
 export class TurnSummarizer extends VoxAgent<TelepathistParameters, TurnSummarizerInput, TurnSummary> {
   readonly name = 'turn-summarizer';
   readonly description = 'Generates per-turn summaries from game state data for the telepathist system';
-  public tags = ['telepathist', 'internal'];
   public outputSchema = outputSchema;
 
   public async getSystem(

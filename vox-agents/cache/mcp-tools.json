@@ -1,0 +1,289 @@
+[
+  {
+    "name": "calculator",
+    "_meta": {}
+  },
+  {
+    "name": "lua-executor",
+    "_meta": {}
+  },
+  {
+    "name": "get-metadata",
+    "_meta": {}
+  },
+  {
+    "name": "set-metadata",
+    "_meta": {}
+  },
+  {
+    "name": "search-database",
+    "_meta": {}
+  },
+  {
+    "name": "get-technology",
+    "_meta": {
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-policy",
+    "_meta": {
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-building",
+    "_meta": {
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-civilization",
+    "_meta": {
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-unit",
+    "_meta": {
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-economic-strategies",
+    "_meta": {
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-military-strategies",
+    "_meta": {
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-victory-progress",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ],
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-military-report",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ],
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-events",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID",
+        "Before",
+        "After",
+        "Original"
+      ],
+      "markdownConfig": [
+        "Turn {key}",
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-diplomatic-events",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID",
+        "OtherPlayerID",
+        "Formatted"
+      ],
+      "markdownConfig": [
+        "Turn {key}",
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-players",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ],
+      "markdownConfig": [
+        "Player {key}"
+      ]
+    }
+  },
+  {
+    "name": "get-opinions",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID",
+        "RevealAll"
+      ],
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-cities",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID",
+        "Owner"
+      ],
+      "markdownConfig": [
+        "Player: {key}",
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "summarize-units",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ],
+      "markdownConfig": [
+        "{key}",
+        "{key} Units",
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "get-options",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID",
+        "Mode"
+      ],
+      "markdownConfig": [
+        "{key}",
+        "{key}",
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "set-strategy",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  },
+  {
+    "name": "set-persona",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  },
+  {
+    "name": "set-relationship",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  },
+  {
+    "name": "set-flavors",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  },
+  {
+    "name": "get-flavors",
+    "_meta": {
+      "markdownConfig": [
+        "{key}"
+      ]
+    }
+  },
+  {
+    "name": "unset-flavors",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  },
+  {
+    "name": "set-research",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  },
+  {
+    "name": "set-policy",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  },
+  {
+    "name": "keep-status-quo",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID",
+        "Mode"
+      ]
+    }
+  },
+  {
+    "name": "relay-message",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  },
+  {
+    "name": "pause-game",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  },
+  {
+    "name": "resume-game",
+    "_meta": {
+      "autoComplete": [
+        "PlayerID"
+      ]
+    }
+  }
+]
