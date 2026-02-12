@@ -8,13 +8,31 @@
 
 import { Tool as VercelTool } from 'ai';
 import { Tool as MCPTool } from '@modelcontextprotocol/sdk/types.js';
-import { ZodType } from 'zod';
+import { z, ZodType } from 'zod';
 import { Kysely } from 'kysely';
 import { TelepathistParameters } from './telepathist-parameters.js';
 import { createSimpleTool } from '../utils/tools/simple-tools.js';
 import { jsonToMarkdown, HeadingConfig } from '../utils/tools/json-to-markdown.js';
 import { VoxContext } from '../infra/vox-context.js';
+import { buildToolSummaryInstruction } from './summarizer.js';
+import { createLogger } from '../utils/logger.js';
 import type { TelemetryDatabase, Span, SpanAttributes } from '../utils/telemetry/schema.js';
+import type { SummarizerInput } from './summarizer.js';
+
+const logger = createLogger('TelepathistTool');
+
+/** Minimum result length (in characters) before summarization kicks in */
+const summarizeThreshold = 2000;
+
+/**
+ * Reusable Zod field for the inquiry parameter.
+ * Tools that enable summarization should spread this into their inputSchema.
+ */
+export const inquiryField = {
+  inquiry: z.string().optional().describe(
+    'What you want to learn from this data. Guides the summary to focus on relevant information.'
+  )
+};
 
 /**
  * Abstract base class that wraps createSimpleTool with shared database query patterns.
@@ -29,12 +47,16 @@ export abstract class TelepathistTool<TInput = any> {
   /** Zod schema defining the tool's input */
   abstract readonly inputSchema: ZodType<TInput>;
 
+  /** Whether this tool's results should be summarized via the Summarizer agent. Tools opt in explicitly. */
+  protected summarize: boolean = false;
+
   /** Reference to MCP tool definitions for dynamic markdownConfig lookup */
   protected mcpToolMap?: Map<string, MCPTool>;
 
   /**
    * Create the AI SDK tool. Captures mcpToolMap from context for dynamic
    * markdownConfig access, then delegates to createSimpleTool for telemetry tracing.
+   * When summarize is true, wraps execute to route long results through the Summarizer agent.
    */
   createTool(context: VoxContext<TelepathistParameters>): VercelTool {
     this.mcpToolMap = context.mcpToolMap;
@@ -42,7 +64,21 @@ export abstract class TelepathistTool<TInput = any> {
       name: this.name,
       description: this.description,
       inputSchema: this.inputSchema,
-      execute: (input, params) => this.execute(input, params)
+      execute: async (input, params) => {
+        const rawResult = await this.execute(input, params);
+
+        if (!this.summarize || rawResult.length < summarizeThreshold) {
+          return rawResult;
+        }
+
+        const inquiry = (input as any)?.inquiry as string | undefined;
+        const instruction = buildToolSummaryInstruction(this.name, inquiry);
+        const summarizerInput: SummarizerInput = { text: rawResult, instruction };
+
+        logger.info(`Summarizing ${this.name} result (${rawResult.length} chars)`, { inquiry });
+        const summary = await context.callAgent<string>('summarizer', summarizerInput, params);
+        return summary ?? rawResult;
+      }
     }, context);
   }
 

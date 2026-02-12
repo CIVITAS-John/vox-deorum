@@ -7,15 +7,16 @@
  */
 
 import { z } from 'zod';
-import { TelepathistTool } from '../telepathist-tool.js';
+import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import type { Span } from '../../utils/telemetry/schema.js';
 
 const inputSchema = z.object({
   turn: z.number().describe('The specific turn to retrieve conversation logs for.'),
-  agent: z.string().optional().describe(
-    'Optional: specific agent name to filter (e.g., "diplomat", "simple-strategist-staffed"). If omitted, shows all agents.'
-  )
+  agent: z.string().describe(
+    'Specific agent name to fetch.'
+  ),
+  ...inquiryField
 });
 
 type GetConversationLogInput = z.infer<typeof inputSchema>;
@@ -26,8 +27,9 @@ type GetConversationLogInput = z.infer<typeof inputSchema>;
  */
 export class GetConversationLogTool extends TelepathistTool<GetConversationLogInput> {
   readonly name = 'get-conversation-log';
-  readonly description = 'Get the full LLM conversation log for a specific turn. Shows system prompts, messages exchanged, tool calls, and responses for each agent that ran during the turn.';
+  readonly description = 'Get the full LLM conversation log for a specific turn. Shows system prompts, messages exchanged, tool calls, and responses for a specific agent that ran during the turn.';
   readonly inputSchema = inputSchema;
+  protected override summarize = true;
 
   async execute(input: GetConversationLogInput, params: TelepathistParameters): Promise<string> {
     const turn = input.turn;
@@ -42,9 +44,7 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
     }
 
     // Filter to specific agent if requested
-    const agentEntries = input.agent
-      ? Object.entries(rootSpans).filter(([name]) => name === input.agent)
-      : Object.entries(rootSpans);
+    const agentEntries = Object.entries(rootSpans).filter(([name]) => name === input.agent);
 
     if (agentEntries.length === 0) {
       const available = Object.keys(rootSpans).join(', ');
@@ -54,7 +54,7 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
     const sections: string[] = [];
 
     for (const [agentName, agentSpans] of agentEntries) {
-      sections.push(`# ${agentName} — Turn ${turn}`);
+      sections.push(`# ${agentName}, Turn ${turn}`);
 
       // Get all steps for this agent
       const parentIds = agentSpans.map(s => s.spanId);

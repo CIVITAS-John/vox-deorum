@@ -15,8 +15,9 @@ import { GetGameOverviewTool } from './tools/get-game-overview.js';
 import { GetGameStateTool } from './tools/get-game-state.js';
 import { GetDecisionsTool } from './tools/get-decisions.js';
 import { GetConversationLogTool } from './tools/get-conversation-log.js';
-import { TurnSummarizerInput, TurnSummary } from './turn-summarizer.js';
-import { PhaseSummarizerInput } from './phase-summarizer.js';
+import { SummarizerInput, TurnSummary, turnSummarySchema, buildTurnSummaryInstruction, buildPhaseSummaryInstruction } from './summarizer.js';
+// @ts-ignore - jaison doesn't have type definitions
+import jaison from 'jaison';
 import { EnvoyThread, SpecialMessageConfig, MessageWithMetadata, Model } from '../types/index.js';
 import { VoxContext } from '../infra/vox-context.js';
 import { createLogger } from '../utils/logger.js';
@@ -280,17 +281,20 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
             continue;
           }
 
-          const summaryInput: TurnSummarizerInput = {
-            turn,
-            gameStateText
+          const summaryInput: SummarizerInput = {
+            text: gameStateText,
+            instruction: buildTurnSummaryInstruction(turn)
           };
 
           parameters.turn = turn;
-          const summary = await context.callAgent<TurnSummary>(
-            'turn-summarizer',
+          const rawSummary = await context.callAgent<string>(
+            'summarizer',
             summaryInput,
             parameters
           );
+
+          // Parse the structured JSON response using the same pattern as VoxAgent.getOutput()
+          const summary = rawSummary ? this.parseTurnSummary(rawSummary) : undefined;
 
           if (summary) {
             context.streamProgress?.(`Turn ${turn}: ${summary.shortSummary}`);
@@ -362,15 +366,17 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
         }
 
         parameters.turn = phase.fromTurn;
-        const input: PhaseSummarizerInput = {
-          fromTurn: phase.fromTurn,
-          toTurn: phase.toTurn,
-          turnSummaries
+        const formattedSummaries = Object.entries(turnSummaries)
+          .map(([turn, summary]) => `## Turn ${turn}\n${summary}`)
+          .join('\n\n');
+        const input: SummarizerInput = {
+          text: `# Turn Summaries: Turns ${phase.fromTurn} to ${phase.toTurn}\n${formattedSummaries}`,
+          instruction: buildPhaseSummaryInstruction(phase.fromTurn, phase.toTurn)
         };
         parameters.turn = phase.toTurn;
 
         const phaseSummary = await context.callAgent<string>(
-          'phase-summarizer',
+          'summarizer',
           input,
           parameters
         );
@@ -391,6 +397,23 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
       } catch (e) {
         logger.error(`Failed to summarize phase ${phase.fromTurn}-${phase.toTurn}`, { error: e });
       }
+    }
+  }
+
+  // --- Parsing helpers ---
+
+  /**
+   * Parse a turn summary from the Summarizer's text response.
+   * Uses the same jaison + code-block stripping pattern as VoxAgent.getOutput().
+   */
+  private parseTurnSummary(rawText: string): TurnSummary | undefined {
+    try {
+      const cleaned = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+      const parsed = jaison(cleaned);
+      return turnSummarySchema.parse(parsed);
+    } catch (e) {
+      logger.error('Failed to parse turn summary from summarizer response', { error: e });
+      return undefined;
     }
   }
 

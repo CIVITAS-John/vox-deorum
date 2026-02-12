@@ -7,7 +7,7 @@
  */
 
 import { z } from 'zod';
-import { TelepathistTool } from '../telepathist-tool.js';
+import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import type { Span } from '../../utils/telemetry/schema.js';
 
@@ -39,7 +39,8 @@ const agentRoles: Record<string, string> = {
 const inputSchema = z.object({
   turns: z.string().describe(
     'Turn(s) to retrieve decisions for. Single ("30"), comma-separated ("10,20,30"), or range ("30-40"). No more than 10 turns at a time.'
-  )
+  ),
+  ...inquiryField
 });
 
 type GetDecisionsInput = z.infer<typeof inputSchema>;
@@ -52,6 +53,7 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
   readonly name = 'get-decisions';
   readonly description = 'Get AI decisions and reasoning for specific turns. Shows what agents were involved, what options were available, what the AI decided, and why.';
   readonly inputSchema = inputSchema;
+  protected override summarize = true;
 
   async execute(input: GetDecisionsInput, params: TelepathistParameters): Promise<string> {
     const turns = this.parseTurns(input.turns, params.availableTurns);
@@ -92,14 +94,14 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
         // Extract reasoning from step responses
         const reasoning = this.extractReasoning(stepSpans);
         if (reasoning) {
-          turnSections.push(`## ${agentName} — Reasoning`);
+          turnSections.push(`## ${agentName} Reasoning`);
           turnSections.push(reasoning);
         }
 
         // Extract decisions from tool calls
         const decisions = await this.extractDecisions(params, stepSpans);
         if (decisions.length > 0) {
-          turnSections.push(`## ${agentName} — Decisions`);
+          turnSections.push(`## ${agentName} Decisions`);
           turnSections.push(...decisions);
         }
       }

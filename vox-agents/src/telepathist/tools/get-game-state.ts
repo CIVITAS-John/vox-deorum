@@ -7,7 +7,7 @@
  */
 
 import { z } from 'zod';
-import { TelepathistTool } from '../telepathist-tool.js';
+import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 
 /** Maps category names to MCP tool names */
@@ -38,7 +38,8 @@ const inputSchema = z.object({
   ),
   categories: z.array(z.string()).optional().describe(
     `Optional filter for specific data categories: ${allCategories.join(', ')}. If omitted, returns all available data.`
-  )
+  ),
+  ...inquiryField
 });
 
 type GetGameStateInput = z.infer<typeof inputSchema>;
@@ -51,6 +52,7 @@ export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
   readonly name = 'get-game-state';
   readonly description = 'Get the actual game state data for specific turns, reconstructed from telemetry.';
   readonly inputSchema = inputSchema;
+  protected override summarize = true;
 
   async execute(input: GetGameStateInput, params: TelepathistParameters): Promise<string> {
     const turns = this.parseTurns(input.turns, params.availableTurns);
