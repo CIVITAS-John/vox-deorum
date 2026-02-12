@@ -27,14 +27,15 @@ npx vitest run <file>    # Specific test
 ### Test Structure
 
 - **Framework**: Vitest (not Jest)
-- **Location**: `tests/*.test.ts`
+- **Location**: `tests/**/*.test.ts` (organized by `connection/` and `routes/`)
 - **Setup**: `tests/setup.ts` for global config
-- **Mock DLL**: `tests/mocks/mock-dll.ts` simulates game DLL
+- **Mock DLL**: `tests/test-utils/mock-dll-server.ts` simulates game DLL
+- **Test Utilities**: `tests/test-utils/` contains helpers, constants, and mock services
 
 ### Mock DLL Usage
 
 ```typescript
-import { MockDLLServer } from './mocks/mock-dll.js';
+import { MockDLLServer } from './test-utils/mock-dll-server.js';
 
 const mockDLL = new MockDLLServer({ pipeName: 'test-pipe', delay: 50 });
 mockDLL.start();
@@ -171,11 +172,14 @@ export const dllConnector = new DLLConnector();
 ```
 bridge-service/
 ├── src/
-│   ├── routes/          # API endpoints
+│   ├── routes/          # API endpoints (lua, external, events)
 │   ├── services/        # Core services (dll-connector, lua-manager, etc.)
 │   ├── types/           # TypeScript interfaces
 │   └── utils/           # Helpers & config
-├── tests/               # Vitest test suite
+├── tests/
+│   ├── connection/      # DLL connection tests (lifecycle, reconnection, etc.)
+│   ├── routes/          # HTTP endpoint tests (lua, external, sse, stats)
+│   └── test-utils/      # Mock DLL server, helpers, constants
 ├── docs/                # Documentation
 ├── examples/            # Example client code
 └── config.json          # Runtime configuration

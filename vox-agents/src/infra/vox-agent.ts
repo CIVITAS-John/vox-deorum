@@ -169,7 +169,8 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   ): Promise<TOutput | undefined> {
     if (finalText === "") return;
     if (this.outputSchema) {
-      return this.outputSchema.parse(finalText);
+      const parsed = typeof finalText === 'string' ? JSON.parse(finalText) : finalText;
+      return this.outputSchema.parse(parsed);
     } else {
       return finalText as any;
     }

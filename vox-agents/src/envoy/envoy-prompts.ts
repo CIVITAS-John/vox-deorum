@@ -44,6 +44,6 @@ Adjust your diplomatic posture accordingly: an ally receives warmth, a rival rec
  */
 export const greetingSpecialMessages: Record<string, SpecialMessageConfig> = {
   "{{{Greeting}}}": {
-    prompt: "Send a one-sentence greeting based on your diplomatic relationship and the audience's identity. Reason about the situation and adjust your tone accordingly."
+    prompt: "Send a one-sentence greeting based on your diplomatic relationship and the audience's identity. Briefly reason about the situation and adjust your tone accordingly."
   }
 };

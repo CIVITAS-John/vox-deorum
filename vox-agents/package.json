@@ -13,6 +13,8 @@
     "briefer:dist": "node --inspect --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/briefer/index.js",
     "strategist": "npm run build && npm run strategist:dist --",
     "strategist:dist": "node --inspect --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js",
+    "telepathist": "npm run build && npm run telepathist:dist --",
+    "telepathist:dist": "node --inspect --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/telepathist/console.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",

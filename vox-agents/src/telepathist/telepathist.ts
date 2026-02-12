@@ -253,6 +253,7 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
           );
 
           if (summary) {
+            context.streamProgress?.(`Turn ${turn}: ${summary.shortSummary}`);
             await parameters.telepathistDb
               .insertInto('turn_summaries')
               .values({
@@ -333,6 +334,7 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
         );
 
         if (phaseSummary) {
+          context.streamProgress?.(`Phase ${phase.fromTurn}–${phase.toTurn}: ${phaseSummary}`);
           await parameters.telepathistDb
             .insertInto('phase_summaries')
             .values({

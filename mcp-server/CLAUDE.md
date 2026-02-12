@@ -2,6 +2,8 @@
 
 This guide provides essential patterns and conventions for the MCP Server that aren't covered in the README.
 
+**Additional documentation in `docs/`:** [DEVELOPMENT.md](docs/DEVELOPMENT.md) (dev guide), [TOOLS.md](docs/TOOLS.md) (tool reference), [KNOWLEDGE.md](docs/KNOWLEDGE.md) (knowledge system). Reference data: `docs/events/`, `docs/flavors/`, `docs/strategies/`.
+
 ## MCP Protocol Implementation
 
 ### Singleton Server Architecture

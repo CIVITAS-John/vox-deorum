@@ -249,11 +249,14 @@ Or in `config.json`:
 ```
 bridge-service/
 ├── src/
-│   ├── routes/          # API endpoints
-│   ├── services/        # Core services
+│   ├── routes/          # API endpoints (lua, external, events)
+│   ├── services/        # Core services (dll-connector, lua-manager, etc.)
 │   ├── types/           # TypeScript interfaces
 │   └── utils/           # Helpers & config
-├── tests/               # Vitest test suite
+├── tests/
+│   ├── connection/      # DLL connection tests
+│   ├── routes/          # HTTP endpoint tests
+│   └── test-utils/      # Mock DLL server & helpers
 ├── docs/                # Documentation
 ├── examples/            # Example client code
 └── config.json          # Runtime configuration

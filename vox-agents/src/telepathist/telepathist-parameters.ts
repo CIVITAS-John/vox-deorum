@@ -82,7 +82,7 @@ export async function createTelepathistParameters(
   });
 
   // Open/create telepathist DB for generated data
-  const telepathistPath = `${databasePath}.telepathist.db`;
+  const telepathistPath = databasePath.replace(/\.db$/, '.telepathist.db');
   const telepathistSqlite = new Database(telepathistPath);
   telepathistSqlite.pragma('journal_mode = WAL');
   telepathistSqlite.pragma('synchronous = NORMAL');
@@ -119,6 +119,7 @@ export async function createTelepathistParameters(
     .select('turn')
     .distinct()
     .where('turn', 'is not', null)
+    .where('turn', '>=', 0)
     .orderBy('turn', 'asc')
     .execute();
 
