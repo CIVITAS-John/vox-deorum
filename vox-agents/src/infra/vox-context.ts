@@ -228,7 +228,7 @@ export class VoxContext<TParameters extends AgentParameters> {
 
     this.lastParameter = parameters;
 
-    const span = this.tracer.startSpan(`agent.${agentName}`, {
+    const span = this.tracer.startSpan(`${agentName}.turn.${parameters.turn}`, {
       attributes: {
         'vox.context.id': this.id,
         'game.turn': String(parameters.turn),
@@ -349,7 +349,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     model: Model,
     callback?: StreamingEventCallback
   ): Promise<{ messages: ModelMessage[], shouldStop: boolean, finalText?: string, inputTokens: number, reasoningTokens: number, outputTokens: number }> {
-    const stepSpan = this.tracer.startSpan(`agent.${agent.name}.step.${stepCount + 1}`, {
+    const stepSpan = this.tracer.startSpan(`${agent.name}.turn.${parameters.turn}.step.${stepCount + 1}`, {
       attributes: {
         'vox.context.id': this.id,
         'game.turn': String(parameters.turn),

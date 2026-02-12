@@ -76,10 +76,10 @@ abstract class TelepathistTool<TInput = any> {
     available: number[]
   ): number[];
 
-  /** Get root spans for given turns (name like 'strategist.turn.%') */
+  /** Get root spans for given turns (name like '%.turn.%') */
   protected async getRootSpans(db, turns: number[]): Promise<Span[]>;
 
-  /** Get agent step spans for given turns (name like 'agent.%.step.%') */
+  /** Get agent step spans for given turns (name like '%.turn.%.step.%') */
   protected async getAgentSteps(db, turns: number[]): Promise<Span[]>;
 
   /** Get MCP tool call spans for given turns, optionally filtered by tool name */
