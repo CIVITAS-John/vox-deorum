@@ -39,7 +39,7 @@ export function cleanToolArtifacts(text: string): string {
  */
 export function buildRescuePrompt(toolChoice: string): string {
   if (toolChoice === "required" || toolChoice === "tool") {
-    return 'Your previous response was empty and did not include any tool calls. You MUST call one or more of the available tools. Please try again.';
+    return 'Your previous response was empty and did not include any tool calls. You MUST call one or more of the available tools in the given format. Please try again.';
   }
-  return 'Your previous response was empty. Please provide either a text response or call one or more of the available tools.';
+  return 'Your previous response was empty. Please provide either a text response or PROPERLY call one or more of the available tools in the given format.';
 }

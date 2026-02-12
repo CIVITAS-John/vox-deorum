@@ -68,17 +68,17 @@ export abstract class TelepathistTool<TInput = any> {
         result = available.filter(t => t >= start && t <= end);
       }
     }
-
     // Comma-separated: "10,20,30"
-    if (trimmed.includes(',')) {
+    else if (trimmed.includes(',')) {
       const requested = trimmed.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
       result = available.filter(t => requested.includes(t));
     }
-
     // Single turn: "30"
-    const single = parseInt(trimmed, 10);
-    if (!isNaN(single)) {
-      result = available.filter(t => t === single);
+    else {
+      const single = parseInt(trimmed, 10);
+      if (!isNaN(single)) {
+        result = available.filter(t => t === single);
+      }
     }
 
     // Trim down to maxLength

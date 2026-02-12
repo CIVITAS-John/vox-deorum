@@ -57,31 +57,28 @@ const completedToolCallIds = computed(() => {
   return ids;
 });
 
-// Normalize content to always be an array of parts, with reasoning parts first
+// Normalize content to an array of parts in chronological order.
 // Tool-result parts are filtered out (their status is shown on the tool-call block)
 const contentParts = computed(() => {
-  const reasoningParts: any[] = [];
-  const otherParts: any[] = [];
+  const parts: any[] = [];
 
   if (typeof props.message.content === 'string') {
     const cleaned = cleanToolArtifacts(props.message.content);
-    if (cleaned) otherParts.push({ type: 'text', text: cleaned });
+    if (cleaned) parts.push({ type: 'text', text: cleaned });
   } else if (Array.isArray(props.message.content)) {
     for (const part of props.message.content) {
-      if (part.type === 'reasoning') {
-        reasoningParts.push(part);
-      } else if (part.type === 'tool-result') {
+      if (part.type === 'tool-result') {
         // Skip - shown inline on the tool-call block
       } else if (part.type === 'text') {
         const cleaned = cleanToolArtifacts(part.text);
-        if (cleaned) otherParts.push({ ...part, text: cleaned });
+        if (cleaned) parts.push({ ...part, text: cleaned });
       } else {
-        otherParts.push(part);
+        parts.push(part);
       }
     }
   }
 
-  return [...reasoningParts, ...otherParts];
+  return parts;
 });
 </script>
 
