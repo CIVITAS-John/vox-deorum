@@ -21,20 +21,12 @@ export interface GameIdentifierInfo {
  * Handles formats like:
  * - `{gameID}-player-{playerID}` (VoxContext format)
  * - `{gameID}-{playerID}` (telemetry format)
- * - `telepathist-{gameID}-{playerID}-{timestamp}` (telepathist format)
  *
  * @param contextId - The context identifier to parse
  * @returns Parsed game and player information
  */
 export function parseContextIdentifier(contextId: string): GameIdentifierInfo {
   const parts = contextId.split('-');
-
-  // Handle telepathist format: telepathist-{gameID}-{playerID}-{timestamp}
-  if (parts[0] === 'telepathist' && parts.length >= 4) {
-    const playerID = parseInt(parts[parts.length - 2] || '0', 10);
-    const gameID = parts.slice(1, -2).join('-') || 'unknown';
-    return { gameID, playerID };
-  }
 
   // Handle VoxContext format: {gameID}-player-{playerID}
   if (parts.length >= 3 && parts[parts.length - 2] === 'player') {
@@ -98,21 +90,4 @@ export function parseDatabaseIdentifier(databasePath: string, basePath?: string)
  */
 export function createContextId(gameID: string, playerID: number): string {
   return `${gameID}-player-${playerID}`;
-}
-
-/**
- * Create a telepathist context identifier from game and player IDs.
- * Returns format: `telepathist-{gameID}-{playerID}-{timestamp}`
- *
- * @param gameID - The game identifier
- * @param playerID - The player identifier
- * @param timestamp - Optional timestamp (defaults to Date.now())
- * @returns Formatted telepathist context ID
- */
-export function createTelepathicContextId(
-  gameID: string,
-  playerID: number,
-  timestamp: number = Date.now()
-): string {
-  return `telepathist-${gameID}-${playerID}-${timestamp}`;
 }

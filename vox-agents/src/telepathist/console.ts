@@ -25,7 +25,7 @@ import {
 } from './telepathist-parameters.js';
 import {
   parseDatabaseIdentifier,
-  createTelepathicContextId
+  createContextId
 } from '../utils/identifier-parser.js';
 import { StreamingEventCallback, EnvoyThread } from '../types/index.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -101,7 +101,7 @@ async function main() {
   const params = await createTelepathistParameters(databasePath, identifierInfo);
 
   // Create context
-  const contextId = createTelepathicContextId(identifierInfo.gameID, identifierInfo.playerID);
+  const contextId = createContextId(identifierInfo.gameID, identifierInfo.playerID);
   const voxContext = new VoxContext<TelepathistParameters>({}, contextId);
   voxContext.lastParameter = params;
 

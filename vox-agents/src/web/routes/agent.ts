@@ -15,9 +15,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { ModelMessage } from 'ai';
 import fs from 'fs/promises';
 import {
+  createContextId,
   parseContextIdentifier,
   parseDatabaseIdentifier,
-  createTelepathicContextId
 } from '../../utils/identifier-parser.js';
 import { StrategistParameters, getRecentGameState, ensureGameState } from '../../strategist/strategy-parameters.js';
 import { createTelepathistParameters, TelepathistParameters } from '../../telepathist/telepathist-parameters.js';
@@ -123,7 +123,7 @@ export function createAgentRoutes(): Router {
           playerID = identifierInfo.playerID;
 
           // Create a new VoxContext for telepathist mode (database-based)
-          effectiveContextId = createTelepathicContextId(gameID, playerID);
+          effectiveContextId = createContextId(gameID, playerID);
           const context = new VoxContext<TelepathistParameters>({}, effectiveContextId);
           await context.registerTools();
 

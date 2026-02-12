@@ -14,6 +14,8 @@ import { VoxContext } from "./vox-context.js";
 import { getModelConfig } from "../utils/models/models.js";
 import { hasOnlyTerminalCalls } from "../utils/tools/terminal-tools.js";
 import { buildRescuePrompt } from "../utils/text-cleaning.js";
+// @ts-ignore - jaison doesn't have type definitions
+import jaison from 'jaison';
 
 /**
  * Parameters for configuring agent execution.
@@ -169,7 +171,10 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   ): Promise<TOutput | undefined> {
     if (finalText === "") return;
     if (this.outputSchema) {
-      const parsed = typeof finalText === 'string' ? JSON.parse(finalText) : finalText;
+      const cleanedText = typeof finalText === 'string'
+        ? finalText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '')
+        : finalText;
+      const parsed = typeof cleanedText === 'string' ? jaison(cleanedText) : cleanedText;
       return this.outputSchema.parse(parsed);
     } else {
       return finalText as any;
