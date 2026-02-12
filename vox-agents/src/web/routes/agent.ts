@@ -287,7 +287,7 @@ export function createAgentRoutes(): Router {
 
       // Set up streamProgress for non-LLM progress updates (e.g., telepathist initialization)
       voxContext.streamProgress = (message: string) => {
-        sendEvent('message', { type: 'text-delta', textDelta: message + '\n' });
+        sendEvent('message', { type: 'text-delta', text: message + '\n', id: 'progress' });
       };
 
       const params = voxContext.lastParameter!;

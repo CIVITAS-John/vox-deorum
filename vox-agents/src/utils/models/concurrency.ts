@@ -15,6 +15,9 @@ import { AgentParameters } from '../../infra/vox-agent.js';
 /** Map of model IDs to their p-limit instances */
 const modelLimiters = new Map<string, ReturnType<typeof pLimit>>();
 
+/** Monotonic counter to ensure unique chunk IDs across streamText calls */
+let streamCallCounter = 0;
+
 /**
  * Get or create a p-limit instance for a specific model.
  * Each model gets its own isolated concurrency limiter.
@@ -103,10 +106,18 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
       // Also discard late returns if a previous aborted attempt gets resurrected
       const originalOnChunk = params.onChunk;
       const originalOnStepFinish = params.onStepFinish;
+      const callId = streamCallCounter++;
       const modifiedParams = {
         ...params,
         onChunk: (args: any) => {
-          if (maxIteration === iteration) originalOnChunk?.(args);
+          if (maxIteration !== iteration) return;
+          // Prefix chunk IDs with call counter to prevent block merging across steps
+          const chunk = args.chunk;
+          if (chunk?.id) {
+            originalOnChunk?.({ chunk: { ...chunk, id: `${callId}-${chunk.id}` } });
+          } else {
+            originalOnChunk?.(args);
+          }
         },
         onStepFinish: (results: any) => {
           if (maxIteration === iteration) originalOnStepFinish?.(results);
