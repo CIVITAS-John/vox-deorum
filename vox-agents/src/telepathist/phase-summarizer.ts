@@ -42,14 +42,15 @@ export class PhaseSummarizer extends VoxAgent<TelepathistParameters, PhaseSummar
 Create a concise narrative summary of this phase based on the individual turn summaries provided. This summary will serve as high-level context for a conversation about the game.
 
 # Writing
-- Write in past tense from a historian's perspective, not the leader's
-- Mention specific civilizations, cities, technologies, and policies by name
-- Keep it to one paragraph: concise but enough for context
+- Write in past tense from a historian's perspective, not the leader's.
+- Mention specific civilizations, cities, technologies, and policies by name.
+- Keep it to one paragraph: concise but enough for context.
 
 # Guidelines
-- Identify the dominant themes and narrative arcs of this phase
-- Highlight major turning points: wars declared/ended, key technologies, policy adoptions, new cities
-- Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?`.trim();
+- Identify the dominant themes and narrative arcs of this phase.
+- Highlight major turning points: wars declared/ended, key technologies, policy adoptions, new cities.
+- Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?
+- The history happened in a generated world, and the geography had nothing to do with the real Earth.`.trim();
   }
 
   public async getInitialMessages(

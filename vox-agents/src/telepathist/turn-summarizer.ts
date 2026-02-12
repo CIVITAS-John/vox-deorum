@@ -59,19 +59,20 @@ Summarize the game state for turn ${input.turn}. You will receive the raw game d
 
 # Output Format
 Respond with a JSON object containing:
-- "fullSummary": A detailed paragraph covering all significant aspects: military situation, economic state, diplomatic changes, research progress, and strategic direction
-- "shortSummary": 1-2 sentences capturing the most important events/decisions of this turn
+- "fullSummary": A detailed paragraph covering all significant aspects: military situation, economic state, diplomatic changes, research progress, and strategic direction.
+- "shortSummary": 1-2 sentences capturing the most important events/decisions of this turn.
 
 # Writing
-- Write in past tense from a historian's perspective, not the leader's
-- Mention specific civilizations, cities, technologies, and policies by name
+- Write in past tense from a historian's perspective, not the leader's.
+- Mention specific civilizations, cities, technologies, and policies by name.
 
 # Guidelines
-- Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts
-- Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions)
-- Carefully distinguish between what is truth (game state) and what is perception of the leader
-  - "Rationale" under the Options heading reflects the leader's perspective and can deviate from the reality
-  - "RelayedMessage" type of events reflects the intelligence gathered by the government and can be incorrect`.trim();
+- Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts.
+- Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions).
+- Carefully distinguish between what is truth (game state) and what is perception of the leader.
+  - "Rationale" under the Options heading reflects the leader's perspective and can deviate from the reality.
+  - "RelayedMessage" type of events reflects the intelligence gathered by the government and can be incorrect.
+- The history happened in a generated world, and the geography had nothing to do with the real Earth.`.trim();
   }
 
   public async getInitialMessages(
