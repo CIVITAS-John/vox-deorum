@@ -123,68 +123,11 @@
   </div>
 
   <!-- Span Details Dialog -->
-  <Dialog
+  <DetailDialog
     v-model:visible="showSpanDetails"
-    :header="selectedSpan?.name"
-    modal
-    :style="{ width: '80rem' }"
-    :breakpoints="{ '1400px': '90vw', '960px': '95vw', '640px': '100vw' }"
-    :closeOnEscape="true"
-  >
-    <div v-if="selectedSpan" class="span-details-content">
-      <div class="detail-row">
-        <strong>Span ID:</strong>
-        <span>{{ selectedSpan.spanId }}</span>
-        <Tag
-          :value="getStatusText(selectedSpan.statusCode)"
-          :severity="getStatusSeverity(selectedSpan.statusCode)"
-        />
-      </div>
-      <div class="detail-row">
-        <strong>Time:</strong>
-        <span>{{ formatTimestamp(selectedSpan.startTime) }} ~ {{ formatTimestamp(selectedSpan.endTime) }}</span>
-      </div>
-      <div class="detail-row">
-        <strong>Duration:</strong>
-        <span>{{ formatDuration(selectedSpan.durationMs) }}</span>
-      </div>
-      <div v-if="selectedSpan.statusMessage" class="detail-row">
-        <strong>Status Message:</strong>
-        <span class="error-message">{{ selectedSpan.statusMessage }}</span>
-      </div>
-
-      <!-- Divider line if attributes exist -->
-      <hr v-if="selectedSpan.attributes && Object.keys(selectedSpan.attributes).length > 0"
-          class="details-divider" />
-
-      <!-- Attributes -->
-      <div
-        v-for="(value, key) in selectedSpan.attributes"
-        :key="key"
-        class="detail-row"
-      >
-        <strong>{{ key }}:</strong>
-        <span v-if="typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'">{{ value }}</span>
-        <!-- Use AIMessagesViewer for AI message-like data -->
-        <div v-else-if="isAIMessageData(value)" class="ai-messages-container">
-          <AIMessagesViewer :messages="value" />
-        </div>
-        <div v-else class="json-container">
-          <VueJsonPretty
-            :data="value"
-            :show-icon="true"
-            :show-line-number="false"
-            :deep="3"
-            :collapsed-on-click-brackets="true"
-            :show-double-quotes="true"
-            :virtual="false"
-            :highlight-selected-node="false"
-            class="json-pretty"
-          />
-        </div>
-      </div>
-    </div>
-  </Dialog>
+    :header="selectedSpan?.name ?? ''"
+    :entries="spanDetailEntries"
+  />
 </template>
 
 <script setup lang="ts">
@@ -196,13 +139,9 @@
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue';
 import { VList } from 'virtua/vue';
 import Button from 'primevue/button';
-import Card from 'primevue/card';
 import Tag from 'primevue/tag';
 import Toolbar from 'primevue/toolbar';
-import Dialog from 'primevue/dialog';
-import VueJsonPretty from 'vue-json-pretty';
-import 'vue-json-pretty/lib/styles.css';
-import AIMessagesViewer from './AIMessagesViewer.vue';
+import DetailDialog, { type DetailEntry } from './DetailDialog.vue';
 import type { Span } from '../utils/types';
 import {
   formatDuration,
@@ -227,6 +166,29 @@ const props = defineProps<{
 const selectedSpan = ref<Span | null>(null);
 const showSpanDetails = ref(false);
 const expandedSpans = ref<Set<string>>(new Set());
+
+// Build detail entries for the selected span
+const spanDetailEntries = computed<DetailEntry[]>(() => {
+  if (!selectedSpan.value) return [];
+  const span = selectedSpan.value;
+  const entries: DetailEntry[] = [
+    { label: 'Span ID', value: `${span.spanId}  [${getStatusText(span.statusCode)}]` },
+    { label: 'Time', value: `${formatTimestamp(span.startTime)} ~ ${formatTimestamp(span.endTime)}` },
+    { label: 'Duration', value: formatDuration(span.durationMs) },
+  ];
+  if (span.statusMessage) {
+    entries.push({ label: 'Status Message', value: span.statusMessage });
+  }
+  // Attributes section with divider on first entry
+  if (span.attributes && typeof span.attributes === 'object') {
+    let first = true;
+    for (const [key, value] of Object.entries(span.attributes)) {
+      entries.push({ label: key, value, dividerBefore: first });
+      first = false;
+    }
+  }
+  return entries;
+});
 const virtualScroller = ref<any>();
 const spanContainer = ref<HTMLElement>();
 const scrollerHeight = ref('600px');
@@ -374,13 +336,6 @@ function tryParseJSON(str: string): any {
   }
 }
 
-/**
- * Check if the value contains AI message data
- */
-function isAIMessageData(value: any): boolean {
-  return Array.isArray(value) && value.length > 0 && value[0]?.role !== undefined;
-}
-
 onMounted(() => {
   calculateScrollerHeight();
   // Auto-expand all spans by default
@@ -414,90 +369,6 @@ onUnmounted(() => {
 .spans-content {
   flex: 1;
   overflow: hidden;
-}
-
-.span-details-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.detail-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: flex-start;
-}
-
-.detail-row strong {
-  min-width: 160px;
-}
-
-.detail-row span {
-  flex: 1;
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-
-.json-container,
-.ai-messages-container {
-  flex: 1;
-  border: 1px solid var(--p-content-border-color);
-  border-radius: var(--p-border-radius);
-}
-
-.json-container {
-  padding: 0.5rem;
-  background: var(--p-content-hover-background);
-  overflow-x: auto;
-}
-
-.ai-messages-container {
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.json-pretty {
-  font-family: monospace;
-  font-size: 0.875rem;
-}
-
-/* Override vue-json-pretty default colors for better integration with PrimeVue themes */
-:deep(.vjs-tree) {
-  color: var(--p-text-color) !important;
-}
-
-:deep(.vjs-key) {
-  color: var(--p-primary-color) !important;
-}
-
-:deep(.vjs-value__string) {
-  color: var(--p-green-500) !important;
-}
-
-:deep(.vjs-value__number) {
-  color: var(--p-blue-500) !important;
-}
-
-:deep(.vjs-value__boolean) {
-  color: var(--p-orange-500) !important;
-}
-
-:deep(.vjs-value__null) {
-  color: var(--p-gray-500) !important;
-}
-
-:deep(.vjs-tree__brackets) {
-  color: var(--p-text-muted-color) !important;
-}
-
-.error-message {
-  color: var(--p-red-500);
-}
-
-.details-divider {
-  border: none;
-  border-top: 1px solid var(--p-content-border-color);
-  margin: 0.5rem 0;
 }
 
 .autoscroll-indicator {

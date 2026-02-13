@@ -9,6 +9,7 @@
 import { z } from 'zod';
 import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
+import { cleanToolArtifacts, formatToolCallText, formatToolResultText } from '../../utils/text-cleaning.js';
 import type { Span } from '../../utils/telemetry/schema.js';
 
 const inputSchema = z.object({
@@ -70,20 +71,23 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
         continue;
       }
 
-      // For each step, extract the conversation messages and responses
-      for (let i = 0; i < stepSpans.length; i++) {
-        const step = stepSpans[i];
+      // Track seen messages across steps to avoid repeating the growing conversation history
+      const seenMessages = new Set<string>();
+      let stepNumber = 0;
+
+      for (const step of stepSpans) {
         const attrs = this.parseAttributes(step);
 
-        // Step header
-        sections.push(`## Step ${i + 1}`);
+        // Collect step content before deciding whether to include it
+        const stepSections: string[] = [];
+        let hasTextResponse = false;
 
-        // Messages sent to the LLM
+        // Messages sent to the LLM (deduplicated across steps)
         const messages = attrs['step.messages'];
         if (messages) {
-          const conversation = this.formatMessages(messages);
+          const conversation = this.formatMessages(messages, seenMessages);
           if (conversation) {
-            sections.push(conversation);
+            stepSections.push(conversation);
           }
         }
 
@@ -92,7 +96,8 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
         if (responses) {
           const responseText = this.formatResponses(responses);
           if (responseText) {
-            sections.push(responseText);
+            hasTextResponse = true;
+            stepSections.push(responseText);
           }
         }
 
@@ -104,20 +109,29 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
           .orderBy('startTime', 'asc')
           .execute();
 
-        if (toolCallSpans.length > 0) {
+        const hasToolCalls = toolCallSpans.length > 0;
+
+        if (hasToolCalls) {
           const toolSection = this.formatToolCalls(toolCallSpans);
           if (toolSection) {
-            sections.push(toolSection);
+            stepSections.push(toolSection);
           }
         }
+
+        // Skip botched steps (no text response and no tool calls)
+        if (!hasTextResponse && !hasToolCalls) continue;
+
+        stepNumber++;
+        sections.push(`## Step ${stepNumber}`);
+        sections.push(...stepSections);
       }
     }
 
     return sections.join('\n\n');
   }
 
-  /** Format messages array for display */
-  private formatMessages(messages: any): string | null {
+  /** Format messages array for display, skipping previously seen messages */
+  private formatMessages(messages: any, seenMessages: Set<string>): string | null {
     try {
       const parsed = typeof messages === 'string' ? JSON.parse(messages) : messages;
       if (!Array.isArray(parsed) || parsed.length === 0) return null;
@@ -125,25 +139,27 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
       const parts: string[] = [];
 
       for (const msg of parsed) {
+        // Deduplicate across steps
+        const msgKey = JSON.stringify(msg);
+        if (seenMessages.has(msgKey)) continue;
+        seenMessages.add(msgKey);
+
         const role = msg.role || 'unknown';
         const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
 
         if (typeof msg.content === 'string') {
           if (!msg.content.trim()) continue;
-          // Truncate very long system prompts
-          const content = role === 'system' && msg.content.length > 2000
-            ? msg.content.substring(0, 2000) + '\n... (truncated)'
-            : msg.content;
-          parts.push(`**[${roleLabel}]**\n${content}`);
+          parts.push(`**[${roleLabel}]**\n${msg.content}`);
         } else if (Array.isArray(msg.content)) {
           const textParts: string[] = [];
           for (const part of msg.content) {
             if (part.type === 'text' && part.text?.trim()) {
               textParts.push(part.text);
             } else if (part.type === 'tool-call') {
-              textParts.push(`*[Tool Call: ${part.toolName}]*`);
+              textParts.push(formatToolCallText(part.toolName, part.args));
             } else if (part.type === 'tool-result') {
-              textParts.push(`*[Tool Result]*`);
+              const resultText = typeof part.result === 'string' ? part.result : JSON.stringify(part.result);
+              textParts.push(formatToolResultText(part.toolName ?? 'unknown', resultText));
             }
           }
           if (textParts.length > 0) {
@@ -158,7 +174,7 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
     }
   }
 
-  /** Format response messages for display */
+  /** Format response messages for display, filtering through cleanToolArtifacts */
   private formatResponses(responses: any): string | null {
     try {
       const parsed = typeof responses === 'string' ? JSON.parse(responses) : responses;
@@ -168,16 +184,22 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
 
       for (const msg of parsed) {
         if (msg.role === 'assistant') {
-          if (typeof msg.content === 'string' && msg.content.trim()) {
-            parts.push(`**[Assistant Response]**\n${msg.content.trim()}`);
+          if (typeof msg.content === 'string') {
+            const cleaned = cleanToolArtifacts(msg.content);
+            if (cleaned) {
+              parts.push(`**[Assistant Response]**\n${cleaned}`);
+            }
           } else if (Array.isArray(msg.content)) {
             for (const part of msg.content) {
-              if (part.type === 'text' && part.text?.trim()) {
-                parts.push(`**[Assistant]**\n${part.text.trim()}`);
+              if (part.type === 'text') {
+                const cleaned = cleanToolArtifacts(part.text ?? '');
+                if (cleaned) {
+                  parts.push(`**[Assistant]**\n${cleaned}`);
+                }
               } else if (part.type === 'reasoning' && part.text?.trim()) {
                 parts.push(`**[Reasoning]**\n*${part.text.trim()}*`);
               } else if (part.type === 'tool-call') {
-                parts.push(`**[Tool Call: ${part.toolName}]**\n\`\`\`json\n${JSON.stringify(part.args, null, 2)}\n\`\`\``);
+                parts.push(formatToolCallText(part.toolName, part.args));
               }
             }
           }
@@ -190,32 +212,25 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
     }
   }
 
-  /** Format tool call spans for display */
+  /** Format tool call spans using shared formatting functions */
   private formatToolCalls(spans: Span[]): string | null {
-    const parts: string[] = ['### Tool Calls'];
+    const parts: string[] = [];
 
     for (const span of spans) {
       const toolName = span.name.replace(/^(mcp-tool\.|simple-tool\.)/, '');
       const input = this.getToolInput(span);
       const output = this.getToolOutput(span);
 
-      const callParts: string[] = [`**${toolName}**`];
-
       if (input) {
-        // Show a compact version of input
-        const inputStr = JSON.stringify(input);
-        callParts.push(`Input: ${inputStr.length > 500 ? inputStr.substring(0, 500) + '...' : inputStr}`);
+        parts.push(formatToolCallText(toolName, input));
       }
 
       if (output) {
-        // Show a compact version of output
-        const outputStr = typeof output === 'string' ? output : JSON.stringify(output);
-        callParts.push(`Output: ${outputStr.length > 500 ? outputStr.substring(0, 500) + '...' : outputStr}`);
+        const formattedOutput = this.formatToolOutput(toolName, output);
+        parts.push(formatToolResultText(toolName, formattedOutput));
       }
-
-      parts.push(callParts.join('\n'));
     }
 
-    return parts.length > 1 ? parts.join('\n\n') : null;
+    return parts.length > 0 ? parts.join('\n\n') : null;
   }
 }

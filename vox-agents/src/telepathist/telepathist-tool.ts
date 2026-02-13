@@ -22,7 +22,7 @@ import type { SummarizerInput } from './summarizer.js';
 const logger = createLogger('TelepathistTool');
 
 /** Minimum result length (in characters) before summarization kicks in */
-const summarizeThreshold = 2000;
+const summarizeThreshold = 5000;
 
 /**
  * Reusable Zod field for the inquiry parameter.

@@ -194,6 +194,11 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
     return typeof last.message.content === 'string' && last.message.content === '{{{Initialize}}}';
   }
 
+  /** Strips turn markers from messages to avoid confusing historical turn references */
+  protected override convertToModelMessages(messages: MessageWithMetadata[]): ModelMessage[] {
+    return messages.map(item => ({ ...item.message }));
+  }
+
   /** Filters out special messages from message history */
   protected filterSpecialMessages(messages: MessageWithMetadata[]): MessageWithMetadata[] {
     const specialMessages = this.getSpecialMessages();

@@ -76,13 +76,24 @@
 
 .message-content :deep(th) {
   margin-bottom: 0.25rem;
-  padding-right: 0.25rem;
+  border-bottom: 1px solid var(--p-surface-700);
+}
+
+.message-content :deep(td),
+.message-content :deep(th) {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
   padding-bottom: 0.25rem;
-  border-bottom: 1px solid var(--p-primary-600);
+}
+
+.message-content :deep(tr:nth-child(even)) {
+  background: var(--p-surface-800);
+
 }
 
 .message-content :deep(td) {
-  padding-right: 0.25rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
   padding-bottom: 0.25rem;
 }
 

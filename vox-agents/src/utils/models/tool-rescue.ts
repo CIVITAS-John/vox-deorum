@@ -7,10 +7,12 @@
  */
 import { tool, type LanguageModelMiddleware, type Tool } from 'ai';
 import { createLogger } from '../logger.js';
-import { LanguageModelV2FunctionTool, LanguageModelV2ProviderDefinedTool, LanguageModelV2StreamPart, LanguageModelV2Text, LanguageModelV2ToolCall, LanguageModelV2ToolChoice } from '@ai-sdk/provider';
+import { LanguageModelV2FunctionTool, LanguageModelV2Message, LanguageModelV2Prompt, LanguageModelV2ProviderDefinedTool, LanguageModelV2StreamPart, LanguageModelV2ToolCall, LanguageModelV2ToolChoice, LanguageModelV2ToolResultPart } from '@ai-sdk/provider';
 
 // @ts-ignore - jaison doesn't have type definitions
 import jaison from 'jaison';
+import { jsonToMarkdown } from '../tools/json-to-markdown.js';
+import { formatToolCallText, formatToolResultText } from '../text-cleaning.js';
 
 const logger = createLogger("tool-rescue");
 
@@ -353,6 +355,90 @@ function emitRemainingText(
 }
 
 /**
+ * Serializes a tool result part's output into readable text.
+ */
+function formatToolResultOutput(part: LanguageModelV2ToolResultPart): string | undefined {
+  const output = part.output;
+  let resultText: string;
+
+  switch (output.type) {
+    case 'text':
+      resultText = output.value;
+      break;
+    case 'json':
+      if (typeof(output.value) === "string")
+        resultText = output.value;
+      else resultText = jsonToMarkdown(output.value);
+      break;
+    case 'error-text':
+      resultText = `Error: ${output.value}`;
+      break;
+    case 'error-json':
+      resultText = `Error: ${jsonToMarkdown(output.value)}`;
+      break;
+    case 'content':
+      return undefined;
+    default:
+      resultText = JSON.stringify(output);
+  }
+
+  return formatToolResultText(part.toolName, resultText);
+}
+
+/**
+ * Converts tool-call and tool-result messages in a prompt to text-based equivalents.
+ * Used in prompt mode so the model sees a consistent text-based conversation history
+ * instead of native tool-call/tool-result parts it never produced.
+ */
+export function convertPromptToolMessagesToText(prompt: LanguageModelV2Prompt): LanguageModelV2Prompt {
+  const converted: LanguageModelV2Message[] = [];
+
+  for (const message of prompt) {
+    if (message.role === 'assistant') {
+      // Convert tool-call/tool-result parts to text in a single pass
+      const newContent: typeof message.content = [];
+      for (const part of message.content) {
+        if (part.type === 'tool-call') {
+          let args = part.input;
+          if (typeof args === 'string') {
+            try { args = JSON.parse(args); } catch { /* keep as-is */ }
+          }
+          newContent.push({ type: 'text', text: formatToolCallText(part.toolName, args) });
+          continue;
+        } else if (part.type === 'tool-result') {
+          const formatted = formatToolResultOutput(part);
+          if (formatted) newContent.push({ type: 'text', text: formatted });
+          continue;
+        }
+        newContent.push(part);
+      }
+
+      converted.push({ ...message, content: newContent });
+
+    } else if (message.role === 'tool') {
+      // Convert tool message to user message with text content
+      const textParts = message.content
+        .map(part => formatToolResultOutput(part))
+        .filter((text): text is string => text !== undefined)
+        .map(text => ({ type: 'text' as const, text }));
+
+      // Merge into previous user message if one exists, to avoid consecutive user messages
+      const prev = converted[converted.length - 1];
+      if (prev && prev.role === 'user') {
+        prev.content = [...prev.content, ...textParts];
+      } else {
+        converted.push({ role: 'user', content: textParts });
+      }
+
+    } else {
+      converted.push(message);
+    }
+  }
+
+  return converted;
+}
+
+/**
  * Creates a tool rescue middleware for language models.
  * This middleware intercepts generate operations to detect and transform
  * JSON tool calls embedded in text responses into proper tool-call format.
@@ -374,11 +460,12 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
       // Create tool instruction prompt with full tool schemas
       const toolPrompt = createToolPrompts(params.tools, params.toolChoice ?? { type: "auto" });
 
-      // Modify the prompt to include tool instructions
-      const originalPrompt = params.prompt ?? [];
+      // Convert existing tool-call/tool-result messages to text so the model
+      // sees a consistent text-based history instead of native tool parts it never produced
+      const convertedPrompt = convertPromptToolMessagesToText(params.prompt ?? []);
       const modifiedPrompt: any = [
         { role: 'system', content: toolPrompt },
-        ...originalPrompt
+        ...convertedPrompt
       ];
 
       // Return modified params without tools (since we're using JSON format)

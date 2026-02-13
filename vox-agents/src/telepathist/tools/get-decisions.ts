@@ -140,7 +140,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
     if (optionSpans.length > 0) {
       const output = this.getToolOutput(optionSpans[0]);
       if (output) {
-        turnSections.push('## Strategic Options Available');
         turnSections.push(this.formatToolOutput('get-options', output));
       }
     }

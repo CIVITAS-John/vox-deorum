@@ -16,7 +16,8 @@
       <ToolCallMessage
         v-if="part.type === 'tool-call'"
         :tool-name="part.toolName"
-        :args="part.args"
+        :args="part.input"
+        :result="toolResultsByCallId.get(part.toolCallId)"
         :completed="completedToolCallIds.has(part.toolCallId)"
       />
       <!-- Tool results are shown inline on the tool-call block -->
@@ -55,6 +56,19 @@ const completedToolCallIds = computed(() => {
     }
   }
   return ids;
+});
+
+// Map tool call IDs to their result data for the detail dialog
+const toolResultsByCallId = computed(() => {
+  const map = new Map<string, unknown>();
+  if (Array.isArray(props.message.content)) {
+    for (const part of props.message.content) {
+      if (part.type === 'tool-result') {
+        map.set(part.toolCallId, part.output);
+      }
+    }
+  }
+  return map;
 });
 
 // Normalize content to an array of parts in chronological order.
