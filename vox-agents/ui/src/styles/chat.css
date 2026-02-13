@@ -64,6 +64,28 @@
   padding-left: 2rem;
 }
 
+.message-content :deep(h1),
+.message-content :deep(h2),
+.message-content :deep(h3) {
+  margin-top: 0.5rem;
+}
+
+.message-content :deep(table) {
+  font-size: 0.9rem;
+}
+
+.message-content :deep(th) {
+  margin-bottom: 0.25rem;
+  padding-right: 0.25rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--p-primary-600);
+}
+
+.message-content :deep(td) {
+  padding-right: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
 .message-content :deep(hr) {
   margin: 1rem 0;
 }
