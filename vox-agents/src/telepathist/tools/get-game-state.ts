@@ -34,7 +34,7 @@ const categoryLabelMap: Record<string, string> = {
 
 const inputSchema = z.object({
   turns: z.string().describe(
-    'Turn(s) to retrieve game state for. Single ("30"), comma-separated ("10,20,30"), or range ("30-40"). No more than 10 turns at a time.'
+    'Turn(s) to retrieve game state for. Single ("30"), comma-separated ("10,20,30"), or range ("30-34"). No more than 5 turns at a time.'
   ),
   categories: z.array(z.string()).optional().describe(
     `Optional filter for specific data categories: ${allCategories.join(', ')}. If omitted, returns all available data.`
@@ -54,10 +54,10 @@ export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
   readonly inputSchema = inputSchema;
   protected override summarize = true;
 
-  async execute(input: GetGameStateInput, params: TelepathistParameters): Promise<string> {
-    const turns = this.parseTurns(input.turns, params.availableTurns);
+  async execute(input: GetGameStateInput, params: TelepathistParameters): Promise<string[]> {
+    const turns = this.parseTurns(input.turns, params.availableTurns, 5);
     if (turns.length === 0) {
-      return 'No turns found in the requested range.';
+      return ['No turns found in the requested range.'];
     }
 
     const requestedCategories = input.categories && input.categories.length > 0
@@ -65,7 +65,7 @@ export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
       : allCategories;
 
     if (requestedCategories.length === 0) {
-      return `Invalid categories. Available: ${allCategories.join(', ')}`;
+      return [`Invalid categories. Available: ${allCategories.join(', ')}`];
     }
 
     const sections: string[] = [];
@@ -125,6 +125,6 @@ export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
       sections.push(turnSections.join('\n'));
     }
 
-    return sections.join('\n\n');
+    return sections;
   }
 }

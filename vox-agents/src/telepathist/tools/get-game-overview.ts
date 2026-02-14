@@ -12,7 +12,7 @@ import { TelepathistParameters } from '../telepathist-parameters.js';
 
 const inputSchema = z.object({
   turns: z.string().describe(
-    'Turn range to get overviews for. Single turn ("30"), comma-separated ("10,20,30"), or range ("30-40"). No more than 10 turns at a time.'
+    'Turn range to get overviews for. Single turn ("30"), comma-separated ("10,20,30"), or range ("30-39"). No more than 20 turns at a time.'
   )
 });
 
@@ -27,11 +27,11 @@ export class GetGameOverviewTool extends TelepathistTool<GetGameOverviewInput> {
   readonly description = 'Get detailed per-turn summaries for a range of turns. Use this to understand what happened during specific turns or time periods.';
   readonly inputSchema = inputSchema;
 
-  async execute(input: GetGameOverviewInput, params: TelepathistParameters): Promise<string> {
-    const turns = this.parseTurns(input.turns, params.availableTurns);
+  async execute(input: GetGameOverviewInput, params: TelepathistParameters): Promise<string[]> {
+    const turns = this.parseTurns(input.turns, params.availableTurns, 20);
 
     if (turns.length === 0) {
-      return 'No turns found in the requested range.';
+      return ['No turns found in the requested range.'];
     }
 
     // Read summaries from the telepathist DB
@@ -43,7 +43,7 @@ export class GetGameOverviewTool extends TelepathistTool<GetGameOverviewInput> {
       .execute();
 
     if (summaries.length === 0) {
-      return 'No summaries available for the requested turns. Summaries are generated during session initialization.';
+      return ['No summaries available for the requested turns. Summaries are generated during session initialization.'];
     }
 
     const sections: string[] = [];
@@ -59,6 +59,6 @@ export class GetGameOverviewTool extends TelepathistTool<GetGameOverviewInput> {
       sections.push(`\n*Note: No summaries available for turns: ${missing.join(', ')}*`);
     }
 
-    return sections.join('\n\n');
+    return sections;
   }
 }

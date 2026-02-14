@@ -106,6 +106,7 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 ### Windows Environment
 - **Use PowerShell for Windows commands** (avoid cmd.exe - cannot retrieve output reliably)
 - **Prefer Bash tool over file system commands** when possible
+- **Prioritize Grep and Glob tools over Bash commands** for file searching and content matching — Bash commands like `find`, `grep`, `rg` may require extra permissions
 
 ### Implementation Philosophy
 - **Check existing infrastructure first** - Never reinvent the wheel. Research similar components/patterns before implementing new features

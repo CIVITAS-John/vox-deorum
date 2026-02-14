@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import type { Span } from '../../utils/telemetry/schema.js';
+import { jsonToMarkdown } from '../../utils/tools/json-to-markdown.js';
 
 /** Decision tools whose inputs contain the AI's strategic choices */
 const decisionTools = [
@@ -40,7 +41,7 @@ const consolidatedOptionKeys = ['GrandStrategies', 'Flavors'];
 
 const inputSchema = z.object({
   turns: z.string().describe(
-    'Turn(s) to retrieve decisions for. Single ("30"), comma-separated ("10,20,30"), or range ("30-40"). No more than 10 turns at a time.'
+    'Turn(s) to retrieve decisions for. Single ("30"), comma-separated ("10,20,30"), or range ("30-39"). No more than 10 turns at a time.'
   ),
   ...inquiryField
 });
@@ -57,10 +58,10 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
   readonly inputSchema = inputSchema;
   protected override summarize = true;
 
-  async execute(input: GetDecisionsInput, params: TelepathistParameters): Promise<string> {
+  async execute(input: GetDecisionsInput, params: TelepathistParameters): Promise<string[]> {
     const turns = this.parseTurns(input.turns, params.availableTurns);
     if (turns.length === 0) {
-      return 'No turns found in the requested range.';
+      return ['No turns found in the requested range.'];
     }
 
     const sections: string[] = [];
@@ -104,10 +105,12 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
         if (stepSpans.length === 0) continue;
 
         // Extract reasoning from step responses
-        const reasoning = this.extractReasoning(stepSpans);
-        if (reasoning) {
-          turnSections.push(`## ${agentName} Reasoning`);
-          turnSections.push(reasoning);
+        if (agentName.indexOf("strategist") !== -1) {
+          const reasoning = this.extractReasoning(stepSpans);
+          if (reasoning) {
+            turnSections.push(`## ${agentName} Reasoning`);
+            turnSections.push(reasoning);
+          }
         }
 
         // Extract decisions from tool calls
@@ -121,7 +124,7 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
       sections.push(turnSections.join('\n\n'));
     }
 
-    return sections.join('\n\n---\n\n');
+    return sections;
   }
 
   /**
@@ -241,12 +244,12 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
         .selectFrom('spans')
         .selectAll()
         .where('parentSpanId', 'in', stepIds)
-        .where('name', 'like', 'agent-tool.%')
+        .where('name', 'like', 'agent.%')
         .orderBy('startTime', 'asc')
         .execute();
 
       for (const toolSpan of agentToolSpans) {
-        const subagentName = toolSpan.name.replace('agent-tool.', '');
+        const subagentName = toolSpan.name.replace('agent.', '');
         if (!agentRoles[subagentName]) continue;
         const toolInput = this.getToolInput(toolSpan);
         const mode = toolInput?.mode || toolInput?.Mode || '';
@@ -271,7 +274,7 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
   }
 
   /** Extract reasoning text from step span responses */
-  private extractReasoning(stepSpans: Span[]): string | null {
+  private extractReasoning(stepSpans: Span[]): string | undefined {
     const reasoningParts: string[] = [];
 
     for (const step of stepSpans) {
@@ -280,21 +283,19 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
       if (!responses) continue;
 
       try {
-        const parsed = typeof responses === 'string' ? JSON.parse(responses) : responses;
-        if (Array.isArray(parsed)) {
-          for (const msg of parsed) {
-            // Extract text content from assistant messages
-            if (msg.role === 'assistant') {
-              if (typeof msg.content === 'string' && msg.content.trim()) {
-                reasoningParts.push(msg.content.trim());
-              } else if (Array.isArray(msg.content)) {
-                for (const part of msg.content) {
-                  if (part.type === 'text' && part.text?.trim()) {
-                    reasoningParts.push(part.text.trim());
-                  } else if (part.type === 'reasoning' && part.text?.trim()) {
-                    reasoningParts.push(`*[Reasoning]: ${part.text.trim()}*`);
-                  }
-                }
+        const parsed = JSON.parse(responses);
+        if (!Array.isArray(parsed)) return undefined;
+        for (const msg of parsed) {
+          // Extract text content from assistant messages
+          if (msg.role !== 'assistant') continue;
+          if (typeof msg.content === 'string' && msg.content.trim()) {
+            reasoningParts.push(msg.content.trim());
+          } else if (Array.isArray(msg.content)) {
+            for (const part of msg.content) {
+              if (part.type === 'text' && part.text?.trim()) {
+                reasoningParts.push(part.text.trim());
+              } else if (part.type === 'reasoning' && part.text?.trim()) {
+                reasoningParts.push(`*[Reasoning]: ${part.text.trim()}*`);
               }
             }
           }
@@ -304,7 +305,7 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
       }
     }
 
-    return reasoningParts.length > 0 ? reasoningParts.join('\n\n') : null;
+    return reasoningParts.length > 0 ? reasoningParts.join('\n\n') : undefined;
   }
 
   /** Extract decision tool calls from step spans */
@@ -331,29 +332,16 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
       if (decisionTools.includes(toolName)) {
         const input = this.getToolInput(span);
         if (input) {
-          const parts: string[] = [`### ${toolName}`];
-
-          // Format the decision input
-          if (input.Rationale || input.rationale) {
-            parts.push(`**Rationale**: ${input.Rationale || input.rationale}`);
-          }
-
-          // Show the decision details (excluding rationale to avoid duplication)
+          // Strip internal fields before formatting
           const details = { ...input };
           delete details.Rationale;
-          delete details.rationale;
           delete details.PlayerID;
-          delete details.player_id;
 
-          if (Object.keys(details).length > 0) {
-            for (const [key, value] of Object.entries(details)) {
-              if (typeof value === 'object') {
-                parts.push(`**${key}**:\n${JSON.stringify(value, null, 2)}`);
-              } else {
-                parts.push(`**${key}**: ${value}`);
-              }
-            }
-          }
+          const parts: string[] = [`### ${toolName}`];
+          if (input.Rationale) parts.push(`**Rationale**: ${input.Rationale}`);
+
+          if (Object.keys(details).length > 0)
+            parts.push(jsonToMarkdown(details, { startingLevel: 4 }));
 
           decisions.push(parts.join('\n'));
         }

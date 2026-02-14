@@ -32,16 +32,16 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
   readonly inputSchema = inputSchema;
   protected override summarize = true;
 
-  async execute(input: GetConversationLogInput, params: TelepathistParameters): Promise<string> {
+  async execute(input: GetConversationLogInput, params: TelepathistParameters): Promise<string[]> {
     const turn = input.turn;
     if (!params.availableTurns.includes(turn)) {
-      return `Turn ${turn} not found. Available turns: ${params.availableTurns[0]}-${params.availableTurns[params.availableTurns.length - 1]}`;
+      return [`Turn ${turn} not found. Available turns: ${params.availableTurns[0]}-${params.availableTurns[params.availableTurns.length - 1]}`];
     }
 
     const { agents } = await this.getRootSpans(params.db, [turn]);
 
     if (Object.keys(agents).length === 0) {
-      return `No agent executions found for turn ${turn}.`;
+      return [`No agent executions found for turn ${turn}.`];
     }
 
     // Filter to specific agent if requested
@@ -49,7 +49,7 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
 
     if (agentEntries.length === 0) {
       const available = Object.keys(agents).join(', ');
-      return `Agent "${input.agent}" not found for turn ${turn}. Available agents: ${available}`;
+      return [`Agent "${input.agent}" not found for turn ${turn}. Available agents: ${available}`];
     }
 
     const sections: string[] = [];
@@ -127,7 +127,7 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
       }
     }
 
-    return sections.join('\n\n');
+    return sections;
   }
 
   /** Format messages array for display, skipping previously seen messages */

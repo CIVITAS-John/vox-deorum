@@ -4,6 +4,7 @@ node_modules
 dist
 /node
 .env
+nul
 
 # DLL cache directory
 scripts/.dll-cache

@@ -32,6 +32,9 @@ export interface RootSpanResult {
 /** Minimum result length (in characters) before summarization kicks in */
 const summarizeThreshold = 5000;
 
+/** Maximum character size per chunk sent to the summarizer. Sections are grouped respecting this limit. */
+const chunkMaxChars = 100_000;
+
 /**
  * Reusable Zod field for the inquiry parameter.
  * Tools that enable summarization should spread this into their inputSchema.
@@ -64,34 +67,89 @@ export abstract class TelepathistTool<TInput = any> {
   /**
    * Create the AI SDK tool. Captures mcpToolMap from context for dynamic
    * markdownConfig access, then delegates to createSimpleTool for telemetry tracing.
-   * When summarize is true, wraps execute to route long results through the Summarizer agent.
+   * Assembles string[] sections into a single result, with chunked summarization
+   * when content exceeds chunkMaxChars.
    */
   createTool(context: VoxContext<TelepathistParameters>): VercelTool {
     this.mcpToolMap = context.mcpToolMap;
+    const separator = '\n\n';
+
     return createSimpleTool({
       name: this.name,
       description: this.description,
       inputSchema: this.inputSchema,
       execute: async (input, params) => {
-        const rawResult = await this.execute(input, params);
+        const sections = await this.execute(input, params);
+        const assembled = sections.join(separator);
 
-        if (!this.summarize || rawResult.length < summarizeThreshold) {
-          return rawResult;
+        if (!this.summarize || assembled.length < summarizeThreshold) {
+          return assembled;
         }
 
         const inquiry = (input as any)?.inquiry as string | undefined;
         const instruction = buildToolSummaryInstruction(this.name, inquiry);
-        const summarizerInput: SummarizerInput = { text: rawResult, instruction };
 
-        logger.info(`Summarizing ${this.name} result (${rawResult.length} chars)`, { inquiry });
-        const summary = await summarizeWithCache(summarizerInput, params, context);
-        return summary ?? rawResult;
+        if (assembled.length <= chunkMaxChars) {
+          // Single-chunk summarization
+          logger.info(`Summarizing ${this.name} result (${assembled.length} chars)`, { inquiry });
+          const summarizerInput: SummarizerInput = { text: assembled, instruction };
+          const summary = await summarizeWithCache(summarizerInput, params, context);
+          return summary ?? assembled;
+        }
+
+        // Multi-chunk summarization
+        const chunks = this.chunkSections(sections, separator);
+        logger.info(`Summarizing ${this.name} result in ${chunks.length} chunks (${assembled.length} total chars)`, { inquiry });
+
+        const chunkSummaries: string[] = [];
+        for (let i = 0; i < chunks.length; i++) {
+          const chunkInstruction = `${instruction}\n\n(This is part ${i + 1} of ${chunks.length}.)`;
+          const summarizerInput: SummarizerInput = { text: chunks[i], instruction: chunkInstruction };
+          const summary = await summarizeWithCache(summarizerInput, params, context);
+          chunkSummaries.push(summary ?? chunks[i]);
+        }
+
+        return chunkSummaries.join(separator);
       }
     }, context);
   }
 
-  /** Execute the tool with the given input and parameters */
-  abstract execute(input: TInput, params: TelepathistParameters): Promise<string>;
+  /** Execute the tool with the given input and parameters. Returns sections to be assembled by createTool. */
+  abstract execute(input: TInput, params: TelepathistParameters): Promise<string[]>;
+
+  /**
+   * Groups adjacent sections into chunks, each no larger than chunkMaxChars.
+   * Respects section boundaries: never splits a single section across chunks.
+   * If a single section exceeds chunkMaxChars, it becomes its own chunk.
+   */
+  private chunkSections(sections: string[], separator: string): string[] {
+    if (sections.length === 0) return [];
+
+    const chunks: string[] = [];
+    let currentParts: string[] = [];
+    let currentLength = 0;
+
+    for (const section of sections) {
+      const addedLength = currentParts.length > 0
+        ? separator.length + section.length
+        : section.length;
+
+      if (currentLength + addedLength > chunkMaxChars && currentParts.length > 0) {
+        chunks.push(currentParts.join(separator));
+        currentParts = [section];
+        currentLength = section.length;
+      } else {
+        currentParts.push(section);
+        currentLength += addedLength;
+      }
+    }
+
+    if (currentParts.length > 0) {
+      chunks.push(currentParts.join(separator));
+    }
+
+    return chunks;
+  }
 
   // --- Shared query helpers ---
 
@@ -146,7 +204,8 @@ export abstract class TelepathistTool<TInput = any> {
 
     const result: RootSpanResult = { turnRoots: new Map(), agents: {} };
     const turnRootPattern = /^strategist\.turn\.\d+$/;
-    const agentPattern = /^([^.]+)\.turn\.\d+$/;
+    // Matches agent.{agentName} spans, excluding step spans (agent.{name}.step.{N})
+    const agentPattern = /^agent\.([a-z][-a-z]*)$/;
 
     for (const turn of turns) {
       // Find all root spans for this turn (parentSpanId is null)
@@ -191,7 +250,8 @@ export abstract class TelepathistTool<TInput = any> {
         agentPattern.test(s.name)
       );
       for (const span of detachedRoots) {
-        const agentName = span.name.split('.')[0];
+        const match = span.name.match(agentPattern);
+        const agentName = match ? match[1] : span.name.split('.')[1];
         if (!result.agents[agentName]) result.agents[agentName] = [];
         result.agents[agentName].push(span);
       }

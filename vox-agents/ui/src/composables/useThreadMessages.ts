@@ -65,8 +65,6 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
     let currentReasoning: LanguageModelV2ReasoningPart | null = null;
     let currentReasoningID: string = "";
     let currentToolCall: LanguageModelV2ToolCallPart | null = null;
-    let currentToolCallID: string = "";
-    let currentToolInput: string = "";
 
     return api.streamAgentMessage(
       request,
@@ -105,30 +103,14 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
             break;
 
           case "tool-call":
-            // Handle tool call streaming
-            if (part.toolCallId !== currentToolCallID) {
-              // New tool call, create and add to contents
-              currentToolCallID = part.toolCallId;
-              currentToolCall = {
-                type: "tool-call",
-                toolCallId: part.toolCallId,
-                toolName: part.toolName,
-                input: {}
-              };
-              contents.push(currentToolCall);
-              currentToolCall = contents[contents.length - 1] as any;
-            }
-            break;
-
-          case "tool-input-delta":
-            // Handle tool input streaming (arguments)
-            if (currentToolCall && part.id === currentToolCallID) {
-              currentToolInput += part.delta;
-              // Parse and merge the delta into args
-              try {
-                currentToolCall.input = JSON.parse(part.delta);
-              } catch (e) { }
-            }
+            currentToolCall = {
+              type: "tool-call",
+              toolCallId: part.toolCallId,
+              toolName: part.toolName,
+              input: part.input
+            };
+            contents.push(currentToolCall);
+            currentToolCall = contents[contents.length - 1] as any;
             break;
 
           case "tool-result":
