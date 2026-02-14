@@ -209,12 +209,13 @@ VoxAgent (Base)
 │   └── DiplomaticAnalyst (Intelligence gatekeeping)
 ├── Librarian (Database research)
 │   └── KeywordLibrarian (Keyword-based search)
-└── Envoy (Chat-based interactions)
-    ├── LiveEnvoy (Game-specific chat)
-    │   ├── Diplomat (Intelligence gathering)
-    │   └── Spokesperson (Official representative)
-    └── Telepathist (Database-backed conversations)
-        └── TalkativeTelepathist (Post-game analysis)
+├── Envoy (Chat-based interactions)
+│   ├── LiveEnvoy (Game-specific chat)
+│   │   ├── Diplomat (Intelligence gathering)
+│   │   └── Spokesperson (Official representative)
+│   └── Telepathist (Database-backed conversations)
+│       └── TalkativeTelepathist (Post-game analysis)
+└── Summarizer (Unified turn/phase summarization)
 ```
 
 ### Creating New Agents
@@ -281,6 +282,25 @@ VoxAgent (Base)
 - Configurable concurrent request limits per LLM provider
 - Integrated with exponential retry and timeout refresh
 - Prevents API overload with semaphore-like request tracking
+
+#### Global Agent Registry
+- Centralized agent discovery via singleton `agentRegistry`
+- Pre-registers all core agents on first access (12 agents)
+- Eliminates per-context agent registration
+- Supports dynamic register/unregister at runtime
+- Pattern: Import `agentRegistry` and call `.get(name)` to resolve agents
+
+#### TelepathistTool Base Class
+- Abstract base for database query tools in the telepathist system
+- Provides shared helpers for traversing the span hierarchy (turns → agents → steps → tool calls)
+- Integrates with `Summarizer` for cached result summarization
+- Subclasses: `GetConversationLog`, `GetDecisions`, `GetGameOverview`, `GetGameState`
+
+#### Unified Summarizer
+- Replaces the previous separate `TurnSummarizer` and `PhaseSummarizer` agents
+- Driven by a flexible instruction parameter for different summarization needs
+- Supports caching via content hashing to avoid redundant LLM calls
+- Shared historian guidelines ensure consistent tone across all summaries
 
 ## Integration Points
 
@@ -513,6 +533,14 @@ PrimeVue includes full color scales (50-950) for all colors:
 - Assistant messages: Default surface colors
 - System messages: Muted colors with italic text
 - Tool messages: Subtle surface variations with colored borders
+
+## Documentation Maintenance
+
+**After each successful implementation**, update the relevant documentation:
+- **CLAUDE.md** - Update patterns, agent hierarchy, or conventions if new patterns were introduced or existing ones changed
+- **README.md** - Update project structure, feature lists, or usage instructions if the public-facing interface changed
+- This applies to new agents, new tools, new infrastructure patterns, new UI components, and architectural changes
+- Keep documentation concise and focused — describe what exists and how it works, not implementation details that can get outdated
 
 ## Common Pitfalls
 

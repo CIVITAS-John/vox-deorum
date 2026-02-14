@@ -149,6 +149,7 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 
 ### Documentation & Comment Conventions
 - **Always update documentation but never create unless prompted** - Avoid creating README.md or docs files proactively
+- **After each successful implementation**, update the relevant module's CLAUDE.md and README.md to reflect new patterns, agents, tools, or architectural changes
 - Top-level comments in each code file describing the module's purpose
 - Comments on all public/exported definitions explaining their function
 - Comments within long functions for complex logic sections

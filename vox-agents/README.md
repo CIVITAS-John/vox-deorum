@@ -249,10 +249,11 @@ The web server starts automatically with the agents and serves the UI at http://
 
 Features:
 - **Real-time Logs** - Stream logs from all components with filtering
-- **Telemetry Viewer** - Inspect OpenTelemetry spans and traces
+- **Telemetry Viewer** - Inspect OpenTelemetry spans, traces, and sessions
 - **Session Monitor** - Track active game sessions and agent states
-- **Configuration Editor** - Modify runtime configuration
-- **Agent Chat** - Interactive chat interface with agents
+- **Configuration Editor** - Modify runtime configuration with model selection
+- **Agent Chat** - Interactive chat interface with agents and conversation history
+- **Pinia State Management** - Centralized stores for sessions, chat, logs, telemetry, and health
 
 ## Key Implementation Details
 
@@ -353,9 +354,9 @@ vox-agents/
 │   │   ├── vox-context.ts         # Execution context management
 │   │   ├── vox-civilization.ts    # Game process lifecycle
 │   │   ├── vox-session.ts         # Base session management
-│   │   ├── agent-registry.ts      # Dynamic agent discovery
+│   │   ├── agent-registry.ts      # Global centralized agent discovery
 │   │   ├── session-registry.ts    # Global session tracking
-│   │   └── context-registry.ts    # Global context tracking
+│   │   └── context-registry.ts    # Global context lifecycle
 │   ├── strategist/                # Strategy agents
 │   │   ├── agents/
 │   │   │   ├── none-strategist.ts
@@ -388,27 +389,35 @@ vox-agents/
 │   ├── telepathist/               # Post-game analysis agents
 │   │   ├── telepathist.ts        # Base telepathist
 │   │   ├── talkative-telepathist.ts
-│   │   ├── turn-summarizer.ts
-│   │   ├── phase-summarizer.ts
-│   │   ├── telepathist-parameters.ts
-│   │   ├── telepathist-tool.ts   # Base tool class
+│   │   ├── summarizer.ts         # Unified turn/phase summarizer
+│   │   ├── telepathist-parameters.ts # Dual-database setup
+│   │   ├── telepathist-tool.ts   # Abstract base for DB query tools
 │   │   ├── console.ts            # CLI entry point
 │   │   └── tools/                # Database query tools
+│   │       ├── get-conversation-log.ts
+│   │       ├── get-decisions.ts
+│   │       ├── get-game-overview.ts
+│   │       └── get-game-state.ts
 │   ├── web/                       # Web UI backend
 │   │   ├── server.ts             # Express + Vue hosting
 │   │   ├── sse-manager.ts        # Real-time streaming
 │   │   └── routes/               # API endpoints
 │   ├── utils/
 │   │   ├── models/               # LLM integration
-│   │   │   ├── models.ts
-│   │   │   ├── mcp-client.ts
-│   │   │   ├── concurrency.ts    # Per-model rate limiting
-│   │   │   └── tool-rescue.ts    # JSON extraction middleware
+│   │   │   ├── models.ts         # Model configuration
+│   │   │   ├── mcp-client.ts     # MCP server communication
+│   │   │   ├── concurrency.ts    # Per-model rate limiting (semaphore)
+│   │   │   └── tool-rescue.ts    # JSON extraction from text responses
 │   │   ├── telemetry/            # Observability
-│   │   │   ├── vox-exporter.ts
-│   │   │   ├── sqlite-exporter.ts
-│   │   │   └── schema.ts
+│   │   │   ├── vox-exporter.ts   # Custom Vox telemetry
+│   │   │   ├── sqlite-exporter.ts # SQLite trace storage
+│   │   │   └── schema.ts         # Span/metric schemas
 │   │   ├── tools/                # Tool utilities
+│   │   │   ├── agent-tools.ts    # Agent-as-tool wrapper
+│   │   │   ├── mcp-tools.ts      # MCP tool wrapping and caching
+│   │   │   ├── json-to-markdown.ts # Data formatting
+│   │   │   ├── simple-tools.ts   # Basic utility tools
+│   │   │   └── terminal-tools.ts # Terminal command tools
 │   │   ├── config.ts             # Configuration loader
 │   │   ├── logger.ts             # Winston logging
 │   │   ├── retry.ts              # Exponential backoff
@@ -422,7 +431,13 @@ vox-agents/
 │   ├── types/                     # TypeScript definitions
 │   └── instrumentation.ts        # OpenTelemetry setup
 ├── ui/                            # Vue 3 dashboard
-│   ├── src/                       # Frontend source
+│   ├── src/
+│   │   ├── views/                 # Page components
+│   │   ├── components/            # Reusable UI components
+│   │   ├── stores/                # Pinia state management
+│   │   ├── composables/           # Vue composables
+│   │   ├── styles/                # Shared CSS
+│   │   └── api/                   # Backend API client
 │   └── vite.config.ts
 ├── tests/                         # Vitest suite
 ├── configs/                       # Game configurations
