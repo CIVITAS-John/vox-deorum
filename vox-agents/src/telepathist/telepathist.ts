@@ -280,7 +280,7 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
 
         try {
           const gameStateTool = toolInstances.find(t => t.name === 'get-game-state') as GetGameStateTool;
-          const gameStateSections = await gameStateTool.execute({ turns: String(turn) }, parameters);
+          const gameStateSections = await gameStateTool.execute({ Turns: String(turn) }, parameters);
           const gameStateText = gameStateSections.join('\n\n');
           if (!gameStateText.includes('## ')) {
             logger.warn(`No game state data found for turn ${turn}, skipping`);

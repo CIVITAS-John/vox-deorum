@@ -13,8 +13,8 @@ import { cleanToolArtifacts, formatToolCallText, formatToolResultText } from '..
 import type { Span } from '../../utils/telemetry/schema.js';
 
 const inputSchema = z.object({
-  turn: z.number().describe('The specific turn to retrieve conversation logs for.'),
-  agent: z.string().describe(
+  Turn: z.number().describe('The specific turn to retrieve conversation logs for.'),
+  Agent: z.string().describe(
     'Specific agent name to fetch.'
   ),
   ...inquiryField
@@ -33,7 +33,7 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
   protected override summarize = true;
 
   async execute(input: GetConversationLogInput, params: TelepathistParameters): Promise<string[]> {
-    const turn = input.turn;
+    const turn = input.Turn;
     if (!params.availableTurns.includes(turn)) {
       return [`Turn ${turn} not found. Available turns: ${params.availableTurns[0]}-${params.availableTurns[params.availableTurns.length - 1]}`];
     }
@@ -45,11 +45,11 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
     }
 
     // Filter to specific agent if requested
-    const agentEntries = Object.entries(agents).filter(([name]) => name === input.agent);
+    const agentEntries = Object.entries(agents).filter(([name]) => name === input.Agent);
 
     if (agentEntries.length === 0) {
       const available = Object.keys(agents).join(', ');
-      return [`Agent "${input.agent}" not found for turn ${turn}. Available agents: ${available}`];
+      return [`Agent "${input.Agent}" not found for turn ${turn}. Available agents: ${available}`];
     }
 
     const sections: string[] = [];

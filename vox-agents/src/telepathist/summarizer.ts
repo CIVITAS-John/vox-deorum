@@ -19,12 +19,12 @@ import { createLogger } from '../utils/logger.js';
  * Both the Summarizer's system prompt and caller-built instructions
  * reference these to maintain consistent tone and quality.
  */
-export const summarizerGuidelines = `- Write in past tense from a historian's perspective, not the leader's.
+export const summarizerGuidelines = `- Write in past tense from an archivist's perspective, not the leader's.
 - Mention specific civilizations, cities, technologies, and policies by name.
 - The history happened in a generated world, and the geography had nothing to do with the real Earth.
 - Carefully distinguish between what is truth (game state) and what is perception of the leader.
   - "Rationale" under the Options heading reflects the leader's perspective and can deviate from the reality.
-  - "RelayedMessage" type of events reflects the intelligence gathered by the government and can be incorrect.`;
+  - "RelayedMessage" type of events reflects the intelligence gathered by the government and can be incorrect.`.trim();
 
 /** Zod schema for turn summary structured output, used by callers to parse JSON responses */
 export const turnSummarySchema = z.object({
@@ -84,9 +84,11 @@ export function buildPhaseSummaryInstruction(fromTurn: number, toTurn: number): 
  */
 export function buildToolSummaryInstruction(toolName: string, inquiry?: string): string {
   if (inquiry) {
-    return `Summarize the following ${toolName} data. Preserve key details (turn numbers, names, numerical values) relevant to the inquiry. Omit irrelevant sections.
+    return `
+- Accurately summarize the following ${toolName} data based on available raw information. NEVER make up facts.
+- Preserve key details (turn numbers, names, numerical values) or exact quotes most relevant to the inquiry.-
 
-# Inquiry
+# Inquiry Focus
 ${inquiry}`;
   }
   return `Summarize the following ${toolName} data, preserving the most important information. Focus on significant events, decisions, and state changes. Keep specifics (turn numbers, names, values) but compress verbose sections.`;
@@ -106,7 +108,7 @@ export class Summarizer extends VoxAgent<TelepathistParameters, SummarizerInput,
     _input: SummarizerInput,
     _context: VoxContext<TelepathistParameters>
   ): Promise<string> {
-    return `You are a senior historian analyzing a Civilization V game played by ${params.leaderName} of ${params.civilizationName}.
+    return `You are a senior archivist looking at a Civilization V game played by ${params.leaderName} of ${params.civilizationName}.
 
 # Guidelines
 ${summarizerGuidelines}`.trim();

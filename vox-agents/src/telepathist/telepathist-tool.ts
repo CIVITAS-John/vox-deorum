@@ -40,7 +40,7 @@ const chunkMaxChars = 100_000;
  * Tools that enable summarization should spread this into their inputSchema.
  */
 export const inquiryField = {
-  inquiry: z.string().optional().describe(
+  Inquiry: z.string().optional().describe(
     'What you want to learn from this data. Guides the summary to focus on relevant information.'
   )
 };
@@ -86,7 +86,7 @@ export abstract class TelepathistTool<TInput = any> {
           return assembled;
         }
 
-        const inquiry = (input as any)?.inquiry as string | undefined;
+        const inquiry = (input as any)?.Inquiry as string | undefined;
         const instruction = buildToolSummaryInstruction(this.name, inquiry);
 
         if (assembled.length <= chunkMaxChars) {

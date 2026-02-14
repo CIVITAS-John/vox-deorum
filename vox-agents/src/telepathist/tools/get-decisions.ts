@@ -40,7 +40,7 @@ const agentRoles: Record<string, string> = {
 const consolidatedOptionKeys = ['GrandStrategies', 'Flavors'];
 
 const inputSchema = z.object({
-  turns: z.string().describe(
+  Turns: z.string().describe(
     'Turn(s) to retrieve decisions for. Single ("30"), comma-separated ("10,20,30"), or range ("30-39"). No more than 10 turns at a time.'
   ),
   ...inquiryField
@@ -59,7 +59,7 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
   protected override summarize = true;
 
   async execute(input: GetDecisionsInput, params: TelepathistParameters): Promise<string[]> {
-    const turns = this.parseTurns(input.turns, params.availableTurns);
+    const turns = this.parseTurns(input.Turns, params.availableTurns);
     if (turns.length === 0) {
       return ['No turns found in the requested range.'];
     }
