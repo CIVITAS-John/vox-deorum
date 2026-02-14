@@ -4,6 +4,9 @@
  * Text cleaning and formatting utilities for tool call/result text representations.
  */
 
+import { type LanguageModelV2ToolResultPart } from '@ai-sdk/provider';
+import { jsonToMarkdown } from './tools/json-to-markdown.js';
+
 /**
  * Strips structural artifacts left behind by tool call extraction from LLM text.
  * Removes empty JSON arrays, empty markdown code blocks, and standalone fence markers.
@@ -51,6 +54,43 @@ export function formatToolCallText(toolName: string, args: any): string {
  */
 export function formatToolResultText(toolName: string, resultText: string): string {
   return `# Tool ${toolName} Result\n${resultText}`;
+}
+
+/**
+ * Serializes a tool result part's output into readable text.
+ */
+export function formatToolResultOutput(part: LanguageModelV2ToolResultPart, maxLength: number = -1): string | undefined {
+  const output = part.output;
+  let resultText: string;
+
+  switch (output.type) {
+    case 'text':
+      resultText = output.value;
+      break;
+    case 'json':
+      if (typeof(output.value) === "string")
+        resultText = output.value;
+      else resultText = jsonToMarkdown(output.value);
+      break;
+    case 'error-text':
+      resultText = `Error: ${output.value}`;
+      if (maxLength !== -1) resultText = "[Error]";
+      break;
+    case 'error-json':
+      resultText = `Error: ${jsonToMarkdown(output.value)}`;
+      if (maxLength !== -1) resultText = "[Error]";
+      break;
+    case 'content':
+      return undefined;
+    default:
+      resultText = JSON.stringify(output);
+  }
+
+  let text = formatToolResultText(part.toolName, resultText);
+  if (maxLength !== -1 && text.length > maxLength) {
+    text = text.slice(0, maxLength) + ' [Truncated]';
+  }
+  return text;
 }
 
 /**

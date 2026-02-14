@@ -14,12 +14,20 @@ import { TelepathistParameters } from './telepathist-parameters.js';
 import { createSimpleTool } from '../utils/tools/simple-tools.js';
 import { jsonToMarkdown, HeadingConfig } from '../utils/tools/json-to-markdown.js';
 import { VoxContext } from '../infra/vox-context.js';
-import { buildToolSummaryInstruction } from './summarizer.js';
+import { buildToolSummaryInstruction, summarizeWithCache } from './summarizer.js';
 import { createLogger } from '../utils/logger.js';
 import type { TelemetryDatabase, Span, SpanAttributes } from '../utils/telemetry/schema.js';
 import type { SummarizerInput } from './summarizer.js';
 
 const logger = createLogger('TelepathistTool');
+
+/** Result from getRootSpans: turn root spans and agent execution spans grouped by name */
+export interface RootSpanResult {
+  /** The strategist.turn.{N} container spans, keyed by turn number */
+  turnRoots: Map<number, Span>;
+  /** Agent execution spans grouped by agent name */
+  agents: Record<string, Span[]>;
+}
 
 /** Minimum result length (in characters) before summarization kicks in */
 const summarizeThreshold = 5000;
@@ -76,7 +84,7 @@ export abstract class TelepathistTool<TInput = any> {
         const summarizerInput: SummarizerInput = { text: rawResult, instruction };
 
         logger.info(`Summarizing ${this.name} result (${rawResult.length} chars)`, { inquiry });
-        const summary = await context.callAgent<string>('summarizer', summarizerInput, params);
+        const summary = await summarizeWithCache(summarizerInput, params, context);
         return summary ?? rawResult;
       }
     }, context);
@@ -123,20 +131,22 @@ export abstract class TelepathistTool<TInput = any> {
   }
 
   /**
-   * Get root agent spans for given turns, grouped by agent type.
-   * Handles botched turns: for each turn, finds the LAST strategist root span
-   * (highest startTime) and uses its traceId to filter in-trace agents.
-   * Also discovers fire-and-forget agents by turn + name pattern.
+   * Get agent spans for given turns, grouped by agent type.
+   * Finds the turn root span (strategist.turn.{N}), discovers in-trace agent spans,
+   * and also finds fire-and-forget agents with separate traces.
    *
-   * @returns Record<agentType, Span[]> - keys are agent names, values are spans across turns
+   * @returns RootSpanResult with turn root spans and agent spans grouped by name
    */
   protected async getRootSpans(
     db: Kysely<TelemetryDatabase>,
     turns: number[]
-  ): Promise<Record<string, Span[]>> {
-    if (turns.length === 0) return {};
+  ): Promise<RootSpanResult> {
+    const empty: RootSpanResult = { turnRoots: new Map(), agents: {} };
+    if (turns.length === 0) return empty;
 
-    const result: Record<string, Span[]> = {};
+    const result: RootSpanResult = { turnRoots: new Map(), agents: {} };
+    const turnRootPattern = /^strategist\.turn\.\d+$/;
+    const agentPattern = /^([^.]+)\.turn\.\d+$/;
 
     for (const turn of turns) {
       // Find all root spans for this turn (parentSpanId is null)
@@ -148,19 +158,16 @@ export abstract class TelepathistTool<TInput = any> {
         .orderBy('startTime', 'asc')
         .execute();
 
-      // Find the last strategist root span (highest startTime) — earlier ones are botched
-      const strategistRoots = rootSpans.filter(s => s.name.startsWith('simple-strategist'));
-      const validRoot = strategistRoots.length > 0
-        ? strategistRoots[strategistRoots.length - 1]
+      // Find the last turn root span (strategist.turn.{N}) — earlier ones are botched
+      const turnRoots = rootSpans.filter(s => turnRootPattern.test(s.name));
+      const validRoot = turnRoots.length > 0
+        ? turnRoots[turnRoots.length - 1]
         : null;
 
       if (validRoot) {
-        // Add the strategist itself
-        const agentName = validRoot.name.split('.')[0];
-        if (!result[agentName]) result[agentName] = [];
-        result[agentName].push(validRoot);
+        result.turnRoots.set(turn, validRoot);
 
-        // Find all agent spans within this trace (child agent spans)
+        // Find all agent spans within this trace (child spans matching agent pattern)
         const traceSpans = await db
           .selectFrom('spans')
           .selectAll()
@@ -168,28 +175,25 @@ export abstract class TelepathistTool<TInput = any> {
           .where('parentSpanId', 'is not', null)
           .execute();
 
-        // Agent spans follow the pattern: {agentName}.turn.{turn}
-        const agentPattern = /^([^.]+)\.turn\.\d+$/;
         for (const span of traceSpans) {
           const match = span.name.match(agentPattern);
           if (match) {
             const name = match[1];
-            if (!result[name]) result[name] = [];
-            result[name].push(span);
+            if (!result.agents[name]) result.agents[name] = [];
+            result.agents[name].push(span);
           }
         }
       }
 
       // Find fire-and-forget agents (separate traceIds, same turn)
-      // These are root spans that aren't strategists
       const detachedRoots = rootSpans.filter(s =>
-        !s.name.startsWith('simple-strategist') &&
-        s.name.match(/^[^.]+\.turn\.\d+$/)
+        !turnRootPattern.test(s.name) &&
+        agentPattern.test(s.name)
       );
       for (const span of detachedRoots) {
         const agentName = span.name.split('.')[0];
-        if (!result[agentName]) result[agentName] = [];
-        result[agentName].push(span);
+        if (!result.agents[agentName]) result.agents[agentName] = [];
+        result.agents[agentName].push(span);
       }
     }
 
@@ -207,11 +211,11 @@ export abstract class TelepathistTool<TInput = any> {
   ): Promise<Span[]> {
     if (turns.length === 0) return [];
 
-    const rootSpans = await this.getRootSpans(db, turns);
-    const agentSpans = rootSpans[agentType] || [];
+    const { agents } = await this.getRootSpans(db, turns);
+    const agentSpans = agents[agentType] || [];
     if (agentSpans.length === 0) return [];
 
-    const parentSpanIds = agentSpans.map(s => s.spanId);
+    const parentSpanIds = agentSpans.map((s: Span) => s.spanId);
     return db
       .selectFrom('spans')
       .selectAll()

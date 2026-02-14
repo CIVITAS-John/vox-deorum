@@ -7,10 +7,11 @@
 
 export { Telepathist } from './telepathist.js';
 export { TalkativeTelepathist } from './talkative-telepathist.js';
-export { Summarizer, SummarizerInput, TurnSummary, summarizerGuidelines } from './summarizer.js';
+export { Summarizer, SummarizerInput, TurnSummary, summarizerGuidelines, summarizeWithCache } from './summarizer.js';
 export {
   TelepathistParameters,
   TelepathistDatabase,
+  SummaryCacheRecord,
   createTelepathistParameters,
 } from './telepathist-parameters.js';
 export { TelepathistTool } from './telepathist-tool.js';

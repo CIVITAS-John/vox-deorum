@@ -38,11 +38,23 @@ export interface PhaseSummaryRecord {
 }
 
 /**
+ * Schema for the summary_cache table in the telepathist database.
+ * Caches LLM-generated summaries of tool results to avoid redundant calls.
+ */
+export interface SummaryCacheRecord {
+  cacheKey: string;
+  result: string;
+  model: string;
+  createdAt: number;
+}
+
+/**
  * Database schema for the telepathist's generated data
  */
 export interface TelepathistDatabase {
   turn_summaries: TurnSummaryRecord;
   phase_summaries: PhaseSummaryRecord;
+  summary_cache: SummaryCacheRecord;
 }
 
 /**
@@ -111,6 +123,15 @@ export async function createTelepathistParameters(
     .addColumn('model', 'text', (col) => col.notNull())
     .addColumn('createdAt', 'integer', (col) => col.notNull())
     .addPrimaryKeyConstraint('phase_summaries_pk', ['fromTurn', 'toTurn'])
+    .execute();
+
+  await telepathistDb.schema
+    .createTable('summary_cache')
+    .ifNotExists()
+    .addColumn('cacheKey', 'text', (col) => col.primaryKey())
+    .addColumn('result', 'text', (col) => col.notNull())
+    .addColumn('model', 'text', (col) => col.notNull())
+    .addColumn('createdAt', 'integer', (col) => col.notNull())
     .execute();
 
   // Query available turns

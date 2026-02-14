@@ -49,6 +49,9 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
   /** Allow the LLM to decide when to call tools */
   public override toolChoice: string = 'auto';
 
+  /** Telepathist doesn't use turn markers in conversation history */
+  protected override includeTurnPrefix: boolean = false;
+
   /**
    * Provides the telepathist tools to the context.
    */
@@ -124,17 +127,19 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
    * @returns True if the agent should stop, false to continue
    */
   public stopCheck(
-    _parameters: TelepathistParameters,
-    _input: EnvoyThread,
+    parameters: TelepathistParameters,
+    input: EnvoyThread,
     lastStep: StepResult<Record<string, Tool>>,
     allSteps: StepResult<Record<string, Tool>>[],
     context: VoxContext<TelepathistParameters>
   ): boolean {
-    // Don't stop on empty responses (no tool calls AND no text)
+    // Add response messages to thread via Envoy.stopCheck (result ignored — custom logic below)
+    super.stopCheck(parameters, input, lastStep, allSteps, context);
+
+    // Telepathist-specific stop conditions (50-step limit vs default 3)
     if (lastStep.toolCalls.length === 0 && !lastStep.text?.trim()) {
       return allSteps.length >= 50;
     }
-    // Stop when no tools or only terminal calls are issued
     if (hasOnlyTerminalCalls(lastStep, context.mcpToolMap)) {
       return true;
     }
@@ -192,11 +197,6 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
     if (input.messages.length === 0) return false;
     const last = input.messages[input.messages.length - 1];
     return typeof last.message.content === 'string' && last.message.content === '{{{Initialize}}}';
-  }
-
-  /** Strips turn markers from messages to avoid confusing historical turn references */
-  protected override convertToModelMessages(messages: MessageWithMetadata[]): ModelMessage[] {
-    return messages.map(item => ({ ...item.message }));
   }
 
   /** Filters out special messages from message history */

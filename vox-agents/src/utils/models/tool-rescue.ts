@@ -5,14 +5,13 @@
  * Detects and transforms JSON tool calls embedded in text responses into proper tool-call format.
  * Handles cases where LLMs output tool calls as JSON text instead of using the native tool-calling API.
  */
-import { tool, type LanguageModelMiddleware, type Tool } from 'ai';
+import { type LanguageModelMiddleware, type Tool } from 'ai';
 import { createLogger } from '../logger.js';
 import { LanguageModelV2FunctionTool, LanguageModelV2Message, LanguageModelV2Prompt, LanguageModelV2ProviderDefinedTool, LanguageModelV2StreamPart, LanguageModelV2ToolCall, LanguageModelV2ToolChoice, LanguageModelV2ToolResultPart } from '@ai-sdk/provider';
 
 // @ts-ignore - jaison doesn't have type definitions
 import jaison from 'jaison';
-import { jsonToMarkdown } from '../tools/json-to-markdown.js';
-import { formatToolCallText, formatToolResultText } from '../text-cleaning.js';
+import { formatToolCallText, formatToolResultOutput } from '../text-cleaning.js';
 
 const logger = createLogger("tool-rescue");
 
@@ -352,37 +351,6 @@ function emitRemainingText(
       id
     });
   }
-}
-
-/**
- * Serializes a tool result part's output into readable text.
- */
-function formatToolResultOutput(part: LanguageModelV2ToolResultPart): string | undefined {
-  const output = part.output;
-  let resultText: string;
-
-  switch (output.type) {
-    case 'text':
-      resultText = output.value;
-      break;
-    case 'json':
-      if (typeof(output.value) === "string")
-        resultText = output.value;
-      else resultText = jsonToMarkdown(output.value);
-      break;
-    case 'error-text':
-      resultText = `Error: ${output.value}`;
-      break;
-    case 'error-json':
-      resultText = `Error: ${jsonToMarkdown(output.value)}`;
-      break;
-    case 'content':
-      return undefined;
-    default:
-      resultText = JSON.stringify(output);
-  }
-
-  return formatToolResultText(part.toolName, resultText);
 }
 
 /**

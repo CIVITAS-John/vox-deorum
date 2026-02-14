@@ -9,6 +9,7 @@ import { ModelMessage, StepResult, Tool } from "ai";
 import { VoxAgent, AgentParameters } from "../infra/vox-agent.js";
 import { EnvoyThread, MessageWithMetadata, SpecialMessageConfig } from "../types/index.js";
 import { VoxContext } from "../infra/vox-context.js";
+import { formatToolResultOutput } from "../utils/text-cleaning.js";
 
 /**
  * Generic base envoy agent that can chat with the user.
@@ -76,20 +77,52 @@ export abstract class Envoy<TParameters extends AgentParameters = AgentParameter
     return message in this.getSpecialMessages();
   }
 
+  /**
+   * Whether to prepend `[Turn N]` to string-content messages.
+   * LiveEnvoy uses turn markers; Telepathist disables them.
+   */
+  protected includeTurnPrefix: boolean = true;
+
   // Utilities
   /**
-   * Converts an array of MessageWithMetadata to ModelMessage array.
-   * Formats turn information into the message content for user messages.
+   * Converts an array of MessageWithMetadata to ModelMessage array for LLM context.
+   * Filters out tool-result messages and non-text parts from assistant messages
+   * to reduce token usage. Only textual conversation content is preserved.
    */
   protected convertToModelMessages(messages: MessageWithMetadata[]): ModelMessage[] {
-    return messages.map(item => {
+    const result: ModelMessage[] = [];
+    for (const item of messages) {
       const message = { ...item.message };
-      // Format turn into messages for context
-      if (typeof message.content === 'string') {
-        message.content = `[Turn ${item.metadata.turn}] ${message.content}`;
+
+      // Replace tool-result messages with a plain text summary
+      if (message.role === 'tool' && Array.isArray(message.content)) {
+        const texts = message.content
+          .map(part => formatToolResultOutput(part))
+          .filter((t): t is string => t !== undefined);
+        if (texts.length === 0) continue;
+        result.push({ role: 'user', content: texts.join('\n') });
+        continue;
       }
-      return message;
-    });
+
+      // For assistant messages with array content, keep text + tool-call, drop reasoning
+      if (message.role === 'assistant' && Array.isArray(message.content)) {
+        const kept = message.content.filter(
+          (part) => part.type === 'text' || part.type === 'tool-call'
+        ).map(part => {
+          if (this.includeTurnPrefix && part.type === 'text') part.text = `[Turn ${item.metadata.turn}] ${part.text}`;
+          return part;
+        });
+        if (kept.length === 0) continue;
+        message.content = kept;
+      }
+
+      // Format turn into string messages for context
+      if (this.includeTurnPrefix && typeof message.content === 'string')
+          message.content = `[Turn ${item.metadata.turn}] ${message.content}`;
+
+      result.push(message);
+    }
+    return result;
   }
 
   /**

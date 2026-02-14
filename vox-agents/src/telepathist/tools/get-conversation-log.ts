@@ -38,17 +38,17 @@ export class GetConversationLogTool extends TelepathistTool<GetConversationLogIn
       return `Turn ${turn} not found. Available turns: ${params.availableTurns[0]}-${params.availableTurns[params.availableTurns.length - 1]}`;
     }
 
-    const rootSpans = await this.getRootSpans(params.db, [turn]);
+    const { agents } = await this.getRootSpans(params.db, [turn]);
 
-    if (Object.keys(rootSpans).length === 0) {
+    if (Object.keys(agents).length === 0) {
       return `No agent executions found for turn ${turn}.`;
     }
 
     // Filter to specific agent if requested
-    const agentEntries = Object.entries(rootSpans).filter(([name]) => name === input.agent);
+    const agentEntries = Object.entries(agents).filter(([name]) => name === input.agent);
 
     if (agentEntries.length === 0) {
-      const available = Object.keys(rootSpans).join(', ');
+      const available = Object.keys(agents).join(', ');
       return `Agent "${input.agent}" not found for turn ${turn}. Available agents: ${available}`;
     }
 

@@ -31,7 +31,7 @@ export class TalkativeTelepathist extends Telepathist {
 You have access to the complete historical record: every world state it observed and every decision the leader made.`,
 
       `# Your Role
-- You provide insightful analysis through digging into the historical records.
+- You provide insights through digging into the historical records.
 - You have access to the game state, strategic decisions, and the player's internal reasoning at every turn.
 - The history happened in a generated world, and the geography had nothing to do with the real Earth.
 - You can evaluate whether decisions were good or bad given what happened before and after it.`,
@@ -46,6 +46,7 @@ You have access to the complete historical record: every world state it observed
 
     if (!this.isSpecialMode(input)) {
       sections.push(`# Available Tools
+- Always go deeper than the phase summaries: they serve as the anchor point to your inquiries.
 - You have a limitation on how much data you can see for once, but you have multiple chances to inquiry deeper.
 - Only answer after collecting sufficient data or, when no more data is available, make an educated guess (toned accordingly).
 - **get-game-overview**: Use it to get per-turn summaries for a range of turns, e.g. "what happened between turns X and Y?"

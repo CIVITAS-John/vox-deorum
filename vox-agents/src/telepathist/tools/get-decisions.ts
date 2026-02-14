@@ -31,10 +31,12 @@ const agentRoles: Record<string, string> = {
   'simple-briefer': 'General briefer summarizing game state',
   'specialized-briefer': 'Specialized briefer (Military/Economy/Diplomacy)',
   'diplomat': 'Diplomatic envoy handling foreign interactions',
-  'spokesperson': 'Official spokesperson representing the civilization',
   'diplomatic-analyst': 'Intelligence analyst processing diplomatic data',
   'keyword-librarian': 'Librarian managing keyword knowledge',
 };
+
+/** Static keys in Options that are identical across turns and should be consolidated */
+const consolidatedOptionKeys = ['GrandStrategies', 'Flavors'];
 
 const inputSchema = z.object({
   turns: z.string().describe(
@@ -63,30 +65,40 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
 
     const sections: string[] = [];
 
+    // For multi-turn queries, consolidate static reference data (GrandStrategies, Flavors)
+    const multiTurn = turns.length > 1;
+    let hasConsolidated = false;
+    if (multiTurn) {
+      const refSection = await this.buildReferenceSection(params, turns);
+      if (refSection) {
+        sections.push(refSection);
+        hasConsolidated = true;
+      }
+    }
+
     for (const turn of turns) {
       const turnSections: string[] = [];
       turnSections.push(`# Turn ${turn}`);
 
-      const rootSpans = await this.getRootSpans(params.db, [turn]);
+      const { turnRoots, agents } = await this.getRootSpans(params.db, [turn]);
 
-      if (Object.keys(rootSpans).length === 0) {
+      if (Object.keys(agents).length === 0) {
         turnSections.push('*No agent executions found for this turn.*');
         sections.push(turnSections.join('\n'));
         continue;
       }
 
-      // 1. Strategic options available (from get-options)
-      await this.addOptionsSection(params, turn, rootSpans, turnSections);
+      // 1. Strategic options available (strip consolidated keys in multi-turn mode)
+      const turnRoot = turnRoots.get(turn);
+      await this.addOptionsSection(params, turn, turnRoot, agents, turnSections, hasConsolidated ? consolidatedOptionKeys : []);
 
-      // 2. Agents involved
-      turnSections.push('## Agents Involved');
-      for (const [agentName, spans] of Object.entries(rootSpans)) {
-        const role = agentRoles[agentName] || `Agent: ${agentName}`;
-        turnSections.push(`- **${agentName}**: ${role} (${spans.length} execution${spans.length > 1 ? 's' : ''})`);
-      }
+      // 2. Agents involved (hierarchical, from subspans)
+      await this.addAgentsSection(params, agents, turnSections);
 
       // 3. AI Reasoning + 4. Decisions made (per-agent)
-      for (const [agentName, agentSpans] of Object.entries(rootSpans)) {
+      for (const [agentName, agentSpans] of Object.entries(agents)) {
+        if (!agentRoles[agentName]) continue;
+
         // Get steps for this agent
         const stepSpans = await this.getStepsForAgent(params, agentSpans);
         if (stepSpans.length === 0) continue;
@@ -112,27 +124,68 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
     return sections.join('\n\n---\n\n');
   }
 
-  /** Add get-options output to the turn sections */
+  /**
+   * Build a reference section with static Options data (GrandStrategies, Flavors)
+   * by reading the first available get-options output across requested turns.
+   */
+  private async buildReferenceSection(
+    params: TelepathistParameters,
+    turns: number[]
+  ): Promise<string | null> {
+    // Find the first get-options output across the requested turns
+    for (const turn of turns) {
+      const { turnRoots, agents } = await this.getRootSpans(params.db, [turn]);
+      const traceIds = this.collectTraceIds(turnRoots.get(turn), agents);
+      if (traceIds.size === 0) continue;
+
+      const optionSpans = await params.db
+        .selectFrom('spans')
+        .selectAll()
+        .where('turn', '=', turn)
+        .where('name', '=', 'mcp-tool.get-options')
+        .where('traceId', 'in', [...traceIds])
+        .orderBy('startTime', 'desc')
+        .limit(1)
+        .execute();
+
+      if (optionSpans.length === 0) continue;
+
+      const output = this.getToolOutput(optionSpans[0]);
+      if (!output?.Options) continue;
+
+      // Extract static reference data
+      const refParts: string[] = ['# Reference Data'];
+      for (const key of consolidatedOptionKeys) {
+        if (output.Options[key]) {
+          refParts.push(`## ${key}`);
+          refParts.push(this.formatToolOutput('get-options', { [key]: output.Options[key] }));
+        }
+      }
+
+      return refParts.length > 1 ? refParts.join('\n\n') : null;
+    }
+
+    return null;
+  }
+
+  /** Add get-options output to the turn sections, optionally stripping consolidated keys */
   private async addOptionsSection(
     params: TelepathistParameters,
     turn: number,
-    rootSpans: Record<string, Span[]>,
-    turnSections: string[]
+    turnRoot: Span | undefined,
+    agents: Record<string, Span[]>,
+    turnSections: string[],
+    stripKeys: string[]
   ): Promise<void> {
-    // Collect valid traceIds
-    const validTraceIds = new Set<string>();
-    for (const spans of Object.values(rootSpans)) {
-      for (const span of spans) {
-        validTraceIds.add(span.traceId);
-      }
-    }
+    const traceIds = this.collectTraceIds(turnRoot, agents);
+    if (traceIds.size === 0) return;
 
     const optionSpans = await params.db
       .selectFrom('spans')
       .selectAll()
       .where('turn', '=', turn)
       .where('name', '=', 'mcp-tool.get-options')
-      .where('traceId', 'in', [...validTraceIds])
+      .where('traceId', 'in', [...traceIds])
       .orderBy('startTime', 'desc')
       .limit(1)
       .execute();
@@ -140,7 +193,65 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
     if (optionSpans.length > 0) {
       const output = this.getToolOutput(optionSpans[0]);
       if (output) {
+        // Strip consolidated keys from Options to avoid repetition
+        if (stripKeys.length > 0 && output.Options) {
+          for (const key of stripKeys) {
+            delete output.Options[key];
+          }
+        }
         turnSections.push(this.formatToolOutput('get-options', output));
+      }
+    }
+  }
+
+  /** Collect valid traceIds from turn root and agent spans */
+  private collectTraceIds(turnRoot: Span | undefined, agents: Record<string, Span[]>): Set<string> {
+    const traceIds = new Set<string>();
+    if (turnRoot) traceIds.add(turnRoot.traceId);
+    for (const spans of Object.values(agents)) {
+      for (const span of spans) {
+        traceIds.add(span.traceId);
+      }
+    }
+    return traceIds;
+  }
+
+  /**
+   * Build hierarchical agents-involved section by examining each agent's subspans
+   * for agent-tool calls (subagent invocations).
+   */
+  private async addAgentsSection(
+    params: TelepathistParameters,
+    agents: Record<string, Span[]>,
+    turnSections: string[]
+  ): Promise<void> {
+    turnSections.push('## Agents Involved');
+
+    for (const [agentName, agentSpans] of Object.entries(agents)) {
+      const role = agentRoles[agentName];
+      if (!role) continue;
+      turnSections.push(`- **${agentName}**: ${role}`);
+
+      // Find subagent calls from this agent's steps
+      const stepSpans = await this.getStepsForAgent(params, agentSpans);
+      if (stepSpans.length === 0) continue;
+
+      const stepIds = stepSpans.map(s => s.spanId);
+      const agentToolSpans = await params.db
+        .selectFrom('spans')
+        .selectAll()
+        .where('parentSpanId', 'in', stepIds)
+        .where('name', 'like', 'agent-tool.%')
+        .orderBy('startTime', 'asc')
+        .execute();
+
+      for (const toolSpan of agentToolSpans) {
+        const subagentName = toolSpan.name.replace('agent-tool.', '');
+        if (!agentRoles[subagentName]) continue;
+        const toolInput = this.getToolInput(toolSpan);
+        const mode = toolInput?.mode || toolInput?.Mode || '';
+        const label = mode ? `**${subagentName}** (${mode})` : `**${subagentName}**`;
+        turnSections.push(`  - Called ${label}`);
       }
     }
   }

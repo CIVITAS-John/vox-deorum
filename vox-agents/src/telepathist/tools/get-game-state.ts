@@ -75,11 +75,13 @@ export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
       turnSections.push(`# Turn ${turn}`);
 
       // Get the valid root spans for this turn to identify valid traceIds
-      const rootSpans = await this.getRootSpans(params.db, [turn]);
+      const { turnRoots, agents } = await this.getRootSpans(params.db, [turn]);
 
-      // Collect all valid traceIds (from strategist and fire-and-forget agents)
+      // Collect all valid traceIds (from turn root and fire-and-forget agents)
       const validTraceIds = new Set<string>();
-      for (const agentSpans of Object.values(rootSpans)) {
+      const turnRoot = turnRoots.get(turn);
+      if (turnRoot) validTraceIds.add(turnRoot.traceId);
+      for (const agentSpans of Object.values(agents)) {
         for (const span of agentSpans) {
           validTraceIds.add(span.traceId);
         }

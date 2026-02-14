@@ -7,10 +7,12 @@
  * Replaces the previous TurnSummarizer and PhaseSummarizer agents.
  */
 
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { VoxAgent } from '../infra/vox-agent.js';
 import { TelepathistParameters } from './telepathist-parameters.js';
 import { VoxContext } from '../infra/vox-context.js';
+import { createLogger } from '../utils/logger.js';
 
 /**
  * Shared historian guidelines reused across summarization instructions.
@@ -120,4 +122,56 @@ ${summarizerGuidelines}`.trim();
       content: `# Task\n${input.instruction}\n\n# Data\n${input.text}`
     }];
   }
+}
+
+const cacheLogger = createLogger('SummarizerCache');
+
+/** Generates a SHA-256 cache key from the summarizer input text and instruction. */
+function computeCacheKey(text: string, instruction: string): string {
+  return createHash('sha256')
+    .update(text)
+    .update(instruction)
+    .digest('hex');
+}
+
+/**
+ * Summarizes text using the Summarizer agent, with database-backed caching.
+ * Checks the summary_cache table before invoking the LLM. On cache miss,
+ * calls the summarizer agent and persists the result.
+ */
+export async function summarizeWithCache(
+  input: SummarizerInput,
+  params: TelepathistParameters,
+  context: VoxContext<TelepathistParameters>
+): Promise<string | undefined> {
+  const cacheKey = computeCacheKey(input.text, input.instruction);
+
+  const cached = await params.telepathistDb
+    .selectFrom('summary_cache')
+    .select('result')
+    .where('cacheKey', '=', cacheKey)
+    .executeTakeFirst();
+
+  if (cached) {
+    cacheLogger.debug('Summary cache hit', { cacheKey: cacheKey.substring(0, 12) });
+    return cached.result;
+  }
+
+  cacheLogger.debug('Summary cache miss, invoking summarizer', { cacheKey: cacheKey.substring(0, 12) });
+  const result = await context.callAgent<string>('summarizer', input, params);
+
+  if (result) {
+    await params.telepathistDb
+      .insertInto('summary_cache')
+      .values({
+        cacheKey,
+        result,
+        model: 'auto',
+        createdAt: Date.now()
+      })
+      .onConflict((oc) => oc.column('cacheKey').doNothing())
+      .execute();
+  }
+
+  return result;
 }
