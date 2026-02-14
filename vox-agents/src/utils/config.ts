@@ -81,9 +81,9 @@ export const defaultConfig: VoxAgentsConfig = {
       provider: 'anthropic',
       name: 'claude-sonnet-4-5'
     },
-    'anthropic/claude-opus-4-5': {
+    'anthropic/claude-opus-4-6': {
       provider: 'anthropic',
-      name: 'claude-opus-4-5'
+      name: 'claude-opus-4-6'
     },
     'aws/anthropic/claude-sonnet-4-5': {
       provider: 'aws',
@@ -92,13 +92,6 @@ export const defaultConfig: VoxAgentsConfig = {
     'chutes/openai/gpt-oss-120b': {
       provider: 'chutes',
       name: 'openai/gpt-oss-120b',
-      options: {
-        toolMiddleware: 'prompt'
-      }
-    },
-    'chutes/zai-org/glm-4.6': {
-      provider: 'chutes',
-      name: 'zai-org/GLM-4.6-TEE',
       options: {
         toolMiddleware: 'prompt'
       }
@@ -202,9 +195,16 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
-    'openai-compatible/MiniMax-M2.1': {
+    'openai-compatible/Kimi-K2.5-NVFP4': {
       provider: 'openai-compatible',
-      name: 'MiniMax-M2.1',
+      name: 'Kimi-K2.5-NVFP4',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
+    'openai-compatible/MiniMax-M2.5': {
+      provider: 'openai-compatible',
+      name: 'MiniMax-M2.5',
       options: {
         toolMiddleware: 'prompt'
       }

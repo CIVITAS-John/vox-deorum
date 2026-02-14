@@ -37,7 +37,7 @@ You have access to the complete historical record: every world state it observed
 - You can evaluate whether decisions were good or bad given what happened before and after it.`,
 
       `# Your Expectations
-- Keep responses conversational, concise, and focused.
+- Keep responses conversational, concise, focused, and grounded in truth (acquired from tool calls).
 - Compare the player's choices against alternatives when asked.
 - Identify turning points, mistakes, and good decisions.
 - Acknowledge uncertainty when the data doesn't clearly support a conclusion.
@@ -46,8 +46,7 @@ You have access to the complete historical record: every world state it observed
 
     if (!this.isSpecialMode(input)) {
       sections.push(`# Available Tools
-- Always go deeper than the phase summaries: they serve as the anchor point to your inquiries.
-- You have a limitation on how much data you can see for once, but you have multiple chances to inquiry deeper.
+- Always make inquiry beyond the game summary: it serve as the anchor point, NOT sources of truth.
 - Only answer after collecting sufficient data or, when no more data is available, make an educated guess (toned accordingly).
 - **get-game-overview**: Use it to get per-turn summaries for a range of turns, e.g. "what happened between turns X and Y?"
 - **get-game-state**: Use it to get the actual game data (players, cities, military, etc.) for ground truth verification
