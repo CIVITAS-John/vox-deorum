@@ -88,33 +88,36 @@ The system supports standalone and component modes:
 ### Framework
 - **Use Vitest for all testing** (not Jest)
 - Test files in `tests/` directory with `.test.ts` extension
-- Test setup file: `tests/setup.ts` for global configuration and Civ5 guard
+- Test setup file: `tests/setup.ts` for global configuration
 
 ### Commands
-- `npm test` - Run all tests once
-- `npm run test:watch` - Watch mode for development
-- `npm run test:unit` - Unit tests only (excludes game tests)
-- `npm run test:game` - Game tests only (requires Civilization V)
-- `npm run test:coverage` - Coverage report
+- `npm test` - Run all tests except game tests (safe to run without Civ5)
+- `npm run test:watch` - Watch mode (excludes game tests)
+- `npm run test:unit` - Same as `npm test`
+- `npm run test:game` - Game tests only (requires Windows + Civilization V)
+- `npm run test:coverage` - Coverage report (excludes game tests)
 - `npm run test:ui` - Vitest browser UI
 
 ### Test Pathways
 
 Different features require different testing infrastructure:
 
-#### Unit Tests (`tests/utils/`, agent logic with mocks)
+#### Unit Tests (`tests/utils/`)
 - No external dependencies required
-- Pure function testing, data transformations, mocked agent logic
+- Pure function testing, data transformations
 - Fast execution, safe to run anywhere
+
+#### Telepathist Tests (`tests/telepathist/`)
+- Tests against real telemetry database records (no live game or LLM needed)
+- Requires telemetry DB in `telemetry/upload/` (gitignored, skips gracefully if absent)
+- Validates data extraction pipeline: span traversal, game state reconstruction, decision mining
 
 #### Game Tests (`tests/infra/`)
 - **Requires Windows** with Civilization V installed
 - Actually launches and manages CivilizationV.exe
 - Extended per-test timeouts (90-180 seconds)
 - Sequential execution enforced via `singleFork: true`
-
-### Global Civ5 Guard
-The test setup detects if CivilizationV.exe is already running and **aborts all tests immediately**. Only one Civ5 instance can run at a time. The guard will not kill an existing process — it may be an active game session.
+- Includes a Civ5 guard that aborts if CivilizationV.exe is already running
 
 ### Configuration
 - Extended timeouts: 15 seconds for tests and hooks

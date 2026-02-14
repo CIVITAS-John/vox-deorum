@@ -41,7 +41,7 @@ export function jsonToMarkdown(
   jsonObject: any,
   options?: Partial<JsonToMarkdownConfig>
 ): string {
-  const actual = options ?? (jsonObject._markdownConfig as Partial<JsonToMarkdownConfig> ?? {})
+  const actual = options ?? (jsonObject?._markdownConfig as Partial<JsonToMarkdownConfig> ?? {})
 
   const config: JsonToMarkdownConfig = {
     configs: actual.configs ?? [],

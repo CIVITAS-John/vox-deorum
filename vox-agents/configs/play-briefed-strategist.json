@@ -1,10 +1,10 @@
 {
-  "name": "play-briefed-tiny",
+  "name": "play-briefed-strategist",
   "type": "strategist",
   "autoPlay": false,
   "gameMode": "wait",
   "llmPlayers": {
-    "1": {
+    "7": {
       "strategist": "simple-strategist-briefed",
       "llms": {}
     }

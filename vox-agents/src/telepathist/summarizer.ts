@@ -52,7 +52,7 @@ export interface SummarizerInput {
  * Tells the Summarizer to produce JSON with shortSummary and fullSummary.
  */
 export function buildTurnSummaryInstruction(turn: number): string {
-  return `Summarize the game state for turn ${turn}.
+  return `Accurately summarize the game state for turn ${turn}.
 
 # Output Format
 Respond with a JSON object containing:
@@ -61,7 +61,8 @@ Respond with a JSON object containing:
 
 # Focus
 - Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts.
-- Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions).`;
+- Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions).
+- Carefully go through the raw game data to clarify uncertain situations.`;
 }
 
 /**
@@ -75,7 +76,7 @@ export function buildPhaseSummaryInstruction(fromTurn: number, toTurn: number): 
 - Identify the dominant themes and narrative arcs of this phase.
 - Highlight major turning points: wars declared/ended, key technologies, policy adoptions, new cities.
 - Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?
-- Keep it to one paragraph: concise but enough for context.`;
+- Keep it to one paragraph: concise, accurate, but enough for context.`;
 }
 
 /**

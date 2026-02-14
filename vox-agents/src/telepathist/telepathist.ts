@@ -368,7 +368,7 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
       try {
         const turnSummaries: Record<number, string> = {};
         for (const s of phase.summaries) {
-          turnSummaries[s.turn] = s.shortSummary;
+          turnSummaries[s.turn] = s.fullSummary;
         }
 
         parameters.turn = phase.fromTurn;

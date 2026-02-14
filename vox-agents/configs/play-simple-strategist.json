@@ -1,11 +1,11 @@
 {
-  "name": "observe-simple-tiny",
+  "name": "play-simple-strategist",
   "llmPlayers": {
-    "0": {
+    "7": {
       "strategist": "simple-strategist"
     }
   },
-  "autoPlay": true,
+  "autoPlay": false,
   "gameMode": "start",
   "repetition": 1
 }

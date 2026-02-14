@@ -1,11 +1,11 @@
 {
-  "name": "observe-briefed-tiny",
+  "name": "observe-staffed",
   "type": "strategist",
   "autoPlay": true,
   "gameMode": "wait",
   "llmPlayers": {
-    "0": {
-      "strategist": "simple-strategist-briefed",
+    "7": {
+      "strategist": "simple-strategist-staffed",
       "llms": {}
     }
   },
