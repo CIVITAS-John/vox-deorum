@@ -86,7 +86,7 @@ export function buildToolSummaryInstruction(toolName: string, inquiry?: string):
   if (inquiry) {
     return `
 - Accurately summarize the following ${toolName} data based on available raw information. NEVER make up facts.
-- Preserve key details (turn numbers, names, numerical values) or exact quotes most relevant to the inquiry.-
+- Focus on preserving key details (turn numbers, names, numerical values) and/or exact quotes most relevant to the inquiry, NOT analyzing yourself.
 
 # Inquiry Focus
 ${inquiry}`;

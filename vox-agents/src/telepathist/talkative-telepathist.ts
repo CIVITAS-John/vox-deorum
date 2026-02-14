@@ -46,7 +46,7 @@ You have access to the complete historical record: every world state it observed
 
     if (!this.isSpecialMode(input)) {
       sections.push(`# Available Tools
-- Always make inquiry beyond the game summary: it serve as the anchor point, NOT sources of truth.
+- Always launch inquiry beyond the game summary: it serve as the anchor point, NOT sources of truth.
 - Only answer after collecting sufficient data or, when no more data is available, make an educated guess (toned accordingly).
 - **get-game-overview**: Use it to get per-turn summaries for a range of turns, e.g. "what happened between turns X and Y?"
 - **get-game-state**: Use it to get the actual game data (players, cities, military, etc.) for ground truth verification

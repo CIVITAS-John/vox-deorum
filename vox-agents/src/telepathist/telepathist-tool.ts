@@ -41,7 +41,7 @@ const chunkMaxChars = 100_000;
  */
 export const inquiryField = {
   Inquiry: z.string().optional().describe(
-    'What you want to learn from this data. Guides the summary to focus on relevant information.'
+    'What specific information you want to acquire from this data. Guides the summarizer to focus on factual information.'
   )
 };
 
