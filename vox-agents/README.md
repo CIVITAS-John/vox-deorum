@@ -23,6 +23,8 @@ LLM-powered strategic AI agents for Civilization V. This module implements sophi
   - `KeywordLibrarian` - Keyword-based database search
 - **Telepathist Agents** - Post-game analysis via telemetry databases
   - `TalkativeTelepathist` - Conversational interface to game history
+  - `Summarizer` - Unified turn/phase summarization agent
+  - Database query tools: conversation logs, decisions, game overview, game state
 - **MCP Client** - Robust HTTP/SSE client for MCP server communication
 - **Tool Integration** - Dynamic tool wrapping, composition, and rescue middleware
 - **Multi-LLM Support** - OpenRouter, OpenAI, Google AI, Anthropic, AWS Bedrock, and compatible providers
@@ -38,6 +40,8 @@ LLM Providers ← Vox Agents → MCP Server → Bridge Service → Civ V
               Agent Framework
          (Strategist, Briefer, Analyst,
           Librarian, Envoy, Telepathist)
+                    ↓
+            Agent Registry (Global)
                     ↓
               Tool Middleware
          (Wrapping, Composition, Rescue)
@@ -57,6 +61,9 @@ LLM Providers ← Vox Agents → MCP Server → Bridge Service → Civ V
 - **Analyst** ([analyst.ts](src/analyst/analyst.ts)) - Base class for fire-and-forget analysis agents
 - **Librarian** ([librarian.ts](src/librarian/librarian.ts)) - Base class for database research agents
 - **Telepathist** ([telepathist.ts](src/telepathist/telepathist.ts)) - Base class for database-backed chat agents
+- **TelepathistTool** ([telepathist-tool.ts](src/telepathist/telepathist-tool.ts)) - Abstract base for database query tools with span hierarchy traversal
+- **Summarizer** ([summarizer.ts](src/telepathist/summarizer.ts)) - Unified turn/phase summarization with caching
+- **AgentRegistry** ([agent-registry.ts](src/infra/agent-registry.ts)) - Global centralized agent discovery and registration
 - **MCP Client** ([mcp-client.ts](src/utils/models/mcp-client.ts)) - Event-driven MCP communication
 - **Session Manager** ([strategist-session.ts](src/strategist/strategist-session.ts)) - Game session with state persistence
 - **Web Server** ([server.ts](src/web/server.ts)) - Express API and Vue UI hosting

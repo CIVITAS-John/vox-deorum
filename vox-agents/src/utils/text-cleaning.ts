@@ -32,9 +32,9 @@ export function cleanToolArtifacts(text: string): string {
     // Truncate incomplete empty/comma-only JSON arrays (beginning marker arrived but no end marker yet)
     .replace(/\[\s*(?:,\s*)*$/g, '')
     // Remove empty markdown code blocks: ```json\n\n```, ```\n```
-    .replace(/```(?:json)?\s*```/g, '')
+    .replace(/\`\`\`(?:json)?\s*\`\`\`/g, '')
     // Remove standalone fence markers on their own line
-    .replace(/^\s*```(?:json)?\s*$/gm, '')
+    .replace(/^\s*\`\`\`(?:json)?\s*$/gm, '')
     .trim();
 }
 
