@@ -30,7 +30,7 @@ export interface RootSpanResult {
 }
 
 /** Minimum result length (in characters) before summarization kicks in */
-const summarizeThreshold = 5000;
+const summarizeThreshold = 10000;
 
 /** Maximum character size per chunk sent to the summarizer. Sections are grouped respecting this limit. */
 const chunkMaxChars = 100_000;

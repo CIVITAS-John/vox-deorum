@@ -5,10 +5,37 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { VoxCivilization } from '../../src/infra/vox-civilization.js';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
+
+/**
+ * Guard: abort game tests if CivilizationV.exe is already running.
+ * Only one Civ5 instance can run at a time. If one is already active, it may be
+ * a live game session — we must not kill it, so we skip game tests instead.
+ */
+function assertNoCivilizationRunning(): void {
+  if (process.platform !== 'win32') return;
+  try {
+    const output = execSync(
+      'tasklist /FI "IMAGENAME eq CivilizationV.exe" /FO CSV',
+      { encoding: 'utf-8' }
+    );
+    if (output.includes('CivilizationV.exe')) {
+      throw new Error(
+        'CivilizationV.exe is already running. ' +
+        'Only one instance can run at a time. ' +
+        'Please close Civilization V before running game tests.'
+      );
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('CivilizationV.exe is already running')) {
+      throw e;
+    }
+    // tasklist command failed — safe to continue
+  }
+}
 
 /**
  * Kill any existing Civilization V processes
@@ -40,6 +67,10 @@ async function isCivilizationRunning(): Promise<boolean> {
 
 describe('VoxCivilization Integration Test', () => {
   let voxCiv: VoxCivilization;
+
+  beforeAll(() => {
+    assertNoCivilizationRunning();
+  });
 
   afterAll(async () => {
     console.log('\n=== Cleaning up after test ===');
