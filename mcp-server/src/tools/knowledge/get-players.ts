@@ -364,7 +364,7 @@ function postProcessData(
     delete summary.TourismPerTurn;
     delete summary.HappinessPercentage;
     if (viewingPlayerID !== -1 && summary.Quests)
-      summary.Quests = (summary.Quests as any)[`Player${viewingPlayerID}`];
+      summary.Quests = (summary.Quests as any)[`Player${viewingPlayerID}`].map((Quest: string) => Quest.trim());
     else delete summary.Quests;
   } else {
     delete summary.Quests;

@@ -27,6 +27,7 @@ export function annotateSubjects(
   return opinions.map(s =>
     s.trim().replace(/^We /, `We (${ePlayerLabel}) `)
      .replace(/^Our /, `Our (${ePlayerLabel}) `)
+     .replace(/^Our real approach /, `${pkPlayerLabel}'s real approach to ${ePlayerLabel} `)
      .replace(/^You /, `You (${ePlayerLabel}) `)
      .replace(/^Your /, `Your (${ePlayerLabel}) `)
      .replace(/^They /, `They (${pkPlayerLabel}) `)
