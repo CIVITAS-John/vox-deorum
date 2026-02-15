@@ -39,6 +39,7 @@ export function annotateSubjects(
      .replace(/\byour\b/, ` your (${ePlayerLabel})`)
      .replace(/^They /, `${pkPlayerLabel} `)
      .replace(/\bthey\b/, `${pkPlayerLabel}`)
+     .replace(/\bthem\b/, `${pkPlayerLabel}`)
      .replace(/^Their /, `${pkPlayerLabel}'s `)
      .replace(/\btheir\b/, `${pkPlayerLabel}'s`)
   );
