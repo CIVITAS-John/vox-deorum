@@ -372,8 +372,8 @@ if "%VP_INSTALLED%"=="0" (
         )
 
         :: Delete cached localization database to force regeneration
-        if exist "!SETTINGS_DIR!\cache\Localization-Merged.db" (
-            del "!SETTINGS_DIR!\cache\Localization-Merged.db" >nul 2>&1
+        if exist "!DOCUMENTS!\My Games\Sid Meier's Civilization 5\cache\Localization-Merged.db" (
+            del "!DOCUMENTS!\My Games\Sid Meier's Civilization 5\cache\Localization-Merged.db" >nul 2>&1
             echo   [OK] Cleared cached Localization-Merged.db
         )
 

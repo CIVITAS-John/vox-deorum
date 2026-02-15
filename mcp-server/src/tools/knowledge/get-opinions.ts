@@ -25,10 +25,10 @@ export function annotateSubjects(
 ): string[] | undefined {
   if (!opinions) return undefined;
   return opinions.map(s =>
-    s.trim().replace(/^We /, `${ePlayerLabel}) `)
-     .replace(/^Our /, `${ePlayerLabel}'s `)
-     .replace(/^You /, `${ePlayerLabel} `)
-     .replace(/^Your /, `${ePlayerLabel} `)
+    s.trim().replace(/^We /, `We (${ePlayerLabel}) `)
+     .replace(/^Our /, `Our (${ePlayerLabel}) `)
+     .replace(/^You /, `You (${ePlayerLabel}) `)
+     .replace(/^Your /, `You (${ePlayerLabel}) `)
      .replace(/^They /, `${pkPlayerLabel} `)
      .replace(/^Their /, `${pkPlayerLabel} `)
      // Special cases
