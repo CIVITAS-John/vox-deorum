@@ -103,10 +103,9 @@ export abstract class TelepathistTool<TInput = any> {
 
         const chunkSummaries: string[] = [];
         for (let i = 0; i < chunks.length; i++) {
-          const chunkInstruction = `${instruction}\n\n(This is part ${i + 1} of ${chunks.length}.)`;
-          const summarizerInput: SummarizerInput = { text: chunks[i], instruction: chunkInstruction };
+          const summarizerInput: SummarizerInput = { text: chunks[i], instruction: instruction };
           const summary = await summarizeWithCache(summarizerInput, params, context);
-          chunkSummaries.push(summary ?? chunks[i]);
+          chunkSummaries.push(`# Chunk ${i + 1}/${chunks.length}\n${summary ?? chunks[i]}`);
         }
 
         return chunkSummaries.join(separator);

@@ -53,6 +53,39 @@ const confirm = useConfirm();
 const toast = useToast();
 
 /**
+ * Calculate total player count from config (rounded to nearest even, matching backend logic)
+ */
+function getPlayerCount(config: SessionConfig): number {
+  const stratConfig = config as StrategistSessionConfig;
+  if (!stratConfig.llmPlayers || Object.keys(stratConfig.llmPlayers).length === 0) return 0;
+  const playerIds = Object.keys(stratConfig.llmPlayers).map(Number);
+  const rawCount = Math.max(...playerIds) + 1;
+  return Math.ceil(rawCount / 2) * 2;
+}
+
+/**
+ * Count LLM-controlled players (excludes none-strategist)
+ */
+function getLlmPlayerCount(config: SessionConfig): number {
+  const stratConfig = config as StrategistSessionConfig;
+  if (!stratConfig.llmPlayers) return 0;
+  return Object.values(stratConfig.llmPlayers).filter(p => p.strategist !== 'none-strategist').length;
+}
+
+/**
+ * Get estimated map size name based on player count
+ */
+function getMapSize(config: SessionConfig): string {
+  const playerCount = getPlayerCount(config);
+  if (playerCount <= 2) return 'Duel';
+  if (playerCount <= 4) return 'Tiny';
+  if (playerCount <= 6) return 'Small';
+  if (playerCount <= 8) return 'Standard';
+  if (playerCount <= 10) return 'Large';
+  return 'Huge';
+}
+
+/**
  * Get state color based on session state
  */
 const stateColor = computed(() => {
@@ -427,6 +460,8 @@ onUnmounted(() => {
         <div class="table-header">
           <div class="col-expand">Name</div>
           <div class="col-fixed-100">Type</div>
+          <div class="col-fixed-100">Players</div>
+          <div class="col-fixed-100">Map</div>
           <div class="col-fixed-80">Observe</div>
           <div class="col-fixed-200">Actions</div>
         </div>
@@ -437,6 +472,12 @@ onUnmounted(() => {
             <div class="col-expand text-truncate">{{ config.name }}</div>
             <div class="col-fixed-100">
               <Tag value="Strategist" severity="info" />
+            </div>
+            <div class="col-fixed-100">
+              {{ getLlmPlayerCount(config) }} / {{ getPlayerCount(config) }}
+            </div>
+            <div class="col-fixed-100">
+              {{ getMapSize(config) }}
             </div>
             <div class="col-fixed-80">
               <i :class="config.autoPlay ? 'pi pi-check text-green-500' : 'pi pi-times text-red-500'"></i>

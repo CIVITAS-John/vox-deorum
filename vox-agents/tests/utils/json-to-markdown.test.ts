@@ -269,7 +269,8 @@ describe('jsonToMarkdown', () => {
       };
 
       const result = jsonToMarkdown(obj);
-      expect(result).toContain('- empty:');
+      // Empty objects are intentionally skipped to avoid confusion
+      expect(result).not.toContain('- empty:');
       expect(result).toContain('- hasContent:');
       expect(result).toContain('  - key: value');
     });
@@ -281,10 +282,10 @@ describe('jsonToMarkdown', () => {
 
       const result = jsonToMarkdown(obj);
       expect(result).toContain('- items:');
-      // Arrays are treated as objects with numeric keys
-      expect(result).toContain('  - 0: item1');
-      expect(result).toContain('  - 1: item2');
-      expect(result).toContain('  - 2: item3');
+      // Array items are rendered without numeric indices
+      expect(result).toContain('  - item1');
+      expect(result).toContain('  - item2');
+      expect(result).toContain('  - item3');
     });
   });
 
