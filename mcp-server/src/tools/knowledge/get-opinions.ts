@@ -15,6 +15,26 @@ import { stripTags } from "../../utils/database/localized.js";
 import { cleanEventData } from "./get-events.js";
 
 /**
+ * Annotates leading pronouns in opinion strings with civilization names.
+ * In GetOpinionTable(ePlayer) on pkPlayer: We/Our/You/Your = ePlayer, They = pkPlayer.
+ */
+export function annotateSubjects(
+  opinions: string[] | undefined,
+  ePlayerLabel: string,
+  pkPlayerLabel: string
+): string[] | undefined {
+  if (!opinions) return undefined;
+  return opinions.map(s =>
+    s.trim().replace(/^We /, `We (${ePlayerLabel}) `)
+     .replace(/^Our /, `Our (${ePlayerLabel}) `)
+     .replace(/^You /, `You (${ePlayerLabel}) `)
+     .replace(/^Your /, `Your (${ePlayerLabel}) `)
+     .replace(/^They /, `They (${pkPlayerLabel}) `)
+     .replace(/^Their /, `Their (${pkPlayerLabel}) `)
+  );
+}
+
+/**
  * Input schema for the GetOpinions tool
  */
 const GetOpinionsInputSchema = z.object({
@@ -32,8 +52,8 @@ const OpinionDataSchema = z.object({
   Leader: z.string(),
   IsMajor: z.boolean(),
   // Opinion fields
-  OurOpinionToThem: z.array(z.string()).describe("Opinion from the requesting player TO the target player").optional(),
-  TheirOpinionToUs: z.array(z.string()).describe("Opinion FROM the target player to the requesting player").optional(),
+  OurOpinionToThem: z.array(z.string()).describe("Opinion from the requesting player OF the target player").optional(),
+  TheirOpinionToUs: z.array(z.string()).describe("Opinion FROM the target player of the requesting player").optional(),
   MyEvaluations: z.array(z.string()).describe("My evaluation of other players").optional(),
 });
 
@@ -95,7 +115,8 @@ class GetOpinionsTool extends ToolBase {
     
     // Build the result dictionary
     const opinionsDict: Record<string, z.infer<typeof this.outputSchema>[string]> = {};
-    
+    const requestingCivName = playerInfos.find(i => i.Key === PlayerID)?.Civilization ?? 'Unknown';
+
     // Iterate through all players to extract opinions
     for (const info of playerInfos) {
       const targetPlayerID = info.Key;
@@ -131,10 +152,23 @@ class GetOpinionsTool extends ToolBase {
           Civilization: info.Civilization,
           Leader: info.Leader,
           IsMajor: info.IsMajor === 1,
-          // Opinion data
-          OurOpinionToThem: stripTags(toOpinion)?.split("\n"),
-          TheirOpinionToUs: targetPlayerID === args.PlayerID ? undefined : stripTags(fromOpinion)?.split("\n"),
-          MyEvaluations: targetPlayerID !== args.PlayerID ? undefined : stripTags(fromOpinion)?.split("\n")
+          // Opinion data - annotate pronouns with civ names
+          // In GetOpinionTable(ePlayer) on pkPlayer: We/Our/You/Your = ePlayer, They = pkPlayer
+          OurOpinionToThem: annotateSubjects(
+            stripTags(toOpinion)?.split("\n"),
+            info.Civilization,    // ePlayer = target
+            requestingCivName     // pkPlayer = us
+          ),
+          TheirOpinionToUs: targetPlayerID === args.PlayerID ? undefined : annotateSubjects(
+            stripTags(fromOpinion)?.split("\n"),
+            requestingCivName,    // ePlayer = us
+            info.Civilization     // pkPlayer = target
+          ),
+          MyEvaluations: targetPlayerID !== args.PlayerID ? undefined : annotateSubjects(
+            stripTags(fromOpinion)?.split("\n"),
+            requestingCivName,    // "Our" = requesting player
+            ''                    // No "They" in evaluation strings
+          )
         };
         
         const checkedData = OpinionDataSchema.safeParse(playerData).data;

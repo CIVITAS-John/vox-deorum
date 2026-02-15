@@ -21,6 +21,8 @@ import { getPlayerVisibility } from "../../utils/knowledge/visibility.js";
 import { PlayerInformation } from "../../knowledge/schema/public.js";
 import { Selectable } from "kysely";
 import { sortBySchema } from "../../utils/schema.js";
+import { stripTags } from "../../utils/database/localized.js";
+import { annotateSubjects } from "./get-opinions.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -160,6 +162,7 @@ class GetPlayersTool extends ToolBase {
 
     // Combine the data and create dictionary
     const playersDict: PlayersReport = {};
+    const requestingCivName = playerInfos.find(i => i.Key === args.PlayerID)?.Civilization ?? 'Unknown';
     for (const info of playerInfos) {
       const playerID = info.Key;
       const summary = playerSummaries.find(s => s.Key === playerID);
@@ -210,13 +213,23 @@ class GetPlayersTool extends ToolBase {
         else playerData.HappinessSituation = "Happy"
       }
 
-      // Load player options
+      // Load player opinions - annotate pronouns with civilization names
+      // In GetOpinionTable(ePlayer) on pkPlayer: We/Our/You/Your = ePlayer, They = pkPlayer
       if (playerOpinions) {
         if (playerID === args.PlayerID) {
-          playerData.MyEvaluations = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
+          playerData.MyEvaluations = annotateSubjects(
+            stripTags(playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n"),
+            requestingCivName, ''
+          );
         } else {
-          playerData.OurOpinionToThem = (playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
-          playerData.TheirOpinionToUs = (playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n");
+          playerData.OurOpinionToThem = annotateSubjects(
+            stripTags(playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string)?.split("\n"),
+            info.Civilization, requestingCivName
+          );
+          playerData.TheirOpinionToUs = annotateSubjects(
+            stripTags(playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n"),
+            requestingCivName, info.Civilization
+          );
         }
       }
 
