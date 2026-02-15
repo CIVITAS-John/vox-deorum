@@ -25,16 +25,18 @@ export function annotateSubjects(
 ): string[] | undefined {
   if (!opinions) return undefined;
   return opinions.map(s =>
-    s.trim().replace(/^We /, `We (${ePlayerLabel}) `)
-     .replace(/^Our /, `Our (${ePlayerLabel}) `)
-     .replace(/^You /, `You (${ePlayerLabel}) `)
-     .replace(/^Your /, `You (${ePlayerLabel}) `)
-     .replace(/^They /, `${pkPlayerLabel} `)
-     .replace(/^Their /, `${pkPlayerLabel} `)
+    s.trim()
      // Special cases
      .replace(/^Our real approach /, `${pkPlayerLabel}'s real approach to ${ePlayerLabel} `)
      .replace(/^Our leader has expressed a public opinion of you /, `${pkPlayerLabel}'s leader has expressed a public opinion of ${ePlayerLabel} `)
      .replace(/^Our leader has formed a private opinion of you /, `${pkPlayerLabel}'s leader has formed a private opinion of ${ePlayerLabel} `)
+     // Regular cases
+     .replace(/^We /, `We (${ePlayerLabel}) `)
+     .replace(/^Our /, `Our (${ePlayerLabel}) `)
+     .replace(/^You /, `You (${ePlayerLabel}) `)
+     .replace(/^Your /, `Your (${ePlayerLabel}) `)
+     .replace(/^They /, `${pkPlayerLabel} `)
+     .replace(/^Their /, `${pkPlayerLabel} `)
   );
 }
 
