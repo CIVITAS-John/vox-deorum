@@ -52,8 +52,8 @@ const OpinionDataSchema = z.object({
   Leader: z.string(),
   IsMajor: z.boolean(),
   // Opinion fields
-  OurOpinionToThem: z.array(z.string()).describe("Opinion from the requesting player OF the target player").optional(),
-  TheirOpinionToUs: z.array(z.string()).describe("Opinion FROM the target player of the requesting player").optional(),
+  OurOpinionOfThem: z.array(z.string()).describe("Opinion from the requesting player OF the target player").optional(),
+  TheirOpinionOfUs: z.array(z.string()).describe("Opinion FROM the target player of the requesting player").optional(),
   MyEvaluations: z.array(z.string()).describe("My evaluation of other players").optional(),
 });
 
@@ -154,12 +154,12 @@ class GetOpinionsTool extends ToolBase {
           IsMajor: info.IsMajor === 1,
           // Opinion data - annotate pronouns with civ names
           // In GetOpinionTable(ePlayer) on pkPlayer: We/Our/You/Your = ePlayer, They = pkPlayer
-          OurOpinionToThem: annotateSubjects(
+          OurOpinionOfThem: annotateSubjects(
             stripTags(toOpinion)?.split("\n"),
             info.Civilization,    // ePlayer = target
             requestingCivName     // pkPlayer = us
           ),
-          TheirOpinionToUs: targetPlayerID === args.PlayerID ? undefined : annotateSubjects(
+          TheirOpinionOfUs: targetPlayerID === args.PlayerID ? undefined : annotateSubjects(
             stripTags(fromOpinion)?.split("\n"),
             requestingCivName,    // ePlayer = us
             info.Civilization     // pkPlayer = target

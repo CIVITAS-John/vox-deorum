@@ -41,8 +41,8 @@ const PlayerDataSchema = z.object({
   Leader: z.string(),
   IsMajor: z.boolean(),
   // Opinion fields
-  OurOpinionToThem: z.array(z.string()).optional(),
-  TheirOpinionToUs: z.array(z.string()).optional(),
+  OurOpinionOfThem: z.array(z.string()).optional(),
+  TheirOpinionOfUs: z.array(z.string()).optional(),
   MyEvaluations: z.array(z.string()).optional(),
   // PlayerSummary fields
   Score: z.number().optional(),
@@ -222,11 +222,11 @@ class GetPlayersTool extends ToolBase {
             requestingCivName, ''
           );
         } else {
-          playerData.OurOpinionToThem = annotateSubjects(
+          playerData.OurOpinionOfThem = annotateSubjects(
             stripTags(playerOpinions[`OpinionTo${info.Key}` as keyof PlayerOpinions] as string)?.split("\n"),
             info.Civilization, requestingCivName
           );
-          playerData.TheirOpinionToUs = annotateSubjects(
+          playerData.TheirOpinionOfUs = annotateSubjects(
             stripTags(playerOpinions[`OpinionFrom${info.Key}` as keyof PlayerOpinions] as string)?.split("\n"),
             requestingCivName, info.Civilization
           );

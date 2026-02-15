@@ -157,7 +157,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
   getDataPrompt: (parameters, events) => {
     const state = getRecentGameState(parameters)!;
     const filteredPlayers = omitPlayerFields(state.players!, [
-      'OurOpinionToThem', 'TheirOpinionToUs', 'MyEvaluations', 'Spies'
+      'OurOpinionOfThem', 'TheirOpinionOfUs', 'MyEvaluations', 'Spies'
     ]);
     const filteredCities = omitCityFields(state.cities!, [
       'MajorityReligion'
@@ -222,7 +222,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
     const filteredPlayers = pickPlayerFields(state.players!, [
       'Civilization', 'Leader', 'IsMajor', 'TeamID', 'Era', 
       'Score', 'Territory', 'MilitaryStrength', 'Cities', 'Population', 'Gold', 'GoldPerTurn',
-      'OurOpinionToThem', 'TheirOpinionToUs', 'Relationships', 'MyEvaluation', 'PolicyBranches',
+      'OurOpinionOfThem', 'TheirOpinionOfUs', 'Relationships', 'MyEvaluation', 'PolicyBranches',
       'FoundedReligion', 'MajorityReligion', 'MajorAlly', 'Quests', 'DiplomaticDeals',
       'GoldenAge', 'HappinessSituation', 'ResourcesAvailable', 'IncomingTradeRoutes', 'OutgoingTradeRoutes', 'Spies'
     ]);
