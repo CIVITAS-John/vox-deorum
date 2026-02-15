@@ -31,12 +31,16 @@ export function annotateSubjects(
      .replace(/^Our leader has expressed a public opinion of you /, `${pkPlayerLabel}'s leader has expressed a public opinion of ${ePlayerLabel} `)
      .replace(/^Our leader has formed a private opinion of you /, `${pkPlayerLabel}'s leader has formed a private opinion of ${ePlayerLabel} `)
      // Regular cases
-     .replace(/^We /, `We (${ePlayerLabel}) `)
-     .replace(/^Our /, `Our (${ePlayerLabel}) `)
+     .replace(/\bus\b/, `us (${ePlayerLabel})`)
+     .replace(/\bour empire\b/, `${ePlayerLabel}`)
      .replace(/^You /, `You (${ePlayerLabel}) `)
+     .replace(/\byou\b/, ` you (${ePlayerLabel})`)
      .replace(/^Your /, `Your (${ePlayerLabel}) `)
+     .replace(/\byour\b/, ` your (${ePlayerLabel})`)
      .replace(/^They /, `${pkPlayerLabel} `)
-     .replace(/^Their /, `${pkPlayerLabel} `)
+     .replace(/\bthey\b/, `${pkPlayerLabel}`)
+     .replace(/^Their /, `${pkPlayerLabel}'s `)
+     .replace(/\btheir\b/, `${pkPlayerLabel}'s`)
   );
 }
 
