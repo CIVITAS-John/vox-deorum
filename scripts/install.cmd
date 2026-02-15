@@ -371,6 +371,12 @@ if "%VP_INSTALLED%"=="0" (
             xcopy /E /I /Y "!SOURCE_EUI!" "!EUI_PATH!" >nul 2>&1
         )
 
+        :: Delete cached localization database to force regeneration
+        if exist "!SETTINGS_DIR!\cache\Localization-Merged.db" (
+            del "!SETTINGS_DIR!\cache\Localization-Merged.db" >nul 2>&1
+            echo   [OK] Cleared cached Localization-Merged.db
+        )
+
         echo   [OK] Mods installed successfully
     ) else (
         echo   Warning: Source mod folders not found

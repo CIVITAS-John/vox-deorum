@@ -414,6 +414,9 @@ begin
         end;
       end;
 
+      // Delete cached localization database to force regeneration
+      DeleteFile(GameSettingsPath + '\cache\Localization-Merged.db');
+
       // Always copy Lua DLL - it's required for Vox Deorum
       if FileExists(ExpandConstant('{app}\scripts\release\lua51_win32.dll')) then
       begin
