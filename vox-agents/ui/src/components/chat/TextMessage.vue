@@ -40,8 +40,13 @@ const renderedContent = computed(() => {
     gfm: true,    // GitHub Flavored Markdown
   });
 
+  // Strip LLM-echoed [Turn N] prefix and trailing horizontal rule
+  const text = props.content
+    .replace(/^\[Turn \d+\]\s*/, '')
+    .replace(/\n\s*(?:---|<hr\s*\/?>)\s*$/, '');
+
   // Parse markdown and sanitize the HTML
-  const html = marked(props.content);
+  const html = marked(text);
   return DOMPurify.sanitize(html as string);
 });
 </script>

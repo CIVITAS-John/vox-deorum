@@ -131,7 +131,7 @@ export abstract class Envoy<TParameters extends AgentParameters = AgentParameter
       }
 
       // Format turn into string messages for context
-      if (this.includeTurnPrefix && typeof message.content === 'string')
+      if (this.includeTurnPrefix && typeof message.content === 'string' && !message.content.startsWith("[Turn"))
           message.content = `[Turn ${item.metadata.turn}] ${message.content}`;
 
       result.push(message);

@@ -495,13 +495,6 @@ export class VoxContext<TParameters extends AgentParameters> {
         // Record step results in span
         const responses = stepResponse.response.messages;
         responses.forEach((response: any) => delete response.providerOptions);
-        stepSpan.setAttributes({
-          'model': `${stepModel.provider}/${stepModel.name}@${stepModel.options?.["reasoningEffort"] ?? ""}`,
-          'tokens.input': inputTokens,
-          'tokens.reasoning': reasoningTokens,
-          'tokens.output': outputTokens,
-          'step.responses': JSON.stringify(stepResponse.response.messages)
-        });
 
         // Add the step to our collection
         let shouldStop = false;
@@ -541,6 +534,14 @@ export class VoxContext<TParameters extends AgentParameters> {
           this.logger.warn(`Agent execution produced no steps: ${agent.name} at step ${stepCount + 1}.`);
           shouldStop = this.abortController.signal.aborted;
         }
+        
+        stepSpan.setAttributes({
+          'model': `${stepModel.provider}/${stepModel.name}@${stepModel.options?.["reasoningEffort"] ?? ""}`,
+          'tokens.input': inputTokens,
+          'tokens.reasoning': reasoningTokens,
+          'tokens.output': outputTokens,
+          'step.responses': JSON.stringify(stepResponse.response.messages)
+        });
 
         stepSpan.setAttribute('step.should_stop', shouldStop);
         stepSpan.setStatus({ code: SpanStatusCode.OK });

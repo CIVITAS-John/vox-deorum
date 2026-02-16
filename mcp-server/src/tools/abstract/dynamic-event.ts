@@ -47,8 +47,8 @@ export abstract class DynamicEventTool extends ToolBase {
     if ('VisibleTo' in args && Array.isArray(args.VisibleTo)) {
       return args.VisibleTo;
     }
-    if ('PlayerID' in args && typeof args.ToPlayerID === 'number') {
-      return [args.ToPlayerID];
+    if ('PlayerID' in args && typeof args.PlayerID === 'number') {
+      return [args.PlayerID];
     }
     return [];
   }

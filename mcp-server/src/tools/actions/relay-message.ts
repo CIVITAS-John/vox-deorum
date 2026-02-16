@@ -16,18 +16,16 @@ const RelayMessageInputSchema = z.object({
     .describe('The receiving player ID (the leader being informed)'),
   FromPlayerID: z.number().min(0).max(MaxMajorCivs - 1)
     .describe('The player ID of the civilization the message concerns'),
-  Type: z.enum(['diplomatic', 'intelligence'])
+  Message: z.enum(['Diplomatic', 'Intelligence'])
     .describe('Message type: "diplomatic" for official communications, "intelligence" for gathered information'),
-  Message: z.string().min(1).max(2000)
+  Content: z.string().min(1).max(2000)
     .describe('The message content'),
   Confidence: z.number().min(0).max(9)
     .describe('Reliability assessment (0 = unreliable rumor, 9 = authoritative leader statement)'),
   Categories: z.array(z.string()).min(1)
-    .describe('Searchable categories (e.g., "military", "trade", "espionage", "territorial", "alliance")'),
+    .describe('Searchable categories (e.g., "Military", "Economic", "Diplomacy")'),
   Memo: z.string().min(1).max(500)
-    .describe("The diplomat's memo: assessment, reaction, and contextual notes"),
-  VisibleTo: z.array(z.number().min(0).max(MaxMajorCivs - 1)).optional()
-    .describe('Override: player IDs who can see this event (defaults to [ToPlayerID])')
+    .describe("The diplomat's memo: assessment, reaction, and contextual notes")
 });
 
 /**
@@ -56,8 +54,8 @@ class MessageRelayTool extends DynamicEventTool {
       FromPlayerID: args.FromPlayerID,
       ToPlayer: resolvePlayerName(playerMap, args.PlayerID),
       FromPlayer: resolvePlayerName(playerMap, args.FromPlayerID),
-      Type: args.Type,
       Message: args.Message,
+      Content: args.Content,
       Confidence: `${args.Confidence}/9`,
       Categories: args.Categories,
       Memo: args.Memo
