@@ -25,7 +25,7 @@ const RelayMessageInputSchema = z.object({
   Categories: z.array(z.string()).min(1)
     .describe('Searchable categories (e.g., "Military", "Economic", "Diplomacy")'),
   Memo: z.string().min(1).max(500)
-    .describe("The diplomat's memo: assessment, reaction, and contextual notes")
+    .describe("The analyst's memo: assessment, reaction, and contextual notes")
 });
 
 /**
@@ -58,7 +58,7 @@ class MessageRelayTool extends DynamicEventTool {
       Content: args.Content,
       Confidence: `${args.Confidence}/9`,
       Categories: args.Categories,
-      Memo: args.Memo
+      Memo: `Our analyst: ${args.Memo}`
     };
   }
 }
