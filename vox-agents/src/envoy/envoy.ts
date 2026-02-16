@@ -9,7 +9,7 @@ import { ModelMessage, StepResult, Tool } from "ai";
 import { VoxAgent, AgentParameters } from "../infra/vox-agent.js";
 import { EnvoyThread, MessageWithMetadata, SpecialMessageConfig } from "../types/index.js";
 import { VoxContext } from "../infra/vox-context.js";
-import { formatToolResultOutput } from "../utils/text-cleaning.js";
+import { formatToolResultOutput, stripTurnMarker } from "../utils/text-cleaning.js";
 
 /**
  * Generic base envoy agent that can chat with the user.
@@ -49,6 +49,20 @@ export abstract class Envoy<TParameters extends AgentParameters = AgentParameter
     const currentDatetime = new Date();
 
     lastStep.response.messages.forEach(element => {
+      // Strip LLM-echoed turn markers from assistant text so convertToModelMessages
+      // can add the correct programmatic one on the next read.
+      if (element.role === 'assistant') {
+        if (typeof element.content === 'string') {
+          element.content = stripTurnMarker(element.content);
+        } else if (Array.isArray(element.content)) {
+          for (const part of element.content) {
+            if (part.type === 'text') {
+              part.text = stripTurnMarker(part.text);
+            }
+          }
+        }
+      }
+
       input.messages.push({
         message: element,
         metadata: {

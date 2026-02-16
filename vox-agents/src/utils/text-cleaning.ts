@@ -8,6 +8,15 @@ import { type LanguageModelV2ToolResultPart } from '@ai-sdk/provider';
 import { jsonToMarkdown } from './tools/json-to-markdown.js';
 
 /**
+ * Strips a leading `[Turn N]` marker from text.
+ * The envoy adds turn markers programmatically via convertToModelMessages,
+ * but LLMs sometimes echo them back — this removes the duplicate.
+ */
+export function stripTurnMarker(text: string): string {
+  return text.replace(/^\[Turn \d+\]\s*/, '');
+}
+
+/**
  * Strips structural artifacts left behind by tool call extraction from LLM text.
  * Removes empty JSON arrays, empty markdown code blocks, and standalone fence markers.
  */
