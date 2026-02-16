@@ -7,6 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - When asked to implement a feature, always delegate work to appropriate sub-agents and coordinate their work
 - **Always review the relevant submodule's CLAUDE.md before working in that directory** - Each module has specific patterns and conventions
 - Always delegate to subagents when the task is complicated
+- **Release notes / update logs:**
+  - Read `release.txt` for the last released version (e.g., `v0.6.3`)
+  - Use `git log <tag>..HEAD --oneline --no-merges` and `git diff --stat <tag>..HEAD` to gather changes since that tag
+  - Keep notes very short — a handful of bullet items grouped by feature/theme, not exhaustive changelogs
+  - Output the notes as raw markdown to the console (don't write to ANY files unless asked)
 
 ## Project Overview
 This is Vox Deorum - an LLM-Enhanced AI for Civilization V using the Community Patch framework.
