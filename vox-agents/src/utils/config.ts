@@ -174,6 +174,13 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
+    'openai-compatible/GLM-5': {
+      provider: 'openai-compatible',
+      name: 'GLM-5',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
     'openai-compatible/DeepSeek-V3.2': {
       provider: 'openai-compatible',
       name: 'DeepSeek-V3.2',
