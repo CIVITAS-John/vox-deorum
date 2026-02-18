@@ -124,13 +124,6 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
-    'synthetic/hf:moonshotai/Kimi-K2-Thinking': {
-      provider: 'synthetic',
-      name: 'hf:moonshotai/Kimi-K2-Thinking',
-      options: {
-        toolMiddleware: 'prompt'
-      }
-    },
     'synthetic/hf:moonshotai/Kimi-K2.5': {
       provider: 'synthetic',
       name: 'hf:moonshotai/Kimi-K2.5',
@@ -198,13 +191,6 @@ export const defaultConfig: VoxAgentsConfig = {
     'openai-compatible/Kimi-K2.5': {
       provider: 'openai-compatible',
       name: 'Kimi-K2.5',
-      options: {
-        toolMiddleware: 'prompt'
-      }
-    },
-    'openai-compatible/Kimi-K2.5-NVFP4': {
-      provider: 'openai-compatible',
-      name: 'Kimi-K2.5-NVFP4',
       options: {
         toolMiddleware: 'prompt'
       }
