@@ -5,7 +5,7 @@
  * Handles creation and configuration of language models from various providers with middleware support.
  */
 
-import { LanguageModel, ProviderMetadata, wrapLanguageModel } from 'ai';
+import { LanguageModel, ProviderMetadata, extractReasoningMiddleware, wrapLanguageModel } from 'ai';
 import { config } from '../config.js';
 import type { Model } from '../../types/index.js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
@@ -167,6 +167,13 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
         model: result,
         middleware: toolRescueMiddleware()
       });
+  }
+  // Wrap with reasoning extraction middleware for models that emit <think> tags
+  if (config.options?.thinkMiddleware) {
+    result = wrapLanguageModel({
+      model: result,
+      middleware: extractReasoningMiddleware({ tagName: config.options.thinkMiddleware })
+    });
   }
   return result;
 }
