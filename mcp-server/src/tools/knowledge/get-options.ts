@@ -211,6 +211,7 @@ class GetOptionsTool extends ToolBase {
           cleanOptions.Policies.map(policyName => {
             const current = policies.find((s) => s.Name === policyName);
             var Help = formatPolicyHelp(current?.Help ?? "", policyName);
+            if (!current?.Branch) throw new Error(`Failed to retrieve the policy branch: ${policyName}`);
             // Add tenet level information for ideology policies
             let displayName = policyName;
             if (current?.Level) {
