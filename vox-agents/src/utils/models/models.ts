@@ -148,6 +148,13 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
       }).chatModel((process.env.OPENAI_COMPATIBLE_URL.indexOf("cloudflare.com") !== -1 ? "dynamic/" : "") + config.name);
       break;
   }
+  // Wrap with reasoning extraction middleware for models that emit <think> tags
+  if (config.options?.thinkMiddleware) {
+    result = wrapLanguageModel({
+      model: result,
+      middleware: extractReasoningMiddleware({ tagName: config.options.thinkMiddleware })
+    });
+  }
   // Wrap it for tool calling
   switch (config.options?.toolMiddleware) {
     case "gemma":
@@ -167,13 +174,6 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
         model: result,
         middleware: toolRescueMiddleware()
       });
-  }
-  // Wrap with reasoning extraction middleware for models that emit <think> tags
-  if (config.options?.thinkMiddleware) {
-    result = wrapLanguageModel({
-      model: result,
-      middleware: extractReasoningMiddleware({ tagName: config.options.thinkMiddleware })
-    });
   }
   return result;
 }
