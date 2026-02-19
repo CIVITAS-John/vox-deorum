@@ -33,8 +33,8 @@ function getModelLimiter(model: Model): ReturnType<typeof pLimit> {
   let limiter = modelLimiters.get(modelId);
 
   if (!limiter) {
-    // Create a new limiter with the model's concurrency limit (default 3)
-    const concurrencyLimit = model.options?.concurrencyLimit ?? 3;
+    // Create a new limiter with the model's concurrency limit (default 5)
+    const concurrencyLimit = model.options?.concurrencyLimit ?? 5;
     limiter = pLimit(concurrencyLimit);
     modelLimiters.set(modelId, limiter);
   }
