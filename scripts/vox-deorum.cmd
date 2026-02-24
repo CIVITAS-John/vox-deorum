@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 :: Vox Deorum Services Manager
 :: Usage: vox-deorum.cmd [vox-agents-mode] [additional-args...]
 :: Default mode: webui (launches web interface)
-:: Available modes: webui, briefer, strategist
+:: Supports any mode matching an npm script in vox-agents (e.g. briefer, strategist)
 :: Example: vox-deorum.cmd --strategist --verbose --debug
 
 :: Configure Node.js (prefer bundled over system)
@@ -50,15 +50,15 @@ set "VOX_MODE=%VOX_MODE:--=-%"
 if not exist "%~dp0..\vox-agents\src\index.ts" (
     echo [INFO] Source directory not found, using compiled distribution...
 
-    :: Map modes to dist commands
-    if "%VOX_MODE%"=="webui" set "VOX_MODE=start:dist"
-    if "%VOX_MODE%"=="briefer" set "VOX_MODE=briefer:dist"
-    if "%VOX_MODE%"=="strategist" set "VOX_MODE=strategist:dist"
+    :: Map webui to start:dist; all other modes get :dist suffix
+    if "%VOX_MODE%"=="webui" (
+        set "VOX_MODE=start:dist"
+    ) else (
+        set "VOX_MODE=%VOX_MODE%:dist"
+    )
 ) else (
-    :: Map modes to dev commands
+    :: Map webui to start; all other modes pass through as-is
     if "%VOX_MODE%"=="webui" set "VOX_MODE=start"
-    if "%VOX_MODE%"=="briefer" set "VOX_MODE=briefer"
-    if "%VOX_MODE%"=="strategist" set "VOX_MODE=strategist"
 )
 
 :: Capture all arguments after the first one
