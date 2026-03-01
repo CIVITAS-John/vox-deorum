@@ -3,6 +3,7 @@ coverage
 node_modules
 dist
 /node
+/temp
 .env
 nul
 

@@ -305,7 +305,8 @@ function OnSystemUpdateUI( type, tag  )
 							["d1b6328c-ff44-4b0d-aad7-c657f83610cd"] = "Community Patch",
 							["8411a7a8-dad3-4622-a18e-fcc18324c799"] = "Vox Populi",
 							["24923240-e4fb-4bf6-8f0e-6e5b6cf4d3c2"] = "Vox Populi + EUI",
-							["04c67ca5-d408-4b9e-be1b-bbc00e67fd8e"] = "Vox Deorum"
+							["04c67ca5-d408-4b9e-be1b-bbc00e67fd8e"] = "Vox Deorum",
+							["970aae10-1004-4c8a-af2d-8d601de5ec02"] = "AI Observer (JFD)"
 						}
 
 						-- Check if required mods are enabled

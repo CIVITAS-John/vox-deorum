@@ -127,6 +127,7 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 - Focus on conceptual level, not excessive technical details
 - Don't change test scripts unless explicitly asked
 - When working in submodules (bridge-service, mcp-server, vox-agents/ui), consult that module's CLAUDE.md for specific guidance
+- **Prefer already-allowed tools and simple shell commands** to reduce extra permission prompts. Use Read/Edit/Write/Grep/Glob instead of Bash equivalents. When Bash is needed, use simple well-known commands (`ls`, `dotnet build`, `git`) rather than complex pipelines.
 
 ### Code Conventions
 - Straightforward implementation focused on goals
