@@ -24,6 +24,12 @@ export interface ToolRescueOptions {
    * by adding a system prompt with instructions
    */
   prompt?: boolean;
+  /**
+   * If true, merges the tool prompt into the first existing system message
+   * rather than prepending a new one. Required for models that only accept
+   * a single system message at position 0 (e.g. Qwen).
+   */
+  systemPromptFirst?: boolean;
 }
 
 export function createToolPrompt(tool: (LanguageModelV2FunctionTool | LanguageModelV2ProviderDefinedTool)) {
@@ -431,10 +437,23 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
       // Convert existing tool-call/tool-result messages to text so the model
       // sees a consistent text-based history instead of native tool parts it never produced
       const convertedPrompt = convertPromptToolMessagesToText(params.prompt ?? []);
-      const modifiedPrompt: any = [
-        { role: 'system', content: toolPrompt },
-        ...convertedPrompt
-      ];
+
+      // Build the modified prompt, respecting systemPromptFirst models that only
+      // accept a single system message. When set, merge the tool prompt into the
+      // first existing system message instead of prepending a new one.
+      let modifiedPrompt: any;
+      if (options?.systemPromptFirst && convertedPrompt.length > 0 && convertedPrompt[0].role === 'system') {
+        const firstMsg = convertedPrompt[0] as { role: 'system'; content: string };
+        modifiedPrompt = [
+          { role: 'system', content: toolPrompt + '\n\n' + firstMsg.content },
+          ...convertedPrompt.slice(1)
+        ];
+      } else {
+        modifiedPrompt = [
+          { role: 'system', content: toolPrompt },
+          ...convertedPrompt
+        ];
+      }
 
       // Return modified params without tools (since we're using JSON format)
       return {

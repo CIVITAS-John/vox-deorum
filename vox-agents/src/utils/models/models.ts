@@ -166,7 +166,7 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
     case "prompt":
       result = wrapLanguageModel({
         model: result,
-        middleware: toolRescueMiddleware({ prompt: true })
+        middleware: toolRescueMiddleware({ prompt: true, systemPromptFirst: config.options?.systemPromptFirst })
       });
       break;
     default:

@@ -91,6 +91,17 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
     let streamController: TransformStreamDefaultController<TextStreamPart<ToolSet>> | undefined;
     let toolCount = 0;
 
+    // Convert system messages after the first non-system message to user messages
+    if (modelConfig?.options?.systemPromptFirst && params.messages) {
+      params = {
+        ...params,
+        messages: params.messages.map((msg, i) => {
+          if (i !== 0 && msg.role === 'system') return { ...msg, role: 'user' as const };
+          return msg;
+        })
+      };
+    }
+
     // Retry with caveats
     return exponentialRetry(async (update, iteration) => {
       if (params.abortSignal?.aborted) return;

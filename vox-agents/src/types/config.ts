@@ -27,6 +27,7 @@ export interface LLMConfig {
     thinkMiddleware?: string;
     concurrencyLimit?: number;
     reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high';
+    systemPromptFirst?: boolean;
     [key: string]: any;
   };
 }
