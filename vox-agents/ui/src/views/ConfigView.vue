@@ -7,11 +7,11 @@ import Password from 'primevue/password';
 import Message from 'primevue/message';
 import ProgressSpinner from 'primevue/progressspinner';
 import Dropdown from 'primevue/dropdown';
-import Tooltip from 'primevue/tooltip';
 import { useConfirm } from 'primevue/useconfirm';
 import { apiClient } from '../api/client';
-import type { AgentMapping, LLMConfig, VoxAgentsConfig, ToolMiddlewareType, AgentInfo } from '../utils/types';
-import { llmProviders, apiKeyFields, toolMiddlewareOptions } from '../utils/types';
+import type { AgentMapping, LLMConfig, VoxAgentsConfig, AgentInfo } from '../utils/types';
+import { llmProviders, apiKeyFields } from '../utils/types';
+import ModelOptionsDialog from '../components/ModelOptionsDialog.vue';
 import {
   parseLLMConfig,
   buildLLMConfig,
@@ -37,6 +37,10 @@ const agents = ref<AgentInfo[]>([]);
 
 // Initialize confirmation service
 const confirm = useConfirm();
+
+// Model options dialog state
+const modelOptionsVisible = ref(false);
+const editingModel = ref<LLMConfig | null>(null);
 
 // Computed available models for dropdown
 const availableModels = computed(() => {
@@ -165,16 +169,52 @@ function deleteModel(modelId: string) {
   agentMappings.value = agentMappings.value.filter(m => m.model !== modelId);
 }
 
-// Handle toolMiddleware changes
-function handleToolMiddlewareChange(model: LLMConfig, value: ToolMiddlewareType | null) {
-  if (!model.options) {
-    model.options = {};
+/** Open the options dialog for the given model */
+function openModelOptions(model: LLMConfig) {
+  editingModel.value = model;
+  modelOptionsVisible.value = true;
+}
+
+/** Apply options emitted from the dialog back onto the model */
+function applyModelOptions(options: LLMConfig['options']) {
+  if (editingModel.value) {
+    editingModel.value.options = options;
   }
-  if (value) {
-    model.options.toolMiddleware = value;
-  } else {
-    delete model.options.toolMiddleware;
+}
+
+/** Returns true if the model has any non-default options configured */
+function hasModelOptions(model: LLMConfig): boolean {
+  if (!model.options) return false;
+  return Object.values(model.options).some(v => v !== null && v !== undefined && v !== '' && v !== false);
+}
+
+/** Returns a compact summary of configured options for the tooltip */
+function modelOptionsSummary(model: LLMConfig): string {
+  if (!hasModelOptions(model)) return 'Model options';
+  const opts = model.options!;
+  const parts: string[] = [];
+  if (opts.toolMiddleware) parts.push(`Tool: ${opts.toolMiddleware}`);
+  if (opts.reasoningEffort) parts.push(`Reasoning: ${opts.reasoningEffort}`);
+  if (opts.thinkMiddleware) parts.push('Think tag postprocessing: on');
+  if (opts.concurrencyLimit != null) parts.push(`Concurrency: ${opts.concurrencyLimit}`);
+  if (opts.systemPromptFirst) parts.push('Sys first: on');
+  return parts.join(' | ');
+}
+
+/** Duplicate a model with a unique auto-generated name */
+function duplicateModel(model: LLMConfig) {
+  const existingIds = new Set(modelDefinitions.value.map(m => m.id));
+  let newName = model.name;
+  let suffix = 2;
+  while (existingIds.has(`${model.provider}/${newName}`)) {
+    newName = `${model.name}-${suffix}`;
+    suffix++;
   }
+  modelDefinitions.value.push({
+    ...JSON.parse(JSON.stringify(model)),
+    name: newName,
+    id: `${model.provider}/${newName}`
+  });
 }
 
 // Save configuration (API keys and config)
@@ -400,22 +440,22 @@ async function saveConfig() {
               class="model-name"
               @input="updateModelId(model)"
             />
-            <Dropdown
-              :modelValue="model.options?.toolMiddleware ?? 'rescue'"
-              :options="toolMiddlewareOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Select middleware"
-              class="middleware-dropdown"
-              showClear
-              @update:modelValue="(value: ToolMiddlewareType | null) => handleToolMiddlewareChange(model, value)"
-            >
-              <template #option="slotProps">
-                <div v-tooltip.top="slotProps.option.tooltip">
-                  {{ slotProps.option.label }}
-                </div>
-              </template>
-            </Dropdown>
+            <Button
+              icon="pi pi-sliders-h"
+              text
+              :severity="hasModelOptions(model) ? 'info' : 'secondary'"
+              v-tooltip.top="modelOptionsSummary(model)"
+              @click="openModelOptions(model)"
+              class="delete-btn"
+            />
+            <Button
+              icon="pi pi-copy"
+              text
+              severity="secondary"
+              v-tooltip.top="'Duplicate model'"
+              @click="duplicateModel(model)"
+              class="delete-btn"
+            />
             <Button
               icon="pi pi-trash"
               text
@@ -425,6 +465,12 @@ async function saveConfig() {
             />
           </div>
         </div>
+
+        <ModelOptionsDialog
+          v-model:visible="modelOptionsVisible"
+          :model="editingModel"
+          @apply="applyModelOptions"
+        />
       </template>
     </Card>
   </div>

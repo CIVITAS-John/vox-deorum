@@ -61,9 +61,14 @@ export function buildLLMConfig(
       provider: def.provider,
       name: def.name
     };
-    // Only add options if they exist
+    // Only add options if they contain meaningful values
     if (def.options) {
-      modelConfig.options = def.options;
+      const cleaned = Object.fromEntries(
+        Object.entries(def.options).filter(([_, v]) => v !== null && v !== undefined && v !== '')
+      );
+      if (Object.keys(cleaned).length > 0) {
+        modelConfig.options = cleaned as LLMConfig['options'];
+      }
     }
     llms[def.id!] = modelConfig;
   }

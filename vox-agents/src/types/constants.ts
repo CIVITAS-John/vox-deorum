@@ -27,6 +27,7 @@ export const llmProviders = [
   { label: 'Anthropic', value: 'anthropic' },
   { label: 'OpenAI', value: 'openai' },
   { label: 'Google AI', value: 'google' },
+  { label: 'AWS Bedrock', value: 'aws' },
   { label: 'OpenAI Compatible', value: 'openai-compatible' },
   { label: 'Chutes.ai', value: 'chutes' },
   { label: 'Synthetic.new', value: 'synthetic' }

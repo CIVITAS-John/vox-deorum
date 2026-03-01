@@ -91,13 +91,8 @@
   min-width: 200px;
 }
 
-.middleware-dropdown {
-  flex: 2;
-  min-width: 250px;
-}
-
 .model-name {
-  flex: 2;
+  flex: 3;
   min-width: 200px;
 }
 
