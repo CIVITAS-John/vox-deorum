@@ -301,9 +301,13 @@ export class VoxContext<TParameters extends AgentParameters> {
         // Execute the agent using generateText
         // Get model config - agent's model or default, with overrides applied
         const modelConfig = agent.getModel(parameters, input, this.modelOverrides);
+        var system = await agent.getSystem(parameters, input, this);
 
         // Auto-send model name via set-metadata when it changes
-        const shortName = modelConfig.name.split("/").pop() || modelConfig.name;
+        // "VPAI" when no system prompt (in-game AI only), otherwise the LLM short name
+        const shortName = system !== ""
+          ? (modelConfig.name.split("/").pop() || modelConfig.name)
+          : "VPAI";
         if (shortName !== this.lastModelName) {
           this.lastModelName = shortName;
           await this.callTool("set-metadata", {
@@ -311,7 +315,6 @@ export class VoxContext<TParameters extends AgentParameters> {
           }, parameters);
         }
 
-        var system = await agent.getSystem(parameters, input, this);
         if (system != "") {
           var shouldStop = false;
           var messages: ModelMessage[] = [{

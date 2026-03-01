@@ -1,15 +1,16 @@
 /**
  * Unified player action dispatch for observer mods and replay messages.
+ * Uses preregistered Lua functions to avoid repeated script compilation.
  * Fires LuaEvents for observer consumption and optionally writes replay messages.
  */
 
-import { bridgeManager } from "../../server.js";
+import { LuaFunction } from "../../bridge/lua-function.js";
 import { createLogger } from "../logger.js";
 
 const logger = createLogger('PlayerActions');
 
 /**
- * Strip control characters that could break C++ JSON parsing or Lua strings.
+ * Strip control characters that could break C++ JSON parsing.
  * Preserves tabs (\t), newlines (\n), and carriage returns (\r).
  */
 function sanitize(text: string): string {
@@ -17,16 +18,45 @@ function sanitize(text: string): string {
 }
 
 /**
- * Wrap text in a Lua long-string literal that requires no escaping.
- * Automatically chooses the delimiter level to avoid collisions.
+ * Preregistered Lua function for player actions.
+ * Parameters are passed as JSON-serialized values via the bridge batch queue.
+ * replayPrefix: false = no replay, "" = replay without prefix, "X" = replay with prefix "X: "
  */
-function toLuaLongString(text: string): string {
-  const clean = sanitize(text);
-  let level = 0;
-  while (clean.includes(']' + '='.repeat(level) + ']')) level++;
-  const d = '='.repeat(level);
-  return `[${d}[${clean}]${d}]`;
-}
+const actionFunction = new LuaFunction(
+  "registerAction",
+  ["playerID", "actionType", "summary", "rationale", "replayPrefix"],
+  `
+    local turn = Game.GetGameTurn()
+    LuaEvents.VoxDeorumAction(playerID, turn, actionType, summary, rationale)
+
+    if replayPrefix then
+      local msg
+      if replayPrefix ~= "" then
+        msg = replayPrefix .. ": " .. summary
+      else
+        msg = summary
+      end
+      if rationale ~= "" then
+        msg = msg .. ". Rationale: " .. rationale
+      end
+      Players[playerID]:AddReplayMessage(msg)
+    end
+
+    return true
+  `
+);
+
+/**
+ * Preregistered Lua function for player info events.
+ */
+const playerInfoFunction = new LuaFunction(
+  "setPlayerInfo",
+  ["playerID", "label"],
+  `
+    LuaEvents.VoxDeorumPlayerInfo(playerID, label)
+    return true
+  `
+);
 
 /**
  * Push a player action: fires a LuaEvent for observer mods and optionally writes a replay message.
@@ -47,31 +77,15 @@ export async function pushPlayerAction(
   rationale: string,
   replayPrefix?: string
 ): Promise<void> {
-  const sumLua = toLuaLongString(summary);
-  const ratLua = toLuaLongString(rationale);
+  // Pass false for no replay (Lua falsy), or the prefix string (Lua truthy, including "")
+  const response = await actionFunction.execute(
+    playerID,
+    sanitize(actionType),
+    sanitize(summary),
+    sanitize(rationale),
+    replayPrefix !== undefined ? replayPrefix : false
+  );
 
-  let script = `local turn = Game.GetGameTurn()\n`;
-  script += `LuaEvents.VoxDeorumAction(${playerID}, turn, ${toLuaLongString(actionType)}, ${sumLua}, ${ratLua})\n`;
-
-  if (replayPrefix !== undefined) {
-    // Build replay message in Lua
-    script += `local summary = ${sumLua}\n`;
-    script += `local rationale = ${ratLua}\n`;
-    script += `local msg = ""\n`;
-
-    if (replayPrefix !== "") {
-      script += `msg = ${toLuaLongString(replayPrefix)} .. ": " .. summary\n`;
-    } else {
-      script += `msg = summary\n`;
-    }
-
-    script += `if rationale ~= "" then msg = msg .. ". Rationale: " .. rationale end\n`;
-    script += `Players[${playerID}]:AddReplayMessage(msg)\n`;
-  }
-
-  script += `return true`;
-
-  const response = await bridgeManager.executeLuaScript(script);
   if (response.success) {
     logger.debug(`Pushed ${actionType} action for player ${playerID}`);
   } else {
@@ -89,9 +103,8 @@ export async function pushPlayerInfo(
   playerID: number,
   label: string
 ): Promise<void> {
-  const script = `LuaEvents.VoxDeorumPlayerInfo(${playerID}, ${toLuaLongString(label)})\nreturn true`;
+  const response = await playerInfoFunction.execute(playerID, sanitize(label));
 
-  const response = await bridgeManager.executeLuaScript(script);
   if (response.success) {
     logger.debug(`Pushed player info for player ${playerID}: ${label}`);
   } else {
