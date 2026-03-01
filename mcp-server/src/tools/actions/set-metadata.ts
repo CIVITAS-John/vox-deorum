@@ -5,6 +5,7 @@
 import { ToolBase } from "../base.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
+import { pushPlayerInfo } from "../../utils/lua/player-actions.js";
 
 /**
  * Tool that sets metadata key-value pairs
@@ -37,7 +38,17 @@ class SetMetadataTool extends ToolBase {
    * Execute the set-metadata command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    await knowledgeManager.getStore().setMetadata(args.Key, args.Value);
+    const store = knowledgeManager.getStore();
+    await store.setMetadata(args.Key, args.Value);
+
+    // When model-{N} is set, combine with strategist-{N} and fire player info event
+    const match = args.Key.match(/^model-(\d+)$/);
+    if (match) {
+      const pid = parseInt(match[1]);
+      const strategist = await store.getMetadata(`strategist-${pid}`);
+      await pushPlayerInfo(pid, `${args.Value} / ${strategist || 'unknown'}`);
+    }
+
     return true;
   }
 }

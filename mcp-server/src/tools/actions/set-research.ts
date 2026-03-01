@@ -8,7 +8,7 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
-import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 import { trimRationale } from "../../utils/text.js";
 
 /**
@@ -145,13 +145,11 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
         }
       );
 
-      // Send replay message if the technology actually changed
+      // Send action event and replay message if the technology actually changed
       const previousTech = result.Result?.PreviousTech;
       if (Technology !== previousTech) {
-        const beforeDesc = previousTech || "None";
-        const afterDesc = Technology;
-        const message = `Changed next research: ${beforeDesc} → ${afterDesc}. Rationale: ${Rationale}`;
-        await addReplayMessages(PlayerID, message);
+        const summary = `${previousTech || "None"} → ${Technology}`;
+        await pushPlayerAction(PlayerID, "research", summary, Rationale, "Changed next research");
       }
     }
 

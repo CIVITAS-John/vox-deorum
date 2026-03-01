@@ -8,7 +8,7 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
-import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 import { trimRationale } from "../../utils/text.js";
 
 const personaSchema = z.object({
@@ -175,8 +175,8 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
       }
 
       if (changeDescriptions.length > 0) {
-        const message = `Diplomatic persona: ${changeDescriptions.join("; ")}. Rationale: ${Rationale}`;
-        await addReplayMessages(PlayerID, message);
+        const summary = changeDescriptions.join("; ");
+        await pushPlayerAction(PlayerID, "persona", summary, Rationale, "Diplomatic persona");
       }
     }
 

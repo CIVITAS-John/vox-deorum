@@ -10,7 +10,7 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { detectChanges } from "../../utils/knowledge/changes.js";
-import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 import { trimRationale } from "../../utils/text.js";
 
 /**
@@ -199,8 +199,8 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
           }
         });
 
-        const message = `Strategies: ${changeDescriptions.join("; ")}. Rationale: ${Rationale}`;
-        await addReplayMessages(otherArgs.PlayerID, message);
+        const summary = changeDescriptions.join("; ");
+        await pushPlayerAction(otherArgs.PlayerID, "strategy", summary, Rationale, "Strategies");
       }
     }
 

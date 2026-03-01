@@ -8,7 +8,7 @@ import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
-import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 import { pascalCase } from "change-case";
 import { retrieveEnumName, retrieveEnumValue } from "../../utils/knowledge/enum.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
@@ -218,10 +218,10 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
         composeVisibility([otherArgs.PlayerID])
       );
 
-      // Compare and send replay messages for actual changes
+      // Compare and send action event + replay message for actual changes
       if (changeDescriptions.length > 0) {
-        const message = `AI preferences: ${changeDescriptions.join("; ")}. Rationale: ${Rationale}`;
-        await addReplayMessages(otherArgs.PlayerID, message);
+        const summary = changeDescriptions.join("; ");
+        await pushPlayerAction(otherArgs.PlayerID, "flavors", summary, Rationale, "AI preferences");
       }
     }
 

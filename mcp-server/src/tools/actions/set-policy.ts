@@ -8,7 +8,7 @@ import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
-import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 import { trimRationale } from "../../utils/text.js";
 
 /**
@@ -187,14 +187,12 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
         }
       );
 
-      // Send replay message if the policy actually changed
+      // Send action event and replay message if the policy actually changed
       const previousPolicy = result.Result?.Previous;
       if (Policy !== previousPolicy && !(Policy === "None" && previousPolicy === "Unknown")) {
-        const beforeDesc = previousPolicy || "None";
-        const afterDesc = Policy;
+        const summary = `${previousPolicy || "None"} → ${Policy}`;
         const typeDesc = isBranch ? "policy branch" : "policy";
-        const message = `Changed next ${typeDesc}: ${beforeDesc} → ${afterDesc}. Rationale: ${Rationale}`;
-        await addReplayMessages(PlayerID, message);
+        await pushPlayerAction(PlayerID, "policy", summary, Rationale, `Changed next ${typeDesc}`);
       }
     }
 

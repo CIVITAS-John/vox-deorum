@@ -86,6 +86,11 @@ export class VoxContext<TParameters extends AgentParameters> {
   public lastParameter?: TParameters;
 
   /**
+   * Tracks the last model short name sent via set-metadata, to avoid duplicate updates
+   */
+  private lastModelName?: string;
+
+  /**
    * Optional callback for streaming non-LLM progress updates (e.g., during initialization).
    * Set by the web route before calling execute(). Reusable for any agent that needs
    * to send progress messages to the client.
@@ -296,6 +301,16 @@ export class VoxContext<TParameters extends AgentParameters> {
         // Execute the agent using generateText
         // Get model config - agent's model or default, with overrides applied
         const modelConfig = agent.getModel(parameters, input, this.modelOverrides);
+
+        // Auto-send model name via set-metadata when it changes
+        const shortName = modelConfig.name.split("/").pop() || modelConfig.name;
+        if (shortName !== this.lastModelName) {
+          this.lastModelName = shortName;
+          await this.callTool("set-metadata", {
+            Key: `model-${parameters.playerID}`, Value: shortName
+          }, parameters);
+        }
+
         var system = await agent.getSystem(parameters, input, this);
         if (system != "") {
           var shouldStop = false;

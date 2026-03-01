@@ -7,7 +7,7 @@ import * as z from "zod";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -104,9 +104,8 @@ class UnsetFlavorsTool extends LuaFunctionTool<UnsetFlavorsResultType> {
         .where('IsLatest', '=', 1)
         .execute();
 
-      // Add a replay message
-      const message = `Cleared custom flavors, reverting to default AI preferences`;
-      await addReplayMessages(args.PlayerID, message);
+      // Fire action event and replay message
+      await pushPlayerAction(args.PlayerID, "unset-flavors", "Cleared custom flavors, reverting to default AI preferences", "", "");
     }
 
     return result;

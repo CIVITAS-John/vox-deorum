@@ -9,6 +9,7 @@ import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
 import { trimRationale } from "../../utils/text.js";
+import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 
 /**
  * Mode enum for keep-status-quo tool
@@ -149,6 +150,9 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
           }
         );
       }
+
+      // Fire action event (no replay message for status-quo)
+      await pushPlayerAction(otherArgs.PlayerID, "status-quo", `Maintaining ${otherArgs.Mode}`, Rationale);
     }
 
     return result;

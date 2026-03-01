@@ -7,7 +7,7 @@ import { LuaFunctionTool } from "../abstract/lua-function.js";
 import * as z from "zod";
 import { knowledgeManager } from "../../server.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { addReplayMessages } from "../../utils/lua/replay-messages.js";
+import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 import { readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
 import { trimRationale } from "../../utils/text.js";
@@ -144,21 +144,20 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
         }]
       );
 
-      // Generate replay messages for changes
-      const messages: string[] = [];
+      // Generate action event and replay message for changes
+      const changes: string[] = [];
 
       if (Public !== result.Result.PreviousPublic) {
-        messages.push(`Public relationship to ${targetName}: ${result.Result.PreviousPublic} → ${Public}`);
+        changes.push(`Public ${result.Result.PreviousPublic} → ${Public}`);
       }
 
       if (Private !== result.Result.PreviousPrivate) {
-        messages.push(`Private relationship to ${targetName}: ${result.Result.PreviousPrivate} → ${Private}`);
+        changes.push(`Private ${result.Result.PreviousPrivate} → ${Private}`);
       }
 
-      // Send replay messages if there were changes
-      if (messages.length > 0) {
-        const message = `${messages.join("; ")}. Rationale: ${Rationale}`;
-        await addReplayMessages(PlayerID, message);
+      if (changes.length > 0) {
+        const summary = `${targetName}: ${changes.join("; ")}`;
+        await pushPlayerAction(PlayerID, "relationship", summary, Rationale, "");
       }
 
       // Clean up the result
