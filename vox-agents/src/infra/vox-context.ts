@@ -303,16 +303,18 @@ export class VoxContext<TParameters extends AgentParameters> {
         const modelConfig = agent.getModel(parameters, input, this.modelOverrides);
         var system = await agent.getSystem(parameters, input, this);
 
-        // Auto-send model name via set-metadata when it changes
-        // "VPAI" when no system prompt (in-game AI only), otherwise the LLM short name
-        const shortName = system !== ""
-          ? (modelConfig.name.split("/").pop() || modelConfig.name)
-          : "VPAI";
-        if (shortName !== this.lastModelName) {
-          this.lastModelName = shortName;
-          await this.callTool("set-metadata", {
-            Key: `model-${parameters.playerID}`, Value: shortName
-          }, parameters);
+        // Auto-send model name via set-metadata when the strategist's model changes
+        if (agent.name.includes("-strategist")) {
+          // "VPAI" when no system prompt (in-game AI only), otherwise the LLM short name
+          const shortName = system !== ""
+            ? (modelConfig.name.split("/").pop() || modelConfig.name)
+            : "VPAI";
+          if (shortName !== this.lastModelName) {
+            this.lastModelName = shortName;
+            await this.callTool("set-metadata", {
+              Key: `model-${parameters.playerID}`, Value: shortName
+            }, parameters);
+          }
         }
 
         if (system != "") {
