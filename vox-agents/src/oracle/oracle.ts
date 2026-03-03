@@ -18,7 +18,7 @@ import { spanProcessor } from '../instrumentation.js';
 import { jsonToMarkdown } from '../utils/tools/json-to-markdown.js';
 import { createLogger } from '../utils/logger.js';
 import { discoverDbPath, openReadonlyDb } from './db-resolver.js';
-import { resolveModelFromTelemetry, resolveModelOverride } from './model-resolver.js';
+import { resolveModel } from './model-resolver.js';
 import { extractPrompt } from './prompt-extractor.js';
 import type {
   OracleConfig,
@@ -150,17 +150,10 @@ async function replayRow(
       throw new Error(`No prompt data found for turn ${turn} in ${dbPath}`);
     }
 
-    // Resolve model
+    // Resolve model (override takes priority over telemetry string)
     const originalModelString = extracted.modelString;
-    let resolvedModel = resolveModelFromTelemetry(originalModelString);
-
-    // Apply model override if provided
-    if (config.modelOverride) {
-      const override = config.modelOverride(originalModelString, row);
-      if (override !== undefined) {
-        resolvedModel = resolveModelOverride(override);
-      }
-    }
+    const override = config.modelOverride?.(originalModelString, row);
+    const resolvedModel = resolveModel(override ?? originalModelString);
 
     // Build callback context
     const promptContext: OriginalPromptContext = {

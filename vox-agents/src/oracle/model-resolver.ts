@@ -1,8 +1,8 @@
 /**
  * @module oracle/model-resolver
  *
- * Resolves model configurations from telemetry strings.
- * Parses the telemetry model format ({provider}/{name}@{reasoningEffort})
+ * Resolves model configurations from strings or Model objects.
+ * Parses the model format ({provider}/{name}@{reasoningEffort})
  * and looks up full configurations from config.llms.
  */
 
@@ -60,15 +60,19 @@ export function parseModelString(modelString: string): {
 }
 
 /**
- * Resolve a telemetry model string into a full Model configuration.
- * Looks up the model in config.llms by its full key (provider/name),
- * then applies reasoning effort if present.
+ * Resolve a model input into a full Model configuration.
+ * If given a Model object, returns it directly.
+ * If given a string, parses it and looks up in config.llms.
  *
- * @param modelString - The model string from span attributes
+ * @param input - Model object or string (e.g. "openai-compatible/Kimi-K2.5@Medium")
  * @returns Resolved Model configuration
  */
-export function resolveModelFromTelemetry(modelString: string): Model {
-  const parsed = parseModelString(modelString);
+export function resolveModel(input: string | Model): Model {
+  if (typeof input !== 'string') {
+    return input;
+  }
+
+  const parsed = parseModelString(input);
 
   // Try direct lookup in config.llms
   const llmEntry = config.llms[parsed.fullKey];
@@ -96,24 +100,4 @@ export function resolveModelFromTelemetry(modelString: string): Model {
     name: parsed.name,
     options: parsed.reasoningEffort ? { reasoningEffort: parsed.reasoningEffort } : undefined,
   };
-}
-
-/**
- * Resolve a model override value into a Model configuration.
- * Accepts either a string (looked up in config.llms) or a Model object directly.
- *
- * @param override - String model key or Model object
- * @returns Resolved Model configuration
- */
-export function resolveModelOverride(override: string | Model): Model {
-  if (typeof override === 'string') {
-    // Could be a telemetry-style string or a config.llms key
-    const llmEntry = config.llms[override];
-    if (llmEntry) {
-      return typeof llmEntry === 'string' ? getModelConfig(llmEntry) : llmEntry;
-    }
-    // Try parsing as telemetry string
-    return resolveModelFromTelemetry(override);
-  }
-  return override;
 }
