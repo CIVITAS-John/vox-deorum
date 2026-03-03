@@ -25,6 +25,11 @@ LLM-powered strategic AI agents for Civilization V. This module implements sophi
   - `TalkativeTelepathist` - Conversational interface to game history
   - `Summarizer` - Unified turn/phase summarization agent
   - Database query tools: conversation logs, decisions, game overview, game state
+- **Oracle Agent** - Counterfactual prompt replay system for "what-if" analysis
+  - Replays past agent turns with modified prompts through same or different LLMs
+  - CSV-driven experiment runner with telemetry auto-discovery
+  - Schema-only tools (no MCP execution) for safe replay
+  - Outputs: result CSV, JSON trails, markdown trails, telemetry DB
 - **MCP Client** - Robust HTTP/SSE client for MCP server communication
 - **Tool Integration** - Dynamic tool wrapping, composition, and rescue middleware
 - **Multi-LLM Support** - OpenRouter, OpenAI, Google AI, Anthropic, AWS Bedrock, and compatible providers
@@ -398,6 +403,14 @@ vox-agents/
 │   │       ├── get-decisions.ts
 │   │       ├── get-game-overview.ts
 │   │       └── get-game-state.ts
+│   ├── oracle/                    # Counterfactual prompt replay
+│   │   ├── types.ts              # Type definitions
+│   │   ├── oracle-agent.ts       # VoxAgent subclass
+│   │   ├── oracle.ts             # Experiment orchestrator
+│   │   ├── prompt-extractor.ts   # Telemetry prompt extraction
+│   │   ├── model-resolver.ts     # Model string resolution
+│   │   ├── db-resolver.ts        # Telemetry DB auto-discovery
+│   │   └── index.ts              # CLI entry point
 │   ├── web/                       # Web UI backend
 │   │   ├── server.ts             # Express + Vue hosting
 │   │   ├── sse-manager.ts        # Real-time streaming

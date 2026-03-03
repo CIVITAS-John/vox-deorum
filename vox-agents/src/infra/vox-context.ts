@@ -28,6 +28,13 @@ import { createAgentTool } from "../utils/tools/agent-tools.js";
 import { wrapMCPTools } from "../utils/tools/mcp-tools.js";
 import winston from "winston";
 
+/** Mutable object populated by execute() with per-execution token counts */
+export interface ExecuteTokenOutput {
+  inputTokens: number;
+  reasoningTokens: number;
+  outputTokens: number;
+}
+
 /**
  * Runtime context for executing Vox Agents.
  * Manages agent registration, tool availability, and execution flow.
@@ -277,7 +284,8 @@ export class VoxContext<TParameters extends AgentParameters> {
     agentName: string,
     parameters: TParameters,
     input: unknown,
-    callback?: StreamingEventCallback
+    callback?: StreamingEventCallback,
+    tokenOutput?: ExecuteTokenOutput
   ): Promise<any> {
     const agent = agentRegistry.get<TParameters>(agentName);
     if (!agent) {
@@ -372,6 +380,13 @@ export class VoxContext<TParameters extends AgentParameters> {
             'tokens.output': outputTokens,
           });
           span.setStatus({ code: SpanStatusCode.OK });
+
+          // Populate optional token output for callers that need per-execution counts
+          if (tokenOutput) {
+            tokenOutput.inputTokens = inputTokens;
+            tokenOutput.reasoningTokens = reasoningTokens;
+            tokenOutput.outputTokens = outputTokens;
+          }
 
           // Convert into the output (now async)
           const output = await agent.getOutput(parameters, input, finalText, this);

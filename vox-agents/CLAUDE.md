@@ -143,6 +143,7 @@ Different features require different testing infrastructure:
 - `npm run strategist` - Run strategist workflow (strategist/index.ts)
 - `npm run briefer` - Run briefer workflow (briefer/index.ts)
 - `npm run telepathist` - Run telepathist console (telepathist/console.ts)
+- `npm run oracle -- -c <experiment.js>` - Run Oracle prompt replay experiment (oracle/index.ts)
 - **Each workflow has dedicated entry point** with shared instrumentation
 - Instrumentation loaded via --import flag for telemetry
 
@@ -218,7 +219,8 @@ VoxAgent (Base)
 │   │   └── Spokesperson (Official representative)
 │   └── Telepathist (Database-backed conversations)
 │       └── TalkativeTelepathist (Post-game analysis)
-└── Summarizer (Unified turn/phase summarization)
+├── Summarizer (Unified turn/phase summarization)
+└── Oracle (Counterfactual prompt replay)
 ```
 
 ### Creating New Agents

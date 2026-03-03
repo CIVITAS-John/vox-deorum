@@ -15,6 +15,8 @@
     "strategist:dist": "node --inspect --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/strategist/index.js",
     "telepathist": "npm run build && npm run telepathist:dist --",
     "telepathist:dist": "node --inspect --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/telepathist/console.js",
+    "oracle": "npm run build && npm run oracle:dist --",
+    "oracle:dist": "node --inspect --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/oracle/index.js",
     "test": "vitest run --exclude tests/infra/**",
     "test:watch": "vitest --exclude tests/infra/**",
     "test:ui": "vitest --ui",

@@ -20,6 +20,7 @@ import { SimpleStrategistStaffed } from "../strategist/agents/simple-strategist-
 import { KeywordLibrarian } from "../librarian/keyword-librarian.js";
 import { TalkativeTelepathist } from "../telepathist/talkative-telepathist.js";
 import { Summarizer } from "../telepathist/summarizer.js";
+import { OracleAgent } from "../oracle/oracle-agent.js";
 
 /**
  * Registry for managing available Vox agents.
@@ -187,6 +188,9 @@ class AgentRegistry {
     // Register telepathist agents
     this.register(new TalkativeTelepathist());
     this.register(new Summarizer());
+
+    // Register oracle agent
+    this.register(new OracleAgent());
 
     this.defaultsInitialized = true;
     this.logger.info(`Default agents initialized: ${this.agents.size} agents registered`);
