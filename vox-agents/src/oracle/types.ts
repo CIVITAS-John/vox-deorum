@@ -42,8 +42,6 @@ export interface OriginalPromptContext {
   activeTools: string[];
   /** Original model string from telemetry (e.g. 'openai-compatible/Kimi-K2.5@Medium') */
   originalModel: string;
-  /** Original LLM response */
-  originalResponse: { text: string; toolCalls: { toolName: string; args: any }[] };
   /** Agent name from telemetry (e.g. 'simple-strategist') */
   agentName: string;
 }
@@ -102,8 +100,6 @@ export interface OracleInput {
   messages: ModelMessage[];
   /** CSV row for context */
   row: OracleRow;
-  /** Original response for comparison */
-  originalResponse: { text: string; toolCalls: { toolName: string; args: any }[] };
   /** Arbitrary metadata from the modifyPrompt callback */
   metadata?: Record<string, any>;
 }
@@ -136,8 +132,6 @@ export interface ExtractedPrompt {
   activeTools: string[];
   /** Original model string from span attributes */
   modelString: string;
-  /** Original response */
-  originalResponse: { text: string; toolCalls: { toolName: string; args: any }[] };
   /** Agent name (e.g. 'simple-strategist') */
   agentName: string;
 }

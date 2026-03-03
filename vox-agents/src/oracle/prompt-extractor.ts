@@ -8,6 +8,7 @@
 
 import type { Kysely } from 'kysely';
 import type { ModelMessage } from 'ai';
+import { fuzzy } from 'fast-fuzzy';
 import { createLogger } from '../utils/logger.js';
 import { cleanToolArtifacts } from '../utils/text-cleaning.js';
 import type { TelemetryDatabase, Span, SpanAttributes } from '../utils/telemetry/schema.js';
@@ -167,7 +168,6 @@ export async function extractPrompt(
 
   // Parse responses
   const rawResponses = parseJson(stepAttrs['step.responses']);
-  const originalResponse = extractResponse(rawResponses);
 
   // Use model from step span if not on agent span
   const stepModel = stepAttrs['model'] as string || '';
@@ -178,9 +178,85 @@ export async function extractPrompt(
     messages,
     activeTools,
     modelString: finalModelString,
-    originalResponse,
     agentName,
   };
+}
+
+/**
+ * Check whether a turn's telemetry contains a tool call whose Rationale arg
+ * fuzzy-matches the given CSV rationale string.
+ *
+ * Traverses: root span → agent spans → step spans → step.responses → tool calls.
+ *
+ * @returns true if any tool call's Rationale arg matches above the threshold
+ */
+export async function findTurnByRationale(
+  db: Kysely<TelemetryDatabase>,
+  turn: number,
+  csvRationale: string,
+  threshold = 0.75
+): Promise<boolean> {
+  // Find root spans for this turn (same pattern as extractPrompt)
+  const rootSpans = await db
+    .selectFrom('spans')
+    .selectAll()
+    .where('turn', '=', turn)
+    .where('parentSpanId', 'is', null)
+    .orderBy('startTime', 'asc')
+    .execute();
+
+  const turnRootPattern = /^strategist\.turn\.\d+$/;
+  const turnRoots = rootSpans.filter(s => turnRootPattern.test(s.name));
+  const validRoot = turnRoots.length > 0 ? turnRoots[turnRoots.length - 1] : null;
+  if (!validRoot) return false;
+
+  // Get all child spans in this trace
+  const traceSpans = await db
+    .selectFrom('spans')
+    .selectAll()
+    .where('traceId', '=', validRoot.traceId)
+    .where('parentSpanId', 'is not', null)
+    .execute();
+
+  // Collect agent span IDs
+  const agentPattern = /^agent\.([a-z][-a-z]*)$/;
+  const agentSpanIds = traceSpans
+    .filter(s => agentPattern.test(s.name))
+    .map(s => s.spanId);
+
+  if (agentSpanIds.length === 0) return false;
+
+  // Get all step spans (children of agent spans)
+  const stepSpans = traceSpans.filter(s => s.parentSpanId && agentSpanIds.includes(s.parentSpanId));
+
+  // Query tool call spans (children of step spans) for Rationale in tool.input
+  const stepSpanIds = stepSpans.map(s => s.spanId);
+  if (stepSpanIds.length === 0) return false;
+
+  const toolCallSpans = await db
+    .selectFrom('spans')
+    .selectAll()
+    .where('parentSpanId', 'in', stepSpanIds)
+    .execute();
+
+  let foundAnyRationale = false;
+  for (const span of toolCallSpans) {
+    const attrs = parseAttributes(span);
+    if (!attrs['tool.input']) continue;
+
+    const input = parseJson(attrs['tool.input']);
+    if (!input?.Rationale) continue;
+
+    foundAnyRationale = true;
+    const score = fuzzy(csvRationale, input.Rationale);
+    if (score >= threshold) return true;
+  }
+
+  if (!foundAnyRationale) {
+    logger.warn(`No tool calls with Rationale found in turn ${turn}`);
+  }
+
+  return false;
 }
 
 /** Safely parse JSON, returning the value as-is if already parsed */

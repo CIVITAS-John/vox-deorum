@@ -19,7 +19,7 @@ import { jsonToMarkdown } from '../utils/tools/json-to-markdown.js';
 import { createLogger } from '../utils/logger.js';
 import { discoverDbPath, openReadonlyDb } from './db-resolver.js';
 import { resolveModel } from './model-resolver.js';
-import { extractPrompt } from './prompt-extractor.js';
+import { extractPrompt, findTurnByRationale } from './prompt-extractor.js';
 import type {
   OracleConfig,
   OracleRow,
@@ -145,9 +145,24 @@ async function replayRow(
   }
 
   try {
-    const extracted = await extractPrompt(db, turn, config.targetAgent);
+    // Validate turn via rationale fuzzy matching, with fallback to previous turn
+    let effectiveTurn = turn;
+    if (row.rationale) {
+      const found = await findTurnByRationale(db, turn, row.rationale);
+      if (!found) {
+        const prevFound = await findTurnByRationale(db, turn - 1, row.rationale);
+        if (prevFound) {
+          logger.warn(`Rationale not found in turn ${turn}, using turn ${turn - 1} for game=${gameId}, player=${playerId}`);
+          effectiveTurn = turn - 1;
+        } else {
+          logger.warn(`Rationale not found in turn ${turn} or ${turn - 1} for game=${gameId}, player=${playerId}`);
+        }
+      }
+    }
+
+    const extracted = await extractPrompt(db, effectiveTurn, config.targetAgent);
     if (!extracted) {
-      throw new Error(`No prompt data found for turn ${turn} in ${dbPath}`);
+      throw new Error(`No prompt data found for turn ${effectiveTurn} in ${dbPath}`);
     }
 
     // Resolve model (override takes priority over telemetry string)
@@ -162,7 +177,6 @@ async function replayRow(
       messages: extracted.messages,
       activeTools: extracted.activeTools,
       originalModel: originalModelString,
-      originalResponse: extracted.originalResponse,
       agentName: extracted.agentName,
     };
 
@@ -189,7 +203,6 @@ async function replayRow(
       system: finalSystem,
       messages: finalMessages,
       row,
-      originalResponse: extracted.originalResponse,
       metadata: modifications.metadata,
     };
 
@@ -223,7 +236,6 @@ async function replayRow(
       original: {
         system: extracted.system,
         messages: extracted.messages,
-        response: extracted.originalResponse,
       },
       replay: {
         system: finalSystem,
