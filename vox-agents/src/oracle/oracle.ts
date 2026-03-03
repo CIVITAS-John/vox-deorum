@@ -106,7 +106,7 @@ export async function runExperiment(config: OracleConfig): Promise<ReplayResult[
 
     // 6. Flush telemetry
     await spanProcessor.forceFlush();
-    logger.info(`Telemetry flushed to: telemetry/oracle/${config.experimentName}.db`);
+    logger.info(`Telemetry flushed to: ${resolvePath(`telemetry/oracle/${config.experimentName}.db`)}`);
 
     // Summary
     const errors = results.filter(r => r.error).length;
