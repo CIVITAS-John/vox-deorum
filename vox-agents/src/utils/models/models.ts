@@ -145,6 +145,17 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
         baseURL: process.env.OPENAI_COMPATIBLE_URL,
         name: config.provider,
         apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
+        fetch: (url, options) => {
+          return fetch(url, {
+            ...options,
+            dispatcher: new Agent({
+              headersTimeout: 60_000,
+              bodyTimeout: 60_000,
+              connectTimeout: 60_000,
+              keepAliveTimeout: 600_000,
+            }),
+          })
+        },
       }).chatModel((process.env.OPENAI_COMPATIBLE_URL.indexOf("cloudflare.com") !== -1 ? "dynamic/" : "") + config.name);
       break;
   }

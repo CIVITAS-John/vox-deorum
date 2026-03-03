@@ -209,6 +209,7 @@ async function replayRow(
     // Hide messages from JSON.stringify so agent.input span attribute stays small,
     // while keeping them accessible via input.messages for getInitialMessages()
     Object.defineProperty(input, 'messages', { enumerable: false, value: input.messages });
+    Object.defineProperty(input, 'system', { enumerable: false, value: input.system });
 
     // Execute through VoxContext, capturing per-execution token counts
     const tokenOutput: ExecuteTokenOutput = { inputTokens: 0, reasoningTokens: 0, outputTokens: 0 };

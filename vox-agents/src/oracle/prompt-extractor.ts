@@ -165,6 +165,9 @@ export async function extractPrompt(
   // Parse tools
   const rawTools = parseJson(stepAttrs['step.tools']);
   const activeTools: string[] = Array.isArray(rawTools) ? rawTools : [];
+  if (activeTools.length == 0) {
+    logger.warn('Failed to parse active tools for agent ${agentName} at turn ${turn}');
+  }
 
   // Parse responses
   const rawResponses = parseJson(stepAttrs['step.responses']);
