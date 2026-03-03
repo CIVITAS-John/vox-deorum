@@ -31,9 +31,9 @@ export class OracleAgent extends VoxAgent<OracleParameters, OracleInput, ReplayR
     return parameters.resolvedModel;
   }
 
-  /** Return the (possibly modified) system prompt from the input */
+  /** Return the (possibly modified) system prompt from the input, joining array parts */
   public async getSystem(parameters: OracleParameters, input: OracleInput, _context: VoxContext<OracleParameters>): Promise<string> {
-    return input.system;
+    return input.system.join('\n');
   }
 
   /** Return the non-system messages from the original conversation (possibly modified) */
@@ -94,7 +94,7 @@ export class OracleAgent extends VoxAgent<OracleParameters, OracleInput, ReplayR
       for (const tc of step.toolCalls) {
         const decision: ReplayDecision = {
           toolName: tc.toolName,
-          args: { ...(tc as any).args },
+          args: { ...(tc as any).input },
         };
 
         // Extract Rationale from strategist decision tool args

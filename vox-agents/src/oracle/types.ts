@@ -34,8 +34,8 @@ export interface OracleRow {
 export interface OriginalPromptContext {
   /** The CSV row being processed */
   row: OracleRow;
-  /** Original system prompt from telemetry */
-  system: string;
+  /** Original system prompt parts from telemetry (one per system message) */
+  system: string[];
   /** Original non-system messages from telemetry */
   messages: ModelMessage[];
   /** Tool names available during the original turn */
@@ -48,8 +48,8 @@ export interface OriginalPromptContext {
 
 /** Return type from the modifyPrompt callback. All fields optional -- undefined keeps original. */
 export interface ModifiedPrompt {
-  /** Override system prompt */
-  system?: string;
+  /** Override system prompt parts */
+  system?: string[];
   /** Override conversation messages */
   messages?: ModelMessage[];
   /** Override active tools */
@@ -78,6 +78,8 @@ export interface OracleConfig {
   agentType?: string;
   /** Max parallel row executions. Default: 5 */
   concurrency?: number;
+  /** Extract custom columns from replay context for the output CSV */
+  extractColumns?: (ctx: ExtractionContext) => Record<string, any>;
 }
 
 /** Parameters passed to OracleAgent per execution */
@@ -94,8 +96,8 @@ export interface OracleParameters extends AgentParameters {
 
 /** Input to each oracle execution */
 export interface OracleInput {
-  /** Modified system prompt */
-  system: string;
+  /** Modified system prompt parts */
+  system: string[];
   /** Modified non-system messages */
   messages: ModelMessage[];
   /** CSV row for context */
@@ -120,12 +122,26 @@ export interface ReplayResult {
   error?: string;
   /** Metadata from the callback */
   metadata?: Record<string, any>;
+  /** Custom columns from extractColumns callback */
+  extractedColumns?: Record<string, any>;
+}
+
+/** Context provided to the extractColumns callback */
+export interface ExtractionContext {
+  /** Original system prompt parts from telemetry */
+  originalPrompts: string[];
+  /** Replay system prompt parts (after modifications) */
+  replayPrompts: string[];
+  /** Tool call decisions from the replay */
+  decisions: ReplayDecision[];
+  /** The CSV row being processed */
+  row: OracleRow;
 }
 
 /** Data extracted from a telemetry span for a single turn */
 export interface ExtractedPrompt {
-  /** System prompt */
-  system: string;
+  /** System prompt parts (one per system message) */
+  system: string[];
   /** Non-system messages */
   messages: ModelMessage[];
   /** Tool names from step.tools */

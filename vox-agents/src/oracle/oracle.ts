@@ -27,6 +27,7 @@ import type {
   OracleInput,
   ReplayResult,
   OriginalPromptContext,
+  ExtractionContext,
 } from './types.js';
 
 const logger = createLogger('Oracle');
@@ -222,6 +223,17 @@ async function replayRow(
     // Apply VoxContext's nuanced token counts (reasoning estimation, etc.)
     result.tokens = tokenOutput;
 
+    // Call extractColumns if provided
+    if (config.extractColumns) {
+      const extractionCtx: ExtractionContext = {
+        originalPrompts: extracted.system,
+        replayPrompts: finalSystem,
+        decisions: result.decisions,
+        row,
+      };
+      result.extractedColumns = config.extractColumns(extractionCtx);
+    }
+
     // Write JSON trail
     const trailBase = `${gameId}-p${playerId}-t${turn}`;
     const jsonTrail = {
@@ -244,6 +256,7 @@ async function replayRow(
         tokens: result.tokens,
         messages: result.messages,
       },
+      ...(result.extractedColumns ? { extractedColumns: result.extractedColumns } : {}),
     };
 
     const jsonPath = path.join(experimentDir, `${trailBase}.json`);
@@ -291,6 +304,7 @@ function writeCsv(outputPath: string, results: ReplayResult[]): void {
     decisions: JSON.stringify(r.decisions),
     tokens: `${r.tokens.inputTokens}/${r.tokens.reasoningTokens}/${r.tokens.outputTokens}`,
     ...(r.error ? { error: r.error } : {}),
+    ...(r.extractedColumns ?? {}),
   }));
 
   const csv = Papa.unparse(csvRows);

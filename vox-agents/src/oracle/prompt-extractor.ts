@@ -149,14 +149,13 @@ export async function extractPrompt(
     return null;
   }
 
-  // Split system prompt from conversation messages
-  let system = '';
+  // Split system prompt parts from conversation messages
+  const system: string[] = [];
   const messages: ModelMessage[] = [];
 
   for (const msg of rawMessages) {
     if (msg.role === 'system') {
-      // Concatenate system messages (usually just one)
-      system += (system ? '\n' : '') + extractTextContent(msg.content);
+      system.push(extractTextContent(msg.content));
     } else {
       messages.push(msg as ModelMessage);
     }
