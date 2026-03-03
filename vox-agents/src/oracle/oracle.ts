@@ -189,6 +189,13 @@ async function replayRow(
     const finalMessages = modifications.messages ?? extracted.messages;
     const finalActiveTools = modifications.activeTools ?? extracted.activeTools;
 
+    // Apply tool schema rewriter if provided
+    if (modifications.rewriteToolSchemas) {
+      for (const [name, mcpTool] of voxContext.mcpToolMap) {
+        voxContext.tools[name] = schemaOnlyTool(name, mcpTool, modifications.rewriteToolSchemas);
+      }
+    }
+
     // Build parameters and input
     const parameters: OracleParameters = {
       playerID: parseInt(playerId, 10),
@@ -274,6 +281,24 @@ async function replayRow(
   }
 }
 
+/** Create a schema-only tool from an MCP tool entry. LLM can generate call intents but nothing executes. */
+function schemaOnlyTool(name: string, mcpTool: { description?: string; inputSchema: any }, rewriter?: (json: string) => string) {
+  let description = mcpTool.description ?? `Tool: ${name}`;
+  let schema = mcpTool.inputSchema;
+
+  if (rewriter) {
+    const rewritten = JSON.parse(rewriter(JSON.stringify({ description, inputSchema: schema })));
+    description = rewritten.description;
+    schema = rewritten.inputSchema;
+  }
+
+  return dynamicTool({
+    description,
+    inputSchema: jsonSchema(schema as any),
+    execute: async () => ({ _oracle: true, message: `Tool ${name} not executed in replay mode.` }),
+  });
+}
+
 /**
  * Replace all tools in the VoxContext with schema-only versions.
  * The LLM can still generate tool call intents, but nothing executes.
@@ -282,12 +307,7 @@ function replaceToolsWithSchemaOnly(voxContext: VoxContext<OracleParameters>): v
   const schemaTools: Record<string, any> = {};
 
   for (const [name, mcpTool] of voxContext.mcpToolMap) {
-    // Create schema-only tool with a no-op execute -- LLM generates intents, nothing runs against MCP
-    schemaTools[name] = dynamicTool({
-      description: mcpTool.description || `Tool: ${name}`,
-      inputSchema: jsonSchema(mcpTool.inputSchema as any),
-      execute: async () => ({ _oracle: true, message: `Tool ${name} not executed in replay mode.` }),
-    });
+    schemaTools[name] = schemaOnlyTool(name, mcpTool);
   }
 
   voxContext.tools = schemaTools;

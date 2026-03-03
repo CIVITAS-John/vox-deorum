@@ -10,7 +10,7 @@ Steps:
    - A heading with the version and today's date
    - Grouped sections by component/theme, each with bullet points describing meaningful changes
    - A "File Changes" section summarizing the diff stat output
-5. After writing the file, output a succinct GitHub release note to the console. It should be:
+5. DO NOT Update `release.txt`.
+6. After writing the file, output a succinct GitHub release note to the console. It should be:
    - Raw Markdown
    - A handful of bullet items grouped by feature/theme (not exhaustive)
-   - Wrapped in a `<pre>` block so the user can copy it directly

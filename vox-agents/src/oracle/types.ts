@@ -54,6 +54,8 @@ export interface ModifiedPrompt {
   messages?: ModelMessage[];
   /** Override active tools */
   activeTools?: string[];
+  /** Rewrite tool schemas. Receives JSON-stringified { description, inputSchema } for each tool, returns modified JSON. Undefined keeps originals. */
+  rewriteToolSchemas?: (toolJson: string) => string;
   /** Arbitrary metadata stored in the trail */
   metadata?: Record<string, any>;
 }
