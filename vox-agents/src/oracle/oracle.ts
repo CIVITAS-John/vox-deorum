@@ -39,7 +39,7 @@ const logger = createLogger('Oracle');
  * @returns Array of replay results (one per CSV row)
  */
 export async function runExperiment(config: OracleConfig): Promise<ReplayResult[]> {
-  const outputDir = resolvePath(config.outputDir || 'temp/oracle');
+  const outputDir = resolvePath(config.outputDir || '../temp/oracle');
   const telemetryDir = resolvePath(config.telemetryDir || 'telemetry');
   const csvPath = resolvePath(config.csvPath);
   const experimentDir = path.join(outputDir, config.experimentName);
@@ -227,6 +227,7 @@ async function replayRow(
     if (config.extractColumns) {
       const extractionCtx: ExtractionContext = {
         originalPrompts: extracted.system,
+        originalMessages: extracted.messages,
         replayPrompts: finalSystem,
         decisions: result.decisions,
         row,
@@ -246,6 +247,7 @@ async function replayRow(
         activeToolsModified: modifications.activeTools !== undefined,
         metadata: modifications.metadata,
       },
+      ...(result.extractedColumns ? { extractedColumns: result.extractedColumns } : {}),
       original: {
         system: extracted.system,
         messages: extracted.messages,
@@ -256,7 +258,6 @@ async function replayRow(
         tokens: result.tokens,
         messages: result.messages,
       },
-      ...(result.extractedColumns ? { extractedColumns: result.extractedColumns } : {}),
     };
 
     const jsonPath = path.join(experimentDir, `${trailBase}.json`);
@@ -296,16 +297,24 @@ function replaceToolsWithSchemaOnly(voxContext: VoxContext<OracleParameters>): v
  * Write the output CSV from replay results.
  */
 function writeCsv(outputPath: string, results: ReplayResult[]): void {
-  const csvRows = results.map(r => ({
-    // Original columns
-    ...r.row,
-    // Replay columns
-    model: r.model,
-    decisions: JSON.stringify(r.decisions),
-    tokens: `${r.tokens.inputTokens}/${r.tokens.reasoningTokens}/${r.tokens.outputTokens}`,
-    ...(r.error ? { error: r.error } : {}),
-    ...(r.extractedColumns ?? {}),
-  }));
+  const csvRows = results.map(r => {
+    const { rationale, ...rest } = r.row;
+    const decisionTools = ['set-flavors', 'set-strategy', 'keep-status-quo'];
+    const replayRationale = r.decisions.find(d => decisionTools.includes(d.toolName))?.rationale ?? '';
+    return {
+      // Original columns (rationale renamed)
+      ...rest,
+      originalRationale: rationale,
+      // Replay columns
+      model: r.model,
+      replayRationale,
+      input_tokens: r.tokens.inputTokens,
+      reasoning_tokens: r.tokens.reasoningTokens,
+      output_tokens: r.tokens.outputTokens,
+      ...(r.error ? { error: r.error } : {}),
+      ...(r.extractedColumns ?? {}),
+    };
+  });
 
   const csv = Papa.unparse(csvRows);
   fs.writeFileSync(outputPath, csv, 'utf-8');

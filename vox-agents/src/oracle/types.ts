@@ -68,7 +68,7 @@ export interface OracleConfig {
   modifyPrompt: (ctx: OriginalPromptContext) => ModifiedPrompt | Promise<ModifiedPrompt>;
   /** Override model per-row. Undefined = keep original. */
   modelOverride?: (originalModel: string, row: OracleRow) => string | Model | undefined;
-  /** Output directory. Default: 'temp/oracle' (relative or absolute) */
+  /** Output directory. Default: '../temp/oracle' (relative or absolute) */
   outputDir?: string;
   /** Telemetry directory. Default: 'telemetry' (relative or absolute) */
   telemetryDir?: string;
@@ -130,6 +130,8 @@ export interface ReplayResult {
 export interface ExtractionContext {
   /** Original system prompt parts from telemetry */
   originalPrompts: string[];
+  /** Original non-system messages from telemetry (user/assistant/tool) */
+  originalMessages: ModelMessage[];
   /** Replay system prompt parts (after modifications) */
   replayPrompts: string[];
   /** Tool call decisions from the replay */
