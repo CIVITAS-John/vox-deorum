@@ -75,10 +75,10 @@ export class DatabaseManager {
         // Sanity check: Wait for GreatPersons table to exist
         const hadToWait = await this.waitForTable('GreatPersons');
 
-        // Wait an additional 10 seconds for full database setup only if table was initially missing
+        // Wait an additional 30 seconds for full database setup only if table was initially missing
         if (hadToWait) {
-          logger.info('Waiting 10 seconds for database to fully initialize...');
-          await new Promise(resolve => setTimeout(resolve, 10000));
+          logger.info('Waiting 30 seconds for database to fully initialize...');
+          await new Promise(resolve => setTimeout(resolve, 30000));
           logger.info('Database initialization wait complete');
         }
 
