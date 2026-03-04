@@ -286,6 +286,20 @@ function schemaOnlyTool(name: string, mcpTool: { description?: string; inputSche
   let description = mcpTool.description ?? `Tool: ${name}`;
   let schema = mcpTool.inputSchema;
 
+  // Remove autoComplete fields from schema (same filtering as wrapMCPTool)
+  if (schema.properties && (mcpTool as any)._meta?.autoComplete) {
+    const autoCompleteFields = (mcpTool as any)._meta.autoComplete as string[];
+    schema = { ...schema, properties: { ...schema.properties } };
+    autoCompleteFields.forEach(field => {
+      delete schema.properties[field];
+    });
+    if (schema.required) {
+      schema.required = schema.required.filter(
+        (field: string) => !autoCompleteFields.includes(field)
+      );
+    }
+  }
+
   if (rewriter) {
     const rewritten = JSON.parse(rewriter(JSON.stringify({ description, inputSchema: schema })));
     description = rewritten.description;
