@@ -11,6 +11,7 @@ import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import type { Span } from '../../utils/telemetry/schema.js';
 import { jsonToMarkdown } from '../../utils/tools/json-to-markdown.js';
+import { agentRegistry } from '../../infra/agent-registry.js';
 
 /** Decision tools whose inputs contain the AI's strategic choices */
 const decisionTools = [
@@ -24,17 +25,6 @@ const decisionTools = [
   'relay-message',
 ];
 
-/** Agent role descriptions for context */
-const agentRoles: Record<string, string> = {
-  'simple-strategist': 'Core strategist making primary decisions',
-  'simple-strategist-briefed': 'Strategist with briefing context',
-  'simple-strategist-staffed': 'Strategist with full staff support',
-  'simple-briefer': 'General briefer summarizing game state',
-  'specialized-briefer': 'Specialized briefer (Military/Economy/Diplomacy)',
-  'diplomat': 'Diplomatic envoy handling foreign interactions',
-  'diplomatic-analyst': 'Intelligence analyst processing diplomatic data',
-  'keyword-librarian': 'Librarian managing keyword knowledge',
-};
 
 /** Static keys in Options that are identical across turns and should be consolidated */
 const consolidatedOptionKeys = ['GrandStrategies', 'Flavors'];
@@ -98,7 +88,7 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
 
       // 3. AI Reasoning + 4. Decisions made (per-agent)
       for (const [agentName, agentSpans] of Object.entries(agents)) {
-        if (!agentRoles[agentName]) continue;
+        if (!agentRegistry.has(agentName)) continue;
 
         // Get steps for this agent
         const stepSpans = await this.getStepsForAgent(params, agentSpans);
@@ -231,9 +221,9 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
     turnSections.push('## Agents Involved');
 
     for (const [agentName, agentSpans] of Object.entries(agents)) {
-      const role = agentRoles[agentName];
-      if (!role) continue;
-      turnSections.push(`- **${agentName}**: ${role}`);
+      const agent = agentRegistry.get(agentName);
+      if (!agent) continue;
+      turnSections.push(`- **${agentName}**: ${agent.description}`);
 
       // Find subagent calls from this agent's steps
       const stepSpans = await this.getStepsForAgent(params, agentSpans);
@@ -250,7 +240,7 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
 
       for (const toolSpan of agentToolSpans) {
         const subagentName = toolSpan.name.replace('agent.', '');
-        if (!agentRoles[subagentName]) continue;
+        if (!agentRegistry.has(subagentName)) continue;
         const toolInput = this.getToolInput(toolSpan);
         const mode = toolInput?.mode || toolInput?.Mode || '';
         const label = mode ? `**${subagentName}** (${mode})` : `**${subagentName}**`;
