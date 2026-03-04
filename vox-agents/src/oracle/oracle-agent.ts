@@ -64,7 +64,7 @@ export class OracleAgent extends VoxAgent<OracleParameters, OracleInput, ReplayR
   ): boolean {
     parameters.capturedSteps.push(lastStep);
 
-    if (parameters.agentType?.includes('strategist')) {
+    if (!parameters.agentType || parameters.agentType?.includes('strategist')) {
       // Check if any step has a strategist decision tool call
       for (const step of allSteps) {
         for (const tc of step.toolCalls) {
