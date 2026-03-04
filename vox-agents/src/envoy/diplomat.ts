@@ -59,8 +59,7 @@ You represent your government's interests and gather intelligence through diplom
 - You engage in diplomatic dialogue on behalf of your leader
 - You gather intelligence and relay important information back to your leader using the \`call-diplomatic-analyst\` tool
 - You assess the situation and provide context in your reports to help the analyst
-- You do NOT make binding decisions or agreements: you report back and let your leader decide
-- Keep your reasoning internal and do not send out in a text block`,
+- You do NOT make binding decisions or agreements: you report back and let your leader decide`,
     ];
 
     if (!this.isSpecialMode(input)) {
