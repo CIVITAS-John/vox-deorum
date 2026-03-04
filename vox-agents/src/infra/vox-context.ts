@@ -105,6 +105,14 @@ export class VoxContext<TParameters extends AgentParameters> {
   public streamProgress?: (message: string) => void;
 
   /**
+   * Resets the cached model identity so it will be re-sent on the next strategist execution.
+   * Call this after crash recovery when the game has lost its Lua state.
+   */
+  public resetModelIdentity(): void {
+    this.lastModelName = undefined;
+  }
+
+  /**
    * Constructor for VoxContext
    * @param modelOverrides - Model configuration overrides to replace config.json definitions
    * @param id - Optional context ID, generates a UUID if not provided

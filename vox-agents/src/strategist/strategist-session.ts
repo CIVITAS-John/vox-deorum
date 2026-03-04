@@ -31,6 +31,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
   private victoryResolve?: () => void;
   private lastGameID?: string;
   private crashRecoveryAttempts = 0;
+  private mcpKillCounter = 0;
   private dllConnected = false;
   private readonly MAX_RECOVERY_ATTEMPTS = 3;
 
@@ -116,10 +117,11 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       }
     });
 
+    const mcpKillCounter = this.mcpKillCounter;
     // Register tool error handler to kill game on critical MCP tool errors
     mcpClient.onToolError(async ({ toolName, error }) => {
-      if (this.abortController.signal.aborted) return;
-
+      if (this.abortController.signal.aborted || mcpKillCounter !== this.mcpKillCounter) return;
+      this.mcpKillCounter++;
       logger.error(`Critical MCP tool error in ${toolName}, killing game process`, error);
       await voxCivilization.killGame();
     });
@@ -274,6 +276,10 @@ Game.SetAIAutoPlay(2000, -1);`
     if (this.state === 'recovering') {
       logger.warn(`Game successfully recovered from crash, resuming play... (autoplay: ${this.config.autoPlay})`);
       this.onStateChange('running');
+      // Reset model identity on all players so it gets re-sent to the fresh game
+      for (const player of this.activePlayers.values()) {
+        player.context.resetModelIdentity();
+      }
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
       if (this.config.autoPlay) {
         await setTimeout(3000);
