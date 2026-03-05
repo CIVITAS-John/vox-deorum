@@ -72,9 +72,6 @@ export class DatabaseManager {
         });
         logger.info('Connected to main database');
 
-        // Sanity check: Wait for GreatPersons table to exist
-        await this.waitForTable('GreatPersons');
-
         // Create Kysely instance for localization database
         this.localizationDb = new Kysely<LocalizationDB>({
           dialect: new SqliteDialect({
@@ -82,6 +79,10 @@ export class DatabaseManager {
           }),
         });
         logger.info('Connected to localization database');
+
+        // Sanity check: Wait 10s for VD to load, then for GreatPersons table to exist
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        await this.waitForTable('GreatPersons');
 
         // Wait for policy descriptions to be localized before reading mappings
         await this.waitForPolicyDescriptions();
