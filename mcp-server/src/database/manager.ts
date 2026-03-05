@@ -73,14 +73,7 @@ export class DatabaseManager {
         logger.info('Connected to main database');
 
         // Sanity check: Wait for GreatPersons table to exist
-        const hadToWait = await this.waitForTable('GreatPersons');
-
-        // Wait an additional 30 seconds for full database setup only if table was initially missing
-        if (hadToWait) {
-          logger.info('Waiting 30 seconds for database to fully initialize...');
-          await new Promise(resolve => setTimeout(resolve, 30000));
-          logger.info('Database initialization wait complete');
-        }
+        await this.waitForTable('GreatPersons');
 
         // Create Kysely instance for localization database
         this.localizationDb = new Kysely<LocalizationDB>({
@@ -89,6 +82,9 @@ export class DatabaseManager {
           }),
         });
         logger.info('Connected to localization database');
+
+        // Wait for policy descriptions to be localized before reading mappings
+        await this.waitForPolicyDescriptions();
 
         // Initialize enum mappings
         await this.initializeMappings();
@@ -321,6 +317,52 @@ export class DatabaseManager {
         logger.warn(`Table ${tableName} not found yet, waiting for the game and mod to load...`);
         await new Promise(resolve => setTimeout(resolve, 10000));
       }
+    }
+  }
+
+  /**
+   * Wait for policy localized descriptions to be available in the localization DB.
+   * Policies in the main DB use TXT_KEY_* references that must resolve in the localization DB.
+   * @returns true if had to wait, false if descriptions were ready immediately
+   */
+  private async waitForPolicyDescriptions(): Promise<boolean> {
+    let hadToWait = false;
+
+    while (true) {
+      // Get TXT_KEY_* description keys for policies that have Help text
+      const rows = await this.mainDb!
+        .selectFrom('Policies')
+        .select(['Description'])
+        .where('Help', '!=', 'NULL')
+        .execute() as { Description: string | null }[];
+
+      const txtKeys = rows
+        .map(r => r.Description)
+        .filter((d): d is string => !!d && d.startsWith('TXT_KEY_'));
+
+      if (txtKeys.length === 0) {
+        return hadToWait;
+      }
+
+      // Check how many of those keys have localized text
+      const localized = await this.localizationDb!
+        .selectFrom('LocalizedText')
+        .select('Tag')
+        .where('Language', '=', this.language)
+        .where('Tag', 'in', txtKeys)
+        .where('Text', 'is not', null)
+        .execute();
+
+      const resolvedTags = new Set(localized.map(r => r.Tag));
+      const unresolved = txtKeys.filter(k => !resolvedTags.has(k));
+
+      if (unresolved.length === 0) {
+        return hadToWait;
+      }
+
+      hadToWait = true;
+      logger.warn(`${unresolved.length} policy descriptions not yet in localization DB, waiting...`);
+      await new Promise(resolve => setTimeout(resolve, 10000));
     }
   }
 
