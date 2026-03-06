@@ -83,11 +83,14 @@ cp .env.default .env
 
 npm install
 npm run build
-npm start            # Run strategist
+
+# Workflows
+npm run strategist                    # Strategist (default)
+npm run telepathist -- -d <db-file>   # Post-game analysis console
+npm run oracle -- -c <experiment.js>  # Oracle prompt replay
 
 # Development
 npm run dev          # Hot reload
-npm run telepathist  # Post-game analysis console
 npm test             # Test suite
 ```
 
@@ -121,13 +124,6 @@ To change the default model or add custom models, edit `vox-agents/config.json`:
   }
 }
 ```
-
-Pre-configured models include:
-- OpenAI: `openai/gpt-5-mini`, `openai/gpt-5-nano`
-- Anthropic: `anthropic/claude-haiku-4-5`, `anthropic/claude-sonnet-4-5`, `anthropic/claude-opus-4-5`
-- OpenRouter: `openrouter/openai/gpt-oss-120b`, `openrouter/google/gemini-2.5-flash-lite`
-- AWS Bedrock: `aws/anthropic/claude-sonnet-4-5`
-- Chutes: `chutes/deepseek-ai/DeepSeek-V3.2`, `chutes/zai-org/glm-4.7`
 
 ### Strategist Configuration
 The strategist can be configured via JSON files in the `configs/` directory or through command-line arguments.
@@ -234,6 +230,63 @@ The agent workflow:
 4. Analyzes game state and makes decisions
 5. Resumes game automatically
 6. Handles crashes with automatic recovery
+
+## Telepathist Workflow
+
+The telepathist provides a conversational interface for post-game analysis, querying telemetry databases to reconstruct and discuss past games.
+
+### Command-Line Usage
+```bash
+# Analyze a game from its telemetry database
+npm run telepathist -- -d game-123.db
+
+# Use a specific agent variant
+npm run telepathist -- -d game-123.db -a talkative-telepathist
+
+# Run summarization/bootstrapping only, then exit
+npm run telepathist -- -d game-123.db --prepare
+```
+
+### Options
+| Flag | Description |
+|------|-------------|
+| `-d, --database` | Path to telemetry `.db` file (required, or first positional arg) |
+| `-a, --agent` | Agent name (default: `talkative-telepathist`) |
+| `-p, --prepare` | Preparation only: run summarization then exit |
+
+Bare filenames resolve relative to the `telemetry/` directory. The web UI starts automatically on port 5173.
+
+## Oracle Workflow
+
+The Oracle runs counterfactual prompt replay experiments — replaying past agent turns with modified prompts or different LLMs to explore "what-if" scenarios.
+
+### Command-Line Usage
+```bash
+# Run an experiment
+npm run oracle -- -c my-experiment.js
+
+# Override output and telemetry directories
+npm run oracle -- -c my-experiment.js -o temp/oracle-v2 -t telemetry/custom
+
+# Override target agent or type
+npm run oracle -- -c my-experiment.js --targetAgent simple-strategist --agentType strategist
+```
+
+### Options
+| Flag | Description |
+|------|-------------|
+| `-c, --config` | Experiment script filename or path (required) |
+| `-o, --outputDir` | Override output directory |
+| `-t, --telemetryDir` | Override telemetry directory |
+| `--targetAgent` | Override target agent name |
+| `--agentType` | Override agent type (e.g., `strategist`) |
+
+Bare config filenames resolve to the `experiments/` directory. The experiment config must export an `OracleConfig` with `csvPath`, `experimentName`, and `modifyPrompt`.
+
+Outputs:
+- Results CSV: `temp/oracle/{experimentName}-results.csv`
+- JSON/Markdown trails: `temp/oracle/{experimentName}/`
+- Telemetry DB: `telemetry/oracle/{experimentName}.db`
 
 ## Web UI Dashboard
 
