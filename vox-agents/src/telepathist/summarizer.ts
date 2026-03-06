@@ -8,7 +8,6 @@
  */
 
 import { createHash } from 'node:crypto';
-import { z } from 'zod';
 import { VoxAgent } from '../infra/vox-agent.js';
 import { TelepathistParameters } from './telepathist-parameters.js';
 import { VoxContext } from '../infra/vox-context.js';
@@ -26,15 +25,6 @@ export const summarizerGuidelines = `- Write in past tense from an archivist's p
   - "Rationale" under the Options heading reflects the leader's perspective and can deviate from the reality.
   - "RelayedMessage" type of events reflects the intelligence gathered by the government and can be incorrect.`.trim();
 
-/** Zod schema for turn summary structured output, used by callers to parse JSON responses */
-export const turnSummarySchema = z.object({
-  shortSummary: z.string().describe('A 1-2 sentence summary capturing the key events and decisions of this turn'),
-  fullSummary: z.string().describe('A detailed paragraph summary covering all significant aspects of this turn')
-});
-
-/** Output type for turn summaries */
-export type TurnSummary = z.infer<typeof turnSummarySchema>;
-
 /**
  * Input for the Summarizer agent.
  * The instruction drives the summarization behavior — from tool result
@@ -45,38 +35,6 @@ export interface SummarizerInput {
   text: string;
   /** What to focus on and how to format the output */
   instruction: string;
-}
-
-/**
- * Builds the instruction for turn summarization.
- * Tells the Summarizer to produce JSON with shortSummary and fullSummary.
- */
-export function buildTurnSummaryInstruction(turn: number): string {
-  return `Accurately summarize the game state for turn ${turn}.
-
-# Output Format
-Respond with a JSON object containing:
-- "fullSummary": A detailed paragraph covering all significant aspects: military situation, economic state, diplomatic changes, research progress, and strategic direction.
-- "shortSummary": 1-2 sentences capturing the most important events/decisions of this turn.
-
-# Focus
-- Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts.
-- Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions).
-- Carefully go through the raw game data to clarify uncertain situations.`;
-}
-
-/**
- * Builds the instruction for phase summarization.
- * Tells the Summarizer to produce a concise narrative paragraph.
- */
-export function buildPhaseSummaryInstruction(fromTurn: number, toTurn: number): string {
-  return `Create a concise narrative summary of this phase (turns ${fromTurn}-${toTurn}) based on the individual turn summaries provided. This summary will serve as high-level context for a conversation about the game.
-
-# Focus
-- Identify the dominant themes and narrative arcs of this phase.
-- Highlight major turning points: wars declared/ended, key technologies, policy adoptions, new cities.
-- Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?
-- Keep it to one paragraph: concise, accurate, but enough for context.`;
 }
 
 /**

@@ -1,9 +1,9 @@
 /**
- * @module telepathist/tools/get-decisions
+ * @module telepathist/tools/get-decision
  *
- * Telepathist tool for extracting AI decisions and reasoning from telemetry spans.
- * Shows what the AI decided and why — includes available options, agents involved,
- * reasoning text, and concrete decisions made.
+ * Telepathist tool for retrieving AI decisions and reasoning.
+ * Default mode: reads pre-generated decisions from turn_summaries (fast DB read).
+ * Detailed mode: executes raw span traversal from telemetry + summarizer.
  */
 
 import { z } from 'zod';
@@ -25,7 +25,6 @@ const decisionTools = [
   'relay-message',
 ];
 
-
 /** Static keys in Options that are identical across turns and should be consolidated */
 const consolidatedOptionKeys = ['GrandStrategies', 'Flavors'];
 
@@ -33,22 +32,68 @@ const inputSchema = z.object({
   Turns: z.string().describe(
     'Turn(s) to retrieve decisions for. Single ("30"), comma-separated ("10,20,30"), or range ("30-39"). No more than 10 turns at a time.'
   ),
+  Detailed: z.boolean().optional().describe(
+    'If true, executes raw span traversal for full decision data instead of reading pre-generated summaries. Use for deep analysis.'
+  ),
   ...inquiryField
 });
 
-type GetDecisionsInput = z.infer<typeof inputSchema>;
+type GetDecisionInput = z.infer<typeof inputSchema>;
 
 /**
- * Extracts AI decisions and reasoning from telemetry spans.
- * Shows the options landscape and the choices made.
+ * Retrieves AI decisions and reasoning for specific turns.
+ * Default: reads pre-generated decision summaries from the DB.
+ * Detailed: extracts full decision data from telemetry spans.
  */
-export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
-  readonly name = 'get-decisions';
-  readonly description = 'Get AI decisions and reasoning for specific turns. Shows what agents were involved, what options were available, what the AI decided, and why.';
+export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
+  readonly name = 'get-decision';
+  readonly description = 'Get AI decisions and reasoning for specific turns. Returns pre-generated summaries by default; use Detailed mode for full decision data with agents involved, options available, and reasoning.';
   readonly inputSchema = inputSchema;
-  protected override summarize = true;
 
-  async execute(input: GetDecisionsInput, params: TelepathistParameters): Promise<string[]> {
+  async execute(input: GetDecisionInput, params: TelepathistParameters): Promise<string[]> {
+    // Dynamically set summarize based on Detailed mode
+    this.summarize = !!input.Detailed;
+
+    if (input.Detailed) {
+      return this.executeDetailed(input, params);
+    }
+    return this.executeDefault(input, params);
+  }
+
+  /** Default mode: read pre-generated decisions from turn_summaries DB */
+  private async executeDefault(input: GetDecisionInput, params: TelepathistParameters): Promise<string[]> {
+    const turns = this.parseTurns(input.Turns, params.availableTurns, 20);
+    if (turns.length === 0) {
+      return ['No turns found in the requested range.'];
+    }
+
+    const summaries = await params.telepathistDb
+      .selectFrom('turn_summaries')
+      .selectAll()
+      .where('turn', 'in', turns)
+      .orderBy('turn', 'asc')
+      .execute();
+
+    if (summaries.length === 0) {
+      return ['No summaries available for the requested turns. Summaries are generated during session initialization.'];
+    }
+
+    const sections: string[] = [];
+    for (const summary of summaries) {
+      sections.push(`## Turn ${summary.turn}\n${summary.decisions}`);
+    }
+
+    const summarizedTurns = new Set(summaries.map(s => s.turn));
+    const missing = turns.filter(t => !summarizedTurns.has(t));
+    if (missing.length > 0) {
+      sections.push(`\n*Note: No summaries available for turns: ${missing.join(', ')}*`);
+    }
+
+    return sections;
+  }
+
+  /** Detailed mode: extract full decision data from telemetry spans */
+  private async executeDetailed(input: GetDecisionInput, params: TelepathistParameters): Promise<string[]> {
     const turns = this.parseTurns(input.Turns, params.availableTurns);
     if (turns.length === 0) {
       return ['No turns found in the requested range.'];
@@ -56,7 +101,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
 
     const sections: string[] = [];
 
-    // For multi-turn queries, consolidate static reference data (GrandStrategies, Flavors)
     const multiTurn = turns.length > 1;
     let hasConsolidated = false;
     if (multiTurn) {
@@ -79,22 +123,17 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
         continue;
       }
 
-      // 1. Strategic options available (strip consolidated keys in multi-turn mode)
       const turnRoot = turnRoots.get(turn);
       await this.addOptionsSection(params, turn, turnRoot, agents, turnSections, hasConsolidated ? consolidatedOptionKeys : []);
 
-      // 2. Agents involved (hierarchical, from subspans)
       await this.addAgentsSection(params, agents, turnSections);
 
-      // 3. AI Reasoning + 4. Decisions made (per-agent)
       for (const [agentName, agentSpans] of Object.entries(agents)) {
         if (!agentRegistry.has(agentName)) continue;
 
-        // Get steps for this agent
         const stepSpans = await this.getStepsForAgent(params, agentSpans);
         if (stepSpans.length === 0) continue;
 
-        // Extract reasoning from step responses
         if (agentName.indexOf("strategist") !== -1) {
           const reasoning = this.extractReasoning(stepSpans);
           if (reasoning) {
@@ -103,7 +142,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
           }
         }
 
-        // Extract decisions from tool calls
         const decisions = await this.extractDecisions(params, stepSpans);
         if (decisions.length > 0) {
           turnSections.push(`## ${agentName} Decisions`);
@@ -125,7 +163,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
     params: TelepathistParameters,
     turns: number[]
   ): Promise<string | null> {
-    // Find the first get-options output across the requested turns
     for (const turn of turns) {
       const { turnRoots, agents } = await this.getRootSpans(params.db, [turn]);
       const traceIds = this.collectTraceIds(turnRoots.get(turn), agents);
@@ -146,7 +183,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
       const output = this.getToolOutput(optionSpans[0]);
       if (!output?.Options) continue;
 
-      // Extract static reference data
       const refParts: string[] = ['# Reference Data'];
       for (const key of consolidatedOptionKeys) {
         if (output.Options[key]) {
@@ -186,7 +222,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
     if (optionSpans.length > 0) {
       const output = this.getToolOutput(optionSpans[0]);
       if (output) {
-        // Strip consolidated keys from Options to avoid repetition
         if (stripKeys.length > 0 && output.Options) {
           for (const key of stripKeys) {
             delete output.Options[key];
@@ -225,7 +260,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
       if (!agent) continue;
       turnSections.push(`- **${agentName}**: ${agent.description}`);
 
-      // Find subagent calls from this agent's steps
       const stepSpans = await this.getStepsForAgent(params, agentSpans);
       if (stepSpans.length === 0) continue;
 
@@ -276,7 +310,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
         const parsed = JSON.parse(responses);
         if (!Array.isArray(parsed)) return undefined;
         for (const msg of parsed) {
-          // Extract text content from assistant messages
           if (msg.role !== 'assistant') continue;
           if (typeof msg.content === 'string' && msg.content.trim()) {
             reasoningParts.push(msg.content.trim());
@@ -305,7 +338,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
   ): Promise<string[]> {
     const parentIds = stepSpans.map(s => s.spanId);
 
-    // Find all tool call spans that are children of these steps
     const toolCalls = await params.db
       .selectFrom('spans')
       .selectAll()
@@ -316,13 +348,11 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
     const decisions: string[] = [];
 
     for (const span of toolCalls) {
-      // Extract the tool name from span name (e.g., "mcp-tool.set-strategy" or "simple-tool.keep-status-quo")
       const toolName = span.name.replace(/^(mcp-tool\.|simple-tool\.)/, '');
 
       if (decisionTools.includes(toolName)) {
         const input = this.getToolInput(span);
         if (input) {
-          // Strip internal fields before formatting
           const details = { ...input };
           delete details.Rationale;
           delete details.PlayerID;
@@ -341,3 +371,6 @@ export class GetDecisionsTool extends TelepathistTool<GetDecisionsInput> {
     return decisions;
   }
 }
+
+// Re-export class under old name for use in preparation module
+export { GetDecisionTool as GetDecisionsTool };

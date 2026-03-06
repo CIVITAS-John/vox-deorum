@@ -48,9 +48,8 @@ You have access to the complete historical record: every world state it observed
       sections.push(`# Available Tools
 - Always launch inquiry beyond the game summary: it serve as the anchor point, NOT sources of truth.
 - Only answer after collecting sufficient data or, when no more data is available, make an educated guess (toned accordingly).
-- **get-game-overview**: Use it to get per-turn summaries for a range of turns, e.g. "what happened between turns X and Y?"
-- **get-game-state**: Use it to get the actual game data (players, cities, military, etc.) for ground truth verification
-- **get-decisions**: Use it to get player decisions and reasoning, e.g. "what did the player do and why?"
+- **get-situation**: Get world state for specific turns. Default returns pre-generated summaries; use Detailed mode for raw game data (players, cities, military, etc.)
+- **get-decision**: Get player decisions and reasoning. Default returns pre-generated summaries; use Detailed mode for full decision data with agents, options, and reasoning
 - **get-conversation-log**: Use it to get the full internal conversation for a turn for deep dives into exact reasoning`);
     }
 

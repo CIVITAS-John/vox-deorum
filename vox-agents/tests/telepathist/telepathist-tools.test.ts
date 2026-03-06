@@ -29,9 +29,8 @@ import {
 } from '../../src/telepathist/telepathist-parameters.js';
 import { parseDatabaseIdentifier } from '../../src/utils/identifier-parser.js';
 import { TelepathistTool } from '../../src/telepathist/telepathist-tool.js';
-import { GetGameOverviewTool } from '../../src/telepathist/tools/get-game-overview.js';
-import { GetGameStateTool } from '../../src/telepathist/tools/get-game-state.js';
-import { GetDecisionsTool } from '../../src/telepathist/tools/get-decisions.js';
+import { GetSituationTool } from '../../src/telepathist/tools/get-situation.js';
+import { GetDecisionTool } from '../../src/telepathist/tools/get-decision.js';
 import { GetConversationLogTool } from '../../src/telepathist/tools/get-conversation-log.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -139,8 +138,8 @@ describe.skipIf(!dbExists)('createTelepathistParameters', () => {
   });
 });
 
-describe.skipIf(!dbExists)('GetGameOverviewTool', () => {
-  const tool = new GetGameOverviewTool();
+describe.skipIf(!dbExists)('GetSituationTool (default mode)', () => {
+  const tool = new GetSituationTool();
 
   it('should return summaries for a single turn', async () => {
     const turn = params.availableTurns[0];
@@ -163,12 +162,12 @@ describe.skipIf(!dbExists)('GetGameOverviewTool', () => {
   });
 });
 
-describe.skipIf(!dbExists)('GetGameStateTool', () => {
-  const tool = new GetGameStateTool();
+describe.skipIf(!dbExists)('GetSituationTool (detailed mode)', () => {
+  const tool = new GetSituationTool();
 
   it('should reconstruct game state for a valid turn', async () => {
     const turn = params.availableTurns[0];
-    const sections = await tool.execute({ Turns: String(turn) }, params);
+    const sections = await tool.execute({ Turns: String(turn), Detailed: true }, params);
     expect(sections.length).toBeGreaterThan(0);
     const combined = sections.join('\n');
     expect(combined).toContain(`# Turn ${turn}`);
@@ -176,21 +175,36 @@ describe.skipIf(!dbExists)('GetGameStateTool', () => {
 
   it('should filter by specific categories', async () => {
     const turn = params.availableTurns[0];
-    const sections = await tool.execute({ Turns: String(turn), Categories: ['players'] }, params);
+    const sections = await tool.execute({ Turns: String(turn), Detailed: true, Categories: ['players'] }, params);
     expect(sections.length).toBeGreaterThan(0);
   });
 
   it('should reject invalid categories', async () => {
     const turn = params.availableTurns[0];
-    const sections = await tool.execute({ Turns: String(turn), Categories: ['nonexistent'] }, params);
+    const sections = await tool.execute({ Turns: String(turn), Detailed: true, Categories: ['nonexistent'] }, params);
     expect(sections[0]).toContain('Invalid categories');
   });
 
   it('should handle multiple turns', async () => {
     if (params.availableTurns.length < 2) return;
     const turns = params.availableTurns.slice(0, 2);
-    const sections = await tool.execute({ Turns: turns.join(',') }, params);
+    const sections = await tool.execute({ Turns: turns.join(','), Detailed: true }, params);
     expect(sections.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('should return "No turns found" for out-of-range turn', async () => {
+    const sections = await tool.execute({ Turns: '99999', Detailed: true }, params);
+    expect(sections).toEqual(['No turns found in the requested range.']);
+  });
+});
+
+describe.skipIf(!dbExists)('GetDecisionTool (default mode)', () => {
+  const tool = new GetDecisionTool();
+
+  it('should return summaries for a valid turn', async () => {
+    const turn = params.availableTurns[0];
+    const sections = await tool.execute({ Turns: String(turn) }, params);
+    expect(sections.length).toBeGreaterThan(0);
   });
 
   it('should return "No turns found" for out-of-range turn', async () => {
@@ -199,12 +213,12 @@ describe.skipIf(!dbExists)('GetGameStateTool', () => {
   });
 });
 
-describe.skipIf(!dbExists)('GetDecisionsTool', () => {
-  const tool = new GetDecisionsTool();
+describe.skipIf(!dbExists)('GetDecisionTool (detailed mode)', () => {
+  const tool = new GetDecisionTool();
 
   it('should extract decisions for a valid turn', async () => {
     const turn = params.availableTurns[0];
-    const sections = await tool.execute({ Turns: String(turn) }, params);
+    const sections = await tool.execute({ Turns: String(turn), Detailed: true }, params);
     expect(sections.length).toBeGreaterThan(0);
     const combined = sections.join('\n');
     expect(combined).toContain(`# Turn ${turn}`);
@@ -212,7 +226,7 @@ describe.skipIf(!dbExists)('GetDecisionsTool', () => {
 
   it('should include agents involved section when agents ran', async () => {
     const turn = params.availableTurns[0];
-    const sections = await tool.execute({ Turns: String(turn) }, params);
+    const sections = await tool.execute({ Turns: String(turn), Detailed: true }, params);
     const combined = sections.join('\n');
     if (!combined.includes('No agent executions found')) {
       expect(combined).toContain('Agents Involved');
@@ -220,7 +234,7 @@ describe.skipIf(!dbExists)('GetDecisionsTool', () => {
   });
 
   it('should return "No turns found" for out-of-range turn', async () => {
-    const sections = await tool.execute({ Turns: '99999' }, params);
+    const sections = await tool.execute({ Turns: '99999', Detailed: true }, params);
     expect(sections).toEqual(['No turns found in the requested range.']);
   });
 });

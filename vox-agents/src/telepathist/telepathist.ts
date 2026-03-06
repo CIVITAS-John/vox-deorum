@@ -3,21 +3,18 @@
  *
  * Base Telepathist agent that reads from telemetry databases.
  * Extends Envoy<TelepathistParameters> to reuse chat infrastructure.
- * Handles session initialization (batch summarization) and provides
- * database-backed context instead of live game state.
+ * Delegates session initialization (batch summarization) to the preparation module
+ * and provides database-backed context instead of live game state.
  */
 
 import { ModelMessage, StepResult, Tool } from 'ai';
 import { Envoy } from '../envoy/envoy.js';
 import { TelepathistParameters } from './telepathist-parameters.js';
 import { TelepathistTool } from './telepathist-tool.js';
-import { GetGameOverviewTool } from './tools/get-game-overview.js';
-import { GetGameStateTool } from './tools/get-game-state.js';
-import { GetDecisionsTool } from './tools/get-decisions.js';
+import { GetSituationTool } from './tools/get-situation.js';
+import { GetDecisionTool } from './tools/get-decision.js';
 import { GetConversationLogTool } from './tools/get-conversation-log.js';
-import { SummarizerInput, TurnSummary, turnSummarySchema, buildTurnSummaryInstruction, buildPhaseSummaryInstruction } from './summarizer.js';
-// @ts-ignore - jaison doesn't have type definitions
-import jaison from 'jaison';
+import { runPreparation } from './preparation/index.js';
 import { EnvoyThread, SpecialMessageConfig, MessageWithMetadata, Model } from '../types/index.js';
 import { VoxContext } from '../infra/vox-context.js';
 import { createLogger } from '../utils/logger.js';
@@ -26,16 +23,12 @@ import { getModelConfig } from '../utils/models/models.js';
 
 const logger = createLogger('Telepathist');
 
-/** Size of each phase in turns for summarization */
-const phaseSize = 10;
-
 /**
  * All available telepathist tool instances
  */
 const toolInstances: TelepathistTool[] = [
-  new GetGameOverviewTool(),
-  new GetGameStateTool(),
-  new GetDecisionsTool(),
+  new GetSituationTool(),
+  new GetDecisionTool(),
   new GetConversationLogTool(),
 ];
 
@@ -86,7 +79,7 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
     if (specialConfig) {
       // Check if this is the Initialize special message
       if (this.isInitializeMessage(input)) {
-        await this.runInitialization(parameters, context);
+        await runPreparation(parameters, context);
         // Re-fetch context messages since we may have generated summaries
         const updatedMessages = await this.getContextMessages(parameters, input);
         updatedMessages.push({
@@ -213,14 +206,14 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
   // --- Database context assembly ---
 
   /**
-   * Returns context messages: player identity + phase summaries.
+   * Returns context messages: player identity + phase narrative summaries.
    * Always available to the LLM as system context.
    */
   protected async getContextMessages(
     parameters: TelepathistParameters,
     _input: EnvoyThread
   ): Promise<ModelMessage[]> {
-    // Build phase summaries section
+    // Build phase summaries section using narrative field only
     const phaseSummaries = await parameters.telepathistDb
       .selectFrom('phase_summaries')
       .selectAll()
@@ -230,7 +223,7 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
     let phaseSummaryText = '';
     if (phaseSummaries.length > 0) {
       const parts = phaseSummaries.map(
-        ps => `### Turns ${ps.fromTurn}-${ps.toTurn}\n${ps.summary}`
+        ps => `### Turns ${ps.fromTurn}-${ps.toTurn}\n${ps.narrative}`
       );
       phaseSummaryText = `\n\n# Game Summary\n${parts.join('\n\n')}`;
     }
@@ -246,181 +239,6 @@ export abstract class Telepathist extends Envoy<TelepathistParameters> {
 - **Leader**: ${parameters.leaderName}
 - **Available Data**: ${turnRange} (${parameters.availableTurns.length} turns)${phaseSummaryText}`.trim()
     }];
-  }
-
-  // --- Session initialization ---
-
-  /**
-   * Runs batch summarization: generates turn summaries and phase summaries
-   * for all turns that don't already have summaries.
-   */
-  private async runInitialization(
-    parameters: TelepathistParameters,
-    context: VoxContext<TelepathistParameters>
-  ): Promise<void> {
-    // Check which turns already have summaries
-    const existingSummaries = await parameters.telepathistDb
-      .selectFrom('turn_summaries')
-      .select('turn')
-      .execute();
-    const existingTurns = new Set(existingSummaries.map(s => s.turn));
-
-    const turnsToSummarize = parameters.availableTurns.filter(t => !existingTurns.has(t));
-
-    if (turnsToSummarize.length === 0) {
-      logger.info('All turn summaries already exist, skipping summarization');
-      context.streamProgress?.('Summaries already exist. Loading...');
-    } else {
-      logger.info(`Generating summaries for ${turnsToSummarize.length} turns`);
-
-      // Generate turn summaries one at a time
-      for (let i = 0; i < turnsToSummarize.length; i++) {
-        const turn = turnsToSummarize[i];
-        context.streamProgress?.(`Analyzing turn ${turn} (${i + 1}/${turnsToSummarize.length})...`);
-
-        try {
-          const gameStateTool = toolInstances.find(t => t.name === 'get-game-state') as GetGameStateTool;
-          const gameStateSections = await gameStateTool.execute({ Turns: String(turn) }, parameters);
-          const gameStateText = gameStateSections.join('\n\n');
-          if (!gameStateText.includes('## ')) {
-            logger.warn(`No game state data found for turn ${turn}, skipping`);
-            continue;
-          }
-
-          const summaryInput: SummarizerInput = {
-            text: gameStateText,
-            instruction: buildTurnSummaryInstruction(turn)
-          };
-
-          parameters.turn = turn;
-          const rawSummary = await context.callAgent<string>(
-            'summarizer',
-            summaryInput,
-            parameters
-          );
-
-          // Parse the structured JSON response using the same pattern as VoxAgent.getOutput()
-          const summary = rawSummary ? this.parseTurnSummary(rawSummary) : undefined;
-
-          if (summary) {
-            context.streamProgress?.(`Turn ${turn}: ${summary.shortSummary}`);
-            await parameters.telepathistDb
-              .insertInto('turn_summaries')
-              .values({
-                turn,
-                shortSummary: summary.shortSummary,
-                fullSummary: summary.fullSummary,
-                model: 'auto',
-                createdAt: Date.now()
-              })
-              .execute();
-          }
-        } catch (e) {
-          logger.error(`Failed to summarize turn ${turn}`, { error: e });
-        }
-      }
-    }
-
-    // Generate phase summaries
-    await this.generatePhaseSummaries(parameters, context);
-  }
-
-  /**
-   * Generates phase summaries from turn summaries, ~10 turns per phase.
-   */
-  private async generatePhaseSummaries(
-    parameters: TelepathistParameters,
-    context: VoxContext<TelepathistParameters>
-  ): Promise<void> {
-    // Check existing phase summaries
-    const existingPhases = await parameters.telepathistDb
-      .selectFrom('phase_summaries')
-      .select(['fromTurn', 'toTurn'])
-      .execute();
-    const existingPhaseKeys = new Set(existingPhases.map(p => `${p.fromTurn}-${p.toTurn}`));
-
-    // Get all turn summaries
-    const turnSummaries = await parameters.telepathistDb
-      .selectFrom('turn_summaries')
-      .selectAll()
-      .orderBy('turn', 'asc')
-      .execute();
-
-    if (turnSummaries.length === 0) return;
-
-    // Group into phases of ~phaseSize turns
-    const phases: { fromTurn: number; toTurn: number; summaries: typeof turnSummaries }[] = [];
-    for (let i = 0; i < turnSummaries.length; i += phaseSize) {
-      const chunk = turnSummaries.slice(i, i + phaseSize);
-      phases.push({
-        fromTurn: chunk[0].turn,
-        toTurn: chunk[chunk.length - 1].turn,
-        summaries: chunk
-      });
-    }
-
-    for (const phase of phases) {
-      const key = `${phase.fromTurn}-${phase.toTurn}`;
-      if (existingPhaseKeys.has(key)) continue;
-
-      context.streamProgress?.(`Summarizing phase: turns ${phase.fromTurn}–${phase.toTurn}...`);
-
-      try {
-        const turnSummaries: Record<number, string> = {};
-        for (const s of phase.summaries) {
-          turnSummaries[s.turn] = s.fullSummary;
-        }
-
-        parameters.turn = phase.fromTurn;
-        const formattedSummaries = Object.entries(turnSummaries)
-          .map(([turn, summary]) => `## Turn ${turn}\n${summary}`)
-          .join('\n\n');
-        const input: SummarizerInput = {
-          text: `# Turn Summaries: Turns ${phase.fromTurn} to ${phase.toTurn}\n${formattedSummaries}`,
-          instruction: buildPhaseSummaryInstruction(phase.fromTurn, phase.toTurn)
-        };
-        parameters.turn = phase.toTurn;
-
-        const phaseSummary = await context.callAgent<string>(
-          'summarizer',
-          input,
-          parameters
-        );
-
-        if (phaseSummary) {
-          context.streamProgress?.(`Phase ${phase.fromTurn}–${phase.toTurn}: ${phaseSummary}`);
-          await parameters.telepathistDb
-            .insertInto('phase_summaries')
-            .values({
-              fromTurn: phase.fromTurn,
-              toTurn: phase.toTurn,
-              summary: phaseSummary,
-              model: 'auto',
-              createdAt: Date.now()
-            })
-            .execute();
-        }
-      } catch (e) {
-        logger.error(`Failed to summarize phase ${phase.fromTurn}-${phase.toTurn}`, { error: e });
-      }
-    }
-  }
-
-  // --- Parsing helpers ---
-
-  /**
-   * Parse a turn summary from the Summarizer's text response.
-   * Uses the same jaison + code-block stripping pattern as VoxAgent.getOutput().
-   */
-  private parseTurnSummary(rawText: string): TurnSummary | undefined {
-    try {
-      const cleaned = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
-      const parsed = jaison(cleaned);
-      return turnSummarySchema.parse(parsed);
-    } catch (e) {
-      logger.error('Failed to parse turn summary from summarizer response', { error: e });
-      return undefined;
-    }
   }
 
   // --- Abstract methods ---

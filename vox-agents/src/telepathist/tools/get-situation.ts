@@ -1,9 +1,9 @@
 /**
- * @module telepathist/tools/get-game-state
+ * @module telepathist/tools/get-situation
  *
- * Telepathist tool for reconstructing ground-truth game state from telemetry spans.
- * Extracts MCP tool outputs stored in span attributes and formats them using
- * the same jsonToMarkdown + markdownConfig that agents see during live play.
+ * Telepathist tool for retrieving world state information.
+ * Default mode: reads pre-generated situation from turn_summaries (fast DB read).
+ * Detailed mode: executes raw span traversal from telemetry + summarizer.
  */
 
 import { z } from 'zod';
@@ -34,27 +34,73 @@ const categoryLabelMap: Record<string, string> = {
 
 const inputSchema = z.object({
   Turns: z.string().describe(
-    'Turn(s) to retrieve game state for. Single ("30"), comma-separated ("10,20,30"), or range ("30-34"). No more than 5 turns at a time.'
+    'Turn(s) to retrieve situation for. Single ("30"), comma-separated ("10,20,30"), or range ("30-34"). No more than 5 turns at a time.'
+  ),
+  Detailed: z.boolean().optional().describe(
+    'If true, executes raw span traversal for full game data instead of reading pre-generated summaries. Use for ground truth verification.'
   ),
   Categories: z.array(z.string()).optional().describe(
-    `Optional filter for specific data categories: ${allCategories.join(', ')}. If omitted, returns all available data.`
+    `Optional filter for specific data categories (only in Detailed mode): ${allCategories.join(', ')}. If omitted, returns all available data.`
   ),
   ...inquiryField
 });
 
-type GetGameStateInput = z.infer<typeof inputSchema>;
+type GetSituationInput = z.infer<typeof inputSchema>;
 
 /**
- * Reconstructs the actual game data the AI had access to from MCP tool output spans.
- * Uses valid traceId per turn to skip botched spans.
+ * Retrieves world state information for specific turns.
+ * Default: reads pre-generated situation summaries from the DB.
+ * Detailed: reconstructs actual game data from MCP tool output spans.
  */
-export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
-  readonly name = 'get-game-state';
-  readonly description = 'Get the actual game state data for specific turns, reconstructed from telemetry.';
+export class GetSituationTool extends TelepathistTool<GetSituationInput> {
+  readonly name = 'get-situation';
+  readonly description = 'Get the world state / situation for specific turns. Returns pre-generated summaries by default; use Detailed mode for raw game data.';
   readonly inputSchema = inputSchema;
-  protected override summarize = true;
 
-  async execute(input: GetGameStateInput, params: TelepathistParameters): Promise<string[]> {
+  async execute(input: GetSituationInput, params: TelepathistParameters): Promise<string[]> {
+    // Dynamically set summarize based on Detailed mode
+    this.summarize = !!input.Detailed;
+
+    if (input.Detailed) {
+      return this.executeDetailed(input, params);
+    }
+    return this.executeDefault(input, params);
+  }
+
+  /** Default mode: read pre-generated situation from turn_summaries DB */
+  private async executeDefault(input: GetSituationInput, params: TelepathistParameters): Promise<string[]> {
+    const turns = this.parseTurns(input.Turns, params.availableTurns, 20);
+    if (turns.length === 0) {
+      return ['No turns found in the requested range.'];
+    }
+
+    const summaries = await params.telepathistDb
+      .selectFrom('turn_summaries')
+      .selectAll()
+      .where('turn', 'in', turns)
+      .orderBy('turn', 'asc')
+      .execute();
+
+    if (summaries.length === 0) {
+      return ['No summaries available for the requested turns. Summaries are generated during session initialization.'];
+    }
+
+    const sections: string[] = [];
+    for (const summary of summaries) {
+      sections.push(`## Turn ${summary.turn}\n${summary.situation}`);
+    }
+
+    const summarizedTurns = new Set(summaries.map(s => s.turn));
+    const missing = turns.filter(t => !summarizedTurns.has(t));
+    if (missing.length > 0) {
+      sections.push(`\n*Note: No summaries available for turns: ${missing.join(', ')}*`);
+    }
+
+    return sections;
+  }
+
+  /** Detailed mode: reconstruct actual game data from MCP tool output spans */
+  private async executeDetailed(input: GetSituationInput, params: TelepathistParameters): Promise<string[]> {
     const turns = this.parseTurns(input.Turns, params.availableTurns, 5);
     if (turns.length === 0) {
       return ['No turns found in the requested range.'];
@@ -74,10 +120,8 @@ export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
       const turnSections: string[] = [];
       turnSections.push(`# Turn ${turn}`);
 
-      // Get the valid root spans for this turn to identify valid traceIds
       const { turnRoots, agents } = await this.getRootSpans(params.db, [turn]);
 
-      // Collect all valid traceIds (from turn root and fire-and-forget agents)
       const validTraceIds = new Set<string>();
       const turnRoot = turnRoots.get(turn);
       if (turnRoot) validTraceIds.add(turnRoot.traceId);
@@ -93,12 +137,10 @@ export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
         continue;
       }
 
-      // For each category, find the relevant MCP tool spans
       for (const category of requestedCategories) {
         const toolName = categoryToolMap[category];
         const mcpSpanName = `mcp-tool.${toolName}`;
 
-        // Find tool spans that belong to valid traces for this turn
         const toolSpans = await params.db
           .selectFrom('spans')
           .selectAll()
@@ -128,3 +170,6 @@ export class GetGameStateTool extends TelepathistTool<GetGameStateInput> {
     return sections;
   }
 }
+
+// Re-export class under old name for use in preparation module
+export { GetSituationTool as GetGameStateTool };
