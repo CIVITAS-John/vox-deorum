@@ -11,6 +11,7 @@ import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import type { Span } from '../../utils/telemetry/schema.js';
 import { jsonToMarkdown } from '../../utils/tools/json-to-markdown.js';
+import { cleanToolArtifacts } from '../../utils/text-cleaning.js';
 import { agentRegistry } from '../../infra/agent-registry.js';
 
 /** Decision tools whose inputs contain the AI's strategic choices */
@@ -60,7 +61,7 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
     return this.executeDefault(input, params);
   }
 
-  /** Default mode: read pre-generated decisions from turn_summaries DB */
+  /** Default mode: read pre-generated decisions from turn_summaries DB, falling back to detailed mode for missing turns */
   private async executeDefault(input: GetDecisionInput, params: TelepathistParameters): Promise<string[]> {
     const turns = this.parseTurns(input.Turns, params.availableTurns, 20);
     if (turns.length === 0) {
@@ -74,19 +75,21 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
       .orderBy('turn', 'asc')
       .execute();
 
-    if (summaries.length === 0) {
-      return ['No summaries available for the requested turns. Summaries are generated during session initialization.'];
-    }
-
     const sections: string[] = [];
     for (const summary of summaries) {
       sections.push(`## Turn ${summary.turn}\n${summary.decisions}`);
     }
 
+    // Fallback to detailed mode (with summarizer) for turns without summaries
     const summarizedTurns = new Set(summaries.map(s => s.turn));
     const missing = turns.filter(t => !summarizedTurns.has(t));
     if (missing.length > 0) {
-      sections.push(`\n*Note: No summaries available for turns: ${missing.join(', ')}*`);
+      this.summarize = true;
+      const detailedSections = await this.executeDetailed(
+        { Turns: missing.join(','), Detailed: true, Inquiry: input.Inquiry },
+        params
+      );
+      sections.push(...detailedSections);
     }
 
     return sections;
@@ -149,7 +152,7 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
         }
       }
 
-      sections.push(turnSections.join('\n\n'));
+      sections.push(cleanToolArtifacts(turnSections.join('\n\n')));
     }
 
     return sections;

@@ -7,6 +7,7 @@
 
 // @ts-ignore - jaison doesn't have type definitions
 import jaison from 'jaison';
+import pLimit from 'p-limit';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { GetGameStateTool } from '../tools/get-situation.js';
@@ -44,67 +45,71 @@ export async function prepareTurnSummaries(
 
   const gameStateTool = new GetGameStateTool();
   const decisionsTool = new GetDecisionsTool();
+  const limit = pLimit(5);
 
-  for (let i = 0; i < turnsToSummarize.length; i++) {
-    const turn = turnsToSummarize[i];
-    context.streamProgress?.(`Analyzing turn ${turn} (${i + 1}/${turnsToSummarize.length})...`);
+  await Promise.all(
+    turnsToSummarize.map((turn, i) =>
+      limit(async () => {
+        context.streamProgress?.(`Analyzing turn ${turn} (${i + 1}/${turnsToSummarize.length})...`);
 
-    try {
-      // Gather situation data (all categories)
-      const gameStateSections = await gameStateTool.execute({ Turns: String(turn) }, parameters);
-      const gameStateText = gameStateSections.join('\n\n');
+        try {
+          // Gather situation data (all categories)
+          const gameStateSections = await gameStateTool.execute({ Turns: String(turn) }, parameters);
+          const gameStateText = gameStateSections.join('\n\n');
 
-      // Gather decisions data
-      const decisionsSections = await decisionsTool.execute({ Turns: String(turn) }, parameters);
-      const decisionsText = decisionsSections.join('\n\n');
+          // Gather decisions data
+          const decisionsSections = await decisionsTool.execute({ Turns: String(turn) }, parameters);
+          const decisionsText = decisionsSections.join('\n\n');
 
-      // Skip if no meaningful data
-      if (!gameStateText.includes('## ') && !decisionsText.includes('# Turn')) {
-        logger.warn(`No data found for turn ${turn}, skipping`);
-        continue;
-      }
+          // Skip if no meaningful data
+          if (!gameStateText.includes('## ') && !decisionsText.includes('# Turn')) {
+            logger.warn(`No data found for turn ${turn}, skipping`);
+            return;
+          }
 
-      // Combine into summarizer input
-      const combinedText = [
-        '# Game State',
-        gameStateText,
-        '# Decisions',
-        decisionsText
-      ].join('\n\n');
+          // Combine into summarizer input
+          const combinedText = [
+            '# Game State',
+            gameStateText,
+            '# Decisions',
+            decisionsText
+          ].join('\n\n');
 
-      const summaryInput: SummarizerInput = {
-        text: combinedText,
-        instruction: buildTurnSummaryInstruction(turn)
-      };
+          const summaryInput: SummarizerInput = {
+            text: combinedText,
+            instruction: buildTurnSummaryInstruction(turn)
+          };
 
-      parameters.turn = turn;
-      const rawSummary = await context.callAgent<string>(
-        'summarizer',
-        summaryInput,
-        parameters
-      );
+          const turnParameters = { ...parameters, turn };
+          const rawSummary = await context.callAgent<string>(
+            'summarizer',
+            summaryInput,
+            turnParameters
+          );
 
-      const summary = rawSummary ? parseTurnSummary(rawSummary) : undefined;
+          const summary = rawSummary ? parseTurnSummary(rawSummary) : undefined;
 
-      if (summary) {
-        context.streamProgress?.(`Turn ${turn}: ${summary.narrative}`);
-        await parameters.telepathistDb
-          .insertInto('turn_summaries')
-          .values({
-            turn,
-            situation: summary.situation,
-            abstract: summary.abstract,
-            decisions: summary.decisions,
-            narrative: summary.narrative,
-            model: 'auto',
-            createdAt: Date.now()
-          })
-          .execute();
-      }
-    } catch (e) {
-      logger.error(`Failed to summarize turn ${turn}`, { error: e });
-    }
-  }
+          if (summary) {
+            context.streamProgress?.(`Turn ${turn}: ${summary.narrative}`);
+            await parameters.telepathistDb
+              .insertInto('turn_summaries')
+              .values({
+                turn,
+                situation: summary.situation,
+                abstract: summary.abstract,
+                decisions: summary.decisions,
+                narrative: summary.narrative,
+                model: 'auto',
+                createdAt: Date.now()
+              })
+              .execute();
+          }
+        } catch (e) {
+          logger.error(`Failed to summarize turn ${turn}`, { error: e });
+        }
+      })
+    )
+  );
 }
 
 /**

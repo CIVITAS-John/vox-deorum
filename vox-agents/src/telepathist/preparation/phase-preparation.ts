@@ -7,6 +7,7 @@
 
 // @ts-ignore - jaison doesn't have type definitions
 import jaison from 'jaison';
+import pLimit from 'p-limit';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { SummarizerInput } from '../summarizer.js';
@@ -52,52 +53,56 @@ export async function preparePhaseSummaries(
     });
   }
 
-  for (const phase of phases) {
-    const key = `${phase.fromTurn}-${phase.toTurn}`;
-    if (existingPhaseKeys.has(key)) continue;
+  const phasesToSummarize = phases.filter(p => !existingPhaseKeys.has(`${p.fromTurn}-${p.toTurn}`));
+  const limit = pLimit(5);
 
-    context.streamProgress?.(`Summarizing phase: turns ${phase.fromTurn}–${phase.toTurn}...`);
+  await Promise.all(
+    phasesToSummarize.map(phase =>
+      limit(async () => {
+        context.streamProgress?.(`Summarizing phase: turns ${phase.fromTurn}–${phase.toTurn}...`);
 
-    try {
-      // Format turn situation + decisions as combined input
-      const formattedSummaries = phase.summaries
-        .map(s => `## Turn ${s.turn}\n### Situation\n${s.situation}\n### Decisions\n${s.decisions}`)
-        .join('\n\n');
+        try {
+          // Format turn situation + decisions as combined input
+          const formattedSummaries = phase.summaries
+            .map(s => `## Turn ${s.turn}\n### Situation\n${s.situation}\n### Decisions\n${s.decisions}`)
+            .join('\n\n');
 
-      const input: SummarizerInput = {
-        text: `# Turn Summaries: Turns ${phase.fromTurn} to ${phase.toTurn}\n${formattedSummaries}`,
-        instruction: buildPhaseSummaryInstruction(phase.fromTurn, phase.toTurn)
-      };
-      parameters.turn = phase.toTurn;
+          const input: SummarizerInput = {
+            text: `# Turn Summaries: Turns ${phase.fromTurn} to ${phase.toTurn}\n${formattedSummaries}`,
+            instruction: buildPhaseSummaryInstruction(phase.fromTurn, phase.toTurn)
+          };
+          const phaseParameters = { ...parameters, turn: phase.toTurn };
 
-      const rawPhaseSummary = await context.callAgent<string>(
-        'summarizer',
-        input,
-        parameters
-      );
+          const rawPhaseSummary = await context.callAgent<string>(
+            'summarizer',
+            input,
+            phaseParameters
+          );
 
-      const parsed = rawPhaseSummary ? parsePhaseSummary(rawPhaseSummary) : undefined;
+          const parsed = rawPhaseSummary ? parsePhaseSummary(rawPhaseSummary) : undefined;
 
-      if (parsed) {
-        context.streamProgress?.(`Phase ${phase.fromTurn}–${phase.toTurn}: ${parsed.narrative}`);
-        await parameters.telepathistDb
-          .insertInto('phase_summaries')
-          .values({
-            fromTurn: phase.fromTurn,
-            toTurn: phase.toTurn,
-            situation: parsed.situation,
-            abstract: parsed.abstract,
-            decisions: parsed.decisions,
-            narrative: parsed.narrative,
-            model: 'auto',
-            createdAt: Date.now()
-          })
-          .execute();
-      }
-    } catch (e) {
-      logger.error(`Failed to summarize phase ${phase.fromTurn}-${phase.toTurn}`, { error: e });
-    }
-  }
+          if (parsed) {
+            context.streamProgress?.(`Phase ${phase.fromTurn}–${phase.toTurn}: ${parsed.narrative}`);
+            await parameters.telepathistDb
+              .insertInto('phase_summaries')
+              .values({
+                fromTurn: phase.fromTurn,
+                toTurn: phase.toTurn,
+                situation: parsed.situation,
+                abstract: parsed.abstract,
+                decisions: parsed.decisions,
+                narrative: parsed.narrative,
+                model: 'auto',
+                createdAt: Date.now()
+              })
+              .execute();
+          }
+        } catch (e) {
+          logger.error(`Failed to summarize phase ${phase.fromTurn}-${phase.toTurn}`, { error: e });
+        }
+      })
+    )
+  );
 }
 
 /**

@@ -9,6 +9,7 @@
 import { z } from 'zod';
 import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
+import { cleanToolArtifacts } from '../../utils/text-cleaning.js';
 
 /** Maps category names to MCP tool names */
 const categoryToolMap: Record<string, string> = {
@@ -67,7 +68,7 @@ export class GetSituationTool extends TelepathistTool<GetSituationInput> {
     return this.executeDefault(input, params);
   }
 
-  /** Default mode: read pre-generated situation from turn_summaries DB */
+  /** Default mode: read pre-generated situation from turn_summaries DB, falling back to detailed mode for missing turns */
   private async executeDefault(input: GetSituationInput, params: TelepathistParameters): Promise<string[]> {
     const turns = this.parseTurns(input.Turns, params.availableTurns, 20);
     if (turns.length === 0) {
@@ -81,19 +82,21 @@ export class GetSituationTool extends TelepathistTool<GetSituationInput> {
       .orderBy('turn', 'asc')
       .execute();
 
-    if (summaries.length === 0) {
-      return ['No summaries available for the requested turns. Summaries are generated during session initialization.'];
-    }
-
     const sections: string[] = [];
     for (const summary of summaries) {
       sections.push(`## Turn ${summary.turn}\n${summary.situation}`);
     }
 
+    // Fallback to detailed mode (with summarizer) for turns without summaries
     const summarizedTurns = new Set(summaries.map(s => s.turn));
     const missing = turns.filter(t => !summarizedTurns.has(t));
     if (missing.length > 0) {
-      sections.push(`\n*Note: No summaries available for turns: ${missing.join(', ')}*`);
+      this.summarize = true;
+      const detailedSections = await this.executeDetailed(
+        { Turns: missing.join(','), Detailed: true, Categories: input.Categories, Inquiry: input.Inquiry },
+        params
+      );
+      sections.push(...detailedSections);
     }
 
     return sections;
@@ -164,7 +167,7 @@ export class GetSituationTool extends TelepathistTool<GetSituationInput> {
         turnSections.push('*No game state data found for this turn.*');
       }
 
-      sections.push(turnSections.join('\n'));
+      sections.push(cleanToolArtifacts(turnSections.join('\n')));
     }
 
     return sections;
