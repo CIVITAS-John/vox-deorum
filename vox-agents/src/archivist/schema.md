@@ -185,7 +185,7 @@ CREATE TABLE episodes (
   -- Each slot = [strength_ratio, stance, tech_gap, policy_gap] = 4 features.
   -- Total: 8 * 4 = 32 elements. Empty slots filled with neutral values:
   --   [strength_ratio=0.2, stance=0.5, tech_gap=0.5, policy_gap=0.5]
-  -- Only consider civilizations with Distance: Neighbors
+  -- Only consider civilizations with Distance: Neighbors, OR Distance: Close + hostile or below.
   --
   -- Per-neighbor values come from comparing this player with each major civ
   -- neighbor (those present in PlayerSummaries.Relationships for this player):
