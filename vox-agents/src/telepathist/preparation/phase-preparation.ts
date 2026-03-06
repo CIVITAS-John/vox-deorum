@@ -13,6 +13,7 @@ import { VoxContext } from '../../infra/vox-context.js';
 import { SummarizerInput } from '../summarizer.js';
 import { phaseSummarySchema, buildPhaseSummaryInstruction } from './instructions.js';
 import { createLogger } from '../../utils/logger.js';
+import { exponentialRetry } from '../../utils/retry.js';
 
 const logger = createLogger('PhasePreparation');
 
@@ -73,13 +74,16 @@ export async function preparePhaseSummaries(
           };
           const phaseParameters = { ...parameters, turn: phase.toTurn };
 
-          const rawPhaseSummary = await context.callAgent<string>(
-            'summarizer',
-            input,
-            phaseParameters
-          );
-
-          const parsed = rawPhaseSummary ? parsePhaseSummary(rawPhaseSummary) : undefined;
+          const parsed = await exponentialRetry(async () => {
+            const rawPhaseSummary = await context.callAgent<string>(
+              'summarizer',
+              input,
+              phaseParameters
+            );
+            const result = rawPhaseSummary ? parsePhaseSummary(rawPhaseSummary) : undefined;
+            if (!result) throw new Error(`Summarizer returned no usable result for phase ${phase.fromTurn}-${phase.toTurn}`);
+            return result;
+          }, logger, undefined, `phase-${phase.fromTurn}-${phase.toTurn}`, 3, 1000, 5000);
 
           if (parsed) {
             context.streamProgress?.(`Phase ${phase.fromTurn}–${phase.toTurn}: ${parsed.narrative}`);

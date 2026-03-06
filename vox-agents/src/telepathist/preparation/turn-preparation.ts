@@ -15,6 +15,7 @@ import { GetDecisionsTool } from '../tools/get-decision.js';
 import { SummarizerInput } from '../summarizer.js';
 import { turnSummarySchema, buildTurnSummaryInstruction } from './instructions.js';
 import { createLogger } from '../../utils/logger.js';
+import { exponentialRetry } from '../../utils/retry.js';
 
 const logger = createLogger('TurnPreparation');
 
@@ -81,13 +82,16 @@ export async function prepareTurnSummaries(
           };
 
           const turnParameters = { ...parameters, turn };
-          const rawSummary = await context.callAgent<string>(
-            'summarizer',
-            summaryInput,
-            turnParameters
-          );
-
-          const summary = rawSummary ? parseTurnSummary(rawSummary) : undefined;
+          const summary = await exponentialRetry(async () => {
+            const rawSummary = await context.callAgent<string>(
+              'summarizer',
+              summaryInput,
+              turnParameters
+            );
+            const parsed = rawSummary ? parseTurnSummary(rawSummary) : undefined;
+            if (!parsed) throw new Error(`Summarizer returned no usable result for turn ${turn}`);
+            return parsed;
+          }, logger, undefined, `turn-${turn}`, 3, 1000, 5000);
 
           if (summary) {
             context.streamProgress?.(`Turn ${turn}: ${summary.narrative}`);

@@ -361,7 +361,7 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
           delete details.PlayerID;
 
           const parts: string[] = [`### ${toolName}`];
-          if (input.Rationale) parts.push(`**Rationale**: ${input.Rationale}`);
+          if (input.Rationale) parts.push(`**Rationale**: ${input.Rationale.replaceAll("in-game AI", "staff member")}`);
 
           if (Object.keys(details).length > 0)
             parts.push(jsonToMarkdown(details, { startingLevel: 4 }));
