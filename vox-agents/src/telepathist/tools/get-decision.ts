@@ -358,6 +358,9 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
       const toolName = span.name.replace(/^(mcp-tool\.|simple-tool\.)/, '');
 
       if (decisionTools.includes(toolName)) {
+        // Skip decisions that errored (no impact on game)
+        if (span.statusCode === 2) continue;
+
         const input = this.getToolInput(span);
         if (input) {
           const details = { ...input };
