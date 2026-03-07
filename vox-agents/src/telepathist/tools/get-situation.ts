@@ -10,6 +10,9 @@ import { z } from 'zod';
 import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import { cleanToolArtifacts } from '../../utils/text-cleaning.js';
+import { createLogger } from '../../utils/logger.js';
+
+const logger = createLogger('GetSituation');
 
 /** Maps category names to MCP tool names */
 const categoryToolMap: Record<string, string> = {
@@ -91,6 +94,7 @@ export class GetSituationTool extends TelepathistTool<GetSituationInput> {
     const summarizedTurns = new Set(summaries.map(s => s.turn));
     const missing = turns.filter(t => !summarizedTurns.has(t));
     if (missing.length > 0) {
+      logger.info(`Missing situation summaries for turns: ${missing.join(', ')}; falling back to detailed mode`);
       this.summarize = true;
       const detailedSections = await this.executeDetailed(
         { Turns: missing.join(','), Detailed: true, Categories: input.Categories, Inquiry: input.Inquiry },

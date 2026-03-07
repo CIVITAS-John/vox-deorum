@@ -13,6 +13,9 @@ import type { Span } from '../../utils/telemetry/schema.js';
 import { jsonToMarkdown } from '../../utils/tools/json-to-markdown.js';
 import { cleanToolArtifacts } from '../../utils/text-cleaning.js';
 import { agentRegistry } from '../../infra/agent-registry.js';
+import { createLogger } from '../../utils/logger.js';
+
+const logger = createLogger('GetDecision');
 
 /** Decision tools whose inputs contain the AI's strategic choices */
 const decisionTools = [
@@ -84,6 +87,7 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
     const summarizedTurns = new Set(summaries.map(s => s.turn));
     const missing = turns.filter(t => !summarizedTurns.has(t));
     if (missing.length > 0) {
+      logger.info(`Missing decision summaries for turns: ${missing.join(', ')}; falling back to detailed mode`);
       this.summarize = true;
       const detailedSections = await this.executeDetailed(
         { Turns: missing.join(','), Detailed: true, Inquiry: input.Inquiry },

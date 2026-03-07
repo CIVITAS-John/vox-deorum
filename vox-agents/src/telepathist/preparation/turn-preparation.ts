@@ -16,6 +16,7 @@ import { SummarizerInput } from '../summarizer.js';
 import { turnSummarySchema, buildTurnSummaryInstruction } from './instructions.js';
 import { createLogger } from '../../utils/logger.js';
 import { exponentialRetry } from '../../utils/retry.js';
+import { getModelConfig } from '../../utils/models/models.js';
 
 const logger = createLogger('TurnPreparation');
 
@@ -103,7 +104,7 @@ export async function prepareTurnSummaries(
                 abstract: summary.abstract,
                 decisions: summary.decisions,
                 narrative: summary.narrative,
-                model: 'auto',
+                model: getModelConfig('summarizer', undefined, context.modelOverrides).name,
                 createdAt: Date.now()
               })
               .execute();

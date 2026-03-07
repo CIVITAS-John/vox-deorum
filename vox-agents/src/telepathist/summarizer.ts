@@ -12,6 +12,7 @@ import { VoxAgent } from '../infra/vox-agent.js';
 import { TelepathistParameters } from './telepathist-parameters.js';
 import { VoxContext } from '../infra/vox-context.js';
 import { createLogger } from '../utils/logger.js';
+import { getModelConfig } from '../utils/models/models.js';
 
 /**
  * Shared historian guidelines reused across summarization instructions.
@@ -128,7 +129,7 @@ export async function summarizeWithCache(
       .values({
         cacheKey,
         result,
-        model: 'auto',
+        model: getModelConfig('summarizer', undefined, context.modelOverrides).name,
         createdAt: Date.now()
       })
       .onConflict((oc) => oc.column('cacheKey').doNothing())

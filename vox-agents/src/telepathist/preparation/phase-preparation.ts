@@ -14,6 +14,7 @@ import { SummarizerInput } from '../summarizer.js';
 import { phaseSummarySchema, buildPhaseSummaryInstruction } from './instructions.js';
 import { createLogger } from '../../utils/logger.js';
 import { exponentialRetry } from '../../utils/retry.js';
+import { getModelConfig } from '../../utils/models/models.js';
 
 const logger = createLogger('PhasePreparation');
 
@@ -96,7 +97,7 @@ export async function preparePhaseSummaries(
                 abstract: parsed.abstract,
                 decisions: parsed.decisions,
                 narrative: parsed.narrative,
-                model: 'auto',
+                model: getModelConfig('summarizer', undefined, context.modelOverrides).name,
                 createdAt: Date.now()
               })
               .execute();
