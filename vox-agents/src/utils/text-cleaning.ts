@@ -44,6 +44,8 @@ export function cleanToolArtifacts(text: string): string {
     .replace(/\`\`\`(?:json)?\s*\`\`\`/g, '')
     // Remove standalone fence markers on their own line
     .replace(/^\s*\`\`\`(?:json)?\s*$/gm, '')
+    // Remove minimax tool_call artifact
+    .replace(/^minimax:tool_call$/gm, '')
     .trim();
 }
 
