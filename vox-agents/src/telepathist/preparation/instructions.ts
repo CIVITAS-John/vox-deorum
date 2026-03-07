@@ -43,7 +43,7 @@ ${summarizerGuidelines}
 
 # Output Format
 Respond with a JSON object containing these fields (generate them in this order, so earlier fields can provide context for later ones):
-1. "situation": Detailed paragraphs summarizing the world state: military situation, economic state, diplomatic stances, research progress, and notable events. Do not discuss the leader's strategies or decisions.
+1. "situation": Detailed paragraphs summarizing, from an OBSERVER perspective, the world state: military situation, economic state, diplomatic state, research progress, and notable events. Do not discuss the leader's strategies, thoughts, or decisions.
 2. "abstract": A context-agnostic generalized summary of the same events. Replace all concrete names (civilizations, leaders, cities, technologies) with generic descriptions. This should read as a universal game scenario.
 3. "decisions": A detailed paragraph covering the leader's decisions and reasoning: what options were available, what was chosen, and why.
 4. "narrative": A short combined narrative (2-3 sentences) weaving the situation and decisions together into a cohesive summary.
@@ -55,7 +55,7 @@ Respond with a JSON object containing these fields (generate them in this order,
 
 # Reminder
 Respond ONLY with a JSON object containing exactly these four fields: "situation", "abstract", "decisions", "narrative".
-- "situation" must only cover world state — do NOT include any leader decisions or reasoning.
+- "situation" must only cover world state: do NOT include any leader decisions or reasoning.
 - Do not include any other text or commentary outside the JSON.`;
 }
 
@@ -71,7 +71,7 @@ ${summarizerGuidelines}
 
 # Output Format
 Respond with a JSON object containing these fields (generate them in this order, so earlier fields provide context for later ones):
-1. "situation": An observation paragraph of the phase's world state arc: how the military, economic, diplomatic, and research landscape evolved across these turns. Do not discuss the leader's strategies or decisions.
+1. "situation": An observation paragraph of the phase's world state arc: how the military, economic, diplomatic, and research landscape evolved across these turns. Do not discuss the leader's strategies, thoughts, or decisions.
 2. "abstract": A context-agnostic generalized phase summary. Replace all concrete names with generic descriptions. This should read as a universal game phase description.
 3. "decisions": A narrative paragraph of the phase's strategic choices: the key decisions made, their rationale, and their outcomes.
 4. "narrative": A short combined narrative (2-3 sentences) weaving the situation and decisions into a cohesive phase summary.
@@ -83,6 +83,6 @@ Respond with a JSON object containing these fields (generate them in this order,
 
 # Reminder
 Respond ONLY with a JSON object containing exactly these four fields: "situation", "abstract", "decisions", "narrative".
-- "situation" must only cover world state — do NOT include any leader decisions or reasoning.
+- "situation" must only cover world state: do NOT include any leader decisions or reasoning.
 - Do not include any other text or commentary outside the JSON.`;
 }
