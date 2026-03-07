@@ -64,7 +64,7 @@ router.get('/databases', async (_req: Request, res: Response<TelemetryDatabasesR
         if (entry.isDirectory()) {
           // Recursively scan subdirectories
           await scanDirectory(fullPath, baseDir);
-        } else if (entry.isFile() && entry.name.endsWith('.db')) {
+        } else if (entry.isFile() && entry.name.endsWith('.db') && !entry.name.endsWith('.telepathist.db')) {
           const stats = await fs.stat(fullPath);
 
           // Parse filename and folder path using utility function

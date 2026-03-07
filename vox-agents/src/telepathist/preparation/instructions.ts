@@ -43,7 +43,7 @@ ${summarizerGuidelines}
 
 # Output Format
 Respond with a JSON object containing these fields (generate them in this order, so earlier fields can provide context for later ones):
-1. "situation": A detailed paragraph covering the world state: military situation, economic state, diplomatic changes, research progress, and notable events. Do not discuss the leader's strategies or decisions.
+1. "situation": Detailed paragraphs summarizing the world state: military situation, economic state, diplomatic stances, research progress, and notable events. Do not discuss the leader's strategies or decisions.
 2. "abstract": A context-agnostic generalized summary of the same events. Replace all concrete names (civilizations, leaders, cities, technologies) with generic descriptions. This should read as a universal game scenario.
 3. "decisions": A detailed paragraph covering the leader's decisions and reasoning: what options were available, what was chosen, and why.
 4. "narrative": A short combined narrative (2-3 sentences) weaving the situation and decisions together into a cohesive summary.
@@ -51,7 +51,12 @@ Respond with a JSON object containing these fields (generate them in this order,
 # Focus
 - Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts.
 - Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions).
-- Carefully go through the raw game data to clarify uncertain situations.`;
+- Carefully go through the raw game data to clarify uncertain situations.
+
+# Reminder
+Respond ONLY with a JSON object containing exactly these four fields: "situation", "abstract", "decisions", "narrative".
+- "situation" must only cover world state — do NOT include any leader decisions or reasoning.
+- Do not include any other text or commentary outside the JSON.`;
 }
 
 /**
@@ -74,5 +79,10 @@ Respond with a JSON object containing these fields (generate them in this order,
 # Focus
 - Identify the dominant themes and narrative arcs of this phase.
 - Highlight major turning points: wars declared/ended, key technologies, policy adoptions, new cities.
-- Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?`;
+- Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?
+
+# Reminder
+Respond ONLY with a JSON object containing exactly these four fields: "situation", "abstract", "decisions", "narrative".
+- "situation" must only cover world state — do NOT include any leader decisions or reasoning.
+- Do not include any other text or commentary outside the JSON.`;
 }

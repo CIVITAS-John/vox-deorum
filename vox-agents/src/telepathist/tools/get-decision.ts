@@ -90,7 +90,7 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
       logger.info(`Missing decision summaries for turns: ${missing.join(', ')}; falling back to detailed mode`);
       this.summarize = true;
       const detailedSections = await this.executeDetailed(
-        { Turns: missing.join(','), Detailed: true, Inquiry: input.Inquiry },
+        { Turns: missing.join(','), Inquiry: input.Inquiry },
         params
       );
       sections.push(...detailedSections);
@@ -141,7 +141,7 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
         const stepSpans = await this.getStepsForAgent(params, agentSpans);
         if (stepSpans.length === 0) continue;
 
-        if (agentName.indexOf("strategist") !== -1) {
+        if (agentName.indexOf("strategist") !== -1 && input.Detailed) {
           const reasoning = this.extractReasoning(stepSpans);
           if (reasoning) {
             turnSections.push(`## ${agentName} Reasoning`);
