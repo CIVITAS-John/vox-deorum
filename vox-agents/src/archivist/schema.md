@@ -117,11 +117,14 @@ CREATE TABLE episodes (
   diplomatic_progress   REAL,   -- DiplomaticVictory JSON → {CivName}.VictoryPercentage (0-100)
                                 --   null if DiplomaticVictory is a string or not yet unlocked
 
-  -- Contender flags: whether this player is the current leader for each victory type
-  domination_contender  BOOLEAN NOT NULL DEFAULT 0,  -- DominationVictory.Contender == this civ name
-  science_contender     BOOLEAN NOT NULL DEFAULT 0,  -- ScienceVictory.Contender == this civ name
-  culture_contender     BOOLEAN NOT NULL DEFAULT 0,  -- CulturalVictory.Contender == this civ name
-  diplomatic_contender  BOOLEAN NOT NULL DEFAULT 0,  -- DiplomaticVictory.Contender == this civ name
+  -- Leader progress: the current contender's progress for each victory type.
+  -- Useful for measuring how far behind the leader this player is.
+  -- Extracted from the Contender's entry in the same JSON object.
+  -- null if the victory type is unavailable or no contender exists.
+  domination_leader_progress  REAL,  -- DominationVictory → Contender's CapitalsPercentage (0-100)
+  science_leader_progress     REAL,  -- ScienceVictory → Contender's PartsPercentage (0-100)
+  culture_leader_progress     REAL,  -- CulturalVictory → Contender's InfluentialCivs / CivsNeeded * 100
+  diplomatic_leader_progress  REAL,  -- DiplomaticVictory → Contender's VictoryPercentage (0-100)
 
   -- ══════════════════════════════════════════════════════════════════
   -- ADJUSTED, SHARE & PER-POP VALUES
@@ -179,7 +182,7 @@ CREATE TABLE episodes (
   -- VECTORS (stored as REAL[] arrays in DuckDB)
   -- ══════════════════════════════════════════════════════════════════
 
-  -- Game-state vector (31 elements), normalized/scaled:
+  -- Game-state vector (35 elements), normalized/scaled:
   --   [0]  era / 8                     (Ancient=0 .. Information=7)
   --   [1]  grand_strategy / 4          (Conquest=1, Culture=2, Diplomacy=3, Science=4, None=0)
   --   [2]  science_share               (already 0-1)
@@ -207,10 +210,14 @@ CREATE TABLE episodes (
   --   [24] friends / 3                  (clamped to [0, 1])
   --   [25] defensive_pacts / 3          (clamped to [0, 1])
   --   [26] denouncements / 3            (clamped to [0, 1])
-  --   [27] domination_progress / 100    (0 if null, clamped to [0, 1])
-  --   [28] science_progress / 100       (0 if null, clamped to [0, 1])
-  --   [29] culture_progress / 100       (0 if null, clamped to [0, 1])
-  --   [30] diplomatic_progress / 100    (0 if null, clamped to [0, 1])
+  --   [27] domination_progress / 100           (0 if null, clamped to [0, 1])
+  --   [28] science_progress / 100              (0 if null, clamped to [0, 1])
+  --   [29] culture_progress / 100              (0 if null, clamped to [0, 1])
+  --   [30] diplomatic_progress / 100           (0 if null, clamped to [0, 1])
+  --   [31] domination_leader_progress / 100    (0 if null, clamped to [0, 1])
+  --   [32] science_leader_progress / 100       (0 if null, clamped to [0, 1])
+  --   [33] culture_leader_progress / 100       (0 if null, clamped to [0, 1])
+  --   [34] diplomatic_leader_progress / 100    (0 if null, clamped to [0, 1])
   game_state_vector   REAL[],
 
   -- Neighbor vector: 8 fixed slots, sorted by strength_ratio descending.
@@ -397,10 +404,12 @@ table (Key=0, global knowledge visible to all players):
    - **Science**: `{CivName}.PartsPercentage` (0-100)
    - **Culture**: `{CivName}.InfluentialCivs / CivsNeeded * 100` (0-100)
    - **Diplomatic**: `{CivName}.VictoryPercentage` (0-100)
-4. Set contender flags: `{VictoryType}.Contender == this player's civ name`
+4. Extract leader progress: look up the `Contender` field value as a civ name key
+   in the same parsed object, then extract the same percentage field as above.
+   If `Contender` is null or the contender's civ name is not in the object, set to `null`.
 
 If a player's civ name is not present as a key in the parsed object (e.g. dead or not
-participating), set progress to `null` and contender to `0`.
+participating), set their progress to `null`.
 
 **Cache optimization**: Parse the VictoryProgress row once per turn, then look up each
 player's civ name. Reuse across all players in the same turn.
