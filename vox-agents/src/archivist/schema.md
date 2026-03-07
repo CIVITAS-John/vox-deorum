@@ -98,16 +98,44 @@ CREATE TABLE episodes (
                                   --   where that minor's MajorAlly matches this player's civ name
 
   -- ══════════════════════════════════════════════════════════════════
-  -- ADJUSTED & SHARE VALUES
+  -- VICTORY PROGRESS
+  -- From VictoryProgress table (Key=0, IsLatest=1, Turn=turn)
+  -- Each field is this player's progress percentage (0-100) or null
+  -- if the victory type is unavailable/not yet unlocked.
+  -- Player lookup: parse JSON column, use this player's civ name as key.
+  -- ══════════════════════════════════════════════════════════════════
+
+  domination_progress   REAL,   -- DominationVictory JSON → {CivName}.CapitalsPercentage (0-100)
+                                --   null if DominationVictory is a string ("Not available")
+
+  science_progress      REAL,   -- ScienceVictory JSON → {CivName}.PartsPercentage (0-100)
+                                --   null if ScienceVictory is a string or not yet unlocked
+
+  culture_progress      REAL,   -- CulturalVictory JSON → {CivName}.InfluentialCivs / CivsNeeded * 100
+                                --   null if CulturalVictory is a string ("Not available")
+
+  diplomatic_progress   REAL,   -- DiplomaticVictory JSON → {CivName}.VictoryPercentage (0-100)
+                                --   null if DiplomaticVictory is a string or not yet unlocked
+
+  -- Contender flags: whether this player is the current leader for each victory type
+  domination_contender  BOOLEAN NOT NULL DEFAULT 0,  -- DominationVictory.Contender == this civ name
+  science_contender     BOOLEAN NOT NULL DEFAULT 0,  -- ScienceVictory.Contender == this civ name
+  culture_contender     BOOLEAN NOT NULL DEFAULT 0,  -- CulturalVictory.Contender == this civ name
+  diplomatic_contender  BOOLEAN NOT NULL DEFAULT 0,  -- DiplomaticVictory.Contender == this civ name
+
+  -- ══════════════════════════════════════════════════════════════════
+  -- ADJUSTED, SHARE & PER-POP VALUES
   --
-  -- Step 1: City-adjust raw per-turn values
-  --   city_multiplier = MAX(1.05 * (cities - 1), 1.0)
-  --   {metric}_adj = {metric}_per_turn / city_multiplier
-  --
-  -- Step 2: Compute share as % of all alive major players that turn
-  --   {metric}_share = player_{metric}_adj / SUM(all_players_{metric}_adj)
+  -- Shares (city-adjusted):
+  --   Step 1: city_multiplier = MAX(1.05 * (cities - 1), 1.0)
+  --           {metric}_adj = {metric}_per_turn / city_multiplier
+  --   Step 2: {metric}_share = player_{metric}_adj / SUM(all_players_{metric}_adj)
   --   For non-per-turn fields (cities, population, votes, minor_allies):
-  --   {metric}_share = player_value / SUM(all_players_value)
+  --           {metric}_share = player_value / SUM(all_players_value)
+  --
+  -- Per-pop values (production, food):
+  --   raw = {metric}_per_turn / population
+  --   scaled = clamp(raw, 1, 20) / 20   → range [0, 1]
   -- ══════════════════════════════════════════════════════════════════
 
   science_share       REAL,       -- science_adj / sum(all players' science_adj)
@@ -115,8 +143,8 @@ CREATE TABLE episodes (
   tourism_share       REAL,       -- tourism_adj / sum(all players' tourism_adj)
   gold_share          REAL,       -- gold_adj / sum(all players' gold_adj)
   faith_share         REAL,       -- faith_adj / sum(all players' faith_adj)
-  production_share    REAL,       -- production_adj / sum(all players' production_adj)
-  food_share          REAL,       -- food_adj / sum(all players' food_adj)
+  production_per_pop  REAL,       -- production_per_turn / population, scaled to [0,1] via clamp(value, 1, 20) then /20
+  food_per_pop        REAL,       -- food_per_turn / population, scaled to [0,1] via clamp(value, 1, 20) then /20
   military_share      REAL,       -- military_adj / sum(all players' military_adj)
   cities_share        REAL,       -- cities / sum(all players' cities)
   population_share    REAL,       -- population / sum(all players' population)
@@ -151,7 +179,7 @@ CREATE TABLE episodes (
   -- VECTORS (stored as REAL[] arrays in DuckDB)
   -- ══════════════════════════════════════════════════════════════════
 
-  -- Game-state vector (~28 elements), normalized/scaled:
+  -- Game-state vector (31 elements), normalized/scaled:
   --   [0]  era / 8                     (Ancient=0 .. Information=7)
   --   [1]  grand_strategy / 4          (Conquest=1, Culture=2, Diplomacy=3, Science=4, None=0)
   --   [2]  science_share               (already 0-1)
@@ -159,8 +187,8 @@ CREATE TABLE episodes (
   --   [4]  tourism_share
   --   [5]  gold_share
   --   [6]  faith_share
-  --   [7]  production_share
-  --   [8]  food_share
+  --   [7]  production_per_pop              (already 0-1)
+  --   [8]  food_per_pop                   (already 0-1)
   --   [9]  military_share
   --   [10] cities_share
   --   [11] population_share
@@ -179,6 +207,10 @@ CREATE TABLE episodes (
   --   [24] friends / 3                  (clamped to [0, 1])
   --   [25] defensive_pacts / 3          (clamped to [0, 1])
   --   [26] denouncements / 3            (clamped to [0, 1])
+  --   [27] domination_progress / 100    (0 if null, clamped to [0, 1])
+  --   [28] science_progress / 100       (0 if null, clamped to [0, 1])
+  --   [29] culture_progress / 100       (0 if null, clamped to [0, 1])
+  --   [30] diplomatic_progress / 100    (0 if null, clamped to [0, 1])
   game_state_vector   REAL[],
 
   -- Neighbor vector: 8 fixed slots, sorted by strength_ratio descending.
@@ -234,7 +266,8 @@ archive/{experiment}/
   │   ├── PlayerInformations                │  civilization, isMajor lookup
   │   ├── PlayerSummaries (versioned)       │  all raw values, relationships, era
   │   ├── StrategyChanges (versioned)       │  grand_strategy
-  │   └── CityInformations (versioned)      │  production_per_turn, food_per_turn
+  │   ├── CityInformations (versioned)      │  production_per_turn, food_per_turn
+  │   └── VictoryProgress (versioned)       │  victory progress & contender flags
   │                                         ├──→ extractor.ts ──→ transformer.ts ──→ writer.ts ──→ DuckDB
   ├── {gameId}-player-{pid}.db            ──┤
   │   └── spans                             │  (used by telepathist prep only)
@@ -347,6 +380,30 @@ Requires cross-referencing player summaries:
 **Cache optimization**: Build a lookup map of `{ civName → player_id }` for all major players,
 and a list of `{ minor_id, MajorAlly }` per turn. Reuse across all players in the same turn
 to avoid redundant queries.
+
+## Computing Victory Progress
+
+`domination_progress`, `science_progress`, `culture_progress`, and `diplomatic_progress`
+measure how close this player is to each victory condition. Extracted from the `VictoryProgress`
+table (Key=0, global knowledge visible to all players):
+
+1. Query `VictoryProgress WHERE Key = 0 AND Turn = :turn AND IsLatest = 1`
+2. For each victory type column (`DominationVictory`, `ScienceVictory`, `CulturalVictory`, `DiplomaticVictory`):
+   - Parse JSON. If the value is a string (e.g. `"Not available"`, `"Unlocked in..."`),
+     set progress to `null` and contender to `0` for all players
+   - If parsed as an object, look up this player's civilization name as a key
+3. Extract per-player progress:
+   - **Domination**: `{CivName}.CapitalsPercentage` (0-100)
+   - **Science**: `{CivName}.PartsPercentage` (0-100)
+   - **Culture**: `{CivName}.InfluentialCivs / CivsNeeded * 100` (0-100)
+   - **Diplomatic**: `{CivName}.VictoryPercentage` (0-100)
+4. Set contender flags: `{VictoryType}.Contender == this player's civ name`
+
+If a player's civ name is not present as a key in the parsed object (e.g. dead or not
+participating), set progress to `null` and contender to `0`.
+
+**Cache optimization**: Parse the VictoryProgress row once per turn, then look up each
+player's civ name. Reuse across all players in the same turn.
 
 ## Pipeline Modules
 
