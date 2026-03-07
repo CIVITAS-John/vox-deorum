@@ -57,7 +57,7 @@ You have access to the complete historical record: every world state it observed
   }
 
   protected getHint(parameters: TelepathistParameters, _input: EnvoyThread): string {
-    return `**HINT**: You are analyzing ${parameters.leaderName} of ${parameters.civilizationName}'s game. Data spans turns ${parameters.availableTurns[0] || '?'} to ${parameters.availableTurns[parameters.availableTurns.length - 1] || '?'}. If you decide to call tools, follow the EXACT format and generate JSON output.`;
+    return `**HINT**: You are analyzing ${parameters.leaderName} of ${parameters.civilizationName}'s game. Data spans turns ${parameters.availableTurns[0]} to ${parameters.availableTurns[parameters.availableTurns.length - 1]}. If you decide to call tools, follow the EXACT format and generate JSON output.`;
   }
 
   protected getSpecialMessages(): Record<string, SpecialMessageConfig> {
