@@ -112,6 +112,8 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 - **Use PowerShell for Windows commands** (avoid cmd.exe - cannot retrieve output reliably)
 - **Prefer Bash tool over file system commands** when possible
 - **Prioritize Grep and Glob tools over Bash commands** for file searching and content matching — Bash commands like `find`, `grep`, `rg` may require extra permissions
+- **Never use noisy shell idioms** like `ls -la /path 2>/dev/null || echo "Directory does not exist"` or `cat file 2>/dev/null || echo "not found"` — these trigger extra permission prompts and are hard to read. Instead, use the dedicated Glob, Read, and Grep tools which handle missing paths gracefully
+- **Always use relative paths** in shell commands and tool calls — never absolute paths like `/f/Minor Solutions/...` or `f:\Minor Solutions\...`. Use paths relative to the project root (e.g., `vox-agents/src/` not the full absolute path)
 
 ### Implementation Philosophy
 - **Check existing infrastructure first** - Never reinvent the wheel. Research similar components/patterns before implementing new features
