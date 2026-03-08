@@ -470,22 +470,23 @@ Stage 1: Score (SQL) → Stage 2: Fetch Outcomes (SQL) → Stage 3: Diversity Se
 ### Stage 1: Two-Pass Composite Score
 
 **Pass 1 — Fuzzy Pre-Filter** (cheap scalar comparisons, no vectors):
-Scores landmarks using attribute bonuses only, takes top 200 into a temp table.
+Scores landmarks using attribute bonuses only, takes top 200 into a CTE.
 All proximity-scored attributes use the same decay formula: `bonus * max(0, 1 - 0.5 * |stored - query|)` (exact=full, ±1=half, ±2+=zero).
 
-| Attribute | Bonus | Type |
-|-----------|-------|------|
-| Era | 0.08 | Proximity (ordinal distance) |
-| Civilization | 0.05 | Exact match |
-| Grand strategy | 0.03 | Exact match |
-| Active wars | 0.03 | Proximity |
-| Friends | 0.02 | Proximity |
-| Defensive pacts | 0.02 | Proximity |
-| Truces | 0.02 | Proximity |
-| Denouncements | 0.02 | Proximity |
+| Attribute | Weight | Type |
+|-----------|--------|------|
+| Era | 8 | Proximity (ordinal distance) |
+| Civilization | 5 | Exact match |
+| Grand strategy | 3 | Exact match |
+| Active wars | 3 | Proximity |
+| Friends | 2 | Proximity |
+| Defensive pacts | 2 | Proximity |
+| Truces | 2 | Proximity |
+| Denouncements | 2 | Proximity |
+| **Max sum** | **27** | |
 
 **Pass 2 — Vector Similarity** (on candidates only):
-Adds weighted cosine similarity (game_state_vector, neighbor_vector, optional embedding) to the fuzzy score. Orders by total score, limits to `candidateLimit`.
+Ranks candidates by vector similarity alone (game_state_vector, neighbor_vector, optional embedding). Fuzzy score is not carried forward — it serves only as the pre-filter. Orders by similarity score, limits to `candidateLimit`.
 
 ### Stage 2: Fetch Outcomes
 Self-joins episodes at `turn + 5/10/15/20` for the same `(game_id, player_id)`.

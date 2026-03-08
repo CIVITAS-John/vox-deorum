@@ -330,43 +330,35 @@ Singleton read-only DuckDB connection. Path from `EPISODE_DB_PATH` env var. Stan
 
 **Stage 1: Two-Pass Composite Score**
 
-Two-pass architecture: cheap fuzzy pre-filter first, then expensive vector similarity on survivors only.
+CTE-based two-pass: cheap fuzzy pre-filter first (top 200), then expensive vector similarity on survivors only. Single query, no temp tables.
 
-**Pass 1: Fuzzy Pre-Filter** (scalar comparisons only, no vectors)
+Single CTE query with two passes — fuzzy pre-filter narrows to top 200 candidates, then vector similarity ranks survivors. Fuzzy score is only for pre-filtering, not added to the final score:
 
 ```sql
-CREATE TEMP TABLE candidates AS
-WITH fuzzy_scored AS (
+WITH candidates AS (
   SELECT *,
     -- Era proximity (exact=full, ±1=half, ±2+=zero)
-    :era_bonus * GREATEST(0, 1.0 - 0.5 * ABS(
+    8 * GREATEST(0, 1.0 - 0.5 * ABS(
         {era_ordinal_case_expr} - :query_era_ordinal
       ))
     -- Attribute bonuses
-    + CASE WHEN civilization = :civ THEN :civ_bonus ELSE 0 END
-    + CASE WHEN grand_strategy = :gs THEN :gs_bonus ELSE 0 END
+    + CASE WHEN civilization = :civ THEN 5 ELSE 0 END
+    + CASE WHEN grand_strategy = :gs THEN 3 ELSE 0 END
     -- Diplomatic proximity (same decay formula as era)
-    + :war_bonus * GREATEST(0, 1.0 - 0.5 * ABS(active_wars - :query_wars))
-    + :friends_bonus * GREATEST(0, 1.0 - 0.5 * ABS(friends - :query_friends))
-    + :pacts_bonus * GREATEST(0, 1.0 - 0.5 * ABS(defensive_pacts - :query_pacts))
-    + :truces_bonus * GREATEST(0, 1.0 - 0.5 * ABS(truces - :query_truces))
-    + :denounce_bonus * GREATEST(0, 1.0 - 0.5 * ABS(denouncements - :query_denouncements))
+    + 3 * GREATEST(0, 1.0 - 0.5 * ABS(active_wars - :query_wars))
+    + 2 * GREATEST(0, 1.0 - 0.5 * ABS(friends - :query_friends))
+    + 2 * GREATEST(0, 1.0 - 0.5 * ABS(defensive_pacts - :query_pacts))
+    + 2 * GREATEST(0, 1.0 - 0.5 * ABS(truces - :query_truces))
+    + 2 * GREATEST(0, 1.0 - 0.5 * ABS(denouncements - :query_denouncements))
     AS fuzzy_score
   FROM episodes
   WHERE is_landmark = TRUE
     AND game_state_vector IS NOT NULL
+  ORDER BY fuzzy_score DESC
+  LIMIT 200
 )
-SELECT * FROM fuzzy_scored
-ORDER BY fuzzy_score DESC
-LIMIT 200
-```
-
-**Pass 2: Vector Similarity Scoring** (on candidates only)
-
-```sql
 SELECT *,
-  fuzzy_score
-  + {similarity_sql}   -- weighted cosine on game_state_vector, neighbor_vector, embedding
+  {similarity_sql}   -- weighted cosine on game_state_vector, neighbor_vector, embedding
   AS score
 FROM candidates
 ORDER BY score DESC
@@ -379,7 +371,7 @@ Conditional embedding: when `abstract` is provided, `{similarity_sql}` includes 
 
 Embedding generation: when `query.abstract` is provided, pipeline calls `embeddings.ts` to generate the vector before running SQL.
 
-Default bonuses: `era_bonus = 0.08`, `civ_bonus = 0.05`, `gs_bonus = 0.03`, `war_bonus = 0.03`, `friends_bonus = 0.02`, `pacts_bonus = 0.02`, `truces_bonus = 0.02`, `denounce_bonus = 0.02`. Pre-filter limit: top 200 by fuzzy score.
+Default weights (integers): `era = 8`, `civ = 5`, `gs = 5`, `wars = 3`, `friends = 2`, `pacts = 2`, `truces = 2`, `denouncements = 2`. Max sum = 29. Fuzzy score is used only for pre-filtering (Pass 1). Pass 2 ranks by vector similarity alone. Pre-filter limit: top 200 by fuzzy score.
 
 **Stage 2: Fetch Outcomes** (for candidate pool)
 
