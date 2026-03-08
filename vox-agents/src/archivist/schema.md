@@ -260,6 +260,15 @@ CREATE TABLE episodes (
   situation           TEXT,        -- turn_summaries.situation  (world state paragraph)
   decisions           TEXT,        -- turn_summaries.decisions  (strategic decisions made)
 
+  -- ══════════════════════════════════════════════════════════════════
+  -- LANDMARK FLAG
+  -- Pre-selected by diversity-first batch process (selector.ts).
+  -- Ensures a representative, non-redundant subset for retrieval.
+  -- ~1 landmark per 10 turns per player.
+  -- ══════════════════════════════════════════════════════════════════
+
+  is_landmark         BOOLEAN NOT NULL DEFAULT FALSE,
+
   PRIMARY KEY (game_id, turn, player_id)
 );
 ```
@@ -423,4 +432,66 @@ player's civ name. Reuse across all players in the same turn.
 | `telepathist-prep.ts` | Ensures telepathist DBs exist, calls preparation if needed      |
 | `extractor.ts`      | Reads game DB + telepathist DB, produces raw episode records      |
 | `transformer.ts`    | Computes adjusted values, shares, gaps, vectors                   |
+| `embeddings.ts`     | Generates abstract embeddings via AI SDK                          |
 | `writer.ts`         | Writes final episodes into DuckDB                                 |
+| `similarity.ts`     | Composite similarity: TypeScript (batch) + SQL builder (retrieval)|
+| `selector.ts`       | Diversity-first landmark pre-selection (uses TS similarity)       |
+| `reader.ts`         | Read-only DuckDB retrieval pipeline (uses SQL similarity)         |
+| `query-types.ts`    | Retrieval query, result & outcome interfaces                      |
+
+## Similarity Computation
+
+Two pathways for computing composite similarity, sharing the same formula and weight presets:
+
+**Formula**: `w_gs * cos(game_state_vector) + w_nb * cos(neighbor_vector) + w_em * cos(abstract_embedding)`
+
+### Pathway 1: In-House TypeScript
+Used by `selector.ts` during batch landmark selection. Vectors are already in memory — no DB round-trips needed.
+
+### Pathway 2: DuckDB SQL
+Used by `reader.ts` during runtime retrieval. Scoring happens inside SQL queries using `list_cosine_similarity()`.
+
+### Weight Presets
+
+| Preset                       | game_state | neighbor | embedding | Usage                     |
+|------------------------------|------------|----------|-----------|---------------------------|
+| `landmarkWeights`            | 0.6        | 0.4      | 0         | Batch landmark selection   |
+| `retrievalWeights`           | 0.4        | 0.3      | 0.3       | Runtime with abstract      |
+| `retrievalNoEmbeddingWeights`| 0.55       | 0.45     | 0         | Runtime without abstract   |
+
+## Retrieval Pipeline
+
+At runtime, `reader.ts` executes a 3-stage pipeline:
+
+```
+Stage 1: Score (SQL) → Stage 2: Fetch Outcomes (SQL) → Stage 3: Diversity Select (SQL + TS)
+```
+
+### Stage 1: Two-Pass Composite Score
+
+**Pass 1 — Fuzzy Pre-Filter** (cheap scalar comparisons, no vectors):
+Scores landmarks using attribute bonuses only, takes top 200 into a temp table.
+All proximity-scored attributes use the same decay formula: `bonus * max(0, 1 - 0.5 * |stored - query|)` (exact=full, ±1=half, ±2+=zero).
+
+| Attribute | Bonus | Type |
+|-----------|-------|------|
+| Era | 0.08 | Proximity (ordinal distance) |
+| Civilization | 0.05 | Exact match |
+| Grand strategy | 0.03 | Exact match |
+| Active wars | 0.03 | Proximity |
+| Friends | 0.02 | Proximity |
+| Defensive pacts | 0.02 | Proximity |
+| Truces | 0.02 | Proximity |
+| Denouncements | 0.02 | Proximity |
+
+**Pass 2 — Vector Similarity** (on candidates only):
+Adds weighted cosine similarity (game_state_vector, neighbor_vector, optional embedding) to the fuzzy score. Orders by total score, limits to `candidateLimit`.
+
+### Stage 2: Fetch Outcomes
+Self-joins episodes at `turn + 5/10/15/20` for the same `(game_id, player_id)`.
+Computes share deltas as formatted strings (`+3%`, `-1%`). Horizon=20 omits decisions.
+Not stored — computed dynamically at query time.
+
+### Stage 3: Diversity Select
+Computes pairwise similarity between candidates via SQL, then greedy MMR in TypeScript
+(`lambda=0.7`) to select the final diverse result set.

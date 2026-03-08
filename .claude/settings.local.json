@@ -53,7 +53,9 @@
       "Bash(xargs find:*)",
       "Bash(npx vue-tsc:*)",
       "Bash(xargs:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "WebFetch(domain:duckdb.org)"
     ],
     "deny": [
       "Read(**/.env*)",
