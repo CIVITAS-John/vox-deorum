@@ -11,6 +11,7 @@
 
 import path from 'node:path';
 import { parseArgs } from 'node:util';
+import { DuckDBInstance } from '@duckdb/node-api';
 import { createLogger } from '../utils/logger.js';
 import { openReadonlyGameDb, scanArchive } from './scanner.js';
 import { EpisodeWriter } from './writer.js';
@@ -28,6 +29,7 @@ const { values } = parseArgs({
     game: { type: 'string', short: 'g' },
     force: { type: 'boolean', default: false },
     'skip-telepathist': { type: 'boolean', default: false },
+    'no-ui': { type: 'boolean', default: false },
   },
   strict: false,
   allowPositionals: false,
@@ -39,8 +41,9 @@ async function main() {
   const gameFilter = values.game as string | undefined;
   const force = values.force as boolean;
   const skipTelepathist = values['skip-telepathist'] as boolean;
+  const noUi = values['no-ui'] as boolean;
 
-  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, skipTelepathist });
+  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, skipTelepathist, noUi });
 
   // Step 1: Scan archive for game entries
   const entries: ArchiveEntry[] = await scanArchive(archivePath, gameFilter);
@@ -166,6 +169,33 @@ async function main() {
     errors,
     output: outputPath,
   });
+
+  // Step 5: Open DuckDB UI for result inspection
+  if (!noUi) {
+    logger.info('Starting DuckDB UI...');
+    const uiInstance = await DuckDBInstance.create(outputPath);
+    const uiConn = await uiInstance.connect();
+    await uiConn.run('INSTALL ui; LOAD ui;');
+    await uiConn.run('CALL start_ui_server();');
+
+    const url = 'http://localhost:4213';
+    const open = (await import('open')).default;
+    await open(url);
+    logger.info(`DuckDB UI running at ${url} — press Ctrl+C to stop`);
+
+    await new Promise<void>((resolve) => {
+      // Keep the event loop alive so the UI server continues running
+      const keepAlive = setInterval(() => {}, 1 << 30);
+      process.on('SIGINT', () => {
+        clearInterval(keepAlive);
+        logger.info('Shutting down DuckDB UI');
+        uiConn.run('CALL stop_ui_server();').finally(() => {
+          uiConn.disconnectSync();
+          resolve();
+        });
+      });
+    });
+  }
 }
 
 main().catch((error) => {

@@ -293,7 +293,7 @@ Outputs:
 
 ## Archivist Workflow
 
-The archivist processes archived game databases into a DuckDB episode database for retrieval-augmented strategy.
+The archivist processes archived game databases into a DuckDB episode database for retrieval-augmented strategy. After processing, it automatically opens DuckDB UI in the browser for result inspection (suppress with `--no-ui`).
 
 ### Command-Line Usage
 ```bash
@@ -305,6 +305,9 @@ npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb -g game-abc12
 
 # Force re-processing (deletes existing episodes first)
 npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb --force
+
+# For quick validation of non-telepathist features
+npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb --force --skip-telepathist
 ```
 
 ### Options
@@ -314,6 +317,8 @@ npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb --force
 | `-o, --output` | Path to DuckDB output file (default: `episodes.duckdb`) |
 | `-g, --game` | Process only this specific game ID |
 | `--force` | Delete existing episodes before re-processing |
+| `--no-ui` | Skip opening DuckDB UI after completion |
+| `--skip-telepathist` | Skip telepathist process for quick validation on other features |
 
 ## Web UI Dashboard
 
