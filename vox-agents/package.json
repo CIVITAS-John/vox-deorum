@@ -21,7 +21,8 @@
     "test:coverage": "vitest run --coverage --exclude tests/infra/**",
     "test:unit": "vitest run --exclude tests/infra/**",
     "test:game": "vitest run tests/infra",
-    "archivist": "tsx src/archivist/index.ts",
+    "archivist": "npm run build && npm run archivist:dist --",
+    "archivist:dist": "node --import ./dist/instrumentation.js dist/archivist/index.js",
     "type-check": "tsc --noEmit",
     "docs": "typedoc"
   },

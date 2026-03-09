@@ -30,6 +30,9 @@ LLM-powered strategic AI agents for Civilization V. This module implements sophi
   - CSV-driven experiment runner with telemetry auto-discovery
   - Schema-only tools (no MCP execution) for safe replay
   - Outputs: result CSV, JSON trails, markdown trails, telemetry DB
+- **Archivist** - Batch pipeline for processing archived games into DuckDB episode databases
+  - Scans archive directories for completed games and LLM-controlled players
+  - Generates telepathist summaries and extracts player-turn snapshots
 - **MCP Client** - Robust HTTP/SSE client for MCP server communication
 - **Tool Integration** - Dynamic tool wrapping, composition, and rescue middleware
 - **Multi-LLM Support** - OpenRouter, OpenAI, Google AI, Anthropic, AWS Bedrock, and compatible providers
@@ -288,6 +291,30 @@ Outputs:
 - JSON/Markdown trails: `temp/oracle/{experimentName}/`
 - Telemetry DB: `telemetry/oracle/{experimentName}.db`
 
+## Archivist Workflow
+
+The archivist processes archived game databases into a DuckDB episode database for retrieval-augmented strategy.
+
+### Command-Line Usage
+```bash
+# Process all games in the archive directory
+npm run archivist -- -a <archive-path> -o <output.duckdb>
+
+# Process a specific game only
+npm run archivist -- -a ./archive -o episodes.duckdb -g game-abc123
+
+# Force re-processing (deletes existing episodes first)
+npm run archivist -- -a ./archive -o episodes.duckdb --force
+```
+
+### Options
+| Flag | Description |
+|------|-------------|
+| `-a, --archive` | Path to archive directory (default: `archive`) |
+| `-o, --output` | Path to DuckDB output file (default: `episodes.duckdb`) |
+| `-g, --game` | Process only this specific game ID |
+| `--force` | Delete existing episodes before re-processing |
+
 ## Web UI Dashboard
 
 The module includes a Vue 3 dashboard for monitoring and control:
@@ -464,6 +491,13 @@ vox-agents/
 │   │   ├── model-resolver.ts     # Model string resolution
 │   │   ├── db-resolver.ts        # Telemetry DB auto-discovery
 │   │   └── index.ts              # CLI entry point
+│   ├── archivist/                 # Batch episode extraction
+│   │   ├── index.ts              # CLI entry point
+│   │   ├── scanner.ts            # Archive filesystem discovery
+│   │   ├── telepathist-prep.ts   # Telepathist summary generation wrapper
+│   │   ├── extractor.ts          # Raw episode extraction from game DBs
+│   │   ├── writer.ts             # DuckDB episode output
+│   │   └── types.ts              # Shared types and constants
 │   ├── web/                       # Web UI backend
 │   │   ├── server.ts             # Express + Vue hosting
 │   │   ├── sse-manager.ts        # Real-time streaming

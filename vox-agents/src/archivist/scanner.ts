@@ -54,12 +54,12 @@ export function openReadonlyGameDb(dbPath: string): Kysely<KnowledgeDatabase> | 
  * Only returns games with at least one LLM-controlled player that has a telemetry DB.
  *
  * @param archivePath - Root archive directory containing experiment subdirectories
- * @param experimentFilter - Optional: only process this specific experiment directory
+ * @param gameFilter - Optional: only process this specific game ID
  * @returns Discovered archive entries with their LLM players
  */
 export async function scanArchive(
   archivePath: string,
-  experimentFilter?: string
+  gameFilter?: string
 ): Promise<ArchiveEntry[]> {
   const entries: ArchiveEntry[] = [];
 
@@ -73,14 +73,6 @@ export async function scanArchive(
   } catch (error) {
     logger.error(`Failed to read archive directory: ${archivePath}`, { error });
     return [];
-  }
-
-  if (experimentFilter) {
-    experimentDirs = experimentDirs.filter((d) => d === experimentFilter);
-    if (experimentDirs.length === 0) {
-      logger.warn(`Experiment directory not found: ${experimentFilter}`);
-      return [];
-    }
   }
 
   let totalGames = 0;
@@ -206,6 +198,13 @@ export async function scanArchive(
     }
   }
 
-  logger.info(`Archive scan complete: ${totalGames} games found, ${totalPlayers} total LLM players`);
-  return entries;
+  // Apply game filter if specified
+  const filtered = gameFilter
+    ? entries.filter((e) => e.gameId === gameFilter)
+    : entries;
+
+  const filteredGames = filtered.length;
+  const filteredPlayers = filtered.reduce((sum, e) => sum + e.players.length, 0);
+  logger.info(`Archive scan complete: ${filteredGames} games found, ${filteredPlayers} total LLM players`);
+  return filtered;
 }

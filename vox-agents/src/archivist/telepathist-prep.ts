@@ -1,0 +1,69 @@
+/**
+ * @module archivist/telepathist-prep
+ *
+ * Wraps the existing telepathist preparation pipeline for batch archivist use.
+ * Ensures turn summaries exist in the telepathist DB before episode extraction.
+ * Creates a minimal VoxContext (no MCP connection needed) and delegates to
+ * the existing prepareTurnSummaries which handles resume/skip natively.
+ *
+ * All agent-related imports are dynamic to avoid ESM circular dependency:
+ * VoxContext → agent-registry → agents → VoxAgent creates a cycle at module load time.
+ */
+
+import { createLogger } from '../utils/logger.js';
+import type { GameIdentifierInfo } from '../utils/identifier-parser.js';
+
+const logger = createLogger('TelepathistPrep');
+
+/**
+ * Prepares telepathist turn summaries for an archived player's telemetry database.
+ * Generates missing turn summaries via the Summarizer agent (requires LLM API key).
+ * Idempotent: existing summaries are skipped automatically.
+ *
+ * @param telemetryDbPath - Absolute path to the player's telemetry database
+ * @param gameId - Game identifier
+ * @param playerId - Player ID within the game
+ */
+export async function prepareTelepathist(
+  telemetryDbPath: string,
+  gameId: string,
+  playerId: number
+): Promise<void> {
+  logger.info(`Preparing telepathist for player ${playerId} in game ${gameId}`);
+
+  // Dynamic imports to avoid ESM circular dependency
+  const { createTelepathistParameters } = await import('../telepathist/telepathist-parameters.js');
+  const { prepareTurnSummaries } = await import('../telepathist/preparation/turn-preparation.js');
+  const { VoxContext } = await import('../infra/vox-context.js');
+
+  // Build identifier directly — archive filenames don't match parseDatabaseIdentifier's format
+  const parsedId: GameIdentifierInfo = { gameID: gameId, playerID: playerId };
+
+  let parameters: Awaited<ReturnType<typeof createTelepathistParameters>> | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let context: any;
+
+  try {
+    // Opens telemetry DB (read-only) + telepathist DB (read-write, created if absent)
+    parameters = await createTelepathistParameters(telemetryDbPath, parsedId);
+
+    // Minimal VoxContext — no registerTools() needed.
+    // The summarizer agent only needs the agent registry (auto-initialized on import)
+    // and model config from env vars. No MCP connection required.
+    context = new VoxContext({}, `archivist-${gameId}-${playerId}`);
+
+    await prepareTurnSummaries(parameters, context);
+
+    logger.info(`Telepathist prep complete for player ${playerId} in game ${gameId}`);
+  } catch (error) {
+    // Log and continue — extraction will proceed with null text fields
+    logger.error(`Telepathist prep failed for player ${playerId} in game ${gameId}`, { error });
+  } finally {
+    if (parameters?.close) {
+      try { await parameters.close(); } catch { /* ignore cleanup errors */ }
+    }
+    if (context) {
+      try { await context.shutdown(); } catch { /* ignore cleanup errors */ }
+    }
+  }
+}

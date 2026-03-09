@@ -106,7 +106,9 @@ Error handling: try-catch per game/player, log and continue.
 
 ---
 
-## Phase 2: Data Extraction
+## Phase 2: Data Extraction ✅ DONE
+
+**Implemented:** telepathist-prep.ts wraps existing `prepareTurnSummaries` for batch use with dynamic imports to avoid ESM circular dependency (VoxContext → agent-registry → agents → VoxAgent). extractor.ts provides `extractTurnContexts()` (batch queries all game DB tables) and `extractPlayerEpisodes()` (per-player turn iteration building RawEpisode[]). index.ts wires both into the game processing loop with `--game`/`-g` filter (not `--experiment`). CLI entry point: `npm run archivist -- -a <archive> -o <output.duckdb> [-g gameId] [--force]`. All dynamic imports deferred inside `main()` to prevent module initialization order issues with DuckDB native addon.
 
 ### 2.1 Telepathist Prep (`telepathist-prep.ts`)
 
