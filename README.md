@@ -71,7 +71,7 @@ npm run build:all
 ## License
 
 Author: John Chen (with assistance from Claude Code).
-Lecturer, University of Arizona, College of Information Science
+Assistant Professor, University of Arizona, College of Information Science
 Different licenses are used for submodules:
 
 - `civ5-dll` - GPL 3.0 (following the upstream license)

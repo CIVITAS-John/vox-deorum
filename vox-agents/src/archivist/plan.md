@@ -16,6 +16,7 @@ Uses Kysely + `kysely-duckdb` for type-safe DuckDB access.
 ```
 vox-agents/src/archivist/
   types.ts              -- Strong-typed interfaces (source + target) + shared constants
+  kysely-duckdb.d.ts    -- Ambient type declarations for kysely-duckdb module
   scanner.ts            -- Archive filesystem discovery
   telepathist-prep.ts   -- Always-run telepathist prep wrapper
   extractor.ts          -- Reads SQLite source DBs -> RawEpisode[]
@@ -31,7 +32,9 @@ vox-agents/src/archivist/
 
 ---
 
-## Phase 1: Foundation
+## Phase 1: Foundation ✅ DONE
+
+**Implemented:** All foundation files created and type-checked. Types (`types.ts`), scanner (`scanner.ts`), writer (`writer.ts`), CLI entry point (`index.ts`). Also created `mcp-server/src/knowledge/schema/index.ts` barrel file and `kysely-duckdb.d.ts` ambient declarations. Dependencies added to root `package.json`. Scanner uses custom regexes instead of `parseDatabaseIdentifier()` (game DB underscore format doesn't match). Writer uses `CamelCasePlugin` for automatic camelCase↔snake_case conversion.
 
 ### 1.1 Types (`types.ts`)
 

@@ -63,7 +63,9 @@
     "uuid": "^13.0.0",
     "windows-mutex-prebuilt": "^0.5.0",
     "winston": "^3.17.0",
-    "zod": "^4.1.13"
+    "zod": "^4.1.13",
+    "@duckdb/node-api": "^1.4.4-r.3",
+    "kysely-duckdb": "^0.2.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

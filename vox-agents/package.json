@@ -21,6 +21,7 @@
     "test:coverage": "vitest run --coverage --exclude tests/infra/**",
     "test:unit": "vitest run --exclude tests/infra/**",
     "test:game": "vitest run tests/infra",
+    "archivist": "tsx src/archivist/index.ts",
     "type-check": "tsc --noEmit",
     "docs": "typedoc"
   },
