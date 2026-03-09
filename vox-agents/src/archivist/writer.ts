@@ -110,7 +110,7 @@ export class EpisodeWriter {
   static async create(dbPath: string): Promise<EpisodeWriter> {
     const instance = await DuckDBInstance.create(dbPath);
     const db = new Kysely<EpisodesDatabase>({
-      dialect: new DuckDbDialect({ database: instance }),
+      dialect: new DuckDbDialect({ database: instance, tableMappings: {} }),
       plugins: [new CamelCasePlugin()],
     });
 

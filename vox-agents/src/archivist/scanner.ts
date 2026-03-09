@@ -63,16 +63,23 @@ export async function scanArchive(
 ): Promise<ArchiveEntry[]> {
   const entries: ArchiveEntry[] = [];
 
-  // Read experiment subdirectories
-  let experimentDirs: string[];
+  // Read archive directory — supports both flat layout and experiment subdirectories
+  let dirEntries: fs.Dirent[];
   try {
-    const dirEntries = fs.readdirSync(archivePath, { withFileTypes: true });
-    experimentDirs = dirEntries
-      .filter((e) => e.isDirectory())
-      .map((e) => e.name);
+    dirEntries = fs.readdirSync(archivePath, { withFileTypes: true });
   } catch (error) {
     logger.error(`Failed to read archive directory: ${archivePath}`, { error });
     return [];
+  }
+
+  const experimentDirs = dirEntries
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name);
+
+  // If archive root contains .db files directly, treat it as a flat archive
+  const hasRootDbFiles = dirEntries.some((e) => e.isFile() && e.name.endsWith('.db'));
+  if (hasRootDbFiles) {
+    experimentDirs.unshift('.'); // scan root as an implicit experiment
   }
 
   let totalGames = 0;

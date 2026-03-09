@@ -143,7 +143,9 @@ async function main() {
         await gameDb.destroy();
       }
     } catch (error) {
-      logger.error(`Error processing game ${entry.gameId}`, { error });
+      logger.error(`Error processing game ${entry.gameId}`, {
+        error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
+      });
       errors++;
     }
   }

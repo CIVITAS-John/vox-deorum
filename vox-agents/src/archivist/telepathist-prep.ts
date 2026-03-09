@@ -5,13 +5,13 @@
  * Ensures turn summaries exist in the telepathist DB before episode extraction.
  * Creates a minimal VoxContext (no MCP connection needed) and delegates to
  * the existing prepareTurnSummaries which handles resume/skip natively.
- *
- * All agent-related imports are dynamic to avoid ESM circular dependency:
- * VoxContext → agent-registry → agents → VoxAgent creates a cycle at module load time.
  */
 
 import { createLogger } from '../utils/logger.js';
 import type { GameIdentifierInfo } from '../utils/identifier-parser.js';
+import { VoxContext } from '../infra/vox-context.js';
+import { prepareTurnSummaries } from '../telepathist/preparation/turn-preparation.js';
+import { createTelepathistParameters, TelepathistParameters } from '../telepathist/telepathist-parameters.js';
 
 const logger = createLogger('TelepathistPrep');
 
@@ -31,15 +31,10 @@ export async function prepareTelepathist(
 ): Promise<void> {
   logger.info(`Preparing telepathist for player ${playerId} in game ${gameId}`);
 
-  // Dynamic imports to avoid ESM circular dependency
-  const { createTelepathistParameters } = await import('../telepathist/telepathist-parameters.js');
-  const { prepareTurnSummaries } = await import('../telepathist/preparation/turn-preparation.js');
-  const { VoxContext } = await import('../infra/vox-context.js');
-
   // Build identifier directly — archive filenames don't match parseDatabaseIdentifier's format
   const parsedId: GameIdentifierInfo = { gameID: gameId, playerID: playerId };
 
-  let parameters: Awaited<ReturnType<typeof createTelepathistParameters>> | undefined;
+  let parameters: TelepathistParameters | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let context: any;
 

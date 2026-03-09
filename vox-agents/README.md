@@ -301,10 +301,10 @@ The archivist processes archived game databases into a DuckDB episode database f
 npm run archivist -- -a <archive-path> -o <output.duckdb>
 
 # Process a specific game only
-npm run archivist -- -a ./archive -o episodes.duckdb -g game-abc123
+npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb -g game-abc123
 
 # Force re-processing (deletes existing episodes first)
-npm run archivist -- -a ./archive -o episodes.duckdb --force
+npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb --force
 ```
 
 ### Options
