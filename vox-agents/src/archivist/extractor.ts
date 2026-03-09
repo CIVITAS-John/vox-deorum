@@ -208,7 +208,7 @@ export async function extractPlayerEpisodes(
     const minorAllies = countMinorAllies(ctx, civilization);
 
     // --- Victory progress ---
-    const victory = extractVictoryProgress(ctx.victoryProgress, civilization);
+    const victory = extractAllVictoryProgress(ctx.victoryProgress, civilization);
 
     // --- Telepathist text ---
     const turnSummary = turnSummaries.get(turn);
@@ -431,7 +431,7 @@ interface VictoryProgressResult {
  * Extract victory progress for a player from the VictoryProgress row.
  * Each victory type field can be a string (unavailable) or a JSON object with per-civ entries.
  */
-function extractVictoryProgress(
+function extractAllVictoryProgress(
   victoryRow: Selectable<VictoryProgress> | null,
   civName: string
 ): VictoryProgressResult {
@@ -449,21 +449,21 @@ function extractVictoryProgress(
   if (!victoryRow) return empty;
 
   // Domination: CapitalsPercentage
-  const dom = extractSingleVictory(
+  const dom = extractVictoryProgress(
     victoryRow.DominationVictory,
     civName,
     (entry) => (entry?.CapitalsPercentage as number) ?? null
   );
 
   // Science: PartsPercentage
-  const sci = extractSingleVictory(
+  const sci = extractVictoryProgress(
     victoryRow.ScienceVictory,
     civName,
     (entry) => (entry?.PartsPercentage as number) ?? null
   );
 
   // Culture: InfluentialCivs / CivsNeeded * 100
-  const cul = extractSingleVictory(
+  const cul = extractVictoryProgress(
     victoryRow.CulturalVictory,
     civName,
     (entry, obj) => {
@@ -476,7 +476,7 @@ function extractVictoryProgress(
   );
 
   // Diplomatic: VictoryPercentage
-  const dip = extractSingleVictory(
+  const dip = extractVictoryProgress(
     victoryRow.DiplomaticVictory,
     civName,
     (entry) => (entry?.VictoryPercentage as number) ?? null
@@ -500,7 +500,7 @@ function extractVictoryProgress(
  * - Per-civ entries keyed by civilization name
  * - A `Contender` field identifying the leader
  */
-function extractSingleVictory(
+function extractVictoryProgress(
   field: unknown,
   civName: string,
   getProgress: (entry: Record<string, unknown> | undefined, obj: unknown) => number | null

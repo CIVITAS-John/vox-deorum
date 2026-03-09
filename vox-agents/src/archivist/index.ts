@@ -27,6 +27,7 @@ const { values } = parseArgs({
     output: { type: 'string', short: 'o' },
     game: { type: 'string', short: 'g' },
     force: { type: 'boolean', default: false },
+    'skip-telepathist': { type: 'boolean', default: false },
   },
   strict: false,
   allowPositionals: false,
@@ -37,8 +38,9 @@ async function main() {
   const outputPath = path.resolve(values.output as string ?? 'episodes.duckdb');
   const gameFilter = values.game as string | undefined;
   const force = values.force as boolean;
+  const skipTelepathist = values['skip-telepathist'] as boolean;
 
-  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force });
+  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, skipTelepathist });
 
   // Step 1: Scan archive for game entries
   const entries: ArchiveEntry[] = await scanArchive(archivePath, gameFilter);
@@ -105,7 +107,11 @@ async function main() {
 
           try {
             // Phase 2: telepathist prep — generate turn summaries if missing
-            await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId);
+            if (skipTelepathist) {
+              logger.info(`Skipping telepathist prep for player ${player.playerId} (--skip-telepathist)`);
+            } else {
+              await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId);
+            }
 
             // Phase 2: extract raw episodes
             const info = playerInfoMap.get(player.playerId);
