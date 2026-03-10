@@ -51,11 +51,15 @@ export async function extractTurnContexts(
     playerInfos.set(row.Key, row);
   }
 
-  // 2. Query all PlayerSummaries (IsLatest=1) — includes major + minor civs
+  // 2. Query all PlayerSummaries — latest version per (Key, Turn)
   const summaryRows = await gameDb
     .selectFrom('PlayerSummaries')
     .selectAll()
-    .where('IsLatest', '=', 1)
+    .where('ID', 'in',
+      gameDb.selectFrom('PlayerSummaries')
+        .select((eb) => eb.fn.max('ID').as('ID'))
+        .groupBy(['Key', 'Turn'])
+    )
     .execute();
   const summariesByTurn = new Map<number, Map<number, Selectable<PlayerSummary>>>();
   for (const row of summaryRows) {
@@ -67,11 +71,15 @@ export async function extractTurnContexts(
     turnMap.set(row.Key, row);
   }
 
-  // 3. Query all CityInformations (IsLatest=1)
+  // 3. Query all CityInformations — latest version per (Key, Turn)
   const cityRows = await gameDb
     .selectFrom('CityInformations')
     .selectAll()
-    .where('IsLatest', '=', 1)
+    .where('ID', 'in',
+      gameDb.selectFrom('CityInformations')
+        .select((eb) => eb.fn.max('ID').as('ID'))
+        .groupBy(['Key', 'Turn'])
+    )
     .execute();
   const citiesByTurn = new Map<number, Selectable<CityInformation>[]>();
   for (const row of cityRows) {
@@ -83,12 +91,17 @@ export async function extractTurnContexts(
     arr.push(row);
   }
 
-  // 4. Query all VictoryProgress (IsLatest=1, Key=0 for global)
+  // 4. Query all VictoryProgress (Key=0 for global) — latest version per Turn
   const victoryRows = await gameDb
     .selectFrom('VictoryProgress')
     .selectAll()
-    .where('IsLatest', '=', 1)
     .where('Key', '=', 0)
+    .where('ID', 'in',
+      gameDb.selectFrom('VictoryProgress')
+        .select((eb) => eb.fn.max('ID').as('ID'))
+        .where('Key', '=', 0)
+        .groupBy(['Key', 'Turn'])
+    )
     .execute();
   const victoryByTurn = new Map<number, Selectable<VictoryProgress>>();
   for (const row of victoryRows) {
@@ -140,12 +153,17 @@ export async function extractPlayerEpisodes(
   // Load telepathist summaries (if DB exists)
   const turnSummaries = loadTurnSummaries(telepathistDbPath);
 
-  // Query strategy changes for this player (sorted by turn for binary search)
+  // Query strategy changes for this player — latest version per Turn, sorted for binary search
   const strategyRows = await gameDb
     .selectFrom('StrategyChanges')
     .selectAll()
     .where('Key', '=', playerId)
-    .where('IsLatest', '=', 1)
+    .where('ID', 'in',
+      gameDb.selectFrom('StrategyChanges')
+        .select((eb) => eb.fn.max('ID').as('ID'))
+        .where('Key', '=', playerId)
+        .groupBy(['Key', 'Turn'])
+    )
     .orderBy('Turn', 'asc')
     .execute();
 

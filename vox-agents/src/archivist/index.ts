@@ -15,7 +15,7 @@ import { DuckDBInstance } from '@duckdb/node-api';
 import { createLogger } from '../utils/logger.js';
 import { openReadonlyGameDb, scanArchive } from './scanner.js';
 import { EpisodeWriter } from './writer.js';
-import type { ArchiveEntry } from './types.js';
+import type { ArchiveEntry, Episode } from './types.js';
 import { prepareTelepathist } from './telepathist-prep.js';
 import { extractPlayerEpisodes, extractTurnContexts } from './extractor.js';
 
@@ -134,9 +134,8 @@ async function main() {
 
             logger.info(`Extracted ${rawEpisodes.length} raw episodes for player ${player.playerId}`);
 
-            // Phase 3: transform episodes (placeholder)
-            // Phase 3: generate embeddings (placeholder)
-            // Phase 1: write episodes (placeholder — needs Episode[], not RawEpisode[])
+            // Write raw episodes (computed fields default to NULL until transformer is implemented)
+            await writer.writeEpisodes(rawEpisodes as Episode[]);
 
             processed++;
           } catch (playerError) {

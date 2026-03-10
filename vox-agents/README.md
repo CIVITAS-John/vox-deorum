@@ -317,7 +317,7 @@ npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb --force --ski
 | `-o, --output` | Path to DuckDB output file (default: `episodes.duckdb`) |
 | `-g, --game` | Process only this specific game ID |
 | `--force` | Delete existing episodes before re-processing |
-| `--no-ui` | Skip opening DuckDB UI after completion |
+| `--no-ui` | Skip opening DuckDB UI after completion - MUST use when testing changes |
 | `--skip-telepathist` | Skip telepathist process for quick validation on other features |
 
 ## Web UI Dashboard
