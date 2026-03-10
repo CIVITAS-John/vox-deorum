@@ -71,9 +71,7 @@ export interface RawEpisode {
   cities: number | null;
   population: number | null;
   goldPerTurn: number | null;
-  sciencePerTurn: number | null;
   culturePerTurn: number | null;
-  faithPerTurn: number | null;
   tourismPerTurn: number | null;
   militaryStrength: number | null;
   technologies: number | null;
@@ -103,11 +101,9 @@ export interface RawEpisode {
 /** Full episode with computed fields added by the transformer */
 export interface Episode extends RawEpisode {
   // City-adjusted shares (nullable when source data missing)
-  scienceShare: number | null;
   cultureShare: number | null;
   tourismShare: number | null;
   goldShare: number | null;
-  faithShare: number | null;
   militaryShare: number | null;
   citiesShare: number | null;
   populationShare: number | null;
@@ -115,6 +111,8 @@ export interface Episode extends RawEpisode {
   minorAlliesShare: number | null;
 
   // Per-population metrics (raw ratio: metric / population)
+  sciencePerPop: number | null;
+  faithPerPop: number | null;
   productionPerPop: number | null;
   foodPerPop: number | null;
 

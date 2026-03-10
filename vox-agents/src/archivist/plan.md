@@ -156,9 +156,9 @@ No changes to `turn-preparation.ts` needed — it handles resume natively.
 
 Per-player, per-turn. TurnContext provides all-player data for cross-player computations.
 
-- **City-adjusted shares**: `cityMultiplier = max(1.05 * (cities - 1), 1.0)`, adj = metric / multiplier, share = player_adj / sum(all_adj)
+- **City-adjusted shares**: `cityMultiplier = max(1.05 * (cities - 1), 1.0)`, adj = metric / multiplier, share = player_adj / sum(all_adj). Applies to culture, tourism, gold, military (not science/faith — those use per-pop instead)
 - **Raw shares**: cities, population, votes, minor_allies / sum across all alive majors
-- **Per-pop**: `clamp(metric / population, 1, 20) / 20` for production and food
+- **Per-pop**: `clamp(metric / population, 1, 20) / 20` for science, faith, production, and food. Science/faith sourced from PlayerSummary in TurnContext (not stored as raw columns since they're only visible to the player itself)
 - **Gaps**: `player.tech - max(all.tech)`, same for policies
 - **Ideology**: detect from PolicyBranches keys (Freedom/Order/Autocracy), count allies, compute share
 - **Game state vector** (35 elements): assemble per schema.md spec with normalization and clamping
@@ -254,7 +254,7 @@ interface SimilarityWeights {
 
 ## Phase 5: Episode Retrieval Pipeline ✅ DONE
 
-**Implemented**: query-types.ts (pure interfaces), reader.ts (3-stage DuckDB pipeline: fuzzy→vector→MMR), game-state-vector.ts (adapter converting MCP reports→transformEpisode()), episode-utils.ts (requestEpisodes for live strategist, requestEpisodesFromTelemetry for post-game telepathist, formatEpisodeResults markdown formatter). Also modified: transformer.ts (reordered 35d vector, replaced science/faith shares with normalized per-turn values, added share scaling by knownMajors/totalMajors), extractor.ts (exported parseDiplomatics, extractAllVictoryProgress, DiplomaticCounts), types.ts (shared countPolicies, totalMajors in TurnContext), schema.md (updated vector spec).
+**Implemented**: query-types.ts (pure interfaces with EpisodeDelta for outcome deltas), reader.ts (3-stage DuckDB pipeline: fuzzy→vector→MMR), game-state-vector.ts (adapter converting MCP reports→transformEpisode()), episode-utils.ts (requestEpisodes for live strategist, requestEpisodesFromTelemetry for post-game telepathist, formatEpisodeResults markdown formatter). Also modified: transformer.ts (reordered 35d vector, uses 4 per-pop metrics instead of science/faith shares/per-turn, added share scaling by knownMajors/totalMajors), extractor.ts (exported parseDiplomatics, extractAllVictoryProgress, DiplomaticCounts), types.ts (shared countPolicies, totalMajors in TurnContext), schema.md (updated vector spec).
 
 ### 5.1 Query Types (`query-types.ts`)
 
@@ -284,21 +284,20 @@ interface OutcomeSnapshot {
   horizonTurns: number;          // 5, 10, 15, or 20
   situation: string | null;
   decisions: string | null;      // null for horizon=20
-  deltas: ShareDelta;
+  deltas: EpisodeDelta;
 }
 
-/** Quantitative share deltas as formatted strings */
-interface ShareDelta {
-  scienceShare: string | null;       // "+3%" or "-1%"
-  cultureShare: string | null;
+/** Quantitative deltas as formatted strings */
+interface EpisodeDelta {
+  sciencePerPop: string | null;      // "+3" or "-1" (per-pop ratio change)
+  faithPerPop: string | null;
+  productionPerPop: string | null;
+  foodPerPop: string | null;
+  cultureShare: string | null;       // "+3%" or "-1%" (share change)
   goldShare: string | null;
   militaryShare: string | null;
   populationShare: string | null;
   citiesShare: string | null;
-  dominationProgress: string | null;
-  scienceProgress: string | null;
-  cultureProgress: string | null;
-  diplomaticProgress: string | null;
 }
 
 /** A retrieved episode with outcomes */
@@ -315,7 +314,7 @@ interface EpisodeResult {
   decisions: string | null;
   outcomes: OutcomeSnapshot[];   // 0-4 (fewer if game ended early)
   indicators: {
-    scienceShare: number | null;
+    sciencePerPop: number | null;
     cultureShare: number | null;
     militaryShare: number | null;
     populationShare: number | null;
@@ -386,7 +385,10 @@ Self-join at horizons `[5, 10, 15, 20]`:
 ```sql
 SELECT e.game_id, e.turn, e.player_id, :horizon AS horizon,
        f.situation, f.decisions,
-       f.science_share - e.science_share AS d_science,
+       f.science_per_pop - e.science_per_pop AS d_science_pp,
+       f.faith_per_pop - e.faith_per_pop AS d_faith_pp,
+       f.production_per_pop - e.production_per_pop AS d_production_pp,
+       f.food_per_pop - e.food_per_pop AS d_food_pp,
        f.culture_share - e.culture_share AS d_culture,
        f.gold_share - e.gold_share AS d_gold,
        f.military_share - e.military_share AS d_military,
@@ -403,7 +405,7 @@ LEFT JOIN episodes f
 ```
 
 Batched across candidates × horizons. Horizon=20 → `decisions` set to null in mapping.
-Raw deltas formatted as ShareDelta strings: `delta > 0 → "+X%"`, `< 0 → "-X%"`, `= 0 → "0%"` (X = `round(abs(delta * 100))`).
+Raw deltas formatted as EpisodeDelta strings: `delta > 0 → "+X%"`, `< 0 → "-X%"`, `= 0 → "0%"` (X = `round(abs(delta * 100))`).
 
 **Stage 3: Diversity Select**
 

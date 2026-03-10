@@ -30,21 +30,20 @@ export interface OutcomeSnapshot {
   horizonTurns: number;          // 5, 10, 15, or 20
   situation: string | null;
   decisions: string | null;      // null for horizon=20
-  deltas: ShareDelta;
+  deltas: EpisodeDelta;
 }
 
-/** Quantitative share deltas as formatted strings */
-export interface ShareDelta {
-  scienceShare: string | null;       // "+3%" or "-1%"
-  cultureShare: string | null;
+/** Quantitative deltas as formatted strings */
+export interface EpisodeDelta {
+  sciencePerPop: string | null;      // "+3" or "-1" (per-pop ratio change)
+  faithPerPop: string | null;
+  productionPerPop: string | null;
+  foodPerPop: string | null;
+  cultureShare: string | null;       // "+3%" or "-1%" (share change)
   goldShare: string | null;
   militaryShare: string | null;
   populationShare: string | null;
   citiesShare: string | null;
-  dominationProgress: string | null;
-  scienceProgress: string | null;
-  cultureProgress: string | null;
-  diplomaticProgress: string | null;
 }
 
 /** A retrieved episode with outcomes */
@@ -61,7 +60,7 @@ export interface EpisodeResult {
   decisions: string | null;
   outcomes: OutcomeSnapshot[];   // 0-4 (fewer if game ended early)
   indicators: {
-    scienceShare: number | null;
+    sciencePerPop: number | null;
     cultureShare: number | null;
     militaryShare: number | null;
     populationShare: number | null;

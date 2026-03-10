@@ -13,7 +13,7 @@ import { createLogger } from '../utils/logger.js';
 import { buildSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
 import { eraMap } from './types.js';
 import { generateEmbeddings } from './embeddings.js';
-import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot, ShareDelta } from './query-types.js';
+import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot, EpisodeDelta } from './query-types.js';
 
 const logger = createLogger('Archivist:Reader');
 
@@ -97,7 +97,10 @@ interface CandidateRow {
   abstract: string | null;
   situation: string | null;
   decisions: string | null;
-  science_share: number | null;
+  science_per_pop: number | null;
+  faith_per_pop: number | null;
+  production_per_pop: number | null;
+  food_per_pop: number | null;
   culture_share: number | null;
   gold_share: number | null;
   military_share: number | null;
@@ -160,7 +163,8 @@ async function fetchCandidates(
     )
     SELECT game_id, turn, player_id, civilization, era, grand_strategy, is_winner,
            abstract, situation, decisions,
-           science_share, culture_share, gold_share, military_share, population_share, cities_share,
+           science_per_pop, faith_per_pop, production_per_pop, food_per_pop,
+           culture_share, gold_share, military_share, population_share, cities_share,
            active_wars, domination_progress, science_progress, culture_progress, diplomatic_progress,
            game_state_vector, neighbor_vector, abstract_embedding,
            ${similaritySql} AS score
@@ -186,7 +190,10 @@ interface OutcomeRow {
   horizon: number;
   situation: string | null;
   decisions: string | null;
-  d_science: number | null;
+  d_science_pp: number | null;
+  d_faith_pp: number | null;
+  d_production_pp: number | null;
+  d_food_pp: number | null;
   d_culture: number | null;
   d_gold: number | null;
   d_military: number | null;
@@ -210,7 +217,10 @@ async function fetchOutcomes(
       `'${escapeSql(c.game_id)}'`,
       c.turn,
       c.player_id,
-      c.science_share ?? 'NULL',
+      c.science_per_pop ?? 'NULL',
+      c.faith_per_pop ?? 'NULL',
+      c.production_per_pop ?? 'NULL',
+      c.food_per_pop ?? 'NULL',
       c.culture_share ?? 'NULL',
       c.gold_share ?? 'NULL',
       c.military_share ?? 'NULL',
@@ -228,7 +238,10 @@ async function fetchOutcomes(
   const horizonQueries = HORIZONS.map(horizon => `
     SELECT e.game_id, e.turn, e.player_id, ${horizon} AS horizon,
            f.situation, f.decisions,
-           f.science_share - e.science_share AS d_science,
+           f.science_per_pop - e.science_per_pop AS d_science_pp,
+           f.faith_per_pop - e.faith_per_pop AS d_faith_pp,
+           f.production_per_pop - e.production_per_pop AS d_production_pp,
+           f.food_per_pop - e.food_per_pop AS d_food_pp,
            f.culture_share - e.culture_share AS d_culture,
            f.gold_share - e.gold_share AS d_gold,
            f.military_share - e.military_share AS d_military,
@@ -238,7 +251,7 @@ async function fetchOutcomes(
            f.science_progress - e.science_progress AS d_science_prog,
            f.culture_progress - e.culture_progress AS d_culture_prog,
            f.diplomatic_progress - e.diplomatic_progress AS d_diplomatic
-    FROM (VALUES ${candidateValues}) AS e(game_id, turn, player_id, science_share, culture_share, gold_share, military_share, population_share, cities_share, domination_progress, science_progress, culture_progress, diplomatic_progress)
+    FROM (VALUES ${candidateValues}) AS e(game_id, turn, player_id, science_per_pop, faith_per_pop, production_per_pop, food_per_pop, culture_share, gold_share, military_share, population_share, cities_share, domination_progress, science_progress, culture_progress, diplomatic_progress)
     JOIN episodes f
       ON f.game_id = e.game_id AND f.player_id = e.player_id
       AND f.turn = e.turn + ${horizon}
@@ -256,17 +269,16 @@ async function fetchOutcomes(
       outcomeMap.set(key, []);
     }
 
-    const deltas: ShareDelta = {
-      scienceShare: formatDelta(row.d_science),
+    const deltas: EpisodeDelta = {
+      sciencePerPop: formatDelta(row.d_science_pp),
+      faithPerPop: formatDelta(row.d_faith_pp),
+      productionPerPop: formatDelta(row.d_production_pp),
+      foodPerPop: formatDelta(row.d_food_pp),
       cultureShare: formatDelta(row.d_culture),
       goldShare: formatDelta(row.d_gold),
       militaryShare: formatDelta(row.d_military),
       populationShare: formatDelta(row.d_population),
-      citiesShare: formatDelta(row.d_cities),
-      dominationProgress: formatDelta(row.d_domination),
-      scienceProgress: formatDelta(row.d_science_prog),
-      cultureProgress: formatDelta(row.d_culture_prog),
-      diplomaticProgress: formatDelta(row.d_diplomatic),
+      citiesShare: formatDelta(row.d_cities)
     };
 
     outcomeMap.get(key)!.push({
@@ -360,7 +372,7 @@ function buildResult(
     decisions: candidate.decisions,
     outcomes,
     indicators: {
-      scienceShare: candidate.science_share,
+      sciencePerPop: candidate.science_per_pop,
       cultureShare: candidate.culture_share,
       militaryShare: candidate.military_share,
       populationShare: candidate.population_share,

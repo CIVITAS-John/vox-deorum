@@ -227,7 +227,7 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     // Indicators
     const ind = ep.indicators;
     const indParts: string[] = [];
-    if (ind.scienceShare != null) indParts.push(`Science: ${(ind.scienceShare * 100).toFixed(0)}%`);
+    if (ind.sciencePerPop != null) indParts.push(`Science/Pop: ${ind.sciencePerPop.toFixed(1)}`);
     if (ind.militaryShare != null) indParts.push(`Military: ${(ind.militaryShare * 100).toFixed(0)}%`);
     if (ind.activeWars > 0) indParts.push(`Wars: ${ind.activeWars}`);
     if (indParts.length > 0) parts.push(`**Indicators**: ${indParts.join(' | ')}`);

@@ -251,9 +251,7 @@ function buildNeighborVector(
 
 /** Build the 35-element game state vector from computed Episode fields. */
 function buildGameStateVector(
-  ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'abstractEmbedding' | 'isLandmark'>,
-  maxScience: number,
-  maxFaith: number
+  ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'abstractEmbedding' | 'isLandmark'>
 ): number[] {
   const eraOrdinal = eraMap[ep.era] ?? 0;
   const gsOrdinal = (ep.grandStrategy ? grandStrategyMap[ep.grandStrategy] : 0) ?? 0;
@@ -270,9 +268,9 @@ function buildGameStateVector(
     ep.populationShare ?? 0,                                           // [7]
     ep.votesShare ?? 0,                                                // [8]
     ep.minorAlliesShare ?? 0,                                          // [9]
-    // --- Per-turn / Per-pop metrics (4 elements) ---
-    clamp((ep.sciencePerTurn ?? 0) / Math.max(maxScience, 1), 0, 1),   // [10]
-    clamp((ep.faithPerTurn ?? 0) / Math.max(maxFaith, 1), 0, 1),       // [11]
+    // --- Per-pop metrics (4 elements) ---
+    clamp(ep.sciencePerPop ?? 0, 1, 20) / 20,                          // [10]
+    clamp(ep.faithPerPop ?? 0, 1, 20) / 20,                            // [11]
     clamp(ep.productionPerPop ?? 0, 1, 20) / 20,                      // [12]
     clamp(ep.foodPerPop ?? 0, 1, 20) / 20,                            // [13]
     // --- Gaps & percentages (5 elements) ---
@@ -322,11 +320,9 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     playerId: number;
     cities: number | null;
     population: number | null;
-    science: number | null;
     culture: number | null;
     tourism: number | null;
     gold: number | null;
-    faith: number | null;
     military: number | null;
     technologies: number | null;
     policies: number | null;
@@ -343,11 +339,9 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
       playerId: pid,
       cities: summary.Cities as number | null,
       population: summary.Population as number | null,
-      science: summary.SciencePerTurn as number | null,
       culture: summary.CulturePerTurn as number | null,
       tourism: summary.TourismPerTurn as number | null,
       gold: summary.GoldPerTurn as number | null,
-      faith: summary.FaithPerTurn as number | null,
       military: summary.MilitaryStrength as number | null,
       technologies: summary.Technologies as number | null,
       policies: countPolicies(summary.PolicyBranches as Record<string, string[]> | null),
@@ -376,16 +370,12 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   const shareScale = totalMajors > 0 ? knownMajors / totalMajors : 1;
 
   // City-adjusted shares
-  const yieldData = majorPlayerData.map(p => ({ value: p.science, cities: p.cities }));
-  const scienceShare = scaleShare(computeCityAdjustedShare(raw.sciencePerTurn, raw.cities, yieldData), shareScale);
   const cultureShare = scaleShare(computeCityAdjustedShare(raw.culturePerTurn, raw.cities,
     majorPlayerData.map(p => ({ value: p.culture, cities: p.cities }))), shareScale);
   const tourismShare = scaleShare(computeCityAdjustedShare(raw.tourismPerTurn, raw.cities,
     majorPlayerData.map(p => ({ value: p.tourism, cities: p.cities }))), shareScale);
   const goldShare = scaleShare(computeCityAdjustedShare(raw.goldPerTurn, raw.cities,
     majorPlayerData.map(p => ({ value: p.gold, cities: p.cities }))), shareScale);
-  const faithShare = scaleShare(computeCityAdjustedShare(raw.faithPerTurn, raw.cities,
-    majorPlayerData.map(p => ({ value: p.faith, cities: p.cities }))), shareScale);
   const militaryShare = scaleShare(computeCityAdjustedShare(raw.militaryStrength, raw.cities,
     majorPlayerData.map(p => ({ value: p.military, cities: p.cities }))), shareScale);
 
@@ -395,7 +385,14 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   const votesShare = scaleShare(computeRawShare(raw.votes, majorPlayerData.map(p => p.votes)), shareScale);
   const minorAlliesShare = scaleShare(computeRawShare(raw.minorAllies, majorPlayerData.map(p => p.minorAllies)), shareScale);
 
-  // Per-pop
+  // Player summary for this player (needed for per-pop, religion, ideology)
+  const playerSummary = turnContext.playerSummaries.get(raw.playerId);
+
+  // Per-pop (science/faith sourced from PlayerSummary since they're not stored as raw columns)
+  const sciencePerTurnValue = (playerSummary?.SciencePerTurn as number | null) ?? null;
+  const faithPerTurnValue = (playerSummary?.FaithPerTurn as number | null) ?? null;
+  const sciencePerPop = computePerPop(sciencePerTurnValue, raw.population);
+  const faithPerPop = computePerPop(faithPerTurnValue, raw.population);
   const productionPerPop = computePerPop(raw.productionPerTurn, raw.population);
   const foodPerPop = computePerPop(raw.foodPerTurn, raw.population);
 
@@ -404,7 +401,6 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   const policiesGap = computeGap(raw.policies, majorPlayerData.map(p => p.policies));
 
   // Religion
-  const playerSummary = turnContext.playerSummaries.get(raw.playerId);
   const foundedReligion = (playerSummary?.FoundedReligion as string | null) ?? null;
   const religionPercentage = computeReligionPercentage(foundedReligion, turnContext.cityInformations);
 
@@ -424,16 +420,16 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   // Build partial episode (without vectors)
   const partial = {
     ...raw,
-    scienceShare,
     cultureShare,
     tourismShare,
     goldShare,
-    faithShare,
     militaryShare,
     citiesShare,
     populationShare,
     votesShare,
     minorAlliesShare,
+    sciencePerPop,
+    faithPerPop,
     productionPerPop,
     foodPerPop,
     technologiesGap,
@@ -443,16 +439,8 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     ideologyShare,
   };
 
-  // Compute max science/faith across all major players for normalization
-  let maxScience = 0;
-  let maxFaith = 0;
-  for (const p of majorPlayerData) {
-    if (p.science != null && p.science > maxScience) maxScience = p.science;
-    if (p.faith != null && p.faith > maxFaith) maxFaith = p.faith;
-  }
-
   // Game state vector (35 elements)
-  const gameStateVector = buildGameStateVector(partial, maxScience, maxFaith);
+  const gameStateVector = buildGameStateVector(partial);
 
   // Neighbor vector (32 elements)
   const neighborVector = playerSummary

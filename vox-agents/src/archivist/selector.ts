@@ -171,7 +171,8 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): { i
       }
     }
 
-    if (bestIdx === -1) break;
+    // Landmarks must have a max similarity > 0.9
+    if (bestIdx === -1 || bestMaxSim > 0.9) break;
     selectedIndices.add(bestIdx);
     nearestNeighborSims.push(bestMaxSim);
 

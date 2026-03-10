@@ -211,9 +211,7 @@ export async function extractPlayerEpisodes(
     const cities = (summary.Cities as number) ?? null;
     const population = (summary.Population as number) ?? null;
     const goldPerTurn = (summary.GoldPerTurn as number) ?? null;
-    const sciencePerTurn = (summary.SciencePerTurn as number) ?? null;
     const culturePerTurn = (summary.CulturePerTurn as number) ?? null;
-    const faithPerTurn = (summary.FaithPerTurn as number) ?? null;
     const tourismPerTurn = (summary.TourismPerTurn as number) ?? null;
     const militaryStrength = (summary.MilitaryStrength as number) ?? null;
     const technologies = (summary.Technologies as number) ?? null;
@@ -253,9 +251,7 @@ export async function extractPlayerEpisodes(
       cities,
       population,
       goldPerTurn,
-      sciencePerTurn,
       culturePerTurn,
-      faithPerTurn,
       tourismPerTurn,
       militaryStrength,
       technologies,

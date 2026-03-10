@@ -73,9 +73,7 @@ CREATE TABLE episodes (
   cities              INTEGER,    -- PlayerSummaries.Cities
   population          INTEGER,    -- PlayerSummaries.Population
   gold_per_turn       REAL,       -- PlayerSummaries.GoldPerTurn
-  science_per_turn    REAL,       -- PlayerSummaries.SciencePerTurn
   culture_per_turn    REAL,       -- PlayerSummaries.CulturePerTurn
-  faith_per_turn      REAL,       -- PlayerSummaries.FaithPerTurn
   tourism_per_turn    REAL,       -- PlayerSummaries.TourismPerTurn
   military_strength   REAL,       -- PlayerSummaries.MilitaryStrength
   technologies        INTEGER,    -- PlayerSummaries.Technologies
@@ -138,16 +136,18 @@ CREATE TABLE episodes (
   --   For non-per-turn fields (cities, population, votes, minor_allies):
   --           {metric}_share = player_value / SUM(all_players_value)  (then scaled)
   --
-  -- Per-pop values (production, food):
+  -- Per-pop values (science, faith, production, food):
   --   raw = {metric}_per_turn / population
+  --   Science/faith use PlayerSummary.SciencePerTurn/FaithPerTurn
+  --   (not stored as raw columns since they're only visible to self)
   --   scaled = clamp(raw, 1, 20) / 20   → range [0, 1]
   -- ══════════════════════════════════════════════════════════════════
 
-  science_share       REAL,       -- science_adj / sum(all players' science_adj)
   culture_share       REAL,       -- culture_adj / sum(all players' culture_adj)
   tourism_share       REAL,       -- tourism_adj / sum(all players' tourism_adj)
   gold_share          REAL,       -- gold_adj / sum(all players' gold_adj)
-  faith_share         REAL,       -- faith_adj / sum(all players' faith_adj)
+  science_per_pop     REAL,       -- SciencePerTurn / population (raw ratio)
+  faith_per_pop       REAL,       -- FaithPerTurn / population (raw ratio)
   production_per_pop  REAL,       -- production_per_turn / population (raw ratio)
   food_per_pop        REAL,       -- food_per_turn / population (raw ratio)
   military_share      REAL,       -- military_adj / sum(all players' military_adj)
@@ -196,9 +196,9 @@ CREATE TABLE episodes (
   --   [7]  population_share
   --   [8]  votes_share                          (0 if null)
   --   [9]  minor_allies_share
-  --   --- Per-turn / Per-pop metrics ---
-  --   [10] science_per_turn (normalized)        clamp(value / maxAcrossKnown, 0, 1)
-  --   [11] faith_per_turn (normalized)          clamp(value / maxAcrossKnown, 0, 1)
+  --   --- Per-pop metrics ---
+  --   [10] science_per_pop                      (clamped [1,20] then /20)
+  --   [11] faith_per_pop                        (clamped [1,20] then /20)
   --   [12] production_per_pop                   (clamped [1,20] then /20)
   --   [13] food_per_pop                         (clamped [1,20] then /20)
   --   --- Gaps & percentages ---
