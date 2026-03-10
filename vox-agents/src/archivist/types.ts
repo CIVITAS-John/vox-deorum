@@ -158,6 +158,8 @@ export interface TurnContext {
   victoryProgress: Selectable<VictoryProgress> | null;
   /** Player information (immutable) keyed by player ID */
   playerInfos: Map<number, Selectable<PlayerInformation>>;
+  /** Total number of major players in the game (for share scaling when only partial players are known) */
+  totalMajors?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -183,6 +185,23 @@ export const grandStrategyMap: Record<string, number> = {
   'United Nations': 3,
   'Spaceship': 4,
 };
+
+/**
+ * Count total individual policies from PolicyBranches JSON.
+ * Handles both full visibility (string[] arrays) and reduced visibility (numeric counts).
+ */
+export function countPolicies(policyBranches: Record<string, string[] | number> | null): number | null {
+  if (!policyBranches) return null;
+  let total = 0;
+  for (const policies of Object.values(policyBranches)) {
+    if (typeof policies === 'number') {
+      total += policies;
+    } else if (Array.isArray(policies)) {
+      total += policies.length;
+    }
+  }
+  return total;
+}
 
 /** Weights for batch landmark selection (no embedding, game state dominant) */
 export const landmarkWeights: SimilarityWeights = {

@@ -18,6 +18,7 @@ import type {
   RawEpisode,
   TurnContext,
 } from './types.js';
+import { countPolicies } from './types.js';
 import type {
   PlayerSummary,
   CityInformation,
@@ -315,10 +316,10 @@ function findLatestStrategy(
 }
 
 /** War weariness extraction regex */
-const WAR_WEARINESS_REGEX = /Our War Weariness: (\d+)%/;
+export const WAR_WEARINESS_REGEX = /Our War Weariness: (\d+)%/;
 
 /** Diplomatic count result */
-interface DiplomaticCounts {
+export interface DiplomaticCounts {
   isVassal: number;
   activeWars: number;
   truces: number;
@@ -333,7 +334,7 @@ interface DiplomaticCounts {
  * Parse diplomatic relationship counts from the Relationships JSON.
  * Only counts relationships with major civilizations.
  */
-function parseDiplomatics(
+export function parseDiplomatics(
   relationships: Record<string, string | string[]> | null,
   majorCivNames: Set<string>
 ): DiplomaticCounts {
@@ -408,15 +409,7 @@ function aggregateCityYields(
   };
 }
 
-/** Count total individual policies from PolicyBranches JSON. */
-function countPolicies(policyBranches: Record<string, string[]> | null): number | null {
-  if (!policyBranches) return null;
-  let total = 0;
-  for (const policies of Object.values(policyBranches)) {
-    total += policies.length;
-  }
-  return total;
-}
+// countPolicies imported from types.ts (shared with transformer.ts and game-state-vector.ts)
 
 /** Count minor civs allied to this player (where MajorAlly matches civilization name). */
 function countMinorAllies(ctx: TurnContext, civilization: string): number | null {
@@ -432,7 +425,7 @@ function countMinorAllies(ctx: TurnContext, civilization: string): number | null
 }
 
 /** Victory progress extraction result */
-interface VictoryProgressResult {
+export interface VictoryProgressResult {
   dominationProgress: number | null;
   scienceProgress: number | null;
   cultureProgress: number | null;
@@ -447,7 +440,7 @@ interface VictoryProgressResult {
  * Extract victory progress for a player from the VictoryProgress row.
  * Each victory type field can be a string (unavailable) or a JSON object with per-civ entries.
  */
-function extractAllVictoryProgress(
+export function extractAllVictoryProgress(
   victoryRow: Selectable<VictoryProgress> | null,
   civName: string
 ): VictoryProgressResult {
@@ -516,7 +509,7 @@ function extractAllVictoryProgress(
  * - Per-civ entries keyed by civilization name
  * - A `Contender` field identifying the leader
  */
-function extractVictoryProgress(
+export function extractVictoryProgress(
   field: unknown,
   civName: string,
   getProgress: (entry: Record<string, unknown> | undefined, obj: unknown) => number | null

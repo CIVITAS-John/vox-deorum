@@ -10,7 +10,7 @@
 import type { Selectable } from 'kysely';
 import type { CityInformation, PlayerSummary } from '../../../mcp-server/dist/knowledge/schema/index.js';
 import type { RawEpisode, Episode, TurnContext } from './types.js';
-import { eraMap, grandStrategyMap } from './types.js';
+import { eraMap, grandStrategyMap, countPolicies } from './types.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -20,14 +20,12 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-/** Count total individual policies from PolicyBranches JSON. */
-function countPolicies(policyBranches: Record<string, string[]> | null): number | null {
-  if (!policyBranches) return null;
-  let total = 0;
-  for (const policies of Object.values(policyBranches)) {
-    total += policies.length;
-  }
-  return total;
+// countPolicies imported from types.ts (shared with extractor.ts and game-state-vector.ts)
+
+/** Scale a share value when only partial players are known. */
+function scaleShare(share: number | null, scale: number): number | null {
+  if (share == null) return null;
+  return share * scale;
 }
 
 // ---------------------------------------------------------------------------
@@ -252,30 +250,38 @@ function buildNeighborVector(
 // ---------------------------------------------------------------------------
 
 /** Build the 35-element game state vector from computed Episode fields. */
-function buildGameStateVector(ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'abstractEmbedding' | 'isLandmark'>): number[] {
+function buildGameStateVector(
+  ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'abstractEmbedding' | 'isLandmark'>,
+  maxScience: number,
+  maxFaith: number
+): number[] {
   const eraOrdinal = eraMap[ep.era] ?? 0;
   const gsOrdinal = (ep.grandStrategy ? grandStrategyMap[ep.grandStrategy] : 0) ?? 0;
 
   return [
-    eraOrdinal / 8,                                                   // [0]
+    eraOrdinal / 8,                                                    // [0]
     gsOrdinal / 4,                                                     // [1]
-    ep.scienceShare ?? 0,                                              // [2]
-    ep.cultureShare ?? 0,                                              // [3]
-    ep.tourismShare ?? 0,                                              // [4]
-    ep.goldShare ?? 0,                                                 // [5]
-    ep.faithShare ?? 0,                                                // [6]
-    clamp(ep.productionPerPop ?? 0, 1, 20) / 20,                        // [7]
-    clamp(ep.foodPerPop ?? 0, 1, 20) / 20,                             // [8]
-    ep.militaryShare ?? 0,                                             // [9]
-    ep.citiesShare ?? 0,                                               // [10]
-    ep.populationShare ?? 0,                                           // [11]
-    ep.votesShare ?? 0,                                                // [12]
-    ep.minorAlliesShare ?? 0,                                          // [13]
+    // --- Shares (city-adjusted, 8 elements) ---
+    ep.cultureShare ?? 0,                                              // [2]
+    ep.tourismShare ?? 0,                                              // [3]
+    ep.goldShare ?? 0,                                                 // [4]
+    ep.militaryShare ?? 0,                                             // [5]
+    ep.citiesShare ?? 0,                                               // [6]
+    ep.populationShare ?? 0,                                           // [7]
+    ep.votesShare ?? 0,                                                // [8]
+    ep.minorAlliesShare ?? 0,                                          // [9]
+    // --- Per-turn / Per-pop metrics (4 elements) ---
+    clamp((ep.sciencePerTurn ?? 0) / Math.max(maxScience, 1), 0, 1),   // [10]
+    clamp((ep.faithPerTurn ?? 0) / Math.max(maxFaith, 1), 0, 1),       // [11]
+    clamp(ep.productionPerPop ?? 0, 1, 20) / 20,                      // [12]
+    clamp(ep.foodPerPop ?? 0, 1, 20) / 20,                            // [13]
+    // --- Gaps & percentages (5 elements) ---
     clamp((ep.technologiesGap) / 10, 0, 1),                           // [14]
     clamp((ep.policiesGap) / 5, 0, 1),                                // [15]
     clamp((ep.happinessPercentage ?? 0) / 100, 0, 1),                 // [16]
     clamp(ep.religionPercentage, 0, 1),                                // [17]
     ep.ideologyShare,                                                  // [18]
+    // --- Diplomatic (8 elements) ---
     ep.isVassal,                                                       // [19]
     clamp(ep.vassals / 3, 0, 1),                                      // [20]
     clamp(ep.warWeariness / 100, 0, 1),                                // [21]
@@ -284,6 +290,7 @@ function buildGameStateVector(ep: Omit<Episode, 'gameStateVector' | 'neighborVec
     clamp(ep.friends / 3, 0, 1),                                      // [24]
     clamp(ep.defensivePacts / 3, 0, 1),                                // [25]
     clamp(ep.denouncements / 3, 0, 1),                                 // [26]
+    // --- Victory (8 elements) ---
     clamp((ep.dominationProgress ?? 0) / 100, 0, 1),                   // [27]
     clamp((ep.scienceProgress ?? 0) / 100, 0, 1),                      // [28]
     clamp((ep.cultureProgress ?? 0) / 100, 0, 1),                      // [29]
@@ -363,25 +370,30 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     p.minorAllies = count;
   }
 
+  // Scale shares when only partial players are known
+  const knownMajors = majorPlayerData.length;
+  const totalMajors = turnContext.totalMajors ?? knownMajors;
+  const shareScale = totalMajors > 0 ? knownMajors / totalMajors : 1;
+
   // City-adjusted shares
   const yieldData = majorPlayerData.map(p => ({ value: p.science, cities: p.cities }));
-  const scienceShare = computeCityAdjustedShare(raw.sciencePerTurn, raw.cities, yieldData);
-  const cultureShare = computeCityAdjustedShare(raw.culturePerTurn, raw.cities,
-    majorPlayerData.map(p => ({ value: p.culture, cities: p.cities })));
-  const tourismShare = computeCityAdjustedShare(raw.tourismPerTurn, raw.cities,
-    majorPlayerData.map(p => ({ value: p.tourism, cities: p.cities })));
-  const goldShare = computeCityAdjustedShare(raw.goldPerTurn, raw.cities,
-    majorPlayerData.map(p => ({ value: p.gold, cities: p.cities })));
-  const faithShare = computeCityAdjustedShare(raw.faithPerTurn, raw.cities,
-    majorPlayerData.map(p => ({ value: p.faith, cities: p.cities })));
-  const militaryShare = computeCityAdjustedShare(raw.militaryStrength, raw.cities,
-    majorPlayerData.map(p => ({ value: p.military, cities: p.cities })));
+  const scienceShare = scaleShare(computeCityAdjustedShare(raw.sciencePerTurn, raw.cities, yieldData), shareScale);
+  const cultureShare = scaleShare(computeCityAdjustedShare(raw.culturePerTurn, raw.cities,
+    majorPlayerData.map(p => ({ value: p.culture, cities: p.cities }))), shareScale);
+  const tourismShare = scaleShare(computeCityAdjustedShare(raw.tourismPerTurn, raw.cities,
+    majorPlayerData.map(p => ({ value: p.tourism, cities: p.cities }))), shareScale);
+  const goldShare = scaleShare(computeCityAdjustedShare(raw.goldPerTurn, raw.cities,
+    majorPlayerData.map(p => ({ value: p.gold, cities: p.cities }))), shareScale);
+  const faithShare = scaleShare(computeCityAdjustedShare(raw.faithPerTurn, raw.cities,
+    majorPlayerData.map(p => ({ value: p.faith, cities: p.cities }))), shareScale);
+  const militaryShare = scaleShare(computeCityAdjustedShare(raw.militaryStrength, raw.cities,
+    majorPlayerData.map(p => ({ value: p.military, cities: p.cities }))), shareScale);
 
   // Raw shares
-  const citiesShare = computeRawShare(raw.cities, majorPlayerData.map(p => p.cities));
-  const populationShare = computeRawShare(raw.population, majorPlayerData.map(p => p.population));
-  const votesShare = computeRawShare(raw.votes, majorPlayerData.map(p => p.votes));
-  const minorAlliesShare = computeRawShare(raw.minorAllies, majorPlayerData.map(p => p.minorAllies));
+  const citiesShare = scaleShare(computeRawShare(raw.cities, majorPlayerData.map(p => p.cities)), shareScale);
+  const populationShare = scaleShare(computeRawShare(raw.population, majorPlayerData.map(p => p.population)), shareScale);
+  const votesShare = scaleShare(computeRawShare(raw.votes, majorPlayerData.map(p => p.votes)), shareScale);
+  const minorAlliesShare = scaleShare(computeRawShare(raw.minorAllies, majorPlayerData.map(p => p.minorAllies)), shareScale);
 
   // Per-pop
   const productionPerPop = computePerPop(raw.productionPerTurn, raw.population);
@@ -431,8 +443,16 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     ideologyShare,
   };
 
+  // Compute max science/faith across all major players for normalization
+  let maxScience = 0;
+  let maxFaith = 0;
+  for (const p of majorPlayerData) {
+    if (p.science != null && p.science > maxScience) maxScience = p.science;
+    if (p.faith != null && p.faith > maxFaith) maxFaith = p.faith;
+  }
+
   // Game state vector (35 elements)
-  const gameStateVector = buildGameStateVector(partial as any);
+  const gameStateVector = buildGameStateVector(partial, maxScience, maxFaith);
 
   // Neighbor vector (32 elements)
   const neighborVector = playerSummary

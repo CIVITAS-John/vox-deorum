@@ -183,41 +183,46 @@ CREATE TABLE episodes (
   -- ══════════════════════════════════════════════════════════════════
 
   -- Game-state vector (35 elements), normalized/scaled:
-  --   [0]  era / 8                     (Ancient=0 .. Information=7)
-  --   [1]  grand_strategy / 4          (Conquest=1, Culture=2, Diplomacy=3, Science=4, None=0)
-  --   [2]  science_share               (already 0-1)
-  --   [3]  culture_share
-  --   [4]  tourism_share
-  --   [5]  gold_share
-  --   [6]  faith_share
-  --   [7]  production_per_pop              (clamped [1,20] then /20)
-  --   [8]  food_per_pop                   (clamped [1,20] then /20)
-  --   [9]  military_share
-  --   [10] cities_share
-  --   [11] population_share
-  --   [12] votes_share                 (0 if null)
-  --   [13] minor_allies_share
-  --   [14] technologies_gap / 10       (clamped to [0, 1])
-  --   [15] policies_gap / 5            (clamped to [0, 1])
-  --   [16] happiness_percentage / 100   (clamped to [0, 1])
-  --   [17] religion_percentage          (clamped to [0, 1])
-  --   [18] ideology_share               (already 0-1; 0 if no ideology)
-  --   [19] is_vassal                    (0 or 1)
-  --   [20] vassals / 3                  (clamped to [0, 1])
-  --   [21] war_weariness / 100          (clamped to [0, 1])
-  --   [22] active_wars / 3              (clamped to [0, 1])
-  --   [23] truces / 3                   (clamped to [0, 1])
-  --   [24] friends / 3                  (clamped to [0, 1])
-  --   [25] defensive_pacts / 3          (clamped to [0, 1])
-  --   [26] denouncements / 3            (clamped to [0, 1])
-  --   [27] domination_progress / 100           (0 if null, clamped to [0, 1])
-  --   [28] science_progress / 100              (0 if null, clamped to [0, 1])
-  --   [29] culture_progress / 100              (0 if null, clamped to [0, 1])
-  --   [30] diplomatic_progress / 100           (0 if null, clamped to [0, 1])
-  --   [31] domination_leader_progress / 100    (0 if null, clamped to [0, 1])
-  --   [32] science_leader_progress / 100       (0 if null, clamped to [0, 1])
-  --   [33] culture_leader_progress / 100       (0 if null, clamped to [0, 1])
-  --   [34] diplomatic_leader_progress / 100    (0 if null, clamped to [0, 1])
+  --   [0]  era / 8                              (Ancient=0 .. Information=7)
+  --   [1]  grand_strategy / 4                   (Conquest=1, Culture=2, Diplomacy=3, Science=4, None=0)
+  --   --- Shares (city-adjusted, scaled by knownMajors/totalMajors) ---
+  --   [2]  culture_share
+  --   [3]  tourism_share
+  --   [4]  gold_share
+  --   [5]  military_share
+  --   [6]  cities_share
+  --   [7]  population_share
+  --   [8]  votes_share                          (0 if null)
+  --   [9]  minor_allies_share
+  --   --- Per-turn / Per-pop metrics ---
+  --   [10] science_per_turn (normalized)        clamp(value / maxAcrossKnown, 0, 1)
+  --   [11] faith_per_turn (normalized)          clamp(value / maxAcrossKnown, 0, 1)
+  --   [12] production_per_pop                   (clamped [1,20] then /20)
+  --   [13] food_per_pop                         (clamped [1,20] then /20)
+  --   --- Gaps & percentages ---
+  --   [14] technologies_gap / 10                (clamped to [0, 1])
+  --   [15] policies_gap / 5                     (clamped to [0, 1])
+  --   [16] happiness_percentage / 100           (clamped to [0, 1])
+  --   [17] religion_percentage                  (clamped to [0, 1])
+  --   [18] ideology_share                       (already 0-1; 0 if no ideology)
+  --   --- Diplomatic ---
+  --   [19] is_vassal                            (0 or 1)
+  --   [20] vassals / 3                          (clamped to [0, 1])
+  --   [21] war_weariness / 100                  (clamped to [0, 1])
+  --   [22] active_wars / 3                      (clamped to [0, 1])
+  --   [23] truces / 3                           (clamped to [0, 1])
+  --   [24] friends / 3                          (clamped to [0, 1])
+  --   [25] defensive_pacts / 3                  (clamped to [0, 1])
+  --   [26] denouncements / 3                    (clamped to [0, 1])
+  --   --- Victory progress (player + leader × 4 types) ---
+  --   [27] domination_progress / 100            (0 if null, clamped to [0, 1])
+  --   [28] science_progress / 100               (0 if null, clamped to [0, 1])
+  --   [29] culture_progress / 100               (0 if null, clamped to [0, 1])
+  --   [30] diplomatic_progress / 100            (0 if null, clamped to [0, 1])
+  --   [31] domination_leader_progress / 100     (0 if null, clamped to [0, 1])
+  --   [32] science_leader_progress / 100        (0 if null, clamped to [0, 1])
+  --   [33] culture_leader_progress / 100        (0 if null, clamped to [0, 1])
+  --   [34] diplomatic_leader_progress / 100     (0 if null, clamped to [0, 1])
   game_state_vector   REAL[],
 
   -- Neighbor vector: 8 fixed slots, sorted by strength_ratio descending.

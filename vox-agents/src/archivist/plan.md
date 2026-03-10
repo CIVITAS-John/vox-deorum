@@ -253,7 +253,9 @@ interface SimilarityWeights {
 
 ---
 
-## Phase 5: Episode Retrieval Pipeline
+## Phase 5: Episode Retrieval Pipeline ✅ DONE
+
+**Implemented**: query-types.ts (pure interfaces), reader.ts (3-stage DuckDB pipeline: fuzzy→vector→MMR), game-state-vector.ts (adapter converting MCP reports→transformEpisode()), episode-utils.ts (requestEpisodes for live strategist, requestEpisodesFromTelemetry for post-game telepathist, formatEpisodeResults markdown formatter). Also modified: transformer.ts (reordered 35d vector, replaced science/faith shares with normalized per-turn values, added share scaling by knownMajors/totalMajors), extractor.ts (exported parseDiplomatics, extractAllVictoryProgress, DiplomaticCounts), types.ts (shared countPolicies, totalMajors in TurnContext), schema.md (updated vector spec).
 
 ### 5.1 Query Types (`query-types.ts`)
 
