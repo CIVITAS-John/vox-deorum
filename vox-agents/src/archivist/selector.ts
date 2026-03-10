@@ -83,12 +83,30 @@ export async function selectLandmarks(writer: EpisodeWriter, gameId: string): Pr
  * 3. Return selected indices
  */
 function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set<number> {
+  const n = candidates.length;
+
+  // Lazy pairwise similarity cache using flat typed arrays
+  const simCache = new Float64Array(n * n);
+  const computed = new Uint8Array(n * n);
+
+  /** Return cached similarity or compute, store symmetrically, and return. */
+  function getSim(i: number, j: number): number {
+    const key = i * n + j;
+    if (computed[key]) return simCache[key];
+    const val = compositeSimilarity(candidates[i].vectors, candidates[j].vectors);
+    simCache[key] = val;
+    simCache[j * n + i] = val;
+    computed[key] = 1;
+    computed[j * n + i] = 1;
+    return val;
+  }
+
   // Seed: pick episode closest to the median turn
   const sortedTurns = [...new Set(candidates.map(c => c.turn))].sort((a, b) => a - b);
   const medianTurn = sortedTurns[Math.floor(sortedTurns.length / 2)];
   let seedIdx = 0;
   let minDist = Infinity;
-  for (let i = 0; i < candidates.length; i++) {
+  for (let i = 0; i < n; i++) {
     const dist = Math.abs(candidates[i].turn - medianTurn);
     if (dist < minDist) {
       minDist = dist;
@@ -98,21 +116,19 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set
 
   const selectedIndices = new Set<number>([seedIdx]);
   // Track maximum similarity to any selected episode for each candidate (nearest-neighbor)
-  const maxSimToSelected = new Float64Array(candidates.length).fill(-Infinity);
+  const maxSimToSelected = new Float64Array(n).fill(-Infinity);
 
   // Initialize min similarities from the seed
-  for (let i = 0; i < candidates.length; i++) {
+  for (let i = 0; i < n; i++) {
     if (i === seedIdx) continue;
-    maxSimToSelected[i] = compositeSimilarity(
-      candidates[i].vectors, candidates[seedIdx].vectors
-    );
+    maxSimToSelected[i] = getSim(i, seedIdx);
   }
 
   while (selectedIndices.size < targetCount) {
     // Find candidate with lowest max-similarity to selected (most diverse nearest-neighbor)
     let bestIdx = -1;
     let bestMaxSim = Infinity;
-    for (let i = 0; i < candidates.length; i++) {
+    for (let i = 0; i < n; i++) {
       if (selectedIndices.has(i)) continue;
       if (maxSimToSelected[i] < bestMaxSim) {
         bestMaxSim = maxSimToSelected[i];
@@ -124,11 +140,9 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set
     selectedIndices.add(bestIdx);
 
     // Update max similarities with the newly selected episode
-    for (let i = 0; i < candidates.length; i++) {
+    for (let i = 0; i < n; i++) {
       if (selectedIndices.has(i)) continue;
-      const sim = compositeSimilarity(
-        candidates[i].vectors, candidates[bestIdx].vectors
-      );
+      const sim = getSim(i, bestIdx);
       if (sim > maxSimToSelected[i]) {
         maxSimToSelected[i] = sim;
       }

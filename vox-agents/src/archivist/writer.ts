@@ -166,6 +166,37 @@ export class EpisodeWriter {
     await this.db.deleteFrom('episodes').where('gameId', '=', gameId).execute();
   }
 
+  /** Delete episodes for a specific player in a game. */
+  async deletePlayerEpisodes(gameId: string, playerId: number): Promise<void> {
+    await this.db.deleteFrom('episodes')
+      .where('gameId', '=', gameId)
+      .where('playerId', '=', playerId)
+      .execute();
+  }
+
+  /** Fetch cached abstract embeddings for a specific player, keyed by turn. */
+  async getAbstractEmbeddings(gameId: string, playerId: number): Promise<Map<number, { abstract: string | null; abstractEmbedding: number[] }>> {
+    const rows = await this.db
+      .selectFrom('episodes')
+      .select(['turn', 'abstract', 'abstractEmbedding'])
+      .where('gameId', '=', gameId)
+      .where('playerId', '=', playerId)
+      .where('abstractEmbedding', 'is not', null)
+      .execute();
+    return new Map(rows.map(r => [r.turn, {
+      abstract: r.abstract as string | null,
+      abstractEmbedding: r.abstractEmbedding as unknown as number[],
+    }]));
+  }
+
+  /** Reset all landmark flags for a game so they can be re-selected fresh. */
+  async resetGameLandmarks(gameId: string): Promise<void> {
+    await this.db.updateTable('episodes')
+      .set({ isLandmark: false } as any)
+      .where('gameId', '=', gameId)
+      .execute();
+  }
+
   /** Fetch vectors needed for landmark selection (lightweight: only PKs + vectors). */
   async getGameEpisodeVectors(gameId: string): Promise<Array<{
     turn: number;

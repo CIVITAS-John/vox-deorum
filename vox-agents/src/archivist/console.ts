@@ -78,7 +78,7 @@ async function main() {
       });
 
       if (force) {
-        await writer.deleteGameEpisodes(entry.gameId);
+        await writer.resetGameLandmarks(entry.gameId);
       }
 
       // Open game DB for extraction
@@ -150,10 +150,40 @@ async function main() {
 
             // Phase 3: generate abstract embeddings (optional)
             if (!skipEmbeddings) {
-              const embeddings = await generateEmbeddings(episodes.map(e => e.abstract));
-              for (let i = 0; i < episodes.length; i++) {
-                episodes[i].abstractEmbedding = embeddings[i];
+              // In force mode, reuse cached embeddings where abstract text is unchanged
+              let reused = 0;
+              if (force) {
+                const cached = await writer.getAbstractEmbeddings(entry.gameId, player.playerId);
+                for (const ep of episodes) {
+                  const hit = cached.get(ep.turn);
+                  if (hit && hit.abstract === ep.abstract) {
+                    ep.abstractEmbedding = hit.abstractEmbedding;
+                    reused++;
+                  }
+                }
               }
+
+              // Generate embeddings only for episodes that still need them
+              const needsIdx: number[] = [];
+              for (let i = 0; i < episodes.length; i++) {
+                if (episodes[i].abstract != null && !episodes[i].abstractEmbedding) needsIdx.push(i);
+              }
+
+              if (needsIdx.length > 0) {
+                const embeddings = await generateEmbeddings(needsIdx.map(i => episodes[i].abstract));
+                for (let j = 0; j < needsIdx.length; j++) {
+                  episodes[needsIdx[j]].abstractEmbedding = embeddings[j];
+                }
+              }
+
+              if (reused > 0) {
+                logger.info(`Reused ${reused} cached embeddings, generated ${needsIdx.length} new`);
+              }
+            }
+
+            // In force mode, delete old rows now (after embeddings were cached above)
+            if (force) {
+              await writer.deletePlayerEpisodes(entry.gameId, player.playerId);
             }
 
             await writer.writeEpisodes(episodes);
