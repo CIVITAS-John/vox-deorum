@@ -95,6 +95,30 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   public fireAndForget: boolean = false;
 
   /**
+   * When true, this agent handles messages programmatically without an LLM.
+   * The handleMessage() method is called instead of the normal LLM execution path.
+   */
+  public programmatic: boolean = false;
+
+  /**
+   * Handles a message programmatically without invoking an LLM.
+   * Only called when `programmatic` is true. Override in subclasses.
+   *
+   * @param _parameters - The execution parameters
+   * @param _input - The agent input (e.g., EnvoyThread)
+   * @param _message - The user's message text
+   * @param _streamProgress - Callback to stream text deltas to the client
+   */
+  public async handleMessage(
+    _parameters: TParameters,
+    _input: TInput,
+    _message: string,
+    _streamProgress: (text: string) => void
+  ): Promise<void> {
+    throw new Error('handleMessage not implemented for programmatic agent');
+  }
+
+  /**
    * Gets the language model to use for this agent execution.
    * Can return undefined to use the default model from VoxContext.
    * 

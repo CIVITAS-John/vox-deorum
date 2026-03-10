@@ -20,6 +20,7 @@ import { SimpleStrategistStaffed } from "../strategist/agents/simple-strategist-
 import { KeywordLibrarian } from "../librarian/keyword-librarian.js";
 import { TalkativeTelepathist } from "../telepathist/talkative-telepathist.js";
 import { Summarizer } from "../telepathist/summarizer.js";
+import { EpisodeRetriever } from "../telepathist/episode-retriever.js";
 import { OracleAgent } from "../oracle/oracle-agent.js";
 
 /**
@@ -188,6 +189,7 @@ class AgentRegistry {
     // Register telepathist agents
     this.register(new TalkativeTelepathist());
     this.register(new Summarizer());
+    this.register(new EpisodeRetriever());
 
     // Register oracle agent
     this.register(new OracleAgent());

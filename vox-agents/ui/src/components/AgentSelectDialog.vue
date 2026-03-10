@@ -173,9 +173,18 @@ function searchRoles(event: { query: string }) {
   );
 }
 
-/** Proceed from Step 1 to Step 2 */
+/** Proceed from Step 1 to Step 2, or skip for database contexts */
 function proceedToIdentity() {
   if (!selectedAgent.value) return;
+
+  if (!props.contextId) {
+    // Database context — skip identity step, use defaults
+    userRole.value = 'Observer';
+    selectedPlayerOption.value = { label: 'Observer', value: 'observer' };
+    confirmSelection();
+    return;
+  }
+
   currentStep.value = 'identity';
   loadPlayerOptions();
 }
@@ -375,7 +384,7 @@ onMounted(() => {
           @click="closeDialog"
         />
         <Button
-          label="Next"
+          :label="props.contextId ? 'Next' : 'Start Chat'"
           :disabled="!selectedAgent"
           @click="proceedToIdentity"
         />

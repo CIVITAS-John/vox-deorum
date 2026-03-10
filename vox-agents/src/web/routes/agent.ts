@@ -301,12 +301,20 @@ export function createAgentRoutes(): Router {
         }
       }
 
-      await voxContext.execute(
-        thread.agent,
-        params,
-        thread,
-        streamCallback
-      );
+      // Check if the agent handles messages programmatically (no LLM)
+      const agent = agentRegistry.get(thread.agent);
+      if (agent?.programmatic) {
+        await agent.handleMessage(params, thread, message, (text: string) => {
+          sendEvent('message', { type: 'text-delta', text, id: 'programmatic' });
+        });
+      } else {
+        await voxContext.execute(
+          thread.agent,
+          params,
+          thread,
+          streamCallback
+        );
+      }
 
       sendEvent('done', {
         sessionId: thread.id,
