@@ -1,5 +1,5 @@
 /**
- * @module strategist/index
+ * @module strategist/console
  *
  * Entry point for the Strategist workflow.
  * Manages command-line argument parsing, session configuration,

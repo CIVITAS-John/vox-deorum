@@ -9,7 +9,7 @@ Uses Kysely + `kysely-duckdb` for type-safe DuckDB access.
 ## Dependencies
 
 - `kysely-duckdb` + `@duckdb/node-api` (add to root `package.json`)
-- npm script: `"archivist": "tsx src/archivist/index.ts"` in `vox-agents/package.json`
+- npm script: `"archivist": "tsx src/archivist/console.ts"` in `vox-agents/package.json`
 
 ## File Structure
 

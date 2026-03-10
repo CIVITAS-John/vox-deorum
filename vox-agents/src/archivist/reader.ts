@@ -10,7 +10,7 @@
 
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import { createLogger } from '../utils/logger.js';
-import { buildSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
+import { buildSimilaritySql, buildPairwiseSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
 import { eraMap, retrievalWeights, retrievalNoEmbeddingWeights } from './types.js';
 import { generateEmbeddings } from './embeddings.js';
 import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot, ShareDelta } from './query-types.js';

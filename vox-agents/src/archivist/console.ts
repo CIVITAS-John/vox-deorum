@@ -1,5 +1,5 @@
 /**
- * @module archivist/index
+ * @module archivist/console
  *
  * CLI entry point for the Archivist pipeline.
  * Processes archived Civilization V game databases into a DuckDB episodes table,

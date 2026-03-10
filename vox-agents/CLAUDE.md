@@ -25,7 +25,7 @@ This guide provides essential patterns and conventions for developing Vox Agents
 The system supports standalone and component modes:
 
 #### Standalone Mode
-- Entry point: `src/strategist/index.ts`
+- Entry point: `src/strategist/console.ts`
 - Configure with StrategistSessionConfig
 - Specify LLM-controlled players via llmPlayers array
 - Enable autoPlay for autonomous game progression
@@ -141,9 +141,9 @@ Different features require different testing infrastructure:
 
 ### Multiple Entry Points
 - `npm run dev` - Development mode with hot reload (index.ts)
-- `npm run strategist` - Run strategist workflow (strategist/index.ts)
+- `npm run strategist` - Run strategist workflow (strategist/console.ts)
 - `npm run telepathist` - Run telepathist console (telepathist/console.ts)
-- `npm run oracle -- -c <experiment.js>` - Run Oracle prompt replay experiment (oracle/index.ts)
+- `npm run oracle -- -c <experiment.js>` - Run Oracle prompt replay experiment (oracle/console.ts)
 - **Each workflow has dedicated entry point** with shared instrumentation
 - Instrumentation loaded via --import flag for telemetry
 

@@ -45,6 +45,7 @@ ${summarizerGuidelines}
 Respond with a JSON object containing these fields (generate them in this order, so earlier fields can provide context for later ones):
 1. "situation": Detailed paragraphs summarizing, from an OBSERVER perspective, the world state: military situation, economic state, diplomatic state, research progress, and notable events. 
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
+ - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
 2. "abstract": A context-agnostic generalized summary of the same events. Replace all concrete names (civilizations, leaders, cities, technologies) with generic descriptions. This should read as a universal game scenario.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
 3. "decisions": A detailed paragraph covering the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.
@@ -75,6 +76,7 @@ ${summarizerGuidelines}
 Respond with a JSON object containing these fields (generate them in this order, so earlier fields provide context for later ones):
 1. "situation": An observation paragraph of the phase's world state arc: how the military, economic, diplomatic, and research landscape evolved across these turns.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
+ - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
 2. "abstract": A context-agnostic generalized phase summary. Replace all concrete names with generic descriptions. This should read as a universal game phase description.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
 3. "decisions": A narrative paragraph of the phase's strategic choices: the key decisions made, their rationale, and their outcomes.

@@ -1,5 +1,5 @@
 /**
- * @module oracle/index
+ * @module oracle/console
  *
  * CLI entry point for Oracle experiments.
  * Dynamically imports user experiment scripts and runs them through runExperiment().

@@ -203,13 +203,6 @@ export function countPolicies(policyBranches: Record<string, string[] | number> 
   return total;
 }
 
-/** Weights for batch landmark selection (no embedding, game state dominant) */
-export const landmarkWeights: SimilarityWeights = {
-  gameState: 0.6,
-  neighbor: 0.4,
-  embedding: 0,
-};
-
 /** Weights for runtime retrieval with abstract embedding available */
 export const retrievalWeights: SimilarityWeights = {
   gameState: 0.4,
@@ -219,7 +212,7 @@ export const retrievalWeights: SimilarityWeights = {
 
 /** Weights for runtime retrieval without abstract embedding */
 export const retrievalNoEmbeddingWeights: SimilarityWeights = {
-  gameState: 0.55,
-  neighbor: 0.45,
+  gameState: 0.6,
+  neighbor: 0.4,
   embedding: 0,
 };
