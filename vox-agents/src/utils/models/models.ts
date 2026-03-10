@@ -5,7 +5,7 @@
  * Handles creation and configuration of language models from various providers with middleware support.
  */
 
-import { LanguageModel, ProviderMetadata, extractReasoningMiddleware, wrapLanguageModel } from 'ai';
+import { type EmbeddingModel, LanguageModel, ProviderMetadata, extractReasoningMiddleware, wrapLanguageModel } from 'ai';
 import { config } from '../config.js';
 import type { Model } from '../../types/index.js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
@@ -271,4 +271,32 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   return {
     [model.provider]: model.options
   };
+}
+
+/**
+ * Get an embedding model instance from a model configuration.
+ * The config should have `options.embeddingSize` set to mark it as an embedding model.
+ *
+ * @param config - Model configuration object (same LLMConfig type as chat models)
+ * @returns EmbeddingModel instance from the AI SDK
+ * @throws Error if the provider doesn't support embedding models
+ */
+export function getEmbeddingModel(config: Model): EmbeddingModel<string> {
+  switch (config.provider) {
+    case "openai":
+      return createOpenAI().textEmbeddingModel(config.name);
+    case "google":
+      return createGoogleGenerativeAI().textEmbeddingModel(config.name);
+    case "openai-compatible": {
+      if (!process.env.OPENAI_COMPATIBLE_URL)
+        throw new Error("OPENAI_COMPATIBLE_URL not set for embedding model");
+      return createOpenAICompatible({
+        baseURL: process.env.OPENAI_COMPATIBLE_URL,
+        name: config.provider,
+        apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
+      }).textEmbeddingModel(config.name);
+    }
+    default:
+      throw new Error(`Embedding provider '${config.provider}' is not supported. Use openai, google, or openai-compatible.`);
+  }
 }

@@ -2,7 +2,7 @@
 /**
  * Dialog component for editing advanced model options.
  * Handles all LLMConfig options: toolMiddleware, reasoningEffort,
- * thinkMiddleware, concurrencyLimit, and systemPromptFirst.
+ * thinkMiddleware, concurrencyLimit, systemPromptFirst, and embeddingSize.
  */
 import { ref, watch } from 'vue';
 import Dialog from 'primevue/dialog';
@@ -36,6 +36,7 @@ const localReasoningEffort = ref<string | null>(null);
 const localThinkMiddleware = ref(false);
 const localConcurrencyLimit = ref<number | null>(null);
 const localSystemPromptFirst = ref(false);
+const localEmbeddingSize = ref<number | null>(null);
 
 // Sync from model props when dialog becomes visible
 watch(() => props.visible, (visible) => {
@@ -46,6 +47,7 @@ watch(() => props.visible, (visible) => {
     localThinkMiddleware.value = !!opts.thinkMiddleware;
     localConcurrencyLimit.value = opts.concurrencyLimit ?? null;
     localSystemPromptFirst.value = opts.systemPromptFirst ?? false;
+    localEmbeddingSize.value = opts.embeddingSize ?? null;
   }
 });
 
@@ -57,6 +59,7 @@ function handleApply() {
   if (localThinkMiddleware.value) options.thinkMiddleware = 'think';
   if (localConcurrencyLimit.value != null) options.concurrencyLimit = localConcurrencyLimit.value;
   if (localSystemPromptFirst.value) options.systemPromptFirst = true;
+  if (localEmbeddingSize.value != null) options.embeddingSize = localEmbeddingSize.value;
 
   emit('apply', Object.keys(options).length > 0 ? (options as LLMConfig['options']) : undefined);
   emit('update:visible', false);
@@ -113,6 +116,18 @@ function handleClose() {
           :min="1"
           :max="50"
           placeholder="5 (default)"
+          class="field-input"
+        />
+      </div>
+
+      <div class="field-row">
+        <label>Embedding Size</label>
+        <InputNumber
+          v-model="localEmbeddingSize"
+          :min="64"
+          :max="8192"
+          placeholder="Not an embedding model"
+          showButtons
           class="field-input"
         />
       </div>

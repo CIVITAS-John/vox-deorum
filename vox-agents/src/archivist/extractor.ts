@@ -133,8 +133,7 @@ export async function extractTurnContexts(
  * @param gameDb - Kysely connection to the game knowledge database
  * @param telepathistDbPath - Path to the player's telepathist database (may not exist)
  * @param playerId - Player ID within the game
- * @param civilization - Civilization short description (e.g. "Rome")
- * @param leaderName - Leader name (e.g. "Augustus Caesar") — used to match CityInformation.Owner
+ * @param civilization - Civilization short description (e.g. "Rome") — used to match CityInformation.Owner
  * @param turnContexts - Pre-built turn contexts from extractTurnContexts()
  * @param gameId - Game identifier
  * @param victoryPlayerId - Player ID of the game winner (-1 if no winner)
@@ -145,7 +144,6 @@ export async function extractPlayerEpisodes(
   telepathistDbPath: string,
   playerId: number,
   civilization: string,
-  leaderName: string,
   turnContexts: Map<number, TurnContext>,
   gameId: string,
   victoryPlayerId: number
@@ -214,7 +212,7 @@ export async function extractPlayerEpisodes(
     // --- City aggregates (production, food) ---
     const { productionPerTurn, foodPerTurn } = aggregateCityYields(
       ctx.cityInformations,
-      leaderName
+      civilization
     );
 
     // --- Policies count ---
@@ -387,17 +385,17 @@ function parseDiplomatics(
   return result;
 }
 
-/** Sum production and food per turn from cities owned by this player. */
+/** Sum production and food per turn from cities owned by this player's civilization. */
 function aggregateCityYields(
   cityInformations: Selectable<CityInformation>[],
-  leaderName: string
+  civilization: string
 ): { productionPerTurn: number | null; foodPerTurn: number | null } {
   let production = 0;
   let food = 0;
   let found = false;
 
   for (const city of cityInformations) {
-    if (city.Owner === leaderName) {
+    if (city.Owner === civilization) {
       found = true;
       production += (city.ProductionPerTurn as number) ?? 0;
       food += (city.FoodPerTurn as number) ?? 0;

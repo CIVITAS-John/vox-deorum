@@ -146,8 +146,8 @@ CREATE TABLE episodes (
   tourism_share       REAL,       -- tourism_adj / sum(all players' tourism_adj)
   gold_share          REAL,       -- gold_adj / sum(all players' gold_adj)
   faith_share         REAL,       -- faith_adj / sum(all players' faith_adj)
-  production_per_pop  REAL,       -- production_per_turn / population, scaled to [0,1] via clamp(value, 1, 20) then /20
-  food_per_pop        REAL,       -- food_per_turn / population, scaled to [0,1] via clamp(value, 1, 20) then /20
+  production_per_pop  REAL,       -- production_per_turn / population (raw ratio)
+  food_per_pop        REAL,       -- food_per_turn / population (raw ratio)
   military_share      REAL,       -- military_adj / sum(all players' military_adj)
   cities_share        REAL,       -- cities / sum(all players' cities)
   population_share    REAL,       -- population / sum(all players' population)
@@ -190,8 +190,8 @@ CREATE TABLE episodes (
   --   [4]  tourism_share
   --   [5]  gold_share
   --   [6]  faith_share
-  --   [7]  production_per_pop              (already 0-1)
-  --   [8]  food_per_pop                   (already 0-1)
+  --   [7]  production_per_pop              (clamped [1,20] then /20)
+  --   [8]  food_per_pop                   (clamped [1,20] then /20)
   --   [9]  military_share
   --   [10] cities_share
   --   [11] population_share

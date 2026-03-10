@@ -7,11 +7,17 @@
  * The table is created via raw SQL to support DuckDB-specific REAL[] array columns.
  */
 
-import { Kysely, CamelCasePlugin, sql } from 'kysely';
+import { Kysely, CamelCasePlugin, sql, type RawBuilder } from 'kysely';
 import { DuckDbDialect } from 'kysely-duckdb';
 import { DuckDBInstance } from '@duckdb/node-api';
 import { createLogger } from '../utils/logger.js';
 import type { Episode, EpisodesDatabase } from './types.js';
+
+/** Convert a JS number array to a DuckDB REAL[] literal, or null if absent. */
+function toRealArray(arr: number[] | null | undefined): RawBuilder<number[]> | null {
+  if (!arr) return null;
+  return sql.raw<number[]>(`[${arr.join(',')}]::REAL[]`);
+}
 
 const TABLE_DDL = `
 CREATE TABLE IF NOT EXISTS episodes (
@@ -143,7 +149,14 @@ export class EpisodeWriter {
     const chunkSize = 500;
     for (let i = 0; i < episodes.length; i += chunkSize) {
       const chunk = episodes.slice(i, i + chunkSize);
-      await this.db.insertInto('episodes').values(chunk).execute();
+      // Convert REAL[] fields to DuckDB literals — @duckdb/node-api can't bind JS arrays
+      const rows = chunk.map(ep => ({
+        ...ep,
+        gameStateVector: toRealArray(ep.gameStateVector),
+        neighborVector: toRealArray(ep.neighborVector),
+        abstractEmbedding: toRealArray(ep.abstractEmbedding),
+      } as any));
+      await this.db.insertInto('episodes').values(rows).execute();
     }
     this.logger.info(`Wrote ${episodes.length} episodes`);
   }

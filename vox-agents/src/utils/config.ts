@@ -197,6 +197,12 @@ export const defaultConfig: VoxAgentsConfig = {
         thinkMiddleware: 'think'
       }
     },
+    'openai-compatible/embedder': {
+      provider: 'openai-compatible',
+      name: 'embedder',
+      options: { embeddingSize: 4096 }
+    },
+    'embedder': 'openai-compatible/embedder',
   },
   configsDir: 'configs'
 };

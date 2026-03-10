@@ -31,6 +31,7 @@ const config = ref<VoxAgentsConfig | null>(null);
 // LLM Configuration State
 const agentMappings = ref<AgentMapping[]>([]);
 const modelDefinitions = ref<LLMConfig[]>([]);
+const embedderModel = ref<string | null>(null);
 
 // Agent registry state
 const agents = ref<AgentInfo[]>([]);
@@ -42,12 +43,18 @@ const confirm = useConfirm();
 const modelOptionsVisible = ref(false);
 const editingModel = ref<LLMConfig | null>(null);
 
-// Computed available models for dropdown
+// Computed available chat models for agent dropdowns (excludes embedding models)
 const availableModels = computed(() => {
-  return modelDefinitions.value.map(m => ({
-    label: m.id,
-    value: m.id
-  }));
+  return modelDefinitions.value
+    .filter(m => !m.options?.embeddingSize)
+    .map(m => ({ label: m.id, value: m.id }));
+});
+
+// Computed available embedding models for the embedder dropdown
+const embeddingModels = computed(() => {
+  return modelDefinitions.value
+    .filter(m => m.options?.embeddingSize)
+    .map(m => ({ label: m.id, value: m.id }));
 });
 
 // Computed agent types from dynamic registry
@@ -100,8 +107,9 @@ async function loadConfig() {
     apiKeys.value = loadedKeys;
 
     // Parse LLM configuration
-    const { mappings, definitions } = parseLLMConfig(data.config.llms || {});
+    const { mappings, definitions, embedder } = parseLLMConfig(data.config.llms || {});
     agentMappings.value = mappings;
+    embedderModel.value = embedder;
     // Ensure all model definitions have an options object
     modelDefinitions.value = definitions.map(def => ({
       ...def,
@@ -198,6 +206,7 @@ function modelOptionsSummary(model: LLMConfig): string {
   if (opts.thinkMiddleware) parts.push('Think tag postprocessing: on');
   if (opts.concurrencyLimit != null) parts.push(`Concurrency: ${opts.concurrencyLimit}`);
   if (opts.systemPromptFirst) parts.push('Sys first: on');
+  if (opts.embeddingSize) parts.push(`Embedding: ${opts.embeddingSize}d`);
   return parts.join(' | ');
 }
 
@@ -240,7 +249,7 @@ async function saveConfig() {
     // Build the updated config with LLM settings
     const updatedConfig = {
       ...config.value!,
-      llms: buildLLMConfig(agentMappings.value, modelDefinitions.value)
+      llms: buildLLMConfig(agentMappings.value, modelDefinitions.value, embedderModel.value)
     };
 
     await apiClient.updateCurrentConfig({
@@ -402,6 +411,18 @@ async function saveConfig() {
               class="delete-btn"
             />
           </div>
+          <div class="field-row">
+            <span class="agent-input embedder-label">Embedder</span>
+            <Dropdown
+              v-model="embedderModel"
+              :options="embeddingModels"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="No embedding model"
+              showClear
+              class="model-dropdown"
+            />
+          </div>
         </div>
       </template>
     </Card>
@@ -518,5 +539,13 @@ async function saveConfig() {
 .api-keys-table .input-cell :deep(.p-password input),
 .api-keys-table .input-cell :deep(.p-inputtext) {
   width: 28rem !important;
+}
+
+.embedder-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--p-text-muted-color);
+  display: flex;
+  align-items: center;
 }
 </style>

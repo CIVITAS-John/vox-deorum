@@ -114,7 +114,7 @@ export interface Episode extends RawEpisode {
   votesShare: number | null;
   minorAlliesShare: number | null;
 
-  // Per-population metrics, scaled to [0, 1]
+  // Per-population metrics (raw ratio: metric / population)
   productionPerPop: number | null;
   foodPerPop: number | null;
 

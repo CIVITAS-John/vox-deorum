@@ -13,9 +13,11 @@ import type { AgentMapping, LLMConfig } from '../utils/types';
 export function parseLLMConfig(llms: Record<string, LLMConfig | string>): {
   mappings: AgentMapping[];
   definitions: LLMConfig[];
+  embedder: string | null;
 } {
   const mappings: AgentMapping[] = [];
   const definitions: Record<string, LLMConfig> = {};
+  let embedder: string | null = null;
 
   // Collect all model definitions (objects with provider and name)
   for (const [key, value] of Object.entries(llms)) {
@@ -27,18 +29,21 @@ export function parseLLMConfig(llms: Record<string, LLMConfig | string>): {
     }
   }
 
-  // Collect all mappings
+  // Collect all mappings, separating out the embedder
   for (const [key, value] of Object.entries(llms)) {
     if (typeof value === 'string') {
-      // It's a string alias/mapping
-      mappings.push({
-        agent: key,
-        model: value
-      });
+      if (key === 'embedder') {
+        embedder = value;
+      } else {
+        mappings.push({
+          agent: key,
+          model: value
+        });
+      }
     }
   }
 
-  return { mappings, definitions: Object.values(definitions) };
+  return { mappings, definitions: Object.values(definitions), embedder };
 }
 
 /**
@@ -50,7 +55,8 @@ export function parseLLMConfig(llms: Record<string, LLMConfig | string>): {
  */
 export function buildLLMConfig(
   mappings: AgentMapping[],
-  definitions: LLMConfig[]
+  definitions: LLMConfig[],
+  embedder?: string | null
 ): Record<string, string | LLMConfig> {
   const llms: Record<string, string | LLMConfig> = {};
 
@@ -78,6 +84,11 @@ export function buildLLMConfig(
     if (mapping.agent && mapping.model) {
       llms[mapping.agent] = mapping.model;
     }
+  }
+
+  // Add embedder mapping if set
+  if (embedder) {
+    llms['embedder'] = embedder;
   }
 
   return llms;

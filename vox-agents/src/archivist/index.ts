@@ -6,7 +6,7 @@
  * where each row is a player-turn snapshot for LLM-controlled players.
  *
  * Usage:
- *   npm run archivist -- -a <archive-path> -o <output.duckdb> [-g <gameId>] [--force]
+ *   npm run archivist -- -a <archive-path> -o <output.duckdb> [-g <gameId>] [--force] [--skip-telepathist] [--skip-embeddings] [--no-ui]
  */
 
 import path from 'node:path';
@@ -15,9 +15,11 @@ import { DuckDBInstance } from '@duckdb/node-api';
 import { createLogger } from '../utils/logger.js';
 import { openReadonlyGameDb, scanArchive } from './scanner.js';
 import { EpisodeWriter } from './writer.js';
-import type { ArchiveEntry, Episode } from './types.js';
+import type { ArchiveEntry } from './types.js';
 import { prepareTelepathist } from './telepathist-prep.js';
 import { extractPlayerEpisodes, extractTurnContexts } from './extractor.js';
+import { transformEpisode } from './transformer.js';
+import { generateEmbeddings } from './embeddings.js';
 
 const logger = createLogger('Archivist');
 
@@ -29,6 +31,7 @@ const { values } = parseArgs({
     game: { type: 'string', short: 'g' },
     force: { type: 'boolean', default: false },
     'skip-telepathist': { type: 'boolean', default: false },
+    'skip-embeddings': { type: 'boolean', default: false },
     'no-ui': { type: 'boolean', default: false },
   },
   strict: false,
@@ -41,9 +44,10 @@ async function main() {
   const gameFilter = values.game as string | undefined;
   const force = values.force as boolean;
   const skipTelepathist = values['skip-telepathist'] as boolean;
+  const skipEmbeddings = values['skip-embeddings'] as boolean;
   const noUi = values['no-ui'] as boolean;
 
-  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, skipTelepathist, noUi });
+  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, skipTelepathist, skipEmbeddings, noUi });
 
   // Step 1: Scan archive for game entries
   const entries: ArchiveEntry[] = await scanArchive(archivePath, gameFilter);
@@ -119,14 +123,12 @@ async function main() {
             // Phase 2: extract raw episodes
             const info = playerInfoMap.get(player.playerId);
             const civilization = info?.Civilization ?? 'Unknown';
-            const leaderName = info?.Leader ?? 'Unknown';
 
             const rawEpisodes = await extractPlayerEpisodes(
               gameDb,
               player.telepathistDbPath,
               player.playerId,
               civilization,
-              leaderName,
               turnContexts,
               entry.gameId,
               victoryPlayerId
@@ -134,13 +136,27 @@ async function main() {
 
             logger.info(`Extracted ${rawEpisodes.length} raw episodes for player ${player.playerId}`);
 
-            // Write raw episodes (computed fields default to NULL until transformer is implemented)
-            await writer.writeEpisodes(rawEpisodes as Episode[]);
+            // Phase 3: transform raw episodes into full episodes with computed fields
+            const episodes = rawEpisodes.map(raw => {
+              const tc = turnContexts.get(raw.turn);
+              if (!tc) throw new Error(`Missing TurnContext for turn ${raw.turn}`);
+              return transformEpisode(raw, tc);
+            });
+
+            // Phase 3: generate abstract embeddings (optional)
+            if (!skipEmbeddings) {
+              const embeddings = await generateEmbeddings(episodes.map(e => e.abstract));
+              for (let i = 0; i < episodes.length; i++) {
+                episodes[i].abstractEmbedding = embeddings[i];
+              }
+            }
+
+            await writer.writeEpisodes(episodes);
 
             processed++;
           } catch (playerError) {
             logger.error(`Error processing player ${player.playerId} in game ${entry.gameId}`, {
-              error: playerError,
+              error: playerError instanceof Error ? { message: playerError.message, stack: playerError.stack } : playerError,
             });
             errors++;
           }
@@ -151,9 +167,7 @@ async function main() {
         await gameDb.destroy();
       }
     } catch (error) {
-      logger.error(`Error processing game ${entry.gameId}`, {
-        error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
-      });
+      logger.error(`Error processing game ${entry.gameId}`, error);
       errors++;
     }
   }

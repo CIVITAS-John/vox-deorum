@@ -28,6 +28,8 @@ export interface LLMConfig {
     concurrencyLimit?: number;
     reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high';
     systemPromptFirst?: boolean;
+    /** When set, marks this model as an embedding model; value is the target embedding dimension */
+    embeddingSize?: number;
     [key: string]: any;
   };
 }

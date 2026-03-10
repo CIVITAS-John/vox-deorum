@@ -146,7 +146,9 @@ No changes to `turn-preparation.ts` needed — it handles resume natively.
 
 ---
 
-## Phase 3: Transformation
+## Phase 3: Transformation ✅ DONE
+
+**Implemented:** transformer.ts computes all derived Episode fields from RawEpisode + TurnContext: city-adjusted shares, raw shares, per-pop metrics, tech/policy gaps, ideology detection, religion percentage, 35d game state vector, and 32d neighbor vector. Neighbor vector sorts by distance rank (Neighbors before Close) then by strength_ratio descending, capped at 8 slots with neutral padding. embeddings.ts uses AI SDK `embedMany()` with the configured `embedder` model alias, trimming embeddings to `embeddingSize` when actual dimension exceeds target. Graceful degradation returns all nulls on failure. Model config system expanded: `LLMConfig.options.embeddingSize` marks embedding models, `getEmbeddingModel()` added to models.ts, WebUI filters embedding models from agent dropdowns and provides dedicated embedder dropdown. index.ts wires transformer + embeddings with `--skip-embeddings` CLI flag.
 
 ### 3.1 Transformer (`transformer.ts`)
 
@@ -160,15 +162,13 @@ Per-player, per-turn. TurnContext provides all-player data for cross-player comp
 - **Gaps**: `player.tech - max(all.tech)`, same for policies
 - **Ideology**: detect from PolicyBranches keys (Freedom/Order/Autocracy), count allies, compute share
 - **Game state vector** (35 elements): assemble per schema.md spec with normalization and clamping
-- **Neighbor vector** (32 elements): filter neighbors by distance/stance, compute 4 features each, sort by strength_ratio, pad to 8 slots with `[0.2, 0.5, 0.5, 0.5]`
-
-Helpers: `parseRelationships()`, `parseStance()`, `computeShares()`, `buildGameStateVector()`, `buildNeighborVector()`, `clamp()`
+- **Neighbor vector** (32 elements): filter neighbors by distance/stance, compute 4 features each, sort by distance rank then strength_ratio, pad to 8 slots with `[0.2, 0.5, 0.5, 0.5]`
 
 ### 3.2 Embeddings (`embeddings.ts`)
 
-- Use AI SDK embedding support
-- `generateEmbeddings(abstracts: string[]): Promise<number[][]>`
-- Configurable model, rate limited with `pLimit`
+- AI SDK `embedMany()` with `embedder` model alias resolved via `getModelConfig('embedder')`
+- Dimension trimming: slices to `[0, embeddingSize)` when actual > target
+- Graceful degradation: returns all nulls on failure
 
 ---
 

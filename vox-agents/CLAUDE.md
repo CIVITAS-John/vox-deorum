@@ -10,6 +10,7 @@ This guide provides essential patterns and conventions for developing Vox Agents
 - Model names and options configurable per provider
 - Middleware support for provider-specific adaptations
 - Apply middleware based on model characteristics (e.g., gemma-3 models)
+- **Embedding models**: Set `options.embeddingSize` on a model config to mark it as an embedding model. Use the `embedder` alias in `config.llms` to point to the active embedding model. Call `getEmbeddingModel()` from `utils/models/models.ts` to get an AI SDK `EmbeddingModel` instance. WebUI filters embedding models from agent dropdowns and shows them in a dedicated embedder dropdown.
 
 ### Prompt Engineering Conventions
 - Use markdown-style structured prompts for clarity
