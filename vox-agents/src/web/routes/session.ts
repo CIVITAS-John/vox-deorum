@@ -327,8 +327,9 @@ export function createSessionRoutes(): Router {
       const result = await mcpClient.callTool('get-players', {});
 
       // Extract the actual data from the MCP result structure
-      let playersData = result.structuredContent ?? result;
-      playersData = playersData.Result ?? playersData;
+      const rawResult = result as Record<string, unknown>;
+      let playersData = (rawResult.structuredContent ?? rawResult) as Record<string, unknown>;
+      playersData = (playersData.Result ?? playersData) as Record<string, unknown>;
 
       // Type the data properly as PlayersReport
       const allPlayers = playersData as PlayersReport;

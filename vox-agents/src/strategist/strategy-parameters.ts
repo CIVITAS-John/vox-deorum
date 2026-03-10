@@ -58,8 +58,8 @@ export interface GameState {
  * @param result - The result from a tool call
  * @returns True if the result indicates an error
  */
-function isErrorResult(result: any): boolean {
-  return result && typeof result === 'object' && 'isError' in result && result.isError === true;
+function isErrorResult(result: unknown): boolean {
+  return result != null && typeof result === 'object' && 'isError' in result && (result as Record<string, unknown>).isError === true;
 }
 
 /**
@@ -67,9 +67,12 @@ function isErrorResult(result: any): boolean {
  * @param result - The error result object
  * @returns A string description of the error
  */
-function extractErrorText(result: any): string {
-  if (result?.error) return String(result.error);
-  if (result?.message) return String(result.message);
+function extractErrorText(result: unknown): string {
+  if (result != null && typeof result === 'object') {
+    const obj = result as Record<string, unknown>;
+    if (obj.error) return String(obj.error);
+    if (obj.message) return String(obj.message);
+  }
   return 'Unknown error';
 }
 
@@ -87,16 +90,16 @@ export async function refreshGameState(
 ): Promise<GameState> {
   // Get the game metadata as a prerequisite
   parameters.metadata = parameters.metadata ??
-    await context.callTool("get-metadata", { PlayerID: parameters.playerID }, parameters);
+    await context.callTool<GameMetadata>("get-metadata", { PlayerID: parameters.playerID }, parameters);
 
   // Get the information
   const [players, events, cities, options, victory, military] = await Promise.all([
-    context.callTool("get-players", {}, parameters),
-    context.callTool("get-events", {}, parameters),
-    context.callTool("get-cities", {}, parameters),
-    context.callTool("get-options", { Mode: parameters.mode }, parameters),
-    context.callTool("get-victory-progress", {}, parameters),
-    context.callTool("get-military-report", {}, parameters),
+    context.callTool<PlayersReport>("get-players", {}, parameters),
+    context.callTool<EventsReport>("get-events", {}, parameters),
+    context.callTool<CitiesReport>("get-cities", {}, parameters),
+    context.callTool<OptionsReport>("get-options", { Mode: parameters.mode }, parameters),
+    context.callTool<VictoryProgressReport>("get-victory-progress", {}, parameters),
+    context.callTool<MilitaryReport>("get-military-report", {}, parameters),
   ]);
 
   // Validate all results are defined and not errors

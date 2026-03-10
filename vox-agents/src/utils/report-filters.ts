@@ -52,9 +52,9 @@ function omitFields<T extends Record<string, any>, K extends keyof T>(
  * Preserves the _markdownConfig property from source to target
  * This ensures jsonToMarkdown compatibility after filtering
  */
-function preserveMarkdownConfig<T>(source: any, target: T): T {
-  if (source._markdownConfig) {
-    (target as any)._markdownConfig = source._markdownConfig;
+function preserveMarkdownConfig<T>(source: Record<string, unknown>, target: T): T {
+  if ('_markdownConfig' in source && source._markdownConfig) {
+    (target as Record<string, unknown>)._markdownConfig = source._markdownConfig;
   }
   return target;
 }

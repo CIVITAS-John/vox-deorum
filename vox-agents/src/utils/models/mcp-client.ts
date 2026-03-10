@@ -43,6 +43,19 @@ export interface GameStateNotification {
 }
 
 /**
+ * Full game event notification params emitted by the MCP client.
+ * Extends GameStateNotification with event-specific fields from the server.
+ */
+export interface GameEventNotification extends GameStateNotification {
+  event: string;
+  playerID: number;
+  turn: number;
+  latestID: number;
+  gameID?: string;
+  [key: string]: unknown;
+}
+
+/**
  * MCP Client wrapper with notification support.
  * Manages connection to MCP server and provides event-driven access to game state changes.
  * Implements automatic reconnection and retry logic for resilient communication.
@@ -64,16 +77,14 @@ export interface GameStateNotification {
  * ```
  */
 export class MCPClient extends EventEmitter {
-  private client: Client;
-  private transport: StdioClientTransport | StreamableHTTPClientTransport;
+  private client!: Client;
+  private transport!: StdioClientTransport | StreamableHTTPClientTransport;
   private isConnected: boolean = false;
   private dispatcher?: Dispatcher;
   private connectionPool: Pool | undefined;
 
   constructor() {
     super();
-    this.client = undefined as any;
-    this.transport = undefined as any;
     this.initializeClient();
   }
 
@@ -258,7 +269,7 @@ export class MCPClient extends EventEmitter {
    *
    * @param handler - Callback function to handle game state notifications
    */
-  onNotification(handler: (data: GameStateNotification) => void): void {
+  onNotification(handler: (data: GameEventNotification) => void): void {
     this.on('notification', handler);
     logger.info('Registered game state update handler');
   }
@@ -269,7 +280,7 @@ export class MCPClient extends EventEmitter {
    *
    * @param handler - Callback function to handle tool errors
    */
-  onToolError(handler: (error: { toolName: string, error: any }) => void): void {
+  onToolError(handler: (error: { toolName: string, error: unknown }) => void): void {
     this.on('toolError', handler);
     logger.info('Registered tool error handler');
   }
@@ -283,7 +294,7 @@ export class MCPClient extends EventEmitter {
    * @returns Tool execution result
    * @throws Error if the tool call fails after retries or if arguments are invalid
    */
-  async callTool(name: string, args: any = {}): Promise<any> {
+  async callTool(name: string, args: Record<string, unknown> = {}): Promise<unknown> {
     if (!this.isConnected) {
       throw new Error('Not connected to MCP server');
     }
@@ -297,7 +308,7 @@ export class MCPClient extends EventEmitter {
         });
         return result;
       } catch (error) {
-        if ((error as any).message?.indexOf("Invalid arguments") !== -1) {
+        if (error instanceof Error && error.message?.indexOf("Invalid arguments") !== -1) {
           throw error;
         } else if (I === 3) {
           this.emit('toolError', { toolName: name, error });
@@ -309,6 +320,8 @@ export class MCPClient extends EventEmitter {
         }
       }
     }
+    // Unreachable — loop always returns or throws
+    throw new Error(`Failed to call tool ${name} after retries`);
   }
 
   private cachedTools?: Tool[] = undefined;

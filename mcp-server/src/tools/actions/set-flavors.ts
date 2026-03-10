@@ -207,7 +207,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
 
       // Store ALL flavors (both existing and new) in the knowledge store
       for (const key of validFlavorKeys) {
-        (flavorChange as any)[key] = currentFlavors[key] ?? 50;
+        (flavorChange as Record<string, unknown>)[key] = currentFlavors[key] ?? 50;
       }
 
       // Store in the database

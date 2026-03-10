@@ -81,8 +81,8 @@ export interface GameEventMessage extends IPCMessage {
   type: 'game_event';
   id?: number;
   event: string;
-  payload: any;
-  extraPayload?: Record<string, any>;
+  payload: Record<string, unknown>;
+  extraPayload?: Record<string, unknown>;
   visibility?: number[];
 }
 
@@ -91,6 +91,6 @@ export interface GameEventMessage extends IPCMessage {
  */
 export interface SSEClient {
   id: string;
-  response: any; // Express Response object
+  response: Response; // Express Response object
   connectedAt: Date;
 }

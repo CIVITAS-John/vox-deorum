@@ -21,6 +21,7 @@ import { extractPlayerEpisodes, extractTurnContexts } from './extractor.js';
 import { transformEpisode } from './transformer.js';
 import { generateEmbeddings } from './embeddings.js';
 import { selectLandmarks } from './selector.js';
+import { startWebServer } from '../web/server.js';
 
 const logger = createLogger('Archivist');
 
@@ -66,6 +67,9 @@ async function main() {
   let skipped = 0;
   let errors = 0;
 
+  // Web UI
+  await startWebServer();
+  
   // Step 3: Process each game
   for (const entry of entries) {
     try {

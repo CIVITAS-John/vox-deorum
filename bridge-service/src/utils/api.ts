@@ -38,10 +38,10 @@ export async function handleAPIError(res: Response, url: string, action: () => P
   try {
     const result = await action();
     res.status(200).json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     res.status(500).json(
-      respondError(ErrorCode.INTERNAL_ERROR, 
-                  `Error in ${url} while ${action.name}`, 
-                  error.message));
+      respondError(ErrorCode.INTERNAL_ERROR,
+                  `Error in ${url} while ${action.name}`,
+                  error instanceof Error ? error.message : String(error)));
   }
 }

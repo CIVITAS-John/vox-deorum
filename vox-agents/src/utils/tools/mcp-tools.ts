@@ -94,10 +94,10 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
         logger.info(`Calling tool ${tool.name}...`, args);
 
         // Call the tool
-        var result = await mcpClient.callTool(tool.name, args);
-        const structuredResult = result.structuredContent;
-        result = structuredResult ?? result;
-        result = result.Result ?? result;
+        var rawResult = await mcpClient.callTool(tool.name, args) as Record<string, unknown>;
+        const structuredResult = rawResult.structuredContent as Record<string, unknown> | undefined;
+        var result: Record<string, unknown> = (structuredResult ?? rawResult) as Record<string, unknown>;
+        result = (result.Result as Record<string, unknown>) ?? result;
         logger.debug(`Tool call completed: ${tool.name}`);
 
         span.setAttributes({
@@ -106,8 +106,8 @@ export function wrapMCPTool(tool: Tool, context: VoxContext<AgentParameters>): V
         span.setStatus({ code: SpanStatusCode.OK });
 
         // Return results
-        if (typeof(result) === "object") {
-          const config = (tool._meta as any)?.markdownConfig;
+        if (typeof(result) === "object" && result !== null) {
+          const config = (tool._meta as Record<string, unknown>)?.markdownConfig;
           if (Array.isArray(config)) {
             result._markdownConfig = {
               configs: config.map(level => {

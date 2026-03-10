@@ -72,14 +72,14 @@ class GetMilitaryReportTool extends ToolBase {
     if (!report) return {};
 
     // Construct the report for LLM consumption
-    const results: Record<string, any> = {
+    const results: Record<string, unknown> = {
       "Unit Stats": report.units || []
     };
     for (var zoneID in report.zones) {
       // Postprocessing zones
       const zone = report.zones[zoneID];
-      const neighbors = zone.Neighbors && Array.isArray(zone.Neighbors) ? 
-        (zone.Neighbors as any[]).filter((n: number) => report.zones.hasOwnProperty(String(n))) : [];
+      const neighbors = zone.Neighbors && Array.isArray(zone.Neighbors) ?
+        (zone.Neighbors as number[]).filter((n: number) => report.zones.hasOwnProperty(String(n))) : [];
       const postprocessed = {
         ZoneValue: zone.Value,
         Dominance: zone.Dominance === "No Units" ? undefined : zone.Dominance,

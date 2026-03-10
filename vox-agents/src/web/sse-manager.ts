@@ -31,7 +31,7 @@ export class SSEManager {
   /**
    * Broadcast an event to all connected clients
    */
-  broadcast(event: string, data: any): void {
+  broadcast(event: string, data: unknown): void {
     const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 
     // Send to all connected clients

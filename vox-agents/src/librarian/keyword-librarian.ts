@@ -166,7 +166,7 @@ Return JSON following this exact schema:
       });
 
       // Programmatically call search-database tool
-      const searchResults = await context.callTool("search-database", {
+      const searchResults = await context.callTool<Record<string, Record<string, unknown>>>("search-database", {
         Keywords: ctx.keywords,
         MaxResults: 10
       }, parameters);
@@ -186,7 +186,7 @@ Return JSON following this exact schema:
    * @param contextNum - Context number for logging
    * @returns Formatted markdown string
    */
-  private formatSearchResults(searchResults: any, contextNum: number): string {
+  private formatSearchResults(searchResults: Record<string, Record<string, unknown>> | undefined, contextNum: number): string {
     if (!searchResults || Object.keys(searchResults).length === 0) {
       this.logger.debug(`No search results for context ${contextNum}`);
       return "";
@@ -195,11 +195,11 @@ Return JSON following this exact schema:
     let formatted = "";
 
     for (const [name, data] of Object.entries(searchResults)) {
-      const relevance = (data as any).Relevance;
+      const relevance = (data.Relevance as number) ?? 0;
       formatted += `**${name}** (Relevance: ${relevance.toFixed(2)})\n`;
 
       // Add other relevant fields
-      for (const [key, value] of Object.entries(data as any)) {
+      for (const [key, value] of Object.entries(data)) {
         if (key !== 'Relevance' && key !== 'Name') {
           formatted += `  - ${key}: ${value}\n`;
         }

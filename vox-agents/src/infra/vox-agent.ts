@@ -177,7 +177,7 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
       const parsed = typeof cleanedText === 'string' ? jaison(cleanedText) : cleanedText;
       return this.outputSchema.parse(parsed);
     } else {
-      return finalText as any;
+      return finalText as unknown as TOutput;
     }
   }
 

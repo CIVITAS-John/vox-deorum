@@ -124,7 +124,7 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
   app.delete('/mcp', handleSessionRequest);
   
   // Error handling middleware
-  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     logger.error('Express error:', err);
     res.status(500).json({ error: 'Internal server error' });
   });

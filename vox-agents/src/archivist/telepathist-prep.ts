@@ -35,8 +35,7 @@ export async function prepareTelepathist(
   const parsedId: GameIdentifierInfo = { gameID: gameId, playerID: playerId };
 
   let parameters: TelepathistParameters | undefined;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let context: any;
+  let context: VoxContext<TelepathistParameters> | undefined;
 
   try {
     // Opens telemetry DB (read-only) + telepathist DB (read-write, created if absent)

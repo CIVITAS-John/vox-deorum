@@ -200,7 +200,7 @@ class GetPlayersTool extends ToolBase {
         IsMajor: info.IsMajor == 1,
         // Dynamic summary (if available)
         ...cleanSummary
-      } as any;
+      } as unknown as z.infer<typeof PlayerDataSchema>;
 
       // Text format for happiness
       if (playerData.HappinessPercentage !== undefined) {
@@ -275,7 +275,7 @@ function postProcessData(
     for (const [branch, policies] of Object.entries(branches)) {
       counts[branch] = Array.isArray(policies) ? policies.length : policies as number;
     }
-    summary.PolicyBranches = counts as any;
+    summary.PolicyBranches = counts as Record<string, number>;
   }
 
   // Hide settlement location
@@ -364,7 +364,7 @@ function postProcessData(
     delete summary.TourismPerTurn;
     delete summary.HappinessPercentage;
     if (viewingPlayerID !== -1 && summary.Quests)
-      summary.Quests = (summary.Quests as any)[`Player${viewingPlayerID}`].map((Quest: string) => Quest.trim());
+      summary.Quests = ((summary.Quests as unknown as Record<string, string[]>)[`Player${viewingPlayerID}`]).map((Quest: string) => Quest.trim());
     else delete summary.Quests;
   } else {
     delete summary.Quests;

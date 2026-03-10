@@ -441,8 +441,10 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
       // Build the modified prompt, respecting systemPromptFirst models that only
       // accept a single system message. When set, merge the tool prompt into the
       // first existing system message instead of prepending a new one.
-      let modifiedPrompt: any;
-      if (options?.systemPromptFirst && convertedPrompt.length > 0 && convertedPrompt[0].role === 'system') {
+      let modifiedPrompt: LanguageModelV2Prompt;
+      if (!toolPrompt) {
+        modifiedPrompt = convertedPrompt;
+      } else if (options?.systemPromptFirst && convertedPrompt.length > 0 && convertedPrompt[0].role === 'system') {
         const firstMsg = convertedPrompt[0] as { role: 'system'; content: string };
         modifiedPrompt = [
           { role: 'system', content: toolPrompt + '\n\n' + firstMsg.content },

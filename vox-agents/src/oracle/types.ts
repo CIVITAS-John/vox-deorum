@@ -14,7 +14,7 @@ import type { Model } from '../types/index.js';
 /** A single tool call decision from a replay */
 export interface ReplayDecision {
   toolName: string;
-  args: any;
+  args: Record<string, unknown>;
   /** Rationale extracted from the tool's Rationale arg (strategist decision tools only) */
   rationale?: string;
 }

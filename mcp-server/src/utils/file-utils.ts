@@ -43,8 +43,8 @@ export async function writeIfChanged(
       logger.debug(`Skipping ${fileName} write - no content changes`);
       return false;
     }
-  } catch (error: any) {
-    logger.warn(`Warning writing ${fileName}: ${error.message}`);
+  } catch (error: unknown) {
+    logger.warn(`Warning writing ${fileName}: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }
@@ -88,8 +88,8 @@ export async function writeJsonIfChanged(
       logger.debug(`Skipping ${fileName} write - no content changes`);
       return false;
     }
-  } catch (error: any) {
-    logger.warn(`Warning writing ${fileName}: ${error.message}`);
+  } catch (error: unknown) {
+    logger.warn(`Warning writing ${fileName}: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }

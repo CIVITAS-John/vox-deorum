@@ -226,9 +226,9 @@ export class VoxContext<TParameters extends AgentParameters> {
    * @param parameters - Agent parameters to pass as experimental_context
    * @returns The result of the tool execution, or undefined if tool not found or execution fails
    */
-  public async callTool<T = any>(
+  public async callTool<T = unknown>(
     name: string,
-    args: any,
+    args: Record<string, unknown>,
     parameters: TParameters): Promise<T | undefined> {
     const tool = this.tools[name];
     if (!tool) {
@@ -259,9 +259,9 @@ export class VoxContext<TParameters extends AgentParameters> {
    * @param parameters - The parameters to pass to the agent
    * @returns The result of the agent execution, or undefined if agent not found or execution fails
    */
-  public async callAgent<T = any>(
+  public async callAgent<T = unknown>(
     name: string,
-    input: any,
+    input: unknown,
     parameters: TParameters): Promise<T | undefined> {
     const agent = agentRegistry.get<TParameters>(name);
     if (!agent) {
@@ -294,7 +294,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     input: unknown,
     callback?: StreamingEventCallback,
     tokenOutput?: ExecuteTokenOutput
-  ): Promise<any> {
+  ): Promise<unknown> {
     const agent = agentRegistry.get<TParameters>(agentName);
     if (!agent) {
       this.logger.error(`Agent not found: ${agentName}`);

@@ -126,8 +126,8 @@ class GetEconomicStrategyTool extends DatabaseQueryTool<EconomicStrategy, Econom
     // Write back to JSON file only if content differs (ignoring whitespace)
     try {
       await writeJsonIfChanged(jsonPath, results, 'economic.json');
-    } catch (error: any) {
-      logger.warn(`Warning writing economic.json: ${error.message}`);
+    } catch (error: unknown) {
+      logger.warn(`Warning writing economic.json: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     return results;

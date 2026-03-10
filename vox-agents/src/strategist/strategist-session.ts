@@ -7,7 +7,7 @@
  */
 
 import { createLogger } from "../utils/logger.js";
-import { mcpClient } from "../utils/models/mcp-client.js";
+import { mcpClient, type GameEventNotification } from "../utils/models/mcp-client.js";
 import { VoxPlayer } from "./vox-player.js";
 import { voxCivilization } from "../infra/vox-civilization.js";
 import { setTimeout } from 'node:timers/promises';
@@ -81,7 +81,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     await mcpClient.connect();
 
     // Register notification handler for game events
-    mcpClient.onNotification(async (params: any) => {
+    mcpClient.onNotification(async (params) => {
       if (this.abortController.signal.aborted) return;
 
       // The notification now has 'event' field instead of 'message'
@@ -212,7 +212,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     logger.info('Strategist session shutdown complete');
   }
 
-  private async handlePlayerDoneTurn(params: any): Promise<void> {
+  private async handlePlayerDoneTurn(params: GameEventNotification): Promise<void> {
     await this.recoverGame();
     if (this.turn !== params.turn)
       this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 0.5);
@@ -223,9 +223,9 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     }
   }
 
-  private async handleGameSwitched(params: any): Promise<void> {
+  private async handleGameSwitched(params: GameEventNotification): Promise<void> {
     // If nothing is changing, ignore this
-    if (params.gameID === this.lastGameID) return;
+    if (!params.gameID || params.gameID === this.lastGameID) return;
     if (this.state === 'stopping' || this.state === 'stopped') return;
     this.lastGameID = params.gameID;
     this.gameID = params.gameID;  // Update current game ID
@@ -268,7 +268,7 @@ Game.SetAIAutoPlay(2000, -1);`
     }
   }
 
-  private async handleDLLConnected(params: any): Promise<void> {
+  private async handleDLLConnected(_params: GameEventNotification): Promise<void> {
     await this.recoverGame();
   }
 
@@ -288,7 +288,7 @@ Game.SetAIAutoPlay(2000, -1);`
     }
   }
 
-  private async handlePlayerVictory(params: any): Promise<void> {
+  private async handlePlayerVictory(params: GameEventNotification): Promise<void> {
     logger.warn(`Player ${params.playerID} has won the game on turn ${params.turn}!`);
 
     // Stop the game when autoplay

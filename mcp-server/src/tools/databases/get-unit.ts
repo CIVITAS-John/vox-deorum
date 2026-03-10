@@ -224,7 +224,7 @@ export async function getUnit(unitType: string) {
     UpgradedFrom: upgradeFrom?.Description || null,
     UpgradesTo: upgradeTo?.Description || null,
     RequiredResources: resources,
-    FreePromotions: promotions.map((p: any) => p.Description || '')
+    FreePromotions: promotions.map((p) => p.Description || '')
   };
 }
 

@@ -180,7 +180,7 @@ export abstract class DatabaseQueryTool<
       return {
         Count: 0,
         Items: [],
-        Error: (error as any).message ?? "Unknown query error."
+        Error: error instanceof Error ? error.message : "Unknown query error."
       };
     }
   }

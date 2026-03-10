@@ -100,7 +100,7 @@ class SearchDatabaseTool extends ToolBase {
 
           try {
             // Get cached summaries
-            const summaries = await (tool as any).getSummaries();
+            const summaries = await (tool as unknown as { getSummaries(): Promise<Record<string, unknown>[]> }).getSummaries();
 
             // Perform weighted fuzzy search
             const matches = weightedFuzzySearch(keyword, summaries, defaultFieldWeights, 0.6);
@@ -145,7 +145,7 @@ class SearchDatabaseTool extends ToolBase {
         const key = fusedKeys[i];
 
         // Find the original data for this key
-        let itemData: any = null;
+        let itemData: Record<string, unknown> | null = null;
         for (const rankedList of rankedLists) {
           const found = rankedList.find(item => item.key === key);
           if (found) {

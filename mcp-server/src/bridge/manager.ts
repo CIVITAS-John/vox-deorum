@@ -43,7 +43,7 @@ export interface HealthResponse {
  */
 export interface GameEvent {
   type: string;
-  payload: any;
+  payload: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -91,11 +91,11 @@ export class BridgeManager extends EventEmitter {
    */
   public async checkHealth(): Promise<HealthResponse> {
     try {
-      const response = await this.httpClient.get<any>('/health');
-      const data = response.result as HealthResponse;
+      const response = await this.httpClient.get<{ result: HealthResponse }>('/health');
+      const data = response.result;
       this.isDllConnected = data.dll_connected;
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Health check failed:', error);
       this.isDllConnected = false;
       throw error;
@@ -114,13 +114,13 @@ export class BridgeManager extends EventEmitter {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Failed to execute Lua script:', error);
       return {
         success: false,
         error: {
           code: error instanceof HttpError ? error.code : 'NETWORK_ERROR',
-          message: error.message || 'Failed to communicate with Bridge Service',
+          message: error instanceof Error ? error.message : 'Failed to communicate with Bridge Service',
         },
       };
     }
@@ -209,7 +209,7 @@ export class BridgeManager extends EventEmitter {
       }
 
       // Send the request
-      const response = await this.httpClient.post<any>('/lua/batch', batch.map(call => ({
+      const response = await this.httpClient.post<{ success: boolean; result?: { results: LuaResponse[] }; error?: { message: string } }>('/lua/batch', batch.map(call => ({
         function: call.functionName,
         args: call.args
       })));
@@ -244,7 +244,7 @@ export class BridgeManager extends EventEmitter {
           });
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Failed to execute batch Lua calls:', error);
 
       // Resolve all calls with error
@@ -253,7 +253,7 @@ export class BridgeManager extends EventEmitter {
           success: false,
           error: {
             code: error instanceof HttpError ? error.code : 'NETWORK_ERROR',
-            message: error.message || 'Failed to communicate with Bridge Service',
+            message: error instanceof Error ? error.message : 'Failed to communicate with Bridge Service',
           },
         });
       });
@@ -364,7 +364,7 @@ export class BridgeManager extends EventEmitter {
       this.scheduleReconnect();
     });
 
-    this.eventPipeSocket.on('error', (error: any) => {
+    this.eventPipeSocket.on('error', (error: Error) => {
       this.eventPipeConnected = false;
 
       // Fallback to SSE on error
@@ -382,8 +382,8 @@ export class BridgeManager extends EventEmitter {
    */
   private handleGameEvent(data: GameEvent): void {
     if (data.type == "dll_status") {
-      if (this.isDllConnected != data.payload.connected) {
-        this.isDllConnected = data.payload.connected;
+      if (this.isDllConnected != data.payload.connected as boolean) {
+        this.isDllConnected = data.payload.connected as boolean;
         logger.warn("DLL connected status changed: " + this.isDllConnected);
         // If disconnected, reset functions
         if (!this.dllConnected) this.resetFunctions();
@@ -513,10 +513,10 @@ export class BridgeManager extends EventEmitter {
    */
   public async pauseGame(): Promise<boolean> {
     try {
-      const data = await this.httpClient.post<any>('/external/pause', undefined, { fast: true });
+      const data = await this.httpClient.post<{ success: boolean }>('/external/pause', undefined, { fast: true });
       logger.debug('Game pause requested: ' + data.success);
       return data.success === true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Failed to pause game:', error);
       return false;
     }
@@ -527,10 +527,10 @@ export class BridgeManager extends EventEmitter {
    */
   public async resumeGame(): Promise<boolean> {
     try {
-      const data = await this.httpClient.post<any>('/external/resume', undefined, { fast: true });
+      const data = await this.httpClient.post<{ success: boolean }>('/external/resume', undefined, { fast: true });
       logger.debug('Game resume requested: ' + data.success);
       return data.success === true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Failed to resume game:', error);
       return false;
     }
@@ -544,7 +544,7 @@ export class BridgeManager extends EventEmitter {
       await this.httpClient.post(`/external/pause-player/${playerId}`, undefined, { fast: true });
       logger.info(`Player ${playerId} registered for auto-pause`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.warn(`Failed to register player ${playerId} for auto-pause:`, error);
       return false;
     }
@@ -558,7 +558,7 @@ export class BridgeManager extends EventEmitter {
       await this.httpClient.delete(`/external/pause-player/${playerId}`, { fast: true });
       logger.info(`Player ${playerId} unregistered from auto-pause`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(`Failed to unregister player ${playerId} from auto-pause:`, error);
       return false;
     }

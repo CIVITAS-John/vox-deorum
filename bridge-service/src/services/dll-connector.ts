@@ -137,10 +137,10 @@ export class DLLConnector extends EventEmitter {
             this.handleDisconnection();
           }
           this.emit('disconnected');
-        }).on('error', (error: any) => {
+        }).on('error', (error: Error) => {
           if (!this.connected) {
             // For initial connection failures, also start reconnection attempts
-            logger.warn(`Could not connect to DLL: ${error.message || error}, waiting for the game and mod to load...`);
+            logger.warn(`Could not connect to DLL: ${error.message}, waiting for the game and mod to load...`);
             this.handleDisconnection();
             resolve(false);
           } else {
@@ -187,7 +187,7 @@ export class DLLConnector extends EventEmitter {
   private handleMessage(message: string): void {
     try {
       // Parse message if it's a string
-      let data: any;
+      let data: IPCMessage & Record<string, unknown>;
       try {
         // Sanitize control characters that may not be properly escaped by the DLL
         // This escapes all control chars (0x00-0x1F) as Unicode escape sequences
@@ -204,7 +204,7 @@ export class DLLConnector extends EventEmitter {
       // Route based on message type
       switch (data.type) {
         case 'lua_response':
-          this.handleResponse(data);
+          this.handleResponse(data as unknown as APIResponse & { id: string });
           break;
         default:
           this.emit(data.type, data);
@@ -217,7 +217,7 @@ export class DLLConnector extends EventEmitter {
   /**
    * Handle response messages
    */
-  private handleResponse(data: any): void {
+  private handleResponse(data: APIResponse & { id: string }): void {
     const request = this.pendingRequests.get(data.id);
     if (request) {
       clearTimeout(request.timeout);
@@ -295,7 +295,7 @@ export class DLLConnector extends EventEmitter {
     // Add IDs if not present and prepare batch data
     const messagesWithIds = messages.map(message => ({
       ...message,
-      id: (message as any).id || uuidv4()
+      id: String(message.id || uuidv4())
     }));
 
     // Create promises for all messages

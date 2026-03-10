@@ -6,12 +6,17 @@ import { v4 as uuidv4 } from 'uuid';
 import axios, { AxiosError } from 'axios';
 import { createLogger } from '../utils/logger.js';
 import { dllConnector } from './dll-connector.js';
-import { 
+import {
   ExternalFunctionRegistration,
   ExternalFunction,
   ExternalCallRequest,
-  ExternalFunctionList, 
-  ExternalCallResponse
+  ExternalFunctionList,
+  ExternalCallResponse,
+} from '../types/external.js';
+import type {
+  ExternalCallMessage,
+  ExternalRegisterMessage,
+  ExternalUnregisterMessage
 } from '../types/external.js';
 import { APIResponse, ErrorCode, respondSuccess, respondError } from '../types/api.js';
 
@@ -56,7 +61,7 @@ export class ExternalManager {
       type: 'external_register',
       name: registration.name,
       async: registration.async
-    } as any);
+    } as ExternalRegisterMessage);
     
     // Store function registration
     this.registeredFunctions.set(registration.name, externalFunction);
@@ -82,7 +87,7 @@ export class ExternalManager {
     dllConnector.sendNoWait({
       type: 'external_unregister',
       name
-    } as any);
+    } as ExternalUnregisterMessage);
 
     logger.info(`Successfully unregistered external function: ${name}`);
     return respondSuccess({ });
@@ -100,7 +105,7 @@ export class ExternalManager {
   /**
    * Handle external function call from Lua/DLL
    */
-  private async handleExternalCall(data: any): Promise<void> {
+  private async handleExternalCall(data: ExternalCallMessage): Promise<void> {
     const { function: functionName, args, id, async: isAsync } = data;
     logger.info(`Handling external call: ${functionName} (${isAsync ? 'async' : 'sync'})`);
     // Check if function is registered
@@ -123,7 +128,7 @@ export class ExternalManager {
   /**
    * Execute external function call via HTTP
    */
-  private async executeExternalCall<T>(externalFunction: ExternalFunction, args: any): Promise<ExternalCallResponse<T>> {
+  private async executeExternalCall<T>(externalFunction: ExternalFunction, args: Record<string, unknown>): Promise<ExternalCallResponse<T>> {
     const request: ExternalCallRequest = {
       args,
       id: uuidv4()
@@ -149,24 +154,23 @@ export class ExternalManager {
           `External function call ${externalFunction.name} failed with status ${response.status}: ${response.statusText}`, 
           response.data ? JSON.stringify(response.data) : undefined);
       }
-    } catch (error: any) {
-      if (error.code === 'ECONNABORTED') {
-        return respondError(ErrorCode.CALL_TIMEOUT,
-          `External function call ${externalFunction.name} timed out after ${externalFunction.timeout}ms`);
-      }
-      
+    } catch (error: unknown) {
       if (error instanceof AxiosError) {
+        if (error.code === 'ECONNABORTED') {
+          return respondError(ErrorCode.CALL_TIMEOUT,
+            `External function call ${externalFunction.name} timed out after ${externalFunction.timeout}ms`);
+        }
         const status = error.response?.status;
         const statusText = error.response?.statusText;
         const data = error.response?.data;
         return respondError(ErrorCode.NETWORK_ERROR,
-          `External function call ${externalFunction.name} failed with status ${status}: ${statusText ?? error.message}`, 
+          `External function call ${externalFunction.name} failed with status ${status}: ${statusText ?? error.message}`,
           data ? JSON.stringify(data) : undefined);
       }
 
       return respondError(ErrorCode.INTERNAL_ERROR,
-        `Unexpected error calling external function ${externalFunction.name}`, 
-        error.message);
+        `Unexpected error calling external function ${externalFunction.name}`,
+        error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -228,7 +232,7 @@ export class ExternalManager {
         type: 'external_register',
         name: func.name,
         async: func.async
-      } as any);
+      } as ExternalRegisterMessage);
       logger.debug(`Re-registered function: ${func.name}`);
     }
   }

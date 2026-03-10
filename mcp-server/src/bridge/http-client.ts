@@ -34,7 +34,7 @@ export class HttpError extends Error {
     message: string,
     public status?: number,
     public code: string = 'HTTP_ERROR',
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'HttpError';
@@ -61,21 +61,21 @@ export class HttpClient {
   /**
    * Make a GET request
    */
-  async get<T = any>(path: string, options: HttpRequestOptions = {}): Promise<T> {
+  async get<T = unknown>(path: string, options: HttpRequestOptions = {}): Promise<T> {
     return this.request<T>('GET', path, undefined, options);
   }
 
   /**
    * Make a POST request
    */
-  async post<T = any>(path: string, body?: any, options: HttpRequestOptions = {}): Promise<T> {
+  async post<T = unknown>(path: string, body?: unknown, options: HttpRequestOptions = {}): Promise<T> {
     return this.request<T>('POST', path, body, options);
   }
 
   /**
    * Make a DELETE request
    */
-  async delete<T = any>(path: string, options: HttpRequestOptions = {}): Promise<T> {
+  async delete<T = unknown>(path: string, options: HttpRequestOptions = {}): Promise<T> {
     return this.request<T>('DELETE', path, undefined, options);
   }
 
@@ -85,7 +85,7 @@ export class HttpClient {
   private async request<T>(
     method: string,
     path: string,
-    body?: any,
+    body?: unknown,
     options: HttpRequestOptions = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
@@ -133,11 +133,16 @@ export class HttpClient {
       const data = await response.json() as T;
       return data;
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       const duration = Date.now() - startTime;
 
+      // Re-throw HttpError as-is
+      if (error instanceof HttpError) {
+        throw error;
+      }
+
       // Handle timeout errors
-      if (error.name === 'AbortError' || error.code === 'UND_ERR_ABORTED') {
+      if (error instanceof Error && (error.name === 'AbortError' || ('code' in error && (error as NodeJS.ErrnoException).code === 'UND_ERR_ABORTED'))) {
         logger.error(`${method} ${path} timed out after ${duration}ms`);
         throw new HttpError(
           `Request to ${path} timed out`,
@@ -148,25 +153,23 @@ export class HttpClient {
       }
 
       // Handle network errors
-      if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-        logger.error(`${method} ${path} connection failed after ${duration}ms`, error);
-        throw new HttpError(
-          'Failed to connect to Bridge Service',
-          undefined,
-          'CONNECTION_FAILED',
-          { originalError: error.message }
-        );
-      }
-
-      // Re-throw HttpError as-is
-      if (error instanceof HttpError) {
-        throw error;
+      if (error instanceof Error && 'code' in error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code === 'ECONNREFUSED' || code === 'ENOTFOUND') {
+          logger.error(`${method} ${path} connection failed after ${duration}ms`, error);
+          throw new HttpError(
+            'Failed to connect to Bridge Service',
+            undefined,
+            'CONNECTION_FAILED',
+            { originalError: error.message }
+          );
+        }
       }
 
       // Wrap unknown errors
       logger.error(`${method} ${path} failed after ${duration}ms`, error);
       throw new HttpError(
-        error.message || 'Unknown error occurred',
+        error instanceof Error ? error.message : 'Unknown error occurred',
         undefined,
         'UNKNOWN_ERROR',
         { originalError: error }

@@ -28,10 +28,10 @@ export const defaultFieldWeights: Record<string, number> = {
  */
 export function weightedFuzzySearch(
   keyword: string,
-  items: any[],
+  items: Record<string, unknown>[],
   fieldWeights: Record<string, number>,
   threshold: number
-): any[] {
+): Record<string, unknown>[] {
   // Calculate total weight for normalization
   const totalWeight = Object.values(fieldWeights).reduce((sum, weight) => sum + weight, 0);
 
@@ -79,10 +79,10 @@ export function weightedFuzzySearch(
  * @param value - The field value to add (will be checked for existence)
  * @param weight - Number of times to add the field (higher = more important)
  */
-export function addFieldWithWeight(fields: string[], value: any, weight: number): void {
+export function addFieldWithWeight(fields: string[], value: unknown, weight: number): void {
   if (value) {
     for (let i = 0; i < weight; i++) {
-      fields.push(value);
+      fields.push(String(value));
     }
   }
 }
@@ -92,7 +92,7 @@ export function addFieldWithWeight(fields: string[], value: any, weight: number)
  * @param item - Database item with various fields
  * @returns Array of field values with weighting applied
  */
-export function calculateWeightedFields(item: any): string[] {
+export function calculateWeightedFields(item: Record<string, unknown>): string[] {
   const fields: string[] = [];
 
   // Name is most important (3x weight)

@@ -109,7 +109,7 @@ export class MCPServer {
         title: tool.name,
         description: tool.description,
         inputSchema: tool.inputSchema.shape,
-        outputSchema: (tool.getOutputSchema() as any).shape,
+        outputSchema: (tool.getOutputSchema() as z.ZodObject<z.ZodRawShape>).shape,
         annotations: tool.annotations,
         _meta: tool.metadata
       },
@@ -124,8 +124,8 @@ export class MCPServer {
           }
           // Otherwise wrap for backward compatibility
           return wrapResults(results);
-        } catch (error: any) {
-          var message = `Error executing tool ${tool.name}: ${error?.message ?? "unknown"}`;
+        } catch (error: unknown) {
+          var message = `Error executing tool ${tool.name}: ${error instanceof Error ? error.message : "unknown"}`;
           logger.error(message, error);
           return {
             isError: true,
@@ -223,7 +223,7 @@ export class MCPServer {
         latestID: latestID,
         ...param
       }
-    }).catch((_error: any) => { })
+    }).catch((_error: unknown) => { })
   }
 
   /**
@@ -251,8 +251,8 @@ export class MCPServer {
       } else {
         this.bridgeManager.connectSSE();
       }
-    } catch (error: any) {
-      throw new Error('Failed to connect to Bridge Service: ' + (error.message ?? "unknown error"), error);
+    } catch (error: unknown) {
+      throw new Error('Failed to connect to Bridge Service: ' + (error instanceof Error ? error.message : "unknown error"), { cause: error });
     }
     
     // Register all tools

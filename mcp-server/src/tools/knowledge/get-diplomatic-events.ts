@@ -75,8 +75,8 @@ function getCityName(payload: Record<string, any>, ctx: FormatContext): string {
 
 /** Compute deal expiration suffix from TradedItems and StartTurn, marking expired deals */
 function getDealExpiry(e: Record<string, any>, ctx: FormatContext): string {
-  const items = (e.TradedItems as any[]) ?? [];
-  const duration = items.find((i: any) => i.Duration > 0)?.Duration;
+  const items = (e.TradedItems as Record<string, any>[]) ?? [];
+  const duration = items.find((i: Record<string, any>) => i.Duration > 0)?.Duration;
   if (duration && e.StartTurn !== undefined) {
     const expiryTurn = e.StartTurn + duration;
     if (ctx.currentTurn > expiryTurn) return " (expired at turn ${expiryTurn})";
@@ -94,7 +94,8 @@ interface DiploEventConfig {
   /** Payload fields containing team IDs for relevance filtering */
   teamIdFields?: string[];
   /** Convert event payload to a formatted summary (string for most events, object for structured ones), or null to skip */
-  toMarkdown: (payload: Record<string, any>, ctx: FormatContext) => string | Record<string, any> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- event payloads have diverse dynamic fields
+  toMarkdown: (payload: Record<string, any>, ctx: FormatContext) => string | Record<string, unknown> | null;
 }
 
 /**

@@ -27,7 +27,7 @@ export interface EconomicStrategy {
 }
 
 // Cache for loaded strategy files
-const strategyCache = new Map<string, { data: any; timestamp: number }>();
+const strategyCache = new Map<string, { data: unknown; timestamp: number }>();
 
 // Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -37,7 +37,7 @@ const CACHE_DURATION = 5 * 60 * 1000;
  * @param filename The name of the JSON file (without path)
  * @returns The parsed JSON content or empty object if file doesn't exist
  */
-async function loadStrategyFile<T = any>(filename: string): Promise<T> {
+async function loadStrategyFile<T = unknown>(filename: string): Promise<T> {
   const cacheKey = filename;
   const now = Date.now();
 
@@ -57,8 +57,8 @@ async function loadStrategyFile<T = any>(filename: string): Promise<T> {
     strategyCache.set(cacheKey, { data, timestamp: now });
 
     return data as T;
-  } catch (error: any) {
-    if (error.code !== 'ENOENT') {
+  } catch (error: unknown) {
+    if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code !== 'ENOENT') {
       logger.warn(`Warning reading ${filename}: ${error.message}`);
     }
     // Return empty object if file doesn't exist or can't be read

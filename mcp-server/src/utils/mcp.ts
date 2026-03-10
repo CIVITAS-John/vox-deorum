@@ -53,7 +53,7 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types";
  * // Recursively wraps each element
  * ```
  */
-export function wrapResults(result: any): CallToolResult {
+export function wrapResults(result: unknown): CallToolResult {
   // If result is already in CallToolResult format, return as-is
   if (result && typeof result === 'object' && 'content' in result && Array.isArray(result.content)) {
     return result as CallToolResult;
@@ -107,7 +107,7 @@ export function wrapResults(result: any): CallToolResult {
       content: [{
         type: "text",
         text: JSON.stringify(result, null, 2)
-      }], 
+      }],
       structuredContent: result as any
     };
   }

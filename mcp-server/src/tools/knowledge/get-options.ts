@@ -182,6 +182,8 @@ class GetOptionsTool extends ToolBase {
     const cleanOptions = stripTimedKnowledgeMetadata<PlayerOptions>(playerOptions);
 
     // Build Options object based on mode
+    // Built incrementally based on mode; fields added in mode-specific branches below
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- incrementally constructed with mode-specific fields
     const optionsObject: any = {
       GrandStrategies: Object.fromEntries(
         Object.values(enumMappings["GrandStrategy"])
@@ -235,6 +237,8 @@ class GetOptionsTool extends ToolBase {
     };
 
     // Build result object
+    // Built incrementally; Strategy added in mode-specific branches below
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- incrementally constructed with mode-specific fields
     const result: any = {
       Persona: persona as Record<string, string | number> | undefined,
       Options: optionsObject,
@@ -262,14 +266,14 @@ class GetOptionsTool extends ToolBase {
     } else {
       // In Strategy mode: Add strategy information
       result.Strategy = {
-        Rationale: (strategies as any)?.Rationale,
+        Rationale: (strategies as Record<string, unknown> | null)?.Rationale as string | undefined,
         GrandStrategy: strategies?.GrandStrategy,
         EconomicStrategies: strategies?.EconomicStrategies,
         MilitaryStrategies: strategies?.MilitaryStrategies
       };
       optionsObject.EconomicStrategies = Object.fromEntries(
         cleanOptions.EconomicStrategies.map(strategyName => {
-          const strategy = economicStrategies!.find((s: any) => s.Type === strategyName);
+          const strategy = economicStrategies!.find((s) => s.Type === strategyName);
           return [
             strategyName,
             strategy?.Description ?? {
@@ -281,7 +285,7 @@ class GetOptionsTool extends ToolBase {
       );
       optionsObject.MilitaryStrategies = Object.fromEntries(
         cleanOptions.MilitaryStrategies.map(strategyName => {
-          const strategy = militaryStrategies!.find((s: any) => s.Type === strategyName);
+          const strategy = militaryStrategies!.find((s) => s.Type === strategyName);
           return [
             strategyName,
             strategy?.Description ?? {

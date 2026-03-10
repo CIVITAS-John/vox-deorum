@@ -136,13 +136,13 @@ class GetEventsTool extends ToolBase {
       await knowledgeManager.getStore().getMutableKnowledge("PlayerSummaries", args.PlayerID, undefined, async () => await getPlayerSummaries());
     
     // Format the output
-    const formattedEvents = events.map((event: any) => {
+    const formattedEvents = events.map((event) => {
       return {
         ID: event.ID,
         Turn: event.Turn,
         Type: event.Type,
         Visibility: args.PlayerID === undefined ? parseVisibility(event) : undefined,
-        ...postprocessPayload(event.Payload as any, player)
+        ...postprocessPayload(event.Payload as Record<string, unknown>, player)
       };
     });
     
@@ -185,7 +185,7 @@ const blockedKeys: string[] = [
  * @param events - Array of formatted events
  * @returns Object with turn keys containing arrays of events
  */
-function consolidateEventsByTurn(events: Array<any>): Record<string, any[]> {
+function consolidateEventsByTurn(events: Array<Record<string, unknown>>): Record<string, any[]> {
   const consolidated: Record<string, any[]> = {};
   
   for (const event of events) {
@@ -210,14 +210,14 @@ function consolidateEventsByTurn(events: Array<any>): Record<string, any[]> {
 /**
  * Consolidates consecutive events of the same type with matching fields
  */
-function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
+function consolidateConsecutiveEvents(events: Array<Record<string, unknown>>): Array<any> {
   if (events.length === 0) return [];
-  
+
   const result: Array<any> = [];
   let currentGroup: any = null;
   
   for (const event of events) {
-    const eventType = event.Type;
+    const eventType = event.Type as string;
     const matchFields = consolidationConfig[eventType];
     
     // If this event type isn't configured for consolidation, add as-is
@@ -240,7 +240,7 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
       if (currentGroup) result.push(currentGroup);
       
       // Start new group
-      const matchingFields: Record<string, any> = {};
+      const matchingFields: Record<string, unknown> = {};
       for (const field of matchFields) {
         if (event[field] !== undefined) {
           matchingFields[field] = event[field];
@@ -284,7 +284,7 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
       delete item["Events"];
     } else {
       // Explicitly delete undefined keys from each event
-      item.Events = item.Events.map((event: any) => {
+      item.Events = (item.Events as Record<string, unknown>[]).map((event: Record<string, unknown>) => {
         for (const key of Object.keys(event)) {
           if (event[key] === undefined) delete event[key];
         }
@@ -292,9 +292,9 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
       });
       // If multiple, check if all have the same one property. If so, convert into an array of that property
       const firstKeys = Object.keys(item.Events[0]);
-      if (firstKeys.length === 1 && item.Events.every((e: any) => Object.keys(e).length === 1 && Object.keys(e)[0] === firstKeys[0])) {
+      if (firstKeys.length === 1 && (item.Events as Record<string, unknown>[]).every((e: Record<string, unknown>) => Object.keys(e).length === 1 && Object.keys(e)[0] === firstKeys[0])) {
         const key = firstKeys[0];
-        var properties = item.Events.map((event: any) => event[key]);
+        var properties = (item.Events as Record<string, unknown>[]).map((event: Record<string, unknown>) => event[key]);
         if (item.Type === "UnitSetXY" && key === "Plot") {
           // If the unit is a caravan, only keep the last plot
           if (item.AI == "TradeUnit") {
@@ -306,10 +306,10 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
             // For plots, ignore looping movements (a => b => c... => a => d) should become (a => d)
             // AI really loves doing that each turn
             const seen = new Map<string, number>(); // plotKey -> last index
-            const filtered: any[] = [];
+            const filtered: Record<string, unknown>[] = [];
 
             for (let i = 0; i < properties.length; i++) {
-              const plot = properties[i];
+              const plot = properties[i] as Record<string, unknown>;
               const plotKey = `${plot.X},${plot.Y}`;
 
               // If we've seen this plot before, remove everything from that index to current
@@ -336,8 +336,8 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
           Object.assign(item, item.Events[0]);
         } else if (key === "Plot") {
           item[pluralize(key)] = Object.fromEntries(
-            properties.map((p: any) => {
-              const { X, Y, Plot, Terrain, ...rest } = p;
+            properties.map((p) => {
+              const { X, Y, Plot, Terrain, ...rest } = p as Record<string, unknown>;
               if (Plot === "Ocean") {
                 return [`${Terrain} ${X},${Y}`, rest];
               } else {
@@ -355,7 +355,7 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
   // Special postprocesses
   result.forEach(item => {
     if (item.Plot) {
-      const { X, Y, Plot, Terrain, ...rest } = item.Plot;
+      const { X, Y, Plot, Terrain, ...rest } = item.Plot as Record<string, unknown>;
       if (Plot === "Ocean") {
         item[`${Terrain} ${X},${Y}`] = rest;
       } else {
@@ -365,9 +365,9 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
     }
     if (item.Type === "CombatResult") {
       // Consolidate combat properties under Attacker/Defender/Interceptor objects
-      const attacker: Record<string, any> = {};
-      const defender: Record<string, any> = {};
-      const interceptor: Record<string, any> = {};
+      const attacker: Record<string, unknown> = {};
+      const defender: Record<string, unknown> = {};
+      const interceptor: Record<string, unknown> = {};
 
       // Move properties to appropriate objects
       for (const key of Object.keys(item)) {
@@ -413,18 +413,18 @@ function consolidateConsecutiveEvents(events: Array<any>): Array<any> {
 /**
  * Extracts the ID value from a nested field path
  */
-function getFieldID(obj: any, fieldPath: string): any {
+function getFieldID(obj: Record<string, unknown>, fieldPath: string): unknown {
   const parts = fieldPath.split('.');
-  let current = obj;
-  
+  let current: unknown = obj;
+
   for (const part of parts) {
     if (!current || typeof current !== 'object') return undefined;
-    current = current[part];
+    current = (current as Record<string, unknown>)[part];
   }
-  
+
   // If the field is an object with an ID property, return the ID
   if (current && typeof current === 'object' && 'ID' in current) {
-    return current.ID;
+    return (current as Record<string, unknown>).ID;
   }
   
   return current;
@@ -433,7 +433,7 @@ function getFieldID(obj: any, fieldPath: string): any {
 /**
  * Checks if two events match on specified fields
  */
-function eventsMatch(event1: any, event2: any, matchFields: string[]): boolean {
+function eventsMatch(event1: Record<string, unknown>, event2: Record<string, unknown>, matchFields: string[]): boolean {
   for (const field of matchFields) {
     const id1 = getFieldID(event1, field);
     const id2 = getFieldID(event2, field);
@@ -455,20 +455,20 @@ function eventsMatch(event1: any, event2: any, matchFields: string[]): boolean {
 export function cleanEventData<T>(obj: T, embedID: boolean = true): T {
   // Handle primitives
   if (obj === -1 || obj === "None" || obj === "" || obj === false || obj === null) {
-    return undefined as any;
+    return undefined as unknown as T;
   }
-  
+
   // Handle arrays
   if (Array.isArray(obj)) {
     const cleaned = obj
       .map(item => cleanEventData(item))
       .filter(item => item !== undefined);
-    return cleaned.length > 0 ? cleaned as any : undefined as any;
+    return (cleaned.length > 0 ? cleaned : undefined) as unknown as T;
   }
-  
+
   // Handle objects
   if (typeof obj === 'object') {
-    const cleaned: Record<string, any> = {};
+    const cleaned: Record<string, unknown> = {};
     
     for (const [key, value] of Object.entries(obj)) {
       if (blockedKeys.includes(key)) continue;
@@ -481,7 +481,7 @@ export function cleanEventData<T>(obj: T, embedID: boolean = true): T {
       if (key.endsWith("ID") && key !== "ID") {
         const nested = cleaned[key.substring(0, key.length - 2)];
         if (nested && typeof(nested) === "object") {
-          nested.ID = cleaned[key];
+          (nested as Record<string, unknown>).ID = cleaned[key];
           delete cleaned[key];
         } else if (!nested) {
           cleaned[key.substring(0, key.length - 2)] = cleaned[key];
@@ -498,14 +498,14 @@ export function cleanEventData<T>(obj: T, embedID: boolean = true): T {
       if (key.endsWith("X")) {
         const nested = cleaned[key.substring(0, key.length - 1)];
         if (nested && typeof(nested) === "object") {
-          nested.X = cleaned[key];
+          (nested as Record<string, unknown>).X = cleaned[key];
           delete cleaned[key];
         }
       }
       if (key.endsWith("Y")) {
         const nested = cleaned[key.substring(0, key.length - 1)];
         if (nested && typeof(nested) === "object") {
-          nested.Y = cleaned[key];
+          (nested as Record<string, unknown>).Y = cleaned[key];
           delete cleaned[key];
         }
       }
@@ -513,14 +513,14 @@ export function cleanEventData<T>(obj: T, embedID: boolean = true): T {
 
     for (const key of Object.keys(cleaned)) {
       if (key.endsWith("Player") || key.endsWith("Owner")) {
-        const nested = cleaned[key];
+        const nested = cleaned[key] as Record<string, unknown> | undefined;
         if (nested && nested.Civilization)
           cleaned[key] = `${nested.ID}: ${nested.Civilization == "City State" ? nested.Name : nested.Civilization}`;
       }
     }
     
     // Return undefined if the object is empty after cleaning
-    return Object.keys(cleaned).length > 0 ? cleaned as any : undefined as any;
+    return (Object.keys(cleaned).length > 0 ? cleaned : undefined) as unknown as T;
   }
   
   // Return other values as-is
@@ -540,7 +540,7 @@ function postprocessPayload(value: Record<string, unknown>, player: Selectable<P
     const val = value[key];
     if (!val) continue;
     if (key === "ResourceType" || key === "Resource") {
-      if (player.ResourcesAvailable && Object.keys(player.ResourcesAvailable).indexOf(val as any) === -1) {
+      if (player.ResourcesAvailable && Object.keys(player.ResourcesAvailable).indexOf(val as string) === -1) {
         value[key] = "None";
       }
     } else if (typeof(val) === "object") {

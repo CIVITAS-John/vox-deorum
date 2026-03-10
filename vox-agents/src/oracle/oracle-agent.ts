@@ -99,7 +99,7 @@ export class OracleAgent extends VoxAgent<OracleParameters, OracleInput, ReplayR
 
         // Extract Rationale from strategist decision tool args
         if (strategistDecisionTools.includes(tc.toolName) && decision.args.Rationale) {
-          decision.rationale = decision.args.Rationale;
+          decision.rationale = decision.args.Rationale as string;
           delete decision.args.Rationale;
         }
 

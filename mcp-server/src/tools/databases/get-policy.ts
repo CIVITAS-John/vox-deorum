@@ -83,9 +83,9 @@ class GetPolicyTool extends DatabaseQueryTool<PolicySummary, PolicyReport> {
       p.Era = getEraName(p.Era ?? p.Era2) ?? null,
       p.Branch = p.Branch ?? p.Branch2;
       p.Help = formatPolicyHelp(p.Help2 ?? p.Help, p.Type).join('\n');
-      delete (p as any).Era2;
-      delete (p as any).Branch2;
-      delete (p as any).Help2;
+      delete (p as Record<string, unknown>).Era2;
+      delete (p as Record<string, unknown>).Branch2;
+      delete (p as Record<string, unknown>).Help2;
     })
     return Summaries as PolicySummary[];
   }

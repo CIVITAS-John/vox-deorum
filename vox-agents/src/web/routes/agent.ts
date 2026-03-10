@@ -28,6 +28,7 @@ import {
   GetChatResponse,
   ChatMessageRequest,
   DeleteChatResponse,
+  ErrorResponse,
   AgentInfo,
   StreamingEventCallback,
   EnvoyThread
@@ -51,7 +52,7 @@ export function createAgentRoutes(): Router {
    * GET /api/agents - List all available agents
    * Response includes agent names, descriptions, and tags for filtering
    */
-  router.get('/agents', (_req: Request, res: Response<ListAgentsResponse>) => {
+  router.get('/agents', (_req: Request, res: Response<ListAgentsResponse | ErrorResponse>) => {
     try {
       const agents = agentRegistry.getAll();
       const agentList: AgentInfo[] = agents.map(agent => ({
@@ -63,7 +64,7 @@ export function createAgentRoutes(): Router {
       res.json({ agents: agentList });
     } catch (error) {
       logger.error('Failed to list agents', { error });
-      res.status(500).json({ error: 'Failed to list agents' } as any);
+      res.status(500).json({ error: 'Failed to list agents' });
     }
   });
 
@@ -71,18 +72,18 @@ export function createAgentRoutes(): Router {
    * POST /api/agents/chat - Create a new chat thread
    * Initializes a new chat thread for the specified agent
    */
-  router.post('/agents/chat', async (req: Request<{}, {}, CreateChatRequest>, res: Response<CreateChatResponse>): Promise<Response> => {
+  router.post('/agents/chat', async (req: Request<{}, {}, CreateChatRequest>, res: Response<CreateChatResponse | ErrorResponse>): Promise<Response> => {
     try {
       const { agentName, contextId, databasePath, turn, userIdentity } = req.body;
 
       if (!agentName) {
-        return res.status(400).json({ error: 'Agent name is required' } as any);
+        return res.status(400).json({ error: 'Agent name is required' });
       }
 
       // Verify agent exists
       const agent = agentRegistry.get(agentName);
       if (!agent) {
-        return res.status(404).json({ error: `Agent ${agentName} not found` } as any);
+        return res.status(404).json({ error: `Agent ${agentName} not found` });
       }
 
       // Validate contextId or databasePath
@@ -112,7 +113,7 @@ export function createAgentRoutes(): Router {
             }
           }
         } else {
-          return res.status(400).json({ error: `Connection not found: ${contextId}` } as any);
+          return res.status(400).json({ error: `Connection not found: ${contextId}` });
         }
       } else if (databasePath) {
         // Validate database file exists
@@ -139,7 +140,7 @@ export function createAgentRoutes(): Router {
           logger.info(`Created new VoxContext for telepathist mode: ${effectiveContextId}`);
         } catch (err) {
           logger.error('Failed to create telepathist context', err);
-          return res.status(400).json({ error: `Failed to initialize database: ${databasePath}` } as any);
+          return res.status(400).json({ error: `Failed to initialize database: ${databasePath}` });
         }
       }
 
@@ -172,7 +173,7 @@ export function createAgentRoutes(): Router {
       return res.json(thread);
     } catch (error) {
       logger.error('Failed to create session', { error });
-      return res.status(500).json({ error: 'Failed to create session' } as any);
+      return res.status(500).json({ error: 'Failed to create session' });
     }
   });
 
@@ -180,13 +181,13 @@ export function createAgentRoutes(): Router {
    * GET /api/agents/chats - Get all active chat threads
    * Returns list of all current chat threads as EnvoyThreads
    */
-  router.get('/agents/chats', (_req: Request, res: Response<ListChatsResponse>) => {
+  router.get('/agents/chats', (_req: Request, res: Response<ListChatsResponse | ErrorResponse>) => {
     try {
       const chats = Array.from(chatSessions.values());
       res.json({ chats });
     } catch (error) {
       logger.error('Failed to list chat threads', { error });
-      res.status(500).json({ error: 'Failed to list chat threads' } as any);
+      res.status(500).json({ error: 'Failed to list chat threads' });
     }
   });
 
@@ -194,13 +195,13 @@ export function createAgentRoutes(): Router {
    * GET /api/agents/chat/:chatId - Get chat thread details with messages
    * Returns the full EnvoyThread with message history
    */
-  router.get('/agents/chat/:chatId', (req: Request, res: Response<GetChatResponse>): Response => {
+  router.get('/agents/chat/:chatId', (req: Request, res: Response<GetChatResponse | ErrorResponse>): Response => {
     try {
       const { chatId } = req.params;
       const thread = chatSessions.get(chatId);
 
       if (!thread) {
-        return res.status(404).json({ error: 'Chat thread not found' } as any);
+        return res.status(404).json({ error: 'Chat thread not found' });
       }
 
       // Enrich with current turn from live context for stale-turn detection
@@ -210,7 +211,7 @@ export function createAgentRoutes(): Router {
       return res.json({ ...thread, currentTurn });
     } catch (error) {
       logger.error('Failed to get chat thread', { error });
-      return res.status(500).json({ error: 'Failed to get chat thread' } as any);
+      return res.status(500).json({ error: 'Failed to get chat thread' });
     }
   });
 
@@ -269,7 +270,7 @@ export function createAgentRoutes(): Router {
     });
 
     // Helper function to send SSE event to this specific client
-    const sendEvent = (event: string, data: any) => {
+    const sendEvent = (event: string, data: Record<string, unknown>) => {
       res.write(`event: ${event}\n`);
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     };
@@ -281,7 +282,7 @@ export function createAgentRoutes(): Router {
       // Execute the agent with the thread as input
       const streamCallback: StreamingEventCallback = {
         OnChunk: ({ chunk }) => {
-          sendEvent('message', chunk);
+          sendEvent('message', chunk as Record<string, unknown>);
         }
       };
 
@@ -313,7 +314,8 @@ export function createAgentRoutes(): Router {
       });
     } catch (error) {
       logger.error('Failed to execute agent', { error });
-      sendEvent('error', { message: `Failed to execute agent: ${(error as any).message ?? "unknown"}` })
+      const errorMessage = error instanceof Error ? error.message : 'unknown';
+      sendEvent('error', { message: `Failed to execute agent: ${errorMessage}` })
     } finally {
       // Close the SSE stream
       res.end();
@@ -331,13 +333,13 @@ export function createAgentRoutes(): Router {
    * DELETE /api/agents/chat/:chatId - Delete a chat thread
    * Removes the specified chat thread from memory and optionally shuts down its context
    */
-  router.delete('/agents/chat/:chatId', async (req: Request, res: Response<DeleteChatResponse>): Promise<Response> => {
+  router.delete('/agents/chat/:chatId', async (req: Request, res: Response<DeleteChatResponse | ErrorResponse>): Promise<Response> => {
     try {
       const { chatId } = req.params;
       const thread = chatSessions.get(chatId);
 
       if (!thread) {
-        return res.status(404).json({ error: 'Chat thread not found' } as any);
+        return res.status(404).json({ error: 'Chat thread not found' });
       }
 
       // If this is a telepathist context (database-based), shut it down
@@ -353,7 +355,7 @@ export function createAgentRoutes(): Router {
       return res.json({ success: true });
     } catch (error) {
       logger.error('Failed to delete chat thread', { error });
-      return res.status(500).json({ error: 'Failed to delete chat thread' } as any);
+      return res.status(500).json({ error: 'Failed to delete chat thread' });
     }
   });
 

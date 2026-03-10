@@ -76,7 +76,7 @@ export class EventPipe extends EventEmitter {
         });
 
         // Handle errors
-        ipc.server.on('error', (error: any) => {
+        ipc.server.on('error', (error: Error) => {
           logger.error('Event pipe server error:', error);
         });
 

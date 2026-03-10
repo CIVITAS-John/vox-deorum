@@ -44,7 +44,7 @@ export interface ExternalUnregisterMessage extends IPCMessage {
  * External function call from Lua
  */
 export interface ExternalCall {
-  args: any;
+  args: Record<string, unknown>;
   function: string;
 }
 
@@ -81,7 +81,7 @@ export interface ExternalFunctionRegistration extends ExternalFunctionMetadata {
  * External function call request (from external service perspective)
  */
 export interface ExternalCallRequest {
-  args: any;
+  args: Record<string, unknown>;
   id: string;
 }
 

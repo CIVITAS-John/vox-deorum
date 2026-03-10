@@ -29,7 +29,7 @@ import { IPCMessage } from "./event.js";
  */
 export interface LuaCallRequest {
   function: string;
-  args: any;
+  args: Record<string, unknown>;
 }
 
 /**
@@ -38,7 +38,7 @@ export interface LuaCallRequest {
 export interface LuaCallMessage extends IPCMessage {
   type: 'lua_call';
   function: string;
-  args: any;
+  args: Record<string, unknown>;
 }
 
 /**

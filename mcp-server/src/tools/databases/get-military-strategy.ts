@@ -126,8 +126,8 @@ class GetMilitaryStrategyTool extends DatabaseQueryTool<MilitaryStrategy, Milita
     // Write back to JSON file only if content differs (ignoring whitespace)
     try {
       await writeJsonIfChanged(jsonPath, results, 'military.json');
-    } catch (error: any) {
-      logger.warn(`Warning writing military.json: ${error.message}`);
+    } catch (error: unknown) {
+      logger.warn(`Warning writing military.json: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     return results;

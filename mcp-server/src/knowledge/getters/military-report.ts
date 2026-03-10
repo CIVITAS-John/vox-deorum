@@ -46,7 +46,7 @@ export async function getMilitaryReport(
 
   // Convert numeric AI types and unit types to their string representations
   if (units) {
-    const convertedUnits: Record<string, any> = {};
+    const convertedUnits: Record<string, Record<string, unknown>> = {};
 
     for (const [aiTypeNum, unitsByType] of Object.entries(units)) {
       // Convert AI type enum to string
@@ -54,7 +54,7 @@ export async function getMilitaryReport(
       convertedUnits[aiType] = {};
 
       // Convert unit type IDs to their string representations
-      for (const [unitTypeNum, unitData] of Object.entries(unitsByType as Record<string, any>)) {
+      for (const [unitTypeNum, unitData] of Object.entries(unitsByType as Record<string, unknown>)) {
         const unitType = unitTypes?.[Number(unitTypeNum)] ?? `Unknown_${unitTypeNum}`;
         convertedUnits[aiType][unitType] = unitData;
       }
@@ -84,7 +84,7 @@ export async function getMilitaryReport(
   // Save tactical zone information with units in batch
   if (saving && zones) {
     // Convert zones object to array for batch processing
-    const zoneItems = Object.entries(zones as Record<string, any>)
+    const zoneItems = Object.entries(zones as Record<string, Record<string, unknown>>)
       .map(([_, zone]) => ({
         data: zone,
         extra: {

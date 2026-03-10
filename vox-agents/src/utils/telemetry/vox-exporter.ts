@@ -81,5 +81,5 @@ export abstract class VoxSpanExporter implements SpanExporter {
    * @param contextId - The ID of the context
    * @returns The storage handle, or undefined if not applicable
    */
-  abstract getDatabase?(contextId: string): any;
+  abstract getDatabase?(contextId: string): unknown;
 }

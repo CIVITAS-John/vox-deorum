@@ -140,6 +140,13 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 - Before creating new mechanisms, check if it already exists
 - **Use camelCase for exported constants** (e.g., `export const apiKeyFields`, not `API_KEY_FIELDS`)
 
+### Type Safety Conventions
+- **Never use `any` or `unknown` types unless absolutely necessary** — prefer specific types, generics, or `Record<string, unknown>`
+- **Use `catch (error: unknown)`** instead of `catch (error: any)` — narrow with `error instanceof Error` before accessing `.message`
+- **Use `(error: Error)` for Node.js `.on('error')` handlers** — Node error events always emit Error objects
+- **Acceptable `any` usage**: Kysely dynamic queries, Lua/game data boundaries (`LuaResponse.result`), dynamic `Player${i}` property access, third-party library interop without types, JSON processing of arbitrary shapes
+- **For Express route responses**, union the response type with `ErrorResponse` instead of casting `as any`
+
 ### Logging Conventions
 - **Use Winston logger** for all TypeScript modules (bridge-service, mcp-server, vox-agents)
 - **Never use console.log/error/warn** in production code - always use the logger utility

@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../utils/logger.js';
 import { dllConnector } from '../services/dll-connector.js';
 import { GameEvent, GameEventMessage } from '../types/event.js';
-import { respondError } from '../types/api.js';
+import { ErrorCode, respondError } from '../types/api.js';
 import { pauseManager } from '../services/pause-manager.js';
 import { eventPipe } from '../services/event-pipe.js';
 
@@ -78,7 +78,7 @@ router.get('/', async (req: Request, res: Response) => {
     // If headers not sent yet, send error response
     if (!res.headersSent) {
       res.status(500).json(respondError(
-        'INTERNAL_ERROR' as any,
+        ErrorCode.INTERNAL_ERROR,
         'Failed to establish SSE connection',
         error instanceof Error ? error.message : 'Unknown error'
       ));

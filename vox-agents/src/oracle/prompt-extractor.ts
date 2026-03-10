@@ -246,11 +246,11 @@ export async function findTurnByRationale(
     const attrs = parseAttributes(span);
     if (!attrs['tool.input']) continue;
 
-    const input = parseJson(attrs['tool.input']);
+    const input = parseJson(attrs['tool.input']) as Record<string, unknown> | undefined;
     if (!input?.Rationale) continue;
 
     foundAnyRationale = true;
-    const score = fuzzy(csvRationale, input.Rationale);
+    const score = fuzzy(csvRationale, input.Rationale as string);
     if (score >= threshold) return true;
   }
 
@@ -262,7 +262,7 @@ export async function findTurnByRationale(
 }
 
 /** Safely parse JSON, returning the value as-is if already parsed */
-function parseJson(value: any): any {
+function parseJson(value: unknown): unknown {
   if (value === undefined || value === null) return undefined;
   if (typeof value === 'string') {
     try {
@@ -275,20 +275,20 @@ function parseJson(value: any): any {
 }
 
 /** Extract text content from a message content field */
-function extractTextContent(content: any): string {
+function extractTextContent(content: unknown): string {
   if (typeof content === 'string') return content;
   if (Array.isArray(content)) {
     return content
-      .filter(part => part.type === 'text')
-      .map(part => part.text)
+      .filter((part: Record<string, unknown>) => part.type === 'text')
+      .map((part: Record<string, unknown>) => part.text)
       .join('\n');
   }
   return '';
 }
 
 /** Extract response text and tool calls from response messages */
-function extractResponse(responses: any): { text: string; toolCalls: { toolName: string; args: any }[] } {
-  const result = { text: '', toolCalls: [] as { toolName: string; args: any }[] };
+function extractResponse(responses: unknown): { text: string; toolCalls: { toolName: string; args: unknown }[] } {
+  const result = { text: '', toolCalls: [] as { toolName: string; args: unknown }[] };
 
   if (!Array.isArray(responses)) return result;
 

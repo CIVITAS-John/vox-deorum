@@ -10,7 +10,7 @@ import { getPlayerInformations } from "../../knowledge/getters/player-informatio
 import { getPlayerSummaries } from "../../knowledge/getters/player-summary.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { PlayerOpinions, PlayerSummary } from "../../knowledge/schema/timed.js";
+import { PlayerOpinions } from "../../knowledge/schema/timed.js";
 import { stripTags } from "../../utils/database/localized.js";
 import { cleanEventData } from "./get-events.js";
 
@@ -140,8 +140,8 @@ class GetOpinionsTool extends ToolBase {
         const summary = playerSummaries.find(s => s.Key === targetPlayerID);
         if (summary) {
           // Get the visibility field for the requesting player
-          const visibilityField = `Player${PlayerID}` as keyof PlayerSummary;
-          const visibility = (summary as any)[visibilityField];
+          const visibilityField = `Player${PlayerID}`;
+          const visibility = (summary as Record<string, unknown>)[visibilityField];
           
           // If not met (visibility = 0), return unmet string
           if (visibility === 0) {

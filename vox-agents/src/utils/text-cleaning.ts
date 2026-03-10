@@ -52,7 +52,7 @@ export function cleanToolArtifacts(text: string): string {
 /**
  * Formats a tool call as a markdown JSON code block (prompt-mode representation).
  */
-export function formatToolCallText(toolName: string, args: any): string {
+export function formatToolCallText(toolName: string, args: unknown): string {
   let parsed = args;
   if (typeof parsed === 'string') {
     try { parsed = JSON.parse(parsed); } catch { /* keep as-is */ }

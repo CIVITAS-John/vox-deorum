@@ -149,9 +149,9 @@ app.use('*', (req: Request, res: Response) => {
 /**
  * Global error handler
  */
-app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
+app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
   logger.error('Unhandled error:', error);
-  
+
   const response = respondError(
     ErrorCode.INTERNAL_ERROR,
     'Internal server error',
