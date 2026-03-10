@@ -166,6 +166,24 @@ export class EpisodeWriter {
     await this.db.deleteFrom('episodes').where('gameId', '=', gameId).execute();
   }
 
+  /** Fetch vectors needed for landmark selection (lightweight: only PKs + vectors). */
+  async getGameEpisodeVectors(gameId: string): Promise<Array<{
+    turn: number;
+    playerId: number;
+    gameStateVector: number[];
+    neighborVector: number[];
+    abstractEmbedding: number[] | null;
+  }>> {
+    const rows = await this.db
+      .selectFrom('episodes')
+      .select(['turn', 'playerId', 'gameStateVector', 'neighborVector', 'abstractEmbedding'])
+      .where('gameId', '=', gameId)
+      .where('gameStateVector', 'is not', null)
+      .orderBy('turn')
+      .execute();
+    return rows as any;
+  }
+
   /** Mark selected episodes as landmarks for retrieval diversity. */
   async markLandmarks(gameId: string, keys: Array<{ turn: number; playerId: number }>): Promise<void> {
     for (const { turn, playerId } of keys) {

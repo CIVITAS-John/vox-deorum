@@ -172,7 +172,9 @@ Per-player, per-turn. TurnContext provides all-player data for cross-player comp
 
 ---
 
-## Phase 4: Integration & Polish
+## Phase 4: Integration & Polish ✅ DONE
+
+**Implemented:** 4.1-4.3 were already in place (incremental per-player skip, --force delete, try-catch per game/player). similarity.ts provides `cosineSimilarity()`, `compositeSimilarity()` for TypeScript batch use, plus `buildSimilaritySql()` and `buildPairwiseSimilaritySql()` SQL builders for Phase 5 reader.ts. selector.ts implements greedy max-min diversity landmark selection per player using `landmarkWeights` (0.6 game state, 0.4 neighbor), targeting ~1 landmark per 10 episodes per player. writer.ts gained `getGameEpisodeVectors()` for lightweight vector retrieval. index.ts wires `selectLandmarks()` after all players are processed per game.
 
 ### 4.1 Incremental Processing
 - Per `(gameId, playerId)` granularity: check DuckDB before processing
@@ -191,16 +193,14 @@ Per-player, per-turn. TurnContext provides all-player data for cross-player comp
 
 ### 4.4 Landmark Selection (`selector.ts`)
 
-After all episodes for a game are written, select a diverse subset and mark `is_landmark = TRUE`.
+After all episodes for a game are written, select a diverse subset per player and mark `is_landmark = TRUE`.
 
-**Algorithm** — greedy max-marginal diversity using **in-house TypeScript** composite similarity:
+**Algorithm** — greedy max-min diversity using **in-house TypeScript** composite similarity, run independently per player:
 
-1. Load all episodes for the game from DuckDB (PKs + vectors: `game_state_vector`, `neighbor_vector`, `abstract_embedding`)
-2. Seed: pick episode with median turn number
-3. For each remaining candidate, compute composite similarity to all already-selected using `compositeSimilarity()` (TypeScript, not SQL — vectors are already in memory)
-4. Add the episode with maximum minimum distance to all selected
-5. Stop at ~1 landmark per 10 turns per player (e.g., 200-turn game × 1 player ≈ 20 landmarks)
-6. Call `writer.markLandmarks(gameId, selectedKeys)` to batch UPDATE
+1. Load all episodes for the game from DuckDB via `writer.getGameEpisodeVectors()` (PKs + vectors only)
+2. Group by player ID — each player's trajectory is selected independently
+3. Per player: target ~1 landmark per 10 episodes, seed with median turn, greedy max-min diversity using `compositeSimilarity()` with `landmarkWeights`
+4. Call `writer.markLandmarks(gameId, allSelectedKeys)` to batch UPDATE
 
 ### 4.5 Composite Similarity (`similarity.ts`)
 

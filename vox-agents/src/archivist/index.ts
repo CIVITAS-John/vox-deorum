@@ -20,6 +20,7 @@ import { prepareTelepathist } from './telepathist-prep.js';
 import { extractPlayerEpisodes, extractTurnContexts } from './extractor.js';
 import { transformEpisode } from './transformer.js';
 import { generateEmbeddings } from './embeddings.js';
+import { selectLandmarks } from './selector.js';
 
 const logger = createLogger('Archivist');
 
@@ -162,7 +163,8 @@ async function main() {
           }
         }
 
-        // Phase 4: landmark selection (placeholder)
+        // Phase 4: landmark selection — mark diverse subset for retrieval
+        await selectLandmarks(writer, entry.gameId);
       } finally {
         await gameDb.destroy();
       }
