@@ -133,8 +133,10 @@ CREATE TABLE episodes (
   --   Step 1: city_multiplier = MAX(1.05 * (cities - 1), 1.0)
   --           {metric}_adj = {metric}_per_turn / city_multiplier
   --   Step 2: {metric}_share = player_{metric}_adj / SUM(all_players_{metric}_adj)
+  --   Step 3: shares scaled by knownMajors / totalMajors when only partial
+  --           player data is visible (e.g. unmet civs not in PlayerSummaries)
   --   For non-per-turn fields (cities, population, votes, minor_allies):
-  --           {metric}_share = player_value / SUM(all_players_value)
+  --           {metric}_share = player_value / SUM(all_players_value)  (then scaled)
   --
   -- Per-pop values (production, food):
   --   raw = {metric}_per_turn / population
@@ -460,16 +462,19 @@ Used by `reader.ts` during runtime retrieval. Scoring happens inside SQL queries
 
 | Preset                       | game_state | neighbor | embedding | Usage                     |
 |------------------------------|------------|----------|-----------|---------------------------|
-| `landmarkWeights`            | 0.6        | 0.4      | 0         | Batch landmark selection   |
 | `retrievalWeights`           | 0.4        | 0.3      | 0.3       | Runtime with abstract      |
-| `retrievalNoEmbeddingWeights`| 0.55       | 0.45     | 0         | Runtime without abstract   |
+| `retrievalNoEmbeddingWeights`| 0.6        | 0.4      | 0         | Runtime without abstract   |
+
+`compositeSimilarity()` auto-selects weights based on embedding availability.
+The selector uses `compositeSimilarity()` with default weights (no embeddings present),
+which resolves to `retrievalNoEmbeddingWeights` (0.6/0.4/0) for landmark selection.
 
 ## Retrieval Pipeline
 
 At runtime, `reader.ts` executes a 3-stage pipeline:
 
 ```
-Stage 1: Score (SQL) → Stage 2: Fetch Outcomes (SQL) → Stage 3: Diversity Select (SQL + TS)
+Stage 1: Score (SQL) → Stage 2: Fetch Outcomes (SQL) → Stage 3: Diversity Select (TS)
 ```
 
 ### Stage 1: Two-Pass Composite Score
@@ -499,5 +504,9 @@ Computes share deltas as formatted strings (`+3%`, `-1%`). Horizon=20 omits deci
 Not stored — computed dynamically at query time.
 
 ### Stage 3: Diversity Select
-Computes pairwise similarity between candidates via SQL, then greedy MMR in TypeScript
-(`lambda=0.7`) to select the final diverse result set.
+Greedy MMR in TypeScript (`lambda=0.7`) to select the final diverse result set.
+Pairwise similarity computed entirely in TypeScript using `compositeSimilarity()`.
+
+1. Pick top-scored candidate
+2. For each remaining: `mmr = 0.7 * normalizedScore - 0.3 * max_sim_to_selected`
+3. Pick highest MMR, repeat until `resultLimit`

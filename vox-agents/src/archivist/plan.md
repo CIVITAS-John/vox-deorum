@@ -59,7 +59,7 @@ Export shared constants (used by `transformer.ts`, `similarity.ts`, and `utils/g
 - `eraMap`: `Record<string, number>` (era string → 0-7 ordinal)
 - `grandStrategyMap`: `Record<string, number>` (strategy string → 0-4)
 - Clamp ranges for vector element normalization
-- `landmarkWeights`, `retrievalWeights`, `retrievalNoEmbeddingWeights` — weight presets
+- `retrievalWeights`, `retrievalNoEmbeddingWeights` — weight presets (auto-selected by `compositeSimilarity()`)
 
 ### 1.2 Scanner (`scanner.ts`)
 
@@ -174,7 +174,7 @@ Per-player, per-turn. TurnContext provides all-player data for cross-player comp
 
 ## Phase 4: Integration & Polish ✅ DONE
 
-**Implemented:** 4.1-4.3 were already in place (incremental per-player skip, --force delete, try-catch per game/player). similarity.ts provides `cosineSimilarity()`, `compositeSimilarity()` for TypeScript batch use, plus `buildSimilaritySql()` and `buildPairwiseSimilaritySql()` SQL builders for Phase 5 reader.ts. selector.ts implements greedy max-min diversity landmark selection per player using `landmarkWeights` (0.6 game state, 0.4 neighbor), targeting ~1 landmark per 10 episodes per player. writer.ts gained `getGameEpisodeVectors()` for lightweight vector retrieval. index.ts wires `selectLandmarks()` after all players are processed per game.
+**Implemented:** 4.1-4.3 were already in place (incremental per-player skip, --force delete, try-catch per game/player). similarity.ts provides `cosineSimilarity()`, `compositeSimilarity()` for TypeScript batch use, plus `buildSimilaritySql()` and `buildPairwiseSimilaritySql()` SQL builders for Phase 5 reader.ts. selector.ts implements greedy max-min diversity landmark selection per player using default `compositeSimilarity()` weights (resolves to `retrievalNoEmbeddingWeights`: 0.6 game state, 0.4 neighbor), targeting ~1 landmark per 10 episodes per player. writer.ts gained `getGameEpisodeVectors()` for lightweight vector retrieval. index.ts wires `selectLandmarks()` after all players are processed per game.
 
 ### 4.1 Incremental Processing
 - Per `(gameId, playerId)` granularity: check DuckDB before processing
@@ -199,7 +199,7 @@ After all episodes for a game are written, select a diverse subset per player an
 
 1. Load all episodes for the game from DuckDB via `writer.getGameEpisodeVectors()` (PKs + vectors only)
 2. Group by player ID — each player's trajectory is selected independently
-3. Per player: target ~1 landmark per 10 episodes, seed with median turn, greedy max-min diversity using `compositeSimilarity()` with `landmarkWeights`
+3. Per player: target ~1 landmark per 10 episodes, seed with median turn, greedy max-min diversity using `compositeSimilarity()` with default weights (resolves to `retrievalNoEmbeddingWeights` since no embeddings)
 4. Call `writer.markLandmarks(gameId, allSelectedKeys)` to batch UPDATE
 
 ### 4.5 Composite Similarity (`similarity.ts`)
@@ -247,9 +247,8 @@ interface SimilarityWeights {
 }
 ```
 
-- `landmarkWeights`: `{ gameState: 0.6, neighbor: 0.4, embedding: 0 }` — batch, no embedding
 - `retrievalWeights`: `{ gameState: 0.4, neighbor: 0.3, embedding: 0.3 }` — runtime, all three
-- `retrievalNoEmbeddingWeights`: `{ gameState: 0.55, neighbor: 0.45, embedding: 0 }` — runtime, no abstract
+- `retrievalNoEmbeddingWeights`: `{ gameState: 0.6, neighbor: 0.4, embedding: 0 }` — runtime, no abstract (also used implicitly by selector via default weights)
 
 ---
 
@@ -378,7 +377,7 @@ Conditional embedding: when `abstract` is provided, `{similarity_sql}` includes 
 
 Embedding generation: when `query.abstract` is provided, pipeline calls `embeddings.ts` to generate the vector before running SQL.
 
-Default weights (integers): `era = 8`, `civ = 5`, `gs = 5`, `wars = 3`, `friends = 2`, `pacts = 2`, `truces = 2`, `denouncements = 2`. Max sum = 29. Fuzzy score is used only for pre-filtering (Pass 1). Pass 2 ranks by vector similarity alone. Pre-filter limit: top 200 by fuzzy score.
+Default weights (integers): `era = 8`, `civ = 5`, `gs = 3`, `wars = 3`, `friends = 2`, `pacts = 2`, `truces = 2`, `denouncements = 2`. Max sum = 27. Fuzzy score is used only for pre-filtering (Pass 1). Pass 2 ranks by vector similarity alone. Pre-filter limit: top 200 by fuzzy score.
 
 **Stage 2: Fetch Outcomes** (for candidate pool)
 
@@ -410,27 +409,19 @@ Raw deltas formatted as ShareDelta strings: `delta > 0 → "+X%"`, `< 0 → "-X%
 
 From candidate pool (default 20), select final `resultLimit` (default 5) via greedy MMR.
 
-Pairwise similarity between candidates computed via DuckDB SQL (pathway 2):
-```sql
-SELECT a.game_id, a.turn, a.player_id,
-       b.game_id AS b_game_id, b.turn AS b_turn, b.player_id AS b_player_id,
-       {pairwise_similarity_sql}
-       AS pairwise_sim
-FROM candidates a, candidates b
-WHERE (a.game_id, a.turn, a.player_id) != (b.game_id, b.turn, b.player_id)
-```
+Pairwise similarity computed entirely in TypeScript using `compositeSimilarity()` from `similarity.ts`.
 
-Then greedy MMR selection in TypeScript using the pairwise matrix:
+Greedy MMR selection:
 1. Pick top-scored candidate
-2. For each remaining: `mmr = lambda * score - (1-lambda) * max_sim_to_selected`
-   - `lambda = 0.7`
+2. For each remaining: `mmr = 0.7 * normalizedScore - 0.3 * max_sim_to_selected`
 3. Pick highest MMR, repeat until `resultLimit`
 
 #### Key Methods
 
 ```typescript
+// Module-level exported functions (not class methods)
 findEpisodes(query: EpisodeQuery): Promise<EpisodeResult[]>
-close(): Promise<void>
+closeReader(): Promise<void>
 ```
 
 ### 5.3 Composable Function (`utils/episode-utils.ts`)
@@ -446,12 +437,14 @@ async function requestEpisodes(
 1. Build vectors via `buildLiveGameStateVector(state, parameters)` → `{ gameStateVector, neighborVector }`
 2. Extract era, civilization, grandStrategy from `state.players` / `parameters.metadata`
 3. Extract diplomatic counts (activeWars, friends, defensivePacts, truces, denouncements) from the player's Relationships data in `state.players`
-4. Call `reader.findEpisodes({ gameStateVector, neighborVector, abstract, era, civilization, grandStrategy, activeWars, friends, defensivePacts, truces, denouncements })`
+4. Call `findEpisodes({ gameStateVector, neighborVector, abstract, era, civilization, grandStrategy, activeWars, friends, defensivePacts, truces, denouncements })`
 5. Return `EpisodeResult[]`
 
 When `abstract` is provided, embedding similarity is included. When absent, it's skipped.
 
 Also exports `formatEpisodeResults(results: EpisodeResult[]): string` for markdown formatting.
+
+Also exports `requestEpisodesFromTelemetry(telemetryDb, telepathistDb, turn, playerId)` for post-game episode retrieval from recorded telemetry spans.
 
 ### 5.4 Live Game State Vector (`utils/game-state-vector.ts`)
 

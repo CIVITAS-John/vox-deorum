@@ -13,6 +13,28 @@ import type { EpisodeWriter } from './writer.js';
 
 const logger = createLogger('Selector');
 
+/** Min/median/max of nearest-neighbor similarities collected during greedy selection. */
+export interface DistanceStats {
+  min: number;   // lowest nearest-neighbor sim (most diverse addition)
+  median: number;
+  max: number;   // highest nearest-neighbor sim (least diverse addition)
+}
+
+/** Per-player landmark selection summary. */
+export interface PlayerLandmarkStats {
+  playerId: number;
+  episodes: number;
+  landmarks: number;
+  distances: DistanceStats | null;  // null when ≤1 landmark
+}
+
+/** Aggregate landmark stats for a game. */
+export interface LandmarkStats {
+  totalLandmarks: number;
+  totalEpisodes: number;
+  players: PlayerLandmarkStats[];
+}
+
 interface EpisodeCandidate {
   turn: number;
   playerId: number;
@@ -23,12 +45,12 @@ interface EpisodeCandidate {
  * Select diverse landmark episodes for each player in a game independently.
  * Each player's episode trajectory is treated as a separate sequence.
  */
-export async function selectLandmarks(writer: EpisodeWriter, gameId: string): Promise<void> {
+export async function selectLandmarks(writer: EpisodeWriter, gameId: string): Promise<LandmarkStats | null> {
   const rows = await writer.getGameEpisodeVectors(gameId);
 
   if (rows.length === 0) {
     logger.warn(`No episodes with vectors for game ${gameId}, skipping landmark selection`);
-    return;
+    return null;
   }
 
   // Group episodes by player
@@ -53,26 +75,37 @@ export async function selectLandmarks(writer: EpisodeWriter, gameId: string): Pr
 
   // Select landmarks independently per player
   const allKeys: Array<{ turn: number; playerId: number }> = [];
+  const playerStats: PlayerLandmarkStats[] = [];
 
   for (const [playerId, candidates] of byPlayer) {
     const targetCount = Math.max(1, Math.min(candidates.length, Math.round(candidates.length / 10)));
-    const selected = selectDiverse(candidates, targetCount);
-    for (const idx of selected) {
+    const { indices, distances } = selectDiverse(candidates, targetCount);
+    for (const idx of indices) {
       allKeys.push({ turn: candidates[idx].turn, playerId });
     }
+    const landmarkCount = indices.size;
+    playerStats.push({ playerId, episodes: candidates.length, landmarks: landmarkCount, distances });
+
+    const distStr = distances
+      ? `nn-similarity: min=${distances.min.toFixed(2)} median=${distances.median.toFixed(2)} max=${distances.max.toFixed(2)}`
+      : 'nn-similarity: n/a';
+    logger.info(`Player ${playerId}: ${landmarkCount} landmarks from ${candidates.length} episodes — ${distStr}`);
   }
 
   await writer.markLandmarks(gameId, allKeys);
 
+  const stats: LandmarkStats = {
+    totalLandmarks: allKeys.length,
+    totalEpisodes: rows.length,
+    players: playerStats,
+  };
+
   logger.info(`Selected ${allKeys.length} landmarks for game ${gameId}`, {
     totalEpisodes: rows.length,
     players: byPlayer.size,
-    perPlayer: [...byPlayer.entries()].map(([pid, eps]) => ({
-      playerId: pid,
-      episodes: eps.length,
-      landmarks: allKeys.filter(k => k.playerId === pid).length,
-    })),
   });
+
+  return stats;
 }
 
 /**
@@ -82,7 +115,7 @@ export async function selectLandmarks(writer: EpisodeWriter, gameId: string): Pr
  * 2. Iteratively add the candidate most dissimilar from all already-selected
  * 3. Return selected indices
  */
-function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set<number> {
+function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): { indices: Set<number>; distances: DistanceStats | null } {
   const n = candidates.length;
 
   // Lazy pairwise similarity cache using flat typed arrays
@@ -117,6 +150,8 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set
   const selectedIndices = new Set<number>([seedIdx]);
   // Track maximum similarity to any selected episode for each candidate (nearest-neighbor)
   const maxSimToSelected = new Float64Array(n).fill(-Infinity);
+  // Collect nearest-neighbor similarities for each greedy addition
+  const nearestNeighborSims: number[] = [];
 
   // Initialize min similarities from the seed
   for (let i = 0; i < n; i++) {
@@ -138,6 +173,7 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set
 
     if (bestIdx === -1) break;
     selectedIndices.add(bestIdx);
+    nearestNeighborSims.push(bestMaxSim);
 
     // Update max similarities with the newly selected episode
     for (let i = 0; i < n; i++) {
@@ -149,5 +185,20 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set
     }
   }
 
-  return selectedIndices;
+  // Compute distance stats from collected nearest-neighbor similarities
+  let distances: DistanceStats | null = null;
+  if (nearestNeighborSims.length > 0) {
+    nearestNeighborSims.sort((a, b) => a - b);
+    const len = nearestNeighborSims.length;
+    const median = len % 2 === 1
+      ? nearestNeighborSims[Math.floor(len / 2)]
+      : (nearestNeighborSims[len / 2 - 1] + nearestNeighborSims[len / 2]) / 2;
+    distances = {
+      min: nearestNeighborSims[0],
+      median,
+      max: nearestNeighborSims[len - 1],
+    };
+  }
+
+  return { indices: selectedIndices, distances };
 }

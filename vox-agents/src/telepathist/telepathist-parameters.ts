@@ -171,6 +171,25 @@ export async function createTelepathistParameters(
       .execute();
 
     const availableTurns = turnRows.map(r => r.turn!);
+
+    // Exclude the last turn if it has no agent activity (e.g. a victory termination turn)
+    if (availableTurns.length > 0) {
+      const lastTurn = availableTurns[availableTurns.length - 1];
+      const agentSpan = await db
+        .selectFrom('spans')
+        .select('spanId')
+        .where('turn', '=', lastTurn)
+        .where('name', 'like', 'agent.%')
+        .where('name', 'not like', '%.step.%')
+        .limit(1)
+        .executeTakeFirst();
+
+      if (!agentSpan) {
+        availableTurns.pop();
+        logger.info(`Excluded empty terminal turn ${lastTurn}`);
+      }
+    }
+
     logger.info(`Found ${availableTurns.length} turns in telemetry database`, {
       firstTurn: availableTurns[0],
       lastTurn: availableTurns[availableTurns.length - 1]

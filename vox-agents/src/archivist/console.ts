@@ -198,7 +198,7 @@ async function main() {
         }
 
         // Phase 4: landmark selection — mark diverse subset for retrieval
-        await selectLandmarks(writer, entry.gameId);
+        const stats = await selectLandmarks(writer, entry.gameId);
       } finally {
         await gameDb.destroy();
       }

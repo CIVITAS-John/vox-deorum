@@ -152,6 +152,14 @@ export async function extractPlayerEpisodes(
   // Load telepathist summaries (if DB exists)
   const turnSummaries = loadTurnSummaries(telepathistDbPath);
 
+  // If telepathist was run but has no summary for the last turn, exclude it
+  // (e.g. a victory termination turn with no agent activity)
+  const lastTurn = turnSummaries.size > 0 ? Math.max(...turnContexts.keys()) : -1;
+  const skipLastTurn = lastTurn >= 0 && !turnSummaries.has(lastTurn);
+  if (skipLastTurn) {
+    logger.info(`Will exclude terminal turn ${lastTurn} (no telepathist summary)`);
+  }
+
   // Query strategy changes for this player — latest version per Turn, sorted for binary search
   const strategyRows = await gameDb
     .selectFrom('StrategyChanges')
@@ -180,6 +188,8 @@ export async function extractPlayerEpisodes(
   const episodes: RawEpisode[] = [];
 
   for (const [turn, ctx] of turnContexts) {
+    if (skipLastTurn && turn === lastTurn) continue;
+
     const summary = ctx.playerSummaries.get(playerId);
     if (!summary) continue; // Player not present at this turn
 
