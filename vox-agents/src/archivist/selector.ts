@@ -98,25 +98,25 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set
   }
 
   const selectedIndices = new Set<number>([seedIdx]);
-  // Track minimum similarity to any selected episode for each candidate
-  const minSimToSelected = new Float64Array(candidates.length).fill(Infinity);
+  // Track maximum similarity to any selected episode for each candidate (nearest-neighbor)
+  const maxSimToSelected = new Float64Array(candidates.length).fill(-Infinity);
 
   // Initialize min similarities from the seed
   for (let i = 0; i < candidates.length; i++) {
     if (i === seedIdx) continue;
-    minSimToSelected[i] = compositeSimilarity(
+    maxSimToSelected[i] = compositeSimilarity(
       candidates[i].vectors, candidates[seedIdx].vectors, landmarkWeights
     );
   }
 
   while (selectedIndices.size < targetCount) {
-    // Find candidate with minimum similarity to all selected (maximum diversity)
+    // Find candidate with lowest max-similarity to selected (most diverse nearest-neighbor)
     let bestIdx = -1;
-    let bestMinSim = Infinity;
+    let bestMaxSim = Infinity;
     for (let i = 0; i < candidates.length; i++) {
       if (selectedIndices.has(i)) continue;
-      if (minSimToSelected[i] < bestMinSim) {
-        bestMinSim = minSimToSelected[i];
+      if (maxSimToSelected[i] < bestMaxSim) {
+        bestMaxSim = maxSimToSelected[i];
         bestIdx = i;
       }
     }
@@ -124,14 +124,14 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set
     if (bestIdx === -1) break;
     selectedIndices.add(bestIdx);
 
-    // Update min similarities with the newly selected episode
+    // Update max similarities with the newly selected episode
     for (let i = 0; i < candidates.length; i++) {
       if (selectedIndices.has(i)) continue;
       const sim = compositeSimilarity(
         candidates[i].vectors, candidates[bestIdx].vectors, landmarkWeights
       );
-      if (sim < minSimToSelected[i]) {
-        minSimToSelected[i] = sim;
+      if (sim > maxSimToSelected[i]) {
+        maxSimToSelected[i] = sim;
       }
     }
   }

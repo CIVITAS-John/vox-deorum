@@ -15,6 +15,7 @@ import telemetryRoutes from './routes/telemetry.js';
 import configRoutes from './routes/config.js';
 import { createAgentRoutes } from './routes/agent.js';
 import sessionRoutes from './routes/session.js';
+import { contextRegistry } from '../infra/context-registry.js';
 import type { HealthStatus, ErrorResponse } from '../types/index.js';
 
 // Get __dirname in ESM
@@ -111,10 +112,11 @@ export async function startWebServer(): Promise<void> {
       // Start SSE heartbeat to keep connections alive
       const heartbeatInterval = sseManager.startHeartbeat();
 
-      // Cleanup on shutdown
-      process.on('SIGINT', () => {
+      // Cleanup on shutdown — close all VoxContexts (and their DB connections) before exiting
+      process.on('SIGINT', async () => {
         webLogger.info('Shutting down web server');
         clearInterval(heartbeatInterval);
+        await contextRegistry.shutdownAll();
         server.close();
         process.exit(0);
       });

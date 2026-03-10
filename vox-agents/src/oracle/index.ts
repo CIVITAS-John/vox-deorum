@@ -17,8 +17,27 @@ import { createLogger } from '../utils/logger.js';
 import { runExperiment } from './oracle.js';
 import type { OracleConfig } from './types.js';
 import { startWebServer } from '../web/server.js';
+import { contextRegistry } from '../infra/context-registry.js';
+import { sqliteExporter } from '../instrumentation.js';
 
 const logger = createLogger('OracleCLI');
+
+// Graceful shutdown — closes all registered VoxContexts (and their DB connections)
+let shuttingdown = false;
+async function shutdown(signal: string) {
+  if (shuttingdown) return;
+  shuttingdown = true;
+
+  logger.info(`Received ${signal}, shutting down gracefully...`);
+
+  await contextRegistry.shutdownAll();
+  await sqliteExporter.forceFlush();
+  process.exit(0);
+}
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGBREAK', () => shutdown('SIGBREAK'));
 
 /** Parse CLI flags (matches strategist pattern) */
 const { values } = parseArgs({

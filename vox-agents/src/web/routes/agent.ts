@@ -117,6 +117,7 @@ export function createAgentRoutes(): Router {
         }
       } else if (databasePath) {
         // Validate database file exists
+        let context: VoxContext<TelepathistParameters> | undefined;
         try {
           await fs.access(databasePath);
           // Parse gameID and playerID using utility function
@@ -127,7 +128,7 @@ export function createAgentRoutes(): Router {
           // Create a new VoxContext for telepathist mode (database-based)
           effectiveContextId = `${gameID}-telepath-${playerID}`
           VoxSpanExporter.getInstance().createContext(effectiveContextId, "telepathist");
-          const context = new VoxContext<TelepathistParameters>({}, effectiveContextId);
+          context = new VoxContext<TelepathistParameters>({}, effectiveContextId);
 
           await mcpClient.connect();
           await context.registerTools();
@@ -140,6 +141,10 @@ export function createAgentRoutes(): Router {
           logger.info(`Created new VoxContext for telepathist mode: ${effectiveContextId}`);
         } catch (err) {
           logger.error('Failed to create telepathist context', err);
+          // Clean up the partially-initialized context to avoid leaking DB connections
+          if (context) {
+            await context.shutdown().catch(() => {});
+          }
           return res.status(400).json({ error: `Failed to initialize database: ${databasePath}` });
         }
       }
@@ -350,8 +355,8 @@ export function createAgentRoutes(): Router {
         return res.status(404).json({ error: 'Chat thread not found' });
       }
 
-      // If this is a telepathist context (database-based), shut it down
-      if (thread.contextId && thread.contextId.startsWith('telepathist-')) {
+      // If this is a database-backed context (telepathist), shut it down to close DB connections
+      if (thread.contextType === 'database' && thread.contextId) {
         const context = contextRegistry.get(thread.contextId);
         if (context) {
           await context.shutdown();

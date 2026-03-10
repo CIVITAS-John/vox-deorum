@@ -26,6 +26,7 @@ import {
 import {
   parseDatabaseIdentifier,
 } from '../utils/identifier-parser.js';
+import { contextRegistry } from '../infra/context-registry.js';
 import { StreamingEventCallback, EnvoyThread } from '../types/index.js';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'node:path';
@@ -68,7 +69,7 @@ if (!rawDatabasePath) {
 
 const databasePath = path.resolve(path.join("telemetry", rawDatabasePath));
 
-// Graceful shutdown
+// Graceful shutdown — closes all registered VoxContexts (and their DB connections)
 let shuttingdown = false;
 async function shutdown(signal: string) {
   if (shuttingdown) return;
@@ -76,6 +77,7 @@ async function shutdown(signal: string) {
 
   logger.info(`Received ${signal}, shutting down gracefully...`);
 
+  await contextRegistry.shutdownAll();
   await sqliteExporter.forceFlush();
   await setTimeout(1000);
 
@@ -158,8 +160,7 @@ async function main() {
 
   logger.info('Bootstrapping complete');
 
-  // Clean up
-  await params.close?.();
+  // Clean up via shutdown (which calls contextRegistry.shutdownAll → context.shutdown → params.close)
   await shutdown('complete');
 }
 

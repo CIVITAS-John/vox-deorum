@@ -108,114 +108,123 @@ export async function createTelepathistParameters(
     dialect: new SqliteDialect({ database: telepathistSqlite }),
   });
 
-  // Create tables if they don't exist
-  await telepathistDb.schema
-    .createTable('turn_summaries')
-    .ifNotExists()
-    .addColumn('turn', 'integer', (col) => col.primaryKey())
-    .addColumn('situation', 'text', (col) => col.notNull())
-    .addColumn('abstract', 'text', (col) => col.notNull())
-    .addColumn('decisions', 'text', (col) => col.notNull())
-    .addColumn('narrative', 'text', (col) => col.notNull())
-    .addColumn('model', 'text', (col) => col.notNull())
-    .addColumn('createdAt', 'integer', (col) => col.notNull())
-    .execute();
-
-  await telepathistDb.schema
-    .createTable('phase_summaries')
-    .ifNotExists()
-    .addColumn('fromTurn', 'integer', (col) => col.notNull())
-    .addColumn('toTurn', 'integer', (col) => col.notNull())
-    .addColumn('situation', 'text', (col) => col.notNull())
-    .addColumn('abstract', 'text', (col) => col.notNull())
-    .addColumn('decisions', 'text', (col) => col.notNull())
-    .addColumn('narrative', 'text', (col) => col.notNull())
-    .addColumn('model', 'text', (col) => col.notNull())
-    .addColumn('createdAt', 'integer', (col) => col.notNull())
-    .addPrimaryKeyConstraint('phase_summaries_pk', ['fromTurn', 'toTurn'])
-    .execute();
-
-  await telepathistDb.schema
-    .createTable('summary_cache')
-    .ifNotExists()
-    .addColumn('cacheKey', 'text', (col) => col.primaryKey())
-    .addColumn('result', 'text', (col) => col.notNull())
-    .addColumn('model', 'text', (col) => col.notNull())
-    .addColumn('createdAt', 'integer', (col) => col.notNull())
-    .execute();
-
-  // Query available turns
-  const turnRows = await db
-    .selectFrom('spans')
-    .select('turn')
-    .distinct()
-    .where('turn', 'is not', null)
-    .where('turn', '>=', 0)
-    .orderBy('turn', 'asc')
-    .execute();
-
-  const availableTurns = turnRows.map(r => r.turn!);
-  logger.info(`Found ${availableTurns.length} turns in telemetry database`, {
-    firstTurn: availableTurns[0],
-    lastTurn: availableTurns[availableTurns.length - 1]
-  });
-
-  // Extract player identity from the first get-metadata span
-  let civilizationName = 'Unknown';
-  let leaderName = 'Unknown';
-
-  const metadataSpan = await db
-    .selectFrom('spans')
-    .selectAll()
-    .where('name', '=', 'mcp-tool.get-metadata')
-    .orderBy('startTime', 'asc')
-    .limit(1)
-    .executeTakeFirst();
-
-  if (metadataSpan) {
+  /** Close both database connections */
+  const close = async () => {
+    logger.info('Closing telepathist database connections');
     try {
-      const attrs = typeof metadataSpan.attributes === 'string'
-        ? JSON.parse(metadataSpan.attributes)
-        : metadataSpan.attributes;
-      const output = typeof attrs['tool.output'] === 'string'
-        ? JSON.parse(attrs['tool.output'])
-        : attrs['tool.output'];
-
-      if (output?.YouAre?.Name) civilizationName = output.YouAre.Name;
-      if (output?.YouAre?.Leader) leaderName = output.YouAre.Leader;
-
-      logger.info(`Identified player: ${leaderName} of ${civilizationName}`);
+      await db.destroy();
     } catch (e) {
-      logger.warn('Failed to parse metadata span output, using defaults', { error: e });
+      logger.error('Error closing telemetry database', { error: e });
     }
-  } else {
-    logger.warn('No mcp-tool.get-metadata span found, using default identity');
-  }
-
-  const lastTurn = availableTurns.length > 0 ? availableTurns[availableTurns.length - 1] : 0;
-
-  return {
-    playerID: parsedId.playerID,
-    gameID: parsedId.gameID,
-    turn: lastTurn,
-    databasePath,
-    db,
-    telepathistDb,
-    civilizationName,
-    leaderName,
-    availableTurns,
-    async close() {
-      logger.info('Closing telepathist database connections');
-      try {
-        await db.destroy();
-      } catch (e) {
-        logger.error('Error closing telemetry database', { error: e });
-      }
-      try {
-        await telepathistDb.destroy();
-      } catch (e) {
-        logger.error('Error closing telepathist database', { error: e });
-      }
+    try {
+      await telepathistDb.destroy();
+    } catch (e) {
+      logger.error('Error closing telepathist database', { error: e });
     }
   };
+
+  try {
+    // Create tables if they don't exist
+    await telepathistDb.schema
+      .createTable('turn_summaries')
+      .ifNotExists()
+      .addColumn('turn', 'integer', (col) => col.primaryKey())
+      .addColumn('situation', 'text', (col) => col.notNull())
+      .addColumn('abstract', 'text', (col) => col.notNull())
+      .addColumn('decisions', 'text', (col) => col.notNull())
+      .addColumn('narrative', 'text', (col) => col.notNull())
+      .addColumn('model', 'text', (col) => col.notNull())
+      .addColumn('createdAt', 'integer', (col) => col.notNull())
+      .execute();
+
+    await telepathistDb.schema
+      .createTable('phase_summaries')
+      .ifNotExists()
+      .addColumn('fromTurn', 'integer', (col) => col.notNull())
+      .addColumn('toTurn', 'integer', (col) => col.notNull())
+      .addColumn('situation', 'text', (col) => col.notNull())
+      .addColumn('abstract', 'text', (col) => col.notNull())
+      .addColumn('decisions', 'text', (col) => col.notNull())
+      .addColumn('narrative', 'text', (col) => col.notNull())
+      .addColumn('model', 'text', (col) => col.notNull())
+      .addColumn('createdAt', 'integer', (col) => col.notNull())
+      .addPrimaryKeyConstraint('phase_summaries_pk', ['fromTurn', 'toTurn'])
+      .execute();
+
+    await telepathistDb.schema
+      .createTable('summary_cache')
+      .ifNotExists()
+      .addColumn('cacheKey', 'text', (col) => col.primaryKey())
+      .addColumn('result', 'text', (col) => col.notNull())
+      .addColumn('model', 'text', (col) => col.notNull())
+      .addColumn('createdAt', 'integer', (col) => col.notNull())
+      .execute();
+
+    // Query available turns
+    const turnRows = await db
+      .selectFrom('spans')
+      .select('turn')
+      .distinct()
+      .where('turn', 'is not', null)
+      .where('turn', '>=', 0)
+      .orderBy('turn', 'asc')
+      .execute();
+
+    const availableTurns = turnRows.map(r => r.turn!);
+    logger.info(`Found ${availableTurns.length} turns in telemetry database`, {
+      firstTurn: availableTurns[0],
+      lastTurn: availableTurns[availableTurns.length - 1]
+    });
+
+    // Extract player identity from the first get-metadata span
+    let civilizationName = 'Unknown';
+    let leaderName = 'Unknown';
+
+    const metadataSpan = await db
+      .selectFrom('spans')
+      .selectAll()
+      .where('name', '=', 'mcp-tool.get-metadata')
+      .orderBy('startTime', 'asc')
+      .limit(1)
+      .executeTakeFirst();
+
+    if (metadataSpan) {
+      try {
+        const attrs = typeof metadataSpan.attributes === 'string'
+          ? JSON.parse(metadataSpan.attributes)
+          : metadataSpan.attributes;
+        const output = typeof attrs['tool.output'] === 'string'
+          ? JSON.parse(attrs['tool.output'])
+          : attrs['tool.output'];
+
+        if (output?.YouAre?.Name) civilizationName = output.YouAre.Name;
+        if (output?.YouAre?.Leader) leaderName = output.YouAre.Leader;
+
+        logger.info(`Identified player: ${leaderName} of ${civilizationName}`);
+      } catch (e) {
+        logger.warn('Failed to parse metadata span output, using defaults', { error: e });
+      }
+    } else {
+      logger.warn('No mcp-tool.get-metadata span found, using default identity');
+    }
+
+    const lastTurn = availableTurns.length > 0 ? availableTurns[availableTurns.length - 1] : 0;
+
+    return {
+      playerID: parsedId.playerID,
+      gameID: parsedId.gameID,
+      turn: lastTurn,
+      databasePath,
+      db,
+      telepathistDb,
+      civilizationName,
+      leaderName,
+      availableTurns,
+      close
+    };
+  } catch (error) {
+    // Close DB connections if initialization fails after they were opened
+    await close();
+    throw error;
+  }
 }
