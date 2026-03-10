@@ -10,8 +10,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createLogger } from '../../utils/logger.js';
-import { defaultConfig, loadConfigFromFile, refreshConfig } from '../../utils/config.js';
-import type { VoxAgentsConfig, ConfigResponse, ErrorResponse } from '../../types/index.js';
+import { defaultConfig, loadVoxConfig, computeConfigDiff, refreshConfig } from '../../utils/config.js';
+import type { ConfigResponse, ErrorResponse, VoxAgentsConfig } from '../../types/index.js';
 
 const logger = createLogger('config', 'webui');
 const router = Router();
@@ -44,8 +44,8 @@ function formatEnvFile(env: Record<string, string>): string {
  */
 router.get('/', async (_req: Request, res: Response<ConfigResponse | ErrorResponse>) => {
   try {
-    // Load config.json
-    const config = loadConfigFromFile<VoxAgentsConfig>('config.json', defaultConfig);
+    // Load config.json (deep-merges diff with defaults)
+    const config = loadVoxConfig('config.json');
 
     // Load .env file
     const envPath = path.join(process.cwd(), '.env');
@@ -100,14 +100,11 @@ router.post('/', async (req: Request<{}, {}, Partial<ConfigResponse>>, res: Resp
     if (config) {
       const configPath = path.join(process.cwd(), 'config.json');
 
-      // Override with the provided config (no merging)
-      const updatedConfig: VoxAgentsConfig = {
-        ...defaultConfig,  // Start with defaults
-        ...config          // Override with provided config
-      };
+      // Compute diff against defaults — only persist what changed
+      const configDiff = computeConfigDiff(config as VoxAgentsConfig, defaultConfig);
 
-      // Write updated config
-      await fs.writeFile(configPath, JSON.stringify(updatedConfig, null, 2));
+      // Write only the diff
+      await fs.writeFile(configPath, JSON.stringify(configDiff, null, 2));
       logger.info('Updated config.json');
 
       // Refresh the in-memory configuration
