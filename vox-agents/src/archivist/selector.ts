@@ -9,7 +9,6 @@
 
 import { createLogger } from '../utils/logger.js';
 import { compositeSimilarity, type VectorBundle } from './similarity.js';
-import { retrievalWeights } from './types.js';
 import type { EpisodeWriter } from './writer.js';
 
 const logger = createLogger('Selector');
@@ -105,7 +104,7 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set
   for (let i = 0; i < candidates.length; i++) {
     if (i === seedIdx) continue;
     maxSimToSelected[i] = compositeSimilarity(
-      candidates[i].vectors, candidates[seedIdx].vectors, retrievalWeights
+      candidates[i].vectors, candidates[seedIdx].vectors
     );
   }
 
@@ -128,7 +127,7 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): Set
     for (let i = 0; i < candidates.length; i++) {
       if (selectedIndices.has(i)) continue;
       const sim = compositeSimilarity(
-        candidates[i].vectors, candidates[bestIdx].vectors, retrievalWeights
+        candidates[i].vectors, candidates[bestIdx].vectors
       );
       if (sim > maxSimToSelected[i]) {
         maxSimToSelected[i] = sim;

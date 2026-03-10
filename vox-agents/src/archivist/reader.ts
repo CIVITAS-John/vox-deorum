@@ -10,8 +10,8 @@
 
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import { createLogger } from '../utils/logger.js';
-import { buildSimilaritySql, buildPairwiseSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
-import { eraMap, retrievalWeights, retrievalNoEmbeddingWeights } from './types.js';
+import { buildSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
+import { eraMap } from './types.js';
 import { generateEmbeddings } from './embeddings.js';
 import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot, ShareDelta } from './query-types.js';
 
@@ -122,11 +122,10 @@ async function fetchCandidates(
   const eraCaseExpr = buildEraCaseExpr();
   const queryEraOrd = eraMap[query.era] ?? 0;
   const hasEmbedding = !!embeddingVector;
-  const weights = hasEmbedding ? retrievalWeights : retrievalNoEmbeddingWeights;
   const candidateLimit = query.candidateLimit ?? 20;
 
   // Build similarity SQL and replace parameter placeholders with literal arrays
-  let similaritySql = buildSimilaritySql(weights, hasEmbedding);
+  let similaritySql = buildSimilaritySql(hasEmbedding);
   similaritySql = similaritySql.replace(/\$query_gs/g, toRealArrayLiteral(query.gameStateVector));
   similaritySql = similaritySql.replace(/\$query_nb/g, toRealArrayLiteral(query.neighborVector));
   if (embeddingVector) {
@@ -306,10 +305,6 @@ function diversitySelect(
     embedding: c.abstract_embedding,
   }));
 
-  const weights = candidates[0].abstract_embedding
-    ? retrievalWeights
-    : retrievalNoEmbeddingWeights;
-
   const selected: number[] = [0]; // Start with top-scored candidate
   const remaining = new Set(candidates.map((_, i) => i));
   remaining.delete(0);
@@ -324,7 +319,7 @@ function diversitySelect(
       // Max similarity to any already-selected candidate
       let maxSim = -Infinity;
       for (const selIdx of selected) {
-        const sim = compositeSimilarity(bundles[idx], bundles[selIdx], weights);
+        const sim = compositeSimilarity(bundles[idx], bundles[selIdx]);
         if (sim > maxSim) maxSim = sim;
       }
 

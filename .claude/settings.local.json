@@ -55,7 +55,8 @@
       "Bash(xargs:*)",
       "Bash(wc:*)",
       "Bash(grep:*)",
-      "WebFetch(domain:duckdb.org)"
+      "WebFetch(domain:duckdb.org)",
+      "Bash(cd vox-agents:*)"
     ],
     "deny": [
       "Read(**/.env*)",

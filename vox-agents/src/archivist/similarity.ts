@@ -7,12 +7,18 @@
  */
 
 import type { SimilarityWeights } from './types.js';
+import { retrievalWeights, retrievalNoEmbeddingWeights } from './types.js';
 
 /** Vectorized input for similarity computation */
 export interface VectorBundle {
   gameStateVector: number[];
   neighborVector: number[];
   embedding?: number[] | null;
+}
+
+/** Resolve default weights based on whether embeddings are available */
+function defaultWeights(hasEmbedding: boolean): SimilarityWeights {
+  return hasEmbedding ? retrievalWeights : retrievalNoEmbeddingWeights;
 }
 
 /** Compute cosine similarity between two equal-length vectors. Returns 0 for zero-magnitude vectors. */
@@ -31,12 +37,12 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 
 /**
  * Compute weighted composite similarity across game state, neighbor, and optional embedding vectors.
- * Used by selector.ts for in-memory batch landmark selection.
+ * Defaults weights based on whether both bundles have embeddings.
  */
 export function compositeSimilarity(
   a: VectorBundle,
   b: VectorBundle,
-  weights: SimilarityWeights
+  weights: SimilarityWeights = defaultWeights(!!(a.embedding && b.embedding))
 ): number {
   let score = weights.gameState * cosineSimilarity(a.gameStateVector, b.gameStateVector)
     + weights.neighbor * cosineSimilarity(a.neighborVector, b.neighborVector);
@@ -52,8 +58,9 @@ export function compositeSimilarity(
  * Build a SQL expression for composite similarity scoring against query parameters.
  * Uses DuckDB's list_cosine_similarity() for vector operations.
  * Parameters are referenced as $query_gs, $query_nb, $query_emb.
+ * Defaults weights based on hasEmbedding.
  */
-export function buildSimilaritySql(weights: SimilarityWeights, hasEmbedding: boolean): string {
+export function buildSimilaritySql(hasEmbedding: boolean, weights: SimilarityWeights = defaultWeights(hasEmbedding)): string {
   const parts: string[] = [
     `${weights.gameState} * list_cosine_similarity(game_state_vector, $query_gs)`,
     `${weights.neighbor} * list_cosine_similarity(neighbor_vector, $query_nb)`,
@@ -71,8 +78,9 @@ export function buildSimilaritySql(weights: SimilarityWeights, hasEmbedding: boo
 /**
  * Build a SQL expression for pairwise similarity between two candidate rows (a and b).
  * Used by reader.ts for MMR diversity selection within the candidate pool.
+ * Defaults weights based on hasEmbedding.
  */
-export function buildPairwiseSimilaritySql(weights: SimilarityWeights, hasEmbedding: boolean): string {
+export function buildPairwiseSimilaritySql(hasEmbedding: boolean, weights: SimilarityWeights = defaultWeights(hasEmbedding)): string {
   const parts: string[] = [
     `${weights.gameState} * list_cosine_similarity(a.game_state_vector, b.game_state_vector)`,
     `${weights.neighbor} * list_cosine_similarity(a.neighbor_vector, b.neighbor_vector)`,
