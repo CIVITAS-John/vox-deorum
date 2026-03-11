@@ -167,8 +167,7 @@ async function main() {
           .select('Value')
           .where('Key', '=', 'victoryType')
           .executeTakeFirst();
-        const victoryTypeNum = victoryTypeRow ? parseInt(victoryTypeRow.Value, 10) : -1;
-        const victoryType = victoryTypeMap[victoryTypeNum] ?? null;
+        const victoryType = victoryTypeRow?.Value ?? null;
         const maxTurn = allTurns.size > 0 ? Math.max(...allTurns) : 0;
 
         await writer.writeGameOutcome(entry.gameId, victoryPlayerId, victoryType, maxTurn);
