@@ -8,12 +8,13 @@
  *   Stage 3 - MMR diversity selection to reduce redundancy in final results
  */
 
-import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
+import { DuckDBConnection } from '@duckdb/node-api';
 import { config } from '../utils/config.js';
 import { createLogger } from '../utils/logger.js';
 import { buildSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
 import { eraMap, horizons } from './types.js';
 import { generateEmbeddings } from './embeddings.js';
+import { getEpisodeDbInstance } from './episode-db.js';
 import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot, EpisodeDelta } from './query-types.js';
 
 const logger = createLogger('Archivist:Reader');
@@ -29,7 +30,7 @@ let dbPath: string | null = null;
 async function getConnection(): Promise<DuckDBConnection> {
   if (connection) return connection;
   dbPath = config.episodeDbPath;
-  const instance = await DuckDBInstance.create(dbPath);
+  const instance = await getEpisodeDbInstance(dbPath);
   connection = await instance.connect();
   logger.info(`Connected to episode database: ${dbPath}`);
   return connection;
@@ -67,13 +68,14 @@ function escapeSql(s: string): string {
 }
 
 /** Map DuckDB result rows to plain objects keyed by column name. */
-function rowsToObjects(result: any): Record<string, any>[] {
+async function rowsToObjects(result: any): Promise<Record<string, any>[]> {
   const columnCount = result.columnCount;
   const names: string[] = [];
   for (let i = 0; i < columnCount; i++) {
     names.push(result.columnName(i));
   }
-  return result.getRows().map((row: any) => {
+  const rows = await result.getRows();
+  return rows.map((row: any) => {
     const obj: Record<string, any> = {};
     for (let i = 0; i < columnCount; i++) {
       obj[names[i]] = row[i];
@@ -174,7 +176,7 @@ async function fetchCandidates(
   `;
 
   const result = await conn.run(sql);
-  return rowsToObjects(result) as CandidateRow[];
+  return await rowsToObjects(result) as CandidateRow[];
 }
 
 // ---------------------------------------------------------------------------
@@ -257,7 +259,7 @@ async function fetchOutcomes(
 
   const sql = horizonQueries.join('\n    UNION ALL\n');
   const result = await conn.run(sql);
-  const rows = rowsToObjects(result) as OutcomeRow[];
+  const rows = await rowsToObjects(result) as OutcomeRow[];
 
   // Group outcomes by candidate key
   const outcomeMap = new Map<string, OutcomeSnapshot[]>();

@@ -16,8 +16,8 @@
 
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { DuckDBInstance } from '@duckdb/node-api';
 import { config } from '../utils/config.js';
+import { getEpisodeDbInstance } from './episode-db.js';
 import { createLogger } from '../utils/logger.js';
 import { openReadonlyGameDb, scanArchive } from './scanner.js';
 import { EpisodeWriter } from './writer.js';
@@ -284,7 +284,7 @@ async function main() {
   // Step 5: Open DuckDB UI for result inspection
   if (!noUi) {
     logger.info('Starting DuckDB UI...');
-    const uiInstance = await DuckDBInstance.create(outputPath);
+    const uiInstance = await getEpisodeDbInstance(outputPath);
     const uiConn = await uiInstance.connect();
     await uiConn.run('INSTALL ui; LOAD ui;');
     await uiConn.run('CALL start_ui_server();');

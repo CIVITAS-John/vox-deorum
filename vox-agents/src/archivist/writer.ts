@@ -9,8 +9,9 @@
 
 import { Kysely, CamelCasePlugin, sql } from 'kysely';
 import { DuckDbDialect } from 'kysely-duckdb';
-import { DuckDBInstance, DuckDBListType, FLOAT } from '@duckdb/node-api';
+import { DuckDBInstance, DuckDBListType, FLOAT, listValue } from '@duckdb/node-api';
 import { createLogger } from '../utils/logger.js';
+import { getEpisodeDbInstance } from './episode-db.js';
 import type { Episode, EpisodesDatabase } from './types.js';
 
 /** DuckDB LIST(FLOAT) type for appender list columns. */
@@ -111,7 +112,7 @@ export class EpisodeWriter {
 
   /** Create an EpisodeWriter connected to the given DuckDB file path. */
   static async create(dbPath: string): Promise<EpisodeWriter> {
-    const instance = await DuckDBInstance.create(dbPath);
+    const instance = await getEpisodeDbInstance(dbPath);
     const db = new Kysely<EpisodesDatabase>({
       dialect: new DuckDbDialect({ database: instance, tableMappings: {} }),
       plugins: [new CamelCasePlugin()],
@@ -327,18 +328,28 @@ export class EpisodeWriter {
   ): Promise<void> {
     if (updates.length === 0) return;
 
-    for (const u of updates) {
-      await this.db.updateTable('episodes')
-        .set({
-          abstract: u.abstract,
-          situation: u.situation,
-          decisions: u.decisions,
-          abstractEmbedding: u.abstractEmbedding,
-        } as any)
-        .where('gameId', '=', gameId)
-        .where('turn', '=', u.turn)
-        .where('playerId', '=', playerId)
-        .execute();
+    // Use prepared statement with typed bindList to handle REAL[] columns correctly
+    const conn = await this.instance.connect();
+    try {
+      const stmt = await conn.prepare(
+        `UPDATE episodes SET abstract = $1, situation = $2, decisions = $3, abstract_embedding = $4
+         WHERE game_id = $5 AND turn = $6 AND player_id = $7`
+      );
+
+      for (const u of updates) {
+        u.abstract != null ? stmt.bindVarchar(1, u.abstract) : stmt.bindNull(1);
+        u.situation != null ? stmt.bindVarchar(2, u.situation) : stmt.bindNull(2);
+        u.decisions != null ? stmt.bindVarchar(3, u.decisions) : stmt.bindNull(3);
+        u.abstractEmbedding
+          ? stmt.bindList(4, listValue(u.abstractEmbedding), realListType)
+          : stmt.bindNull(4);
+        stmt.bindVarchar(5, gameId);
+        stmt.bindInteger(6, u.turn);
+        stmt.bindInteger(7, playerId);
+        await stmt.run();
+      }
+    } finally {
+      conn.disconnectSync();
     }
 
     this.logger.info(`Updated ${updates.length} episode texts for player ${playerId} in game ${gameId}`);
