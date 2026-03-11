@@ -22,7 +22,7 @@ import { createLogger } from '../utils/logger.js';
 import { openReadonlyGameDb, scanArchive } from './scanner.js';
 import { EpisodeWriter } from './writer.js';
 import type { ArchiveEntry } from './types.js';
-import { horizons } from './types.js';
+import { horizons, victoryTypeMap } from './types.js';
 import { prepareTelepathist } from './telepathist-prep.js';
 import { extractPlayerEpisodes, extractTurnContexts, loadTurnSummaries } from './extractor.js';
 import { transformEpisode } from './transformer.js';
@@ -160,6 +160,18 @@ async function main() {
         // Extract turn contexts once per game (shared across all players)
         const turnContexts = await extractTurnContexts(gameDb);
         allTurns = new Set(turnContexts.keys());
+
+        // Query victory type and compute max turn for game outcome metadata
+        const victoryTypeRow = await gameDb
+          .selectFrom('GameMetadata')
+          .select('Value')
+          .where('Key', '=', 'victoryType')
+          .executeTakeFirst();
+        const victoryTypeNum = victoryTypeRow ? parseInt(victoryTypeRow.Value, 10) : -1;
+        const victoryType = victoryTypeMap[victoryTypeNum] ?? null;
+        const maxTurn = allTurns.size > 0 ? Math.max(...allTurns) : 0;
+
+        await writer.writeGameOutcome(entry.gameId, victoryPlayerId, victoryType, maxTurn);
 
         const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
 

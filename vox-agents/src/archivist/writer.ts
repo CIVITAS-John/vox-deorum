@@ -99,6 +99,14 @@ CREATE TABLE IF NOT EXISTS episodes (
   PRIMARY KEY (game_id, turn, player_id)
 )`;
 
+const GAME_OUTCOMES_DDL = `
+CREATE TABLE IF NOT EXISTS game_outcomes (
+  game_id           VARCHAR NOT NULL PRIMARY KEY,
+  winner_player_id  INTEGER NOT NULL,
+  victory_type      VARCHAR,
+  max_turn          INTEGER NOT NULL
+)`;
+
 /** Writes episode data to a DuckDB database using Kysely with CamelCasePlugin. */
 export class EpisodeWriter {
   private db: Kysely<EpisodesDatabase>;
@@ -123,10 +131,11 @@ export class EpisodeWriter {
     return writer;
   }
 
-  /** Create the episodes table if it does not already exist. Uses raw SQL for REAL[] support. */
+  /** Create the episodes and game_outcomes tables if they do not already exist. Uses raw SQL for REAL[] support. */
   private async ensureTable(): Promise<void> {
     await sql.raw(TABLE_DDL).execute(this.db);
-    this.logger.info('Episodes table ensured');
+    await sql.raw(GAME_OUTCOMES_DDL).execute(this.db);
+    this.logger.info('Episodes and game_outcomes tables ensured');
   }
 
   /** Return the set of player IDs already processed for a given game. */
@@ -248,6 +257,34 @@ export class EpisodeWriter {
 
     const totalMs = performance.now() - totalStart;
     this.logger.info(`Wrote ${episodes.length} episodes in ${(totalMs / 1000).toFixed(1)}s via appender`);
+  }
+
+  /** Insert or update game outcome metadata (winner, victory type, max turn). */
+  async writeGameOutcome(
+    gameId: string,
+    winnerPlayerId: number,
+    victoryType: string | null,
+    maxTurn: number
+  ): Promise<void> {
+    const conn = await this.instance.connect();
+    try {
+      const stmt = await conn.prepare(
+        `INSERT INTO game_outcomes (game_id, winner_player_id, victory_type, max_turn)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (game_id) DO UPDATE SET
+           winner_player_id = EXCLUDED.winner_player_id,
+           victory_type = EXCLUDED.victory_type,
+           max_turn = EXCLUDED.max_turn`
+      );
+      stmt.bindVarchar(1, gameId);
+      stmt.bindInteger(2, winnerPlayerId);
+      victoryType != null ? stmt.bindVarchar(3, victoryType) : stmt.bindNull(3);
+      stmt.bindInteger(4, maxTurn);
+      await stmt.run();
+    } finally {
+      conn.disconnectSync();
+    }
+    this.logger.info(`Game outcome for ${gameId}: winner=${winnerPlayerId}, type=${victoryType}, maxTurn=${maxTurn}`);
   }
 
   /** Delete all episodes for a given game (used with --force flag). */

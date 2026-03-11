@@ -134,15 +134,27 @@ function selectDiverse(candidates: EpisodeCandidate[], targetCount: number): { i
     return val;
   }
 
-  // Seed: pick episode closest to the median turn
-  const sortedTurns = [...new Set(candidates.map(c => c.turn))].sort((a, b) => a - b);
-  const medianTurn = sortedTurns[Math.floor(sortedTurns.length / 2)];
-  let seedIdx = 0;
-  let minDist = Infinity;
+  // Seed: pick episode farthest from the centroid (most distinctive game state)
+  const gsLen = candidates[0].vectors.gameStateVector.length;
+  const nbLen = candidates[0].vectors.neighborVector.length;
+  const centroidGs = new Array<number>(gsLen).fill(0);
+  const centroidNb = new Array<number>(nbLen).fill(0);
   for (let i = 0; i < n; i++) {
-    const dist = Math.abs(candidates[i].turn - medianTurn);
-    if (dist < minDist) {
-      minDist = dist;
+    const gs = candidates[i].vectors.gameStateVector;
+    const nb = candidates[i].vectors.neighborVector;
+    for (let j = 0; j < gsLen; j++) centroidGs[j] += gs[j];
+    for (let j = 0; j < nbLen; j++) centroidNb[j] += nb[j];
+  }
+  for (let j = 0; j < gsLen; j++) centroidGs[j] /= n;
+  for (let j = 0; j < nbLen; j++) centroidNb[j] /= n;
+  const centroid: VectorBundle = { gameStateVector: centroidGs, neighborVector: centroidNb };
+
+  let seedIdx = 0;
+  let minSim = Infinity;
+  for (let i = 0; i < n; i++) {
+    const sim = compositeSimilarity(candidates[i].vectors, centroid);
+    if (sim < minSim) {
+      minSim = sim;
       seedIdx = i;
     }
   }

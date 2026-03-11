@@ -116,6 +116,7 @@ interface CandidateRow {
   game_state_vector: number[];
   neighbor_vector: number[];
   abstract_embedding: number[] | null;
+  victory_type: string | null;
   score: number;
 }
 
@@ -145,7 +146,7 @@ async function fetchCandidates(
 
   const sql = `
     WITH candidates AS (
-      SELECT *,
+      SELECT ep.*, g.victory_type,
         8 * GREATEST(0, 1.0 - 0.5 * ABS(
             (${eraCaseExpr}) - ${queryEraOrd}
           ))
@@ -157,7 +158,8 @@ async function fetchCandidates(
         + 2 * GREATEST(0, 1.0 - 0.5 * ABS(truces - ${query.truces}))
         + 2 * GREATEST(0, 1.0 - 0.5 * ABS(denouncements - ${query.denouncements}))
         AS fuzzy_score
-      FROM episodes
+      FROM episodes ep
+      LEFT JOIN game_outcomes g ON g.game_id = ep.game_id
       WHERE is_landmark = TRUE
         AND game_state_vector IS NOT NULL
       ORDER BY fuzzy_score DESC
@@ -169,6 +171,7 @@ async function fetchCandidates(
            culture_share, gold_share, military_share, population_share, cities_share,
            active_wars, domination_progress, science_progress, culture_progress, diplomatic_progress,
            game_state_vector, neighbor_vector, abstract_embedding,
+           victory_type,
            ${similaritySql} AS score
     FROM candidates
     WHERE score > 0.9
@@ -188,7 +191,7 @@ interface OutcomeRow {
   game_id: string;
   turn: number;
   player_id: number;
-  horizon: number;
+  actual_horizon: number;
   abstract: string | null;
   situation: string | null;
   decisions: string | null;
@@ -228,9 +231,11 @@ async function fetchOutcomes(
     return `(${vals.join(', ')})`;
   }).join(',\n    ');
 
-  // Build UNION ALL across all horizons
+  // Build UNION ALL across all horizons, capping at game's max turn via game_outcomes.
+  // COALESCE fallback handles old DBs without game_outcomes rows.
   const horizonQueries = horizons.map(horizon => `
     SELECT e.game_id, e.turn, e.player_id, ${horizon} AS horizon,
+           LEAST(e.turn + ${horizon}, COALESCE(g.max_turn, e.turn + ${horizon})) AS fetched_turn,
            f.situation, f.decisions, f.abstract,
            (f.science_per_pop - e.science_per_pop) / NULLIF(e.science_per_pop, 0) AS d_science_pp,
            (f.faith_per_pop - e.faith_per_pop) / NULLIF(e.faith_per_pop, 0) AS d_faith_pp,
@@ -242,12 +247,34 @@ async function fetchOutcomes(
            (f.population_share - e.population_share) / NULLIF(e.population_share, 0) AS d_population,
            (f.cities_share - e.cities_share) / NULLIF(e.cities_share, 0) AS d_cities
     FROM (VALUES ${candidateValues}) AS e(game_id, turn, player_id, science_per_pop, faith_per_pop, production_per_pop, food_per_pop, culture_share, gold_share, military_share, population_share, cities_share)
+    LEFT JOIN game_outcomes g ON g.game_id = e.game_id
     JOIN episodes f
       ON f.game_id = e.game_id AND f.player_id = e.player_id
-      AND f.turn = e.turn + ${horizon}
+      AND f.turn = LEAST(e.turn + ${horizon}, COALESCE(g.max_turn, e.turn + ${horizon}))
+    WHERE f.turn > e.turn
   `);
 
-  const sql = horizonQueries.join('\n    UNION ALL\n');
+  // Wrap in dedup CTE: when multiple horizons map to the same capped turn, keep only the smallest horizon
+  const unionSql = horizonQueries.join('\n    UNION ALL\n');
+  const sql = `
+    WITH raw_outcomes AS (
+      ${unionSql}
+    ),
+    ranked AS (
+      SELECT *,
+        ROW_NUMBER() OVER (
+          PARTITION BY game_id, turn, player_id, fetched_turn
+          ORDER BY horizon ASC
+        ) AS rn
+      FROM raw_outcomes
+    )
+    SELECT game_id, turn, player_id, (fetched_turn - turn) AS actual_horizon, situation, decisions, abstract,
+           d_science_pp, d_faith_pp, d_production_pp, d_food_pp,
+           d_culture, d_gold, d_military, d_population, d_cities
+    FROM ranked
+    WHERE rn = 1
+  `;
+
   const result = await conn.run(sql);
   const rows = await rowsToObjects(result) as OutcomeRow[];
 
@@ -272,9 +299,9 @@ async function fetchOutcomes(
     };
 
     outcomeMap.get(key)!.push({
-      horizonTurns: row.horizon,
+      horizonTurns: row.actual_horizon,
       abstract: row.abstract,
-      decisions: row.horizon === 20 ? null : row.decisions,
+      decisions: row.actual_horizon >= 20 ? null : row.decisions,
       deltas,
     });
   }
@@ -356,6 +383,7 @@ function buildResult(
     era: candidate.era,
     grandStrategy: candidate.grand_strategy,
     isWinner: candidate.is_winner,
+    victoryType: candidate.victory_type,
     similarity: candidate.score,
     abstract: candidate.abstract,
     situation: candidate.situation,

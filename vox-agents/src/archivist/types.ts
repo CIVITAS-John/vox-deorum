@@ -202,6 +202,15 @@ export function countPolicies(policyBranches: Record<string, string[] | number> 
   return total;
 }
 
+/** Maps numeric Civ 5 VictoryType IDs to display strings */
+export const victoryTypeMap: Record<number, string> = {
+  0: 'Time',
+  1: 'Science',
+  2: 'Domination',
+  3: 'Cultural',
+  4: 'Diplomatic',
+};
+
 /** Consequence turn offsets for outcome fetching in the reader pipeline */
 export const horizons = [5, 10, 15, 20] as const;
 

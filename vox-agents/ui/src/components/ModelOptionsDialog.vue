@@ -136,7 +136,7 @@ function handleClose() {
         <label>Think Middleware</label>
         <div class="checkbox-wrapper">
           <Checkbox v-model="localThinkMiddleware" :binary="true" inputId="thinkMiddleware" />
-          <label for="thinkMiddleware" class="checkbox-label">Enable extended thinking mode</label>
+          <label for="thinkMiddleware" class="checkbox-label">Extract from "think" tag</label>
         </div>
       </div>
 

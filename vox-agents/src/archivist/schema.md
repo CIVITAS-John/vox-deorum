@@ -280,6 +280,23 @@ CREATE TABLE episodes (
 );
 ```
 
+---
+
+## Game Outcomes Table
+
+Stores per-game metadata for outcome capping and victory type reporting in retrieval.
+Populated during Phase A from `GameMetadata` keys.
+
+```sql
+CREATE TABLE game_outcomes (
+  game_id           VARCHAR NOT NULL PRIMARY KEY,  -- matches episodes.game_id
+  winner_player_id  INTEGER NOT NULL,              -- GameMetadata.Key='victoryPlayerID' → Value (-1 if no winner)
+  victory_type      VARCHAR,                       -- GameMetadata.Key='victoryType' → mapped via victoryTypeMap
+                                                   --   'Time', 'Science', 'Domination', 'Cultural', 'Diplomatic', or null
+  max_turn          INTEGER NOT NULL               -- MAX(turn) across all episodes for this game
+);
+```
+
 ## Data Flow
 
 ```
@@ -440,7 +457,7 @@ player's civ name. Reuse across all players in the same turn.
 | `extractor.ts`      | Reads game DB + telepathist DB, produces raw episode records      |
 | `transformer.ts`    | Computes adjusted values, shares, gaps, vectors                   |
 | `embeddings.ts`     | Generates abstract embeddings via AI SDK                          |
-| `writer.ts`         | Writes final episodes into DuckDB                                 |
+| `writer.ts`         | Kysely/DuckDB output (episodes + game_outcomes tables)            |
 | `similarity.ts`     | Composite similarity: TypeScript (batch) + SQL builder (retrieval)|
 | `selector.ts`       | Diversity-first landmark pre-selection (uses TS similarity)       |
 | `reader.ts`         | Read-only DuckDB retrieval pipeline (uses SQL similarity)         |
@@ -498,8 +515,13 @@ All proximity-scored attributes use the same decay formula: `bonus * max(0, 1 - 
 **Pass 2 — Vector Similarity** (on candidates only):
 Ranks candidates by vector similarity alone (game_state_vector, neighbor_vector, optional embedding). Fuzzy score is not carried forward — it serves only as the pre-filter. Orders by similarity score, limits to `candidateLimit`.
 
+Note: `fetchCandidates` also joins `game_outcomes` via `LEFT JOIN` to include `victory_type` in the result set.
+
 ### Stage 2: Fetch Outcomes
-Self-joins episodes at `turn + 5/10/15/20` for the same `(game_id, player_id)`.
+Self-joins episodes at future horizons for the same `(game_id, player_id)`.
+Horizon turns are capped at the game's max turn via `LEAST(e.turn + horizon, g.max_turn)` using `game_outcomes`.
+A `WHERE f.turn > e.turn` guard prevents self-joining when a landmark is at the final turn.
+When multiple horizons resolve to the same capped turn, deduplication via `ROW_NUMBER()` keeps only the smallest horizon.
 Computes share deltas as formatted strings (`+3%`, `-1%`). Horizon=20 omits decisions.
 Not stored — computed dynamically at query time.
 

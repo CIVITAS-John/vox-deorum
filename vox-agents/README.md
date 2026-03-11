@@ -33,6 +33,7 @@ LLM-powered strategic AI agents for Civilization V. This module implements sophi
 - **Archivist** - Batch pipeline for processing archived games into DuckDB episode databases
   - Scans archive directories for completed games and LLM-controlled players
   - Generates telepathist summaries and extracts player-turn snapshots
+  - Tracks game outcome metadata (winner, victory type, max turn) for retrieval enrichment
 - **MCP Client** - Robust HTTP/SSE client for MCP server communication
 - **Tool Integration** - Dynamic tool wrapping, composition, and rescue middleware
 - **Multi-LLM Support** - OpenRouter, OpenAI, Google AI, Anthropic, AWS Bedrock, and compatible providers
@@ -294,6 +295,8 @@ Outputs:
 ## Archivist Workflow
 
 The archivist processes archived game databases into a DuckDB episode database for retrieval-augmented strategy. After processing, it automatically opens DuckDB UI in the browser for result inspection (suppress with `--no-ui`).
+
+The pipeline also stores game outcome metadata (winner player, victory type, and max turn) in a `game_outcomes` table. During episode retrieval, outcome horizon turns are capped at the game's final turn to avoid missing end-game data, and the victory type is included in results.
 
 ### Command-Line Usage
 ```bash

@@ -77,6 +77,7 @@ Export shared constants (used by `transformer.ts`, `similarity.ts`, and `utils/g
 - Methods:
   - `getProcessedPlayers(gameId): Set<number>` — for incremental skip
   - `writeEpisodes(episodes: Episode[])` — batch insert via Kysely
+  - `writeGameOutcome(gameId, winnerPlayerId, victoryType, maxTurn)` — upserts into `game_outcomes` table (created alongside `episodes` table)
   - `deleteGameEpisodes(gameId)` — for `--force` re-processing
   - `markLandmarks(gameId, keys: Array<{turn, playerId}>)` — batch UPDATE `is_landmark = TRUE`
   - `close()`
@@ -281,8 +282,8 @@ interface EpisodeQuery {
 
 /** Outcome snapshot at a future horizon */
 interface OutcomeSnapshot {
-  horizonTurns: number;          // 5, 10, 15, or 20
-  situation: string | null;
+  horizonTurns: number;          // actual offset (may be less than requested if game ended early)
+  abstract: string | null;
   decisions: string | null;      // null for horizon=20
   deltas: EpisodeDelta;
 }
@@ -308,6 +309,7 @@ interface EpisodeResult {
   era: string;
   grandStrategy: string | null;
   isWinner: boolean;
+  victoryType: string | null;
   similarity: number;
   abstract: string | null;
   situation: string | null;
@@ -380,29 +382,46 @@ Default weights (integers): `era = 8`, `civ = 5`, `gs = 3`, `wars = 3`, `friends
 
 **Stage 2: Fetch Outcomes** (for candidate pool)
 
-Self-join at horizons `[5, 10, 15, 20]`:
+Self-join at horizons `[5, 10, 15, 20]`, with outcome turn capping and deduplication:
 
 ```sql
-SELECT e.game_id, e.turn, e.player_id, :horizon AS horizon,
-       f.situation, f.decisions,
-       f.science_per_pop - e.science_per_pop AS d_science_pp,
-       f.faith_per_pop - e.faith_per_pop AS d_faith_pp,
-       f.production_per_pop - e.production_per_pop AS d_production_pp,
-       f.food_per_pop - e.food_per_pop AS d_food_pp,
-       f.culture_share - e.culture_share AS d_culture,
-       f.gold_share - e.gold_share AS d_gold,
-       f.military_share - e.military_share AS d_military,
-       f.population_share - e.population_share AS d_population,
-       f.cities_share - e.cities_share AS d_cities,
-       f.domination_progress - e.domination_progress AS d_domination,
-       f.science_progress - e.science_progress AS d_science_prog,
-       f.culture_progress - e.culture_progress AS d_culture_prog,
-       f.diplomatic_progress - e.diplomatic_progress AS d_diplomatic
-FROM candidate_pks e
-LEFT JOIN episodes f
-  ON f.game_id = e.game_id AND f.player_id = e.player_id
-  AND f.turn = e.turn + :horizon
+WITH raw_outcomes AS (
+  SELECT e.game_id, e.turn, e.player_id, :horizon AS horizon,
+         f.turn AS fetched_turn,
+         f.situation, f.decisions,
+         f.science_per_pop - e.science_per_pop AS d_science_pp,
+         f.faith_per_pop - e.faith_per_pop AS d_faith_pp,
+         f.production_per_pop - e.production_per_pop AS d_production_pp,
+         f.food_per_pop - e.food_per_pop AS d_food_pp,
+         f.culture_share - e.culture_share AS d_culture,
+         f.gold_share - e.gold_share AS d_gold,
+         f.military_share - e.military_share AS d_military,
+         f.population_share - e.population_share AS d_population,
+         f.cities_share - e.cities_share AS d_cities,
+         f.domination_progress - e.domination_progress AS d_domination,
+         f.science_progress - e.science_progress AS d_science_prog,
+         f.culture_progress - e.culture_progress AS d_culture_prog,
+         f.diplomatic_progress - e.diplomatic_progress AS d_diplomatic
+  FROM candidate_pks e
+  LEFT JOIN game_outcomes g ON g.game_id = e.game_id
+  LEFT JOIN episodes f
+    ON f.game_id = e.game_id AND f.player_id = e.player_id
+    AND f.turn = LEAST(e.turn + :horizon, COALESCE(g.max_turn, e.turn + :horizon))
+  WHERE f.turn > e.turn
+),
+deduped AS (
+  SELECT *, ROW_NUMBER() OVER (
+    PARTITION BY game_id, turn, player_id, fetched_turn
+    ORDER BY horizon ASC
+  ) AS rn
+  FROM raw_outcomes
+)
+SELECT game_id, turn, player_id, (fetched_turn - turn) AS actual_horizon,
+       situation, decisions, abstract, ...deltas...
+FROM deduped WHERE rn = 1
 ```
+
+Joins `game_outcomes` to cap horizon turns at the game's max turn. The `WHERE f.turn > e.turn` guard prevents self-joining when a landmark is at the final turn. When multiple horizons resolve to the same capped turn, `ROW_NUMBER()` deduplication keeps only the smallest horizon. The final SELECT computes the actual horizon offset (`fetched_turn - turn`) so `horizonTurns` reflects the real offset when capped at game end.
 
 Batched across candidates × horizons. Horizon=20 → `decisions` set to null in mapping.
 Raw deltas formatted as EpisodeDelta strings: `delta > 0 → "+X%"`, `< 0 → "-X%"`, `= 0 → "0%"` (X = `round(abs(delta * 100))`).

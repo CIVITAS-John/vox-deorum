@@ -27,7 +27,7 @@ export interface EpisodeQuery {
 
 /** Outcome snapshot at a future horizon */
 export interface OutcomeSnapshot {
-  horizonTurns: number;          // 5, 10, 15, or 20
+  horizonTurns: number;          // actual offset (may be less than requested if game ended early)
   abstract: string | null;
   decisions: string | null;      // null for horizon=20
   deltas: EpisodeDelta;
@@ -54,6 +54,7 @@ export interface EpisodeResult {
   era: string;
   grandStrategy: string | null;
   isWinner: boolean;
+  victoryType: string | null;
   similarity: number;
   abstract: string | null;
   situation: string | null;

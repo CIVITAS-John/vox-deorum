@@ -199,7 +199,10 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
 
   const sections = results.map((ep, i) => {
     const header = `## Episode ${i + 1}: ${ep.civilization} (${ep.era}, Turn ${ep.turn})`;
-    const meta = `- **Similarity**: ${(ep.similarity * 100).toFixed(1)}% | **Winner**: ${ep.isWinner ? 'Yes' : 'No'}`;
+    const winnerStr = ep.isWinner
+      ? `Yes${ep.victoryType ? ` (${ep.victoryType})` : ''}`
+      : 'No';
+    const meta = `- **Similarity**: ${(ep.similarity * 100).toFixed(1)}%`;
 
     const parts = [header, meta];
 
@@ -230,11 +233,22 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
           if (val && val !== '0%') deltas.push(`${key}: ${val}`);
         }
         const deltaStr = deltas.length > 0 ? deltas.join(', ') : 'no change';
-        parts.push(`\n### Outcome at +${out.horizonTurns} Turns`);
+        const turnLabel = `+${out.horizonTurns} Turns`;
+        parts.push(`\n### Outcome at ${turnLabel}`);
         parts.push(`- **Delta**: ${deltaStr}`);
         if (out.abstract) parts.push(`- **Situation:** ${out.abstract.replaceAll("\n", "")}`);
         if (out.decisions) parts.push(`- **Decisions:** ${out.decisions}`);
       }
+    }
+
+    // Final outcome
+    if (ep.victoryType) {
+        parts.push(`\n### Final outcome`);
+        if (ep.isWinner) {
+          parts.push(`${ep.civilization} achieved **${ep.victoryType}** victory.`);
+        } else {
+          parts.push(`Another civilization achieved a **${ep.victoryType}** victory.`);
+        }
     }
 
     return parts.join('\n');

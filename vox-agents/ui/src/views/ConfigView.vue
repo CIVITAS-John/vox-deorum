@@ -462,6 +462,7 @@ async function saveConfig() {
               showClear
               class="model-dropdown"
             />
+            <span class="delete-btn" />
           </div>
         </div>
       </template>

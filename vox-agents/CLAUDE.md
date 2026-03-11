@@ -304,6 +304,8 @@ VoxAgent (Base)
 - Shared `horizons` constant in `types.ts` used by both archivist pipeline and reader retrieval
 - CLI flags: `--skip-telepathist` skips summary generation, `--skip-embeddings` skips embedding generation (Phase C runs if either is enabled, reading existing summaries from prior runs), `--force` reprocesses existing data
 - Pattern: Defer expensive LLM work until after selection to minimize cost
+- **`game_outcomes` table**: Populated during Phase A with `game_id`, `winner_player_id`, `victory_type` (mapped from numeric ID via `victoryTypeMap` in `types.ts`), and `max_turn` (highest turn in the game)
+- **Outcome turn capping**: Reader's `fetchOutcomes()` uses `LEAST(turn + horizon, max_turn)` to cap at game end, with `ROW_NUMBER()` dedup when multiple horizons map to the same capped turn
 
 #### TelepathistTool Base Class
 - Abstract base for database query tools in the telepathist system
