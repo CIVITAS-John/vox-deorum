@@ -171,6 +171,7 @@ async function fetchCandidates(
            game_state_vector, neighbor_vector, abstract_embedding,
            ${similaritySql} AS score
     FROM candidates
+    WHERE score > 0.9
     ORDER BY score DESC
     LIMIT ${candidateLimit}
   `;
@@ -188,6 +189,7 @@ interface OutcomeRow {
   turn: number;
   player_id: number;
   horizon: number;
+  abstract: string | null;
   situation: string | null;
   decisions: string | null;
   d_science_pp: number | null;
@@ -237,7 +239,7 @@ async function fetchOutcomes(
   // Build UNION ALL across all horizons
   const horizonQueries = horizons.map(horizon => `
     SELECT e.game_id, e.turn, e.player_id, ${horizon} AS horizon,
-           f.situation, f.decisions,
+           f.situation, f.decisions, f.abstract,
            f.science_per_pop - e.science_per_pop AS d_science_pp,
            f.faith_per_pop - e.faith_per_pop AS d_faith_pp,
            f.production_per_pop - e.production_per_pop AS d_production_pp,
@@ -283,7 +285,7 @@ async function fetchOutcomes(
 
     outcomeMap.get(key)!.push({
       horizonTurns: row.horizon,
-      situation: row.situation,
+      abstract: row.abstract,
       decisions: row.horizon === 20 ? null : row.decisions,
       deltas,
     });
@@ -411,14 +413,14 @@ export async function findEpisodes(query: EpisodeQuery): Promise<EpisodeResult[]
 
   if (candidates.length === 0) return [];
 
-  // Stage 2: Fetch outcomes at future horizons
-  logger.info('Stage 2: Fetching outcomes');
-  const outcomeMap = await fetchOutcomes(conn, candidates);
-
-  // Stage 3: MMR diversity selection
-  logger.info(`Stage 3: Diversity selection (limit=${resultLimit})`);
+  // Stage 2: MMR diversity selection
+  logger.info(`Stage 2: Diversity selection (limit=${resultLimit})`);
   const selected = diversitySelect(candidates, resultLimit);
-  logger.info(`Stage 3: Selected ${selected.length} episodes`);
+  logger.info(`Stage 2: Selected ${selected.length} episodes`);
+
+  // Stage 3: Fetch outcomes at future horizons
+  logger.info('Stage 3: Fetching outcomes');
+  const outcomeMap = await fetchOutcomes(conn, selected);
 
   // Build final results
   return selected.map(candidate => {

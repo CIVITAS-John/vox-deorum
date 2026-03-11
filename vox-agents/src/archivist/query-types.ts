@@ -28,7 +28,7 @@ export interface EpisodeQuery {
 /** Outcome snapshot at a future horizon */
 export interface OutcomeSnapshot {
   horizonTurns: number;          // 5, 10, 15, or 20
-  situation: string | null;
+  abstract: string | null;
   decisions: string | null;      // null for horizon=20
   deltas: EpisodeDelta;
 }

@@ -10,14 +10,14 @@
 
 import { Kysely } from 'kysely';
 import { createLogger } from './logger.js';
-import { buildLiveGameStateVector, reportsToRawEpisode } from './game-state-vector.js';
+import { buildLiveGameStateVector } from './game-state-vector.js';
 import { parseDiplomatics } from '../archivist/extractor.js';
 import { findEpisodes } from '../archivist/reader.js';
 import type { GameState, StrategistParameters } from '../strategist/strategy-parameters.js';
 import type { PlayersReport } from '../../../mcp-server/dist/tools/knowledge/get-players.js';
 import type { CitiesReport } from '../../../mcp-server/dist/tools/knowledge/get-cities.js';
 import type { VictoryProgressReport } from '../../../mcp-server/dist/tools/knowledge/get-victory-progress.js';
-import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot } from '../archivist/query-types.js';
+import type { EpisodeQuery, EpisodeResult } from '../archivist/query-types.js';
 import type { TelemetryDatabase } from './telemetry/schema.js';
 import type { TelepathistDatabase } from '../telepathist/telepathist-parameters.js';
 
@@ -198,12 +198,10 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
   if (results.length === 0) return 'No similar historical episodes found.';
 
   const sections = results.map((ep, i) => {
-    const header = `### Episode ${i + 1}: ${ep.civilization} (${ep.era}, Turn ${ep.turn})`;
-    const meta = `**Similarity**: ${(ep.similarity * 100).toFixed(1)}% | **Winner**: ${ep.isWinner ? 'Yes' : 'No'}`;
+    const header = `## Episode ${i + 1}: ${ep.civilization} (${ep.era}, Turn ${ep.turn})`;
+    const meta = `- **Similarity**: ${(ep.similarity * 100).toFixed(1)}% | **Winner**: ${ep.isWinner ? 'Yes' : 'No'}`;
 
     const parts = [header, meta];
-
-    if (ep.abstract) parts.push(`\n${ep.abstract}`);
 
     // Indicators
     const ind = ep.indicators;
@@ -211,19 +209,25 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     if (ind.sciencePerPop != null) indParts.push(`Science/Pop: ${ind.sciencePerPop.toFixed(1)}`);
     if (ind.militaryShare != null) indParts.push(`Military: ${(ind.militaryShare * 100).toFixed(0)}%`);
     if (ind.activeWars > 0) indParts.push(`Wars: ${ind.activeWars}`);
-    if (indParts.length > 0) parts.push(`**Indicators**: ${indParts.join(' | ')}`);
+    if (indParts.length > 0) parts.push(`- **Indicators**: ${indParts.join(' | ')}`);
+
+    // Situations
+    if (ep.abstract) parts.push(`- **Situation:** ${ep.abstract.replaceAll("\n", "")}`);
+    if (ep.decisions) parts.push(`- **Decisions:** ${ep.decisions}`);
 
     // Outcomes
     if (ep.outcomes.length > 0) {
-      parts.push('\n**Outcomes**:');
+      parts.push('\n### Outcomes');
       for (const out of ep.outcomes) {
         const deltas: string[] = [];
         for (const [key, val] of Object.entries(out.deltas)) {
           if (val && val !== '0%') deltas.push(`${key}: ${val}`);
         }
         const deltaStr = deltas.length > 0 ? deltas.join(', ') : 'no change';
-        parts.push(`- **+${out.horizonTurns}t**: ${deltaStr}`);
-        if (out.situation) parts.push(`  Situation: ${out.situation}`);
+        parts.push(`#### +${out.horizonTurns} Turns`);
+        parts.push(`- **Delta**: ${deltaStr}`);
+        if (out.abstract) parts.push(`- **Situation:** ${out.abstract.replaceAll("\n", "")}`);
+        if (out.decisions) parts.push(`- **Decisions:** ${out.decisions}`);
       }
     }
 
