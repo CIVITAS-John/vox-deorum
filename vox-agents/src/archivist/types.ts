@@ -116,7 +116,8 @@ export interface Episode extends RawEpisode {
   productionPerPop: number | null;
   foodPerPop: number | null;
 
-  // Gap values relative to the leader (0 for leader, negative for others)
+  // Gap values relative to the leader (0 for leader, negative for others).
+  // In the game state vector these are centered at 0.5: leader = 0.5, behind by 10 techs = 0.
   technologiesGap: number;
   policiesGap: number;
 

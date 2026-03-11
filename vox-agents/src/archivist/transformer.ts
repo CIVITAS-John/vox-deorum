@@ -220,8 +220,8 @@ function buildNeighborVector(
     const rawRatio = nMilitary / safeMilitary;
     const strengthRatio = clamp(rawRatio, 0, 5) / 5;
     const stanceNorm = stance / 4;
-    const techGap = clamp((nTech - (playerTech ?? 0)) / 10, 0, 1);
-    const policyGap = clamp((nPolicies - (playerPolicies ?? 0)) / 5, 0, 1);
+    const techGap = clamp((nTech - (playerTech ?? 0)) / 20 + 0.5, 0, 1);
+    const policyGap = clamp((nPolicies - (playerPolicies ?? 0)) / 10 + 0.5, 0, 1);
 
     neighbors.push({ distanceRank, strengthRatio, stanceNorm, techGap, policyGap });
   }
@@ -273,9 +273,9 @@ function buildGameStateVector(
     clamp(ep.faithPerPop ?? 0, 1, 20) / 20,                            // [11]
     clamp(ep.productionPerPop ?? 0, 1, 20) / 20,                      // [12]
     clamp(ep.foodPerPop ?? 0, 1, 20) / 20,                            // [13]
-    // --- Gaps & percentages (5 elements) ---
-    clamp((ep.technologiesGap) / 10, 0, 1),                           // [14]
-    clamp((ep.policiesGap) / 5, 0, 1),                                // [15]
+    // --- Gaps & percentages (5 elements, gaps centered at 0.5) ---
+    clamp(ep.technologiesGap / 20 + 0.5, 0, 1),                        // [14]
+    clamp(ep.policiesGap / 10 + 0.5, 0, 1),                           // [15]
     clamp((ep.happinessPercentage ?? 0) / 100, 0, 1),                 // [16]
     clamp(ep.religionPercentage, 0, 1),                                // [17]
     ep.ideologyShare,                                                  // [18]
