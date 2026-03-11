@@ -32,7 +32,6 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'node:path';
 import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";
 import { startWebServer } from "../web/server.js";
-import { mcpClient } from "../utils/models/mcp-client.js";
 
 const logger = createLogger('Telepathist');
 
@@ -112,12 +111,11 @@ async function main() {
   const voxContext = new VoxContext<TelepathistParameters>({}, contextId);
   voxContext.lastParameter = params;
 
-  // Register tools when running the full agent; load cached metadata in prepare-only mode
+  // Load cached MCP tool metadata (for markdownConfig formatting) and register agent tools.
+  // No live MCP connection needed — telepathist reads from the telemetry database only.
+  voxContext.loadToolCache();
   if (!prepareOnly) {
-    await mcpClient.connect();
-    await voxContext.registerTools();
-  } else {
-    voxContext.loadToolCache();
+    voxContext.registerAgentTools();
   }
 
   // Wire up streaming to logger

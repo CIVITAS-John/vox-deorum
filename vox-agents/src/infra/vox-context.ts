@@ -134,7 +134,7 @@ export class VoxContext<TParameters extends AgentParameters> {
   /**
    * Register all tools.
    * Fetches available tools from the MCP server and wraps them for use with AI SDK.
-   * Persists MCP tool metadata to disk for offline use.
+   * Also registers agent tools and extra tools. Persists MCP tool metadata to disk for offline use.
    */
   public async registerTools() {
     // MCP tools
@@ -146,7 +146,19 @@ export class VoxContext<TParameters extends AgentParameters> {
       this.tools[tool] = mcpTools[tool];
     }
 
-    // Agent tools
+    // Agent + extra tools
+    this.registerAgentTools();
+
+    // Persist MCP tool metadata for offline use
+    this.saveToolCache(rawMcpTools);
+  }
+
+  /**
+   * Register agent tools and agent-provided extra tools without connecting to MCP.
+   * Use this together with loadToolCache() for workflows that don't need live MCP tools
+   * (e.g. telepathist post-game analysis).
+   */
+  public registerAgentTools(): void {
     const allAgents = agentRegistry.getAllAsRecord();
     for (const [agentName, agent] of Object.entries(allAgents)) {
       // Agent as a tool
@@ -162,9 +174,6 @@ export class VoxContext<TParameters extends AgentParameters> {
         this.tools[toolName] = tool;
       }
     }
-
-    // Persist MCP tool metadata for offline use
-    this.saveToolCache(rawMcpTools);
   }
 
   /**

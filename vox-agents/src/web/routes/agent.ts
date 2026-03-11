@@ -34,7 +34,6 @@ import {
   EnvoyThread
 } from '../../types/index.js';
 import { VoxSpanExporter } from '../../utils/telemetry/vox-exporter.js';
-import { mcpClient } from '../../utils/models/mcp-client.js';
 
 const logger = createLogger('webui:agent-routes');
 
@@ -130,8 +129,8 @@ export function createAgentRoutes(): Router {
           VoxSpanExporter.getInstance().createContext(effectiveContextId, "telepathist");
           context = new VoxContext<TelepathistParameters>({}, effectiveContextId);
 
-          await mcpClient.connect();
-          await context.registerTools();
+          context.loadToolCache();
+          context.registerAgentTools();
 
           // Create and store TelepathistParameters
           const telepathistParams = await createTelepathistParameters(databasePath, identifierInfo);
