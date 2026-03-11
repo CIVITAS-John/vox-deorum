@@ -13,7 +13,6 @@ import { createLogger } from './logger.js';
 import { buildLiveGameStateVector, reportsToRawEpisode } from './game-state-vector.js';
 import { parseDiplomatics } from '../archivist/extractor.js';
 import { findEpisodes } from '../archivist/reader.js';
-import { countPolicies } from '../archivist/types.js';
 import type { GameState, StrategistParameters } from '../strategist/strategy-parameters.js';
 import type { PlayersReport } from '../../../mcp-server/dist/tools/knowledge/get-players.js';
 import type { CitiesReport } from '../../../mcp-server/dist/tools/knowledge/get-cities.js';
@@ -23,6 +22,38 @@ import type { TelemetryDatabase } from './telemetry/schema.js';
 import type { TelepathistDatabase } from '../telepathist/telepathist-parameters.js';
 
 const logger = createLogger('EpisodeUtils');
+
+/** Build an EpisodeQuery from a players report, player entry, and vectors. */
+function buildEpisodeQuery(
+  players: PlayersReport,
+  playerEntry: Exclude<PlayersReport[string], string>,
+  vectors: { gameStateVector: number[]; neighborVector: number[] },
+  grandStrategy: string | null,
+  abstract?: string
+): EpisodeQuery {
+  const majorCivNames = new Set<string>();
+  for (const entry of Object.values(players)) {
+    if (typeof entry === 'string') continue;
+    if (entry.IsMajor) majorCivNames.add(entry.Civilization);
+  }
+
+  const relationships = (playerEntry.Relationships as Record<string, string | string[]>) ?? null;
+  const diplomatics = parseDiplomatics(relationships, majorCivNames);
+
+  return {
+    gameStateVector: vectors.gameStateVector,
+    neighborVector: vectors.neighborVector,
+    abstract,
+    era: (playerEntry.Era as string) ?? 'Ancient Era',
+    civilization: playerEntry.Civilization,
+    grandStrategy,
+    activeWars: diplomatics.activeWars,
+    friends: diplomatics.friends,
+    defensivePacts: diplomatics.defensivePacts,
+    truces: diplomatics.truces,
+    denouncements: diplomatics.denouncements,
+  };
+}
 
 /**
  * Retrieve similar historical episodes for a live strategist session.
@@ -60,38 +91,13 @@ export async function requestEpisodes(
     const playerEntry = state.players?.[parameters.playerID.toString()];
     if (!playerEntry || typeof playerEntry === 'string') return [];
 
-    // Extract era, civilization, and grand strategy
-    const era = (playerEntry.Era as string) ?? 'Ancient Era';
-    const civilization = playerEntry.Civilization;
-    const grandStrategy = parameters.workingMemory?.grandStrategy ?? null;
-
-    // Build set of major civ names for diplomatic parsing
-    const majorCivNames = new Set<string>();
-    if (state.players) {
-      for (const entry of Object.values(state.players)) {
-        if (typeof entry === 'string') continue;
-        if (entry.IsMajor) majorCivNames.add(entry.Civilization);
-      }
-    }
-
-    // Parse diplomatic relationship counts
-    const relationships = (playerEntry.Relationships as Record<string, string | string[]>) ?? null;
-    const diplomatics = parseDiplomatics(relationships, majorCivNames);
-
-    // Build and execute the episode query
-    const query: EpisodeQuery = {
-      gameStateVector: vectors.gameStateVector,
-      neighborVector: vectors.neighborVector,
-      abstract,
-      era,
-      civilization,
-      grandStrategy,
-      activeWars: diplomatics.activeWars,
-      friends: diplomatics.friends,
-      defensivePacts: diplomatics.defensivePacts,
-      truces: diplomatics.truces,
-      denouncements: diplomatics.denouncements,
-    };
+    const query = buildEpisodeQuery(
+      state.players!,
+      playerEntry,
+      vectors,
+      parameters.workingMemory?.grandStrategy ?? null,
+      abstract
+    );
 
     return await findEpisodes(query);
   } catch (error) {
@@ -168,40 +174,15 @@ export async function requestEpisodesFromTelemetry(
       } catch { /* ignore - table may not exist */ }
     }
 
-    // Get player entry and extract diplomatic context
+    // Get player entry and build query
     const playerEntry = players[playerId.toString()];
     if (!playerEntry || typeof playerEntry === 'string') return [];
 
-    const era = (playerEntry.Era as string) ?? 'Ancient Era';
-    const civilization = playerEntry.Civilization;
-
-    const majorCivNames = new Set<string>();
-    for (const entry of Object.values(players)) {
-      if (typeof entry === 'string') continue;
-      if (entry.IsMajor) majorCivNames.add(entry.Civilization);
-    }
-
-    const relationships = (playerEntry.Relationships as Record<string, string | string[]>) ?? null;
-    const diplomatics = parseDiplomatics(relationships, majorCivNames);
-
-    // Build and execute the episode query
-    const query: EpisodeQuery = {
-      gameStateVector: vectors.gameStateVector,
-      neighborVector: vectors.neighborVector,
-      abstract,
-      era,
-      civilization,
-      grandStrategy: null,
-      activeWars: diplomatics.activeWars,
-      friends: diplomatics.friends,
-      defensivePacts: diplomatics.defensivePacts,
-      truces: diplomatics.truces,
-      denouncements: diplomatics.denouncements,
-    };
+    const query = buildEpisodeQuery(players, playerEntry, vectors, null, abstract);
 
     return await findEpisodes(query);
   } catch (error) {
-    logger.error('Failed to request episodes from telemetry', { error });
+    logger.error('Failed to request episodes from telemetry', error);
     return [];
   }
 }

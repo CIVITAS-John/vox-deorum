@@ -202,6 +202,9 @@ export function countPolicies(policyBranches: Record<string, string[] | number> 
   return total;
 }
 
+/** Consequence turn offsets for outcome fetching in the reader pipeline */
+export const horizons = [5, 10, 15, 20] as const;
+
 /** Weights for runtime retrieval with abstract embedding available */
 export const retrievalWeights: SimilarityWeights = {
   gameState: 0.4,

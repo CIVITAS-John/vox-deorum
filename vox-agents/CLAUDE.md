@@ -144,6 +144,7 @@ Different features require different testing infrastructure:
 - `npm run strategist` - Run strategist workflow (strategist/console.ts)
 - `npm run telepathist` - Run telepathist console (telepathist/console.ts)
 - `npm run oracle -- -c <experiment.js>` - Run Oracle prompt replay experiment (oracle/console.ts)
+- `npm run archivist -- -a <archive-path> -o <output.duckdb>` - Run Archivist batch pipeline (archivist/console.ts)
 - **Each workflow has dedicated entry point** with shared instrumentation
 - Instrumentation loaded via --import flag for telemetry
 
@@ -294,6 +295,15 @@ VoxAgent (Base)
 - Eliminates per-context agent registration
 - Supports dynamic register/unregister at runtime
 - Pattern: Import `agentRegistry` and call `.get(name)` to resolve agents
+
+#### Archivist Pipeline (Three-Phase)
+- Batch processes archived game databases into a DuckDB episodes table
+- **Phase A**: Extract + Transform + Write — no LLM calls, episodes written with null text fields
+- **Phase B**: Select diverse landmarks per player using gameState + neighbor vectors only (no embeddings)
+- **Phase C**: Generate telepathist summaries for landmark turns + consequence turns (+5/+10/+15/+20 horizons), embeddings for landmarks only, then patch episodes via `updateEpisodeTexts()`
+- Shared `horizons` constant in `types.ts` used by both archivist pipeline and reader retrieval
+- CLI flags: `--skip-telepathist` skips summary generation, `--skip-embeddings` skips embedding generation (Phase C runs if either is enabled, reading existing summaries from prior runs), `--force` reprocesses existing data
+- Pattern: Defer expensive LLM work until after selection to minimize cost
 
 #### TelepathistTool Base Class
 - Abstract base for database query tools in the telepathist system

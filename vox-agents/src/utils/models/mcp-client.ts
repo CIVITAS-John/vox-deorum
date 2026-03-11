@@ -80,6 +80,7 @@ export class MCPClient extends EventEmitter {
   private client!: Client;
   private transport!: StdioClientTransport | StreamableHTTPClientTransport;
   private isConnected: boolean = false;
+  private connectPromise: Promise<void> | null = null;
   private dispatcher?: Dispatcher;
   private connectionPool: Pool | undefined;
 
@@ -223,6 +224,19 @@ export class MCPClient extends EventEmitter {
    */
   async connect(): Promise<void> {
     if (this.isConnected) return;
+    if (this.connectPromise) return this.connectPromise;
+    this.connectPromise = this._doConnect();
+    try {
+      await this.connectPromise;
+    } finally {
+      this.connectPromise = null;
+    }
+  }
+
+  /**
+   * Internal connection logic, called by connect() with deduplication.
+   */
+  private async _doConnect(): Promise<void> {
     try {
       logger.info('Connecting to MCP server...');
       await this.client.connect(this.transport, {
@@ -246,6 +260,7 @@ export class MCPClient extends EventEmitter {
     try {
       logger.info('Disconnecting from MCP server...');
       this.isConnected = false;
+      this.connectPromise = null;
       await this.client.close();
       await this.initializeClient();
       logger.info('Disconnected from MCP server');

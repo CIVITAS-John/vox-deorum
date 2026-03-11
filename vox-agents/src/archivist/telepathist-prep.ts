@@ -23,13 +23,17 @@ const logger = createLogger('TelepathistPrep');
  * @param telemetryDbPath - Absolute path to the player's telemetry database
  * @param gameId - Game identifier
  * @param playerId - Player ID within the game
+ * @param targetTurns - Optional set of specific turns to summarize (default: all available turns)
  */
 export async function prepareTelepathist(
   telemetryDbPath: string,
   gameId: string,
-  playerId: number
+  playerId: number,
+  targetTurns?: number[]
 ): Promise<void> {
-  logger.info(`Preparing telepathist for player ${playerId} in game ${gameId}`);
+  logger.info(`Preparing telepathist for player ${playerId} in game ${gameId}`, {
+    targetTurns: targetTurns ? targetTurns.length : 'all',
+  });
 
   // Build identifier directly — archive filenames don't match parseDatabaseIdentifier's format
   const parsedId: GameIdentifierInfo = { gameID: gameId, playerID: playerId };
@@ -40,6 +44,12 @@ export async function prepareTelepathist(
   try {
     // Opens telemetry DB (read-only) + telepathist DB (read-write, created if absent)
     parameters = await createTelepathistParameters(telemetryDbPath, parsedId);
+
+    // Filter to specific turns if requested
+    if (targetTurns) {
+      const targetSet = new Set(targetTurns);
+      parameters.availableTurns = parameters.availableTurns.filter(t => targetSet.has(t));
+    }
 
     // Minimal VoxContext — no registerTools() needed.
     // The summarizer agent only needs the agent registry (auto-initialized on import)

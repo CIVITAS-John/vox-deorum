@@ -9,11 +9,10 @@
 
 import fs from 'node:fs';
 import Database from 'better-sqlite3';
-import { Kysely, SqliteDialect, ParseJSONResultsPlugin, type Selectable } from 'kysely';
+import { Kysely, type Selectable } from 'kysely';
 import { createLogger } from '../utils/logger.js';
 import type {
   KnowledgeDatabase,
-  TelepathistDatabase,
   TurnSummaryRecord,
   RawEpisode,
   TurnContext,
@@ -142,15 +141,15 @@ export async function extractTurnContexts(
  */
 export async function extractPlayerEpisodes(
   gameDb: Kysely<KnowledgeDatabase>,
-  telepathistDbPath: string,
+  telepathistDbPath: string | null,
   playerId: number,
   civilization: string,
   turnContexts: Map<number, TurnContext>,
   gameId: string,
   victoryPlayerId: number
 ): Promise<RawEpisode[]> {
-  // Load telepathist summaries (if DB exists)
-  const turnSummaries = loadTurnSummaries(telepathistDbPath);
+  // Load telepathist summaries (pass null to skip, e.g. in Phase A before summaries exist)
+  const turnSummaries = telepathistDbPath ? loadTurnSummaries(telepathistDbPath) : new Map<number, TurnSummaryRecord>();
 
   // If telepathist was run but has no summary for the last turn, exclude it
   // (e.g. a victory termination turn with no agent activity)
@@ -277,7 +276,7 @@ export async function extractPlayerEpisodes(
 // ---------------------------------------------------------------------------
 
 /** Load turn summaries from the telepathist database. Returns empty map if DB doesn't exist. */
-function loadTurnSummaries(dbPath: string): Map<number, TurnSummaryRecord> {
+export function loadTurnSummaries(dbPath: string): Map<number, TurnSummaryRecord> {
   const map = new Map<number, TurnSummaryRecord>();
 
   if (!fs.existsSync(dbPath)) {
@@ -287,11 +286,6 @@ function loadTurnSummaries(dbPath: string): Map<number, TurnSummaryRecord> {
 
   try {
     const sqliteDb = new Database(dbPath, { readonly: true });
-    const db = new Kysely<TelepathistDatabase>({
-      dialect: new SqliteDialect({ database: sqliteDb }),
-    });
-
-    // Synchronous approach: use the underlying better-sqlite3 directly
     const rows = sqliteDb.prepare('SELECT * FROM turn_summaries').all() as TurnSummaryRecord[];
     for (const row of rows) {
       map.set(row.turn, row);

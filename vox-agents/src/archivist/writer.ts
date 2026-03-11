@@ -262,21 +262,6 @@ export class EpisodeWriter {
       .execute();
   }
 
-  /** Fetch cached abstract embeddings for a specific player, keyed by turn. */
-  async getAbstractEmbeddings(gameId: string, playerId: number): Promise<Map<number, { abstract: string | null; abstractEmbedding: number[] }>> {
-    const rows = await this.db
-      .selectFrom('episodes')
-      .select(['turn', 'abstract', 'abstractEmbedding'])
-      .where('gameId', '=', gameId)
-      .where('playerId', '=', playerId)
-      .where('abstractEmbedding', 'is not', null)
-      .execute();
-    return new Map(rows.map(r => [r.turn, {
-      abstract: r.abstract as string | null,
-      abstractEmbedding: r.abstractEmbedding as unknown as number[],
-    }]));
-  }
-
   /** Reset all landmark flags for a game so they can be re-selected fresh. */
   async resetGameLandmarks(gameId: string): Promise<void> {
     await this.db.updateTable('episodes')
@@ -313,6 +298,50 @@ export class EpisodeWriter {
         .where('playerId', '=', playerId)
         .execute();
     }
+  }
+
+  /** Return landmark turn numbers for a specific player in a game. */
+  async getLandmarkTurns(gameId: string, playerId: number): Promise<number[]> {
+    const rows = await this.db
+      .selectFrom('episodes')
+      .select('turn')
+      .where('gameId', '=', gameId)
+      .where('playerId', '=', playerId)
+      .where('isLandmark', '=', true as any)
+      .orderBy('turn')
+      .execute();
+    return rows.map(r => r.turn);
+  }
+
+  /** Update text fields and embedding for specific episodes (used after deferred summary generation). */
+  async updateEpisodeTexts(
+    gameId: string,
+    playerId: number,
+    updates: Array<{
+      turn: number;
+      abstract: string | null;
+      situation: string | null;
+      decisions: string | null;
+      abstractEmbedding: number[] | null;
+    }>
+  ): Promise<void> {
+    if (updates.length === 0) return;
+
+    for (const u of updates) {
+      await this.db.updateTable('episodes')
+        .set({
+          abstract: u.abstract,
+          situation: u.situation,
+          decisions: u.decisions,
+          abstractEmbedding: u.abstractEmbedding,
+        } as any)
+        .where('gameId', '=', gameId)
+        .where('turn', '=', u.turn)
+        .where('playerId', '=', playerId)
+        .execute();
+    }
+
+    this.logger.info(`Updated ${updates.length} episode texts for player ${playerId} in game ${gameId}`);
   }
 
   /** Close the DuckDB connection. */

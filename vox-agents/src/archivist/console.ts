@@ -5,6 +5,11 @@
  * Processes archived Civilization V game databases into a DuckDB episodes table,
  * where each row is a player-turn snapshot for LLM-controlled players.
  *
+ * Three-phase pipeline:
+ *   Phase A: Extract + Transform + Write (no LLM calls)
+ *   Phase B: Select diverse landmarks per player
+ *   Phase C: Generate summaries + embeddings for landmark and consequence turns only
+ *
  * Usage:
  *   npm run archivist -- -a <archive-path> -o <output.duckdb> [-g <gameId>] [--force] [--skip-telepathist] [--skip-embeddings] [--no-ui]
  */
@@ -17,8 +22,9 @@ import { createLogger } from '../utils/logger.js';
 import { openReadonlyGameDb, scanArchive } from './scanner.js';
 import { EpisodeWriter } from './writer.js';
 import type { ArchiveEntry } from './types.js';
+import { horizons } from './types.js';
 import { prepareTelepathist } from './telepathist-prep.js';
-import { extractPlayerEpisodes, extractTurnContexts } from './extractor.js';
+import { extractPlayerEpisodes, extractTurnContexts, loadTurnSummaries } from './extractor.js';
 import { transformEpisode } from './transformer.js';
 import { generateEmbeddings } from './embeddings.js';
 import { selectLandmarks } from './selector.js';
@@ -40,6 +46,29 @@ const { values } = parseArgs({
   strict: false,
   allowPositionals: false,
 });
+
+/**
+ * Compute the set of turns that need summaries: landmark turns plus their
+ * consequence turns (at +5/+10/+15/+20 horizons used by the reader's outcome pipeline).
+ * Only includes consequence turns that actually exist in the game data.
+ */
+function computeTargetTurns(
+  landmarkTurns: number[],
+  allTurns: Set<number>
+): { targetTurns: number[]; landmarkSet: Set<number> } {
+  const landmarkSet = new Set(landmarkTurns);
+  const targetSet = new Set(landmarkTurns);
+  for (const lt of landmarkTurns) {
+    for (const h of horizons) {
+      const ct = lt + h;
+      if (allTurns.has(ct)) targetSet.add(ct);
+    }
+  }
+  return {
+    targetTurns: [...targetSet].sort((a, b) => a - b),
+    landmarkSet,
+  };
+}
 
 async function main() {
   const archivePath = path.resolve(values.archive as string ?? 'archive');
@@ -70,7 +99,7 @@ async function main() {
 
   // Web UI
   await startWebServer();
-  
+
   // Step 3: Process each game
   for (const entry of entries) {
     try {
@@ -90,6 +119,9 @@ async function main() {
         continue;
       }
 
+      // Collect all turn numbers for consequence turn lookup in Phase C
+      let allTurns: Set<number>;
+
       try {
         // Query game metadata for winner determination
         const victoryRow = await gameDb
@@ -99,7 +131,7 @@ async function main() {
           .executeTakeFirst();
         const victoryPlayerId = victoryRow ? parseInt(victoryRow.Value, 10) : -1;
 
-        // Build player info lookup (ID → civ name + leader name)
+        // Build player info lookup (ID -> civ name + leader name)
         const playerInfoRows = await gameDb
           .selectFrom('PlayerInformations')
           .selectAll()
@@ -108,9 +140,13 @@ async function main() {
 
         // Extract turn contexts once per game (shared across all players)
         const turnContexts = await extractTurnContexts(gameDb);
+        allTurns = new Set(turnContexts.keys());
 
         const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
 
+        // ---------------------------------------------------------------
+        // Phase A: Extract + Transform + Write (no LLM calls)
+        // ---------------------------------------------------------------
         for (const player of entry.players) {
           if (!force && existingPlayers.has(player.playerId)) {
             logger.info(`Skipping player ${player.playerId} (already processed)`);
@@ -119,20 +155,12 @@ async function main() {
           }
 
           try {
-            // Phase 2: telepathist prep — generate turn summaries if missing
-            if (skipTelepathist) {
-              logger.info(`Skipping telepathist prep for player ${player.playerId} (--skip-telepathist)`);
-            } else {
-              await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId);
-            }
-
-            // Phase 2: extract raw episodes
             const info = playerInfoMap.get(player.playerId);
             const civilization = info?.Civilization ?? 'Unknown';
 
             const rawEpisodes = await extractPlayerEpisodes(
               gameDb,
-              player.telepathistDbPath,
+              player.telepathistDbPath, // reads existing summaries from prior runs if available
               player.playerId,
               civilization,
               turnContexts,
@@ -142,57 +170,18 @@ async function main() {
 
             logger.info(`Extracted ${rawEpisodes.length} raw episodes for player ${player.playerId}`);
 
-            // Phase 3: transform raw episodes into full episodes with computed fields
             const episodes = rawEpisodes.map(raw => {
               const tc = turnContexts.get(raw.turn);
               if (!tc) throw new Error(`Missing TurnContext for turn ${raw.turn}`);
               return transformEpisode(raw, tc);
             });
 
-            // Phase 3: generate abstract embeddings (optional)
-            if (!skipEmbeddings) {
-              // In force mode, reuse cached embeddings where abstract text is unchanged
-              let reused = 0;
-              if (force) {
-                const cacheStart = performance.now();
-                const cached = await writer.getAbstractEmbeddings(entry.gameId, player.playerId);
-                for (const ep of episodes) {
-                  const hit = cached.get(ep.turn);
-                  if (hit && hit.abstract === ep.abstract) {
-                    ep.abstractEmbedding = hit.abstractEmbedding;
-                    reused++;
-                  }
-                }
-                logger.info(`Cached embedding fetch took ${((performance.now() - cacheStart) / 1000).toFixed(1)}s (${cached.size} cached, ${reused} reused)`);
-              }
-
-              // Generate embeddings only for episodes that still need them
-              const needsIdx: number[] = [];
-              for (let i = 0; i < episodes.length; i++) {
-                if (episodes[i].abstract != null && !episodes[i].abstractEmbedding) needsIdx.push(i);
-              }
-
-              if (needsIdx.length > 0) {
-                const embeddings = await generateEmbeddings(needsIdx.map(i => episodes[i].abstract));
-                for (let j = 0; j < needsIdx.length; j++) {
-                  episodes[needsIdx[j]].abstractEmbedding = embeddings[j];
-                }
-              }
-
-              if (reused > 0) {
-                logger.info(`Reused ${reused} cached embeddings, generated ${needsIdx.length} new`);
-              }
-            }
-
-            // In force mode, delete old rows now (after embeddings were cached above)
+            // In force mode, delete old rows before writing new ones
             if (force) {
-              const deleteStart = performance.now();
               await writer.deletePlayerEpisodes(entry.gameId, player.playerId);
-              logger.info(`Deleted old episodes for player ${player.playerId} in ${((performance.now() - deleteStart) / 1000).toFixed(1)}s`);
             }
 
             await writer.writeEpisodes(episodes);
-
             processed++;
           } catch (playerError) {
             logger.error(`Error processing player ${player.playerId} in game ${entry.gameId}`, {
@@ -201,11 +190,79 @@ async function main() {
             errors++;
           }
         }
-
-        // Phase 4: landmark selection — mark diverse subset for retrieval
-        const stats = await selectLandmarks(writer, entry.gameId);
       } finally {
         await gameDb.destroy();
+      }
+
+      // ---------------------------------------------------------------
+      // Phase B: Landmark selection (vectors only, no embeddings needed)
+      // ---------------------------------------------------------------
+      await selectLandmarks(writer, entry.gameId);
+
+      // ---------------------------------------------------------------
+      // Phase C: Generate summaries + embeddings for selected turns only
+      // ---------------------------------------------------------------
+      if (!skipTelepathist || !skipEmbeddings) {
+        for (const player of entry.players) {
+          try {
+            const landmarkTurns = await writer.getLandmarkTurns(entry.gameId, player.playerId);
+            if (landmarkTurns.length === 0) {
+              logger.info(`No landmarks for player ${player.playerId}, skipping Phase C`);
+              continue;
+            }
+
+            const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, allTurns);
+
+            // Generate telepathist summaries for target turns only
+            if (!skipTelepathist) {
+              logger.info(`Player ${player.playerId}: generating summaries for ${targetTurns.length} turns (${landmarkTurns.length} landmarks + ${targetTurns.length - landmarkTurns.length} consequence)`);
+              await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns);
+            }
+
+            // Read summaries (from this run or prior runs)
+            const summaries = loadTurnSummaries(player.telepathistDbPath);
+
+            // Build update records for turns that have summaries
+            const updates: Array<{
+              turn: number;
+              abstract: string | null;
+              situation: string | null;
+              decisions: string | null;
+              abstractEmbedding: number[] | null;
+            }> = [];
+
+            for (const turn of targetTurns) {
+              const summary = summaries.get(turn);
+              if (!summary) continue;
+              updates.push({
+                turn,
+                abstract: summary.abstract ?? null,
+                situation: summary.situation ?? null,
+                decisions: summary.decisions ?? null,
+                abstractEmbedding: null, // filled below if needed
+              });
+            }
+
+            // Generate embeddings for landmark turns with abstracts
+            if (!skipEmbeddings) {
+              const landmarkUpdates = updates.filter(u => landmarkSet.has(u.turn) && u.abstract != null);
+              if (landmarkUpdates.length > 0) {
+                const embeddings = await generateEmbeddings(landmarkUpdates.map(u => u.abstract));
+                for (let i = 0; i < landmarkUpdates.length; i++) {
+                  landmarkUpdates[i].abstractEmbedding = embeddings[i];
+                }
+              }
+            }
+
+            if (updates.length > 0) {
+              await writer.updateEpisodeTexts(entry.gameId, player.playerId, updates);
+            }
+          } catch (playerError) {
+            logger.error(`Error in Phase C for player ${player.playerId} in game ${entry.gameId}`, {
+              error: playerError instanceof Error ? { message: playerError.message, stack: playerError.stack } : playerError,
+            });
+          }
+        }
       }
     } catch (error) {
       logger.error(`Error processing game ${entry.gameId}`, error);

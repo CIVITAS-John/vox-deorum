@@ -595,5 +595,6 @@ async function saveConfig() {
   color: var(--p-text-muted-color);
   display: flex;
   align-items: center;
+  padding: 0.5rem 0.75rem;
 }
 </style>

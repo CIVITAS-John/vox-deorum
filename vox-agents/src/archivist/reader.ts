@@ -12,7 +12,7 @@ import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import { config } from '../utils/config.js';
 import { createLogger } from '../utils/logger.js';
 import { buildSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
-import { eraMap } from './types.js';
+import { eraMap, horizons } from './types.js';
 import { generateEmbeddings } from './embeddings.js';
 import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot, EpisodeDelta } from './query-types.js';
 
@@ -181,8 +181,6 @@ async function fetchCandidates(
 // Stage 2: Fetch Outcomes
 // ---------------------------------------------------------------------------
 
-const HORIZONS = [5, 10, 15, 20] as const;
-
 interface OutcomeRow {
   game_id: string;
   turn: number;
@@ -235,7 +233,7 @@ async function fetchOutcomes(
   }).join(',\n    ');
 
   // Build UNION ALL across all horizons
-  const horizonQueries = HORIZONS.map(horizon => `
+  const horizonQueries = horizons.map(horizon => `
     SELECT e.game_id, e.turn, e.player_id, ${horizon} AS horizon,
            f.situation, f.decisions,
            f.science_per_pop - e.science_per_pop AS d_science_pp,

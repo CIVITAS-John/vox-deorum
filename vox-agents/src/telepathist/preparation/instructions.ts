@@ -44,7 +44,7 @@ ${summarizerGuidelines}
 # Output Format
 Respond with a JSON object containing these fields (generate them in this order, so earlier fields can provide context for later ones):
 1. "situation": Detailed paragraphs summarizing, from an OBSERVER perspective, the world state: military situation, economic state, diplomatic state, research progress, and notable events. 
- - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
+ - NEVER discuss the leader's strategies, thoughts, diplomatic stances, AI flavors, or decisions.
  - Include descriptions and comparisons with neighboring civilizations, if possible.
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
 2. "abstract": A context-agnostic generalized summary of the same events. Replace all concrete names (civilizations, leaders, cities, technologies) with generic descriptions. This should read as a universal game scenario.
@@ -59,7 +59,7 @@ Respond with a JSON object containing these fields (generate them in this order,
 
 # Reminder
 Respond ONLY with a JSON object containing exactly these four fields: "situation", "abstract", "decisions", "narrative".
-- "situation" must only cover world state: do NOT include any leader decisions or reasoning.
+- "situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
 - Do not include any other text or commentary outside the JSON.`;
 }
 
@@ -91,6 +91,6 @@ Respond with a JSON object containing these fields (generate them in this order,
 
 # Reminder
 Respond ONLY with a JSON object containing exactly these four fields: "situation", "abstract", "decisions", "narrative".
-- "situation" must only cover world state: do NOT include any leader decisions or reasoning.
+- "situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
 - Do not include any other text or commentary outside the JSON.`;
 }
