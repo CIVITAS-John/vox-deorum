@@ -60,7 +60,7 @@ A detailed paragraph covering the leader's decisions and reasoning: what options
  - If the leader did not change existing strategies, report what is already in effect.
 
 # Narrative
-A short combined narrative (2-3 sentences) weaving the situation and decisions together into a cohesive summary.
+A short combined narrative weaving the situation and decisions together into a cohesive summary.
 
 # Focus
 - Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts.
@@ -100,7 +100,7 @@ A context-agnostic generalized phase summary. Replace concrete names of leaders,
 A narrative paragraph of the phase's strategic choices: the key decisions made, their rationale, and their outcomes.
 
 # Narrative
-A short combined narrative (2-3 sentences) weaving the situation and decisions into a cohesive phase summary.
+A short combined narrative weaving the situation and decisions into a cohesive phase summary.
 
 # Focus
 - Identify the dominant themes and narrative arcs of this phase.
