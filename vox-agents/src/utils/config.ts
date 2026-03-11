@@ -161,6 +161,14 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
+    'openai-compatible/Qwen-3.5-27B': {
+      provider: 'openai-compatible',
+      name: 'Qwen-3.5-27B',
+      options: {
+        systemPromptFirst: true,
+        toolMiddleware: 'prompt'
+      }
+    },
     'openai-compatible/DeepSeek-V3.2': {
       provider: 'openai-compatible',
       name: 'DeepSeek-V3.2',
