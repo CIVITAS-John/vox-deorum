@@ -300,6 +300,9 @@ The archivist processes archived game databases into a DuckDB episode database f
 # Process all games in the archive directory
 npm run archivist -- -a <archive-path> -o <output.duckdb>
 
+# Process only the next 3 incomplete games
+npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb -n 3
+
 # Process a specific game only
 npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb -g game-abc123
 
@@ -316,6 +319,7 @@ npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb --force --ski
 | `-a, --archive` | Path to archive directory (default: `archive`) |
 | `-o, --output` | Path to DuckDB output file (default: `episodes.duckdb`) |
 | `-g, --game` | Process only this specific game ID |
+| `-n, --limit` | Max number of incomplete games to process |
 | `--force` | Delete existing episodes before re-processing |
 | `--no-ui` | Skip opening DuckDB UI after completion - MUST use when testing changes |
 | `--skip-telepathist` | Skip telepathist process for quick validation on other features |

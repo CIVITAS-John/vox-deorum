@@ -35,11 +35,11 @@ export interface OutcomeSnapshot {
 
 /** Quantitative deltas as formatted strings */
 export interface EpisodeDelta {
-  sciencePerPop: string | null;      // "+3" or "-1" (per-pop ratio change)
+  sciencePerPop: string | null;      // "+50%" (relative change in per-pop ratio)
   faithPerPop: string | null;
   productionPerPop: string | null;
   foodPerPop: string | null;
-  cultureShare: string | null;       // "+3%" or "-1%" (share change)
+  cultureShare: string | null;       // "+10%" (relative change in world share)
   goldShare: string | null;
   militaryShare: string | null;
   populationShare: string | null;
@@ -61,9 +61,14 @@ export interface EpisodeResult {
   outcomes: OutcomeSnapshot[];   // 0-4 (fewer if game ended early)
   indicators: {
     sciencePerPop: number | null;
+    faithPerPop: number | null;
+    productionPerPop: number | null;
+    foodPerPop: number | null;
     cultureShare: number | null;
+    goldShare: number | null;
     militaryShare: number | null;
     populationShare: number | null;
+    citiesShare: number | null;
     activeWars: number;
     dominationProgress: number | null;
     scienceProgress: number | null;

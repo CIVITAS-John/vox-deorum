@@ -201,10 +201,6 @@ interface OutcomeRow {
   d_military: number | null;
   d_population: number | null;
   d_cities: number | null;
-  d_domination: number | null;
-  d_science_prog: number | null;
-  d_culture_prog: number | null;
-  d_diplomatic: number | null;
 }
 
 async function fetchOutcomes(
@@ -228,10 +224,6 @@ async function fetchOutcomes(
       c.military_share ?? 'NULL',
       c.population_share ?? 'NULL',
       c.cities_share ?? 'NULL',
-      c.domination_progress ?? 'NULL',
-      c.science_progress ?? 'NULL',
-      c.culture_progress ?? 'NULL',
-      c.diplomatic_progress ?? 'NULL',
     ];
     return `(${vals.join(', ')})`;
   }).join(',\n    ');
@@ -240,20 +232,16 @@ async function fetchOutcomes(
   const horizonQueries = horizons.map(horizon => `
     SELECT e.game_id, e.turn, e.player_id, ${horizon} AS horizon,
            f.situation, f.decisions, f.abstract,
-           f.science_per_pop - e.science_per_pop AS d_science_pp,
-           f.faith_per_pop - e.faith_per_pop AS d_faith_pp,
-           f.production_per_pop - e.production_per_pop AS d_production_pp,
-           f.food_per_pop - e.food_per_pop AS d_food_pp,
-           f.culture_share - e.culture_share AS d_culture,
-           f.gold_share - e.gold_share AS d_gold,
-           f.military_share - e.military_share AS d_military,
-           f.population_share - e.population_share AS d_population,
-           f.cities_share - e.cities_share AS d_cities,
-           f.domination_progress - e.domination_progress AS d_domination,
-           f.science_progress - e.science_progress AS d_science_prog,
-           f.culture_progress - e.culture_progress AS d_culture_prog,
-           f.diplomatic_progress - e.diplomatic_progress AS d_diplomatic
-    FROM (VALUES ${candidateValues}) AS e(game_id, turn, player_id, science_per_pop, faith_per_pop, production_per_pop, food_per_pop, culture_share, gold_share, military_share, population_share, cities_share, domination_progress, science_progress, culture_progress, diplomatic_progress)
+           (f.science_per_pop - e.science_per_pop) / NULLIF(e.science_per_pop, 0) AS d_science_pp,
+           (f.faith_per_pop - e.faith_per_pop) / NULLIF(e.faith_per_pop, 0) AS d_faith_pp,
+           (f.production_per_pop - e.production_per_pop) / NULLIF(e.production_per_pop, 0) AS d_production_pp,
+           (f.food_per_pop - e.food_per_pop) / NULLIF(e.food_per_pop, 0) AS d_food_pp,
+           (f.culture_share - e.culture_share) / NULLIF(e.culture_share, 0) AS d_culture,
+           (f.gold_share - e.gold_share) / NULLIF(e.gold_share, 0) AS d_gold,
+           (f.military_share - e.military_share) / NULLIF(e.military_share, 0) AS d_military,
+           (f.population_share - e.population_share) / NULLIF(e.population_share, 0) AS d_population,
+           (f.cities_share - e.cities_share) / NULLIF(e.cities_share, 0) AS d_cities
+    FROM (VALUES ${candidateValues}) AS e(game_id, turn, player_id, science_per_pop, faith_per_pop, production_per_pop, food_per_pop, culture_share, gold_share, military_share, population_share, cities_share)
     JOIN episodes f
       ON f.game_id = e.game_id AND f.player_id = e.player_id
       AND f.turn = e.turn + ${horizon}
@@ -375,9 +363,14 @@ function buildResult(
     outcomes,
     indicators: {
       sciencePerPop: candidate.science_per_pop,
+      faithPerPop: candidate.faith_per_pop,
+      productionPerPop: candidate.production_per_pop,
+      foodPerPop: candidate.food_per_pop,
       cultureShare: candidate.culture_share,
+      goldShare: candidate.gold_share,
       militaryShare: candidate.military_share,
       populationShare: candidate.population_share,
+      citiesShare: candidate.cities_share,
       activeWars: candidate.active_wars,
       dominationProgress: candidate.domination_progress,
       scienceProgress: candidate.science_progress,

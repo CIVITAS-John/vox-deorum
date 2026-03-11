@@ -206,8 +206,15 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     // Indicators
     const ind = ep.indicators;
     const indParts: string[] = [];
-    if (ind.sciencePerPop != null) indParts.push(`Science/Pop: ${ind.sciencePerPop.toFixed(1)}`);
-    if (ind.militaryShare != null) indParts.push(`Military: ${(ind.militaryShare * 100).toFixed(0)}%`);
+    if (ind.sciencePerPop != null) indParts.push(`sciencePerPop: ${ind.sciencePerPop.toFixed(1)}`);
+    if (ind.faithPerPop != null) indParts.push(`faithPerPop: ${ind.faithPerPop.toFixed(1)}`);
+    if (ind.productionPerPop != null) indParts.push(`productionPerPop: ${ind.productionPerPop.toFixed(1)}`);
+    if (ind.foodPerPop != null) indParts.push(`foodPerPop: ${ind.foodPerPop.toFixed(1)}`);
+    if (ind.cultureShare != null) indParts.push(`cultureShare: ${(ind.cultureShare * 100).toFixed(0)}%`);
+    if (ind.goldShare != null) indParts.push(`goldShare: ${(ind.goldShare * 100).toFixed(0)}%`);
+    if (ind.militaryShare != null) indParts.push(`militaryShare: ${(ind.militaryShare * 100).toFixed(0)}%`);
+    if (ind.populationShare != null) indParts.push(`populationShare: ${(ind.populationShare * 100).toFixed(0)}%`);
+    if (ind.citiesShare != null) indParts.push(`citiesShare: ${(ind.citiesShare * 100).toFixed(0)}%`);
     if (ind.activeWars > 0) indParts.push(`Wars: ${ind.activeWars}`);
     if (indParts.length > 0) parts.push(`- **Indicators**: ${indParts.join(' | ')}`);
 
@@ -217,14 +224,13 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
 
     // Outcomes
     if (ep.outcomes.length > 0) {
-      parts.push('\n### Outcomes');
       for (const out of ep.outcomes) {
         const deltas: string[] = [];
         for (const [key, val] of Object.entries(out.deltas)) {
           if (val && val !== '0%') deltas.push(`${key}: ${val}`);
         }
         const deltaStr = deltas.length > 0 ? deltas.join(', ') : 'no change';
-        parts.push(`#### +${out.horizonTurns} Turns`);
+        parts.push(`\n### Outcome at +${out.horizonTurns} Turns`);
         parts.push(`- **Delta**: ${deltaStr}`);
         if (out.abstract) parts.push(`- **Situation:** ${out.abstract.replaceAll("\n", "")}`);
         if (out.decisions) parts.push(`- **Decisions:** ${out.decisions}`);

@@ -144,7 +144,7 @@ Different features require different testing infrastructure:
 - `npm run strategist` - Run strategist workflow (strategist/console.ts)
 - `npm run telepathist` - Run telepathist console (telepathist/console.ts)
 - `npm run oracle -- -c <experiment.js>` - Run Oracle prompt replay experiment (oracle/console.ts)
-- `npm run archivist -- -a <archive-path> -o <output.duckdb>` - Run Archivist batch pipeline (archivist/console.ts)
+- `npm run archivist -- -a <archive-path> -o <output.duckdb> [-n <limit>]` - Run Archivist batch pipeline (archivist/console.ts)
 - **Each workflow has dedicated entry point** with shared instrumentation
 - Instrumentation loaded via --import flag for telemetry
 

@@ -11,7 +11,7 @@
  *   Phase C: Generate summaries + embeddings for landmark and consequence turns only
  *
  * Usage:
- *   npm run archivist -- -a <archive-path> -o <output.duckdb> [-g <gameId>] [--force] [--skip-telepathist] [--skip-embeddings] [--no-ui]
+ *   npm run archivist -- -a <archive-path> -o <output.duckdb> [-g <gameId>] [-n <limit>] [--force] [--skip-telepathist] [--skip-embeddings] [--no-ui]
  */
 
 import path from 'node:path';
@@ -38,6 +38,7 @@ const { values } = parseArgs({
     archive: { type: 'string', short: 'a' },
     output: { type: 'string', short: 'o' },
     game: { type: 'string', short: 'g' },
+    limit: { type: 'string', short: 'n' },
     force: { type: 'boolean', default: false },
     'skip-telepathist': { type: 'boolean', default: false },
     'skip-embeddings': { type: 'boolean', default: false },
@@ -75,11 +76,12 @@ async function main() {
   const outputPath = path.resolve(values.output as string ?? config.episodeDbPath);
   const gameFilter = values.game as string | undefined;
   const force = values.force as boolean;
+  const limit = values.limit ? parseInt(values.limit as string, 10) : Infinity;
   const skipTelepathist = values['skip-telepathist'] as boolean;
   const skipEmbeddings = values['skip-embeddings'] as boolean;
   const noUi = values['no-ui'] as boolean;
 
-  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, skipTelepathist, skipEmbeddings, noUi });
+  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, limit, skipTelepathist, skipEmbeddings, noUi });
 
   // Step 1: Scan archive for game entries
   const entries: ArchiveEntry[] = await scanArchive(archivePath, gameFilter);
@@ -96,6 +98,7 @@ async function main() {
   let processed = 0;
   let skipped = 0;
   let errors = 0;
+  let gamesProcessed = 0;
 
   // Web UI
   await startWebServer();
@@ -103,6 +106,22 @@ async function main() {
   // Step 3: Process each game
   for (const entry of entries) {
     try {
+      // Game-level completeness check: skip if all players already processed
+      if (!force) {
+        const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
+        const allPlayersProcessed = entry.players.every(p => existingPlayers.has(p.playerId));
+        if (allPlayersProcessed) {
+          logger.info(`Skipping game ${entry.gameId} (already complete, ${entry.players.length} players processed)`);
+          skipped += entry.players.length;
+          continue;
+        }
+      }
+
+      if (gamesProcessed >= limit) {
+        logger.info(`Reached game limit (${limit}), stopping`);
+        break;
+      }
+
       logger.info(`Processing game ${entry.gameId} (${entry.experiment})`, {
         players: entry.players.length,
       });
@@ -264,6 +283,8 @@ async function main() {
           }
         }
       }
+
+      gamesProcessed++;
     } catch (error) {
       logger.error(`Error processing game ${entry.gameId}`, error);
       errors++;
