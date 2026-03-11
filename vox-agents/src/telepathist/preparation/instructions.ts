@@ -50,6 +50,7 @@ Respond with a JSON object containing these fields (generate them in this order,
 2. "abstract": A context-agnostic generalized summary of the same events. Replace all concrete names (leaders, cities, technologies), except for civilization names, with generic descriptions. This should read as a universal game scenario.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
 3. "decisions": A detailed paragraph covering the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.
+ - If the leader did not change existing strategies, report what is already in effect.
 4. "narrative": A short combined narrative (2-3 sentences) weaving the situation and decisions together into a cohesive summary.
 
 # Focus
