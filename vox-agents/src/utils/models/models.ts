@@ -149,9 +149,9 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
           return fetch(url, {
             ...options,
             dispatcher: new Agent({
-              headersTimeout: 60_000,
-              bodyTimeout: 60_000,
-              connectTimeout: 60_000,
+              headersTimeout: 180_000,
+              bodyTimeout: 180_000,
+              connectTimeout: 180_000,
               keepAliveTimeout: 600_000,
             }),
           })
