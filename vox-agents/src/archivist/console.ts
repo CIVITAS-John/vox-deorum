@@ -12,6 +12,7 @@
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { DuckDBInstance } from '@duckdb/node-api';
+import { config } from '../utils/config.js';
 import { createLogger } from '../utils/logger.js';
 import { openReadonlyGameDb, scanArchive } from './scanner.js';
 import { EpisodeWriter } from './writer.js';
@@ -42,7 +43,7 @@ const { values } = parseArgs({
 
 async function main() {
   const archivePath = path.resolve(values.archive as string ?? 'archive');
-  const outputPath = path.resolve(values.output as string ?? 'episodes.duckdb');
+  const outputPath = path.resolve(values.output as string ?? config.episodeDbPath);
   const gameFilter = values.game as string | undefined;
   const force = values.force as boolean;
   const skipTelepathist = values['skip-telepathist'] as boolean;
@@ -153,6 +154,7 @@ async function main() {
               // In force mode, reuse cached embeddings where abstract text is unchanged
               let reused = 0;
               if (force) {
+                const cacheStart = performance.now();
                 const cached = await writer.getAbstractEmbeddings(entry.gameId, player.playerId);
                 for (const ep of episodes) {
                   const hit = cached.get(ep.turn);
@@ -161,6 +163,7 @@ async function main() {
                     reused++;
                   }
                 }
+                logger.info(`Cached embedding fetch took ${((performance.now() - cacheStart) / 1000).toFixed(1)}s (${cached.size} cached, ${reused} reused)`);
               }
 
               // Generate embeddings only for episodes that still need them
@@ -183,7 +186,9 @@ async function main() {
 
             // In force mode, delete old rows now (after embeddings were cached above)
             if (force) {
+              const deleteStart = performance.now();
               await writer.deletePlayerEpisodes(entry.gameId, player.playerId);
+              logger.info(`Deleted old episodes for player ${player.playerId} in ${((performance.now() - deleteStart) / 1000).toFixed(1)}s`);
             }
 
             await writer.writeEpisodes(episodes);

@@ -204,7 +204,8 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'embedder': 'openai-compatible/embedder',
   },
-  configsDir: 'configs'
+  configsDir: 'configs',
+  episodeDbPath: 'episodes.duckdb'
 };
 
 /**
@@ -251,7 +252,7 @@ export function computeConfigDiff(
   const diff: Record<string, unknown> = {};
 
   // Compare simple top-level fields (skip versionInfo - runtime only)
-  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir'];
+  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath'];
   for (const key of topLevelKeys) {
     if (!deepEqual(fullConfig[key], defaults[key])) {
       diff[key] = fullConfig[key];
@@ -302,7 +303,7 @@ export function mergeConfigWithDefaults(
   };
 
   // Override top-level fields from file (skip llms, handled separately)
-  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir'];
+  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath'];
   for (const key of topLevelKeys) {
     if (key in fileConfig) {
       (result as any)[key] = fileConfig[key];
@@ -473,7 +474,8 @@ function loadConfig(): VoxAgentsConfig {
       level: process.env.LOG_LEVEL || fileConfig.logging.level
     },
     llms: fileConfig.llms,
-    configsDir: process.env.CONFIGS_DIR || fileConfig.configsDir
+    configsDir: process.env.CONFIGS_DIR || fileConfig.configsDir,
+    episodeDbPath: process.env.EPISODE_DB_PATH || fileConfig.episodeDbPath
   };
 
   // Update logger level based on configuration

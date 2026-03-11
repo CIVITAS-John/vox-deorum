@@ -70,6 +70,8 @@ export interface VoxAgentsConfig {
   };
   llms: Record<string, string | LLMConfig>;
   configsDir: string;
+  /** Path to the DuckDB episode database used by the archivist and reader */
+  episodeDbPath: string;
 }
 
 /**

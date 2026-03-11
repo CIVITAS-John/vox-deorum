@@ -366,6 +366,46 @@ async function saveConfig() {
       </template>
     </Card>
 
+    <!-- Path Settings Section -->
+    <Card v-if="config" class="config-card">
+      <template #title>
+        <i class="pi pi-folder" /> Path Settings
+      </template>
+      <template #subtitle>
+        File and directory paths used by the application
+      </template>
+      <template #content>
+        <div class="field-row">
+          <label for="configsDir">
+            Game Configs
+            <span class="help-icon" v-tooltip.top="'Directory containing session configuration files'">
+              <i class="pi pi-question-circle"></i>
+            </span>
+          </label>
+          <InputText
+            id="configsDir"
+            v-model="config.configsDir"
+            placeholder="configs"
+            class="field-input"
+          />
+        </div>
+        <div class="field-row">
+          <label for="episodeDbPath">
+            Episode Database
+            <span class="help-icon" v-tooltip.top="'Path to the DuckDB database for archived game episodes'">
+              <i class="pi pi-question-circle"></i>
+            </span>
+          </label>
+          <InputText
+            id="episodeDbPath"
+            v-model="config.episodeDbPath"
+            placeholder="episodes.duckdb"
+            class="field-input"
+          />
+        </div>
+      </template>
+    </Card>
+
     <!-- Card 1: Agent-Model Mappings -->
     <Card class="config-card">
       <template #title>
@@ -521,6 +561,14 @@ async function saveConfig() {
 
 .api-keys-table .label-cell label {
   margin-right: 0.5rem;
+}
+
+.help-icon {
+  color: var(--p-text-secondary-color);
+  font-size: 0.875rem;
+  vertical-align: middle;
+  transition: color 0.2s;
+  margin-left: 0.25rem;
 }
 
 .api-keys-table .help-link,

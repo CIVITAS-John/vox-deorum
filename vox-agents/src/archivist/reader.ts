@@ -9,6 +9,7 @@
  */
 
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
+import { config } from '../utils/config.js';
 import { createLogger } from '../utils/logger.js';
 import { buildSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
 import { eraMap } from './types.js';
@@ -24,11 +25,10 @@ const logger = createLogger('Archivist:Reader');
 let connection: DuckDBConnection | null = null;
 let dbPath: string | null = null;
 
-/** Get or create the singleton DuckDB connection from EPISODE_DB_PATH env var. */
+/** Get or create the singleton DuckDB connection using the configured episode DB path. */
 async function getConnection(): Promise<DuckDBConnection> {
   if (connection) return connection;
-  dbPath = process.env.EPISODE_DB_PATH ?? null;
-  if (!dbPath) throw new Error('EPISODE_DB_PATH environment variable is not set');
+  dbPath = config.episodeDbPath;
   const instance = await DuckDBInstance.create(dbPath);
   connection = await instance.connect();
   logger.info(`Connected to episode database: ${dbPath}`);
