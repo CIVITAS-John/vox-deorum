@@ -5,15 +5,13 @@
  * for each unsummarized turn, then calling the Summarizer with structured output.
  */
 
-// @ts-ignore - jaison doesn't have type definitions
-import jaison from 'jaison';
 import pLimit from 'p-limit';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { GetGameStateTool } from '../tools/get-situation.js';
 import { GetDecisionsTool } from '../tools/get-decision.js';
 import { SummarizerInput } from '../summarizer.js';
-import { turnSummarySchema, buildTurnSummaryInstruction } from './instructions.js';
+import { turnSummarySchema, buildTurnSummaryInstruction, parseSummaryMarkdown } from './instructions.js';
 import { createLogger } from '../../utils/logger.js';
 import { exponentialRetry } from '../../utils/retry.js';
 import { getModelConfig } from '../../utils/models/models.js';
@@ -89,7 +87,7 @@ export async function prepareTurnSummaries(
               summaryInput,
               turnParameters
             );
-            const parsed = rawSummary ? parseTurnSummary(rawSummary) : undefined;
+            const parsed = rawSummary ? parseSummaryMarkdown(rawSummary, turnSummarySchema) : undefined;
             if (!parsed) throw new Error(`Summarizer returned no usable result for turn ${turn}`);
             return parsed;
           }, logger, undefined, `turn-${turn}`, 3, 1000, 5000);
@@ -115,19 +113,4 @@ export async function prepareTurnSummaries(
       })
     )
   );
-}
-
-/**
- * Parse a turn summary from the Summarizer's text response.
- * Uses jaison + code-block stripping (same pattern as VoxAgent.getOutput()).
- */
-function parseTurnSummary(rawText: string): { situation: string; abstract: string; decisions: string; narrative: string } | undefined {
-  try {
-    const cleaned = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
-    const parsed = jaison(cleaned);
-    return turnSummarySchema.parse(parsed);
-  } catch (e) {
-    logger.error('Failed to parse turn summary from summarizer response', { error: e });
-    return undefined;
-  }
 }

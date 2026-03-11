@@ -1,9 +1,9 @@
 /**
  * @module telepathist/preparation/instructions
  *
- * Zod schemas, types, and instruction builders for turn and phase summarization.
- * Each builder produces a structured JSON instruction requesting four fields:
- * situation, abstract, decisions, narrative.
+ * Zod schemas, types, instruction builders, and shared markdown parser
+ * for turn and phase summarization. Each builder requests markdown output
+ * with four top-level headings: Situation, Abstract, Decisions, Narrative.
  */
 
 import { z } from 'zod';
@@ -33,7 +33,7 @@ export type PhaseSummaryOutput = z.infer<typeof phaseSummarySchema>;
 
 /**
  * Builds the instruction for turn summarization.
- * Requests a structured JSON object with situation, abstract, decisions, and narrative.
+ * Requests markdown output with four top-level headings.
  */
 export function buildTurnSummaryInstruction(turn: number): string {
   return `Accurately summarize the game state and decisions for turn ${turn}.
@@ -42,17 +42,25 @@ export function buildTurnSummaryInstruction(turn: number): string {
 ${summarizerGuidelines}
 
 # Output Format
-Respond with a JSON object containing these fields (generate them in this order, so earlier fields can provide context for later ones):
-1. "situation": Detailed paragraphs summarizing, from an OBSERVER perspective, the world state: military situation, economic state, diplomatic state, research progress, and notable events. 
+Respond in markdown with exactly these four top-level headings (generate them in this order, so earlier sections can provide context for later ones):
+
+# Situation
+Detailed paragraphs summarizing, from an OBSERVER perspective, the world state: military situation, economic state, diplomatic state, research progress, and notable events.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, AI flavors, or decisions.
  - Include descriptions and comparisons with neighboring civilizations, if possible.
  - Include ideology allies and enemies, if possible.
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
-2. "abstract": A context-agnostic generalized summary of the situation. Replace concrete names of leaders, cities, city-states with generic descriptions, but keep civilization names. This should read as a universal game scenario.
+
+# Abstract
+A context-agnostic generalized summary of the situation. Replace concrete names of leaders, cities, city-states with generic descriptions, but keep civilization names. This should read as a universal game scenario.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
-3. "decisions": A detailed paragraph covering the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.
+
+# Decisions
+A detailed paragraph covering the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.
  - If the leader did not change existing strategies, report what is already in effect.
-4. "narrative": A short combined narrative (2-3 sentences) weaving the situation and decisions together into a cohesive summary.
+
+# Narrative
+A short combined narrative (2-3 sentences) weaving the situation and decisions together into a cohesive summary.
 
 # Focus
 - Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts.
@@ -60,14 +68,14 @@ Respond with a JSON object containing these fields (generate them in this order,
 - Carefully go through the raw game data to clarify uncertain situations.
 
 # Reminder
-Respond ONLY with a JSON object containing exactly these four fields: "situation", "abstract", "decisions", "narrative".
-- "situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
-- Do not include any other text or commentary outside the JSON.`;
+- Respond ONLY with the four markdown sections above: Situation, Abstract, Decisions, Narrative.
+- "Situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
+- Do not include any other text or commentary outside those sections.`;
 }
 
 /**
  * Builds the instruction for phase summarization.
- * Requests a structured JSON object with situation, abstract, decisions, and narrative.
+ * Requests markdown output with four top-level headings.
  */
 export function buildPhaseSummaryInstruction(fromTurn: number, toTurn: number): string {
   return `Create a structured summary of this phase (turns ${fromTurn}-${toTurn}) based on the individual turn summaries provided. This summary will serve as high-level context for a conversation about the game.
@@ -76,15 +84,23 @@ export function buildPhaseSummaryInstruction(fromTurn: number, toTurn: number): 
 ${summarizerGuidelines}
 
 # Output Format
-Respond with a JSON object containing these fields (generate them in this order, so earlier fields provide context for later ones):
-1. "situation": An observation paragraph of the phase's world state arc: how the military, economic, diplomatic, and research landscape evolved across these turns.
+Respond in markdown with exactly these four top-level headings (generate them in this order, so earlier sections provide context for later ones):
+
+# Situation
+An observation paragraph of the phase's world state arc: how the military, economic, diplomatic, and research landscape evolved across these turns.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
  - Include descriptions and comparisons with neighboring civilizations, if possible.
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
-2. "abstract": A context-agnostic generalized phase summary. Replace concrete names of leaders, cities, city-states with generic descriptions, but keep civilization names. This should read as a universal game phase description.
+
+# Abstract
+A context-agnostic generalized phase summary. Replace concrete names of leaders, cities, city-states with generic descriptions, but keep civilization names. This should read as a universal game phase description.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
-3. "decisions": A narrative paragraph of the phase's strategic choices: the key decisions made, their rationale, and their outcomes.
-4. "narrative": A short combined narrative (2-3 sentences) weaving the situation and decisions into a cohesive phase summary.
+
+# Decisions
+A narrative paragraph of the phase's strategic choices: the key decisions made, their rationale, and their outcomes.
+
+# Narrative
+A short combined narrative (2-3 sentences) weaving the situation and decisions into a cohesive phase summary.
 
 # Focus
 - Identify the dominant themes and narrative arcs of this phase.
@@ -92,7 +108,37 @@ Respond with a JSON object containing these fields (generate them in this order,
 - Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?
 
 # Reminder
-Respond ONLY with a JSON object containing exactly these four fields: "situation", "abstract", "decisions", "narrative".
-- "situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
-- Do not include any other text or commentary outside the JSON.`;
+- Respond ONLY with the four markdown sections above: Situation, Abstract, Decisions, Narrative.
+- "Situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
+- Do not include any other text or commentary outside those sections.`;
+}
+
+/** The four expected summary heading names, in order. */
+const summaryHeadings = ['situation', 'abstract', 'decisions', 'narrative'] as const;
+
+/**
+ * Parses a markdown summary response into its four sections.
+ * Splits on top-level `# ` headings and extracts content under
+ * Situation, Abstract, Decisions, and Narrative (case-insensitive).
+ * Validates the result against the provided Zod schema.
+ */
+export function parseSummaryMarkdown<T>(
+  rawText: string,
+  schema: z.ZodType<T>
+): T | undefined {
+  const sections: Record<string, string> = {};
+  const headingRegex = /^# +(.+)$/gm;
+  const matches = [...rawText.matchAll(headingRegex)];
+
+  for (let i = 0; i < matches.length; i++) {
+    const headingName = matches[i][1].trim().toLowerCase();
+    if (!(summaryHeadings as readonly string[]).includes(headingName)) continue;
+
+    const start = matches[i].index! + matches[i][0].length;
+    const end = i + 1 < matches.length ? matches[i + 1].index! : rawText.length;
+    sections[headingName] = rawText.slice(start, end).trim();
+  }
+
+  const result = schema.safeParse(sections);
+  return result.success ? result.data : undefined;
 }

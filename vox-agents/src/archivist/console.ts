@@ -106,128 +106,137 @@ async function main() {
   // Step 3: Process each game
   for (const entry of entries) {
     try {
-      // Game-level completeness check: skip if all players already processed
+      // Game-level completeness check: skip Phase A+B if all players already processed
+      let skipPhaseAB = false;
       if (!force) {
         const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
         const allPlayersProcessed = entry.players.every(p => existingPlayers.has(p.playerId));
         if (allPlayersProcessed) {
-          logger.info(`Skipping game ${entry.gameId} (already complete, ${entry.players.length} players processed)`);
-          skipped += entry.players.length;
-          continue;
+          if (skipTelepathist && skipEmbeddings) {
+            logger.info(`Skipping game ${entry.gameId} (already complete, Phase C disabled)`);
+            skipped += entry.players.length;
+            continue;
+          }
+          skipPhaseAB = true;
+          logger.info(`Game ${entry.gameId} Phase A+B complete, checking Phase C`);
         }
-      }
-
-      if (gamesProcessed >= limit) {
-        logger.info(`Reached game limit (${limit}), stopping`);
-        break;
-      }
-
-      logger.info(`Processing game ${entry.gameId} (${entry.experiment})`, {
-        players: entry.players.length,
-      });
-
-      if (force) {
-        await writer.resetGameLandmarks(entry.gameId);
-      }
-
-      // Open game DB for extraction
-      const gameDb = openReadonlyGameDb(entry.gameDbPath);
-      if (!gameDb) {
-        logger.error(`Failed to open game DB for ${entry.gameId}, skipping`);
-        errors++;
-        continue;
       }
 
       // Collect all turn numbers for consequence turn lookup in Phase C
-      let allTurns: Set<number>;
+      let allTurns: Set<number> | undefined;
 
-      try {
-        // Query game metadata for winner determination
-        const victoryRow = await gameDb
-          .selectFrom('GameMetadata')
-          .select('Value')
-          .where('Key', '=', 'victoryPlayerID')
-          .executeTakeFirst();
-        const victoryPlayerId = victoryRow ? parseInt(victoryRow.Value, 10) : -1;
+      if (!skipPhaseAB) {
+        if (gamesProcessed >= limit) {
+          logger.info(`Reached game limit (${limit}), stopping`);
+          break;
+        }
 
-        // Build player info lookup (ID -> civ name + leader name)
-        const playerInfoRows = await gameDb
-          .selectFrom('PlayerInformations')
-          .selectAll()
-          .execute();
-        const playerInfoMap = new Map(playerInfoRows.map((r) => [r.Key, r]));
+        logger.info(`Processing game ${entry.gameId} (${entry.experiment})`, {
+          players: entry.players.length,
+        });
 
-        // Extract turn contexts once per game (shared across all players)
-        const turnContexts = await extractTurnContexts(gameDb);
-        allTurns = new Set(turnContexts.keys());
+        if (force) {
+          await writer.resetGameLandmarks(entry.gameId);
+        }
 
-        // Query victory type and compute max turn for game outcome metadata
-        const victoryTypeRow = await gameDb
-          .selectFrom('GameMetadata')
-          .select('Value')
-          .where('Key', '=', 'victoryType')
-          .executeTakeFirst();
-        const victoryType = victoryTypeRow?.Value ?? null;
-        const maxTurn = allTurns.size > 0 ? Math.max(...allTurns) : 0;
+        // Open game DB for extraction
+        const gameDb = openReadonlyGameDb(entry.gameDbPath);
+        if (!gameDb) {
+          logger.error(`Failed to open game DB for ${entry.gameId}, skipping`);
+          errors++;
+          continue;
+        }
 
-        await writer.writeGameOutcome(entry.gameId, victoryPlayerId, victoryType, maxTurn);
+        try {
+          // Query game metadata for winner determination
+          const victoryRow = await gameDb
+            .selectFrom('GameMetadata')
+            .select('Value')
+            .where('Key', '=', 'victoryPlayerID')
+            .executeTakeFirst();
+          const victoryPlayerId = victoryRow ? parseInt(victoryRow.Value, 10) : -1;
 
-        const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
+          // Build player info lookup (ID -> civ name + leader name)
+          const playerInfoRows = await gameDb
+            .selectFrom('PlayerInformations')
+            .selectAll()
+            .execute();
+          const playerInfoMap = new Map(playerInfoRows.map((r) => [r.Key, r]));
 
-        // ---------------------------------------------------------------
-        // Phase A: Extract + Transform + Write (no LLM calls)
-        // ---------------------------------------------------------------
-        for (const player of entry.players) {
-          if (!force && existingPlayers.has(player.playerId)) {
-            logger.info(`Skipping player ${player.playerId} (already processed)`);
-            skipped++;
-            continue;
-          }
+          // Extract turn contexts once per game (shared across all players)
+          const turnContexts = await extractTurnContexts(gameDb);
+          allTurns = new Set(turnContexts.keys());
 
-          try {
-            const info = playerInfoMap.get(player.playerId);
-            const civilization = info?.Civilization ?? 'Unknown';
+          // Query victory type and compute max turn for game outcome metadata
+          const victoryTypeRow = await gameDb
+            .selectFrom('GameMetadata')
+            .select('Value')
+            .where('Key', '=', 'victoryType')
+            .executeTakeFirst();
+          const victoryType = victoryTypeRow?.Value ?? null;
+          const maxTurn = allTurns.size > 0 ? Math.max(...allTurns) : 0;
 
-            const rawEpisodes = await extractPlayerEpisodes(
-              gameDb,
-              player.telepathistDbPath, // reads existing summaries from prior runs if available
-              player.playerId,
-              civilization,
-              turnContexts,
-              entry.gameId,
-              victoryPlayerId
-            );
+          await writer.writeGameOutcome(entry.gameId, victoryPlayerId, victoryType, maxTurn);
 
-            logger.info(`Extracted ${rawEpisodes.length} raw episodes for player ${player.playerId}`);
+          const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
 
-            const episodes = rawEpisodes.map(raw => {
-              const tc = turnContexts.get(raw.turn);
-              if (!tc) throw new Error(`Missing TurnContext for turn ${raw.turn}`);
-              return transformEpisode(raw, tc);
-            });
-
-            // In force mode, delete old rows before writing new ones
-            if (force) {
-              await writer.deletePlayerEpisodes(entry.gameId, player.playerId);
+          // ---------------------------------------------------------------
+          // Phase A: Extract + Transform + Write (no LLM calls)
+          // ---------------------------------------------------------------
+          for (const player of entry.players) {
+            if (!force && existingPlayers.has(player.playerId)) {
+              logger.info(`Skipping player ${player.playerId} (already processed)`);
+              skipped++;
+              continue;
             }
 
-            await writer.writeEpisodes(episodes);
-            processed++;
-          } catch (playerError) {
-            logger.error(`Error processing player ${player.playerId} in game ${entry.gameId}`, {
-              error: playerError instanceof Error ? { message: playerError.message, stack: playerError.stack } : playerError,
-            });
-            errors++;
-          }
-        }
-      } finally {
-        await gameDb.destroy();
-      }
+            try {
+              const info = playerInfoMap.get(player.playerId);
+              const civilization = info?.Civilization ?? 'Unknown';
 
-      // ---------------------------------------------------------------
-      // Phase B: Landmark selection (vectors only, no embeddings needed)
-      // ---------------------------------------------------------------
-      await selectLandmarks(writer, entry.gameId);
+              const rawEpisodes = await extractPlayerEpisodes(
+                gameDb,
+                player.telepathistDbPath, // reads existing summaries from prior runs if available
+                player.playerId,
+                civilization,
+                turnContexts,
+                entry.gameId,
+                victoryPlayerId
+              );
+
+              logger.info(`Extracted ${rawEpisodes.length} raw episodes for player ${player.playerId}`);
+
+              const episodes = rawEpisodes.map(raw => {
+                const tc = turnContexts.get(raw.turn);
+                if (!tc) throw new Error(`Missing TurnContext for turn ${raw.turn}`);
+                return transformEpisode(raw, tc);
+              });
+
+              // In force mode, delete old rows before writing new ones
+              if (force) {
+                await writer.deletePlayerEpisodes(entry.gameId, player.playerId);
+              }
+
+              await writer.writeEpisodes(episodes);
+              processed++;
+            } catch (playerError) {
+              logger.error(`Error processing player ${player.playerId} in game ${entry.gameId}`, {
+                error: playerError instanceof Error ? { message: playerError.message, stack: playerError.stack } : playerError,
+              });
+              errors++;
+            }
+          }
+        } finally {
+          await gameDb.destroy();
+        }
+
+        // ---------------------------------------------------------------
+        // Phase B: Landmark selection (vectors only, no embeddings needed)
+        // ---------------------------------------------------------------
+        await selectLandmarks(writer, entry.gameId);
+
+        gamesProcessed++;
+      }
 
       // ---------------------------------------------------------------
       // Phase C: Generate summaries + embeddings for selected turns only
@@ -241,7 +250,9 @@ async function main() {
               continue;
             }
 
-            const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, allTurns);
+            // Use game DB turns when available, otherwise query from DuckDB
+            const playerTurns = allTurns ?? await writer.getPlayerTurns(entry.gameId, player.playerId);
+            const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, playerTurns);
 
             // Generate telepathist summaries for target turns only
             if (!skipTelepathist) {
@@ -294,8 +305,6 @@ async function main() {
           }
         }
       }
-
-      gamesProcessed++;
     } catch (error) {
       logger.error(`Error processing game ${entry.gameId}`, error);
       errors++;

@@ -5,13 +5,11 @@
  * and calling the Summarizer with structured output for each unsummarized phase.
  */
 
-// @ts-ignore - jaison doesn't have type definitions
-import jaison from 'jaison';
 import pLimit from 'p-limit';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { SummarizerInput } from '../summarizer.js';
-import { phaseSummarySchema, buildPhaseSummaryInstruction } from './instructions.js';
+import { phaseSummarySchema, buildPhaseSummaryInstruction, parseSummaryMarkdown } from './instructions.js';
 import { createLogger } from '../../utils/logger.js';
 import { exponentialRetry } from '../../utils/retry.js';
 import { getModelConfig } from '../../utils/models/models.js';
@@ -81,7 +79,7 @@ export async function preparePhaseSummaries(
               input,
               phaseParameters
             );
-            const result = rawPhaseSummary ? parsePhaseSummary(rawPhaseSummary) : undefined;
+            const result = rawPhaseSummary ? parseSummaryMarkdown(rawPhaseSummary, phaseSummarySchema) : undefined;
             if (!result) throw new Error(`Summarizer returned no usable result for phase ${phase.fromTurn}-${phase.toTurn}`);
             return result;
           }, logger, undefined, `phase-${phase.fromTurn}-${phase.toTurn}`, 3, 1000, 5000);
@@ -108,19 +106,4 @@ export async function preparePhaseSummaries(
       })
     )
   );
-}
-
-/**
- * Parse a phase summary from the Summarizer's text response.
- * Uses jaison + code-block stripping (same pattern as VoxAgent.getOutput()).
- */
-function parsePhaseSummary(rawText: string): { situation: string; abstract: string; decisions: string; narrative: string } | undefined {
-  try {
-    const cleaned = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
-    const parsed = jaison(cleaned);
-    return phaseSummarySchema.parse(parsed);
-  } catch (e) {
-    logger.error('Failed to parse phase summary from summarizer response', { error: e });
-    return undefined;
-  }
 }

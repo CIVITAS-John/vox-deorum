@@ -351,6 +351,18 @@ export class EpisodeWriter {
     return rows.map(r => r.turn);
   }
 
+  /** Return all turn numbers for a specific player in a game. */
+  async getPlayerTurns(gameId: string, playerId: number): Promise<Set<number>> {
+    const rows = await this.db
+      .selectFrom('episodes')
+      .select('turn')
+      .where('gameId', '=', gameId)
+      .where('playerId', '=', playerId)
+      .orderBy('turn')
+      .execute();
+    return new Set(rows.map(r => r.turn));
+  }
+
   /** Update text fields and embedding for specific episodes (used after deferred summary generation). */
   async updateEpisodeTexts(
     gameId: string,
