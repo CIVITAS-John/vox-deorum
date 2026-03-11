@@ -47,7 +47,7 @@ Respond with a JSON object containing these fields (generate them in this order,
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, AI flavors, or decisions.
  - Include descriptions and comparisons with neighboring civilizations, if possible.
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
-2. "abstract": A context-agnostic generalized summary of the same events. Replace all concrete names (civilizations, leaders, cities, technologies) with generic descriptions. This should read as a universal game scenario.
+2. "abstract": A context-agnostic generalized summary of the same events. Replace all concrete names (leaders, cities, technologies), except for civilization names, with generic descriptions. This should read as a universal game scenario.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
 3. "decisions": A detailed paragraph covering the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.
 4. "narrative": A short combined narrative (2-3 sentences) weaving the situation and decisions together into a cohesive summary.
@@ -79,7 +79,7 @@ Respond with a JSON object containing these fields (generate them in this order,
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
  - Include descriptions and comparisons with neighboring civilizations, if possible.
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
-2. "abstract": A context-agnostic generalized phase summary. Replace all concrete names with generic descriptions. This should read as a universal game phase description.
+2. "abstract": A context-agnostic generalized phase summary. Replace all concrete names (leaders, cities, technologies), except for civilization names, with generic descriptions. This should read as a universal game phase description.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
 3. "decisions": A narrative paragraph of the phase's strategic choices: the key decisions made, their rationale, and their outcomes.
 4. "narrative": A short combined narrative (2-3 sentences) weaving the situation and decisions into a cohesive phase summary.
