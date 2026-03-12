@@ -88,7 +88,7 @@ export async function prepareTurnSummaries(
               turnParameters
             );
             const parsed = rawSummary ? parseSummaryMarkdown(rawSummary, turnSummarySchema) : undefined;
-            if (!parsed) throw new Error(`Summarizer returned no usable result for turn ${turn}`);
+            if (!parsed) throw new Error(`Summarizer returned no usable result for turn ${turn}: ${rawSummary}`);
             return parsed;
           }, logger, undefined, `turn-${turn}`, 3, 1000, 5000);
 

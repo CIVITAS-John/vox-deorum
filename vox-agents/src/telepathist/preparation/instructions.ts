@@ -129,7 +129,7 @@ export function parseSummaryMarkdown<T>(
   schema: z.ZodType<T>
 ): T | undefined {
   const sections: Record<string, string> = {};
-  const headingRegex = /^# +(.+)$/gm;
+  const headingRegex = /^\s*# +(.+)\s$/gm;
   const matches = [...rawText.matchAll(headingRegex)];
 
   for (let i = 0; i < matches.length; i++) {
