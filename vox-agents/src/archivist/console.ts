@@ -22,7 +22,7 @@ import { createLogger } from '../utils/logger.js';
 import { openReadonlyGameDb, scanArchive } from './scanner.js';
 import { EpisodeWriter } from './writer.js';
 import type { ArchiveEntry } from './types.js';
-import { horizons, victoryTypeMap } from './types.js';
+import { horizons, horizonTolerance, victoryTypeMap } from './types.js';
 import { prepareTelepathist } from './telepathist-prep.js';
 import { extractPlayerEpisodes, extractTurnContexts, loadTurnSummaries } from './extractor.js';
 import { transformEpisode } from './transformer.js';
@@ -51,20 +51,47 @@ const { values } = parseArgs({
 /**
  * Compute the set of turns that need summaries: landmark turns plus their
  * consequence turns (at +5/+10/+15/+20 horizons used by the reader's outcome pipeline).
- * Only includes consequence turns that actually exist in the game data.
+ * Snaps consequence turns to nearby existing summaries within {@link horizonTolerance}
+ * to avoid redundant LLM calls when a close-enough summary already exists.
  */
 function computeTargetTurns(
   landmarkTurns: number[],
-  allTurns: Set<number>
+  allTurns: Set<number>,
+  existingSummaryTurns: Set<number>
 ): { targetTurns: number[]; landmarkSet: Set<number> } {
   const landmarkSet = new Set(landmarkTurns);
   const targetSet = new Set(landmarkTurns);
+
   for (const lt of landmarkTurns) {
     for (const h of horizons) {
-      const ct = lt + h;
-      if (allTurns.has(ct)) targetSet.add(ct);
+      const ideal = lt + h;
+
+      // Already covered by an existing target or prior summary at the exact turn
+      if (targetSet.has(ideal) || existingSummaryTurns.has(ideal)) continue;
+
+      // Check if a nearby turn (within tolerance) is already covered
+      let covered = false;
+      for (let d = 1; d <= horizonTolerance; d++) {
+        if (targetSet.has(ideal - d) || existingSummaryTurns.has(ideal - d) ||
+            targetSet.has(ideal + d) || existingSummaryTurns.has(ideal + d)) {
+          covered = true;
+          break;
+        }
+      }
+      if (covered) continue;
+
+      // No nearby summary exists — find the closest game turn within the window
+      if (allTurns.has(ideal)) {
+        targetSet.add(ideal);
+      } else {
+        for (let d = 1; d <= horizonTolerance; d++) {
+          if (allTurns.has(ideal - d)) { targetSet.add(ideal - d); break; }
+          if (allTurns.has(ideal + d)) { targetSet.add(ideal + d); break; }
+        }
+      }
     }
   }
+
   return {
     targetTurns: [...targetSet].sort((a, b) => a - b),
     landmarkSet,
@@ -252,16 +279,17 @@ async function main() {
 
             // Use game DB turns when available, otherwise query from DuckDB
             const playerTurns = allTurns ?? await writer.getPlayerTurns(entry.gameId, player.playerId);
-            const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, playerTurns);
+
+            // Load existing summaries first so computeTargetTurns can snap to nearby ones
+            const summaries = loadTurnSummaries(player.telepathistDbPath);
+            const existingSummaryTurns = new Set(summaries.keys());
+            const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, playerTurns, existingSummaryTurns);
 
             // Generate telepathist summaries for target turns only
             if (!skipTelepathist) {
               logger.info(`Player ${player.playerId}: generating summaries for ${targetTurns.length} turns (${landmarkTurns.length} landmarks + ${targetTurns.length - landmarkTurns.length} consequence)`);
               await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns);
             }
-
-            // Read summaries (from this run or prior runs)
-            const summaries = loadTurnSummaries(player.telepathistDbPath);
 
             // Build update records for turns that have summaries
             const updates: Array<{

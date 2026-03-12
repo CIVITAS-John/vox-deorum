@@ -57,7 +57,7 @@ A context-agnostic generalized summary of the situation. Replace concrete names 
  - Keep original civilization names.
 
 # Decisions
-A detailed paragraph covering the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.
+A detailed paragraph summarizing the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.
  - If the leader did not change existing strategies, report what is already in effect.
 
 # Narrative
@@ -129,7 +129,7 @@ export function parseSummaryMarkdown<T>(
   schema: z.ZodType<T>
 ): T | undefined {
   const sections: Record<string, string> = {};
-  const headingRegex = /^\s*# +(.+)\s$/gm;
+  const headingRegex = /^\s*# +(.+)\s*$/gm;
   const matches = [...rawText.matchAll(headingRegex)];
 
   for (let i = 0; i < matches.length; i++) {

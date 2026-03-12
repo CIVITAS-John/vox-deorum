@@ -12,7 +12,7 @@ import { DuckDBConnection } from '@duckdb/node-api';
 import { config } from '../utils/config.js';
 import { createLogger } from '../utils/logger.js';
 import { buildSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
-import { eraMap, horizons } from './types.js';
+import { eraMap, horizons, horizonTolerance } from './types.js';
 import { generateEmbeddings } from './embeddings.js';
 import { getEpisodeDbInstance } from './episode-db.js';
 import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot, EpisodeDelta } from './query-types.js';
@@ -231,11 +231,12 @@ async function fetchOutcomes(
     return `(${vals.join(', ')})`;
   }).join(',\n    ');
 
-  // Build UNION ALL across all horizons, capping at game's max turn via game_outcomes.
-  // COALESCE fallback handles old DBs without game_outcomes rows.
+  // Build UNION ALL across all horizons with fuzzy window matching.
+  // Each horizon searches within ±horizonTolerance turns for the nearest episode
+  // with summary text, capping at game's max turn via game_outcomes.
   const horizonQueries = horizons.map(horizon => `
     SELECT e.game_id, e.turn, e.player_id, ${horizon} AS horizon,
-           LEAST(e.turn + ${horizon}, COALESCE(g.max_turn, e.turn + ${horizon})) AS fetched_turn,
+           f.turn AS fetched_turn,
            f.situation, f.decisions, f.abstract,
            (f.science_per_pop - e.science_per_pop) / NULLIF(e.science_per_pop, 0) AS d_science_pp,
            (f.faith_per_pop - e.faith_per_pop) / NULLIF(e.faith_per_pop, 0) AS d_faith_pp,
@@ -250,29 +251,43 @@ async function fetchOutcomes(
     LEFT JOIN game_outcomes g ON g.game_id = e.game_id
     JOIN episodes f
       ON f.game_id = e.game_id AND f.player_id = e.player_id
-      AND f.turn = LEAST(e.turn + ${horizon}, COALESCE(g.max_turn, e.turn + ${horizon}))
+      AND f.turn BETWEEN
+        GREATEST(e.turn + 1, LEAST(e.turn + ${horizon}, COALESCE(g.max_turn, e.turn + ${horizon})) - ${horizonTolerance})
+        AND LEAST(e.turn + ${horizon} + ${horizonTolerance}, COALESCE(g.max_turn, e.turn + ${horizon}))
+      AND (f.situation IS NOT NULL OR f.abstract IS NOT NULL)
     WHERE f.turn > e.turn
   `);
 
-  // Wrap in dedup CTE: when multiple horizons map to the same capped turn, keep only the smallest horizon
+  // Two-pass dedup:
+  //   1. Pick closest turn per horizon (prefer nearest to ideal offset)
+  //   2. If two horizons landed on the same turn, keep the smallest horizon
   const unionSql = horizonQueries.join('\n    UNION ALL\n');
   const sql = `
     WITH raw_outcomes AS (
       ${unionSql}
     ),
-    ranked AS (
+    closest_per_horizon AS (
+      SELECT *,
+        ROW_NUMBER() OVER (
+          PARTITION BY game_id, turn, player_id, horizon
+          ORDER BY ABS(fetched_turn - (turn + horizon)) ASC
+        ) AS rn1
+      FROM raw_outcomes
+    ),
+    deduped AS (
       SELECT *,
         ROW_NUMBER() OVER (
           PARTITION BY game_id, turn, player_id, fetched_turn
           ORDER BY horizon ASC
-        ) AS rn
-      FROM raw_outcomes
+        ) AS rn2
+      FROM closest_per_horizon
+      WHERE rn1 = 1
     )
     SELECT game_id, turn, player_id, (fetched_turn - turn) AS actual_horizon, situation, decisions, abstract,
            d_science_pp, d_faith_pp, d_production_pp, d_food_pp,
            d_culture, d_gold, d_military, d_population, d_cities
-    FROM ranked
-    WHERE rn = 1
+    FROM deduped
+    WHERE rn2 = 1
   `;
 
   const result = await conn.run(sql);

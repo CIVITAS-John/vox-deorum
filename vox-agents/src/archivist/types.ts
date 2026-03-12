@@ -214,6 +214,9 @@ export const victoryTypeMap: Record<number, string> = {
 /** Consequence turn offsets for outcome fetching in the reader pipeline */
 export const horizons = [5, 10, 15, 20] as const;
 
+/** Maximum turn distance for snapping a consequence turn to a nearby existing summary */
+export const horizonTolerance = 1;
+
 /** Weights for runtime retrieval with abstract embedding available */
 export const retrievalWeights: SimilarityWeights = {
   gameState: 0.4,
