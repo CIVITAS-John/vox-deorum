@@ -129,8 +129,16 @@ export function parseSummaryMarkdown<T>(
   schema: z.ZodType<T>
 ): T | undefined {
   const sections: Record<string, string> = {};
-  const headingRegex = /^\s*# +(.+)\s*$/gm;
-  const matches = [...rawText.matchAll(headingRegex)];
+  // Try # headings first, fall back to ## if no # found, then ### etc.
+  let matches: RegExpMatchArray[] = [];
+  for (let level = 1; level <= 4 && matches.length === 0; level++) {
+    const hashes = '#'.repeat(level);
+    const headingRegex = new RegExp(
+      `^\\s*(?:\\*{1,2})?${hashes}(?!#)\\s+(.+?)(?:\\*{1,2})?\\s*$`,
+      'gm'
+    );
+    matches = [...rawText.matchAll(headingRegex)];
+  }
 
   for (let i = 0; i < matches.length; i++) {
     const headingName = matches[i][1].trim().toLowerCase();
@@ -138,7 +146,8 @@ export function parseSummaryMarkdown<T>(
 
     const start = matches[i].index! + matches[i][0].length;
     const end = i + 1 < matches.length ? matches[i + 1].index! : rawText.length;
-    sections[headingName] = rawText.slice(start, end).trim();
+    sections[headingName] = rawText.slice(start, end).trim()
+      .replace(/^\s*---\s*$/gm, '').trim();
   }
 
   const result = schema.safeParse(sections);

@@ -159,7 +159,7 @@ export class EpisodeWriter {
 
     const totalStart = performance.now();
     const embDim = episodes.find(ep => ep.abstractEmbedding)?.abstractEmbedding?.length ?? 0;
-    this.logger.info(`Appending ${episodes.length} episodes (embDim=${embDim})`);
+    this.logger.debug(`Appending ${episodes.length} episodes (embDim=${embDim})`);
 
     const conn = await this.instance.connect();
     try {
