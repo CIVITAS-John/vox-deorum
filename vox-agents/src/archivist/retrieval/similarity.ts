@@ -1,13 +1,13 @@
 /**
- * @module archivist/similarity
+ * @module archivist/retrieval/similarity
  *
  * Composite similarity scoring for episode vectors.
  * Two pathways: in-house TypeScript for batch/pre-selection (selector.ts),
  * and DuckDB SQL expression builders for runtime retrieval (reader.ts).
  */
 
-import type { SimilarityWeights } from './types.js';
-import { retrievalWeights, retrievalNoEmbeddingWeights } from './types.js';
+import type { SimilarityWeights } from '../types.js';
+import { retrievalWeights, retrievalNoEmbeddingWeights } from '../types.js';
 
 /** Vectorized input for similarity computation */
 export interface VectorBundle {

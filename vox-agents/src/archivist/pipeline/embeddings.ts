@@ -1,14 +1,14 @@
 /**
- * @module archivist/embeddings
+ * @module archivist/pipeline/embeddings
  *
  * Generates abstract embeddings for episodes using the configured embedding model.
  * Handles batching, dimension trimming, and graceful degradation on failure.
  */
 
 import { embedMany } from 'ai';
-import { createLogger } from '../utils/logger.js';
-import { getModelConfig } from '../utils/models/models.js';
-import { getEmbeddingModel } from '../utils/models/models.js';
+import { createLogger } from '../../utils/logger.js';
+import { getModelConfig } from '../../utils/models/models.js';
+import { getEmbeddingModel } from '../../utils/models/models.js';
 
 const logger = createLogger('Archivist:Embeddings');
 

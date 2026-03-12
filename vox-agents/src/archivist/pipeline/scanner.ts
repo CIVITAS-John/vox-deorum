@@ -1,5 +1,5 @@
 /**
- * @module archivist/scanner
+ * @module archivist/pipeline/scanner
  *
  * Archive filesystem scanner that discovers game databases and identifies
  * LLM-controlled players. Walks experiment subdirectories under the archive
@@ -11,9 +11,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import { Kysely, SqliteDialect, ParseJSONResultsPlugin } from 'kysely';
-import { createLogger } from '../utils/logger.js';
-import type { KnowledgeDatabase } from '../../../mcp-server/dist/knowledge/schema/index.js';
-import type { ArchiveEntry, PlayerEntry } from './types.js';
+import { createLogger } from '../../utils/logger.js';
+import type { KnowledgeDatabase } from '../../../../mcp-server/dist/knowledge/schema/index.js';
+import type { ArchiveEntry, PlayerEntry } from '../types.js';
 
 const logger = createLogger('ArchivistScanner');
 

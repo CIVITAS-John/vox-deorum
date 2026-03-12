@@ -1,0 +1,28 @@
+/**
+ * @module archivist/pipeline
+ *
+ * Barrel file for the batch ETL pipeline (Phases A/B/C).
+ */
+
+export { scanArchive, openReadonlyGameDb } from './scanner.js';
+export { extractTurnContexts, extractPlayerEpisodes, loadTurnSummaries } from './extractor.js';
+export { transformEpisode } from './transformer.js';
+export { EpisodeWriter } from './writer.js';
+export { selectLandmarks } from './selector.js';
+export type { DistanceStats, PlayerLandmarkStats, LandmarkStats } from './selector.js';
+export { generateEmbeddings } from './embeddings.js';
+export { prepareTelepathist } from './telepathist-prep.js';
+export { computeTargetTurns } from './target-turns.js';
+export type { WorkerStats } from './target-turns.js';
+
+// Re-export extraction utils (used externally by episode-utils.ts, game-state-vector.ts)
+export {
+  parseDiplomatics,
+  extractAllVictoryProgress,
+  extractVictoryProgress,
+  aggregateCityYields,
+  countMinorAllies,
+  findLatestStrategy,
+  WAR_WEARINESS_REGEX,
+} from './extraction-utils.js';
+export type { DiplomaticCounts, VictoryProgressResult } from './extraction-utils.js';

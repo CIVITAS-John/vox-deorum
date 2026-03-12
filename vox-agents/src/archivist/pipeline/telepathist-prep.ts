@@ -1,5 +1,5 @@
 /**
- * @module archivist/telepathist-prep
+ * @module archivist/pipeline/telepathist-prep
  *
  * Wraps the existing telepathist preparation pipeline for batch archivist use.
  * Ensures turn summaries exist in the telepathist DB before episode extraction.
@@ -7,11 +7,11 @@
  * the existing prepareTurnSummaries which handles resume/skip natively.
  */
 
-import { createLogger } from '../utils/logger.js';
-import type { GameIdentifierInfo } from '../utils/identifier-parser.js';
-import { VoxContext } from '../infra/vox-context.js';
-import { prepareTurnSummaries } from '../telepathist/preparation/turn-preparation.js';
-import { createTelepathistParameters, TelepathistParameters } from '../telepathist/telepathist-parameters.js';
+import { createLogger } from '../../utils/logger.js';
+import type { GameIdentifierInfo } from '../../utils/identifier-parser.js';
+import { VoxContext } from '../../infra/vox-context.js';
+import { prepareTurnSummaries } from '../../telepathist/preparation/turn-preparation.js';
+import { createTelepathistParameters, TelepathistParameters } from '../../telepathist/telepathist-parameters.js';
 
 const logger = createLogger('TelepathistPrep');
 

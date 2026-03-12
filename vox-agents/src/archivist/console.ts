@@ -23,15 +23,15 @@ import { parseArgs } from 'node:util';
 import { config } from '../utils/config.js';
 import { getEpisodeDbInstance } from './episode-db.js';
 import { createLogger } from '../utils/logger.js';
-import { openReadonlyGameDb, scanArchive } from './scanner.js';
-import { EpisodeWriter } from './writer.js';
+import { openReadonlyGameDb, scanArchive } from './pipeline/scanner.js';
+import { EpisodeWriter } from './pipeline/writer.js';
 import type { ArchiveEntry } from './types.js';
-import { horizons, horizonTolerance } from './types.js';
-import { prepareTelepathist } from './telepathist-prep.js';
-import { extractPlayerEpisodes, extractTurnContexts, loadTurnSummaries } from './extractor.js';
-import { transformEpisode } from './transformer.js';
-import { generateEmbeddings } from './embeddings.js';
-import { selectLandmarks } from './selector.js';
+import { prepareTelepathist } from './pipeline/telepathist-prep.js';
+import { extractPlayerEpisodes, extractTurnContexts, loadTurnSummaries } from './pipeline/extractor.js';
+import { transformEpisode } from './pipeline/transformer.js';
+import { generateEmbeddings } from './pipeline/embeddings.js';
+import { selectLandmarks } from './pipeline/selector.js';
+import { computeTargetTurns, type WorkerStats } from './pipeline/target-turns.js';
 import { startWebServer } from '../web/server.js';
 
 const logger = createLogger('Archivist');
@@ -60,64 +60,6 @@ const { values } = parseArgs({
 let shuttingdown = false;
 let shuttingdownAfter = false;
 let rl: readline.Interface | null = null;
-
-/**
- * Compute the set of turns that need summaries: landmark turns plus their
- * consequence turns (at +5/+10/+15/+20 horizons used by the reader's outcome pipeline).
- * Snaps consequence turns to nearby existing summaries within {@link horizonTolerance}
- * to avoid redundant LLM calls when a close-enough summary already exists.
- */
-function computeTargetTurns(
-  landmarkTurns: number[],
-  allTurns: Set<number>,
-  existingSummaryTurns: Set<number>
-): { targetTurns: number[]; landmarkSet: Set<number> } {
-  const landmarkSet = new Set(landmarkTurns);
-  const targetSet = new Set(landmarkTurns);
-
-  for (const lt of landmarkTurns) {
-    for (const h of horizons) {
-      const ideal = lt + h;
-
-      // Already covered by an existing target or prior summary at the exact turn
-      if (targetSet.has(ideal) || existingSummaryTurns.has(ideal)) continue;
-
-      // Check if a nearby turn (within tolerance) is already covered
-      let covered = false;
-      for (let d = 1; d <= horizonTolerance; d++) {
-        if (targetSet.has(ideal - d) || existingSummaryTurns.has(ideal - d) ||
-            targetSet.has(ideal + d) || existingSummaryTurns.has(ideal + d)) {
-          covered = true;
-          break;
-        }
-      }
-      if (covered) continue;
-
-      // No nearby summary exists — find the closest game turn within the window
-      if (allTurns.has(ideal)) {
-        targetSet.add(ideal);
-      } else {
-        for (let d = 1; d <= horizonTolerance; d++) {
-          if (allTurns.has(ideal - d)) { targetSet.add(ideal - d); break; }
-          if (allTurns.has(ideal + d)) { targetSet.add(ideal + d); break; }
-        }
-      }
-    }
-  }
-
-  return {
-    targetTurns: [...targetSet].sort((a, b) => a - b),
-    landmarkSet,
-  };
-}
-
-/** Per-worker statistics, merged at the end. */
-interface WorkerStats {
-  processed: number;
-  skipped: number;
-  errors: number;
-  gamesProcessed: number;
-}
 
 /**
  * Process a single game through the full A→B→C pipeline.
@@ -276,18 +218,16 @@ async function processGame(
         // Use game DB turns when available, otherwise query from DuckDB
         const playerTurns = allTurns ?? await writer.getPlayerTurns(entry.gameId, player.playerId);
 
-        // Load existing summaries first so computeTargetTurns can snap to nearby ones
-        let summaries = loadTurnSummaries(player.telepathistDbPath);
-        const existingSummaryTurns = new Set(summaries.keys());
-        const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, playerTurns, existingSummaryTurns);
+        const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, playerTurns);
 
         // Generate telepathist summaries for target turns only
         if (!skipTelepathist) {
           logger.info(`[${workerLabel}] Player ${player.playerId}: generating summaries for ${targetTurns.length} turns (${landmarkTurns.length} landmarks + ${targetTurns.length - landmarkTurns.length} consequence)`);
           await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns, modelOverride);
-          // Reload only the target turns to pick up newly generated summaries
-          summaries = loadTurnSummaries(player.telepathistDbPath, targetTurns);
         }
+
+        // Load summaries for all target turns (prepareTelepathist skips existing ones internally)
+        const summaries = loadTurnSummaries(player.telepathistDbPath, targetTurns);
 
         // Build update records for turns that have summaries
         const updates: Array<{

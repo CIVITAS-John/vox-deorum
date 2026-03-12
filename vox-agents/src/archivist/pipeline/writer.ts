@@ -1,5 +1,5 @@
 /**
- * @module archivist/writer
+ * @module archivist/pipeline/writer
  *
  * DuckDB output writer for the archivist pipeline.
  * Uses Kysely with CamelCasePlugin for type-safe access to the episodes table,
@@ -10,9 +10,9 @@
 import { Kysely, CamelCasePlugin, sql } from 'kysely';
 import { DuckDbDialect } from 'kysely-duckdb';
 import { DuckDBInstance, DuckDBListType, FLOAT, listValue } from '@duckdb/node-api';
-import { createLogger } from '../utils/logger.js';
-import { getEpisodeDbInstance } from './episode-db.js';
-import type { Episode, EpisodesDatabase } from './types.js';
+import { createLogger } from '../../utils/logger.js';
+import { getEpisodeDbInstance } from '../episode-db.js';
+import type { Episode, EpisodesDatabase } from '../types.js';
 
 /** DuckDB LIST(FLOAT) type for appender list columns. */
 const realListType = new DuckDBListType(FLOAT);

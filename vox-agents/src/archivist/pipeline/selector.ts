@@ -1,5 +1,5 @@
 /**
- * @module archivist/selector
+ * @module archivist/pipeline/selector
  *
  * Diversity-first landmark selection for episodes.
  * After all episodes for a game are written, selects a diverse subset per player
@@ -7,8 +7,8 @@
  * Uses greedy max-marginal diversity with in-house TypeScript composite similarity.
  */
 
-import { createLogger } from '../utils/logger.js';
-import { compositeSimilarity, type VectorBundle } from './similarity.js';
+import { createLogger } from '../../utils/logger.js';
+import { compositeSimilarity, type VectorBundle } from '../retrieval/similarity.js';
 import type { EpisodeWriter } from './writer.js';
 
 const logger = createLogger('Selector');
@@ -111,7 +111,7 @@ export async function selectLandmarks(writer: EpisodeWriter, gameId: string): Pr
 /**
  * Greedy max-min diversity selection on a single player's episode list.
  *
- * 1. Seed with episode closest to median turn
+ * 1. Seed with an episode farthest from the centroid
  * 2. Iteratively add the candidate most dissimilar from all already-selected
  * 3. Return selected indices
  */

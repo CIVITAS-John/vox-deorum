@@ -11,13 +11,12 @@
 import { Kysely } from 'kysely';
 import { createLogger } from './logger.js';
 import { buildLiveGameStateVector } from './game-state-vector.js';
-import { parseDiplomatics } from '../archivist/extractor.js';
-import { findEpisodes } from '../archivist/reader.js';
+import { parseDiplomatics, findEpisodes } from '../archivist/index.js';
+import type { EpisodeQuery, EpisodeResult } from '../archivist/index.js';
 import type { GameState, StrategistParameters } from '../strategist/strategy-parameters.js';
 import type { PlayersReport } from '../../../mcp-server/dist/tools/knowledge/get-players.js';
 import type { CitiesReport } from '../../../mcp-server/dist/tools/knowledge/get-cities.js';
 import type { VictoryProgressReport } from '../../../mcp-server/dist/tools/knowledge/get-victory-progress.js';
-import type { EpisodeQuery, EpisodeResult } from '../archivist/query-types.js';
 import type { TelemetryDatabase } from './telemetry/schema.js';
 import type { TelepathistDatabase } from '../telepathist/telepathist-parameters.js';
 
@@ -223,8 +222,8 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     if (indParts.length > 0) parts.push(`- **Indicators**: ${indParts.join(' | ')}`);
 
     // Situations
-    if (ep.abstract) parts.push(`- **Situation:** ${ep.abstract.replaceAll("\n", "")}`);
-    if (ep.decisions) parts.push(`- **Decisions:** ${ep.decisions}`);
+    if (ep.abstract) parts.push(`\n### Situation\n${ep.abstract.replaceAll("\n", "")}`);
+    if (ep.decisions) parts.push(`\n### Decisions\n${ep.decisions}`);
 
     // Outcomes
     if (ep.outcomes.length > 0) {
@@ -237,8 +236,8 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
         const turnLabel = `+${out.horizonTurns} Turns`;
         parts.push(`\n### Outcome at ${turnLabel}`);
         parts.push(`- **Delta**: ${deltaStr}`);
-        if (out.abstract) parts.push(`- **Situation:** ${out.abstract.replaceAll("\n", "")}`);
-        if (out.decisions) parts.push(`- **Decisions:** ${out.decisions}`);
+        if (out.abstract) parts.push(`\n#### Situation\n${out.abstract.replaceAll("\n", "")}`);
+        if (out.decisions) parts.push(`\n#### Further Decisions\n${out.decisions}`);
       }
     }
 

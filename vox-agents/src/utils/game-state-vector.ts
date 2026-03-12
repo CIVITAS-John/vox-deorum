@@ -20,8 +20,7 @@ import type { VictoryProgressReport } from '../../../mcp-server/dist/tools/knowl
 import type { GameState } from '../strategist/strategy-parameters.js';
 import type { RawEpisode, TurnContext } from '../archivist/types.js';
 import { countPolicies } from '../archivist/types.js';
-import { parseDiplomatics, extractAllVictoryProgress } from '../archivist/extractor.js';
-import { transformEpisode } from '../archivist/transformer.js';
+import { parseDiplomatics, extractAllVictoryProgress, transformEpisode } from '../archivist/index.js';
 
 /**
  * Convert MCP report objects into a TurnContext suitable for the archivist transformer.
