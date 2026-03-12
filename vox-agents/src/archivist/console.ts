@@ -10,11 +10,15 @@
  *   Phase B: Select diverse landmarks per player
  *   Phase C: Generate summaries + embeddings for landmark and consequence turns only
  *
+ * Supports multiple models via comma-separated -m flag. Each model gets its own
+ * worker that pulls games from a shared queue, enabling concurrent processing.
+ *
  * Usage:
- *   npm run archivist -- -a <archive-path> -o <output.duckdb> [-g <gameId>] [-n <limit>] [-m <model>] [--force] [--skip-telepathist] [--skip-embeddings] [--no-ui]
+ *   npm run archivist -- -a <archive-path> -o <output.duckdb> [-g <gameId>] [-n <limit>] [-m <model1,model2>] [--force] [--skip-telepathist] [--skip-embeddings] [--no-ui]
  */
 
 import path from 'node:path';
+import readline from 'node:readline';
 import { parseArgs } from 'node:util';
 import { config } from '../utils/config.js';
 import { getEpisodeDbInstance } from './episode-db.js';
@@ -22,7 +26,7 @@ import { createLogger } from '../utils/logger.js';
 import { openReadonlyGameDb, scanArchive } from './scanner.js';
 import { EpisodeWriter } from './writer.js';
 import type { ArchiveEntry } from './types.js';
-import { horizons, horizonTolerance, victoryTypeMap } from './types.js';
+import { horizons, horizonTolerance } from './types.js';
 import { prepareTelepathist } from './telepathist-prep.js';
 import { extractPlayerEpisodes, extractTurnContexts, loadTurnSummaries } from './extractor.js';
 import { transformEpisode } from './transformer.js';
@@ -48,6 +52,14 @@ const { values } = parseArgs({
   strict: false,
   allowPositionals: false,
 });
+
+// ---------------------------------------------------------------------------
+// Graceful shutdown state
+// ---------------------------------------------------------------------------
+
+let shuttingdown = false;
+let shuttingdownAfter = false;
+let rl: readline.Interface | null = null;
 
 /**
  * Compute the set of turns that need summaries: landmark turns plus their
@@ -99,18 +111,291 @@ function computeTargetTurns(
   };
 }
 
+/** Per-worker statistics, merged at the end. */
+interface WorkerStats {
+  processed: number;
+  skipped: number;
+  errors: number;
+  claimed: number;
+  gamesProcessed: number;
+}
+
+/**
+ * Process a single game through the full A→B→C pipeline.
+ * Designed to run concurrently across workers — the DuckDB writer handles
+ * internal concurrency (creates connection per operation).
+ */
+async function processGame(
+  entry: ArchiveEntry,
+  writer: EpisodeWriter,
+  modelOverride: string | undefined,
+  force: boolean,
+  skipTelepathist: boolean,
+  skipEmbeddings: boolean,
+  stats: WorkerStats,
+  workerLabel: string,
+): Promise<void> {
+  // Game-level completeness check: skip Phase A+B if all players already processed
+  let skipPhaseAB = false;
+  if (!force) {
+    const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
+    const allPlayersProcessed = entry.players.every(p => existingPlayers.has(p.playerId));
+    if (allPlayersProcessed) {
+      if (skipTelepathist && skipEmbeddings) {
+        logger.info(`[${workerLabel}] Skipping game ${entry.gameId} (already complete, Phase C disabled)`);
+        stats.skipped += entry.players.length;
+        return;
+      }
+      skipPhaseAB = true;
+      logger.info(`[${workerLabel}] Game ${entry.gameId} Phase A+B complete, checking Phase C`);
+    }
+  }
+
+  // Collect all turn numbers for consequence turn lookup in Phase C
+  let allTurns: Set<number> | undefined;
+
+  if (!skipPhaseAB) {
+    logger.info(`[${workerLabel}] Processing game ${entry.gameId} (${entry.experiment})`, {
+      players: entry.players.length,
+    });
+
+    if (force) {
+      await writer.resetGameLandmarks(entry.gameId);
+    }
+
+    // Open game DB for extraction
+    const gameDb = openReadonlyGameDb(entry.gameDbPath);
+    if (!gameDb) {
+      logger.error(`[${workerLabel}] Failed to open game DB for ${entry.gameId}, skipping`);
+      stats.errors++;
+      return;
+    }
+
+    try {
+      // Query game metadata for winner determination
+      const victoryRow = await gameDb
+        .selectFrom('GameMetadata')
+        .select('Value')
+        .where('Key', '=', 'victoryPlayerID')
+        .executeTakeFirst();
+      const victoryPlayerId = victoryRow ? parseInt(victoryRow.Value, 10) : -1;
+
+      // Build player info lookup (ID -> civ name + leader name)
+      const playerInfoRows = await gameDb
+        .selectFrom('PlayerInformations')
+        .selectAll()
+        .execute();
+      const playerInfoMap = new Map(playerInfoRows.map((r) => [r.Key, r]));
+
+      // Extract turn contexts once per game (shared across all players)
+      const turnContexts = await extractTurnContexts(gameDb);
+      allTurns = new Set(turnContexts.keys());
+
+      // Query victory type and compute max turn for game outcome metadata
+      const victoryTypeRow = await gameDb
+        .selectFrom('GameMetadata')
+        .select('Value')
+        .where('Key', '=', 'victoryType')
+        .executeTakeFirst();
+      const victoryType = victoryTypeRow?.Value ?? null;
+      const maxTurn = allTurns.size > 0 ? Math.max(...allTurns) : 0;
+
+      await writer.writeGameOutcome(entry.gameId, victoryPlayerId, victoryType, maxTurn);
+
+      const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
+
+      // ---------------------------------------------------------------
+      // Phase A: Extract + Transform + Write (no LLM calls)
+      // ---------------------------------------------------------------
+      for (const player of entry.players) {
+        if (!force && existingPlayers.has(player.playerId)) {
+          logger.info(`[${workerLabel}] Skipping player ${player.playerId} (already processed)`);
+          stats.skipped++;
+          continue;
+        }
+
+        try {
+          const info = playerInfoMap.get(player.playerId);
+          const civilization = info?.Civilization ?? 'Unknown';
+
+          const rawEpisodes = await extractPlayerEpisodes(
+            gameDb,
+            player.telepathistDbPath,
+            player.playerId,
+            civilization,
+            turnContexts,
+            entry.gameId,
+            victoryPlayerId
+          );
+
+          logger.info(`[${workerLabel}] Extracted ${rawEpisodes.length} raw episodes for player ${player.playerId}`);
+
+          const episodes = rawEpisodes.map(raw => {
+            const tc = turnContexts.get(raw.turn);
+            if (!tc) throw new Error(`Missing TurnContext for turn ${raw.turn}`);
+            return transformEpisode(raw, tc);
+          });
+
+          // In force mode, delete old rows before writing new ones
+          if (force) {
+            await writer.deletePlayerEpisodes(entry.gameId, player.playerId);
+          }
+
+          await writer.writeEpisodes(episodes);
+          stats.processed++;
+        } catch (playerError) {
+          logger.error(`[${workerLabel}] Error processing player ${player.playerId} in game ${entry.gameId}`, {
+            error: playerError instanceof Error ? { message: playerError.message, stack: playerError.stack } : playerError,
+          });
+          stats.errors++;
+        }
+      }
+    } finally {
+      await gameDb.destroy();
+    }
+
+    // ---------------------------------------------------------------
+    // Phase B: Landmark selection (vectors only, no embeddings needed)
+    // ---------------------------------------------------------------
+    await selectLandmarks(writer, entry.gameId);
+
+    stats.gamesProcessed++;
+  }
+
+  // ---------------------------------------------------------------
+  // Phase C: Generate summaries + embeddings for selected turns only
+  // ---------------------------------------------------------------
+  if (!skipTelepathist || !skipEmbeddings) {
+    for (const player of entry.players) {
+      try {
+        const landmarkTurns = await writer.getLandmarkTurns(entry.gameId, player.playerId);
+        if (landmarkTurns.length === 0) {
+          logger.info(`[${workerLabel}] No landmarks for player ${player.playerId}, skipping Phase C`);
+          continue;
+        }
+
+        // Use game DB turns when available, otherwise query from DuckDB
+        const playerTurns = allTurns ?? await writer.getPlayerTurns(entry.gameId, player.playerId);
+
+        // Load existing summaries first so computeTargetTurns can snap to nearby ones
+        const summaries = loadTurnSummaries(player.telepathistDbPath);
+        const existingSummaryTurns = new Set(summaries.keys());
+        const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, playerTurns, existingSummaryTurns);
+
+        // Generate telepathist summaries for target turns only
+        if (!skipTelepathist) {
+          logger.info(`[${workerLabel}] Player ${player.playerId}: generating summaries for ${targetTurns.length} turns (${landmarkTurns.length} landmarks + ${targetTurns.length - landmarkTurns.length} consequence)`);
+          await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns, modelOverride);
+        }
+
+        // Build update records for turns that have summaries
+        const updates: Array<{
+          turn: number;
+          abstract: string | null;
+          situation: string | null;
+          decisions: string | null;
+          abstractEmbedding: number[] | null;
+        }> = [];
+
+        for (const turn of targetTurns) {
+          const summary = summaries.get(turn);
+          if (!summary) continue;
+          updates.push({
+            turn,
+            abstract: summary.abstract ?? null,
+            situation: summary.situation ?? null,
+            decisions: summary.decisions ?? null,
+            abstractEmbedding: null, // filled below if needed
+          });
+        }
+
+        // Generate embeddings for landmark turns with abstracts
+        if (!skipEmbeddings) {
+          const landmarkUpdates = updates.filter(u => landmarkSet.has(u.turn) && u.abstract != null);
+          if (landmarkUpdates.length > 0) {
+            const embeddings = await generateEmbeddings(landmarkUpdates.map(u => u.abstract));
+            for (let i = 0; i < landmarkUpdates.length; i++) {
+              landmarkUpdates[i].abstractEmbedding = embeddings[i];
+            }
+          }
+        }
+
+        if (updates.length > 0) {
+          await writer.updateEpisodeTexts(entry.gameId, player.playerId, updates);
+        }
+      } catch (playerError) {
+        logger.error(`[${workerLabel}] Error in Phase C for player ${player.playerId} in game ${entry.gameId}`, {
+          error: playerError instanceof Error ? { message: playerError.message, stack: playerError.stack } : playerError,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Worker loop: pulls games from a shared queue until empty or shutdown requested.
+ * Each worker is assigned a fixed model for Phase C summaries.
+ */
+async function workerLoop(
+  queue: ArchiveEntry[],
+  writer: EpisodeWriter,
+  modelOverride: string | undefined,
+  force: boolean,
+  skipTelepathist: boolean,
+  skipEmbeddings: boolean,
+  limit: number,
+  dispatched: { count: number },
+  workerLabel: string,
+): Promise<WorkerStats> {
+  const stats: WorkerStats = { processed: 0, skipped: 0, errors: 0, claimed: 0, gamesProcessed: 0 };
+
+  while (true) {
+    // Check stop conditions before pulling next game
+    if (shuttingdownAfter) {
+      logger.info(`[${workerLabel}] Ctrl+A: stopping (no more games will be started)`);
+      break;
+    }
+    if (dispatched.count >= limit) {
+      break;
+    }
+
+    const entry = queue.shift();
+    if (!entry) break;
+
+    dispatched.count++;
+
+    // Claim game to prevent concurrent processing by other instances
+    if (!await writer.claimGame(entry.gameId)) {
+      logger.info(`[${workerLabel}] Skipping game ${entry.gameId} (claimed by another instance)`);
+      stats.claimed++;
+      continue;
+    }
+
+    try {
+      await processGame(entry, writer, modelOverride, force, skipTelepathist, skipEmbeddings, stats, workerLabel);
+    } catch (error) {
+      logger.error(`[${workerLabel}] Error processing game ${entry.gameId}`, error);
+      stats.errors++;
+    } finally {
+      await writer.releaseGame(entry.gameId);
+    }
+  }
+
+  return stats;
+}
+
 async function main() {
   const archivePath = path.resolve(values.archive as string ?? 'archive');
   const outputPath = path.resolve(values.output as string ?? config.episodeDbPath);
   const gameFilter = values.game as string | undefined;
   const force = values.force as boolean;
   const limit = values.limit ? parseInt(values.limit as string, 10) : Infinity;
-  const modelOverride = values.model as string | undefined;
+  const models = (values.model as string)?.split(',').map(s => s.trim()).filter(Boolean) ?? [];
   const skipTelepathist = values['skip-telepathist'] as boolean;
   const skipEmbeddings = values['skip-embeddings'] as boolean;
   const noUi = values['no-ui'] as boolean;
 
-  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, limit, modelOverride, skipTelepathist, skipEmbeddings, noUi });
+  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, limit, models, skipTelepathist, skipEmbeddings, noUi });
 
   // Step 1: Scan archive for game entries
   const entries: ArchiveEntry[] = await scanArchive(archivePath, gameFilter);
@@ -124,270 +409,126 @@ async function main() {
   // Step 2: Initialize DuckDB writer
   const writer = await EpisodeWriter.create(outputPath);
 
-  let processed = 0;
-  let skipped = 0;
-  let errors = 0;
-  let claimed = 0;
-  let gamesProcessed = 0;
+  // Shutdown handlers
+  async function shutdown(signal: string) {
+    if (shuttingdown) return;
+    shuttingdown = true;
 
-  // Release all claims on unexpected shutdown
-  const shutdownCleanup = () => { writer.releaseAllGames().catch(() => {}); };
-  process.on('SIGTERM', shutdownCleanup);
+    logger.info(`Received ${signal}, shutting down...`);
+
+    if (process.stdin.isTTY && process.stdin.setRawMode) {
+      process.stdin.setRawMode(false);
+    }
+    if (rl) rl.close();
+
+    if (uiConn) {
+      await uiConn.run('CALL stop_ui_server();').catch(() => {});
+      uiConn.disconnectSync();
+    }
+    await writer.releaseAllGames().catch(() => {});
+    process.exit(0);
+  }
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGBREAK', () => shutdown('SIGBREAK'));
+
+  // Setup readline for Ctrl+A
+  rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(true);
+  }
+
+  process.stdin.on('data', (key) => {
+    if (key[0] === 1) {
+      if (!shuttingdownAfter) {
+        shuttingdownAfter = true;
+        logger.info('Ctrl+A pressed: Will stop after current game(s) complete');
+      } else {
+        shuttingdownAfter = false;
+        logger.info('Ctrl+A pressed again: Cancelled shutdown');
+      }
+    } else if (key[0] === 3) {
+      process.emit('SIGINT', 'SIGINT');
+    }
+  });
 
   // Web UI
   await startWebServer();
 
-  // Step 3: Process each game
-  for (const entry of entries) {
-    // Claim game to prevent concurrent processing by other instances
-    if (!await writer.claimGame(entry.gameId)) {
-      logger.info(`Skipping game ${entry.gameId} (claimed by another instance)`);
-      claimed++;
-      continue;
-    }
-
-    try {
-      // Game-level completeness check: skip Phase A+B if all players already processed
-      let skipPhaseAB = false;
-      if (!force) {
-        const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
-        const allPlayersProcessed = entry.players.every(p => existingPlayers.has(p.playerId));
-        if (allPlayersProcessed) {
-          if (skipTelepathist && skipEmbeddings) {
-            logger.info(`Skipping game ${entry.gameId} (already complete, Phase C disabled)`);
-            skipped += entry.players.length;
-            continue;
-          }
-          skipPhaseAB = true;
-          logger.info(`Game ${entry.gameId} Phase A+B complete, checking Phase C`);
-        }
-      }
-
-      // Collect all turn numbers for consequence turn lookup in Phase C
-      let allTurns: Set<number> | undefined;
-
-      if (!skipPhaseAB) {
-        if (gamesProcessed >= limit) {
-          logger.info(`Reached game limit (${limit}), stopping`);
-          break;
-        }
-
-        logger.info(`Processing game ${entry.gameId} (${entry.experiment})`, {
-          players: entry.players.length,
-        });
-
-        if (force) {
-          await writer.resetGameLandmarks(entry.gameId);
-        }
-
-        // Open game DB for extraction
-        const gameDb = openReadonlyGameDb(entry.gameDbPath);
-        if (!gameDb) {
-          logger.error(`Failed to open game DB for ${entry.gameId}, skipping`);
-          errors++;
-          continue;
-        }
-
-        try {
-          // Query game metadata for winner determination
-          const victoryRow = await gameDb
-            .selectFrom('GameMetadata')
-            .select('Value')
-            .where('Key', '=', 'victoryPlayerID')
-            .executeTakeFirst();
-          const victoryPlayerId = victoryRow ? parseInt(victoryRow.Value, 10) : -1;
-
-          // Build player info lookup (ID -> civ name + leader name)
-          const playerInfoRows = await gameDb
-            .selectFrom('PlayerInformations')
-            .selectAll()
-            .execute();
-          const playerInfoMap = new Map(playerInfoRows.map((r) => [r.Key, r]));
-
-          // Extract turn contexts once per game (shared across all players)
-          const turnContexts = await extractTurnContexts(gameDb);
-          allTurns = new Set(turnContexts.keys());
-
-          // Query victory type and compute max turn for game outcome metadata
-          const victoryTypeRow = await gameDb
-            .selectFrom('GameMetadata')
-            .select('Value')
-            .where('Key', '=', 'victoryType')
-            .executeTakeFirst();
-          const victoryType = victoryTypeRow?.Value ?? null;
-          const maxTurn = allTurns.size > 0 ? Math.max(...allTurns) : 0;
-
-          await writer.writeGameOutcome(entry.gameId, victoryPlayerId, victoryType, maxTurn);
-
-          const existingPlayers = await writer.getProcessedPlayers(entry.gameId);
-
-          // ---------------------------------------------------------------
-          // Phase A: Extract + Transform + Write (no LLM calls)
-          // ---------------------------------------------------------------
-          for (const player of entry.players) {
-            if (!force && existingPlayers.has(player.playerId)) {
-              logger.info(`Skipping player ${player.playerId} (already processed)`);
-              skipped++;
-              continue;
-            }
-
-            try {
-              const info = playerInfoMap.get(player.playerId);
-              const civilization = info?.Civilization ?? 'Unknown';
-
-              const rawEpisodes = await extractPlayerEpisodes(
-                gameDb,
-                player.telepathistDbPath, // reads existing summaries from prior runs if available
-                player.playerId,
-                civilization,
-                turnContexts,
-                entry.gameId,
-                victoryPlayerId
-              );
-
-              logger.info(`Extracted ${rawEpisodes.length} raw episodes for player ${player.playerId}`);
-
-              const episodes = rawEpisodes.map(raw => {
-                const tc = turnContexts.get(raw.turn);
-                if (!tc) throw new Error(`Missing TurnContext for turn ${raw.turn}`);
-                return transformEpisode(raw, tc);
-              });
-
-              // In force mode, delete old rows before writing new ones
-              if (force) {
-                await writer.deletePlayerEpisodes(entry.gameId, player.playerId);
-              }
-
-              await writer.writeEpisodes(episodes);
-              processed++;
-            } catch (playerError) {
-              logger.error(`Error processing player ${player.playerId} in game ${entry.gameId}`, {
-                error: playerError instanceof Error ? { message: playerError.message, stack: playerError.stack } : playerError,
-              });
-              errors++;
-            }
-          }
-        } finally {
-          await gameDb.destroy();
-        }
-
-        // ---------------------------------------------------------------
-        // Phase B: Landmark selection (vectors only, no embeddings needed)
-        // ---------------------------------------------------------------
-        await selectLandmarks(writer, entry.gameId);
-
-        gamesProcessed++;
-      }
-
-      // ---------------------------------------------------------------
-      // Phase C: Generate summaries + embeddings for selected turns only
-      // ---------------------------------------------------------------
-      if (!skipTelepathist || !skipEmbeddings) {
-        for (const player of entry.players) {
-          try {
-            const landmarkTurns = await writer.getLandmarkTurns(entry.gameId, player.playerId);
-            if (landmarkTurns.length === 0) {
-              logger.info(`No landmarks for player ${player.playerId}, skipping Phase C`);
-              continue;
-            }
-
-            // Use game DB turns when available, otherwise query from DuckDB
-            const playerTurns = allTurns ?? await writer.getPlayerTurns(entry.gameId, player.playerId);
-
-            // Load existing summaries first so computeTargetTurns can snap to nearby ones
-            const summaries = loadTurnSummaries(player.telepathistDbPath);
-            const existingSummaryTurns = new Set(summaries.keys());
-            const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, playerTurns, existingSummaryTurns);
-
-            // Generate telepathist summaries for target turns only
-            if (!skipTelepathist) {
-              logger.info(`Player ${player.playerId}: generating summaries for ${targetTurns.length} turns (${landmarkTurns.length} landmarks + ${targetTurns.length - landmarkTurns.length} consequence)`);
-              await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns, modelOverride);
-            }
-
-            // Build update records for turns that have summaries
-            const updates: Array<{
-              turn: number;
-              abstract: string | null;
-              situation: string | null;
-              decisions: string | null;
-              abstractEmbedding: number[] | null;
-            }> = [];
-
-            for (const turn of targetTurns) {
-              const summary = summaries.get(turn);
-              if (!summary) continue;
-              updates.push({
-                turn,
-                abstract: summary.abstract ?? null,
-                situation: summary.situation ?? null,
-                decisions: summary.decisions ?? null,
-                abstractEmbedding: null, // filled below if needed
-              });
-            }
-
-            // Generate embeddings for landmark turns with abstracts
-            if (!skipEmbeddings) {
-              const landmarkUpdates = updates.filter(u => landmarkSet.has(u.turn) && u.abstract != null);
-              if (landmarkUpdates.length > 0) {
-                const embeddings = await generateEmbeddings(landmarkUpdates.map(u => u.abstract));
-                for (let i = 0; i < landmarkUpdates.length; i++) {
-                  landmarkUpdates[i].abstractEmbedding = embeddings[i];
-                }
-              }
-            }
-
-            if (updates.length > 0) {
-              await writer.updateEpisodeTexts(entry.gameId, player.playerId, updates);
-            }
-          } catch (playerError) {
-            logger.error(`Error in Phase C for player ${player.playerId} in game ${entry.gameId}`, {
-              error: playerError instanceof Error ? { message: playerError.message, stack: playerError.stack } : playerError,
-            });
-          }
-        }
-      }
-    } catch (error) {
-      logger.error(`Error processing game ${entry.gameId}`, error);
-      errors++;
-    } finally {
-      await writer.releaseGame(entry.gameId);
-    }
-  }
-
-  // Step 4: Close and summarize
-  await writer.close();
-
-  logger.info('Archivist complete', {
-    games: entries.length,
-    processed,
-    skipped,
-    claimed,
-    errors,
-    output: outputPath,
-  });
-
-  // Step 5: Open DuckDB UI for result inspection
+  // DuckDB UI for live inspection during processing
+  let uiConn: Awaited<ReturnType<Awaited<ReturnType<typeof getEpisodeDbInstance>>['connect']>> | null = null;
   if (!noUi) {
     logger.info('Starting DuckDB UI...');
     const uiInstance = await getEpisodeDbInstance(outputPath);
-    const uiConn = await uiInstance.connect();
+    uiConn = await uiInstance.connect();
     await uiConn.run('INSTALL ui; LOAD ui;');
     await uiConn.run('CALL start_ui_server();');
 
     const url = 'http://localhost:4213';
     const open = (await import('open')).default;
     await open(url);
-    logger.info(`DuckDB UI running at ${url} — press Ctrl+C to stop`);
+    logger.info(`DuckDB UI running at ${url}`);
+  }
+
+  // Step 3: Spawn workers
+  const queue = [...entries];
+  const dispatched = { count: 0 };
+
+  // One worker per model, or a single worker if no models specified
+  const workerCount = Math.max(models.length, 1);
+  const workerPromises: Promise<WorkerStats>[] = [];
+
+  for (let i = 0; i < workerCount; i++) {
+    const modelOverride = models.length > 0 ? models[i] : undefined;
+    const label = models.length > 0 ? models[i] : 'default';
+    workerPromises.push(
+      workerLoop(queue, writer, modelOverride, force, skipTelepathist, skipEmbeddings, limit, dispatched, label)
+    );
+  }
+
+  logger.info(`Spawned ${workerCount} worker(s)`, { models: models.length > 0 ? models : ['default'] });
+
+  const results = await Promise.all(workerPromises);
+
+  // Restore terminal
+  if (process.stdin.isTTY && process.stdin.setRawMode) {
+    process.stdin.setRawMode(false);
+  }
+  if (rl) rl.close();
+
+  // Merge stats
+  const totals = results.reduce(
+    (acc, s) => ({
+      processed: acc.processed + s.processed,
+      skipped: acc.skipped + s.skipped,
+      errors: acc.errors + s.errors,
+      claimed: acc.claimed + s.claimed,
+      gamesProcessed: acc.gamesProcessed + s.gamesProcessed,
+    }),
+    { processed: 0, skipped: 0, errors: 0, claimed: 0, gamesProcessed: 0 }
+  );
+
+  // Step 4: Close and summarize
+  await writer.close();
+
+  logger.info('Archivist complete', {
+    games: entries.length,
+    ...totals,
+    output: outputPath,
+  });
+
+  // Keep DuckDB UI alive for result inspection after processing
+  if (uiConn) {
+    logger.info('Processing complete — DuckDB UI still running at http://localhost:4213 — press Ctrl+C to stop');
 
     await new Promise<void>((resolve) => {
-      // Keep the event loop alive so the UI server continues running
       const keepAlive = setInterval(() => {}, 1 << 30);
       process.on('SIGINT', () => {
         clearInterval(keepAlive);
         logger.info('Shutting down DuckDB UI');
-        uiConn.run('CALL stop_ui_server();').finally(() => {
-          uiConn.disconnectSync();
+        uiConn!.run('CALL stop_ui_server();').finally(() => {
+          uiConn!.disconnectSync();
           resolve();
         });
       });

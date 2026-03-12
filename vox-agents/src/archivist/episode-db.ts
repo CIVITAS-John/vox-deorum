@@ -15,6 +15,11 @@ export async function getEpisodeDbInstance(dbPath: string): Promise<DuckDBInstan
   return DuckDBInstance.fromCache(path.resolve(dbPath));
 }
 
+/** Get a read-only DuckDB instance that won't acquire a write lock, allowing concurrent access from other processes. */
+export async function getEpisodeDbReadonlyInstance(dbPath: string): Promise<DuckDBInstance> {
+  return DuckDBInstance.fromCache(path.resolve(dbPath), { access_mode: 'READ_ONLY' });
+}
+
 /** Get a new connection from the shared instance. */
 export async function getEpisodeDbConnection(dbPath: string): Promise<DuckDBConnection> {
   const instance = await getEpisodeDbInstance(dbPath);

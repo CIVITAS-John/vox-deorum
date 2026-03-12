@@ -14,7 +14,7 @@ import { createLogger } from '../utils/logger.js';
 import { buildSimilaritySql, compositeSimilarity, type VectorBundle } from './similarity.js';
 import { eraMap, horizons, horizonTolerance } from './types.js';
 import { generateEmbeddings } from './embeddings.js';
-import { getEpisodeDbInstance } from './episode-db.js';
+import { getEpisodeDbReadonlyInstance } from './episode-db.js';
 import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot, EpisodeDelta } from './query-types.js';
 
 const logger = createLogger('Archivist:Reader');
@@ -30,7 +30,7 @@ let dbPath: string | null = null;
 async function getConnection(): Promise<DuckDBConnection> {
   if (connection) return connection;
   dbPath = config.episodeDbPath;
-  const instance = await getEpisodeDbInstance(dbPath);
+  const instance = await getEpisodeDbReadonlyInstance(dbPath);
   connection = await instance.connect();
   logger.info(`Connected to episode database: ${dbPath}`);
   return connection;
