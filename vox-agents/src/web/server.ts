@@ -104,7 +104,7 @@ app.get('*', (_req: Request, res: Response<ErrorResponse>) => {
 
 // Start server function
 export async function startWebServer(): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const server = app.listen(PORT, () => {
       webLogger.info(`🌐 Web UI available at: http://localhost:${config.webui.port}`);
       webLogger.info('Press Ctrl+C to stop the server');
@@ -122,6 +122,15 @@ export async function startWebServer(): Promise<void> {
       });
 
       resolve();
+    });
+
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        webLogger.warn(`Port ${PORT} is already in use — skipping Web UI startup`);
+        resolve();
+      } else {
+        reject(err);
+      }
     });
   });
 }
