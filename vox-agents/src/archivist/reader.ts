@@ -187,23 +187,26 @@ async function fetchCandidates(
 // Stage 2: Fetch Outcomes
 // ---------------------------------------------------------------------------
 
-interface OutcomeRow {
-  game_id: string;
+/** Compute relative delta: (future - base) / base, or null if base is zero/null. */
+function relativeDelta(base: number | null, future: number | null): number | null {
+  if (base == null || future == null || base === 0) return null;
+  return (future - base) / base;
+}
+
+interface FetchedEpisode {
   turn: number;
-  player_id: number;
-  actual_horizon: number;
-  abstract: string | null;
   situation: string | null;
   decisions: string | null;
-  d_science_pp: number | null;
-  d_faith_pp: number | null;
-  d_production_pp: number | null;
-  d_food_pp: number | null;
-  d_culture: number | null;
-  d_gold: number | null;
-  d_military: number | null;
-  d_population: number | null;
-  d_cities: number | null;
+  abstract: string | null;
+  science_per_pop: number | null;
+  faith_per_pop: number | null;
+  production_per_pop: number | null;
+  food_per_pop: number | null;
+  culture_share: number | null;
+  gold_share: number | null;
+  military_share: number | null;
+  population_share: number | null;
+  cities_share: number | null;
 }
 
 async function fetchOutcomes(
@@ -212,118 +215,89 @@ async function fetchOutcomes(
 ): Promise<Map<string, OutcomeSnapshot[]>> {
   if (candidates.length === 0) return new Map();
 
-  // Build VALUES list from candidates
-  const candidateValues = candidates.map(c => {
-    const vals = [
-      `'${escapeSql(c.game_id)}'`,
-      c.turn,
-      c.player_id,
-      c.science_per_pop ?? 'NULL',
-      c.faith_per_pop ?? 'NULL',
-      c.production_per_pop ?? 'NULL',
-      c.food_per_pop ?? 'NULL',
-      c.culture_share ?? 'NULL',
-      c.gold_share ?? 'NULL',
-      c.military_share ?? 'NULL',
-      c.population_share ?? 'NULL',
-      c.cities_share ?? 'NULL',
-    ];
-    return `(${vals.join(', ')})`;
-  }).join(',\n    ');
+  // Step 1: Collect all unique (game_id, player_id, target_turn) triples
+  const targetTurns = new Set<string>();
+  for (const c of candidates) {
+    for (const h of horizons) {
+      for (let offset = -horizonTolerance; offset <= horizonTolerance; offset++) {
+        const t = c.turn + h + offset;
+        if (t > c.turn) targetTurns.add(`('${escapeSql(c.game_id)}', ${c.player_id}, ${t})`);
+      }
+    }
+  }
 
-  // Build UNION ALL across all horizons with fuzzy window matching.
-  // Each horizon searches within ±horizonTolerance turns for the nearest episode
-  // with summary text, capping at game's max turn via game_outcomes.
-  const horizonQueries = horizons.map(horizon => `
-    SELECT e.game_id, e.turn, e.player_id, ${horizon} AS horizon,
-           f.turn AS fetched_turn,
-           f.situation, f.decisions, f.abstract,
-           (f.science_per_pop - e.science_per_pop) / NULLIF(e.science_per_pop, 0) AS d_science_pp,
-           (f.faith_per_pop - e.faith_per_pop) / NULLIF(e.faith_per_pop, 0) AS d_faith_pp,
-           (f.production_per_pop - e.production_per_pop) / NULLIF(e.production_per_pop, 0) AS d_production_pp,
-           (f.food_per_pop - e.food_per_pop) / NULLIF(e.food_per_pop, 0) AS d_food_pp,
-           (f.culture_share - e.culture_share) / NULLIF(e.culture_share, 0) AS d_culture,
-           (f.gold_share - e.gold_share) / NULLIF(e.gold_share, 0) AS d_gold,
-           (f.military_share - e.military_share) / NULLIF(e.military_share, 0) AS d_military,
-           (f.population_share - e.population_share) / NULLIF(e.population_share, 0) AS d_population,
-           (f.cities_share - e.cities_share) / NULLIF(e.cities_share, 0) AS d_cities
-    FROM (VALUES ${candidateValues}) AS e(game_id, turn, player_id, science_per_pop, faith_per_pop, production_per_pop, food_per_pop, culture_share, gold_share, military_share, population_share, cities_share)
-    LEFT JOIN game_outcomes g ON g.game_id = e.game_id
-    JOIN episodes f
-      ON f.game_id = e.game_id AND f.player_id = e.player_id
-      AND f.turn BETWEEN
-        GREATEST(e.turn + 1, LEAST(e.turn + ${horizon}, COALESCE(g.max_turn, e.turn + ${horizon})) - ${horizonTolerance})
-        AND LEAST(e.turn + ${horizon} + ${horizonTolerance}, COALESCE(g.max_turn, e.turn + ${horizon}))
-      AND (f.situation IS NOT NULL OR f.abstract IS NOT NULL)
-    WHERE f.turn > e.turn
-  `);
-
-  // Two-pass dedup:
-  //   1. Pick closest turn per horizon (prefer nearest to ideal offset)
-  //   2. If two horizons landed on the same turn, keep the smallest horizon
-  const unionSql = horizonQueries.join('\n    UNION ALL\n');
+  // Step 2: Single flat query for all target turns
+  const valuesList = [...targetTurns].join(',\n    ');
   const sql = `
-    WITH raw_outcomes AS (
-      ${unionSql}
-    ),
-    closest_per_horizon AS (
-      SELECT *,
-        ROW_NUMBER() OVER (
-          PARTITION BY game_id, turn, player_id, horizon
-          ORDER BY ABS(fetched_turn - (turn + horizon)) ASC
-        ) AS rn1
-      FROM raw_outcomes
-    ),
-    deduped AS (
-      SELECT *,
-        ROW_NUMBER() OVER (
-          PARTITION BY game_id, turn, player_id, fetched_turn
-          ORDER BY horizon ASC
-        ) AS rn2
-      FROM closest_per_horizon
-      WHERE rn1 = 1
-    )
-    SELECT game_id, turn, player_id, (fetched_turn - turn) AS actual_horizon, situation, decisions, abstract,
-           d_science_pp, d_faith_pp, d_production_pp, d_food_pp,
-           d_culture, d_gold, d_military, d_population, d_cities
-    FROM deduped
-    WHERE rn2 = 1
+    SELECT f.game_id, f.player_id, f.turn, f.situation, f.decisions, f.abstract,
+           f.science_per_pop, f.faith_per_pop, f.production_per_pop, f.food_per_pop,
+           f.culture_share, f.gold_share, f.military_share, f.population_share, f.cities_share
+    FROM (VALUES ${valuesList}) AS t(game_id, player_id, turn)
+    JOIN episodes f ON f.game_id = t.game_id AND f.player_id = t.player_id AND f.turn = t.turn
+    WHERE f.situation IS NOT NULL OR f.abstract IS NOT NULL
   `;
 
   const result = await conn.run(sql);
-  const rows = await rowsToObjects(result) as OutcomeRow[];
+  const rows = await rowsToObjects(result) as (FetchedEpisode & { game_id: string; player_id: number })[];
 
-  // Group outcomes by candidate key
-  const outcomeMap = new Map<string, OutcomeSnapshot[]>();
+  // Index fetched episodes by (game_id, player_id, turn)
+  const episodeIndex = new Map<string, FetchedEpisode>();
   for (const row of rows) {
-    const key = `${row.game_id}|${row.turn}|${row.player_id}`;
-    if (!outcomeMap.has(key)) {
-      outcomeMap.set(key, []);
-    }
-
-    const deltas: EpisodeDelta = {
-      sciencePerPop: formatDelta(row.d_science_pp),
-      faithPerPop: formatDelta(row.d_faith_pp),
-      productionPerPop: formatDelta(row.d_production_pp),
-      foodPerPop: formatDelta(row.d_food_pp),
-      cultureShare: formatDelta(row.d_culture),
-      goldShare: formatDelta(row.d_gold),
-      militaryShare: formatDelta(row.d_military),
-      populationShare: formatDelta(row.d_population),
-      citiesShare: formatDelta(row.d_cities)
-    };
-
-    outcomeMap.get(key)!.push({
-      horizonTurns: row.actual_horizon,
-      abstract: row.abstract,
-      decisions: row.actual_horizon >= 20 ? null : row.decisions,
-      deltas,
-    });
+    episodeIndex.set(`${row.game_id}|${row.player_id}|${row.turn}`, row);
   }
 
-  // Sort each candidate's outcomes by horizon
-  for (const outcomes of outcomeMap.values()) {
-    outcomes.sort((a, b) => a.horizonTurns - b.horizonTurns);
+  // Step 3: Map results back to candidates and horizons
+  const outcomeMap = new Map<string, OutcomeSnapshot[]>();
+  for (const c of candidates) {
+    const key = `${c.game_id}|${c.turn}|${c.player_id}`;
+    const usedTurns = new Set<number>();
+    const outcomes: OutcomeSnapshot[] = [];
+
+    // Process horizons smallest-first so smaller horizons claim turns first
+    for (const h of horizons) {
+      const idealTurn = c.turn + h;
+
+      // Find closest available episode within tolerance window
+      let bestEp: FetchedEpisode | undefined;
+      let bestDist = Infinity;
+      for (let offset = -horizonTolerance; offset <= horizonTolerance; offset++) {
+        const t = idealTurn + offset;
+        if (t <= c.turn || usedTurns.has(t)) continue;
+        const ep = episodeIndex.get(`${c.game_id}|${c.player_id}|${t}`);
+        if (ep && Math.abs(offset) < bestDist) {
+          bestDist = Math.abs(offset);
+          bestEp = ep;
+        }
+      }
+
+      if (!bestEp) continue;
+      usedTurns.add(bestEp.turn);
+
+      const actualHorizon = bestEp.turn - c.turn;
+      const deltas: EpisodeDelta = {
+        sciencePerPop: formatDelta(relativeDelta(c.science_per_pop, bestEp.science_per_pop)),
+        faithPerPop: formatDelta(relativeDelta(c.faith_per_pop, bestEp.faith_per_pop)),
+        productionPerPop: formatDelta(relativeDelta(c.production_per_pop, bestEp.production_per_pop)),
+        foodPerPop: formatDelta(relativeDelta(c.food_per_pop, bestEp.food_per_pop)),
+        cultureShare: formatDelta(relativeDelta(c.culture_share, bestEp.culture_share)),
+        goldShare: formatDelta(relativeDelta(c.gold_share, bestEp.gold_share)),
+        militaryShare: formatDelta(relativeDelta(c.military_share, bestEp.military_share)),
+        populationShare: formatDelta(relativeDelta(c.population_share, bestEp.population_share)),
+        citiesShare: formatDelta(relativeDelta(c.cities_share, bestEp.cities_share)),
+      };
+
+      outcomes.push({
+        horizonTurns: actualHorizon,
+        abstract: bestEp.abstract,
+        decisions: actualHorizon >= 20 ? null : bestEp.decisions,
+        deltas,
+      });
+    }
+
+    if (outcomes.length > 0) {
+      outcomes.sort((a, b) => a.horizonTurns - b.horizonTurns);
+      outcomeMap.set(key, outcomes);
+    }
   }
 
   return outcomeMap;
