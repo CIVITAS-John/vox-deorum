@@ -29,7 +29,8 @@ export async function prepareTelepathist(
   telemetryDbPath: string,
   gameId: string,
   playerId: number,
-  targetTurns?: number[]
+  targetTurns?: number[],
+  modelOverride?: string
 ): Promise<void> {
   logger.info(`Preparing telepathist for player ${playerId} in game ${gameId}`, {
     targetTurns: targetTurns ? targetTurns.length : 'all',
@@ -54,7 +55,8 @@ export async function prepareTelepathist(
     // Minimal VoxContext — no registerTools() needed.
     // The summarizer agent only needs the agent registry (auto-initialized on import)
     // and model config from env vars. No MCP connection required.
-    context = new VoxContext({}, `archivist-${gameId}-${playerId}`);
+    const modelOverrides: Record<string, string> = modelOverride ? { summarizer: modelOverride } : {};
+    context = new VoxContext(modelOverrides, `archivist-${gameId}-${playerId}`);
 
     await prepareTurnSummaries(parameters, context);
 

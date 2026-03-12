@@ -144,7 +144,7 @@ Different features require different testing infrastructure:
 - `npm run strategist` - Run strategist workflow (strategist/console.ts)
 - `npm run telepathist` - Run telepathist console (telepathist/console.ts)
 - `npm run oracle -- -c <experiment.js>` - Run Oracle prompt replay experiment (oracle/console.ts)
-- `npm run archivist -- -a <archive-path> -o <output.duckdb> [-n <limit>]` - Run Archivist batch pipeline (archivist/console.ts)
+- `npm run archivist -- -a <archive-path> -o <output.duckdb> [-n <limit>] [-m <model>]` - Run Archivist batch pipeline (archivist/console.ts)
 - **Each workflow has dedicated entry point** with shared instrumentation
 - Instrumentation loaded via --import flag for telemetry
 
@@ -302,7 +302,8 @@ VoxAgent (Base)
 - **Phase B**: Select diverse landmarks per player using gameState + neighbor vectors only (no embeddings)
 - **Phase C**: Generate telepathist summaries for landmark turns + consequence turns (+5/+10/+15/+20 horizons), embeddings for landmarks only, then patch episodes via `updateEpisodeTexts()`
 - Shared `horizons` constant in `types.ts` used by both archivist pipeline and reader retrieval
-- CLI flags: `--skip-telepathist` skips summary generation, `--skip-embeddings` skips embedding generation (Phase C runs if either is enabled, reading existing summaries from prior runs), `--force` reprocesses existing data
+- CLI flags: `--skip-telepathist` skips summary generation, `--skip-embeddings` skips embedding generation (Phase C runs if either is enabled, reading existing summaries from prior runs), `--force` reprocesses existing data, `--model`/`-m` overrides the Summarizer LLM model
+- **Multi-instance support**: `game_claims` table in DuckDB provides atomic game-level locking — multiple instances on the same archive automatically divide work without conflicts. Stale claims (>24h) are auto-purged.
 - Pattern: Defer expensive LLM work until after selection to minimize cost
 - **`game_outcomes` table**: Populated during Phase A with `game_id`, `winner_player_id`, `victory_type` (mapped from numeric ID via `victoryTypeMap` in `types.ts`), and `max_turn` (highest turn in the game)
 - **Outcome turn capping**: Reader's `fetchOutcomes()` uses `LEAST(turn + horizon, max_turn)` to cap at game end, with `ROW_NUMBER()` dedup when multiple horizons map to the same capped turn

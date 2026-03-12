@@ -72,6 +72,8 @@ export interface VoxAgentsConfig {
   configsDir: string;
   /** Path to the DuckDB episode database used by the archivist and reader */
   episodeDbPath: string;
+  /** Directory for telemetry and telepathist databases. Empty string uses default 'telemetry' */
+  telemetryDir: string;
 }
 
 /**

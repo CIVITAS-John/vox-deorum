@@ -198,6 +198,10 @@ export const defaultConfig: VoxAgentsConfig = {
         thinkMiddleware: 'think'
       }
     },
+    'openai-compatible/Nemotron-3-Super': {
+      provider: 'openai-compatible',
+      name: 'Nemotron-3-Super'
+    },
     'openai-compatible/embedder': {
       provider: 'openai-compatible',
       name: 'embedder',
@@ -206,7 +210,8 @@ export const defaultConfig: VoxAgentsConfig = {
     'embedder': 'openai-compatible/embedder',
   },
   configsDir: 'configs',
-  episodeDbPath: 'episodes.duckdb'
+  episodeDbPath: 'episodes.duckdb',
+  telemetryDir: ''
 };
 
 /**
@@ -253,7 +258,7 @@ export function computeConfigDiff(
   const diff: Record<string, unknown> = {};
 
   // Compare simple top-level fields (skip versionInfo - runtime only)
-  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath'];
+  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath', 'telemetryDir'];
   for (const key of topLevelKeys) {
     if (!deepEqual(fullConfig[key], defaults[key])) {
       diff[key] = fullConfig[key];
@@ -304,7 +309,7 @@ export function mergeConfigWithDefaults(
   };
 
   // Override top-level fields from file (skip llms, handled separately)
-  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath'];
+  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath', 'telemetryDir'];
   for (const key of topLevelKeys) {
     if (key in fileConfig) {
       (result as any)[key] = fileConfig[key];
@@ -476,7 +481,8 @@ function loadConfig(): VoxAgentsConfig {
     },
     llms: fileConfig.llms,
     configsDir: process.env.CONFIGS_DIR || fileConfig.configsDir,
-    episodeDbPath: process.env.EPISODE_DB_PATH || fileConfig.episodeDbPath
+    episodeDbPath: process.env.EPISODE_DB_PATH || fileConfig.episodeDbPath,
+    telemetryDir: process.env.TELEMETRY_DIR || fileConfig.telemetryDir
   };
 
   // Update logger level based on configuration

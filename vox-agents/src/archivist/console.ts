@@ -11,7 +11,7 @@
  *   Phase C: Generate summaries + embeddings for landmark and consequence turns only
  *
  * Usage:
- *   npm run archivist -- -a <archive-path> -o <output.duckdb> [-g <gameId>] [-n <limit>] [--force] [--skip-telepathist] [--skip-embeddings] [--no-ui]
+ *   npm run archivist -- -a <archive-path> -o <output.duckdb> [-g <gameId>] [-n <limit>] [-m <model>] [--force] [--skip-telepathist] [--skip-embeddings] [--no-ui]
  */
 
 import path from 'node:path';
@@ -39,6 +39,7 @@ const { values } = parseArgs({
     output: { type: 'string', short: 'o' },
     game: { type: 'string', short: 'g' },
     limit: { type: 'string', short: 'n' },
+    model: { type: 'string', short: 'm' },
     force: { type: 'boolean', default: false },
     'skip-telepathist': { type: 'boolean', default: false },
     'skip-embeddings': { type: 'boolean', default: false },
@@ -104,11 +105,12 @@ async function main() {
   const gameFilter = values.game as string | undefined;
   const force = values.force as boolean;
   const limit = values.limit ? parseInt(values.limit as string, 10) : Infinity;
+  const modelOverride = values.model as string | undefined;
   const skipTelepathist = values['skip-telepathist'] as boolean;
   const skipEmbeddings = values['skip-embeddings'] as boolean;
   const noUi = values['no-ui'] as boolean;
 
-  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, limit, skipTelepathist, skipEmbeddings, noUi });
+  logger.info('Archivist starting', { archivePath, outputPath, gameFilter, force, limit, modelOverride, skipTelepathist, skipEmbeddings, noUi });
 
   // Step 1: Scan archive for game entries
   const entries: ArchiveEntry[] = await scanArchive(archivePath, gameFilter);
@@ -125,13 +127,25 @@ async function main() {
   let processed = 0;
   let skipped = 0;
   let errors = 0;
+  let claimed = 0;
   let gamesProcessed = 0;
+
+  // Release all claims on unexpected shutdown
+  const shutdownCleanup = () => { writer.releaseAllGames().catch(() => {}); };
+  process.on('SIGTERM', shutdownCleanup);
 
   // Web UI
   await startWebServer();
 
   // Step 3: Process each game
   for (const entry of entries) {
+    // Claim game to prevent concurrent processing by other instances
+    if (!await writer.claimGame(entry.gameId)) {
+      logger.info(`Skipping game ${entry.gameId} (claimed by another instance)`);
+      claimed++;
+      continue;
+    }
+
     try {
       // Game-level completeness check: skip Phase A+B if all players already processed
       let skipPhaseAB = false;
@@ -288,7 +302,7 @@ async function main() {
             // Generate telepathist summaries for target turns only
             if (!skipTelepathist) {
               logger.info(`Player ${player.playerId}: generating summaries for ${targetTurns.length} turns (${landmarkTurns.length} landmarks + ${targetTurns.length - landmarkTurns.length} consequence)`);
-              await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns);
+              await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns, modelOverride);
             }
 
             // Build update records for turns that have summaries
@@ -336,6 +350,8 @@ async function main() {
     } catch (error) {
       logger.error(`Error processing game ${entry.gameId}`, error);
       errors++;
+    } finally {
+      await writer.releaseGame(entry.gameId);
     }
   }
 
@@ -346,6 +362,7 @@ async function main() {
     games: entries.length,
     processed,
     skipped,
+    claimed,
     errors,
     output: outputPath,
   });

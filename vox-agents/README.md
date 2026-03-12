@@ -323,9 +323,13 @@ npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb --force --ski
 | `-o, --output` | Path to DuckDB output file (default: `episodes.duckdb`) |
 | `-g, --game` | Process only this specific game ID |
 | `-n, --limit` | Max number of incomplete games to process |
+| `-m, --model` | Override the Summarizer LLM model (key from config.llms) |
 | `--force` | Delete existing episodes before re-processing |
 | `--no-ui` | Skip opening DuckDB UI after completion - MUST use when testing changes |
 | `--skip-telepathist` | Skip telepathist process for quick validation on other features |
+| `--skip-embeddings` | Skip embedding generation for landmarks |
+
+Multiple instances can safely process the same archive concurrently — each claims games atomically via a `game_claims` table in the shared DuckDB output.
 
 ## Web UI Dashboard
 

@@ -12,6 +12,7 @@ import { VoxSpanExporter } from "./utils/telemetry/vox-exporter.js";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import dotenv from 'dotenv';
 import { createLogger } from "./utils/logger.js";
+import { config } from "./utils/config.js";
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ dotenv.config();
  * Used to track agent executions, tool calls, and performance metrics.
  * Call `forceFlush()` before application shutdown to ensure all spans are exported.
  */
-export const sqliteExporter = new SQLiteSpanExporter();
+export const sqliteExporter = new SQLiteSpanExporter(config.telemetryDir || 'telemetry');
 
 // Set the singleton instance for VoxSpanExporter
 VoxSpanExporter.setInstance(sqliteExporter);
