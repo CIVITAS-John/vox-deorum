@@ -65,9 +65,9 @@ CREATE TABLE IF NOT EXISTS episodes (
   culture_leader_progress     REAL,
   diplomatic_leader_progress  REAL,
 
-  culture_share       REAL,
+  culture_per_pop     REAL,
   tourism_share       REAL,
-  gold_share          REAL,
+  gold_per_pop        REAL,
   science_per_pop     REAL,
   faith_per_pop       REAL,
   production_per_pop  REAL,
@@ -214,9 +214,9 @@ export class EpisodeWriter {
         ep.diplomaticLeaderProgress != null ? appender.appendFloat(ep.diplomaticLeaderProgress) : appender.appendNull();
 
         // Shares (nullable) — columns 37-48
-        ep.cultureShare != null ? appender.appendFloat(ep.cultureShare) : appender.appendNull();
+        ep.culturePerPop != null ? appender.appendFloat(ep.culturePerPop) : appender.appendNull();
         ep.tourismShare != null ? appender.appendFloat(ep.tourismShare) : appender.appendNull();
-        ep.goldShare != null ? appender.appendFloat(ep.goldShare) : appender.appendNull();
+        ep.goldPerPop != null ? appender.appendFloat(ep.goldPerPop) : appender.appendNull();
         ep.sciencePerPop != null ? appender.appendFloat(ep.sciencePerPop) : appender.appendNull();
         ep.faithPerPop != null ? appender.appendFloat(ep.faithPerPop) : appender.appendNull();
         ep.productionPerPop != null ? appender.appendFloat(ep.productionPerPop) : appender.appendNull();

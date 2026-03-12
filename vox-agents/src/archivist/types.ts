@@ -101,9 +101,7 @@ export interface RawEpisode {
 /** Full episode with computed fields added by the transformer */
 export interface Episode extends RawEpisode {
   // City-adjusted shares (nullable when source data missing)
-  cultureShare: number | null;
   tourismShare: number | null;
-  goldShare: number | null;
   militaryShare: number | null;
   citiesShare: number | null;
   populationShare: number | null;
@@ -115,6 +113,8 @@ export interface Episode extends RawEpisode {
   faithPerPop: number | null;
   productionPerPop: number | null;
   foodPerPop: number | null;
+  culturePerPop: number | null;
+  goldPerPop: number | null;
 
   // Gap values relative to the leader (0 for leader, negative for others).
   // In the game state vector these are centered at 0.5: leader = 0.5, behind by 10 techs = 0.

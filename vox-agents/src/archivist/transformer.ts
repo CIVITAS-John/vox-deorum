@@ -259,20 +259,20 @@ function buildGameStateVector(
   return [
     eraOrdinal / 8,                                                    // [0]
     gsOrdinal / 4,                                                     // [1]
-    // --- Shares (city-adjusted, 8 elements) ---
-    ep.cultureShare ?? 0,                                              // [2]
-    ep.tourismShare ?? 0,                                              // [3]
-    ep.goldShare ?? 0,                                                 // [4]
-    ep.militaryShare ?? 0,                                             // [5]
-    ep.citiesShare ?? 0,                                               // [6]
-    ep.populationShare ?? 0,                                           // [7]
-    ep.votesShare ?? 0,                                                // [8]
-    ep.minorAlliesShare ?? 0,                                          // [9]
-    // --- Per-pop metrics (4 elements) ---
-    clamp(ep.sciencePerPop ?? 0, 1, 20) / 20,                          // [10]
-    clamp(ep.faithPerPop ?? 0, 1, 20) / 20,                            // [11]
-    clamp(ep.productionPerPop ?? 0, 1, 20) / 20,                      // [12]
-    clamp(ep.foodPerPop ?? 0, 1, 20) / 20,                            // [13]
+    // --- Shares (city-adjusted, 6 elements) ---
+    ep.tourismShare ?? 0,                                              // [2]
+    ep.militaryShare ?? 0,                                             // [3]
+    ep.citiesShare ?? 0,                                               // [4]
+    ep.populationShare ?? 0,                                           // [5]
+    ep.votesShare ?? 0,                                                // [6]
+    ep.minorAlliesShare ?? 0,                                          // [7]
+    // --- Per-pop metrics (6 elements) ---
+    clamp(ep.sciencePerPop ?? 0, 1, 20) / 20,                          // [8]
+    clamp(ep.faithPerPop ?? 0, 1, 20) / 20,                            // [9]
+    clamp(ep.productionPerPop ?? 0, 1, 20) / 20,                      // [10]
+    clamp(ep.foodPerPop ?? 0, 1, 20) / 20,                            // [11]
+    clamp(ep.culturePerPop ?? 0, 1, 20) / 20,                         // [12]
+    clamp(ep.goldPerPop ?? 0, 1, 20) / 20,                            // [13]
     // --- Gaps & percentages (5 elements, gaps centered at 0.5) ---
     clamp(ep.technologiesGap / 20 + 0.5, 0, 1),                        // [14]
     clamp(ep.policiesGap / 10 + 0.5, 0, 1),                           // [15]
@@ -370,12 +370,8 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   const shareScale = totalMajors > 0 ? knownMajors / totalMajors : 1;
 
   // City-adjusted shares
-  const cultureShare = scaleShare(computeCityAdjustedShare(raw.culturePerTurn, raw.cities,
-    majorPlayerData.map(p => ({ value: p.culture, cities: p.cities }))), shareScale);
   const tourismShare = scaleShare(computeCityAdjustedShare(raw.tourismPerTurn, raw.cities,
     majorPlayerData.map(p => ({ value: p.tourism, cities: p.cities }))), shareScale);
-  const goldShare = scaleShare(computeCityAdjustedShare(raw.goldPerTurn, raw.cities,
-    majorPlayerData.map(p => ({ value: p.gold, cities: p.cities }))), shareScale);
   const militaryShare = scaleShare(computeCityAdjustedShare(raw.militaryStrength, raw.cities,
     majorPlayerData.map(p => ({ value: p.military, cities: p.cities }))), shareScale);
 
@@ -395,6 +391,8 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   const faithPerPop = computePerPop(faithPerTurnValue, raw.population);
   const productionPerPop = computePerPop(raw.productionPerTurn, raw.population);
   const foodPerPop = computePerPop(raw.foodPerTurn, raw.population);
+  const culturePerPop = computePerPop(raw.culturePerTurn, raw.population);
+  const goldPerPop = computePerPop(raw.goldPerTurn, raw.population);
 
   // Gaps
   const technologiesGap = computeGap(raw.technologies, majorPlayerData.map(p => p.technologies));
@@ -420,9 +418,7 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   // Build partial episode (without vectors)
   const partial = {
     ...raw,
-    cultureShare,
     tourismShare,
-    goldShare,
     militaryShare,
     citiesShare,
     populationShare,
@@ -432,6 +428,8 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     faithPerPop,
     productionPerPop,
     foodPerPop,
+    culturePerPop,
+    goldPerPop,
     technologiesGap,
     policiesGap,
     religionPercentage,

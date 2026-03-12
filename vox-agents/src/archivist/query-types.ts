@@ -39,8 +39,9 @@ export interface EpisodeDelta {
   faithPerPop: string | null;
   productionPerPop: string | null;
   foodPerPop: string | null;
-  cultureShare: string | null;       // "+10%" (relative change in world share)
-  goldShare: string | null;
+  culturePerPop: string | null;
+  goldPerPop: string | null;
+  tourismShare: string | null;       // "+10%" (relative change in world share)
   militaryShare: string | null;
   populationShare: string | null;
   citiesShare: string | null;
@@ -65,8 +66,9 @@ export interface EpisodeResult {
     faithPerPop: number | null;
     productionPerPop: number | null;
     foodPerPop: number | null;
-    cultureShare: number | null;
-    goldShare: number | null;
+    culturePerPop: number | null;
+    goldPerPop: number | null;
+    tourismShare: number | null;
     militaryShare: number | null;
     populationShare: number | null;
     citiesShare: number | null;

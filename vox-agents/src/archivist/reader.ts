@@ -103,8 +103,9 @@ interface CandidateRow {
   faith_per_pop: number | null;
   production_per_pop: number | null;
   food_per_pop: number | null;
-  culture_share: number | null;
-  gold_share: number | null;
+  culture_per_pop: number | null;
+  gold_per_pop: number | null;
+  tourism_share: number | null;
   military_share: number | null;
   population_share: number | null;
   cities_share: number | null;
@@ -168,7 +169,7 @@ async function fetchCandidates(
     SELECT game_id, turn, player_id, civilization, era, grand_strategy, is_winner,
            abstract, situation, decisions,
            science_per_pop, faith_per_pop, production_per_pop, food_per_pop,
-           culture_share, gold_share, military_share, population_share, cities_share,
+           culture_per_pop, gold_per_pop, tourism_share, military_share, population_share, cities_share,
            active_wars, domination_progress, science_progress, culture_progress, diplomatic_progress,
            game_state_vector, neighbor_vector, abstract_embedding,
            victory_type,
@@ -202,8 +203,9 @@ interface FetchedEpisode {
   faith_per_pop: number | null;
   production_per_pop: number | null;
   food_per_pop: number | null;
-  culture_share: number | null;
-  gold_share: number | null;
+  culture_per_pop: number | null;
+  gold_per_pop: number | null;
+  tourism_share: number | null;
   military_share: number | null;
   population_share: number | null;
   cities_share: number | null;
@@ -231,7 +233,7 @@ async function fetchOutcomes(
   const sql = `
     SELECT f.game_id, f.player_id, f.turn, f.situation, f.decisions, f.abstract,
            f.science_per_pop, f.faith_per_pop, f.production_per_pop, f.food_per_pop,
-           f.culture_share, f.gold_share, f.military_share, f.population_share, f.cities_share
+           f.culture_per_pop, f.gold_per_pop, f.tourism_share, f.military_share, f.population_share, f.cities_share
     FROM (VALUES ${valuesList}) AS t(game_id, player_id, turn)
     JOIN episodes f ON f.game_id = t.game_id AND f.player_id = t.player_id AND f.turn = t.turn
     WHERE f.situation IS NOT NULL OR f.abstract IS NOT NULL
@@ -279,8 +281,9 @@ async function fetchOutcomes(
         faithPerPop: formatDelta(relativeDelta(c.faith_per_pop, bestEp.faith_per_pop)),
         productionPerPop: formatDelta(relativeDelta(c.production_per_pop, bestEp.production_per_pop)),
         foodPerPop: formatDelta(relativeDelta(c.food_per_pop, bestEp.food_per_pop)),
-        cultureShare: formatDelta(relativeDelta(c.culture_share, bestEp.culture_share)),
-        goldShare: formatDelta(relativeDelta(c.gold_share, bestEp.gold_share)),
+        culturePerPop: formatDelta(relativeDelta(c.culture_per_pop, bestEp.culture_per_pop)),
+        goldPerPop: formatDelta(relativeDelta(c.gold_per_pop, bestEp.gold_per_pop)),
+        tourismShare: formatDelta(relativeDelta(c.tourism_share, bestEp.tourism_share)),
         militaryShare: formatDelta(relativeDelta(c.military_share, bestEp.military_share)),
         populationShare: formatDelta(relativeDelta(c.population_share, bestEp.population_share)),
         citiesShare: formatDelta(relativeDelta(c.cities_share, bestEp.cities_share)),
@@ -383,8 +386,9 @@ function buildResult(
       faithPerPop: candidate.faith_per_pop,
       productionPerPop: candidate.production_per_pop,
       foodPerPop: candidate.food_per_pop,
-      cultureShare: candidate.culture_share,
-      goldShare: candidate.gold_share,
+      culturePerPop: candidate.culture_per_pop,
+      goldPerPop: candidate.gold_per_pop,
+      tourismShare: candidate.tourism_share,
       militaryShare: candidate.military_share,
       populationShare: candidate.population_share,
       citiesShare: candidate.cities_share,

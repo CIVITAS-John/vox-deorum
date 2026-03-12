@@ -136,16 +136,16 @@ CREATE TABLE episodes (
   --   For non-per-turn fields (cities, population, votes, minor_allies):
   --           {metric}_share = player_value / SUM(all_players_value)  (then scaled)
   --
-  -- Per-pop values (science, faith, production, food):
+  -- Per-pop values (science, faith, production, food, culture, gold):
   --   raw = {metric}_per_turn / population
   --   Science/faith use PlayerSummary.SciencePerTurn/FaithPerTurn
   --   (not stored as raw columns since they're only visible to self)
   --   scaled = clamp(raw, 1, 20) / 20   → range [0, 1]
   -- ══════════════════════════════════════════════════════════════════
 
-  culture_share       REAL,       -- culture_adj / sum(all players' culture_adj)
+  culture_per_pop     REAL,       -- culture_per_turn / population (raw ratio)
   tourism_share       REAL,       -- tourism_adj / sum(all players' tourism_adj)
-  gold_share          REAL,       -- gold_adj / sum(all players' gold_adj)
+  gold_per_pop        REAL,       -- gold_per_turn / population (raw ratio)
   science_per_pop     REAL,       -- SciencePerTurn / population (raw ratio)
   faith_per_pop       REAL,       -- FaithPerTurn / population (raw ratio)
   production_per_pop  REAL,       -- production_per_turn / population (raw ratio)
@@ -188,19 +188,19 @@ CREATE TABLE episodes (
   --   [0]  era / 8                              (Ancient=0 .. Information=7)
   --   [1]  grand_strategy / 4                   (Conquest=1, Culture=2, Diplomacy=3, Science=4, None=0)
   --   --- Shares (city-adjusted, scaled by knownMajors/totalMajors) ---
-  --   [2]  culture_share
-  --   [3]  tourism_share
-  --   [4]  gold_share
-  --   [5]  military_share
-  --   [6]  cities_share
-  --   [7]  population_share
-  --   [8]  votes_share                          (0 if null)
-  --   [9]  minor_allies_share
+  --   [2]  tourism_share
+  --   [3]  military_share
+  --   [4]  cities_share
+  --   [5]  population_share
+  --   [6]  votes_share                          (0 if null)
+  --   [7]  minor_allies_share
   --   --- Per-pop metrics ---
-  --   [10] science_per_pop                      (clamped [1,20] then /20)
-  --   [11] faith_per_pop                        (clamped [1,20] then /20)
-  --   [12] production_per_pop                   (clamped [1,20] then /20)
-  --   [13] food_per_pop                         (clamped [1,20] then /20)
+  --   [8]  science_per_pop                      (clamped [1,20] then /20)
+  --   [9]  faith_per_pop                        (clamped [1,20] then /20)
+  --   [10] production_per_pop                   (clamped [1,20] then /20)
+  --   [11] food_per_pop                         (clamped [1,20] then /20)
+  --   [12] culture_per_pop                      (clamped [1,20] then /20)
+  --   [13] gold_per_pop                         (clamped [1,20] then /20)
   --   --- Gaps & percentages ---
   --   [14] technologies_gap / 10                (clamped to [0, 1])
   --   [15] policies_gap / 5                     (clamped to [0, 1])
