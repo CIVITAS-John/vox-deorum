@@ -303,7 +303,6 @@ VoxAgent (Base)
 - **Phase C**: Generate telepathist summaries for landmark turns + consequence turns (+5/+10/+15/+20 horizons), embeddings for landmarks only, then patch episodes via `updateEpisodeTexts()`
 - Shared `horizons` constant in `types.ts` used by both archivist pipeline and reader retrieval
 - CLI flags: `--skip-telepathist` skips summary generation, `--skip-embeddings` skips embedding generation (Phase C runs if either is enabled, reading existing summaries from prior runs), `--force` reprocesses existing data, `--model`/`-m` overrides the Summarizer LLM model
-- **Multi-instance support**: `game_claims` table in DuckDB provides atomic game-level locking — multiple instances on the same archive automatically divide work without conflicts. Stale claims (>24h) are auto-purged.
 - Pattern: Defer expensive LLM work until after selection to minimize cost
 - **`game_outcomes` table**: Populated during Phase A with `game_id`, `winner_player_id`, `victory_type` (mapped from numeric ID via `victoryTypeMap` in `types.ts`), and `max_turn` (highest turn in the game)
 - **Outcome turn capping**: Reader's `fetchOutcomes()` uses `LEAST(turn + horizon, max_turn)` to cap at game end, with `ROW_NUMBER()` dedup when multiple horizons map to the same capped turn

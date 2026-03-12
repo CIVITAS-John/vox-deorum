@@ -7,7 +7,6 @@
  * The table is created via raw SQL to support DuckDB-specific REAL[] array columns.
  */
 
-import os from 'node:os';
 import { Kysely, CamelCasePlugin, sql } from 'kysely';
 import { DuckDbDialect } from 'kysely-duckdb';
 import { DuckDBInstance, DuckDBListType, FLOAT, listValue } from '@duckdb/node-api';
@@ -108,16 +107,6 @@ CREATE TABLE IF NOT EXISTS game_outcomes (
   max_turn          INTEGER NOT NULL
 )`;
 
-const GAME_CLAIMS_DDL = `
-CREATE TABLE IF NOT EXISTS game_claims (
-  game_id     VARCHAR NOT NULL PRIMARY KEY,
-  pid         INTEGER NOT NULL,
-  hostname    VARCHAR NOT NULL,
-  claimed_at  BIGINT NOT NULL
-)`;
-
-/** Claims older than this are considered stale and can be reclaimed. */
-const STALE_CLAIM_MS = 24 * 60 * 60 * 1000;
 
 /** Writes episode data to a DuckDB database using Kysely with CamelCasePlugin. */
 export class EpisodeWriter {
@@ -143,12 +132,11 @@ export class EpisodeWriter {
     return writer;
   }
 
-  /** Create the episodes, game_outcomes, and game_claims tables if they do not already exist. Uses raw SQL for REAL[] support. */
+  /** Create the episodes and game_outcomes tables if they do not already exist. Uses raw SQL for REAL[] support. */
   private async ensureTable(): Promise<void> {
     await sql.raw(TABLE_DDL).execute(this.db);
     await sql.raw(GAME_OUTCOMES_DDL).execute(this.db);
-    await sql.raw(GAME_CLAIMS_DDL).execute(this.db);
-    this.logger.info('Episodes, game_outcomes, and game_claims tables ensured');
+    this.logger.info('Episodes and game_outcomes tables ensured');
   }
 
   /** Return the set of player IDs already processed for a given game. */
@@ -417,70 +405,8 @@ export class EpisodeWriter {
     this.logger.info(`Updated ${updates.length} episode texts for player ${playerId} in game ${gameId}`);
   }
 
-  /**
-   * Atomically claim a game for processing by this instance.
-   * Cleans stale claims first, then attempts an exclusive insert.
-   * Returns true if this process now owns the game.
-   */
-  async claimGame(gameId: string): Promise<boolean> {
-    const conn = await this.instance.connect();
-    try {
-      // Purge stale claims (crashed instances)
-      const staleThreshold = Date.now() - STALE_CLAIM_MS;
-      const purge = await conn.prepare('DELETE FROM game_claims WHERE claimed_at < $1');
-      purge.bindBigInt(1, BigInt(staleThreshold));
-      await purge.run();
-
-      // Attempt exclusive insert
-      const insert = await conn.prepare(
-        'INSERT INTO game_claims (game_id, pid, hostname, claimed_at) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING'
-      );
-      insert.bindVarchar(1, gameId);
-      insert.bindInteger(2, process.pid);
-      insert.bindVarchar(3, os.hostname());
-      insert.bindBigInt(4, BigInt(Date.now()));
-      await insert.run();
-
-      // Check who owns the claim
-      const check = await conn.prepare('SELECT pid FROM game_claims WHERE game_id = $1');
-      check.bindVarchar(1, gameId);
-      const result = await check.run();
-      const rows = await result.getRows();
-      const ownerPid = rows.length > 0 ? Number(rows[0][0]) : -1;
-      return ownerPid === process.pid;
-    } finally {
-      conn.disconnectSync();
-    }
-  }
-
-  /** Release the claim on a game after processing completes. Only releases own claims. */
-  async releaseGame(gameId: string): Promise<void> {
-    const conn = await this.instance.connect();
-    try {
-      const stmt = await conn.prepare('DELETE FROM game_claims WHERE game_id = $1 AND pid = $2');
-      stmt.bindVarchar(1, gameId);
-      stmt.bindInteger(2, process.pid);
-      await stmt.run();
-    } finally {
-      conn.disconnectSync();
-    }
-  }
-
-  /** Release all claims held by this process (for graceful shutdown). */
-  async releaseAllGames(): Promise<void> {
-    const conn = await this.instance.connect();
-    try {
-      const stmt = await conn.prepare('DELETE FROM game_claims WHERE pid = $1');
-      stmt.bindInteger(1, process.pid);
-      await stmt.run();
-    } finally {
-      conn.disconnectSync();
-    }
-  }
-
   /** Close the DuckDB connection. */
   async close(): Promise<void> {
-    await this.releaseAllGames();
     await this.db.destroy();
     this.logger.info('DuckDB connection closed');
   }

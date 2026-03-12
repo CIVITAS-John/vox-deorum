@@ -116,7 +116,6 @@ interface WorkerStats {
   processed: number;
   skipped: number;
   errors: number;
-  claimed: number;
   gamesProcessed: number;
 }
 
@@ -347,7 +346,7 @@ async function workerLoop(
   dispatched: { count: number },
   workerLabel: string,
 ): Promise<WorkerStats> {
-  const stats: WorkerStats = { processed: 0, skipped: 0, errors: 0, claimed: 0, gamesProcessed: 0 };
+  const stats: WorkerStats = { processed: 0, skipped: 0, errors: 0, gamesProcessed: 0 };
 
   while (true) {
     // Check stop conditions before pulling next game
@@ -364,20 +363,11 @@ async function workerLoop(
 
     dispatched.count++;
 
-    // Claim game to prevent concurrent processing by other instances
-    if (!await writer.claimGame(entry.gameId)) {
-      logger.info(`[${workerLabel}] Skipping game ${entry.gameId} (claimed by another instance)`);
-      stats.claimed++;
-      continue;
-    }
-
     try {
       await processGame(entry, writer, modelOverride, force, skipTelepathist, skipEmbeddings, stats, workerLabel);
     } catch (error) {
       logger.error(`[${workerLabel}] Error processing game ${entry.gameId}`, error);
       stats.errors++;
-    } finally {
-      await writer.releaseGame(entry.gameId);
     }
   }
 
@@ -425,7 +415,6 @@ async function main() {
       await uiConn.run('CALL stop_ui_server();').catch(() => {});
       uiConn.disconnectSync();
     }
-    await writer.releaseAllGames().catch(() => {});
     process.exit(0);
   }
 
@@ -503,10 +492,9 @@ async function main() {
       processed: acc.processed + s.processed,
       skipped: acc.skipped + s.skipped,
       errors: acc.errors + s.errors,
-      claimed: acc.claimed + s.claimed,
       gamesProcessed: acc.gamesProcessed + s.gamesProcessed,
     }),
-    { processed: 0, skipped: 0, errors: 0, claimed: 0, gamesProcessed: 0 }
+    { processed: 0, skipped: 0, errors: 0, gamesProcessed: 0 }
   );
 
   // Step 4: Close and summarize

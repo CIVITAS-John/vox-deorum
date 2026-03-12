@@ -329,7 +329,6 @@ npm run archivist -- -a ../temp/archive -o ../temp/episodes.duckdb --force --ski
 | `--skip-telepathist` | Skip telepathist process for quick validation on other features |
 | `--skip-embeddings` | Skip embedding generation for landmarks |
 
-Multiple instances can safely process the same archive concurrently — each claims games atomically via a `game_claims` table in the shared DuckDB output.
 
 ## Web UI Dashboard
 
