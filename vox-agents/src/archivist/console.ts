@@ -277,7 +277,7 @@ async function processGame(
         const playerTurns = allTurns ?? await writer.getPlayerTurns(entry.gameId, player.playerId);
 
         // Load existing summaries first so computeTargetTurns can snap to nearby ones
-        const summaries = loadTurnSummaries(player.telepathistDbPath);
+        let summaries = loadTurnSummaries(player.telepathistDbPath);
         const existingSummaryTurns = new Set(summaries.keys());
         const { targetTurns, landmarkSet } = computeTargetTurns(landmarkTurns, playerTurns, existingSummaryTurns);
 
@@ -285,6 +285,8 @@ async function processGame(
         if (!skipTelepathist) {
           logger.info(`[${workerLabel}] Player ${player.playerId}: generating summaries for ${targetTurns.length} turns (${landmarkTurns.length} landmarks + ${targetTurns.length - landmarkTurns.length} consequence)`);
           await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns, modelOverride);
+          // Reload only the target turns to pick up newly generated summaries
+          summaries = loadTurnSummaries(player.telepathistDbPath, targetTurns);
         }
 
         // Build update records for turns that have summaries

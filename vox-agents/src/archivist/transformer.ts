@@ -267,12 +267,12 @@ function buildGameStateVector(
     ep.votesShare ?? 0,                                                // [6]
     ep.minorAlliesShare ?? 0,                                          // [7]
     // --- Per-pop metrics (6 elements) ---
-    clamp(ep.sciencePerPop ?? 0, 1, 20) / 20,                          // [8]
-    clamp(ep.faithPerPop ?? 0, 1, 20) / 20,                            // [9]
-    clamp(ep.productionPerPop ?? 0, 1, 20) / 20,                      // [10]
-    clamp(ep.foodPerPop ?? 0, 1, 20) / 20,                            // [11]
-    clamp(ep.culturePerPop ?? 0, 1, 20) / 20,                         // [12]
-    clamp(ep.goldPerPop ?? 0, 1, 20) / 20,                            // [13]
+    clamp(ep.sciencePerPop ?? 0, 0, 20) / 20,                          // [8]
+    clamp(ep.faithPerPop ?? 0, 0, 20) / 20,                            // [9]
+    clamp(ep.productionPerPop ?? 0, 0, 20) / 20,                      // [10]
+    clamp(ep.foodPerPop ?? 0, 0, 20) / 20,                            // [11]
+    clamp(ep.culturePerPop ?? 0, 0, 20) / 20,                         // [12]
+    clamp(ep.goldPerPop ?? 0, 0, 20) / 20,                            // [13]
     // --- Gaps & percentages (5 elements, gaps centered at 0.5) ---
     clamp(ep.technologiesGap / 20 + 0.5, 0, 1),                        // [14]
     clamp(ep.policiesGap / 10 + 0.5, 0, 1),                           // [15]

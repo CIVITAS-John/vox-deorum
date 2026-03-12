@@ -275,8 +275,9 @@ export async function extractPlayerEpisodes(
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Load turn summaries from the telepathist database. Returns empty map if DB doesn't exist. */
-export function loadTurnSummaries(dbPath: string): Map<number, TurnSummaryRecord> {
+/** Load turn summaries from the telepathist database. Returns empty map if DB doesn't exist.
+ *  When `turns` is provided, only loads summaries for those specific turns. */
+export function loadTurnSummaries(dbPath: string, turns?: number[]): Map<number, TurnSummaryRecord> {
   const map = new Map<number, TurnSummaryRecord>();
 
   if (!fs.existsSync(dbPath)) {
@@ -286,7 +287,9 @@ export function loadTurnSummaries(dbPath: string): Map<number, TurnSummaryRecord
 
   try {
     const sqliteDb = new Database(dbPath, { readonly: true });
-    const rows = sqliteDb.prepare('SELECT * FROM turn_summaries').all() as TurnSummaryRecord[];
+    const rows = turns && turns.length > 0
+      ? sqliteDb.prepare(`SELECT * FROM turn_summaries WHERE turn IN (${turns.map(() => '?').join(',')})`).all(...turns) as TurnSummaryRecord[]
+      : sqliteDb.prepare('SELECT * FROM turn_summaries').all() as TurnSummaryRecord[];
     for (const row of rows) {
       map.set(row.turn, row);
     }
