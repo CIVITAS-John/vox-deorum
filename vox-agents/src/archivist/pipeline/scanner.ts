@@ -157,7 +157,7 @@ export async function scanArchive(
         const llmPlayerIds = new Set(flavorRows.map((r) => r.Key));
 
         if (llmPlayerIds.size === 0) {
-          logger.debug(`No LLM players found for game ${gameId}, skipping`);
+          logger.warn(`No LLM players found for game ${gameId}, skipping`);
           continue;
         }
 

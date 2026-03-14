@@ -325,6 +325,14 @@ async function main() {
   const force = values.force as boolean;
   const limit = values.limit ? parseInt(values.limit as string, 10) : Infinity;
   const models = (values.model as string)?.split(',').map(s => s.trim()).filter(Boolean) ?? [];
+
+  // Validate that all specified models exist in config
+  const invalidModels = models.filter(m => !config.llms[m]);
+  if (invalidModels.length > 0) {
+    const available = Object.keys(config.llms).filter(k => typeof config.llms[k] !== 'string').join(', ');
+    throw new Error(`Model(s) not found in config: ${invalidModels.join(', ')}. Available: ${available}`);
+  }
+
   const skipTelepathist = values['skip-telepathist'] as boolean;
   const skipEmbeddings = values['skip-embeddings'] as boolean;
   const noUi = values['no-ui'] as boolean;
@@ -469,6 +477,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  logger.error('Archivist failed', { error: error instanceof Error ? { message: error.message, stack: error.stack } : error });
+  logger.error(error);
   process.exit(1);
 });
