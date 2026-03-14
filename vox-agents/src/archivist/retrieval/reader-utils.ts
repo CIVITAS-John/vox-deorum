@@ -58,6 +58,12 @@ export function relativeDelta(base: number | null, future: number | null): numbe
   return (future - base) / base;
 }
 
+/** Like relativeDelta but clamps base to at least 1 for per-pop metrics. */
+export function relativePerPopDelta(base: number | null, future: number | null): number | null {
+  if (base == null || future == null) return null;
+  return (future - base) / Math.max(base, 1);
+}
+
 /** Candidate row from Stage 1 scoring */
 export interface CandidateRow {
   game_id: string;

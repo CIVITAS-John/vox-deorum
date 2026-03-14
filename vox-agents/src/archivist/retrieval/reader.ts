@@ -23,6 +23,7 @@ import {
   escapeSql,
   rowsToObjects,
   relativeDelta,
+  relativePerPopDelta,
   diversitySelect,
   type CandidateRow,
 } from './reader-utils.js';
@@ -200,12 +201,12 @@ async function fetchOutcomes(
 
       const actualHorizon = bestEp.turn - c.turn;
       const deltas: EpisodeDelta = {
-        sciencePerPop: formatDelta(relativeDelta(c.science_per_pop, bestEp.science_per_pop)),
-        faithPerPop: formatDelta(relativeDelta(c.faith_per_pop, bestEp.faith_per_pop)),
-        productionPerPop: formatDelta(relativeDelta(c.production_per_pop, bestEp.production_per_pop)),
-        foodPerPop: formatDelta(relativeDelta(c.food_per_pop, bestEp.food_per_pop)),
-        culturePerPop: formatDelta(relativeDelta(c.culture_per_pop, bestEp.culture_per_pop)),
-        goldPerPop: formatDelta(relativeDelta(c.gold_per_pop, bestEp.gold_per_pop)),
+        sciencePerPop: formatDelta(relativePerPopDelta(c.science_per_pop, bestEp.science_per_pop)),
+        faithPerPop: formatDelta(relativePerPopDelta(c.faith_per_pop, bestEp.faith_per_pop)),
+        productionPerPop: formatDelta(relativePerPopDelta(c.production_per_pop, bestEp.production_per_pop)),
+        foodPerPop: formatDelta(relativePerPopDelta(c.food_per_pop, bestEp.food_per_pop)),
+        culturePerPop: formatDelta(relativePerPopDelta(c.culture_per_pop, bestEp.culture_per_pop)),
+        goldPerPop: formatDelta(relativePerPopDelta(c.gold_per_pop, bestEp.gold_per_pop)),
         tourismShare: formatDelta(relativeDelta(c.tourism_share, bestEp.tourism_share)),
         militaryShare: formatDelta(relativeDelta(c.military_share, bestEp.military_share)),
         populationShare: formatDelta(relativeDelta(c.population_share, bestEp.population_share)),
