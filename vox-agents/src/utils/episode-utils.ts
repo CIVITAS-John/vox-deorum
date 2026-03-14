@@ -198,9 +198,6 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
 
   const sections = results.map((ep, i) => {
     const header = `## Episode ${i + 1}: ${ep.civilization} (${ep.era}, Turn ${ep.turn})`;
-    const winnerStr = ep.isWinner
-      ? `Yes${ep.victoryType ? ` (${ep.victoryType})` : ''}`
-      : 'No';
     const meta = `- **Similarity**: ${(ep.similarity * 100).toFixed(1)}%`;
 
     const parts = [header, meta];
@@ -218,7 +215,7 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     if (ind.citiesShare != null) indParts.push(`citiesShare: ${ind.citiesShare.toFixed(1)}x`);
     if (ind.minorAlliesShare != null) indParts.push(`minorAlliesShare: ${ind.minorAlliesShare.toFixed(1)}x`);
     if (ind.religionPercentage != null) indParts.push(`religionShare: ${(ind.religionPercentage * 100).toFixed(0)}%`);
-    if (ind.warWeariness != null) indParts.push(`warWeariness: ${(ind.religionPercentage * 100).toFixed(0)}%}`);
+    if (ind.warWeariness != null) indParts.push(`warWeariness: ${(ind.religionPercentage * 100).toFixed(0)}%`);
     if (ind.activeWars != null) indParts.push(`Wars: ${ind.activeWars}`);
     if (ind.truces != null) indParts.push(`Truces: ${ind.truces}`);
     if (indParts.length > 0) parts.push(`- **Indicators**: ${indParts.join(' | ')}`);
@@ -238,14 +235,14 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
         const turnLabel = `+${out.horizonTurns} Turns`;
         parts.push(`\n### Outcome at ${turnLabel}`);
         parts.push(`- **Delta**: ${deltaStr}`);
-        if (out.situationAbstract) parts.push(`\n#### Situation\n${out.situationAbstract.replaceAll("\n", "")}`);
-        if (out.decisionAbstract) parts.push(`\n#### Further Decisions\n${out.decisionAbstract.replaceAll("\n", "")}`);
+        if (out.situationAbstract) parts.push(`\n- **Situation**: ${out.situationAbstract.replaceAll("\n", "")}`);
+        if (out.decisionAbstract) parts.push(`\n- **Further Decisions**: ${out.decisionAbstract.replaceAll("\n", "")}`);
       }
     }
 
     // Final outcome
     if (ep.victoryType) {
-        parts.push(`\n### Final outcome`);
+        parts.push(`\n### Long-term outcome`);
         if (ep.isWinner) {
           parts.push(`${ep.civilization} achieved **${ep.victoryType}** victory.`);
         } else {

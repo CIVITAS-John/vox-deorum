@@ -84,6 +84,7 @@ async function fetchCandidates(
       LEFT JOIN game_outcomes g ON g.game_id = ep.game_id
       WHERE is_landmark = TRUE
         AND game_state_vector IS NOT NULL
+        AND situation_abstract IS NOT NULL
       ORDER BY fuzzy_score DESC
       LIMIT 200
     )
@@ -156,7 +157,7 @@ async function fetchOutcomes(
            f.religion_percentage, f.war_weariness
     FROM (VALUES ${valuesList}) AS t(game_id, player_id, turn)
     JOIN episodes f ON f.game_id = t.game_id AND f.player_id = t.player_id AND f.turn = t.turn
-    WHERE f.situation IS NOT NULL OR f.situation_abstract IS NOT NULL
+    WHERE f.situation_abstract IS NOT NULL
   `;
 
   const result = await conn.run(sql);
