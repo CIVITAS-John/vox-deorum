@@ -36,15 +36,16 @@ export interface OutcomeSnapshot {
 /** Quantitative deltas as formatted strings */
 export interface EpisodeDelta {
   sciencePerPop: string | null;      // "+50%" (relative change in per-pop ratio)
-  faithPerPop: string | null;
-  productionPerPop: string | null;
-  foodPerPop: string | null;
   culturePerPop: string | null;
+  productionPerPop: string | null;
   goldPerPop: string | null;
   tourismShare: string | null;       // "+10%" (relative change in world share)
   militaryShare: string | null;
   populationShare: string | null;
   citiesShare: string | null;
+  minorAlliesShare: string | null;
+  religionPercentage: string | null;
+  warWeariness: string | null;
 }
 
 /** A retrieved episode with outcomes */
@@ -63,15 +64,16 @@ export interface EpisodeResult {
   outcomes: OutcomeSnapshot[];   // 0-4 (fewer if game ended early)
   indicators: {
     sciencePerPop: number | null;
-    faithPerPop: number | null;
-    productionPerPop: number | null;
-    foodPerPop: number | null;
     culturePerPop: number | null;
+    productionPerPop: number | null;
     goldPerPop: number | null;
     tourismShare: number | null;
     militaryShare: number | null;
     populationShare: number | null;
     citiesShare: number | null;
+    minorAlliesShare: number | null;
+    religionPercentage: number;
+    warWeariness: number;
     activeWars: number;
     truces: number;
     dominationProgress: number | null;

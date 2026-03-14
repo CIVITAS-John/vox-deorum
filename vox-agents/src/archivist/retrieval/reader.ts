@@ -98,8 +98,9 @@ async function fetchCandidates(
     )
     SELECT game_id, turn, player_id, civilization, era, grand_strategy, is_winner,
            abstract, situation, decisions,
-           science_per_pop, faith_per_pop, production_per_pop, food_per_pop,
-           culture_per_pop, gold_per_pop, tourism_share, military_share, population_share, cities_share,
+           science_per_pop, culture_per_pop, production_per_pop,
+           gold_per_pop, tourism_share, military_share, population_share, cities_share, minor_allies_share,
+           religion_percentage, war_weariness,
            active_wars, truces, domination_progress, science_progress, culture_progress, diplomatic_progress,
            game_state_vector, neighbor_vector, abstract_embedding,
            victory_type,
@@ -124,15 +125,16 @@ interface FetchedEpisode {
   decisions: string | null;
   abstract: string | null;
   science_per_pop: number | null;
-  faith_per_pop: number | null;
-  production_per_pop: number | null;
-  food_per_pop: number | null;
   culture_per_pop: number | null;
+  production_per_pop: number | null;
   gold_per_pop: number | null;
   tourism_share: number | null;
   military_share: number | null;
   population_share: number | null;
   cities_share: number | null;
+  minor_allies_share: number | null;
+  religion_percentage: number;
+  war_weariness: number;
 }
 
 async function fetchOutcomes(
@@ -156,8 +158,9 @@ async function fetchOutcomes(
   const valuesList = [...targetTurns].join(',\n    ');
   const sql = `
     SELECT f.game_id, f.player_id, f.turn, f.situation, f.decisions, f.abstract,
-           f.science_per_pop, f.faith_per_pop, f.production_per_pop, f.food_per_pop,
-           f.culture_per_pop, f.gold_per_pop, f.tourism_share, f.military_share, f.population_share, f.cities_share
+           f.science_per_pop, f.culture_per_pop, f.production_per_pop,
+           f.gold_per_pop, f.tourism_share, f.military_share, f.population_share, f.cities_share, f.minor_allies_share,
+           f.religion_percentage, f.war_weariness
     FROM (VALUES ${valuesList}) AS t(game_id, player_id, turn)
     JOIN episodes f ON f.game_id = t.game_id AND f.player_id = t.player_id AND f.turn = t.turn
     WHERE f.situation IS NOT NULL OR f.abstract IS NOT NULL
@@ -202,15 +205,16 @@ async function fetchOutcomes(
       const actualHorizon = bestEp.turn - c.turn;
       const deltas: EpisodeDelta = {
         sciencePerPop: formatDelta(relativePerPopDelta(c.science_per_pop, bestEp.science_per_pop)),
-        faithPerPop: formatDelta(relativePerPopDelta(c.faith_per_pop, bestEp.faith_per_pop)),
-        productionPerPop: formatDelta(relativePerPopDelta(c.production_per_pop, bestEp.production_per_pop)),
-        foodPerPop: formatDelta(relativePerPopDelta(c.food_per_pop, bestEp.food_per_pop)),
         culturePerPop: formatDelta(relativePerPopDelta(c.culture_per_pop, bestEp.culture_per_pop)),
+        productionPerPop: formatDelta(relativePerPopDelta(c.production_per_pop, bestEp.production_per_pop)),
         goldPerPop: formatDelta(relativePerPopDelta(c.gold_per_pop, bestEp.gold_per_pop)),
         tourismShare: formatDelta(relativeDelta(c.tourism_share, bestEp.tourism_share)),
         militaryShare: formatDelta(relativeDelta(c.military_share, bestEp.military_share)),
         populationShare: formatDelta(relativeDelta(c.population_share, bestEp.population_share)),
         citiesShare: formatDelta(relativeDelta(c.cities_share, bestEp.cities_share)),
+        minorAlliesShare: formatDelta(relativeDelta(c.minor_allies_share, bestEp.minor_allies_share)),
+        religionPercentage: formatDelta(relativePerPopDelta(c.religion_percentage, bestEp.religion_percentage)),
+        warWeariness: formatDelta(relativePerPopDelta(c.war_weariness, bestEp.war_weariness)),
       };
 
       outcomes.push({
@@ -255,15 +259,16 @@ function buildResult(
     outcomes,
     indicators: {
       sciencePerPop: candidate.science_per_pop,
-      faithPerPop: candidate.faith_per_pop,
-      productionPerPop: candidate.production_per_pop,
-      foodPerPop: candidate.food_per_pop,
       culturePerPop: candidate.culture_per_pop,
+      productionPerPop: candidate.production_per_pop,
       goldPerPop: candidate.gold_per_pop,
       tourismShare: candidate.tourism_share,
       militaryShare: candidate.military_share,
       populationShare: candidate.population_share,
       citiesShare: candidate.cities_share,
+      minorAlliesShare: candidate.minor_allies_share,
+      religionPercentage: candidate.religion_percentage,
+      warWeariness: candidate.war_weariness,
       activeWars: candidate.active_wars,
       truces: candidate.truces,
       dominationProgress: candidate.domination_progress,

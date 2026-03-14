@@ -67,9 +67,11 @@ export async function preparePhaseSummaries(
             .map(s => `## Turn ${s.turn}\n### Situation\n${s.situation}\n### Decisions\n${s.decisions}`)
             .join('\n\n');
 
+          const [instruction, reminder] = buildPhaseSummaryInstruction(phase.fromTurn, phase.toTurn);
           const input: SummarizerInput = {
             text: `# Turn Summaries: Turns ${phase.fromTurn} to ${phase.toTurn}\n${formattedSummaries}`,
-            instruction: buildPhaseSummaryInstruction(phase.fromTurn, phase.toTurn)
+            instruction,
+            reminder
           };
           const phaseParameters = { ...parameters, turn: phase.toTurn };
 

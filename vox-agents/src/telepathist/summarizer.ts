@@ -36,6 +36,8 @@ export interface SummarizerInput {
   text: string;
   /** What to focus on and how to format the output */
   instruction: string;
+  /** Optional reminder appended after the data to reinforce key instructions over long contexts */
+  reminder?: string;
 }
 
 /**
@@ -80,9 +82,12 @@ ${summarizerGuidelines}`.trim();
     input: SummarizerInput,
     _context: VoxContext<TelepathistParameters>
   ) {
+    const content = input.reminder
+      ? `# Task\n${input.instruction}\n\n# Data\n${input.text}\n\n# Reminder\n${input.reminder}`
+      : `# Task\n${input.instruction}\n\n# Data\n${input.text}`;
     return [{
       role: 'user' as const,
-      content: `# Task\n${input.instruction}\n\n# Data\n${input.text}`
+      content
     }];
   }
 }
@@ -90,11 +95,12 @@ ${summarizerGuidelines}`.trim();
 const cacheLogger = createLogger('SummarizerCache');
 
 /** Generates a SHA-256 cache key from the summarizer input text and instruction. */
-function computeCacheKey(text: string, instruction: string): string {
-  return createHash('sha256')
+function computeCacheKey(text: string, instruction: string, reminder?: string): string {
+  const hash = createHash('sha256')
     .update(text)
-    .update(instruction)
-    .digest('hex');
+    .update(instruction);
+  if (reminder) hash.update(reminder);
+  return hash.digest('hex');
 }
 
 /**
@@ -107,7 +113,7 @@ export async function summarizeWithCache(
   params: TelepathistParameters,
   context: VoxContext<TelepathistParameters>
 ): Promise<string | undefined> {
-  const cacheKey = computeCacheKey(input.text, input.instruction);
+  const cacheKey = computeCacheKey(input.text, input.instruction, input.reminder);
 
   const cached = await params.telepathistDb
     .selectFrom('summary_cache')

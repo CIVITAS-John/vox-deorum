@@ -209,17 +209,18 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     const ind = ep.indicators;
     const indParts: string[] = [];
     if (ind.sciencePerPop != null) indParts.push(`sciencePerPop: ${ind.sciencePerPop.toFixed(1)}`);
-    if (ind.faithPerPop != null) indParts.push(`faithPerPop: ${ind.faithPerPop.toFixed(1)}`);
-    if (ind.productionPerPop != null) indParts.push(`productionPerPop: ${ind.productionPerPop.toFixed(1)}`);
-    if (ind.foodPerPop != null) indParts.push(`foodPerPop: ${ind.foodPerPop.toFixed(1)}`);
     if (ind.culturePerPop != null) indParts.push(`culturePerPop: ${ind.culturePerPop.toFixed(1)}`);
+    if (ind.productionPerPop != null) indParts.push(`productionPerPop: ${ind.productionPerPop.toFixed(1)}`);
     if (ind.goldPerPop != null) indParts.push(`goldPerPop: ${ind.goldPerPop.toFixed(1)}`);
     if (ind.tourismShare != null) indParts.push(`tourismShare: ${(ind.tourismShare * 100).toFixed(0)}%`);
     if (ind.militaryShare != null) indParts.push(`militaryShare: ${(ind.militaryShare * 100).toFixed(0)}%`);
     if (ind.populationShare != null) indParts.push(`populationShare: ${(ind.populationShare * 100).toFixed(0)}%`);
     if (ind.citiesShare != null) indParts.push(`citiesShare: ${(ind.citiesShare * 100).toFixed(0)}%`);
-    indParts.push(`Wars: ${ind.activeWars}`);
-    indParts.push(`Truces: ${ind.truces}`);
+    if (ind.minorAlliesShare != null) indParts.push(`minorAlliesShare: ${(ind.minorAlliesShare * 100).toFixed(0)}%`);
+    indParts.push(`religion: ${(ind.religionPercentage * 100).toFixed(0)}%`);
+    indParts.push(`warWeariness: ${ind.warWeariness}`);
+    if (ind.activeWars != null) indParts.push(`Wars: ${ind.activeWars}`);
+    if (ind.truces != null) indParts.push(`Truces: ${ind.truces}`);
     if (indParts.length > 0) parts.push(`- **Indicators**: ${indParts.join(' | ')}`);
 
     // Situations

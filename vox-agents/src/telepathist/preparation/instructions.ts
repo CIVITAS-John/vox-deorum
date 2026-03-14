@@ -32,11 +32,11 @@ export const phaseSummarySchema = z.object({
 export type PhaseSummaryOutput = z.infer<typeof phaseSummarySchema>;
 
 /**
- * Builds the instruction for turn summarization.
- * Requests markdown output with four top-level headings.
+ * Builds the instruction and reminder for turn summarization.
+ * Returns [instruction, reminder] — the reminder is placed after the data by the Summarizer.
  */
-export function buildTurnSummaryInstruction(turn: number): string {
-  return `Accurately summarize the game state and decisions for turn ${turn}.
+export function buildTurnSummaryInstruction(turn: number): [string, string] {
+  const instruction = `Accurately summarize the game state and decisions for turn ${turn}.
 
 # Guidelines
 ${summarizerGuidelines}
@@ -66,20 +66,21 @@ A short combined narrative weaving the situation and decisions together into a c
 # Focus
 - Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts.
 - Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions).
-- Carefully go through the raw game data to clarify uncertain situations.
+- Carefully go through the raw game data to clarify uncertain situations.`;
 
-# Reminder
-- Respond ONLY with the four markdown sections above: Situation, Abstract, Decisions, Narrative.
+  const reminder = `- Respond ONLY with the four markdown sections above: Situation, Abstract, Decisions, Narrative.
 - "Situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
 - Do not include any other text or commentary outside those sections.`;
+
+  return [instruction, reminder];
 }
 
 /**
- * Builds the instruction for phase summarization.
- * Requests markdown output with four top-level headings.
+ * Builds the instruction and reminder for phase summarization.
+ * Returns [instruction, reminder] — the reminder is placed after the data by the Summarizer.
  */
-export function buildPhaseSummaryInstruction(fromTurn: number, toTurn: number): string {
-  return `Create a structured summary of this phase (turns ${fromTurn}-${toTurn}) based on the individual turn summaries provided. This summary will serve as high-level context for a conversation about the game.
+export function buildPhaseSummaryInstruction(fromTurn: number, toTurn: number): [string, string] {
+  const instruction = `Create a structured summary of this phase (turns ${fromTurn}-${toTurn}) based on the individual turn summaries provided. This summary will serve as high-level context for a conversation about the game.
 
 # Guidelines
 ${summarizerGuidelines}
@@ -107,12 +108,13 @@ A short combined narrative weaving the situation and decisions into a cohesive p
 # Focus
 - Identify the dominant themes and narrative arcs of this phase.
 - Highlight major turning points: wars declared/ended, key technologies, policy adoptions, new cities.
-- Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?
+- Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?`;
 
-# Reminder
-- Respond ONLY with the four markdown sections above: Situation, Abstract, Decisions, Narrative.
+  const reminder = `- Respond ONLY with the four markdown sections above: Situation, Abstract, Decisions, Narrative.
 - "Situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
 - Do not include any other text or commentary outside those sections.`;
+
+  return [instruction, reminder];
 }
 
 /** The four expected summary heading names, in order. */

@@ -75,9 +75,11 @@ export async function prepareTurnSummaries(
             decisionsText
           ].join('\n\n');
 
+          const [instruction, reminder] = buildTurnSummaryInstruction(turn);
           const summaryInput: SummarizerInput = {
             text: combinedText,
-            instruction: buildTurnSummaryInstruction(turn)
+            instruction,
+            reminder
           };
 
           const turnParameters = { ...parameters, turn };
