@@ -21,8 +21,9 @@ const logger = createLogger('TelepathistParameters');
 export interface TurnSummaryRecord {
   turn: number;
   situation: string;
-  abstract: string;
+  situationAbstract: string;
   decisions: string;
+  decisionAbstract: string;
   narrative: string;
   model: string;
   createdAt: number;
@@ -35,8 +36,9 @@ export interface PhaseSummaryRecord {
   fromTurn: number;
   toTurn: number;
   situation: string;
-  abstract: string;
+  situationAbstract: string;
   decisions: string;
+  decisionAbstract: string;
   narrative: string;
   model: string;
   createdAt: number;
@@ -130,8 +132,9 @@ export async function createTelepathistParameters(
       .ifNotExists()
       .addColumn('turn', 'integer', (col) => col.primaryKey())
       .addColumn('situation', 'text', (col) => col.notNull())
-      .addColumn('abstract', 'text', (col) => col.notNull())
+      .addColumn('situationAbstract', 'text', (col) => col.notNull())
       .addColumn('decisions', 'text', (col) => col.notNull())
+      .addColumn('decisionAbstract', 'text', (col) => col.notNull())
       .addColumn('narrative', 'text', (col) => col.notNull())
       .addColumn('model', 'text', (col) => col.notNull())
       .addColumn('createdAt', 'integer', (col) => col.notNull())
@@ -143,8 +146,9 @@ export async function createTelepathistParameters(
       .addColumn('fromTurn', 'integer', (col) => col.notNull())
       .addColumn('toTurn', 'integer', (col) => col.notNull())
       .addColumn('situation', 'text', (col) => col.notNull())
-      .addColumn('abstract', 'text', (col) => col.notNull())
+      .addColumn('situationAbstract', 'text', (col) => col.notNull())
       .addColumn('decisions', 'text', (col) => col.notNull())
+      .addColumn('decisionAbstract', 'text', (col) => col.notNull())
       .addColumn('narrative', 'text', (col) => col.notNull())
       .addColumn('model', 'text', (col) => col.notNull())
       .addColumn('createdAt', 'integer', (col) => col.notNull())

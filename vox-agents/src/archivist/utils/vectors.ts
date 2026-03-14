@@ -2,7 +2,7 @@
  * @module archivist/utils/vectors
  *
  * Feature vector construction for the archivist pipeline.
- * Builds the 35-element game state vector and 32-element neighbor vector
+ * Builds the 33-element game state vector and 32-element neighbor vector
  * used for similarity search and diversity selection.
  */
 
@@ -131,9 +131,9 @@ export function buildNeighborVector(
 // Game state vector
 // ---------------------------------------------------------------------------
 
-/** Build the 35-element game state vector from computed Episode fields. */
+/** Build the 33-element game state vector from computed Episode fields. */
 export function buildGameStateVector(
-  ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'abstractEmbedding' | 'isLandmark'>
+  ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'situationAbstractEmbedding' | 'isLandmark'>
 ): number[] {
   const eraOrdinal = eraMap[ep.era] ?? 0;
   const gsOrdinal = (ep.grandStrategy ? grandStrategyMap[ep.grandStrategy] : 0) ?? 0;
@@ -148,36 +148,36 @@ export function buildGameStateVector(
     ep.populationShare ?? 0,                                           // [5]
     ep.votesShare ?? 0,                                                // [6]
     ep.minorAlliesShare ?? 0,                                          // [7]
-    // --- Per-pop metrics (6 elements) ---
-    clamp(ep.sciencePerPop ?? 0, 0, 20) / 20,                          // [8]
-    clamp(ep.faithPerPop ?? 0, 0, 20) / 20,                            // [9]
-    clamp(ep.productionPerPop ?? 0, 0, 20) / 20,                      // [10]
-    clamp(ep.foodPerPop ?? 0, 0, 20) / 20,                            // [11]
-    clamp(ep.culturePerPop ?? 0, 0, 20) / 20,                         // [12]
-    clamp(ep.goldPerPop ?? 0, 0, 20) / 20,                            // [13]
-    // --- Gaps & percentages (5 elements, gaps centered at 0.5) ---
-    clamp(ep.technologiesGap / 20 + 0.5, 0, 1),                        // [14]
-    clamp(ep.policiesGap / 10 + 0.5, 0, 1),                           // [15]
+    // --- Per-pop metrics (6 elements, clamped [1, 10] → [0, 1]) ---
+    (clamp(ep.sciencePerPop ?? 1, 1, 10) - 1) / 9,                    // [8]
+    (clamp(ep.faithPerPop ?? 1, 1, 10) - 1) / 9,                      // [9]
+    (clamp(ep.productionPerPop ?? 1, 1, 10) - 1) / 9,                 // [10]
+    (clamp(ep.foodPerPop ?? 1, 1, 10) - 1) / 9,                       // [11]
+    (clamp(ep.culturePerPop ?? 1, 1, 10) - 1) / 9,                    // [12]
+    (clamp(ep.goldPerPop ?? 1, 1, 10) - 1) / 9,                       // [13]
+    // --- Bidirectional gaps (negative = leading, positive = behind) ---
+    clamp((ep.technologiesGap + 5) / 15, 0, 1),                       // [14]  range [-5, +10]
+    clamp((ep.policiesGap + 5) / 15, 0, 1),                           // [15]  range [-5, +10]
+    // --- Percentages (3 elements) ---
     clamp((ep.happinessPercentage ?? 0) / 100, 0, 1),                 // [16]
     clamp(ep.religionPercentage, 0, 1),                                // [17]
-    clamp(ep.ideologyShare, 0, 1),                                                  // [18]
+    clamp(ep.ideologyShare, 0, 1),                                     // [18]
     // --- Diplomatic (8 elements) ---
     ep.isVassal,                                                       // [19]
-    clamp(ep.vassals / 3, 0, 1),                                      // [20]
+    clamp(ep.vassals / 3, 0, 1),                                       // [20]
     clamp(ep.warWeariness / 100, 0, 1),                                // [21]
     clamp(ep.activeWars / 3, 0, 1),                                    // [22]
-    clamp(ep.truces / 3, 0, 1),                                       // [23]
-    clamp(ep.friends / 3, 0, 1),                                      // [24]
+    clamp(ep.truces / 3, 0, 1),                                        // [23]
+    clamp(ep.friends / 3, 0, 1),                                       // [24]
     clamp(ep.defensivePacts / 3, 0, 1),                                // [25]
     clamp(ep.denouncements / 3, 0, 1),                                 // [26]
-    // --- Victory (8 elements) ---
-    clamp((ep.dominationProgress ?? 0) / 100, 0, 1),                   // [27]
-    clamp((ep.scienceProgress ?? 0) / 100, 0, 1),                      // [28]
-    clamp((ep.cultureProgress ?? 0) / 100, 0, 1),                      // [29]
-    clamp((ep.diplomaticProgress ?? 0) / 100, 0, 1),                   // [30]
-    clamp((ep.dominationLeaderProgress ?? 0) / 100, 0, 1),             // [31]
-    clamp((ep.scienceLeaderProgress ?? 0) / 100, 0, 1),                // [32]
-    clamp((ep.cultureLeaderProgress ?? 0) / 100, 0, 1),                // [33]
-    clamp((ep.diplomaticLeaderProgress ?? 0) / 100, 0, 1),             // [34]
+    // --- Victory gaps (4 elements, leaderProgress - playerProgress, range [-50, +50]) ---
+    clamp(((ep.dominationLeaderProgress ?? 0) - (ep.dominationProgress ?? 0) + 50) / 100, 0, 1),  // [27]
+    clamp(((ep.scienceLeaderProgress ?? 0) - (ep.scienceProgress ?? 0) + 50) / 100, 0, 1),        // [28]
+    clamp(((ep.cultureLeaderProgress ?? 0) - (ep.cultureProgress ?? 0) + 50) / 100, 0, 1),        // [29]
+    clamp(((ep.diplomaticLeaderProgress ?? 0) - (ep.diplomaticProgress ?? 0) + 50) / 100, 0, 1),  // [30]
+    // --- Comparison metrics (2 elements) ---
+    clamp((ep.scoreGap + 50) / 100, 0, 1),                            // [31]  range [-50, +50]
+    clamp(ep.supplyUtilization ?? 0, 0, 1),                            // [32]
   ];
 }

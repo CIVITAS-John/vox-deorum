@@ -81,6 +81,8 @@ export interface RawEpisode {
   foodPerTurn: number | null;
   policies: number | null;
   minorAllies: number | null;
+  militaryUnits: number | null;
+  militarySupply: number | null;
 
   // Victory progress (nullable when victory type unavailable)
   dominationProgress: number | null;
@@ -93,7 +95,8 @@ export interface RawEpisode {
   diplomaticLeaderProgress: number | null;
 
   // Telepathist text (nullable when summaries not yet generated)
-  abstract: string | null;
+  situationAbstract: string | null;
+  decisionAbstract: string | null;
   situation: string | null;
   decisions: string | null;
 }
@@ -116,10 +119,13 @@ export interface Episode extends RawEpisode {
   culturePerPop: number | null;
   goldPerPop: number | null;
 
-  // Gap values relative to the leader (0 for leader, negative for others).
-  // In the game state vector these are centered at 0.5: leader = 0.5, behind by 10 techs = 0.
+  // Bidirectional gap values (bestOther - player). Negative = leading, positive = behind.
   technologiesGap: number;
   policiesGap: number;
+  scoreGap: number;
+
+  // Military supply utilization (militaryUnits / militarySupply)
+  supplyUtilization: number | null;
 
   // Derived percentages
   religionPercentage: number;
@@ -129,7 +135,7 @@ export interface Episode extends RawEpisode {
   // Feature vectors for similarity computation
   gameStateVector: number[];
   neighborVector: number[];
-  abstractEmbedding: number[] | null;
+  situationAbstractEmbedding: number[] | null;
 
   // Landmark flag set by the diversity-first selector
   isLandmark: boolean;
@@ -195,7 +201,7 @@ export const victoryTypeMap: Record<number, string> = {
 };
 
 /** Consequence turn offsets for outcome fetching in the reader pipeline */
-export const horizons = [5, 10, 15, 20] as const;
+export const horizons = [5, 10, 20, 30] as const;
 
 /** Maximum turn distance for snapping a consequence turn to a nearby existing summary */
 export const horizonTolerance = 1;

@@ -2,7 +2,7 @@
  * @module telepathist/preparation
  *
  * Orchestrates turn and phase summary preparation for the telepathist system.
- * Generates structured summaries (situation, abstract, decisions, narrative)
+ * Generates structured summaries (situation, situationAbstract, decisions, decisionAbstract, narrative)
  * at both turn and phase granularity.
  */
 

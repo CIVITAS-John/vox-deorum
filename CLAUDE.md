@@ -108,9 +108,19 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 
 ## Development Guidelines
 
-### Windows Environment
-- **Prefer Bash tool over file system commands** when possible
-- **Prioritize Grep and Glob tools over Bash commands** for file searching and content matching — Bash commands like `find`, `grep`, `rg` may require extra permissions
+### Tool Usage
+Bash commands that duplicate built-in tool functionality are **auto-rejected**. Always use the correct built-in tool instead.
+
+| Task | Use This Tool | Do NOT Use |
+|------|--------------|------------|
+| Read files | `Read` | `cat`, `head`, `tail`, `less`, `more` |
+| Edit files | `Edit` | `sed`, `awk`, inline shell edits |
+| Create/overwrite files | `Write` | `echo >`, `cat <<EOF`, heredocs |
+| Search file contents | `Grep` | `grep`, `rg`, `ag` |
+| Find files by name/pattern | `Glob` | `find`, `ls`, `dir` |
+
+Reserve `Bash` exclusively for operations that have no built-in equivalent (e.g., `git`, `npm`, `pip`, `python`, running scripts, system commands). Moreover:
+
 - **Never use noisy shell idioms** like `ls -la /path 2>/dev/null || echo "Directory does not exist"` or `cat file 2>/dev/null || echo "not found"` — these trigger extra permission prompts and are hard to read. Instead, use the dedicated Glob, Read, and Grep tools which handle missing paths gracefully
 - **Always use relative paths** in shell commands and tool calls — never absolute paths like `/f/Minor Solutions/...` or `f:\Minor Solutions\...`. Use paths relative to the project root (e.g., `vox-agents/src/` not the full absolute path)
 

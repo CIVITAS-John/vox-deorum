@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS episodes (
   policies            INTEGER,
 
   minor_allies        INTEGER,
+  military_units      INTEGER,
+  military_supply     INTEGER,
 
   domination_progress   REAL,
   science_progress      REAL,
@@ -83,14 +85,18 @@ CREATE TABLE IF NOT EXISTS episodes (
 
   religion_percentage REAL,
 
+  score_gap           INTEGER NOT NULL DEFAULT 0,
+  supply_utilization  REAL,
+
   ideology_allies     INTEGER NOT NULL DEFAULT 0,
   ideology_share      REAL NOT NULL DEFAULT 0,
 
   game_state_vector   REAL[],
   neighbor_vector     REAL[],
 
-  abstract            TEXT,
-  abstract_embedding  REAL[],
+  situation_abstract            TEXT,
+  decision_abstract             TEXT,
+  situation_abstract_embedding  REAL[],
   situation           TEXT,
   decisions           TEXT,
 
@@ -158,7 +164,7 @@ export class EpisodeWriter {
     if (episodes.length === 0) return;
 
     const totalStart = performance.now();
-    const embDim = episodes.find(ep => ep.abstractEmbedding)?.abstractEmbedding?.length ?? 0;
+    const embDim = episodes.find(ep => ep.situationAbstractEmbedding)?.situationAbstractEmbedding?.length ?? 0;
     this.logger.debug(`Appending ${episodes.length} episodes (embDim=${embDim})`);
 
     const conn = await this.instance.connect();
@@ -202,8 +208,10 @@ export class EpisodeWriter {
         ep.foodPerTurn != null ? appender.appendFloat(ep.foodPerTurn) : appender.appendNull();
         ep.policies != null ? appender.appendInteger(ep.policies) : appender.appendNull();
         ep.minorAllies != null ? appender.appendInteger(ep.minorAllies) : appender.appendNull();
+        ep.militaryUnits != null ? appender.appendInteger(ep.militaryUnits) : appender.appendNull();
+        ep.militarySupply != null ? appender.appendInteger(ep.militarySupply) : appender.appendNull();
 
-        // Victory progress (nullable) — columns 29-36
+        // Victory progress (nullable)
         ep.dominationProgress != null ? appender.appendFloat(ep.dominationProgress) : appender.appendNull();
         ep.scienceProgress != null ? appender.appendFloat(ep.scienceProgress) : appender.appendNull();
         ep.cultureProgress != null ? appender.appendFloat(ep.cultureProgress) : appender.appendNull();
@@ -227,10 +235,12 @@ export class EpisodeWriter {
         ep.votesShare != null ? appender.appendFloat(ep.votesShare) : appender.appendNull();
         ep.minorAlliesShare != null ? appender.appendFloat(ep.minorAlliesShare) : appender.appendNull();
 
-        // Gaps and derived — columns 49-53
+        // Gaps and derived
         appender.appendInteger(ep.technologiesGap);
         appender.appendInteger(ep.policiesGap);
         appender.appendFloat(ep.religionPercentage);
+        appender.appendInteger(ep.scoreGap);
+        ep.supplyUtilization != null ? appender.appendFloat(ep.supplyUtilization) : appender.appendNull();
         appender.appendInteger(ep.ideologyAllies);
         appender.appendFloat(ep.ideologyShare);
 
@@ -238,13 +248,14 @@ export class EpisodeWriter {
         ep.gameStateVector ? appender.appendList(ep.gameStateVector, realListType) : appender.appendNull();
         ep.neighborVector ? appender.appendList(ep.neighborVector, realListType) : appender.appendNull();
 
-        // Text fields — columns 56-58
-        ep.abstract != null ? appender.appendVarchar(ep.abstract) : appender.appendNull();
-        ep.abstractEmbedding ? appender.appendList(ep.abstractEmbedding, realListType) : appender.appendNull();
+        // Text fields — columns 56-60
+        ep.situationAbstract != null ? appender.appendVarchar(ep.situationAbstract) : appender.appendNull();
+        ep.decisionAbstract != null ? appender.appendVarchar(ep.decisionAbstract) : appender.appendNull();
+        ep.situationAbstractEmbedding ? appender.appendList(ep.situationAbstractEmbedding, realListType) : appender.appendNull();
         ep.situation != null ? appender.appendVarchar(ep.situation) : appender.appendNull();
         ep.decisions != null ? appender.appendVarchar(ep.decisions) : appender.appendNull();
 
-        // Landmark flag — column 59
+        // Landmark flag — column 61
         appender.appendBoolean(ep.isLandmark);
 
         appender.endRow();
@@ -315,11 +326,11 @@ export class EpisodeWriter {
     playerId: number;
     gameStateVector: number[];
     neighborVector: number[];
-    abstractEmbedding: number[] | null;
+    situationAbstractEmbedding: number[] | null;
   }>> {
     const rows = await this.db
       .selectFrom('episodes')
-      .select(['turn', 'playerId', 'gameStateVector', 'neighborVector', 'abstractEmbedding'])
+      .select(['turn', 'playerId', 'gameStateVector', 'neighborVector', 'situationAbstractEmbedding'])
       .where('gameId', '=', gameId)
       .where('gameStateVector', 'is not', null)
       .orderBy('turn')
@@ -370,10 +381,11 @@ export class EpisodeWriter {
     playerId: number,
     updates: Array<{
       turn: number;
-      abstract: string | null;
+      situationAbstract: string | null;
+      decisionAbstract: string | null;
       situation: string | null;
       decisions: string | null;
-      abstractEmbedding: number[] | null;
+      situationAbstractEmbedding: number[] | null;
     }>
   ): Promise<void> {
     if (updates.length === 0) return;
@@ -382,20 +394,21 @@ export class EpisodeWriter {
     const conn = await this.instance.connect();
     try {
       const stmt = await conn.prepare(
-        `UPDATE episodes SET abstract = $1, situation = $2, decisions = $3, abstract_embedding = $4
-         WHERE game_id = $5 AND turn = $6 AND player_id = $7`
+        `UPDATE episodes SET situation_abstract = $1, decision_abstract = $2, situation = $3, decisions = $4, situation_abstract_embedding = $5
+         WHERE game_id = $6 AND turn = $7 AND player_id = $8`
       );
 
       for (const u of updates) {
-        u.abstract != null ? stmt.bindVarchar(1, u.abstract) : stmt.bindNull(1);
-        u.situation != null ? stmt.bindVarchar(2, u.situation) : stmt.bindNull(2);
-        u.decisions != null ? stmt.bindVarchar(3, u.decisions) : stmt.bindNull(3);
-        u.abstractEmbedding
-          ? stmt.bindList(4, listValue(u.abstractEmbedding), realListType)
-          : stmt.bindNull(4);
-        stmt.bindVarchar(5, gameId);
-        stmt.bindInteger(6, u.turn);
-        stmt.bindInteger(7, playerId);
+        u.situationAbstract != null ? stmt.bindVarchar(1, u.situationAbstract) : stmt.bindNull(1);
+        u.decisionAbstract != null ? stmt.bindVarchar(2, u.decisionAbstract) : stmt.bindNull(2);
+        u.situation != null ? stmt.bindVarchar(3, u.situation) : stmt.bindNull(3);
+        u.decisions != null ? stmt.bindVarchar(4, u.decisions) : stmt.bindNull(4);
+        u.situationAbstractEmbedding
+          ? stmt.bindList(5, listValue(u.situationAbstractEmbedding), realListType)
+          : stmt.bindNull(5);
+        stmt.bindVarchar(6, gameId);
+        stmt.bindInteger(7, u.turn);
+        stmt.bindInteger(8, playerId);
         await stmt.run();
       }
     } finally {

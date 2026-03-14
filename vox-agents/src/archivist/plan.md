@@ -382,7 +382,7 @@ Default weights (integers): `era = 8`, `civ = 5`, `gs = 3`, `wars = 3`, `friends
 
 **Stage 2: Fetch Outcomes** (for candidate pool)
 
-Self-join at horizons `[5, 10, 15, 20]`, with outcome turn capping and deduplication:
+Self-join at horizons `[5, 10, 20, 30]`, with outcome turn capping and deduplication:
 
 ```sql
 WITH raw_outcomes AS (

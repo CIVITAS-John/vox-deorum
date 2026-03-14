@@ -101,8 +101,9 @@ export async function prepareTurnSummaries(
               .values({
                 turn,
                 situation: summary.situation,
-                abstract: summary.abstract,
+                situationAbstract: summary.situationabstract,
                 decisions: summary.decisions,
+                decisionAbstract: summary.decisionabstract,
                 narrative: summary.narrative,
                 model: getModelConfig('summarizer', undefined, context.modelOverrides).name,
                 createdAt: Date.now()

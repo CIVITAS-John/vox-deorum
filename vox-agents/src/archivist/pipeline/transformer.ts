@@ -3,7 +3,7 @@
  *
  * Pure computation module that transforms RawEpisode + TurnContext into Episode.
  * Computes city-adjusted shares, per-pop metrics, gaps, ideology, religion,
- * game state vector (35d), and neighbor vector (32d).
+ * game state vector (33d), and neighbor vector (32d).
  * No async, no I/O — all data comes from the extraction phase.
  */
 
@@ -13,7 +13,7 @@ import {
   computeCityAdjustedShare,
   computeRawShare,
   computePerPop,
-  computeGap,
+  computeGapBidirectional,
 } from '../utils/math.js';
 import {
   countPolicies,
@@ -54,6 +54,7 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     policies: number | null;
     votes: number | null;
     minorAllies: number | null;
+    score: number | null;
     policyBranches: Record<string, string[]> | null;
   }> = [];
 
@@ -73,6 +74,7 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
       policies: countPolicies(summary.PolicyBranches as Record<string, string[]> | null),
       votes: summary.Votes as number | null,
       minorAllies: null, // computed separately below
+      score: summary.Score as number | null,
       policyBranches: summary.PolicyBranches as Record<string, string[]> | null,
     });
   }
@@ -120,9 +122,16 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   const culturePerPop = computePerPop(raw.culturePerTurn, raw.population);
   const goldPerPop = computePerPop(raw.goldPerTurn, raw.population);
 
-  // Gaps
-  const technologiesGap = computeGap(raw.technologies, majorPlayerData.map(p => p.technologies));
-  const policiesGap = computeGap(raw.policies, majorPlayerData.map(p => p.policies));
+  // Bidirectional gaps (bestOther - player: negative = leading, positive = behind)
+  const otherData = majorPlayerData.filter(p => p.playerId !== raw.playerId);
+  const technologiesGap = computeGapBidirectional(raw.technologies, otherData.map(p => p.technologies));
+  const policiesGap = computeGapBidirectional(raw.policies, otherData.map(p => p.policies));
+  const scoreGap = computeGapBidirectional(raw.score, otherData.map(p => p.score));
+
+  // Supply utilization
+  const supplyUtilization = (raw.militaryUnits != null && raw.militarySupply != null && raw.militarySupply > 0)
+    ? raw.militaryUnits / raw.militarySupply
+    : null;
 
   // Religion
   const foundedReligion = (playerSummary?.FoundedReligion as string | null) ?? null;
@@ -158,12 +167,14 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     goldPerPop,
     technologiesGap,
     policiesGap,
+    scoreGap,
+    supplyUtilization,
     religionPercentage,
     ideologyAllies,
     ideologyShare,
   };
 
-  // Game state vector (35 elements)
+  // Game state vector (33 elements)
   const gameStateVector = buildGameStateVector(partial);
 
   // Neighbor vector (32 elements)
@@ -182,7 +193,7 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     ...partial,
     gameStateVector,
     neighborVector,
-    abstractEmbedding: null,
+    situationAbstractEmbedding: null,
     isLandmark: false,
   };
 }

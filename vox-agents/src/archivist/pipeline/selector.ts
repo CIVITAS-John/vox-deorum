@@ -62,7 +62,7 @@ export async function selectLandmarks(writer: EpisodeWriter, gameId: string): Pr
       vectors: {
         gameStateVector: r.gameStateVector,
         neighborVector: r.neighborVector,
-        embedding: r.abstractEmbedding,
+        embedding: r.situationAbstractEmbedding,
       },
     };
     let list = byPlayer.get(r.playerId);

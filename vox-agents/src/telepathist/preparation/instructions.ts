@@ -3,7 +3,7 @@
  *
  * Zod schemas, types, instruction builders, and shared markdown parser
  * for turn and phase summarization. Each builder requests markdown output
- * with four top-level headings: Situation, Abstract, Decisions, Narrative.
+ * with five top-level headings: Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.
  */
 
 import { z } from 'zod';
@@ -12,8 +12,9 @@ import { summarizerGuidelines } from '../summarizer.js';
 /** Zod schema for turn summary structured output */
 export const turnSummarySchema = z.object({
   situation: z.string().describe('Detailed world state paragraph covering military, economic, diplomatic, and research situation'),
-  abstract: z.string().describe('Context-agnostic generalized summary with no concrete civilization/leader/city names'),
+  situationabstract: z.string().describe('Context-agnostic generalized summary of the situation with no concrete leader/city names'),
   decisions: z.string().describe('Detailed player decisions and reasoning for this turn'),
+  decisionabstract: z.string().describe('Context-agnostic generalized summary of the decisions with no concrete leader/city names'),
   narrative: z.string().describe('Short combined narrative weaving situation and decisions together')
 });
 
@@ -23,8 +24,9 @@ export type TurnSummaryOutput = z.infer<typeof turnSummarySchema>;
 /** Zod schema for phase summary structured output */
 export const phaseSummarySchema = z.object({
   situation: z.string().describe('Narrative paragraph of the phase\'s world state arc'),
-  abstract: z.string().describe('Context-agnostic generalized phase summary with no concrete names'),
+  situationabstract: z.string().describe('Context-agnostic generalized phase summary of the situation with no concrete names'),
   decisions: z.string().describe('Narrative paragraph of the phase\'s strategic choices'),
+  decisionabstract: z.string().describe('Context-agnostic generalized phase summary of the decisions with no concrete names'),
   narrative: z.string().describe('Short combined narrative for the phase')
 });
 
@@ -41,9 +43,6 @@ export function buildTurnSummaryInstruction(turn: number): [string, string] {
 # Guidelines
 ${summarizerGuidelines}
 
-# Output Format
-Respond in markdown with exactly these four top-level headings (generate them in this order, so earlier sections can provide context for later ones):
-
 # Situation
 Detailed paragraphs summarizing, from an OBSERVER perspective, the world state: military situation, economic state, diplomatic state, research progress, and notable events.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, AI flavors, or decisions.
@@ -51,8 +50,8 @@ Detailed paragraphs summarizing, from an OBSERVER perspective, the world state: 
  - Include ideology allies and enemies, if possible.
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
 
-# Abstract
-A context-agnostic generalized phase summary of the Situation. Replace concrete names of leaders, cities, city-states with generic descriptions.
+# SituationAbstract
+A context-agnostic generalized summary of the Situation. Replace concrete names of leaders, cities, city-states with generic descriptions.
  - ALWAYS keep concrete civilization names, e.g. "a maritime Civilization (Venice)".
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
 
@@ -60,15 +59,23 @@ A context-agnostic generalized phase summary of the Situation. Replace concrete 
 A detailed paragraph summarizing the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.
  - If the leader did not change existing strategies, report what is already in effect.
 
+# DecisionAbstract
+A context-agnostic generalized summary of the Decisions. Replace concrete names of leaders, cities, city-states with generic descriptions.
+ - ALWAYS keep concrete civilization names, e.g. "a maritime Civilization (Venice)".
+
 # Narrative
 A short combined narrative weaving the situation and decisions together into a cohesive summary.
 
 # Focus
 - Focus on what changed or is notable, e.g. any wars, peace treaties, or diplomatic shifts.
 - Highlight strategic inflection points (new wars, pivotal technologies, policy adoptions).
-- Carefully go through the raw game data to clarify uncertain situations.`;
+- Carefully go through the raw game data to clarify uncertain situations.
 
-  const reminder = `- Respond ONLY with the four markdown sections above: Situation, Abstract, Decisions, Narrative.
+# Output Format
+Respond in markdown with exactly these five top-level headings (generate them in this order, so earlier sections can provide context for later ones):
+Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.`;
+
+  const reminder = `- Respond ONLY with the five markdown sections above: Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.
 - "Situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
 - Do not include any other text or commentary outside those sections.`;
 
@@ -85,16 +92,13 @@ export function buildPhaseSummaryInstruction(fromTurn: number, toTurn: number): 
 # Guidelines
 ${summarizerGuidelines}
 
-# Output Format
-Respond in markdown with exactly these four top-level headings (generate them in this order, so earlier sections provide context for later ones):
-
 # Situation
 An observation paragraph of the phase's world state arc: how the military, economic, diplomatic, and research landscape evolved across these turns.
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
  - Include descriptions and comparisons with neighboring civilizations, if possible.
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
 
-# Abstract
+# SituationAbstract
 A context-agnostic generalized phase summary of the Situation. Replace concrete names of leaders, cities, city-states with generic descriptions.
  - ALWAYS keep concrete civilization names, e.g. "a maritime Civilization (Venice)".
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
@@ -102,15 +106,23 @@ A context-agnostic generalized phase summary of the Situation. Replace concrete 
 # Decisions
 A narrative paragraph of the phase's strategic choices: the key decisions made, their rationale, and their outcomes.
 
+# DecisionAbstract
+A context-agnostic generalized phase summary of the Decisions. Replace concrete names of leaders, cities, city-states with generic descriptions.
+ - ALWAYS keep concrete civilization names, e.g. "a maritime Civilization (Venice)".
+
 # Narrative
 A short combined narrative weaving the situation and decisions into a cohesive phase summary.
 
 # Focus
 - Identify the dominant themes and narrative arcs of this phase.
 - Highlight major turning points: wars declared/ended, key technologies, policy adoptions, new cities.
-- Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?`;
+- Note the overall trajectory: is the civilization expanding, at war, building infrastructure, etc.?
 
-  const reminder = `- Respond ONLY with the four markdown sections above: Situation, Abstract, Decisions, Narrative.
+# Output Format
+Respond in markdown with exactly these five top-level headings (generate them in this order, so earlier sections provide context for later ones):
+Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.`;
+
+  const reminder = `- Respond ONLY with the five markdown sections above: Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.
 - "Situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
 - Do not include any other text or commentary outside those sections.`;
 
@@ -118,7 +130,7 @@ A short combined narrative weaving the situation and decisions into a cohesive p
 }
 
 /** The four expected summary heading names, in order. */
-const summaryHeadings = ['situation', 'abstract', 'decisions', 'narrative'] as const;
+const summaryHeadings = ['situation', 'situationabstract', 'decisions', 'decisionabstract', 'narrative'] as const;
 
 /**
  * Parses a markdown summary response into its four sections.

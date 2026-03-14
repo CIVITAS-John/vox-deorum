@@ -76,7 +76,7 @@ export function buildSimilaritySql(hasEmbedding: boolean, weights: SimilarityWei
 
   if (hasEmbedding && weights.embedding > 0) {
     parts.push(
-      `${weights.embedding} * COALESCE(list_cosine_similarity(abstract_embedding, $query_emb), 0)`
+      `${weights.embedding} * COALESCE(list_cosine_similarity(situation_abstract_embedding, $query_emb), 0)`
     );
   }
 
@@ -96,7 +96,7 @@ export function buildPairwiseSimilaritySql(hasEmbedding: boolean, weights: Simil
 
   if (hasEmbedding && weights.embedding > 0) {
     parts.push(
-      `${weights.embedding} * COALESCE(list_cosine_similarity(a.abstract_embedding, b.abstract_embedding), 0)`
+      `${weights.embedding} * COALESCE(list_cosine_similarity(a.situation_abstract_embedding, b.situation_abstract_embedding), 0)`
     );
   }
 
@@ -116,7 +116,8 @@ export interface CandidateRow {
   era: string;
   grand_strategy: string | null;
   is_winner: boolean;
-  abstract: string | null;
+  situation_abstract: string | null;
+  decision_abstract: string | null;
   situation: string | null;
   decisions: string | null;
   science_per_pop: number | null;
@@ -136,9 +137,11 @@ export interface CandidateRow {
   science_progress: number | null;
   culture_progress: number | null;
   diplomatic_progress: number | null;
+  score_gap: number;
+  supply_utilization: number | null;
   game_state_vector: number[];
   neighbor_vector: number[];
-  abstract_embedding: number[] | null;
+  situation_abstract_embedding: number[] | null;
   victory_type: string | null;
   score: number;
 }
@@ -157,7 +160,7 @@ export function diversitySelect(
   const bundles: VectorBundle[] = candidates.map(c => ({
     gameStateVector: c.game_state_vector,
     neighborVector: c.neighbor_vector,
-    embedding: c.abstract_embedding,
+    embedding: c.situation_abstract_embedding,
   }));
 
   const selected: number[] = [0]; // Start with top-scored candidate

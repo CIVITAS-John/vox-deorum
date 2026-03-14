@@ -83,6 +83,24 @@ export function computeGap(
   return maxVal === -Infinity ? 0 : playerValue - maxVal;
 }
 
+/**
+ * Compute bidirectional gap against the best OTHER player.
+ * Returns bestOtherValue - playerValue.
+ * Negative when leading, positive when behind, 0 when tied or no data.
+ * Caller must exclude the current player from otherValues.
+ */
+export function computeGapBidirectional(
+  playerValue: number | null,
+  otherValues: (number | null)[]
+): number {
+  if (playerValue == null) return 0;
+  let bestOther = -Infinity;
+  for (const v of otherValues) {
+    if (v != null && v > bestOther) bestOther = v;
+  }
+  return bestOther === -Infinity ? 0 : bestOther - playerValue;
+}
+
 /** Compute relative delta: (future - base) / base, or null if base is zero/null. */
 export function relativeDelta(base: number | null, future: number | null): number | null {
   if (base == null || future == null || base === 0) return null;

@@ -94,8 +94,9 @@ export async function preparePhaseSummaries(
                 fromTurn: phase.fromTurn,
                 toTurn: phase.toTurn,
                 situation: parsed.situation,
-                abstract: parsed.abstract,
+                situationAbstract: parsed.situationabstract,
                 decisions: parsed.decisions,
+                decisionAbstract: parsed.decisionabstract,
                 narrative: parsed.narrative,
                 model: getModelConfig('summarizer', undefined, context.modelOverrides).name,
                 createdAt: Date.now()

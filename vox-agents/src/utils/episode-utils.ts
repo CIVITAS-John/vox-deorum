@@ -28,7 +28,7 @@ function buildEpisodeQuery(
   playerEntry: Exclude<PlayersReport[string], string>,
   vectors: { gameStateVector: number[]; neighborVector: number[] },
   grandStrategy: string | null,
-  abstract?: string
+  situationAbstract?: string
 ): EpisodeQuery {
   const majorCivNames = new Set<string>();
   for (const entry of Object.values(players)) {
@@ -42,7 +42,7 @@ function buildEpisodeQuery(
   return {
     gameStateVector: vectors.gameStateVector,
     neighborVector: vectors.neighborVector,
-    abstract,
+    situationAbstract,
     era: (playerEntry.Era as string) ?? 'Ancient Era',
     civilization: playerEntry.Civilization,
     grandStrategy,
@@ -61,13 +61,13 @@ function buildEpisodeQuery(
  *
  * @param state - Current game state snapshot
  * @param parameters - Strategist session parameters (playerID, gameID, etc.)
- * @param abstract - Optional abstract text for semantic similarity matching
+ * @param situationAbstract - Optional situationAbstract text for semantic similarity matching
  * @returns Array of matching episode results, or empty array on failure
  */
 export async function requestEpisodes(
   state: GameState,
   parameters: StrategistParameters,
-  abstract?: string
+  situationAbstract?: string
 ): Promise<EpisodeResult[]> {
   try {
     // Build game-state and neighbor vectors from live state
@@ -95,7 +95,7 @@ export async function requestEpisodes(
       playerEntry,
       vectors,
       parameters.workingMemory?.grandStrategy ?? null,
-      abstract
+      situationAbstract
     );
 
     return await findEpisodes(query);
@@ -160,16 +160,16 @@ export async function requestEpisodesFromTelemetry(
     const vectors = buildLiveGameStateVector(gameState, playerId, 'telemetry');
     if (!vectors) return [];
 
-    // Read abstract from telepathist DB if available
-    let abstract: string | undefined;
+    // Read situationAbstract from telepathist DB if available
+    let situationAbstract: string | undefined;
     if (telepathistDb) {
       try {
         const row = await telepathistDb
           .selectFrom('turn_summaries')
-          .select('abstract')
+          .select('situationAbstract')
           .where('turn', '=', turn)
           .executeTakeFirst();
-        abstract = row?.abstract ?? undefined;
+        situationAbstract = row?.situationAbstract ?? undefined;
       } catch { /* ignore - table may not exist */ }
     }
 
@@ -177,7 +177,7 @@ export async function requestEpisodesFromTelemetry(
     const playerEntry = players[playerId.toString()];
     if (!playerEntry || typeof playerEntry === 'string') return [];
 
-    const query = buildEpisodeQuery(players, playerEntry, vectors, null, abstract);
+    const query = buildEpisodeQuery(players, playerEntry, vectors, null, situationAbstract);
 
     return await findEpisodes(query);
   } catch (error) {
@@ -224,7 +224,7 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     if (indParts.length > 0) parts.push(`- **Indicators**: ${indParts.join(' | ')}`);
 
     // Situations
-    if (ep.abstract) parts.push(`\n### Situation\n${ep.abstract.replaceAll("\n", "")}`);
+    if (ep.situationAbstract) parts.push(`\n### Situation\n${ep.situationAbstract.replaceAll("\n", "")}`);
     if (ep.decisions) parts.push(`\n### Decisions\n${ep.decisions}`);
 
     // Outcomes
@@ -238,7 +238,7 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
         const turnLabel = `+${out.horizonTurns} Turns`;
         parts.push(`\n### Outcome at ${turnLabel}`);
         parts.push(`- **Delta**: ${deltaStr}`);
-        if (out.abstract) parts.push(`\n#### Situation\n${out.abstract.replaceAll("\n", "")}`);
+        if (out.situationAbstract) parts.push(`\n#### Situation\n${out.situationAbstract.replaceAll("\n", "")}`);
         if (out.decisions) parts.push(`\n#### Further Decisions\n${out.decisions}`);
       }
     }

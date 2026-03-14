@@ -67,8 +67,8 @@ export function reportsToTurnContext(
       Technologies: entry.Technologies ?? null,
       CurrentResearch: null,
       NextPolicyTurns: null,
-      MilitaryUnits: null,
-      MilitarySupply: null,
+      MilitaryUnits: entry.MilitaryUnits ?? null,
+      MilitarySupply: entry.MilitarySupply ?? null,
       MilitaryStrength: entry.MilitaryStrength ?? null,
       PolicyBranches: entry.PolicyBranches ?? null,
       FoundedReligion: entry.FoundedReligion ?? null,
@@ -154,7 +154,8 @@ export function reportsToRawEpisode(
   options?: {
     grandStrategy?: string | null;
     isWinner?: boolean;
-    abstract?: string | null;
+    situationAbstract?: string | null;
+    decisionAbstract?: string | null;
     situation?: string | null;
     decisions?: string | null;
   }
@@ -239,6 +240,8 @@ export function reportsToRawEpisode(
     culturePerTurn: playerEntry.CulturePerTurn ?? null,
     tourismPerTurn: playerEntry.TourismPerTurn ?? null,
     militaryStrength: playerEntry.MilitaryStrength ?? null,
+    militaryUnits: (playerEntry.MilitaryUnits as number | undefined) ?? null,
+    militarySupply: (playerEntry.MilitarySupply as number | undefined) ?? null,
     technologies: playerEntry.Technologies ?? null,
     votes: (playerEntry.Votes as number | undefined) ?? null,
     happinessPercentage: playerEntry.HappinessPercentage ?? null,
@@ -247,7 +250,8 @@ export function reportsToRawEpisode(
     policies,
     minorAllies,
     ...victoryFields,
-    abstract: options?.abstract ?? null,
+    situationAbstract: options?.situationAbstract ?? null,
+    decisionAbstract: options?.decisionAbstract ?? null,
     situation: options?.situation ?? null,
     decisions: options?.decisions ?? null,
   };
@@ -260,7 +264,7 @@ export function reportsToRawEpisode(
  * pipeline to produce normalized vectors suitable for similarity search
  * against archived game episodes.
  *
- * @returns The 35-element gameStateVector and 32-element neighborVector, or
+ * @returns The 33-element gameStateVector and 32-element neighborVector, or
  *          undefined if the player data is unavailable.
  */
 export function buildLiveGameStateVector(

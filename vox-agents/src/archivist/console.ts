@@ -232,10 +232,11 @@ async function processGame(
         // Build update records for turns that have summaries
         const updates: Array<{
           turn: number;
-          abstract: string | null;
+          situationAbstract: string | null;
+          decisionAbstract: string | null;
           situation: string | null;
           decisions: string | null;
-          abstractEmbedding: number[] | null;
+          situationAbstractEmbedding: number[] | null;
         }> = [];
 
         for (const turn of targetTurns) {
@@ -243,20 +244,21 @@ async function processGame(
           if (!summary) continue;
           updates.push({
             turn,
-            abstract: summary.abstract ?? null,
+            situationAbstract: summary.situationAbstract ?? null,
+            decisionAbstract: summary.decisionAbstract ?? null,
             situation: summary.situation ?? null,
             decisions: summary.decisions ?? null,
-            abstractEmbedding: null, // filled below if needed
+            situationAbstractEmbedding: null, // filled below if needed
           });
         }
 
         // Generate embeddings for landmark turns with abstracts
         if (!skipEmbeddings) {
-          const landmarkUpdates = updates.filter(u => landmarkSet.has(u.turn) && u.abstract != null);
+          const landmarkUpdates = updates.filter(u => landmarkSet.has(u.turn) && u.situationAbstract != null);
           if (landmarkUpdates.length > 0) {
-            const embeddings = await generateEmbeddings(landmarkUpdates.map(u => u.abstract));
+            const embeddings = await generateEmbeddings(landmarkUpdates.map(u => u.situationAbstract));
             for (let i = 0; i < landmarkUpdates.length; i++) {
-              landmarkUpdates[i].abstractEmbedding = embeddings[i];
+              landmarkUpdates[i].situationAbstractEmbedding = embeddings[i];
             }
           }
         }

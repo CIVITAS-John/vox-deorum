@@ -4,7 +4,7 @@
  * Singleton read-only DuckDB connection for the episode retrieval pipeline.
  * Implements a three-stage retrieval process:
  *   Stage 1 - Two-pass composite scoring (fuzzy attributes + vector similarity)
- *   Stage 2 - Outcome fetching at future horizons (5, 10, 15, 20 turns)
+ *   Stage 2 - Outcome fetching at future horizons (5, 10, 20, 30 turns)
  *   Stage 3 - MMR diversity selection to reduce redundancy in final results
  */
 
@@ -88,12 +88,13 @@ async function fetchCandidates(
       LIMIT 200
     )
     SELECT game_id, turn, player_id, civilization, era, grand_strategy, is_winner,
-           abstract, situation, decisions,
+           situation_abstract, decision_abstract, situation, decisions,
            science_per_pop, culture_per_pop, production_per_pop,
            gold_per_pop, tourism_share, military_share, population_share, cities_share, minor_allies_share,
            religion_percentage, war_weariness,
            active_wars, truces, domination_progress, science_progress, culture_progress, diplomatic_progress,
-           game_state_vector, neighbor_vector, abstract_embedding,
+           score_gap, supply_utilization,
+           game_state_vector, neighbor_vector, situation_abstract_embedding,
            victory_type,
            ${similaritySql} AS score
     FROM candidates
@@ -114,7 +115,8 @@ interface FetchedEpisode {
   turn: number;
   situation: string | null;
   decisions: string | null;
-  abstract: string | null;
+  situation_abstract: string | null;
+  decision_abstract: string | null;
   science_per_pop: number | null;
   culture_per_pop: number | null;
   production_per_pop: number | null;
@@ -148,13 +150,13 @@ async function fetchOutcomes(
   // Step 2: Single flat query for all target turns
   const valuesList = [...targetTurns].join(',\n    ');
   const sql = `
-    SELECT f.game_id, f.player_id, f.turn, f.situation, f.decisions, f.abstract,
+    SELECT f.game_id, f.player_id, f.turn, f.situation, f.decisions, f.situation_abstract, f.decision_abstract,
            f.science_per_pop, f.culture_per_pop, f.production_per_pop,
            f.gold_per_pop, f.tourism_share, f.military_share, f.population_share, f.cities_share, f.minor_allies_share,
            f.religion_percentage, f.war_weariness
     FROM (VALUES ${valuesList}) AS t(game_id, player_id, turn)
     JOIN episodes f ON f.game_id = t.game_id AND f.player_id = t.player_id AND f.turn = t.turn
-    WHERE f.situation IS NOT NULL OR f.abstract IS NOT NULL
+    WHERE f.situation IS NOT NULL OR f.situation_abstract IS NOT NULL
   `;
 
   const result = await conn.run(sql);
@@ -210,7 +212,8 @@ async function fetchOutcomes(
 
       outcomes.push({
         horizonTurns: actualHorizon,
-        abstract: bestEp.abstract,
+        situationAbstract: bestEp.situation_abstract,
+        decisionAbstract: bestEp.decision_abstract,
         decisions: bestEp.decisions,
         deltas,
       });
@@ -244,7 +247,8 @@ function buildResult(
     isWinner: candidate.is_winner,
     victoryType: candidate.victory_type,
     similarity: candidate.score,
-    abstract: candidate.abstract,
+    situationAbstract: candidate.situation_abstract,
+    decisionAbstract: candidate.decision_abstract,
     situation: candidate.situation,
     decisions: candidate.decisions,
     outcomes,
@@ -266,6 +270,8 @@ function buildResult(
       scienceProgress: candidate.science_progress,
       cultureProgress: candidate.culture_progress,
       diplomaticProgress: candidate.diplomatic_progress,
+      scoreGap: candidate.score_gap,
+      supplyUtilization: candidate.supply_utilization,
     },
   };
 }
@@ -284,8 +290,8 @@ export async function findEpisodes(query: EpisodeQuery): Promise<EpisodeResult[]
 
   // Generate embedding from abstract if provided
   let embeddingVector: number[] | null = null;
-  if (query.abstract) {
-    const embeddings = await generateEmbeddings([query.abstract]);
+  if (query.situationAbstract) {
+    const embeddings = await generateEmbeddings([query.situationAbstract]);
     embeddingVector = embeddings[0];
   }
 

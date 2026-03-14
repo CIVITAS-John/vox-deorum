@@ -223,6 +223,8 @@ export async function extractPlayerEpisodes(
     const technologies = (summary.Technologies as number) ?? null;
     const votes = (summary.Votes as number) ?? null;
     const happinessPercentage = (summary.HappinessPercentage as number) ?? null;
+    const militaryUnits = (summary.MilitaryUnits as number) ?? null;
+    const militarySupply = (summary.MilitarySupply as number) ?? null;
 
     // --- City aggregates (production, food) ---
     const { productionPerTurn, foodPerTurn } = aggregateCityYields(
@@ -267,8 +269,11 @@ export async function extractPlayerEpisodes(
       foodPerTurn,
       policies,
       minorAllies,
+      militaryUnits,
+      militarySupply,
       ...victory,
-      abstract: turnSummary?.abstract ?? null,
+      situationAbstract: turnSummary?.situationAbstract ?? null,
+      decisionAbstract: turnSummary?.decisionAbstract ?? null,
       situation: turnSummary?.situation ?? null,
       decisions: turnSummary?.decisions ?? null,
     });

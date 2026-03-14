@@ -7,9 +7,9 @@
 
 /** The ONLY input to the retrieval pipeline */
 export interface EpisodeQuery {
-  gameStateVector: number[];     // 35d
+  gameStateVector: number[];     // 33d
   neighborVector: number[];      // 32d
-  abstract?: string;             // optional — pipeline generates embedding when provided
+  situationAbstract?: string;    // optional — pipeline generates embedding when provided
 
   // Current state for fuzzy attribute scoring in SQL
   era: string;                   // proximity-scored (neighboring eras get partial credit)
@@ -28,7 +28,8 @@ export interface EpisodeQuery {
 /** Outcome snapshot at a future horizon */
 export interface OutcomeSnapshot {
   horizonTurns: number;          // actual offset (may be less than requested if game ended early)
-  abstract: string | null;
+  situationAbstract: string | null;
+  decisionAbstract: string | null;
   decisions: string | null;      // null for last outcome
   deltas: EpisodeDelta;
 }
@@ -58,7 +59,8 @@ export interface EpisodeResult {
   isWinner: boolean;
   victoryType: string | null;
   similarity: number;
-  abstract: string | null;
+  situationAbstract: string | null;
+  decisionAbstract: string | null;
   situation: string | null;
   decisions: string | null;
   outcomes: OutcomeSnapshot[];   // 0-4 (fewer if game ended early)
@@ -80,5 +82,7 @@ export interface EpisodeResult {
     scienceProgress: number | null;
     cultureProgress: number | null;
     diplomaticProgress: number | null;
+    scoreGap: number;
+    supplyUtilization: number | null;
   };
 }
