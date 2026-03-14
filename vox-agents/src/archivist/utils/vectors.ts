@@ -164,7 +164,7 @@ export function buildGameStateVector(
     clamp(ep.supplyUtilization ?? 0, 0, 1),                            // [19]
     // --- Diplomatic (8 elements) ---
     ep.isVassal,                                                       // [20]
-    clamp(ep.vassals / 3, 0, 1),                                       // [21]
+    clamp(ep.vassals / 2, 0, 1),                                       // [21]
     clamp(ep.warWeariness / 100, 0, 1),                                // [22]
     clamp(ep.activeWars / 3, 0, 1),                                    // [23]
     clamp(ep.truces / 3, 0, 1),                                        // [24]
