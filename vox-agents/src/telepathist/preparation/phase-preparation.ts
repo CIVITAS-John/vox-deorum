@@ -84,7 +84,7 @@ export async function preparePhaseSummaries(
             const result = rawPhaseSummary ? parseSummaryMarkdown(rawPhaseSummary, phaseSummarySchema) : undefined;
             if (!result) throw new Error(`Summarizer returned no usable result for phase ${phase.fromTurn}-${phase.toTurn}: ${rawPhaseSummary}`);
             return result;
-          }, logger, undefined, `phase-${phase.fromTurn}-${phase.toTurn}`, 3, 1000, 5000);
+          }, logger, undefined, `phase-${phase.fromTurn}-${phase.toTurn}`);
 
           if (parsed) {
             context.streamProgress?.(`Phase ${phase.fromTurn}–${phase.toTurn}: ${parsed.narrative}`);
