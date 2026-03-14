@@ -120,6 +120,19 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
   - You will receive the best available location for your next settlement.`;
 
   /**
+   * Shared prompt: Specialized briefer goal (focus-briefer tool + capabilities)
+   */
+  public static readonly specializedBrieferGoalPrompt = `- You can ask your specialized briefers to prepare focused reports (only for) the next turn by calling the \`focus-briefer\` tool.
+  - You have three specialized briefers: Military, Economy, and Diplomacy analysts.
+  - Only ask for information relevant to the macro-level decisions in your control. `;
+
+  /**
+   * Shared prompt: Briefings resource description
+   */
+  public static readonly briefingsResourcePrompt = `- Briefings: prepared by your specialized briefers, covering Military, Economy, and Diplomacy aspects.
+  - You will make independent and wise judgment based on all briefings.`;
+
+  /**
    * Gets the list of active tools for this agent
    */
   public getActiveTools(parameters: StrategistParameters): string[] | undefined {

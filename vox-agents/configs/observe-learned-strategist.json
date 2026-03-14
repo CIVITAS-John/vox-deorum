@@ -1,0 +1,13 @@
+{
+  "name": "observe-learned",
+  "type": "strategist",
+  "autoPlay": true,
+  "gameMode": "wait",
+  "llmPlayers": {
+    "7": {
+      "strategist": "simple-strategist-learned",
+      "llms": {}
+    }
+  },
+  "repetition": null
+}

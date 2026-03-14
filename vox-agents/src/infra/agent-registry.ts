@@ -17,6 +17,7 @@ import { Spokesperson } from "../envoy/spokesperson.js";
 import { Diplomat } from "../envoy/diplomat.js";
 import { DiplomaticAnalyst } from "../analyst/diplomatic-analyst.js";
 import { SimpleStrategistStaffed } from "../strategist/agents/simple-strategist-staffed.js";
+import { SimpleStrategistLearned } from "../strategist/agents/simple-strategist-learned.js";
 import { KeywordLibrarian } from "../librarian/keyword-librarian.js";
 import { TalkativeTelepathist } from "../telepathist/talkative-telepathist.js";
 import { Summarizer } from "../telepathist/summarizer.js";
@@ -172,6 +173,7 @@ class AgentRegistry {
     this.register(new SimpleStrategist());
     this.register(new SimpleStrategistBriefed());
     this.register(new SimpleStrategistStaffed());
+    this.register(new SimpleStrategistLearned());
     this.register(new NoneStrategist());
 
     // Register briefer agents

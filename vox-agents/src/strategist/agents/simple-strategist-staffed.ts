@@ -42,9 +42,7 @@ ${SimpleStrategistBase.expertPlayerPrompt}
 ${SimpleStrategistBase.expectationPrompt}
 
 ${SimpleStrategistBase.goalsPrompt}
-- You can ask your specialized briefers to prepare focused reports (only for) the next turn by calling the \`focus-briefer\` tool.
-  - You have three specialized briefers: Military, Economy, and Diplomacy analysts.
-  - Only ask for information relevant to the macro-level decisions in your control. 
+${SimpleStrategistBase.specializedBrieferGoalPrompt}
 ${SimpleStrategistBase.brieferCapabilitiesPrompt}
 ${SimpleStrategistBase.getDecisionPrompt(parameters.mode)}
 
@@ -54,8 +52,7 @@ ${SimpleStrategistBase.optionsDescriptionPrompt}
 ${SimpleStrategistBase.strategiesDescriptionPrompt}
 ${SimpleStrategistBase.victoryConditionsPrompt}
 ${SimpleStrategistBase.playersInfoPrompt}
-- Briefings: prepared by your specialized briefers, covering Military, Economy, and Diplomacy aspects.
-  - You will make independent and wise judgment based on all briefings.`.trim()
+${SimpleStrategistBase.briefingsResourcePrompt}`.trim()
   }
 
   /**
