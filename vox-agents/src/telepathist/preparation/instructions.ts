@@ -55,7 +55,7 @@ function buildSummaryInstruction(scope: SummaryScope): [string, string] {
     : `An observation paragraph of the phase's world state arc: how the military, economic, diplomatic, and research landscape evolved across these turns.`;
 
   const decisionsDesc = isTurn
-    ? `A detailed paragraph summarizing the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.`
+    ? `A detailed paragraph summarizing the leader's decisions and reasoning: what was the decisions before, what options were available, what was chosen, and explicitly stated rationale.`
     : `A narrative paragraph of the phase's strategic choices: the key decisions made, their rationale, and their outcomes.`;
 
   const focusBullets = isTurn
@@ -79,7 +79,7 @@ ${situationDesc}
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
 
 # SituationAbstract
-A context-agnostic, one-paragraph ${label} summary of the Situation. Replace concrete names of leaders, cities, city-states with generic descriptions.
+A context-agnostic, one-paragraph ${label} summary of the Situation. Replace concrete names of cities, city-states with generic descriptions.
  - ALWAYS keep civilization names, e.g. "a maritime Civilization (Venice)".
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
  - The content should be digestable by future leaders (not too overwhelming, not too concise).
@@ -89,7 +89,7 @@ ${decisionsDesc}
  - Report what is already in effect as well as what has been changed.
 
 # DecisionAbstract
-A context-agnostic, one-paragraph ${label} summary of the Decisions. Replace concrete names of leaders, cities, city-states with generic descriptions.
+A context-agnostic, one-paragraph ${label} summary of the Decisions and leaders' rationale. Replace concrete names of cities, city-states with generic descriptions.
  - ALWAYS keep civilization names, e.g. "a maritime Civilization (Venice)".
  - ALWAYS keep concrete numbers, e.g. flavors or relationship bonuses.
  - The content should be digestable by future leaders (not too overwhelming, not too concise).
@@ -104,7 +104,7 @@ ${focusBullets}
 Respond in markdown with exactly these five top-level headings (generate them in this order, so earlier sections can provide context for later ones):
 Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.`;
 
-  const reminder = `- Respond ONLY with the five markdown sections following the EXACT guidelines: Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.
+  const reminder = `- Respond ONLY with the five markdown sections following the EXACT guidelines: # Situation, # SituationAbstract, # Decisions, # DecisionAbstract, # Narrative.
 - "Situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
 - Do not include any other text or commentary outside those sections.`;
 
