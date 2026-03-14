@@ -126,8 +126,6 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   const otherData = majorPlayerData.filter(p => p.playerId !== raw.playerId);
   const technologiesGap = computeGapBidirectional(raw.technologies, otherData.map(p => p.technologies));
   const policiesGap = computeGapBidirectional(raw.policies, otherData.map(p => p.policies));
-  const scoreGap = computeGapBidirectional(raw.score, otherData.map(p => p.score));
-
   // Supply utilization
   const supplyUtilization = (raw.militaryUnits != null && raw.militarySupply != null && raw.militarySupply > 0)
     ? raw.militaryUnits / raw.militarySupply
@@ -167,14 +165,13 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     goldPerPop,
     technologiesGap,
     policiesGap,
-    scoreGap,
     supplyUtilization,
     religionPercentage,
     ideologyAllies,
     ideologyShare,
   };
 
-  // Game state vector (33 elements)
+  // Game state vector (32 elements)
   const gameStateVector = buildGameStateVector(partial);
 
   // Neighbor vector (32 elements)

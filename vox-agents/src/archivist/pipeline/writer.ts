@@ -85,7 +85,6 @@ CREATE TABLE IF NOT EXISTS episodes (
 
   religion_percentage REAL,
 
-  score_gap           INTEGER NOT NULL DEFAULT 0,
   supply_utilization  REAL,
 
   ideology_allies     INTEGER NOT NULL DEFAULT 0,
@@ -239,7 +238,6 @@ export class EpisodeWriter {
         appender.appendInteger(ep.technologiesGap);
         appender.appendInteger(ep.policiesGap);
         appender.appendFloat(ep.religionPercentage);
-        appender.appendInteger(ep.scoreGap);
         ep.supplyUtilization != null ? appender.appendFloat(ep.supplyUtilization) : appender.appendNull();
         appender.appendInteger(ep.ideologyAllies);
         appender.appendFloat(ep.ideologyShare);

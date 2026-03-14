@@ -297,18 +297,19 @@ export function loadTurnSummaries(dbPath: string, turns?: number[]): Map<number,
     return map;
   }
 
+  let sqliteDb: InstanceType<typeof Database> | undefined;
   try {
-    const sqliteDb = new Database(dbPath, { readonly: true });
+    sqliteDb = new Database(dbPath, { readonly: true });
     const rows = turns && turns.length > 0
       ? sqliteDb.prepare(`SELECT * FROM turn_summaries WHERE turn IN (${turns.map(() => '?').join(',')})`).all(...turns) as TurnSummaryRecord[]
       : sqliteDb.prepare('SELECT * FROM turn_summaries').all() as TurnSummaryRecord[];
     for (const row of rows) {
       map.set(row.turn, row);
     }
-
-    sqliteDb.close();
   } catch (error) {
     logger.warn(`Failed to read telepathist DB: ${dbPath}`, { error });
+  } finally {
+    sqliteDb?.close();
   }
 
   return map;

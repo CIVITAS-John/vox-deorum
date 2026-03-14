@@ -137,7 +137,6 @@ export interface CandidateRow {
   science_progress: number | null;
   culture_progress: number | null;
   diplomatic_progress: number | null;
-  score_gap: number;
   supply_utilization: number | null;
   game_state_vector: number[];
   neighbor_vector: number[];

@@ -2,7 +2,7 @@
  * @module archivist/utils/vectors
  *
  * Feature vector construction for the archivist pipeline.
- * Builds the 33-element game state vector and 32-element neighbor vector
+ * Builds the 32-element game state vector and 32-element neighbor vector
  * used for similarity search and diversity selection.
  */
 
@@ -131,7 +131,7 @@ export function buildNeighborVector(
 // Game state vector
 // ---------------------------------------------------------------------------
 
-/** Build the 33-element game state vector from computed Episode fields. */
+/** Build the 32-element game state vector from computed Episode fields. */
 export function buildGameStateVector(
   ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'situationAbstractEmbedding' | 'isLandmark'>
 ): number[] {
@@ -158,26 +158,24 @@ export function buildGameStateVector(
     // --- Bidirectional gaps (negative = leading, positive = behind) ---
     clamp((ep.technologiesGap + 5) / 15, 0, 1),                       // [14]  range [-5, +10]
     clamp((ep.policiesGap + 5) / 15, 0, 1),                           // [15]  range [-5, +10]
-    // --- Percentages (3 elements) ---
+    // --- Percentages (4 elements) ---
     clamp((ep.happinessPercentage ?? 0) / 100, 0, 1),                 // [16]
     clamp(ep.religionPercentage, 0, 1),                                // [17]
     clamp(ep.ideologyShare, 0, 1),                                     // [18]
+    clamp(ep.supplyUtilization ?? 0, 0, 1),                            // [19]
     // --- Diplomatic (8 elements) ---
-    ep.isVassal,                                                       // [19]
-    clamp(ep.vassals / 3, 0, 1),                                       // [20]
-    clamp(ep.warWeariness / 100, 0, 1),                                // [21]
-    clamp(ep.activeWars / 3, 0, 1),                                    // [22]
-    clamp(ep.truces / 3, 0, 1),                                        // [23]
-    clamp(ep.friends / 3, 0, 1),                                       // [24]
-    clamp(ep.defensivePacts / 3, 0, 1),                                // [25]
-    clamp(ep.denouncements / 3, 0, 1),                                 // [26]
+    ep.isVassal,                                                       // [20]
+    clamp(ep.vassals / 3, 0, 1),                                       // [21]
+    clamp(ep.warWeariness / 100, 0, 1),                                // [22]
+    clamp(ep.activeWars / 3, 0, 1),                                    // [23]
+    clamp(ep.truces / 3, 0, 1),                                        // [24]
+    clamp(ep.friends / 3, 0, 1),                                       // [25]
+    clamp(ep.defensivePacts / 3, 0, 1),                                // [26]
+    clamp(ep.denouncements / 3, 0, 1),                                 // [27]
     // --- Victory gaps (4 elements, leaderProgress - playerProgress, range [-50, +50]) ---
-    clamp(((ep.dominationLeaderProgress ?? 0) - (ep.dominationProgress ?? 0) + 50) / 100, 0, 1),  // [27]
-    clamp(((ep.scienceLeaderProgress ?? 0) - (ep.scienceProgress ?? 0) + 50) / 100, 0, 1),        // [28]
-    clamp(((ep.cultureLeaderProgress ?? 0) - (ep.cultureProgress ?? 0) + 50) / 100, 0, 1),        // [29]
-    clamp(((ep.diplomaticLeaderProgress ?? 0) - (ep.diplomaticProgress ?? 0) + 50) / 100, 0, 1),  // [30]
-    // --- Comparison metrics (2 elements) ---
-    clamp((ep.scoreGap + 50) / 100, 0, 1),                            // [31]  range [-50, +50]
-    clamp(ep.supplyUtilization ?? 0, 0, 1),                            // [32]
+    clamp(((ep.dominationLeaderProgress ?? 0) - (ep.dominationProgress ?? 0) + 50) / 100, 0, 1),  // [28]
+    clamp(((ep.scienceLeaderProgress ?? 0) - (ep.scienceProgress ?? 0) + 50) / 100, 0, 1),        // [29]
+    clamp(((ep.cultureLeaderProgress ?? 0) - (ep.cultureProgress ?? 0) + 50) / 100, 0, 1),        // [30]
+    clamp(((ep.diplomaticLeaderProgress ?? 0) - (ep.diplomaticProgress ?? 0) + 50) / 100, 0, 1),  // [31]
   ];
 }

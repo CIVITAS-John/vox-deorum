@@ -180,11 +180,14 @@ CREATE TABLE episodes (
                                         -- ideology_allies / count(alive major players)
                                         --   0 if no ideology chosen
 
+  supply_utilization  REAL,             -- military_units / military_supply (0-1 range)
+                                        --   null if military_supply is 0 or unavailable
+
   -- ══════════════════════════════════════════════════════════════════
   -- VECTORS (stored as REAL[] arrays in DuckDB)
   -- ══════════════════════════════════════════════════════════════════
 
-  -- Game-state vector (35 elements), normalized/scaled:
+  -- Game-state vector (32 elements), normalized/scaled:
   --   [0]  era / 8                              (Ancient=0 .. Information=7)
   --   [1]  grand_strategy / 4                   (Conquest=1, Culture=2, Diplomacy=3, Science=4, None=0)
   --   --- Shares (city-adjusted, scaled by knownMajors/totalMajors) ---
@@ -195,36 +198,34 @@ CREATE TABLE episodes (
   --   [6]  votes_share                          (0 if null)
   --   [7]  minor_allies_share
   --   --- Per-pop metrics ---
-  --   [8]  science_per_pop                      (clamped [1,20] then /20)
-  --   [9]  faith_per_pop                        (clamped [1,20] then /20)
-  --   [10] production_per_pop                   (clamped [1,20] then /20)
-  --   [11] food_per_pop                         (clamped [1,20] then /20)
-  --   [12] culture_per_pop                      (clamped [1,20] then /20)
-  --   [13] gold_per_pop                         (clamped [1,20] then /20)
-  --   --- Gaps & percentages ---
-  --   [14] technologies_gap / 10                (clamped to [0, 1])
-  --   [15] policies_gap / 5                     (clamped to [0, 1])
+  --   [8]  science_per_pop                      (clamped [1,10] then normalized)
+  --   [9]  faith_per_pop                        (clamped [1,10] then normalized)
+  --   [10] production_per_pop                   (clamped [1,10] then normalized)
+  --   [11] food_per_pop                         (clamped [1,10] then normalized)
+  --   [12] culture_per_pop                      (clamped [1,10] then normalized)
+  --   [13] gold_per_pop                         (clamped [1,10] then normalized)
+  --   --- Gaps ---
+  --   [14] technologies_gap                     (bidirectional, (gap+5)/15)
+  --   [15] policies_gap                         (bidirectional, (gap+5)/15)
+  --   --- Percentages ---
   --   [16] happiness_percentage / 100           (clamped to [0, 1])
   --   [17] religion_percentage                  (clamped to [0, 1])
   --   [18] ideology_share                       (already 0-1; 0 if no ideology)
+  --   [19] supply_utilization                   (clamped to [0, 1])
   --   --- Diplomatic ---
-  --   [19] is_vassal                            (0 or 1)
-  --   [20] vassals / 3                          (clamped to [0, 1])
-  --   [21] war_weariness / 100                  (clamped to [0, 1])
-  --   [22] active_wars / 3                      (clamped to [0, 1])
-  --   [23] truces / 3                           (clamped to [0, 1])
-  --   [24] friends / 3                          (clamped to [0, 1])
-  --   [25] defensive_pacts / 3                  (clamped to [0, 1])
-  --   [26] denouncements / 3                    (clamped to [0, 1])
-  --   --- Victory progress (player + leader × 4 types) ---
-  --   [27] domination_progress / 100            (0 if null, clamped to [0, 1])
-  --   [28] science_progress / 100               (0 if null, clamped to [0, 1])
-  --   [29] culture_progress / 100               (0 if null, clamped to [0, 1])
-  --   [30] diplomatic_progress / 100            (0 if null, clamped to [0, 1])
-  --   [31] domination_leader_progress / 100     (0 if null, clamped to [0, 1])
-  --   [32] science_leader_progress / 100        (0 if null, clamped to [0, 1])
-  --   [33] culture_leader_progress / 100        (0 if null, clamped to [0, 1])
-  --   [34] diplomatic_leader_progress / 100     (0 if null, clamped to [0, 1])
+  --   [20] is_vassal                            (0 or 1)
+  --   [21] vassals / 3                          (clamped to [0, 1])
+  --   [22] war_weariness / 100                  (clamped to [0, 1])
+  --   [23] active_wars / 3                      (clamped to [0, 1])
+  --   [24] truces / 3                           (clamped to [0, 1])
+  --   [25] friends / 3                          (clamped to [0, 1])
+  --   [26] defensive_pacts / 3                  (clamped to [0, 1])
+  --   [27] denouncements / 3                    (clamped to [0, 1])
+  --   --- Victory gaps (leader - player, (gap+50)/100) ---
+  --   [28] domination gap                       (clamped to [0, 1])
+  --   [29] science gap                          (clamped to [0, 1])
+  --   [30] culture gap                          (clamped to [0, 1])
+  --   [31] diplomatic gap                       (clamped to [0, 1])
   game_state_vector   REAL[],
 
   -- Neighbor vector: 8 fixed slots, sorted by strength_ratio descending.
@@ -262,8 +263,9 @@ CREATE TABLE episodes (
   -- Table: turn_summaries WHERE turn=turn
   -- ══════════════════════════════════════════════════════════════════
 
-  abstract            TEXT,        -- turn_summaries.abstract  (2-3 sentence summary for query)
-  abstract_embedding  REAL[],      -- embedding on the abstract
+  situation_abstract  TEXT,        -- turn_summaries.situationAbstract  (2-3 sentence situation summary)
+  decision_abstract   TEXT,        -- turn_summaries.decisionAbstract  (2-3 sentence decision summary)
+  situation_abstract_embedding REAL[], -- embedding on the situation_abstract
   situation           TEXT,        -- turn_summaries.situation  (world state paragraph)
   decisions           TEXT,        -- turn_summaries.decisions  (strategic decisions made)
 
@@ -313,7 +315,7 @@ archive/{experiment}/
   │   └── spans                             │  (used by telepathist prep only)
   │                                         │
   └── {gameId}-player-{pid}.telepathist.db──┘
-      ├── turn_summaries                       narrative, situation, decisions
+      ├── turn_summaries                       situationAbstract, decisionAbstract, situation, decisions
       └── phase_summaries                      (available but not stored in episodes)
 ```
 
@@ -456,7 +458,7 @@ player's civ name. Reuse across all players in the same turn.
 | `telepathist-prep.ts` | Ensures telepathist DBs exist, calls preparation if needed      |
 | `extractor.ts`      | Reads game DB + telepathist DB, produces raw episode records      |
 | `transformer.ts`    | Computes adjusted values, shares, gaps, vectors                   |
-| `embeddings.ts`     | Generates abstract embeddings via AI SDK                          |
+| `embeddings.ts`     | Generates situation abstract embeddings via AI SDK                |
 | `writer.ts`         | Kysely/DuckDB output (episodes + game_outcomes tables)            |
 | `similarity.ts`     | Composite similarity: TypeScript (batch) + SQL builder (retrieval)|
 | `selector.ts`       | Diversity-first landmark pre-selection (uses TS similarity)       |
@@ -467,7 +469,7 @@ player's civ name. Reuse across all players in the same turn.
 
 Two pathways for computing composite similarity, sharing the same formula and weight presets:
 
-**Formula**: `w_gs * cos(game_state_vector) + w_nb * cos(neighbor_vector) + w_em * cos(abstract_embedding)`
+**Formula**: `w_gs * cos(game_state_vector) + w_nb * cos(neighbor_vector) + w_em * cos(situation_abstract_embedding)`
 
 ### Pathway 1: In-House TypeScript
 Used by `selector.ts` during batch landmark selection. Vectors are already in memory — no DB round-trips needed.
@@ -479,8 +481,8 @@ Used by `reader.ts` during runtime retrieval. Scoring happens inside SQL queries
 
 | Preset                       | game_state | neighbor | embedding | Usage                     |
 |------------------------------|------------|----------|-----------|---------------------------|
-| `retrievalWeights`           | 0.4        | 0.3      | 0.3       | Runtime with abstract      |
-| `retrievalNoEmbeddingWeights`| 0.6        | 0.4      | 0         | Runtime without abstract   |
+| `retrievalWeights`           | 0.4        | 0.3      | 0.3       | Runtime with situation abstract |
+| `retrievalNoEmbeddingWeights`| 0.6        | 0.4      | 0         | Runtime without abstract       |
 
 `compositeSimilarity()` auto-selects weights based on embedding availability.
 The selector uses `compositeSimilarity()` with default weights (no embeddings present),

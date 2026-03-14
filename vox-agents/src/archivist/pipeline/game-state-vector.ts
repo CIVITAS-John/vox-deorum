@@ -264,7 +264,7 @@ export function reportsToRawEpisode(
  * pipeline to produce normalized vectors suitable for similarity search
  * against archived game episodes.
  *
- * @returns The 33-element gameStateVector and 32-element neighborVector, or
+ * @returns The 32-element gameStateVector and 32-element neighborVector, or
  *          undefined if the player data is unavailable.
  */
 export function buildLiveGameStateVector(

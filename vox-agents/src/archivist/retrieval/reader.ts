@@ -93,7 +93,7 @@ async function fetchCandidates(
            gold_per_pop, tourism_share, military_share, population_share, cities_share, minor_allies_share,
            religion_percentage, war_weariness,
            active_wars, truces, domination_progress, science_progress, culture_progress, diplomatic_progress,
-           score_gap, supply_utilization,
+           supply_utilization,
            game_state_vector, neighbor_vector, situation_abstract_embedding,
            victory_type,
            ${similaritySql} AS score
@@ -270,7 +270,6 @@ function buildResult(
       scienceProgress: candidate.science_progress,
       cultureProgress: candidate.culture_progress,
       diplomaticProgress: candidate.diplomatic_progress,
-      scoreGap: candidate.score_gap,
       supplyUtilization: candidate.supply_utilization,
     },
   };

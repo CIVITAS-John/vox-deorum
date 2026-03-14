@@ -122,12 +122,9 @@ export interface Episode extends RawEpisode {
   // Bidirectional gap values (bestOther - player). Negative = leading, positive = behind.
   technologiesGap: number;
   policiesGap: number;
-  scoreGap: number;
-
-  // Military supply utilization (militaryUnits / militarySupply)
-  supplyUtilization: number | null;
 
   // Derived percentages
+  supplyUtilization: number | null;
   religionPercentage: number;
   ideologyAllies: number;
   ideologyShare: number;

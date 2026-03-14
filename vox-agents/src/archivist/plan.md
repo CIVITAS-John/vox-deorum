@@ -98,7 +98,7 @@ Pipeline:
       - Check incremental: skip if `(gameId, playerId)` already in DuckDB (unless `--force`)
       - Extract raw episodes
       - Transform each episode (per-player, using TurnContext for cross-player data)
-      - Generate embeddings for abstracts
+      - Generate embeddings for situation abstracts
       - Write to DuckDB
    d. **Landmark selection**: run `selector.ts` for this game (marks diverse subset as landmarks)
 4. Close DuckDB, log summary
@@ -143,13 +143,13 @@ No changes to `turn-preparation.ts` needed — it handles resume natively.
   - **Minor allies**: count minors where MajorAlly matches civ name (from TurnContext)
   - **Victory progress**: parse VictoryProgress JSON columns (from TurnContext)
   - **Religion percentage**: count matching cities / total cities (from TurnContext)
-  - **Telepathist text**: read turn_summaries for abstract, situation, decisions
+  - **Telepathist text**: read turn_summaries for situationAbstract, decisionAbstract, situation, decisions
 
 ---
 
 ## Phase 3: Transformation ✅ DONE
 
-**Implemented:** transformer.ts computes all derived Episode fields from RawEpisode + TurnContext: city-adjusted shares, raw shares, per-pop metrics, tech/policy gaps, ideology detection, religion percentage, 35d game state vector, and 32d neighbor vector. Neighbor vector sorts by distance rank (Neighbors before Close) then by strength_ratio descending, capped at 8 slots with neutral padding. embeddings.ts uses AI SDK `embedMany()` with the configured `embedder` model alias, trimming embeddings to `embeddingSize` when actual dimension exceeds target. Graceful degradation returns all nulls on failure. Model config system expanded: `LLMConfig.options.embeddingSize` marks embedding models, `getEmbeddingModel()` added to models.ts, WebUI filters embedding models from agent dropdowns and provides dedicated embedder dropdown. index.ts wires transformer + embeddings with `--skip-embeddings` CLI flag.
+**Implemented:** transformer.ts computes all derived Episode fields from RawEpisode + TurnContext: city-adjusted shares, raw shares, per-pop metrics, tech/policy gaps, ideology detection, religion percentage, 32d game state vector, and 32d neighbor vector. Neighbor vector sorts by distance rank (Neighbors before Close) then by strength_ratio descending, capped at 8 slots with neutral padding. embeddings.ts uses AI SDK `embedMany()` with the configured `embedder` model alias, trimming embeddings to `embeddingSize` when actual dimension exceeds target. Graceful degradation returns all nulls on failure. Model config system expanded: `LLMConfig.options.embeddingSize` marks embedding models, `getEmbeddingModel()` added to models.ts, WebUI filters embedding models from agent dropdowns and provides dedicated embedder dropdown. index.ts wires transformer + embeddings with `--skip-embeddings` CLI flag.
 
 ### 3.1 Transformer (`transformer.ts`)
 
@@ -162,7 +162,7 @@ Per-player, per-turn. TurnContext provides all-player data for cross-player comp
 - **Per-pop**: `clamp(metric / population, 1, 20) / 20` for science, faith, production, and food. Science/faith sourced from PlayerSummary in TurnContext (not stored as raw columns since they're only visible to the player itself)
 - **Gaps**: `player.tech - max(all.tech)`, same for policies
 - **Ideology**: detect from PolicyBranches keys (Freedom/Order/Autocracy), count allies, compute share
-- **Game state vector** (35 elements): assemble per schema.md spec with normalization and clamping
+- **Game state vector** (32 elements): assemble per schema.md spec with normalization and clamping
 - **Neighbor vector** (32 elements): filter neighbors by distance/stance, compute 4 features each, sort by distance rank then strength_ratio, pad to 8 slots with `[0.2, 0.5, 0.5, 0.5]`
 
 ### 3.2 Embeddings (`embeddings.ts`)
@@ -182,7 +182,7 @@ Per-player, per-turn. TurnContext provides all-player data for cross-player comp
 - `--force` flag deletes existing episodes for the game before re-processing
 
 ### 4.2 Validation & Testing
-- Unit tests for: relationship parsing, share computation, vector assembly (35 and 32 elements), scanner regex
+- Unit tests for: relationship parsing, share computation, vector assembly (32 and 32 elements), scanner regex
 - Integration test with a sample archived game
 - Incremental test: run twice, verify second run skips
 
@@ -232,7 +232,7 @@ Generates SQL like:
 ```sql
 :w_gs * list_cosine_similarity(game_state_vector, :query_gs)
 + :w_nb * list_cosine_similarity(neighbor_vector, :query_nb)
-+ :w_em * COALESCE(list_cosine_similarity(abstract_embedding, :query_emb), 0)
++ :w_em * COALESCE(list_cosine_similarity(situation_abstract_embedding, :query_emb), 0)
 ```
 When `hasEmbedding` is false, the embedding term is omitted entirely.
 
@@ -249,22 +249,22 @@ interface SimilarityWeights {
 ```
 
 - `retrievalWeights`: `{ gameState: 0.4, neighbor: 0.3, embedding: 0.3 }` — runtime, all three
-- `retrievalNoEmbeddingWeights`: `{ gameState: 0.6, neighbor: 0.4, embedding: 0 }` — runtime, no abstract (also used implicitly by selector via default weights)
+- `retrievalNoEmbeddingWeights`: `{ gameState: 0.6, neighbor: 0.4, embedding: 0 }` — runtime, no situation abstract (also used implicitly by selector via default weights)
 
 ---
 
 ## Phase 5: Episode Retrieval Pipeline ✅ DONE
 
-**Implemented**: query-types.ts (pure interfaces with EpisodeDelta for outcome deltas), reader.ts (3-stage DuckDB pipeline: fuzzy→vector→MMR), game-state-vector.ts (adapter converting MCP reports→transformEpisode()), episode-utils.ts (requestEpisodes for live strategist, requestEpisodesFromTelemetry for post-game telepathist, formatEpisodeResults markdown formatter). Also modified: transformer.ts (reordered 35d vector, uses 4 per-pop metrics instead of science/faith shares/per-turn, added share scaling by knownMajors/totalMajors), extractor.ts (exported parseDiplomatics, extractAllVictoryProgress, DiplomaticCounts), types.ts (shared countPolicies, totalMajors in TurnContext), schema.md (updated vector spec).
+**Implemented**: query-types.ts (pure interfaces with EpisodeDelta for outcome deltas), reader.ts (3-stage DuckDB pipeline: fuzzy→vector→MMR), game-state-vector.ts (adapter converting MCP reports→transformEpisode()), episode-utils.ts (requestEpisodes for live strategist, requestEpisodesFromTelemetry for post-game telepathist, formatEpisodeResults markdown formatter). Also modified: transformer.ts (reordered 32d vector, uses 4 per-pop metrics instead of science/faith shares/per-turn, added share scaling by knownMajors/totalMajors), extractor.ts (exported parseDiplomatics, extractAllVictoryProgress, DiplomaticCounts), types.ts (shared countPolicies, totalMajors in TurnContext), schema.md (updated vector spec).
 
 ### 5.1 Query Types (`query-types.ts`)
 
 ```typescript
 /** The ONLY input to the retrieval pipeline */
 interface EpisodeQuery {
-  gameStateVector: number[];     // 35d
+  gameStateVector: number[];     // 32d
   neighborVector: number[];      // 32d
-  abstract?: string;             // optional — pipeline generates embedding when provided
+  situationAbstract?: string;    // optional — pipeline generates embedding when provided
 
   // Current state for fuzzy attribute scoring in SQL
   era: string;                   // proximity-scored (neighboring eras get partial credit)
@@ -283,7 +283,8 @@ interface EpisodeQuery {
 /** Outcome snapshot at a future horizon */
 interface OutcomeSnapshot {
   horizonTurns: number;          // actual offset (may be less than requested if game ended early)
-  abstract: string | null;
+  situationAbstract: string | null;
+  decisionAbstract: string | null;
   decisions: string | null;      // null for horizon=20
   deltas: EpisodeDelta;
 }
@@ -311,7 +312,8 @@ interface EpisodeResult {
   isWinner: boolean;
   victoryType: string | null;
   similarity: number;
-  abstract: string | null;
+  situationAbstract: string | null;
+  decisionAbstract: string | null;
   situation: string | null;
   decisions: string | null;
   outcomes: OutcomeSnapshot[];   // 0-4 (fewer if game ended early)
@@ -374,9 +376,9 @@ LIMIT :candidateLimit
 
 Era proximity: eras mapped to ordinals (Ancient=0 ... Information=7). Formula: `bonus * max(0, 1 - 0.5 * |stored - query|)`. Exact=full, ±1=50%, ±2=0%. The `{era_ordinal_case_expr}` is a CASE expression mapping era strings to ordinals inline. Diplomatic counts use the same proximity formula.
 
-Conditional embedding: when `abstract` is provided, `{similarity_sql}` includes the embedding term with `retrievalWeights`. When absent, uses `retrievalNoEmbeddingWeights` (embedding term omitted).
+Conditional embedding: when `situationAbstract` is provided, `{similarity_sql}` includes the embedding term with `retrievalWeights`. When absent, uses `retrievalNoEmbeddingWeights` (embedding term omitted).
 
-Embedding generation: when `query.abstract` is provided, pipeline calls `embeddings.ts` to generate the vector before running SQL.
+Embedding generation: when `query.situationAbstract` is provided, pipeline calls `embeddings.ts` to generate the vector before running SQL.
 
 Default weights (integers): `era = 8`, `civ = 5`, `gs = 3`, `wars = 3`, `friends = 2`, `pacts = 2`, `truces = 2`, `denouncements = 2`. Max sum = 27. Fuzzy score is used only for pre-filtering (Pass 1). Pass 2 ranks by vector similarity alone. Pre-filter limit: top 200 by fuzzy score.
 
@@ -417,7 +419,7 @@ deduped AS (
   FROM raw_outcomes
 )
 SELECT game_id, turn, player_id, (fetched_turn - turn) AS actual_horizon,
-       situation, decisions, abstract, ...deltas...
+       situation, decisions, situation_abstract, decision_abstract, ...deltas...
 FROM deduped WHERE rn = 1
 ```
 
@@ -451,17 +453,17 @@ closeReader(): Promise<void>
 async function requestEpisodes(
   state: GameState,
   parameters: StrategistParameters,
-  abstract?: string
+  situationAbstract?: string
 ): Promise<EpisodeResult[]>
 ```
 
 1. Build vectors via `buildLiveGameStateVector(state, parameters)` → `{ gameStateVector, neighborVector }`
 2. Extract era, civilization, grandStrategy from `state.players` / `parameters.metadata`
 3. Extract diplomatic counts (activeWars, friends, defensivePacts, truces, denouncements) from the player's Relationships data in `state.players`
-4. Call `findEpisodes({ gameStateVector, neighborVector, abstract, era, civilization, grandStrategy, activeWars, friends, defensivePacts, truces, denouncements })`
+4. Call `findEpisodes({ gameStateVector, neighborVector, situationAbstract, era, civilization, grandStrategy, activeWars, friends, defensivePacts, truces, denouncements })`
 5. Return `EpisodeResult[]`
 
-When `abstract` is provided, embedding similarity is included. When absent, it's skipped.
+When `situationAbstract` is provided, embedding similarity is included. When absent, it's skipped.
 
 Also exports `formatEpisodeResults(results: EpisodeResult[]): string` for markdown formatting.
 
@@ -469,7 +471,7 @@ Also exports `requestEpisodesFromTelemetry(telemetryDb, telepathistDb, turn, pla
 
 ### 5.4 Live Game State Vector (`utils/game-state-vector.ts`)
 
-Builds 35d `game_state_vector` + 32d `neighbor_vector` from live `GameState` + `StrategistParameters`.
+Builds 32d `game_state_vector` + 32d `neighbor_vector` from live `GameState` + `StrategistParameters`.
 
 - Extracts current player from `state.players`
 - Computes city-adjusted shares, era/strategy mappings, neighbor features

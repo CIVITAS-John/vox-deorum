@@ -34,13 +34,15 @@ const TELEMETRY_DB_REGEX = /^(.+)-player-(\d+)\.db$/;
  * @returns Kysely instance for querying, or null on failure
  */
 export function openReadonlyGameDb(dbPath: string): Kysely<KnowledgeDatabase> | null {
+  let sqliteDb: InstanceType<typeof Database> | undefined;
   try {
-    const sqliteDb = new Database(dbPath, { readonly: true });
+    sqliteDb = new Database(dbPath, { readonly: true });
     return new Kysely<KnowledgeDatabase>({
       dialect: new SqliteDialect({ database: sqliteDb }),
       plugins: [new ParseJSONResultsPlugin()],
     });
   } catch (error) {
+    sqliteDb?.close();
     logger.error(`Failed to open game database: ${dbPath}`, { error });
     return null;
   }
@@ -156,7 +158,6 @@ export async function scanArchive(
 
         if (llmPlayerIds.size === 0) {
           logger.debug(`No LLM players found for game ${gameId}, skipping`);
-          await db.destroy();
           continue;
         }
 
@@ -182,8 +183,6 @@ export async function scanArchive(
           });
         }
 
-        await db.destroy();
-
         if (players.length > 0) {
           entries.push({
             experiment,
@@ -196,11 +195,8 @@ export async function scanArchive(
         }
       } catch (error) {
         logger.error(`Error processing game ${gameId} in experiment ${experiment}`, { error });
-        try {
-          await db.destroy();
-        } catch {
-          // Ignore cleanup errors
-        }
+      } finally {
+        await db.destroy().catch(() => {});
       }
     }
   }

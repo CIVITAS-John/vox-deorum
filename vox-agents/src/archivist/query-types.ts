@@ -82,7 +82,6 @@ export interface EpisodeResult {
     scienceProgress: number | null;
     cultureProgress: number | null;
     diplomaticProgress: number | null;
-    scoreGap: number;
     supplyUtilization: number | null;
   };
 }
