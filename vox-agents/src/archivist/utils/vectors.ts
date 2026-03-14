@@ -88,9 +88,8 @@ export function buildNeighborVector(
     const distanceRank = parseDistance(statusArray);
     const stance = parseStance(statusArray);
 
-    // Filter: Neighbors, or Close + hostile (stance >= 3)
-    if (distanceRank > 1) continue; // only Neighbors (0) and Close (1)
-    if (distanceRank === 1 && stance < 3) continue; // Close requires hostile
+    // Filter: only Neighbors (0) and Close (1)
+    if (distanceRank > 1) continue;
 
     const neighborSummary = turnContext.playerSummaries.get(neighborPid);
     if (!neighborSummary) continue;
@@ -156,8 +155,8 @@ export function buildGameStateVector(
     (clamp(ep.culturePerPop ?? 1, 1, 10) - 1) / 9,                    // [12]
     (clamp(ep.goldPerPop ?? 1, 1, 10) - 1) / 9,                       // [13]
     // --- Bidirectional gaps (negative = leading, positive = behind) ---
-    clamp((ep.technologiesGap + 5) / 15, 0, 1),                       // [14]  range [-5, +10]
-    clamp((ep.policiesGap + 5) / 15, 0, 1),                           // [15]  range [-5, +10]
+    clamp(ep.technologiesGap / 20 + 0.5, 0, 1),                       // [14]  range [-10, +10]
+    clamp(ep.policiesGap / 10 + 0.5, 0, 1),                           // [15]  range [-5, +5]
     // --- Percentages (4 elements) ---
     clamp((ep.happinessPercentage ?? 0) / 100, 0, 1),                 // [16]
     clamp(ep.religionPercentage, 0, 1),                                // [17]
