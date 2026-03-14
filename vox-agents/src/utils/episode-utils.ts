@@ -212,13 +212,13 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     if (ind.culturePerPop != null) indParts.push(`culturePerPop: ${ind.culturePerPop.toFixed(1)}`);
     if (ind.productionPerPop != null) indParts.push(`productionPerPop: ${ind.productionPerPop.toFixed(1)}`);
     if (ind.goldPerPop != null) indParts.push(`goldPerPop: ${ind.goldPerPop.toFixed(1)}`);
-    if (ind.tourismShare != null) indParts.push(`tourismShare: ${(ind.tourismShare * 100).toFixed(0)}%`);
-    if (ind.militaryShare != null) indParts.push(`militaryShare: ${(ind.militaryShare * 100).toFixed(0)}%`);
-    if (ind.populationShare != null) indParts.push(`populationShare: ${(ind.populationShare * 100).toFixed(0)}%`);
-    if (ind.citiesShare != null) indParts.push(`citiesShare: ${(ind.citiesShare * 100).toFixed(0)}%`);
-    if (ind.minorAlliesShare != null) indParts.push(`minorAlliesShare: ${(ind.minorAlliesShare * 100).toFixed(0)}%`);
-    indParts.push(`religion: ${(ind.religionPercentage * 100).toFixed(0)}%`);
-    indParts.push(`warWeariness: ${ind.warWeariness}`);
+    if (ind.tourismShare != null) indParts.push(`tourismShare: ${ind.tourismShare.toFixed(1)}x`);
+    if (ind.militaryShare != null) indParts.push(`militaryShare: ${ind.militaryShare.toFixed(1)}x`);
+    if (ind.populationShare != null) indParts.push(`populationShare: ${ind.populationShare.toFixed(1)}x`);
+    if (ind.citiesShare != null) indParts.push(`citiesShare: ${ind.citiesShare.toFixed(1)}x`);
+    if (ind.minorAlliesShare != null) indParts.push(`minorAlliesShare: ${ind.minorAlliesShare.toFixed(1)}x`);
+    if (ind.religionPercentage != null) indParts.push(`religionShare: ${(ind.religionPercentage * 100).toFixed(0)}%`);
+    if (ind.warWeariness != null) indParts.push(`warWeariness: ${(ind.religionPercentage * 100).toFixed(0)}%}`);
     if (ind.activeWars != null) indParts.push(`Wars: ${ind.activeWars}`);
     if (ind.truces != null) indParts.push(`Truces: ${ind.truces}`);
     if (indParts.length > 0) parts.push(`- **Indicators**: ${indParts.join(' | ')}`);
@@ -239,7 +239,7 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
         parts.push(`\n### Outcome at ${turnLabel}`);
         parts.push(`- **Delta**: ${deltaStr}`);
         if (out.situationAbstract) parts.push(`\n#### Situation\n${out.situationAbstract.replaceAll("\n", "")}`);
-        if (out.decisions) parts.push(`\n#### Further Decisions\n${out.decisions}`);
+        if (out.decisionAbstract) parts.push(`\n#### Further Decisions\n${out.decisionAbstract.replaceAll("\n", "")}`);
       }
     }
 

@@ -132,8 +132,7 @@ export function buildNeighborVector(
 
 /** Build the 35-element game state vector from computed Episode fields. */
 export function buildGameStateVector(
-  ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'situationAbstractEmbedding' | 'isLandmark'>,
-  majorCount: number
+  ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'situationAbstractEmbedding' | 'isLandmark'>
 ): number[] {
   const eraOrdinal = eraMap[ep.era] ?? 0;
   const gs = ep.grandStrategy ?? '';
@@ -145,13 +144,13 @@ export function buildGameStateVector(
     gs === 'Culture' ? 1 : 0,                                          // [2]
     gs === 'United Nations' ? 1 : 0,                                   // [3]
     gs === 'Spaceship' ? 1 : 0,                                        // [4]
-    // --- Shares (6 elements, normalized: *majorCount, clamp [0.25,4.0] → [0,1]) ---
-    normalizeShare(ep.tourismShare, majorCount),                        // [5]
-    normalizeShare(ep.militaryShare, majorCount),                       // [6]
-    normalizeShare(ep.citiesShare, majorCount),                         // [7]
-    normalizeShare(ep.populationShare, majorCount),                     // [8]
-    normalizeShare(ep.votesShare, majorCount),                          // [9]
-    normalizeShare(ep.minorAlliesShare, majorCount),                    // [10]
+    // --- Shares (6 elements, relative-to-fair-share, clamp [0.25,4.0] → [0,1]) ---
+    normalizeShare(ep.tourismShare),                                    // [5]
+    normalizeShare(ep.militaryShare),                                   // [6]
+    normalizeShare(ep.citiesShare),                                     // [7]
+    normalizeShare(ep.populationShare),                                 // [8]
+    normalizeShare(ep.votesShare),                                      // [9]
+    normalizeShare(ep.minorAlliesShare),                                // [10]
     // --- Per-pop metrics (6 elements, clamped [1, 10] → [0, 1]) ---
     (clamp(ep.sciencePerPop ?? 1, 1, 10) - 1) / 9,                    // [11]
     (clamp(ep.faithPerPop ?? 1, 1, 10) - 1) / 9,                      // [12]

@@ -91,7 +91,7 @@ ${decisionsDesc}
 # DecisionAbstract
 A context-agnostic, one-paragraph ${label} summary of the Decisions and leaders' rationale. Replace concrete names of cities, city-states with generic descriptions.
  - ALWAYS keep civilization names, e.g. "a maritime Civilization (Venice)".
- - ALWAYS keep concrete numbers, e.g. flavors or relationship bonuses.
+ - ALWAYS keep concrete numbers, e.g. "increased military production (30 => 50)".
  - The content should be digestable by future leaders (not too overwhelming, not too concise).
 
 # Narrative

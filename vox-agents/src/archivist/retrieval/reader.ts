@@ -214,7 +214,6 @@ async function fetchOutcomes(
         horizonTurns: actualHorizon,
         situationAbstract: bestEp.situation_abstract,
         decisionAbstract: bestEp.decision_abstract,
-        decisions: bestEp.decisions,
         deltas,
       });
     }
@@ -222,7 +221,7 @@ async function fetchOutcomes(
     if (outcomes.length > 0) {
       outcomes.sort((a, b) => a.horizonTurns - b.horizonTurns);
       // Always hide decisions on the furthest horizon to avoid spoilers
-      outcomes[outcomes.length - 1].decisions = null;
+      outcomes[outcomes.length - 1].decisionAbstract = null;
       outcomeMap.set(key, outcomes);
     }
   }

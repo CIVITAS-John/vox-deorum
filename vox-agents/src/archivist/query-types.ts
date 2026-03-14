@@ -30,7 +30,6 @@ export interface OutcomeSnapshot {
   horizonTurns: number;          // actual offset (may be less than requested if game ended early)
   situationAbstract: string | null;
   decisionAbstract: string | null;
-  decisions: string | null;      // null for last outcome
   deltas: EpisodeDelta;
 }
 

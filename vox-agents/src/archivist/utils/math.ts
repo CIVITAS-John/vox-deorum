@@ -11,14 +11,13 @@ export function clamp(value: number, min: number, max: number): number {
 }
 
 /**
- * Normalize a share value for vector embedding.
- * Converts raw fraction to "relative to fair share" (1.0 = average),
- * then clamps to [0.25, 4.0] (25%–400% of fair share) and maps to [0, 1].
+ * Normalize a relative-to-fair-share value for vector embedding.
+ * Shares are already regularized (1.0 = average player).
+ * Clamps to [0.25, 4.0] (25%–400% of fair share) and maps to [0, 1].
  */
-export function normalizeShare(share: number | null, majorCount: number): number {
+export function normalizeShare(share: number | null): number {
   if (share == null) return 0.5;
-  const relative = share * majorCount;
-  return (clamp(relative, 0.25, 4.0) - 0.25) / 3.75;
+  return (clamp(share, 0.25, 4.0) - 0.25) / 3.75;
 }
 
 /** Scale a share value when only partial players are known. */

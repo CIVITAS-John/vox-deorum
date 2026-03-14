@@ -92,10 +92,9 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     p.minorAllies = count;
   }
 
-  // Scale shares when only partial players are known
+  // Regularize shares to relative-to-fair-share (1.0 = average player)
   const knownMajors = majorPlayerData.length;
-  const totalMajors = turnContext.totalMajors ?? knownMajors;
-  const shareScale = totalMajors > 0 ? knownMajors / totalMajors : 1;
+  const shareScale = knownMajors;
 
   // City-adjusted shares
   const tourismShare = scaleShare(computeCityAdjustedShare(raw.tourismPerTurn, raw.cities,
@@ -172,7 +171,7 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
   };
 
   // Game state vector (35 elements)
-  const gameStateVector = buildGameStateVector(partial, totalMajors);
+  const gameStateVector = buildGameStateVector(partial);
 
   // Neighbor vector (32 elements)
   const neighborVector = playerSummary
