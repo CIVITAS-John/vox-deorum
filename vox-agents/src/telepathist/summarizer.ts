@@ -22,6 +22,7 @@ import { getModelConfig } from '../utils/models/models.js';
 export const summarizerGuidelines = `- Write in past tense from an archivist's perspective, not the leader's.
 - Mention specific civilizations, cities, technologies, and policies by name.
 - The history happened in a generated world, and the geography had nothing to do with the real Earth.
+- ALWAYS follow the guidelines, including overall and for each heading.
 - Carefully distinguish between what is truth (game state) and what is perception of the leader.
   - "Rationale" under the Options heading reflects the leader's perspective and can deviate from the reality.
   - "RelayedMessage" type of events reflects the intelligence gathered by the government and can be incorrect.`.trim();
@@ -82,9 +83,10 @@ ${summarizerGuidelines}`.trim();
     input: SummarizerInput,
     _context: VoxContext<TelepathistParameters>
   ) {
+    const dataSection = input.text.startsWith('#') ? input.text : `# Data\n${input.text}`;
     const content = input.reminder
-      ? `# Task\n${input.instruction}\n\n# Data\n${input.text}\n\n# Reminder\n${input.reminder}`
-      : `# Task\n${input.instruction}\n\n# Data\n${input.text}`;
+      ? `# Task\n${input.instruction}\n\n${dataSection}\n\n# Reminder\n${input.reminder}`
+      : `# Task\n${input.instruction}\n\n${dataSection}`;
     return [{
       role: 'user' as const,
       content

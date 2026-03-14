@@ -79,17 +79,20 @@ ${situationDesc}
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
 
 # SituationAbstract
-A context-agnostic generalized ${label} summary of the Situation. Replace concrete names of leaders, cities, city-states with generic descriptions.
+A context-agnostic, one-paragraph ${label} summary of the Situation. Replace concrete names of leaders, cities, city-states with generic descriptions.
  - ALWAYS keep civilization names, e.g. "a maritime Civilization (Venice)".
  - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
+ - The content should be digestable by future leaders (not too overwhelming, not too concise).
 
 # Decisions
 ${decisionsDesc}
  - Report what is already in effect as well as what has been changed.
 
 # DecisionAbstract
-A context-agnostic generalized ${label} summary of the Decisions. Replace concrete names of leaders, cities, city-states with generic descriptions.
+A context-agnostic, one-paragraph ${label} summary of the Decisions. Replace concrete names of leaders, cities, city-states with generic descriptions.
  - ALWAYS keep civilization names, e.g. "a maritime Civilization (Venice)".
+ - ALWAYS keep concrete numbers, e.g. flavors or relationship bonuses.
+ - The content should be digestable by future leaders (not too overwhelming, not too concise).
 
 # Narrative
 A short combined narrative weaving the situation and decisions together into a cohesive ${label} summary.
@@ -101,7 +104,7 @@ ${focusBullets}
 Respond in markdown with exactly these five top-level headings (generate them in this order, so earlier sections can provide context for later ones):
 Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.`;
 
-  const reminder = `- Respond ONLY with the five markdown sections above: Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.
+  const reminder = `- Respond ONLY with the five markdown sections following the EXACT guidelines: Situation, SituationAbstract, Decisions, DecisionAbstract, Narrative.
 - "Situation" must only cover world state: do NOT include any leader decisions or reasoning, including AI flavors.
 - Do not include any other text or commentary outside those sections.`;
 
@@ -133,6 +136,7 @@ export function parseSummaryMarkdown<T>(
 ): T | undefined {
   const sections: Record<string, string> = {};
   // Try # headings first, fall back to ## if no # found, then ### etc.
+  // If no markdown headings found, fall back to **Bold** labels.
   let matches: RegExpMatchArray[] = [];
   for (let level = 1; level <= 4 && matches.length === 0; level++) {
     const hashes = '#'.repeat(level);
@@ -141,6 +145,10 @@ export function parseSummaryMarkdown<T>(
       'gm'
     );
     matches = [...rawText.matchAll(headingRegex)];
+  }
+  if (matches.length === 0) {
+    const boldRegex = /^\s*\*\*(.+?)\*\*\s*$/gm;
+    matches = [...rawText.matchAll(boldRegex)];
   }
 
   for (let i = 0; i < matches.length; i++) {
