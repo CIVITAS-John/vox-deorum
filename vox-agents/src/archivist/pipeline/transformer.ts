@@ -171,8 +171,8 @@ export function transformEpisode(raw: RawEpisode, turnContext: TurnContext): Epi
     ideologyShare,
   };
 
-  // Game state vector (32 elements)
-  const gameStateVector = buildGameStateVector(partial);
+  // Game state vector (35 elements)
+  const gameStateVector = buildGameStateVector(partial, totalMajors);
 
   // Neighbor vector (32 elements)
   const neighborVector = playerSummary

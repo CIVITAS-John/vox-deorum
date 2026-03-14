@@ -187,45 +187,49 @@ CREATE TABLE episodes (
   -- VECTORS (stored as REAL[] arrays in DuckDB)
   -- ══════════════════════════════════════════════════════════════════
 
-  -- Game-state vector (32 elements), normalized/scaled:
-  --   [0]  era / 8                              (Ancient=0 .. Information=7)
-  --   [1]  grand_strategy / 4                   (Conquest=1, Culture=2, Diplomacy=3, Science=4, None=0)
-  --   --- Shares (city-adjusted, scaled by knownMajors/totalMajors) ---
-  --   [2]  tourism_share
-  --   [3]  military_share
-  --   [4]  cities_share
-  --   [5]  population_share
-  --   [6]  votes_share                          (0 if null)
-  --   [7]  minor_allies_share
+  -- Game-state vector (35 elements), normalized/scaled:
+  --   [0]  era / 7 * 2                              (Ancient=0 .. Information=7, double weighted)
+  --   --- Grand strategy one-hot (4 elements) ---
+  --   [1]  conquest                             (0 or 1)
+  --   [2]  culture                              (0 or 1)
+  --   [3]  diplomacy (United Nations)           (0 or 1)
+  --   [4]  science (Spaceship)                  (0 or 1)
+  --   --- Shares (normalized: *majorCount, clamp [0.25,4.0] → [0,1]) ---
+  --   [5]  tourism_share
+  --   [6]  military_share
+  --   [7]  cities_share
+  --   [8]  population_share
+  --   [9]  votes_share                          (0.5 if null)
+  --   [10] minor_allies_share
   --   --- Per-pop metrics ---
-  --   [8]  science_per_pop                      (clamped [1,10] then normalized)
-  --   [9]  faith_per_pop                        (clamped [1,10] then normalized)
-  --   [10] production_per_pop                   (clamped [1,10] then normalized)
-  --   [11] food_per_pop                         (clamped [1,10] then normalized)
-  --   [12] culture_per_pop                      (clamped [1,10] then normalized)
-  --   [13] gold_per_pop                         (clamped [1,10] then normalized)
+  --   [11] science_per_pop                      (clamped [1,10] then normalized)
+  --   [12] faith_per_pop                        (clamped [1,10] then normalized)
+  --   [13] production_per_pop                   (clamped [1,10] then normalized)
+  --   [14] food_per_pop                         (clamped [1,10] then normalized)
+  --   [15] culture_per_pop                      (clamped [1,10] then normalized)
+  --   [16] gold_per_pop                         (clamped [1,10] then normalized)
   --   --- Gaps ---
-  --   [14] technologies_gap                     (bidirectional, (gap+5)/15)
-  --   [15] policies_gap                         (bidirectional, (gap+5)/15)
+  --   [17] technologies_gap                     (bidirectional, gap/20+0.5)
+  --   [18] policies_gap                         (bidirectional, gap/10+0.5)
   --   --- Percentages ---
-  --   [16] happiness_percentage / 100           (clamped to [0, 1])
-  --   [17] religion_percentage                  (clamped to [0, 1])
-  --   [18] ideology_share                       (already 0-1; 0 if no ideology)
-  --   [19] supply_utilization                   (clamped to [0, 1])
+  --   [19] happiness_percentage / 100           (clamped to [0, 1])
+  --   [20] religion_percentage                  (clamped to [0, 1])
+  --   [21] ideology_share                       (already 0-1; 0 if no ideology)
+  --   [22] supply_utilization                   (clamped to [0, 1])
   --   --- Diplomatic ---
-  --   [20] is_vassal                            (0 or 1)
-  --   [21] vassals / 3                          (clamped to [0, 1])
-  --   [22] war_weariness / 100                  (clamped to [0, 1])
-  --   [23] active_wars / 3                      (clamped to [0, 1])
-  --   [24] truces / 3                           (clamped to [0, 1])
-  --   [25] friends / 3                          (clamped to [0, 1])
-  --   [26] defensive_pacts / 3                  (clamped to [0, 1])
-  --   [27] denouncements / 3                    (clamped to [0, 1])
+  --   [23] is_vassal                            (0 or 1)
+  --   [24] vassals / 2                          (clamped to [0, 1])
+  --   [25] war_weariness / 100                  (clamped to [0, 1])
+  --   [26] active_wars / 3                      (clamped to [0, 1])
+  --   [27] truces / 3                           (clamped to [0, 1])
+  --   [28] friends / 3                          (clamped to [0, 1])
+  --   [29] defensive_pacts / 3                  (clamped to [0, 1])
+  --   [30] denouncements / 3                    (clamped to [0, 1])
   --   --- Victory gaps (leader - player, (gap+50)/100) ---
-  --   [28] domination gap                       (clamped to [0, 1])
-  --   [29] science gap                          (clamped to [0, 1])
-  --   [30] culture gap                          (clamped to [0, 1])
-  --   [31] diplomatic gap                       (clamped to [0, 1])
+  --   [31] domination gap                       (clamped to [0, 1])
+  --   [32] science gap                          (clamped to [0, 1])
+  --   [33] culture gap                          (clamped to [0, 1])
+  --   [34] diplomatic gap                       (clamped to [0, 1])
   game_state_vector   REAL[],
 
   -- Neighbor vector: 8 fixed slots, sorted by strength_ratio descending.
@@ -358,14 +362,14 @@ The `era` column stores the original string. For the vector, map to integer:
 
 ## Grand Strategy Mapping (for game_state_vector only)
 
-The `grand_strategy` column stores the original string. For the vector, map to integer:
+The `grand_strategy` column stores the original string. For the vector, one-hot encoded as 4 binary variables:
 
 ```
-null / unknown     → 0
-"Conquest"         → 1
-"Culture"          → 2
-"United Nations"   → 3
-"Spaceship"        → 4
+[1] "Conquest"         → [1, 0, 0, 0]
+[2] "Culture"          → [0, 1, 0, 0]
+[3] "United Nations"   → [0, 0, 1, 0]
+[4] "Spaceship"        → [0, 0, 0, 1]
+null / unknown         → [0, 0, 0, 0]
 ```
 
 ## Neighbor Stance Priority

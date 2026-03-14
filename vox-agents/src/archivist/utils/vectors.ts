@@ -2,15 +2,15 @@
  * @module archivist/utils/vectors
  *
  * Feature vector construction for the archivist pipeline.
- * Builds the 32-element game state vector and 32-element neighbor vector
+ * Builds the 35-element game state vector and 32-element neighbor vector
  * used for similarity search and diversity selection.
  */
 
 import type { Selectable } from 'kysely';
 import type { PlayerSummary } from '../../../../mcp-server/dist/knowledge/schema/index.js';
 import type { Episode, TurnContext } from '../types.js';
-import { eraMap, grandStrategyMap } from '../types.js';
-import { clamp } from './math.js';
+import { eraMap } from '../types.js';
+import { clamp, normalizeShare } from './math.js';
 import { countPolicies } from './game-data.js';
 
 // ---------------------------------------------------------------------------
@@ -130,51 +130,56 @@ export function buildNeighborVector(
 // Game state vector
 // ---------------------------------------------------------------------------
 
-/** Build the 32-element game state vector from computed Episode fields. */
+/** Build the 35-element game state vector from computed Episode fields. */
 export function buildGameStateVector(
-  ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'situationAbstractEmbedding' | 'isLandmark'>
+  ep: Omit<Episode, 'gameStateVector' | 'neighborVector' | 'situationAbstractEmbedding' | 'isLandmark'>,
+  majorCount: number
 ): number[] {
   const eraOrdinal = eraMap[ep.era] ?? 0;
-  const gsOrdinal = (ep.grandStrategy ? grandStrategyMap[ep.grandStrategy] : 0) ?? 0;
+  const gs = ep.grandStrategy ?? '';
 
   return [
-    eraOrdinal / 8,                                                    // [0]
-    gsOrdinal / 4,                                                     // [1]
-    // --- Shares (city-adjusted, 6 elements) ---
-    ep.tourismShare ?? 0,                                              // [2]
-    ep.militaryShare ?? 0,                                             // [3]
-    ep.citiesShare ?? 0,                                               // [4]
-    ep.populationShare ?? 0,                                           // [5]
-    ep.votesShare ?? 0,                                                // [6]
-    ep.minorAlliesShare ?? 0,                                          // [7]
+    eraOrdinal / 7 * 2,                                                    // [0]
+    // --- Grand strategy one-hot (4 elements) ---
+    gs === 'Conquest' ? 1 : 0,                                         // [1]
+    gs === 'Culture' ? 1 : 0,                                          // [2]
+    gs === 'United Nations' ? 1 : 0,                                   // [3]
+    gs === 'Spaceship' ? 1 : 0,                                        // [4]
+    // --- Shares (6 elements, normalized: *majorCount, clamp [0.25,4.0] → [0,1]) ---
+    normalizeShare(ep.tourismShare, majorCount),                        // [5]
+    normalizeShare(ep.militaryShare, majorCount),                       // [6]
+    normalizeShare(ep.citiesShare, majorCount),                         // [7]
+    normalizeShare(ep.populationShare, majorCount),                     // [8]
+    normalizeShare(ep.votesShare, majorCount),                          // [9]
+    normalizeShare(ep.minorAlliesShare, majorCount),                    // [10]
     // --- Per-pop metrics (6 elements, clamped [1, 10] → [0, 1]) ---
-    (clamp(ep.sciencePerPop ?? 1, 1, 10) - 1) / 9,                    // [8]
-    (clamp(ep.faithPerPop ?? 1, 1, 10) - 1) / 9,                      // [9]
-    (clamp(ep.productionPerPop ?? 1, 1, 10) - 1) / 9,                 // [10]
-    (clamp(ep.foodPerPop ?? 1, 1, 10) - 1) / 9,                       // [11]
-    (clamp(ep.culturePerPop ?? 1, 1, 10) - 1) / 9,                    // [12]
-    (clamp(ep.goldPerPop ?? 1, 1, 10) - 1) / 9,                       // [13]
+    (clamp(ep.sciencePerPop ?? 1, 1, 10) - 1) / 9,                    // [11]
+    (clamp(ep.faithPerPop ?? 1, 1, 10) - 1) / 9,                      // [12]
+    (clamp(ep.productionPerPop ?? 1, 1, 10) - 1) / 9,                 // [13]
+    (clamp(ep.foodPerPop ?? 1, 1, 10) - 1) / 9,                       // [14]
+    (clamp(ep.culturePerPop ?? 1, 1, 10) - 1) / 9,                    // [15]
+    (clamp(ep.goldPerPop ?? 1, 1, 10) - 1) / 9,                       // [16]
     // --- Bidirectional gaps (negative = leading, positive = behind) ---
-    clamp(ep.technologiesGap / 20 + 0.5, 0, 1),                       // [14]  range [-10, +10]
-    clamp(ep.policiesGap / 10 + 0.5, 0, 1),                           // [15]  range [-5, +5]
+    clamp(ep.technologiesGap / 20 + 0.5, 0, 1),                       // [17]  range [-10, +10]
+    clamp(ep.policiesGap / 10 + 0.5, 0, 1),                           // [18]  range [-5, +5]
     // --- Percentages (4 elements) ---
-    clamp((ep.happinessPercentage ?? 0) / 100, 0, 1),                 // [16]
-    clamp(ep.religionPercentage, 0, 1),                                // [17]
-    clamp(ep.ideologyShare, 0, 1),                                     // [18]
-    clamp(ep.supplyUtilization ?? 0, 0, 1),                            // [19]
+    clamp((ep.happinessPercentage ?? 0) / 100, 0, 1),                  // [19]
+    clamp(ep.religionPercentage, 0, 1),                                // [20]
+    clamp(ep.ideologyShare, 0, 1),                                     // [21]
+    clamp(ep.supplyUtilization ?? 0, 0, 1),                            // [22]
     // --- Diplomatic (8 elements) ---
-    ep.isVassal,                                                       // [20]
-    clamp(ep.vassals / 2, 0, 1),                                       // [21]
-    clamp(ep.warWeariness / 100, 0, 1),                                // [22]
-    clamp(ep.activeWars / 3, 0, 1),                                    // [23]
-    clamp(ep.truces / 3, 0, 1),                                        // [24]
-    clamp(ep.friends / 3, 0, 1),                                       // [25]
-    clamp(ep.defensivePacts / 3, 0, 1),                                // [26]
-    clamp(ep.denouncements / 3, 0, 1),                                 // [27]
+    ep.isVassal,                                                       // [23]
+    clamp(ep.vassals / 2, 0, 1),                                       // [24]
+    clamp(ep.warWeariness / 100, 0, 1),                                // [25]
+    clamp(ep.activeWars / 3, 0, 1),                                    // [26]
+    clamp(ep.truces / 3, 0, 1),                                        // [27]
+    clamp(ep.friends / 3, 0, 1),                                       // [28]
+    clamp(ep.defensivePacts / 3, 0, 1),                                // [29]
+    clamp(ep.denouncements / 3, 0, 1),                                 // [30]
     // --- Victory gaps (4 elements, leaderProgress - playerProgress, range [-50, +50]) ---
-    clamp(((ep.dominationLeaderProgress ?? 0) - (ep.dominationProgress ?? 0) + 50) / 100, 0, 1),  // [28]
-    clamp(((ep.scienceLeaderProgress ?? 0) - (ep.scienceProgress ?? 0) + 50) / 100, 0, 1),        // [29]
-    clamp(((ep.cultureLeaderProgress ?? 0) - (ep.cultureProgress ?? 0) + 50) / 100, 0, 1),        // [30]
-    clamp(((ep.diplomaticLeaderProgress ?? 0) - (ep.diplomaticProgress ?? 0) + 50) / 100, 0, 1),  // [31]
+    clamp(((ep.dominationLeaderProgress ?? 0) - (ep.dominationProgress ?? 0) + 50) / 100, 0, 1),  // [31]
+    clamp(((ep.scienceLeaderProgress ?? 0) - (ep.scienceProgress ?? 0) + 50) / 100, 0, 1),        // [32]
+    clamp(((ep.cultureLeaderProgress ?? 0) - (ep.cultureProgress ?? 0) + 50) / 100, 0, 1),        // [33]
+    clamp(((ep.diplomaticLeaderProgress ?? 0) - (ep.diplomaticProgress ?? 0) + 50) / 100, 0, 1),  // [34]
   ];
 }

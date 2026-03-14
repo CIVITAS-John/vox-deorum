@@ -180,22 +180,6 @@ export const eraMap: Record<string, number> = {
   'Information Era': 7,
 };
 
-/** Maps grand strategy names to numeric codes for vector normalization */
-export const grandStrategyMap: Record<string, number> = {
-  'Conquest': 1,
-  'Culture': 2,
-  'United Nations': 3,
-  'Spaceship': 4,
-};
-
-/** Maps numeric Civ 5 VictoryType IDs to display strings */
-export const victoryTypeMap: Record<number, string> = {
-  0: 'Time',
-  1: 'Science',
-  2: 'Domination',
-  3: 'Cultural',
-  4: 'Diplomatic',
-};
 
 /** Consequence turn offsets for outcome fetching in the reader pipeline */
 export const horizons = [5, 10, 20, 30] as const;

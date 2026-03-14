@@ -17,8 +17,6 @@ export type {
 } from './types.js';
 export {
   eraMap,
-  grandStrategyMap,
-  victoryTypeMap,
   horizons,
   horizonTolerance,
   retrievalWeights,
