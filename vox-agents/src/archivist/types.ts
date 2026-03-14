@@ -185,23 +185,6 @@ export const grandStrategyMap: Record<string, number> = {
   'Spaceship': 4,
 };
 
-/**
- * Count total individual policies from PolicyBranches JSON.
- * Handles both full visibility (string[] arrays) and reduced visibility (numeric counts).
- */
-export function countPolicies(policyBranches: Record<string, string[] | number> | null): number | null {
-  if (!policyBranches) return null;
-  let total = 0;
-  for (const policies of Object.values(policyBranches)) {
-    if (typeof policies === 'number') {
-      total += policies;
-    } else if (Array.isArray(policies)) {
-      total += policies.length;
-    }
-  }
-  return total;
-}
-
 /** Maps numeric Civ 5 VictoryType IDs to display strings */
 export const victoryTypeMap: Record<number, string> = {
   0: 'Time',

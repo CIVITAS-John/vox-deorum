@@ -17,7 +17,6 @@ import type {
   RawEpisode,
   TurnContext,
 } from '../types.js';
-import { countPolicies } from '../types.js';
 import type {
   PlayerSummary,
   CityInformation,
@@ -25,12 +24,13 @@ import type {
   PlayerInformation,
 } from '../../../../mcp-server/dist/knowledge/schema/index.js';
 import {
+  countPolicies,
   parseDiplomatics,
   aggregateCityYields,
   countMinorAllies,
   findLatestStrategy,
   extractAllVictoryProgress,
-} from './extraction-utils.js';
+} from '../utils/game-data.js';
 
 const logger = createLogger('ArchivistExtractor');
 

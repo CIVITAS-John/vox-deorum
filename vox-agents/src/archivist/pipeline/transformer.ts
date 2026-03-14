@@ -8,19 +8,23 @@
  */
 
 import type { RawEpisode, Episode, TurnContext } from '../types.js';
-import { countPolicies } from '../types.js';
 import {
   scaleShare,
   computeCityAdjustedShare,
   computeRawShare,
   computePerPop,
   computeGap,
+} from '../utils/math.js';
+import {
+  countPolicies,
   detectIdeology,
   computeReligionPercentage,
+} from '../utils/game-data.js';
+import {
   buildNeighborVector,
   buildGameStateVector,
   NEUTRAL_PAD,
-} from './transform-utils.js';
+} from '../utils/vectors.js';
 
 // ---------------------------------------------------------------------------
 // Main transform function

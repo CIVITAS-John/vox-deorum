@@ -1,14 +1,39 @@
 /**
- * @module archivist/pipeline/extraction-utils
+ * @module archivist/utils/game-data
  *
- * Helper functions for game data extraction, split from extractor.ts.
- * Includes diplomatic parsing, victory progress extraction, city yield
- * aggregation, minor ally counting, and strategy lookup.
+ * Game data parsing and interpretation helpers. Includes diplomatic relationship
+ * parsing, victory progress extraction, city yield aggregation, ideology detection,
+ * religion percentage computation, and policy counting.
  */
 
 import type { Selectable } from 'kysely';
 import type { CityInformation, VictoryProgress } from '../../../../mcp-server/dist/knowledge/schema/index.js';
 import type { TurnContext } from '../types.js';
+
+// ---------------------------------------------------------------------------
+// Policies
+// ---------------------------------------------------------------------------
+
+/**
+ * Count total individual policies from a PolicyBranches JSON object.
+ * Handles both string[] arrays (individual policies) and numeric counts.
+ */
+export function countPolicies(policyBranches: Record<string, string[] | number> | null): number | null {
+  if (!policyBranches) return null;
+  let total = 0;
+  for (const policies of Object.values(policyBranches)) {
+    if (typeof policies === 'number') {
+      total += policies;
+    } else if (Array.isArray(policies)) {
+      total += policies.length;
+    }
+  }
+  return total;
+}
+
+// ---------------------------------------------------------------------------
+// Diplomatics
+// ---------------------------------------------------------------------------
 
 /** War weariness extraction regex */
 export const WAR_WEARINESS_REGEX = /Our War Weariness: (\d+)%/;
@@ -81,6 +106,10 @@ export function parseDiplomatics(
   return result;
 }
 
+// ---------------------------------------------------------------------------
+// City yields
+// ---------------------------------------------------------------------------
+
 /** Sum production and food per turn from cities owned by this player's civilization. */
 export function aggregateCityYields(
   cityInformations: Selectable<CityInformation>[],
@@ -104,6 +133,10 @@ export function aggregateCityYields(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Minor allies
+// ---------------------------------------------------------------------------
+
 /** Count minor civs allied to this player (where MajorAlly matches civilization name). */
 export function countMinorAllies(ctx: TurnContext, civilization: string): number | null {
   let count = 0;
@@ -116,6 +149,10 @@ export function countMinorAllies(ctx: TurnContext, civilization: string): number
   }
   return count;
 }
+
+// ---------------------------------------------------------------------------
+// Grand strategy
+// ---------------------------------------------------------------------------
 
 /**
  * Find the latest grand strategy at or before the given turn.
@@ -132,6 +169,10 @@ export function findLatestStrategy(
   }
   return result;
 }
+
+// ---------------------------------------------------------------------------
+// Victory progress
+// ---------------------------------------------------------------------------
 
 /** Victory progress extraction result */
 export interface VictoryProgressResult {
@@ -239,4 +280,36 @@ export function extractVictoryProgress(
   }
 
   return { progress, leaderProgress };
+}
+
+// ---------------------------------------------------------------------------
+// Ideology
+// ---------------------------------------------------------------------------
+
+const ideologyBranches = new Set(['Freedom', 'Order', 'Autocracy']);
+
+/** Detect ideology from PolicyBranches keys. Returns branch name or null. */
+export function detectIdeology(policyBranches: Record<string, string[]> | null): string | null {
+  if (!policyBranches) return null;
+  for (const key of Object.keys(policyBranches)) {
+    if (ideologyBranches.has(key)) return key;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Religion
+// ---------------------------------------------------------------------------
+
+/** Compute religion percentage: cities with matching FoundedReligion / total cities. */
+export function computeReligionPercentage(
+  foundedReligion: string | null,
+  cityInformations: Selectable<CityInformation>[]
+): number {
+  if (!foundedReligion || cityInformations.length === 0) return 0;
+  let matching = 0;
+  for (const city of cityInformations) {
+    if (city.MajorityReligion === foundedReligion) matching++;
+  }
+  return matching / cityInformations.length;
 }

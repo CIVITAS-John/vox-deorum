@@ -1,132 +1,17 @@
 /**
- * @module archivist/pipeline/transform-utils
+ * @module archivist/utils/vectors
  *
- * Pure computation helpers for episode transformation, split from transformer.ts.
- * Includes share computation, gap/per-pop metrics, ideology/religion detection,
- * neighbor vector construction, and game state vector construction.
+ * Feature vector construction for the archivist pipeline.
+ * Builds the 35-element game state vector and 32-element neighbor vector
+ * used for similarity search and diversity selection.
  */
 
 import type { Selectable } from 'kysely';
-import type { CityInformation, PlayerSummary } from '../../../../mcp-server/dist/knowledge/schema/index.js';
+import type { PlayerSummary } from '../../../../mcp-server/dist/knowledge/schema/index.js';
 import type { Episode, TurnContext } from '../types.js';
-import { eraMap, grandStrategyMap, countPolicies } from '../types.js';
-
-// ---------------------------------------------------------------------------
-// Math helpers
-// ---------------------------------------------------------------------------
-
-export function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
-/** Scale a share value when only partial players are known. */
-export function scaleShare(share: number | null, scale: number): number | null {
-  if (share == null) return null;
-  return share * scale;
-}
-
-// ---------------------------------------------------------------------------
-// Share computation
-// ---------------------------------------------------------------------------
-
-/**
- * Compute a city-adjusted share for a yield metric.
- * cityMultiplier = max(1.05 * (cities - 1), 1.0)
- * adj = value / multiplier
- * share = playerAdj / sum(allAdj)
- */
-export function computeCityAdjustedShare(
-  playerValue: number | null,
-  playerCities: number | null,
-  allPlayerData: Array<{ value: number | null; cities: number | null }>
-): number | null {
-  if (playerValue == null || playerCities == null) return null;
-
-  const playerMultiplier = Math.max(1.05 * (playerCities - 1), 1.0);
-  const playerAdj = playerValue / playerMultiplier;
-
-  let totalAdj = 0;
-  for (const p of allPlayerData) {
-    if (p.value == null || p.cities == null) continue;
-    const mult = Math.max(1.05 * (p.cities - 1), 1.0);
-    totalAdj += p.value / mult;
-  }
-
-  return totalAdj > 0 ? playerAdj / totalAdj : null;
-}
-
-/**
- * Compute a raw share (simple ratio).
- * share = playerValue / sum(allValues)
- */
-export function computeRawShare(
-  playerValue: number | null,
-  allValues: (number | null)[]
-): number | null {
-  if (playerValue == null) return null;
-  let total = 0;
-  for (const v of allValues) {
-    if (v != null) total += v;
-  }
-  return total > 0 ? playerValue / total : null;
-}
-
-/** Compute raw per-population ratio (not scaled). */
-export function computePerPop(
-  metric: number | null,
-  population: number | null
-): number | null {
-  if (metric == null || population == null || population === 0) return null;
-  return metric / population;
-}
-
-/**
- * Compute gap relative to leader.
- * Returns player.value - max(all.values). 0 for leader, negative for others.
- */
-export function computeGap(
-  playerValue: number | null,
-  allValues: (number | null)[]
-): number {
-  if (playerValue == null) return 0;
-  let maxVal = -Infinity;
-  for (const v of allValues) {
-    if (v != null && v > maxVal) maxVal = v;
-  }
-  return maxVal === -Infinity ? 0 : playerValue - maxVal;
-}
-
-// ---------------------------------------------------------------------------
-// Ideology
-// ---------------------------------------------------------------------------
-
-const ideologyBranches = new Set(['Freedom', 'Order', 'Autocracy']);
-
-/** Detect ideology from PolicyBranches keys. Returns branch name or null. */
-export function detectIdeology(policyBranches: Record<string, string[]> | null): string | null {
-  if (!policyBranches) return null;
-  for (const key of Object.keys(policyBranches)) {
-    if (ideologyBranches.has(key)) return key;
-  }
-  return null;
-}
-
-// ---------------------------------------------------------------------------
-// Religion
-// ---------------------------------------------------------------------------
-
-/** Compute religion percentage: cities with matching FoundedReligion / total cities. */
-export function computeReligionPercentage(
-  foundedReligion: string | null,
-  cityInformations: Selectable<CityInformation>[]
-): number {
-  if (!foundedReligion || cityInformations.length === 0) return 0;
-  let matching = 0;
-  for (const city of cityInformations) {
-    if (city.MajorityReligion === foundedReligion) matching++;
-  }
-  return matching / cityInformations.length;
-}
+import { eraMap, grandStrategyMap } from '../types.js';
+import { clamp } from './math.js';
+import { countPolicies } from './game-data.js';
 
 // ---------------------------------------------------------------------------
 // Neighbor vector helpers
@@ -275,7 +160,7 @@ export function buildGameStateVector(
     clamp(ep.policiesGap / 10 + 0.5, 0, 1),                           // [15]
     clamp((ep.happinessPercentage ?? 0) / 100, 0, 1),                 // [16]
     clamp(ep.religionPercentage, 0, 1),                                // [17]
-    ep.ideologyShare,                                                  // [18]
+    clamp(ep.ideologyShare, 0, 1),                                                  // [18]
     // --- Diplomatic (8 elements) ---
     ep.isVassal,                                                       // [19]
     clamp(ep.vassals / 3, 0, 1),                                      // [20]

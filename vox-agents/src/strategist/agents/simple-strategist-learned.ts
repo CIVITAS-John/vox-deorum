@@ -3,7 +3,7 @@
  *
  * Learned strategist agent implementation.
  * Extends the staffed strategist with historical episode retrieval capability.
- * The LLM can request similar past game situations via the request-episodes tool,
+ * The LLM can request similar past game situations via the find-episodes tool,
  * and episodes are integrated into the next turn's context as reference material.
  */
 
@@ -21,7 +21,7 @@ const episodeRequestKey = "episode-request";
 
 /**
  * A learned strategist agent that extends the staffed strategist with historical episode retrieval.
- * The LLM can call the request-episodes tool to search for similar past game situations.
+ * The LLM can call the find-episodes tool to search for similar past game situations.
  * Retrieved episodes are integrated into the next turn's context as reference material.
  *
  * @class
@@ -37,7 +37,7 @@ export class SimpleStrategistLearned extends SimpleStrategistStaffed {
    * Human-readable description of what this agent does
    */
   // @ts-expect-error - narrowing parent literal type to a different literal
-  override readonly description = "Staffed strategist with historical episode learning via request-episodes tool";
+  override readonly description = "Staffed strategist with historical episode learning via find-episodes tool";
 
   /**
    * Gets the system prompt for the strategist
@@ -45,9 +45,9 @@ export class SimpleStrategistLearned extends SimpleStrategistStaffed {
   /**
    * Shared prompt: Episode retrieval tool description
    */
-  static readonly episodeGoalPrompt = `- You can request historical episodes similar to your current situation by calling the \`request-episodes\` tool.
-  - Describe the situation you want to find precedents for. Episodes will be available NEXT turn, not this turn.
-  - Use this when facing unfamiliar or critical situations where historical precedent would inform your strategy.`;
+  static readonly episodeGoalPrompt = `- You can request historical episodes similar to your current situation by calling the \`find-episodes\` tool.
+  - Describe the situation you want to find episodes for. Episodes will be available NEXT turn.
+  - Use this as frequently as you want, especially when facing or expecting open-ended, inflection, or critical situations where historical episodes could inform your strategy.`;
 
   /**
    * Shared prompt: Historical episodes resource description
@@ -101,7 +101,7 @@ ${!!parameters.workingMemory[episodeRequestKey] ? SimpleStrategistLearned.episod
     if (episodesContent) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === "user" && typeof lastMessage.content === "string") {
-        lastMessage.content += `\n\n# Historical Episodes\n${episodesContent}`;
+        lastMessage.content += `\n\n# Historical Episodes\nBefore making your decisions, learn from the following episodes: what happened, what did the leader decide on, and whether that can inform your thinking.\n${episodesContent}`;
       }
     }
 
@@ -112,7 +112,7 @@ ${!!parameters.workingMemory[episodeRequestKey] ? SimpleStrategistLearned.episod
    * Gets the list of active tools for this agent
    */
   public getActiveTools(parameters: StrategistParameters): string[] | undefined {
-    return ["request-episodes", ...(super.getActiveTools(parameters) ?? [])];
+    return ["find-episodes", ...(super.getActiveTools(parameters) ?? [])];
   }
 
   /**
@@ -121,9 +121,9 @@ ${!!parameters.workingMemory[episodeRequestKey] ? SimpleStrategistLearned.episod
   public getExtraTools(context: VoxContext<StrategistParameters>): Record<string, Tool> {
     return {
       ...super.getExtraTools(context),
-      "request-episodes": createSimpleTool({
-        name: "request-episodes",
-        description: "Request historical episodes similar to a situation. Results available NEXT turn.",
+      "find-episodes": createSimpleTool({
+        name: "find-episodes",
+        description: "Find historical episodes similar to a situation. Results available NEXT turn.",
         inputSchema: z.object({
           Situation: z.string().describe("A description of the situation to search for historical precedents")
         }),

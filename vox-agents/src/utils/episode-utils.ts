@@ -10,7 +10,7 @@
 
 import { Kysely } from 'kysely';
 import { createLogger } from './logger.js';
-import { buildLiveGameStateVector } from './game-state-vector.js';
+import { buildLiveGameStateVector } from '../archivist/pipeline/game-state-vector.js';
 import { parseDiplomatics, findEpisodes } from '../archivist/index.js';
 import type { EpisodeQuery, EpisodeResult } from '../archivist/index.js';
 import type { GameState, StrategistParameters } from '../strategist/strategy-parameters.js';
@@ -256,5 +256,5 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     return parts.join('\n');
   });
 
-  return `## Historical Episodes\n\n${sections.join('\n\n---\n\n')}`;
+  return sections.join('\n\n---\n\n');
 }

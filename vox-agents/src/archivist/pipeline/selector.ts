@@ -8,7 +8,7 @@
  */
 
 import { createLogger } from '../../utils/logger.js';
-import { compositeSimilarity, type VectorBundle } from '../retrieval/similarity.js';
+import { compositeSimilarity, type VectorBundle } from '../utils/similarity.js';
 import type { EpisodeWriter } from './writer.js';
 
 const logger = createLogger('Selector');

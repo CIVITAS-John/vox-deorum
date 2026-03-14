@@ -18,13 +18,13 @@ export type {
 export {
   eraMap,
   grandStrategyMap,
-  countPolicies,
   victoryTypeMap,
   horizons,
   horizonTolerance,
   retrievalWeights,
   retrievalNoEmbeddingWeights,
 } from './types.js';
+export { countPolicies } from './utils/game-data.js';
 
 // Query types
 export type {

@@ -13,14 +13,14 @@ import type {
   CityInformation,
   VictoryProgress,
   PlayerInformation,
-} from '../../../mcp-server/dist/knowledge/schema/index.js';
-import type { PlayersReport } from '../../../mcp-server/dist/tools/knowledge/get-players.js';
-import type { CitiesReport } from '../../../mcp-server/dist/tools/knowledge/get-cities.js';
-import type { VictoryProgressReport } from '../../../mcp-server/dist/tools/knowledge/get-victory-progress.js';
-import type { GameState } from '../strategist/strategy-parameters.js';
-import type { RawEpisode, TurnContext } from '../archivist/types.js';
-import { countPolicies } from '../archivist/types.js';
-import { parseDiplomatics, extractAllVictoryProgress, transformEpisode } from '../archivist/index.js';
+} from '../../../../mcp-server/dist/knowledge/schema/index.js';
+import type { PlayersReport } from '../../../../mcp-server/dist/tools/knowledge/get-players.js';
+import type { CitiesReport } from '../../../../mcp-server/dist/tools/knowledge/get-cities.js';
+import type { VictoryProgressReport } from '../../../../mcp-server/dist/tools/knowledge/get-victory-progress.js';
+import type { GameState } from '../../strategist/strategy-parameters.js';
+import type { RawEpisode, TurnContext } from '../types.js';
+import { countPolicies, parseDiplomatics, extractAllVictoryProgress } from '../utils/game-data.js';
+import { transformEpisode } from './transformer.js';
 
 /**
  * Convert MCP report objects into a TurnContext suitable for the archivist transformer.

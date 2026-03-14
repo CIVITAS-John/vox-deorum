@@ -11,22 +11,13 @@
 import { DuckDBConnection } from '@duckdb/node-api';
 import { config } from '../../utils/config.js';
 import { createLogger } from '../../utils/logger.js';
-import { buildSimilaritySql } from './similarity.js';
 import { eraMap, horizons, horizonTolerance } from '../types.js';
 import { generateEmbeddings } from '../pipeline/embeddings.js';
 import { getEpisodeDbInstance } from '../episode-db.js';
 import type { EpisodeQuery, EpisodeResult, OutcomeSnapshot, EpisodeDelta } from '../query-types.js';
-import {
-  toRealArrayLiteral,
-  formatDelta,
-  buildEraCaseExpr,
-  escapeSql,
-  rowsToObjects,
-  relativeDelta,
-  relativePerPopDelta,
-  diversitySelect,
-  type CandidateRow,
-} from './reader-utils.js';
+import { relativeDelta, relativePerPopDelta, formatDelta } from '../utils/math.js';
+import { toRealArrayLiteral, buildEraCaseExpr, escapeSql, rowsToObjects } from '../utils/sql.js';
+import { buildSimilaritySql, diversitySelect, type CandidateRow } from '../utils/similarity.js';
 
 const logger = createLogger('Archivist:Reader');
 

@@ -15,7 +15,7 @@ export { prepareTelepathist } from './telepathist-prep.js';
 export { computeTargetTurns } from './target-turns.js';
 export type { WorkerStats } from './target-turns.js';
 
-// Re-export extraction utils (used externally by episode-utils.ts, game-state-vector.ts)
+// Re-export game data utils (used externally by game-state-vector.ts and archivist barrel)
 export {
   parseDiplomatics,
   extractAllVictoryProgress,
@@ -24,5 +24,5 @@ export {
   countMinorAllies,
   findLatestStrategy,
   WAR_WEARINESS_REGEX,
-} from './extraction-utils.js';
-export type { DiplomaticCounts, VictoryProgressResult } from './extraction-utils.js';
+} from '../utils/game-data.js';
+export type { DiplomaticCounts, VictoryProgressResult } from '../utils/game-data.js';

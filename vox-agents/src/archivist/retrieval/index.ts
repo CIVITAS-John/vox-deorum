@@ -5,5 +5,5 @@
  */
 
 export { findEpisodes, closeReader } from './reader.js';
-export { compositeSimilarity, cosineSimilarity, buildSimilaritySql, buildPairwiseSimilaritySql } from './similarity.js';
-export type { VectorBundle } from './similarity.js';
+export { compositeSimilarity, cosineSimilarity, buildSimilaritySql, buildPairwiseSimilaritySql } from '../utils/similarity.js';
+export type { VectorBundle } from '../utils/similarity.js';

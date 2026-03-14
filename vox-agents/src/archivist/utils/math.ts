@@ -1,0 +1,105 @@
+/**
+ * @module archivist/utils/math
+ *
+ * Pure numeric computation helpers used across the archivist pipeline.
+ * Includes share computation, gap/per-pop metrics, delta calculations, and formatting.
+ */
+
+/** Clamp a value to a [min, max] range. */
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+/** Scale a share value when only partial players are known. */
+export function scaleShare(share: number | null, scale: number): number | null {
+  if (share == null) return null;
+  return share * scale;
+}
+
+/**
+ * Compute a city-adjusted share for a yield metric.
+ * cityMultiplier = max(1.05 * (cities - 1), 1.0)
+ * adj = value / multiplier
+ * share = playerAdj / sum(allAdj)
+ */
+export function computeCityAdjustedShare(
+  playerValue: number | null,
+  playerCities: number | null,
+  allPlayerData: Array<{ value: number | null; cities: number | null }>
+): number | null {
+  if (playerValue == null || playerCities == null) return null;
+
+  const playerMultiplier = Math.max(1.05 * (playerCities - 1), 1.0);
+  const playerAdj = playerValue / playerMultiplier;
+
+  let totalAdj = 0;
+  for (const p of allPlayerData) {
+    if (p.value == null || p.cities == null) continue;
+    const mult = Math.max(1.05 * (p.cities - 1), 1.0);
+    totalAdj += p.value / mult;
+  }
+
+  return totalAdj > 0 ? playerAdj / totalAdj : null;
+}
+
+/**
+ * Compute a raw share (simple ratio).
+ * share = playerValue / sum(allValues)
+ */
+export function computeRawShare(
+  playerValue: number | null,
+  allValues: (number | null)[]
+): number | null {
+  if (playerValue == null) return null;
+  let total = 0;
+  for (const v of allValues) {
+    if (v != null) total += v;
+  }
+  return total > 0 ? playerValue / total : null;
+}
+
+/** Compute raw per-population ratio (not scaled). */
+export function computePerPop(
+  metric: number | null,
+  population: number | null
+): number | null {
+  if (metric == null || population == null || population === 0) return null;
+  return metric / population;
+}
+
+/**
+ * Compute gap relative to leader.
+ * Returns player.value - max(all.values). 0 for leader, negative for others.
+ */
+export function computeGap(
+  playerValue: number | null,
+  allValues: (number | null)[]
+): number {
+  if (playerValue == null) return 0;
+  let maxVal = -Infinity;
+  for (const v of allValues) {
+    if (v != null && v > maxVal) maxVal = v;
+  }
+  return maxVal === -Infinity ? 0 : playerValue - maxVal;
+}
+
+/** Compute relative delta: (future - base) / base, or null if base is zero/null. */
+export function relativeDelta(base: number | null, future: number | null): number | null {
+  if (base == null || future == null || base === 0) return null;
+  return (future - base) / base;
+}
+
+/** Like relativeDelta but clamps base to at least 1 for per-pop metrics. */
+export function relativePerPopDelta(base: number | null, future: number | null): number | null {
+  if (base == null || future == null) return null;
+  return (future - base) / Math.max(base, 1);
+}
+
+/** Format a numeric delta as a human-readable percentage string. */
+export function formatDelta(delta: number | null): string | null {
+  if (delta == null) return null;
+  const pct = Math.round(Math.abs(delta * 100));
+  if (delta > 0) return `+${pct}%`;
+  if (delta < 0) return `-${pct}%`;
+  return '0%';
+}
