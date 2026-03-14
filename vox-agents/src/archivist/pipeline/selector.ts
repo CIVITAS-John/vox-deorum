@@ -73,6 +73,14 @@ export async function selectLandmarks(writer: EpisodeWriter, gameId: string): Pr
     list.push(candidate);
   }
 
+  // Exclude turn 0 episodes — they lack meaningful game state for landmark selection
+  for (const [playerId, candidates] of byPlayer) {
+    const filtered = candidates.filter(c => c.turn !== 0);
+    if (filtered.length > 0) {
+      byPlayer.set(playerId, filtered);
+    }
+  }
+
   // Select landmarks independently per player
   const allKeys: Array<{ turn: number; playerId: number }> = [];
   const playerStats: PlayerLandmarkStats[] = [];
