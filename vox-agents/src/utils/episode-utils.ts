@@ -218,7 +218,8 @@ export function formatEpisodeResults(results: EpisodeResult[]): string {
     if (ind.militaryShare != null) indParts.push(`militaryShare: ${(ind.militaryShare * 100).toFixed(0)}%`);
     if (ind.populationShare != null) indParts.push(`populationShare: ${(ind.populationShare * 100).toFixed(0)}%`);
     if (ind.citiesShare != null) indParts.push(`citiesShare: ${(ind.citiesShare * 100).toFixed(0)}%`);
-    if (ind.activeWars > 0) indParts.push(`Wars: ${ind.activeWars}`);
+    indParts.push(`Wars: ${ind.activeWars}`);
+    indParts.push(`Truces: ${ind.truces}`);
     if (indParts.length > 0) parts.push(`- **Indicators**: ${indParts.join(' | ')}`);
 
     // Situations

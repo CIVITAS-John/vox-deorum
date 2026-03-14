@@ -29,7 +29,7 @@ export interface EpisodeQuery {
 export interface OutcomeSnapshot {
   horizonTurns: number;          // actual offset (may be less than requested if game ended early)
   abstract: string | null;
-  decisions: string | null;      // null for horizon=20
+  decisions: string | null;      // null for last outcome
   deltas: EpisodeDelta;
 }
 
@@ -73,6 +73,7 @@ export interface EpisodeResult {
     populationShare: number | null;
     citiesShare: number | null;
     activeWars: number;
+    truces: number;
     dominationProgress: number | null;
     scienceProgress: number | null;
     cultureProgress: number | null;

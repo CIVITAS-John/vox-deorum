@@ -52,9 +52,9 @@ Detailed paragraphs summarizing, from an OBSERVER perspective, the world state: 
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
 
 # Abstract
-A context-agnostic generalized summary of the situation. Replace concrete names of leaders, cities or city-states with generic descriptions. This should read as a universal game scenario.
- - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
+A context-agnostic generalized phase summary of the Situation. Replace concrete names of leaders, cities, city-states with generic descriptions.
  - ALWAYS keep concrete civilization names, e.g. "a maritime Civilization (Venice)".
+ - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
 
 # Decisions
 A detailed paragraph summarizing the leader's decisions and reasoning: what options were available, what was chosen, and explicitly stated rationale.
@@ -94,9 +94,9 @@ An observation paragraph of the phase's world state arc: how the military, econo
  - ALWAYS describe other players' victory progresses, particularly if they edge close enough.
 
 # Abstract
-A context-agnostic generalized phase summary. Replace concrete names of leaders, cities, city-states with generic descriptions. This should read as a universal game phase description.
- - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
+A context-agnostic generalized phase summary of the Situation. Replace concrete names of leaders, cities, city-states with generic descriptions.
  - ALWAYS keep concrete civilization names, e.g. "a maritime Civilization (Venice)".
+ - NEVER discuss the leader's strategies, thoughts, diplomatic stances, flavors, or decisions.
 
 # Decisions
 A narrative paragraph of the phase's strategic choices: the key decisions made, their rationale, and their outcomes.

@@ -87,6 +87,7 @@ export interface CandidateRow {
   population_share: number | null;
   cities_share: number | null;
   active_wars: number;
+  truces: number;
   domination_progress: number | null;
   science_progress: number | null;
   culture_progress: number | null;
@@ -132,6 +133,25 @@ export function diversitySelect(
         const sim = compositeSimilarity(bundles[idx], bundles[selIdx]);
         if (sim > maxSim) maxSim = sim;
       }
+
+      // Major penalty for same game+player as any selected candidate
+      for (const selIdx of selected) {
+        if (candidates[idx].game_id === candidates[selIdx].game_id &&
+            candidates[idx].player_id === candidates[selIdx].player_id) {
+          maxSim = Math.max(maxSim, 1.5);
+          break;
+        }
+      }
+
+      // Gradual win/lose balance penalty
+      let winners = 0;
+      let losers = 0;
+      for (const selIdx of selected) {
+        if (candidates[selIdx].is_winner) winners++;
+        else losers++;
+      }
+      const imbalance = candidates[idx].is_winner ? (winners - losers) : (losers - winners);
+      if (imbalance > 0) maxSim += imbalance * 0.15;
 
       const mmr = 0.7 * normalizedScore - 0.3 * maxSim;
       if (mmr > bestMmr) {

@@ -100,7 +100,7 @@ async function fetchCandidates(
            abstract, situation, decisions,
            science_per_pop, faith_per_pop, production_per_pop, food_per_pop,
            culture_per_pop, gold_per_pop, tourism_share, military_share, population_share, cities_share,
-           active_wars, domination_progress, science_progress, culture_progress, diplomatic_progress,
+           active_wars, truces, domination_progress, science_progress, culture_progress, diplomatic_progress,
            game_state_vector, neighbor_vector, abstract_embedding,
            victory_type,
            ${similaritySql} AS score
@@ -216,13 +216,15 @@ async function fetchOutcomes(
       outcomes.push({
         horizonTurns: actualHorizon,
         abstract: bestEp.abstract,
-        decisions: actualHorizon >= 20 ? null : bestEp.decisions,
+        decisions: bestEp.decisions,
         deltas,
       });
     }
 
     if (outcomes.length > 0) {
       outcomes.sort((a, b) => a.horizonTurns - b.horizonTurns);
+      // Always hide decisions on the furthest horizon to avoid spoilers
+      outcomes[outcomes.length - 1].decisions = null;
       outcomeMap.set(key, outcomes);
     }
   }
@@ -263,6 +265,7 @@ function buildResult(
       populationShare: candidate.population_share,
       citiesShare: candidate.cities_share,
       activeWars: candidate.active_wars,
+      truces: candidate.truces,
       dominationProgress: candidate.domination_progress,
       scienceProgress: candidate.science_progress,
       cultureProgress: candidate.culture_progress,
