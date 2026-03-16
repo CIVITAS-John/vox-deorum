@@ -293,7 +293,7 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
     // Handle messages
     const toolChoice = config.toolChoice || this.toolChoice;
     if (lastStep === null) {
-      config.messages = [...messages, ...await this.getInitialMessages(parameters, input, context)];
+      config.messages = [...messages];
     } else if (lastStep.toolCalls.length === 0 && (toolChoice === "required" || toolChoice === "tool" || !lastStep.text?.trim())) {
       // Empty response rescue: no tool calls and no text: strip response and prompt to retry
       const baseMessages = config.messages || messages;

@@ -55,7 +55,7 @@ export class VoxPlayer {
       before: 0,
       workingMemory: {},
       gameStates: {},
-      mode: playerConfig.strategist === "none-strategist" ? "Strategy" : (playerConfig.mode ? "Flavor" : "Strategy")
+      mode: playerConfig.strategist === "none-strategist" ? "Strategy" : (playerConfig.mode ?? "Flavor")
     };
   }
 
