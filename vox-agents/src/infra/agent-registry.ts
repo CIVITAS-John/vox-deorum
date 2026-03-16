@@ -13,6 +13,7 @@ import { SimpleStrategistBriefed } from "../strategist/agents/simple-strategist-
 import { SimpleBriefer } from "../briefer/simple-briefer.js";
 import { SpecializedBriefer } from "../briefer/specialized-briefer.js";
 import { NoneStrategist } from "../strategist/agents/none-strategist.js";
+import { NullStrategist } from "../strategist/agents/null-strategist.js";
 import { Spokesperson } from "../envoy/spokesperson.js";
 import { Diplomat } from "../envoy/diplomat.js";
 import { DiplomaticAnalyst } from "../analyst/diplomatic-analyst.js";
@@ -175,6 +176,7 @@ class AgentRegistry {
     this.register(new SimpleStrategistStaffed());
     this.register(new SimpleStrategistLearned());
     this.register(new NoneStrategist());
+    this.register(new NullStrategist());
 
     // Register briefer agents
     this.register(new SimpleBriefer());

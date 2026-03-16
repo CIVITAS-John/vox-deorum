@@ -1,0 +1,17 @@
+{
+  "name": "observe-null-ai",
+  "llmPlayers": {
+    "1": {
+      "strategist": "null-strategist"
+    },
+    "2": {
+      "strategist": "null-strategist"
+    },
+    "3": {
+      "strategist": "null-strategist"
+    }
+  },
+  "autoPlay": true,
+  "gameMode": "start",
+  "repetition": 1
+}
