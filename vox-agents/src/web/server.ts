@@ -102,11 +102,11 @@ app.get('*', (_req: Request, res: Response<ErrorResponse>) => {
   }
 });
 
-// Start server function
-export async function startWebServer(): Promise<void> {
+/** Try to listen on the given port. Resolves with the port on success, null on EADDRINUSE. */
+function tryListen(port: number): Promise<number | null> {
   return new Promise((resolve, reject) => {
-    const server = app.listen(PORT, () => {
-      webLogger.info(`🌐 Web UI available at: http://localhost:${config.webui.port}`);
+    const server = app.listen(port, () => {
+      webLogger.info(`🌐 Web UI available at: http://localhost:${port}`);
       webLogger.info('Press Ctrl+C to stop the server');
 
       // Start SSE heartbeat to keep connections alive
@@ -121,18 +121,31 @@ export async function startWebServer(): Promise<void> {
         process.exit(0);
       });
 
-      resolve();
+      resolve(port);
     });
 
     server.on('error', (err: NodeJS.ErrnoException) => {
       if (err.code === 'EADDRINUSE') {
-        webLogger.warn(`Port ${PORT} is already in use — skipping Web UI startup`);
-        resolve();
+        resolve(null);
       } else {
         reject(err);
       }
     });
   });
+}
+
+// Start server function — tries configured port, then falls back to port + 1
+export async function startWebServer(): Promise<number | null> {
+  const result = await tryListen(PORT);
+  if (result !== null) return result;
+
+  const fallback = PORT + 1;
+  webLogger.warn(`Port ${PORT} is already in use — trying ${fallback}`);
+  const fallbackResult = await tryListen(fallback);
+  if (fallbackResult !== null) return fallbackResult;
+
+  webLogger.warn(`Port ${fallback} is also in use — skipping Web UI startup`);
+  return null;
 }
 
 // Export for integration with vox-agents process

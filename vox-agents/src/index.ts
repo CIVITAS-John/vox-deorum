@@ -24,16 +24,18 @@ async function main() {
       process.exit(0);
     }
 
-    // Start the web server
-    await startWebServer();
+    // Start the web server — returns the actual port, or null if both ports were occupied
+    const actualPort = await startWebServer();
 
-    // Open browser after successful startup
-    const url = `http://localhost:${config.webui.port}`;
-    voxLogger.info(`Opening GUI at ${url}...`);
+    if (actualPort !== null) {
+      // Open browser after successful startup
+      const url = `http://localhost:${actualPort}`;
+      voxLogger.info(`Opening GUI at ${url}...`);
 
-    // Dynamic import to handle ESM module
-    const open = (await import('open')).default;
-    await open(url);
+      // Dynamic import to handle ESM module
+      const open = (await import('open')).default;
+      await open(url);
+    }
   } catch (error) {
     voxLogger.error('Failed to start Vox Agents:', error);
     process.exit(1);
