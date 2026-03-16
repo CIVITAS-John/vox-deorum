@@ -27,7 +27,7 @@ import { openReadonlyGameDb, scanArchive } from './pipeline/scanner.js';
 import { EpisodeWriter } from './pipeline/writer.js';
 import type { ArchiveEntry } from './types.js';
 import { prepareTelepathist } from './pipeline/telepathist-prep.js';
-import { extractPlayerEpisodes, extractTurnContexts, loadTurnSummaries } from './pipeline/extractor.js';
+import { extractPlayerEpisodes, extractTurnContexts, getAgentTurns, loadTurnSummaries } from './pipeline/extractor.js';
 import { transformEpisode } from './pipeline/transformer.js';
 import { generateEmbeddings } from './pipeline/embeddings.js';
 import { selectLandmarks } from './pipeline/selector.js';
@@ -159,6 +159,8 @@ async function processGame(
           const info = playerInfoMap.get(player.playerId);
           const civilization = info?.Civilization ?? 'Unknown';
 
+          const agentTurns = getAgentTurns(player.telemetryDbPath);
+
           const rawEpisodes = await extractPlayerEpisodes(
             gameDb,
             player.telepathistDbPath,
@@ -166,7 +168,8 @@ async function processGame(
             civilization,
             turnContexts,
             entry.gameId,
-            victoryPlayerId
+            victoryPlayerId,
+            agentTurns
           );
 
           logger.info(`[${workerLabel}] Extracted ${rawEpisodes.length} raw episodes for player ${player.playerId}`);

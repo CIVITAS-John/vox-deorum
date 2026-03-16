@@ -10,11 +10,8 @@ import { TelepathistParameters } from '../telepathist-parameters.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { SummarizerInput } from '../summarizer.js';
 import { phaseSummarySchema, buildPhaseSummaryInstruction, parseSummaryMarkdown } from './instructions.js';
-import { createLogger } from '../../utils/logger.js';
 import { exponentialRetry } from '../../utils/retry.js';
 import { getModelConfig } from '../../utils/models/models.js';
-
-const logger = createLogger('PhasePreparation');
 
 /** Size of each phase in turns for summarization */
 const phaseSize = 10;
@@ -28,6 +25,9 @@ export async function preparePhaseSummaries(
   parameters: TelepathistParameters,
   context: VoxContext<TelepathistParameters>
 ): Promise<void> {
+  const model = getModelConfig('summarizer', undefined, context.modelOverrides).name;
+  const logger = context.logger.child({ gameID: parameters.gameID, playerID: parameters.playerID, civ: parameters.civilizationName, model });
+
   const existingPhases = await parameters.telepathistDb
     .selectFrom('phase_summaries')
     .select(['fromTurn', 'toTurn'])
@@ -75,6 +75,7 @@ export async function preparePhaseSummaries(
           };
           const phaseParameters = { ...parameters, turn: phase.toTurn };
 
+          let formatFailures = 0;
           const parsed = await exponentialRetry(async () => {
             const rawPhaseSummary = await context.callAgent<string>(
               'summarizer',
@@ -82,7 +83,12 @@ export async function preparePhaseSummaries(
               phaseParameters
             );
             const result = rawPhaseSummary ? parseSummaryMarkdown(rawPhaseSummary, phaseSummarySchema) : undefined;
-            if (!result) throw new Error(`Summarizer returned no usable result for phase ${phase.fromTurn}-${phase.toTurn}: ${rawPhaseSummary}`);
+            if (!result) {
+              formatFailures++;
+              const error = new Error(`Summarizer returned no usable result for phase ${phase.fromTurn}-${phase.toTurn} (format failure ${formatFailures}/10): ${rawPhaseSummary}`);
+              if (formatFailures >= 10) (error as Error & { isRetryable: boolean }).isRetryable = false;
+              throw error;
+            }
             return result;
           }, logger, undefined, `phase-${phase.fromTurn}-${phase.toTurn}`);
 
@@ -98,7 +104,7 @@ export async function preparePhaseSummaries(
                 decisions: parsed.decisions,
                 decisionAbstract: parsed.decisionabstract,
                 narrative: parsed.narrative,
-                model: getModelConfig('summarizer', undefined, context.modelOverrides).name,
+                model,
                 createdAt: Date.now()
               })
               .execute();

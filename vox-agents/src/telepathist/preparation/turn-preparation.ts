@@ -12,11 +12,8 @@ import { GetGameStateTool } from '../tools/get-situation.js';
 import { GetDecisionsTool } from '../tools/get-decision.js';
 import { SummarizerInput } from '../summarizer.js';
 import { turnSummarySchema, buildTurnSummaryInstruction, parseSummaryMarkdown } from './instructions.js';
-import { createLogger } from '../../utils/logger.js';
 import { exponentialRetry } from '../../utils/retry.js';
 import { getModelConfig } from '../../utils/models/models.js';
-
-const logger = createLogger('TurnPreparation');
 
 /**
  * Generates turn summaries for all turns that don't already have them.
@@ -27,6 +24,9 @@ export async function prepareTurnSummaries(
   parameters: TelepathistParameters,
   context: VoxContext<TelepathistParameters>
 ): Promise<void> {
+  const model = getModelConfig('summarizer', undefined, context.modelOverrides).name;
+  const logger = context.logger.child({ gameID: parameters.gameID, playerID: parameters.playerID, civ: parameters.civilizationName, model });
+
   const existingSummaries = await parameters.telepathistDb
     .selectFrom('turn_summaries')
     .select('turn')
@@ -83,6 +83,7 @@ export async function prepareTurnSummaries(
           };
 
           const turnParameters = { ...parameters, turn };
+          let formatFailures = 0;
           const summary = await exponentialRetry(async () => {
             const rawSummary = await context.callAgent<string>(
               'summarizer',
@@ -90,7 +91,12 @@ export async function prepareTurnSummaries(
               turnParameters
             );
             const parsed = rawSummary ? parseSummaryMarkdown(rawSummary, turnSummarySchema) : undefined;
-            if (!parsed) throw new Error(`Summarizer returned no usable result for turn ${turn}: ${rawSummary}`);
+            if (!parsed) {
+              formatFailures++;
+              const error = new Error(`Summarizer returned no usable result for turn ${turn} (format failure ${formatFailures}/10): ${rawSummary}`);
+              if (formatFailures >= 10) (error as Error & { isRetryable: boolean }).isRetryable = false;
+              throw error;
+            }
             return parsed;
           }, logger, undefined, `turn-${turn}`);
 
@@ -105,7 +111,7 @@ export async function prepareTurnSummaries(
                 decisions: summary.decisions,
                 decisionAbstract: summary.decisionabstract,
                 narrative: summary.narrative,
-                model: getModelConfig('summarizer', undefined, context.modelOverrides).name,
+                model,
                 createdAt: Date.now()
               })
               .execute();

@@ -144,6 +144,7 @@ export async function extractTurnContexts(
  * @param turnContexts - Pre-built turn contexts from extractTurnContexts()
  * @param gameId - Game identifier
  * @param victoryPlayerId - Player ID of the game winner (-1 if no winner)
+ * @param agentTurns - Set of turns with agent execution trails (null = all turns eligible)
  * @returns Array of RawEpisode records, one per turn where the player has data
  */
 export async function extractPlayerEpisodes(
@@ -153,18 +154,11 @@ export async function extractPlayerEpisodes(
   civilization: string,
   turnContexts: Map<number, TurnContext>,
   gameId: string,
-  victoryPlayerId: number
+  victoryPlayerId: number,
+  agentTurns?: Set<number> | null,
 ): Promise<RawEpisode[]> {
   // Load telepathist summaries (pass null to skip, e.g. in Phase A before summaries exist)
   const turnSummaries = telepathistDbPath ? loadTurnSummaries(telepathistDbPath) : new Map<number, TurnSummaryRecord>();
-
-  // If telepathist was run but has no summary for the last turn, exclude it
-  // (e.g. a victory termination turn with no agent activity)
-  const lastTurn = turnSummaries.size > 0 ? Math.max(...turnContexts.keys()) : -1;
-  const skipLastTurn = lastTurn >= 0 && !turnSummaries.has(lastTurn);
-  if (skipLastTurn) {
-    logger.info(`Will exclude terminal turn ${lastTurn} (no telepathist summary)`);
-  }
 
   // Query strategy changes for this player — latest version per Turn, sorted for binary search
   const strategyRows = await gameDb
@@ -194,7 +188,7 @@ export async function extractPlayerEpisodes(
   const episodes: RawEpisode[] = [];
 
   for (const [turn, ctx] of turnContexts) {
-    if (skipLastTurn && turn === lastTurn) continue;
+    if (agentTurns && !agentTurns.has(turn)) continue;
 
     const summary = ctx.playerSummaries.get(playerId);
     if (!summary) continue; // Player not present at this turn
@@ -286,6 +280,29 @@ export async function extractPlayerEpisodes(
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** Returns the set of turns that have agent execution spans in the telemetry DB.
+ *  Returns null if the DB doesn't exist (caller should treat as "all turns eligible"). */
+export function getAgentTurns(telemetryDbPath: string): Set<number> | null {
+  if (!fs.existsSync(telemetryDbPath)) {
+    logger.debug(`Telemetry DB not found: ${telemetryDbPath}`);
+    return null;
+  }
+
+  let sqliteDb: InstanceType<typeof Database> | undefined;
+  try {
+    sqliteDb = new Database(telemetryDbPath, { readonly: true });
+    const rows = sqliteDb.prepare(
+      `SELECT DISTINCT turn FROM spans WHERE turn IS NOT NULL AND turn >= 0 AND name LIKE 'agent.%' AND name NOT LIKE '%.step.%'`
+    ).all() as Array<{ turn: number }>;
+    return new Set(rows.map(r => r.turn));
+  } catch (error) {
+    logger.warn(`Failed to read telemetry DB: ${telemetryDbPath}`, { error });
+    return null;
+  } finally {
+    sqliteDb?.close();
+  }
+}
 
 /** Load turn summaries from the telepathist database. Returns empty map if DB doesn't exist.
  *  When `turns` is provided, only loads summaries for those specific turns. */
