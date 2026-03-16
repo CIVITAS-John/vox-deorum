@@ -208,12 +208,17 @@ export class VoxPlayer {
         });
         span.end();
 
-        await Promise.all([
-          this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: String(this.context.inputTokens) }, this.parameters),
-          this.context.callTool("set-metadata", { Key: `reasoningTokens-${this.playerID}`, Value: String(this.context.reasoningTokens) }, this.parameters),
-          this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: String(this.context.outputTokens) }, this.parameters),
-          sqliteExporter.forceFlush()
-        ]);
+        // Best-effort metadata reporting - don't let failures prevent context shutdown
+        try {
+          await Promise.all([
+            this.context.callTool("set-metadata", { Key: `inputTokens-${this.playerID}`, Value: String(this.context.inputTokens) }, this.parameters),
+            this.context.callTool("set-metadata", { Key: `reasoningTokens-${this.playerID}`, Value: String(this.context.reasoningTokens) }, this.parameters),
+            this.context.callTool("set-metadata", { Key: `outputTokens-${this.playerID}`, Value: String(this.context.outputTokens) }, this.parameters),
+            sqliteExporter.forceFlush()
+          ]);
+        } catch (error) {
+          this.logger.warn(`Failed to report final metadata for player ${this.playerID}:`, error);
+        }
 
         // Shutdown the VoxContext to ensure all telemetry is flushed
         await this.context.shutdown();

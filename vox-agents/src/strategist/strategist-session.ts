@@ -191,8 +191,8 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     }
     this.activePlayers.clear();
 
-    // Wait briefly to ensure players have time to shutdown their contexts
-    await setTimeout(1000);
+    // Wait for players to finish their cleanup (callTool metadata + context.shutdown)
+    await setTimeout(8000);
 
     // Disconnect from MCP server
     await mcpClient.disconnect();
