@@ -24,6 +24,7 @@ const logger = createLogger('TelepathistPrep');
  * @param gameId - Game identifier
  * @param playerId - Player ID within the game
  * @param targetTurns - Optional set of specific turns to summarize (default: all available turns)
+ * @returns Set of turn numbers that failed due to context window exceeded
  */
 export async function prepareTelepathist(
   telemetryDbPath: string,
@@ -31,7 +32,7 @@ export async function prepareTelepathist(
   playerId: number,
   targetTurns?: number[],
   modelOverride?: string
-): Promise<void> {
+): Promise<Set<number>> {
   logger.info(`Preparing telepathist for player ${playerId} in game ${gameId}`, {
     targetTurns: targetTurns ? targetTurns.length : 'all',
   });
@@ -58,12 +59,14 @@ export async function prepareTelepathist(
     const modelOverrides: Record<string, string> = modelOverride ? { summarizer: modelOverride } : {};
     context = new VoxContext(modelOverrides, `archivist-${gameId}-${playerId}`);
 
-    await prepareTurnSummaries(parameters, context);
+    const contextExceededTurns = await prepareTurnSummaries(parameters, context);
 
     logger.info(`Telepathist prep complete for player ${playerId} in game ${gameId}`);
+    return contextExceededTurns;
   } catch (error) {
     // Log and continue — extraction will proceed with null text fields
     logger.error(`Telepathist prep failed for player ${playerId} in game ${gameId}`, { error });
+    return new Set<number>();
   } finally {
     if (parameters?.close) {
       try { await parameters.close(); } catch { /* ignore cleanup errors */ }

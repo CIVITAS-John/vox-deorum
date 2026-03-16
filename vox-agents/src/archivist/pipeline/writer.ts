@@ -348,6 +348,16 @@ export class EpisodeWriter {
     }
   }
 
+  /** Unmark a single episode as no longer a landmark (e.g. context window exceeded). */
+  async unmarkLandmark(gameId: string, playerId: number, turn: number): Promise<void> {
+    await this.db.updateTable('episodes')
+      .set({ isLandmark: false } as any)
+      .where('gameId', '=', gameId)
+      .where('playerId', '=', playerId)
+      .where('turn', '=', turn)
+      .execute();
+  }
+
   /** Return landmark turn numbers for a specific player in a game. */
   async getLandmarkTurns(gameId: string, playerId: number): Promise<number[]> {
     const rows = await this.db

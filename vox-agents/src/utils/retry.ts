@@ -7,6 +7,16 @@
 
 import { Logger } from "winston";
 
+/** Pattern matching context-length-exceeded errors from LLM providers. */
+const contextLengthPattern = /input.*tokens.*is longer than.*context.length|exceeds.*maximum.*context|token.*limit.*exceeded/i;
+
+/** Check whether an error indicates the input exceeded the model's context window. */
+export function isContextLengthError(error: unknown): boolean {
+  if (!error) return false;
+  const message = error instanceof Error ? error.message : String(error);
+  return contextLengthPattern.test(message);
+}
+
 /**
  * Executes an async function with exponential backoff retry logic
  * @param fn - The async function to execute, receives a progress callback to prevent timeout
@@ -95,6 +105,12 @@ export async function exponentialRetry<T>(
 
       // Check if error is explicitly marked as non-retryable
       const isNonRetryable = error && typeof error === 'object' && 'isRetryable' in error && error.isRetryable === false;
+
+      // Context length exceeded — retrying won't help, fail immediately
+      if (isContextLengthError(error)) {
+        logger.warn(`[${source}] Context length exceeded, terminating retry`, lastError);
+        throw lastError;
+      }
 
       if (attempt === maxRetries) {
         logger.warn(`[${source}] Non-retryable error`, lastError);

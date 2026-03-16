@@ -12,18 +12,20 @@ import { GetGameStateTool } from '../tools/get-situation.js';
 import { GetDecisionsTool } from '../tools/get-decision.js';
 import { SummarizerInput } from '../summarizer.js';
 import { turnSummarySchema, buildTurnSummaryInstruction, parseSummaryMarkdown } from './instructions.js';
-import { exponentialRetry } from '../../utils/retry.js';
+import { exponentialRetry, isContextLengthError } from '../../utils/retry.js';
 import { getModelConfig } from '../../utils/models/models.js';
 
 /**
  * Generates turn summaries for all turns that don't already have them.
  * For each turn: executes game state + decisions tools, combines the data,
  * calls the summarizer with a structured instruction, and stores the result.
+ *
+ * @returns Set of turn numbers that failed due to context window exceeded
  */
 export async function prepareTurnSummaries(
   parameters: TelepathistParameters,
   context: VoxContext<TelepathistParameters>
-): Promise<void> {
+): Promise<Set<number>> {
   const model = getModelConfig('summarizer', undefined, context.modelOverrides).name;
   const logger = context.logger.child({ gameID: parameters.gameID, playerID: parameters.playerID, civ: parameters.civilizationName, model });
 
@@ -35,10 +37,12 @@ export async function prepareTurnSummaries(
 
   const turnsToSummarize = parameters.availableTurns.filter(t => !existingTurns.has(t));
 
+  const contextExceededTurns = new Set<number>();
+
   if (turnsToSummarize.length === 0) {
     logger.info('All turn summaries already exist, skipping summarization');
     context.streamProgress?.('Summaries already exist. Loading...');
-    return;
+    return contextExceededTurns;
   }
 
   logger.info(`Generating summaries for ${turnsToSummarize.length} turns`);
@@ -117,9 +121,16 @@ export async function prepareTurnSummaries(
               .execute();
           }
         } catch (e) {
-          logger.error(`Failed to summarize turn ${turn}`, { error: e });
+          if (isContextLengthError(e)) {
+            logger.warn(`Context window exceeded for turn ${turn}, marking as non-landmark candidate`, { error: e });
+            contextExceededTurns.add(turn);
+          } else {
+            logger.error(`Failed to summarize turn ${turn}`, { error: e });
+          }
         }
       })
     )
   );
+
+  return contextExceededTurns;
 }

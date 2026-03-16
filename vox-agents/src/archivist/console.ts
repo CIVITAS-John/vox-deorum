@@ -226,7 +226,22 @@ async function processGame(
         // Generate telepathist summaries for target turns only
         if (!skipTelepathist) {
           logger.info(`[${workerLabel}] Player ${player.playerId}: generating summaries for ${targetTurns.length} turns (${landmarkTurns.length} landmarks + ${targetTurns.length - landmarkTurns.length} consequence)`);
-          await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns, modelOverride);
+          const contextExceededTurns = await prepareTelepathist(player.telemetryDbPath, entry.gameId, player.playerId, targetTurns, modelOverride);
+
+          // Unmark landmark turns that exceeded the model's context window
+          if (contextExceededTurns.size > 0) {
+            const affectedLandmarks = landmarkTurns.filter(t => contextExceededTurns.has(t));
+            if (affectedLandmarks.length > 0) {
+              logger.warn(`[${workerLabel}] Player ${player.playerId}: unmarking ${affectedLandmarks.length} landmarks due to context window exceeded: turns ${affectedLandmarks.join(', ')}`);
+              for (const turn of affectedLandmarks) {
+                await writer.unmarkLandmark(entry.gameId, player.playerId, turn);
+              }
+              // Remove from landmarkSet so embeddings aren't attempted for these turns
+              for (const turn of affectedLandmarks) {
+                landmarkSet.delete(turn);
+              }
+            }
+          }
         }
 
         // Load summaries for all target turns (prepareTelepathist skips existing ones internally)

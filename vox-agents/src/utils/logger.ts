@@ -82,6 +82,53 @@ const getLevelStyle = (level: string) => {
 };
 
 /**
+ * Sanitize AI SDK errors to prevent full prompts from being logged.
+ * APICallError includes requestBodyValues with the entire messages array;
+ * this replaces the messages with a redacted placeholder.
+ */
+function sanitizeAIError(obj: any): any {
+  if (obj == null || typeof obj !== 'object') return obj;
+
+  // Handle requestBodyValues directly on the object (APICallError)
+  if (obj.requestBodyValues && typeof obj.requestBodyValues === 'object') {
+    const { messages, prompt, ...rest } = obj.requestBodyValues;
+    const sanitized = { ...obj, requestBodyValues: { ...rest } };
+    if (messages) {
+      sanitized.requestBodyValues.messages = `[redacted: ${Array.isArray(messages) ? messages.length : '?'} messages]`;
+    }
+    if (prompt) {
+      sanitized.requestBodyValues.prompt = `[redacted: ${Array.isArray(prompt) ? prompt.length : '?'} prompt parts]`;
+    }
+    return sanitized;
+  }
+
+  // Handle InvalidPromptError which stores the full prompt
+  if (obj.prompt && obj.name === 'AI_InvalidPromptError') {
+    return { ...obj, prompt: '[redacted]' };
+  }
+
+  return obj;
+}
+
+/**
+ * Winston format that strips large prompt data from AI SDK errors in metadata.
+ */
+const sanitizeErrors = winston.format((info) => {
+  // Sanitize error objects passed as metadata arguments
+  for (const key of Object.keys(info)) {
+    const val = info[key];
+    if (val && typeof val === 'object' && 'requestBodyValues' in val) {
+      info[key] = sanitizeAIError(val);
+    }
+  }
+  // Also sanitize if the info itself has requestBodyValues (error as top-level)
+  if (info.requestBodyValues) {
+    return sanitizeAIError(info);
+  }
+  return info;
+});
+
+/**
  * Enhanced custom log format with improved visual formatting and colors
  */
 const customFormat = winston.format.combine(
@@ -89,6 +136,7 @@ const customFormat = winston.format.combine(
     format: 'YYYY-MM-DD HH:mm:ss.SSS'
   }),
   winston.format.errors({ stack: true }),
+  sanitizeErrors(),
   winston.format.printf(({ timestamp, level, message, context, source, ...meta }) => {
     const style = getLevelStyle(level);
     const isProduction = process.env.NODE_ENV === 'production';
@@ -129,6 +177,7 @@ const customFormat = winston.format.combine(
 const jsonFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
+  sanitizeErrors(),
   winston.format.json()
 );
 
