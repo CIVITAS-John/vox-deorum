@@ -187,6 +187,7 @@ export class VoxPlayer {
               message: error instanceof Error ? error.message : String(error)
             });
             // Still need to resume the game to avoid a total block.
+            this.parameters.after = turnData.latestID;
             this.running = false;
             await this.context.callTool("resume-game", { PlayerID: this.playerID }, this.parameters);
           } finally {
