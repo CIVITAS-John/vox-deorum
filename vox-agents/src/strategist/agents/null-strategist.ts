@@ -7,7 +7,6 @@
  * Grand strategy is not overridden in either mode, letting VPAI decide.
  */
 
-import { StepResult, Tool } from "ai";
 import { Strategist } from "../strategist.js";
 import { VoxContext } from "../../infra/vox-context.js";
 import { StrategistParameters, ensureGameState } from "../strategy-parameters.js";
@@ -23,8 +22,8 @@ export class NullStrategist extends Strategist {
   readonly description = "Baseline agent that resets VPAI to defaults: empty strategies (Strategy mode) or balanced flavors (Flavor mode), with no grand strategy override";
 
   /**
-   * Programmatically resets VPAI to baseline defaults, then returns a non-empty
-   * system prompt so the execution loop runs (and stopCheck exits immediately).
+   * Programmatically resets VPAI to baseline defaults, then returns empty
+   * string to skip the LLM execution loop entirely.
    */
   public async getSystem(parameters: StrategistParameters, _input: unknown, context: VoxContext<StrategistParameters>): Promise<string> {
     const rationale = "Null agent baseline — letting VPAI decide on its own";
@@ -54,18 +53,6 @@ export class NullStrategist extends Strategist {
       }, parameters);
     }
 
-    return rationale;
-  }
-
-  /**
-   * Always stops immediately — all work is done in getSystem
-   */
-  public stopCheck(
-    _parameters: StrategistParameters,
-    _input: unknown,
-    _lastStep: StepResult<Record<string, Tool>>,
-    _allSteps: StepResult<Record<string, Tool>>[]
-  ): boolean {
-    return true;
+    return "";
   }
 }
