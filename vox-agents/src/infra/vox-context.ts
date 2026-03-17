@@ -351,6 +351,9 @@ export class VoxContext<TParameters extends AgentParameters> {
             role: "system",
             content: system
           }];
+          
+          const initialMessages = await agent.getInitialMessages(parameters, input, this);
+          messages.push(...initialMessages);
           var allSteps: StepResult<ToolSet>[] = [];
           var finalText = "";
           
