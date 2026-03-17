@@ -12,6 +12,7 @@ import { LanguageModelV2FunctionTool, LanguageModelV2Message, LanguageModelV2Pro
 // @ts-ignore - jaison doesn't have type definitions
 import jaison from 'jaison';
 import { formatToolCallText, formatToolResultOutput } from '../text-cleaning.js';
+import { isContextLengthError } from '../retry.js';
 
 const logger = createLogger("tool-rescue");
 
@@ -637,6 +638,10 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
       } catch (error) {
         // Re-throw the error to let the retry mechanism handle it
         logger.error("Error in wrapStream middleware", error);
+        // Preserve context length errors so they survive the AI SDK's error wrapping
+        if (isContextLengthError(error)) {
+          (params as any).__streamError = error;
+        }
         throw error;
       }
     }

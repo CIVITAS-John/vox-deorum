@@ -150,10 +150,17 @@ export class VoxPlayer {
               await this.context.callTool("pause-game", { PlayerID: this.playerID }, this.parameters);
 
               // Without strategists, we just fake one
+              let contextLengthExceeded = false;
               if (this.playerConfig.strategist == "none") {
                 await setTimeout(2000);
               } else {
-                await this.context.execute(this.playerConfig.strategist, this.parameters, undefined);
+                await this.context.execute(this.playerConfig.strategist, this.parameters, undefined, undefined, undefined, () => {
+                  contextLengthExceeded = true;
+                });
+              }
+
+              if (contextLengthExceeded) {
+                this.logger.warn(`Context length exceeded on turn ${this.parameters.turn}, skipping turn.`);
               }
 
               // Finalizing

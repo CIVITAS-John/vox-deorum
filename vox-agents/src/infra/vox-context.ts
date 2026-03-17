@@ -22,6 +22,7 @@ import { spanProcessor } from '../instrumentation.js';
 import { VoxSpanExporter } from '../utils/telemetry/vox-exporter.js';
 import { countMessagesTokens } from "../utils/token-counter.js";
 import { cleanToolArtifacts } from "../utils/text-cleaning.js";
+import { isContextLengthError } from "../utils/retry.js";
 import { agentRegistry } from "./agent-registry.js";
 import { contextRegistry } from "./context-registry.js";
 import { createAgentTool } from "../utils/tools/agent-tools.js";
@@ -271,7 +272,8 @@ export class VoxContext<TParameters extends AgentParameters> {
   public async callAgent<T = unknown>(
     name: string,
     input: unknown,
-    parameters: TParameters): Promise<T | undefined> {
+    parameters: TParameters,
+    onContextLengthError?: () => void): Promise<T | undefined> {
     const agent = agentRegistry.get<TParameters>(name);
     if (!agent) {
       this.logger.error(`Agent not found: ${name}`);
@@ -279,7 +281,7 @@ export class VoxContext<TParameters extends AgentParameters> {
     }
 
     try {
-      return await this.execute(name, parameters, input) as T;
+      return await this.execute(name, parameters, input, undefined, undefined, onContextLengthError) as T;
     } catch (error) {
       this.logger.error(`Error calling agent ${name}:`, error);
       return undefined;
@@ -302,7 +304,8 @@ export class VoxContext<TParameters extends AgentParameters> {
     parameters: TParameters,
     input: unknown,
     callback?: StreamingEventCallback,
-    tokenOutput?: ExecuteTokenOutput
+    tokenOutput?: ExecuteTokenOutput,
+    onContextLengthError?: () => void
   ): Promise<unknown> {
     const agent = agentRegistry.get<TParameters>(agentName);
     if (!agent) {
@@ -420,6 +423,9 @@ export class VoxContext<TParameters extends AgentParameters> {
           code: SpanStatusCode.ERROR,
           message: error instanceof Error ? error.message : String(error)
         });
+        if (onContextLengthError && isContextLengthError(error)) {
+          onContextLengthError();
+        }
         return undefined;
       } finally {
         span.end();

@@ -12,7 +12,7 @@ import { GetGameStateTool } from '../tools/get-situation.js';
 import { GetDecisionsTool } from '../tools/get-decision.js';
 import { SummarizerInput } from '../summarizer.js';
 import { turnSummarySchema, buildTurnSummaryInstruction, parseSummaryMarkdown } from './instructions.js';
-import { exponentialRetry, isContextLengthError } from '../../utils/retry.js';
+import { exponentialRetry } from '../../utils/retry.js';
 import { getModelConfig } from '../../utils/models/models.js';
 
 /**
@@ -88,11 +88,13 @@ export async function prepareTurnSummaries(
 
           const turnParameters = { ...parameters, turn };
           let formatFailures = 0;
+          let contextExceeded = false;
           const summary = await exponentialRetry(async () => {
             const rawSummary = await context.callAgent<string>(
               'summarizer',
               summaryInput,
-              turnParameters
+              turnParameters,
+              () => { contextExceeded = true; }
             );
             const parsed = rawSummary ? parseSummaryMarkdown(rawSummary, turnSummarySchema) : undefined;
             if (!parsed) {
@@ -103,6 +105,11 @@ export async function prepareTurnSummaries(
             }
             return parsed;
           }, logger, undefined, `turn-${turn}`);
+
+          if (contextExceeded) {
+            contextExceededTurns.add(turn);
+            return;
+          }
 
           if (summary) {
             context.streamProgress?.(`Turn ${turn}: ${summary.narrative}`);
@@ -121,12 +128,7 @@ export async function prepareTurnSummaries(
               .execute();
           }
         } catch (e) {
-          if (isContextLengthError(e)) {
-            logger.warn(`Context window exceeded for turn ${turn}, marking as non-landmark candidate`, { error: e });
-            contextExceededTurns.add(turn);
-          } else {
-            logger.error(`Failed to summarize turn ${turn}`, { error: e });
-          }
+          logger.error(`Failed to summarize turn ${turn}`, { error: e });
         }
       })
     )

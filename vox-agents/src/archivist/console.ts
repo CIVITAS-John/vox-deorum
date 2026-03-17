@@ -230,6 +230,7 @@ async function processGame(
 
           // Unmark landmark turns that exceeded the model's context window
           if (contextExceededTurns.size > 0) {
+            logger.warn(`[${workerLabel}] Player ${player.playerId} in game ${entry.gameId}: ${contextExceededTurns.size} turns exceeded context window — consider using a model with a larger context`);
             const affectedLandmarks = landmarkTurns.filter(t => contextExceededTurns.has(t));
             if (affectedLandmarks.length > 0) {
               logger.warn(`[${workerLabel}] Player ${player.playerId}: unmarking ${affectedLandmarks.length} landmarks due to context window exceeded: turns ${affectedLandmarks.join(', ')}`);
@@ -274,9 +275,21 @@ async function processGame(
         if (!skipEmbeddings) {
           const landmarkUpdates = updates.filter(u => landmarkSet.has(u.turn) && u.situationAbstract != null);
           if (landmarkUpdates.length > 0) {
-            const embeddings = await generateEmbeddings(landmarkUpdates.map(u => u.situationAbstract));
-            for (let i = 0; i < landmarkUpdates.length; i++) {
-              landmarkUpdates[i].situationAbstractEmbedding = embeddings[i];
+            // In non-force mode, skip landmarks that already have embeddings
+            let toEmbed = landmarkUpdates;
+            if (!force) {
+              const alreadyEmbedded = await writer.getEmbeddedLandmarkTurns(entry.gameId, player.playerId);
+              toEmbed = landmarkUpdates.filter(u => !alreadyEmbedded.has(u.turn));
+              const skippedCount = landmarkUpdates.length - toEmbed.length;
+              if (skippedCount > 0) {
+                logger.info(`[${workerLabel}] Player ${player.playerId}: skipped ${skippedCount} landmarks with existing embeddings`);
+              }
+            }
+            if (toEmbed.length > 0) {
+              const embeddings = await generateEmbeddings(toEmbed.map(u => u.situationAbstract));
+              for (let i = 0; i < toEmbed.length; i++) {
+                toEmbed[i].situationAbstractEmbedding = embeddings[i];
+              }
             }
           }
         }

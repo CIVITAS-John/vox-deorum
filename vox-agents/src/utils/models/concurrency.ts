@@ -7,7 +7,7 @@
 
 import pLimit from 'p-limit';
 import { streamText, TextStreamPart, ToolSet } from 'ai';
-import { exponentialRetry } from '../retry.js';
+import { exponentialRetry, isContextLengthError } from '../retry.js';
 import type { Model } from '../../types/index.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { AgentParameters } from '../../infra/vox-agent.js';
@@ -151,19 +151,29 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
       // Consume the raw stream
       const result = streamText(modifiedParams);
       const reader = result.fullStream.getReader();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        update(false);
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          update(false);
+        }
+        update(true);
+
+        // And return the found steps
+        var response = {
+          ...result,
+          steps: await result.steps
+        };
+        return response;
+      } catch (error) {
+        // Resurface context length errors that the AI SDK swallowed into AI_NoOutputGeneratedError
+        const streamError = (modifiedParams as any).__streamError;
+        if (streamError && isContextLengthError(streamError)) {
+          delete (modifiedParams as any).__streamError;
+          throw streamError;
+        }
+        throw error;
       }
-      update(true);
-      
-      // And return the found steps
-      var response = {
-        ...result,
-        steps: await result.steps
-      };
-      return response;
     }, context.logger, undefined, modelName)
   });
 }

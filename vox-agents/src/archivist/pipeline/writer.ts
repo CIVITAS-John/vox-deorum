@@ -371,6 +371,19 @@ export class EpisodeWriter {
     return rows.map(r => r.turn);
   }
 
+  /** Return landmark turn numbers that already have embeddings for a specific player in a game. */
+  async getEmbeddedLandmarkTurns(gameId: string, playerId: number): Promise<Set<number>> {
+    const rows = await this.db
+      .selectFrom('episodes')
+      .select('turn')
+      .where('gameId', '=', gameId)
+      .where('playerId', '=', playerId)
+      .where('isLandmark', '=', true as any)
+      .where('situationAbstractEmbedding', 'is not', null)
+      .execute();
+    return new Set(rows.map(r => r.turn));
+  }
+
   /** Return all turn numbers for a specific player in a game. */
   async getPlayerTurns(gameId: string, playerId: number): Promise<Set<number>> {
     const rows = await this.db
