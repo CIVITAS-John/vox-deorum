@@ -73,7 +73,7 @@ export class NullStrategist extends Strategist {
     }
 
     // Pick a random policy if none is queued
-    if (gameState.options?.Policy?.Next === "None") {
+    if (gameState.options?.Policy?.Next.startsWith("None")) {
       const policies = gameState.options?.Options?.Policies;
       if (policies && typeof policies === "object") {
         const policyDisplayNames = Object.keys(policies as Record<string, unknown>);
