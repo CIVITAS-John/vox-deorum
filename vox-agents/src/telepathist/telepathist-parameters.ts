@@ -199,14 +199,17 @@ export async function createTelepathistParameters(
       lastTurn: availableTurns[availableTurns.length - 1]
     });
 
-    // Extract player identity from the first get-metadata span
+    // Extract player identity from the first get-game-settings span (or legacy get-metadata)
     let civilizationName = 'Unknown';
     let leaderName = 'Unknown';
 
     const metadataSpan = await db
       .selectFrom('spans')
       .selectAll()
-      .where('name', '=', 'mcp-tool.get-metadata')
+      .where((eb) => eb.or([
+        eb('name', '=', 'mcp-tool.get-game-settings'),
+        eb('name', '=', 'mcp-tool.get-metadata')
+      ]))
       .orderBy('startTime', 'asc')
       .limit(1)
       .executeTakeFirst();
@@ -228,7 +231,7 @@ export async function createTelepathistParameters(
         logger.warn('Failed to parse metadata span output, using defaults', { error: e });
       }
     } else {
-      logger.warn('No mcp-tool.get-metadata span found, using default identity');
+      logger.warn('No mcp-tool.get-game-settings span found, using default identity');
     }
 
     const lastTurn = availableTurns.length > 0 ? availableTurns[availableTurns.length - 1] : 0;

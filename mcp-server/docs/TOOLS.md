@@ -1,6 +1,6 @@
 # MCP Server Tool Reference
 
-Concise reference for all 33 tools exposed by the MCP Server. Tools are organized by category and registered in `src/tools/index.ts`.
+Concise reference for all 34 tools exposed by the MCP Server. Tools are organized by category and registered in `src/tools/index.ts`.
 
 ## Architecture
 
@@ -32,7 +32,7 @@ All extend `DatabaseQueryTool`. Common input: `Search?`: string (fuzzy match), `
 | `get-military-strategies` | AI military strategy info with production/overall flavors |
 | `get-flavors` | Flavor descriptions for AI preference tuning |
 
-## Knowledge Query Tools (10)
+## Knowledge Query Tools (11)
 
 | Tool | Description | Key Input |
 |------|-------------|-----------|
@@ -41,7 +41,8 @@ All extend `DatabaseQueryTool`. Common input: `Search?`: string (fuzzy match), `
 | `get-players` | Player summary with scores, era, resources, military, and diplomatic opinions | `PlayerID?` (0-21) |
 | `get-opinions` | Diplomatic opinions to/from a player with all alive major civilizations | `PlayerID` (0-21), `RevealAll?` |
 | `get-cities` | City info from a player's perspective with visibility filtering | `PlayerID?` (0-21), `Owner?` |
-| `get-metadata` | Static game metadata (speed, map, difficulty, victory types, etc.) | `PlayerID?` |
+| `get-game-settings` | Static game settings (speed, map, difficulty, victory types, etc.) | `PlayerID?` |
+| `get-metadata` | Read a metadata value by key from the knowledge store | `Key`: string |
 | `get-options` | Available strategic options (techs, policies, strategies/flavors, persona) with current selections | `PlayerID` (0-21), `Mode?`: "Flavor" or "Strategy" |
 | `summarize-units` | Unit overview grouped by civilization and AI type, with military stats | `PlayerID` |
 | `get-military-report` | Military report with units by AI type and tactical zones | `PlayerID` (0-21) |

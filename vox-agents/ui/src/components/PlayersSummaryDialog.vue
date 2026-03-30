@@ -26,6 +26,7 @@ const emit = defineEmits<Emits>();
 const loading = ref(false);
 const error = ref<string | null>(null);
 const playersData = ref<Record<string, any>>({});
+const assignments = ref<Record<number, { strategist: string; model?: string }>>({});
 const lastUpdated = ref<Date | null>(null);
 let pollInterval: number | null = null;
 
@@ -53,6 +54,7 @@ async function loadPlayers() {
   try {
     const response = await apiClient.getPlayersSummary();
     playersData.value = response.players;
+    assignments.value = response.assignments ?? {};
     lastUpdated.value = new Date();
   } catch (err) {
     console.error('Error loading players:', err);
@@ -92,6 +94,13 @@ function formatEra(era: string | undefined): string {
   if (!era) return 'N/A';
   // Remove ERA_ prefix if present
   return era.replace(/^ERA_/, '');
+}
+
+function getAssignmentTooltip(playerId: string): string | undefined {
+  const assignment = assignments.value[parseInt(playerId)];
+  if (!assignment) return undefined;
+  const model = assignment.model?.split('/').pop() ?? '';
+  return model ? `${model} / ${assignment.strategist}` : assignment.strategist;
 }
 
 function formatLastUpdated(): string {
@@ -185,7 +194,7 @@ onUnmounted(() => {
           :key="player.playerId"
           class="table-row"
         >
-          <div class="col-fixed-150">{{ player.playerId }}: {{ player.Civilization || 'Unknown' }}</div>
+          <div class="col-fixed-150" v-tooltip.top="getAssignmentTooltip(player.playerId)">{{ player.playerId }}: {{ player.Civilization || 'Unknown' }}</div>
           <div class="col-fixed-80">{{ player.Score ?? 'N/A' }}</div>
           <div class="col-fixed-120">{{ formatEra(player.Era) }}</div>
           <div class="col-fixed-100">{{ player.Cities ?? 0 }} / {{ player.Population ?? 0 }}</div>

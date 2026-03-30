@@ -33,6 +33,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
   private crashRecoveryAttempts = 0;
   private mcpKillCounter = 0;
   private dllConnected = false;
+  private seatingMap?: Record<string, number>;
   private readonly MAX_RECOVERY_ATTEMPTS = 3;
 
   constructor(config: StrategistSessionConfig) {
@@ -239,12 +240,15 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     }
     this.activePlayers.clear();
 
-    // Create new players for this game
-    for (const [playerIDStr, playerConfig] of Object.entries(this.config.llmPlayers)) {
-      const playerID = parseInt(playerIDStr);
-      const player = new VoxPlayer(playerID, playerConfig, params.gameID, params.turn);
+    // Resolve seating map (identity or randomized)
+    this.seatingMap = await this.resolveSeatingMap();
+
+    // Create new players using the seating map
+    for (const [configSlotStr, playerConfig] of Object.entries(this.config.llmPlayers)) {
+      const actualPlayerID = this.seatingMap[configSlotStr] ?? parseInt(configSlotStr);
+      const player = new VoxPlayer(actualPlayerID, playerConfig, params.gameID, params.turn);
       await player.context.registerTools();
-      this.activePlayers.set(playerID, player);
+      this.activePlayers.set(actualPlayerID, player);
       player.execute();
     }
 
@@ -321,6 +325,75 @@ Game.SetAIAutoPlay(2000, -1);`
       logger.info(`Finishing the run...`);
       this.victoryResolve();
     }
+  }
+
+  /**
+   * Resolve the seating map for the current game.
+   * When randomizeSeating is enabled, loads an existing map from the DB or generates a new permutation.
+   * When disabled, returns identity mapping (config slot N -> player ID N).
+   */
+  private async resolveSeatingMap(): Promise<Record<string, number>> {
+    const configSlots = Object.keys(this.config.llmPlayers).map(Number).sort((a, b) => a - b);
+
+    // Without randomization, use identity mapping
+    if (!this.config.randomizeSeating) {
+      const identity: Record<string, number> = {};
+      for (const slot of configSlots) {
+        identity[String(slot)] = slot;
+      }
+      return identity;
+    }
+
+    // Try to load existing seating map from DB
+    try {
+      const result = await mcpClient.callTool("get-metadata", { Key: "seatingMap" }) as Record<string, unknown>;
+      const text = (result?.content as { type: string; text: string }[])?.[0]?.text;
+      if (text) {
+        const savedMap = JSON.parse(text) as Record<string, number>;
+        logger.info('Loaded existing seating map from database', savedMap);
+        return savedMap;
+      }
+    } catch {
+      logger.debug('No existing seating map found, will generate new one');
+    }
+
+    // Generate new random permutation using Fisher-Yates shuffle
+    const playerIDs = [...configSlots];
+    for (let i = playerIDs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [playerIDs[i], playerIDs[j]] = [playerIDs[j], playerIDs[i]];
+    }
+
+    const seatingMap: Record<string, number> = {};
+    for (let i = 0; i < configSlots.length; i++) {
+      seatingMap[String(configSlots[i])] = playerIDs[i];
+    }
+
+    // Persist to DB
+    await mcpClient.callTool("set-metadata", {
+      Key: "seatingMap",
+      Value: JSON.stringify(seatingMap)
+    });
+
+    logger.warn('Generated and saved new seating map', seatingMap);
+    return seatingMap;
+  }
+
+  /**
+   * Get the current player assignments mapping actual player IDs to their strategist config.
+   * Used by the API to expose which AI controls which player.
+   */
+  getPlayerAssignments(): Record<number, { strategist: string; model?: string }> {
+    const result: Record<number, { strategist: string; model?: string }> = {};
+    for (const [configSlotStr, playerConfig] of Object.entries(this.config.llmPlayers)) {
+      const actualPlayerID = this.seatingMap?.[configSlotStr] ?? parseInt(configSlotStr);
+      const mainModel = playerConfig.llms?.[playerConfig.strategist];
+      result[actualPlayerID] = {
+        strategist: playerConfig.strategist,
+        model: typeof mainModel === 'string' ? mainModel : mainModel?.name
+      };
+    }
+    return result;
   }
 
   /**

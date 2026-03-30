@@ -6,7 +6,7 @@ import type { EventsReport } from "../../../mcp-server/dist/tools/knowledge/get-
 import type { MilitaryReport } from "../../../mcp-server/dist/tools/knowledge/get-military-report.js";
 import type { OptionsReport } from "../../../mcp-server/dist/tools/knowledge/get-options.js";
 import type { VictoryProgressReport } from "../../../mcp-server/dist/tools/knowledge/get-victory-progress.js";
-import type { GameMetadata } from "../../../mcp-server/dist/tools/knowledge/get-metadata.js"
+import type { GameMetadata } from "../../../mcp-server/dist/tools/knowledge/get-game-settings.js"
 import { StrategyDecisionType } from "../types/config.js";
 
 /**
@@ -90,7 +90,7 @@ export async function refreshGameState(
 ): Promise<GameState> {
   // Get the game metadata as a prerequisite
   parameters.metadata = parameters.metadata ??
-    await context.callTool<GameMetadata>("get-metadata", { PlayerID: parameters.playerID }, parameters);
+    await context.callTool<GameMetadata>("get-game-settings", { PlayerID: parameters.playerID }, parameters);
 
   // Get the information
   const [players, events, cities, options, victory, military] = await Promise.all([

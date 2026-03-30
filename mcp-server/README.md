@@ -50,13 +50,14 @@ AI Agents ← MCP Protocol → MCP Server ← HTTP/SSE → Bridge Service ← Na
 - `get-military-strategies` - AI military strategy info with production/overall flavors
 - `get-flavors` - Flavor descriptions for AI preference tuning
 
-### Knowledge Query Tools (10)
+### Knowledge Query Tools (11)
 - `get-events` - Recent game events with turn/type/player filtering
 - `get-diplomatic-events` - Diplomatic events (wars, peace, deals) grouped by turn
 - `get-players` - Player summary information (economy, military, diplomacy)
 - `get-opinions` - Diplomatic opinions to/from a player
 - `get-cities` - City info from a player's perspective with owner filtering
-- `get-metadata` - Static game metadata (speed, map, difficulty, victory types)
+- `get-game-settings` - Static game settings (speed, map, difficulty, victory types)
+- `get-metadata` - Read a metadata value by key from the knowledge store
 - `get-options` - Available strategic options (technologies, policies, strategies)
 - `summarize-units` - Unit overview grouped by civilization and AI type
 - `get-military-report` - Military report with units by AI type and tactical zones

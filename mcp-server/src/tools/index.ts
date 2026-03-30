@@ -11,6 +11,7 @@ import createGetEventsTool from "./knowledge/get-events.js";
 import createGetPlayersTool from "./knowledge/get-players.js";
 import createGetOpinionsTool from "./knowledge/get-opinions.js";
 import createGetCitiesTool from "./knowledge/get-cities.js";
+import createGetGameSettingsTool from "./knowledge/get-game-settings.js";
 import createGetMetadataTool from "./knowledge/get-metadata.js";
 import createSetStrategyTool from "./actions/set-strategy.js";
 import createSetPersonaTool from "./actions/set-persona.js";
@@ -36,6 +37,7 @@ import createGetDiplomaticEventsTool from "./knowledge/get-diplomatic-events.js"
 const toolFactories = {
     calculator: createCalculatorTool,
     luaExecutor: createLuaExecutorTool,
+    getGameSettings: createGetGameSettingsTool,
     getMetadata: createGetMetadataTool,
     setMetadata: createSetMetadataTool,
     searchDatabase: createSearchDatabaseTool,

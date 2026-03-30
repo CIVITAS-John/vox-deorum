@@ -343,8 +343,14 @@ export function createSessionRoutes(): Router {
         }
       }
 
+      // Get AI player assignments from the session if available
+      const assignments = session instanceof StrategistSession
+        ? session.getPlayerAssignments()
+        : undefined;
+
       const response: PlayersSummaryResponse = {
-        players: filteredPlayers
+        players: filteredPlayers,
+        assignments
       };
       res.json(response);
     } catch (error) {

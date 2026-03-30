@@ -152,4 +152,7 @@ export interface StrategistSessionConfig extends SessionConfig {
 
   /** Map of player IDs to their LLM configurations */
   llmPlayers: Record<number, PlayerConfig>;
+
+  /** When true, randomize the mapping between config slots and actual game player indices each game */
+  randomizeSeating?: boolean;
 }
