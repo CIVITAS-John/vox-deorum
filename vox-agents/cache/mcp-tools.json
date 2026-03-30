@@ -8,6 +8,10 @@
     "_meta": {}
   },
   {
+    "name": "get-game-settings",
+    "_meta": {}
+  },
+  {
     "name": "get-metadata",
     "_meta": {}
   },

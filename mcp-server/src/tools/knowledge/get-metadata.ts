@@ -44,12 +44,10 @@ class GetMetadataTool extends ToolBase {
   /**
    * Execute the tool to retrieve a metadata value
    */
-  async execute(args: z.infer<typeof this.inputSchema>): Promise<{ content: { type: string; text: string }[] }> {
+  async execute(args: z.infer<typeof this.inputSchema>) {
     const store = knowledgeManager.getStore();
     const value = await store.getMetadata(args.Key);
-    return {
-      content: [{ type: "text", text: value ?? "" }]
-    };
+    return value ?? "";
   }
 }
 

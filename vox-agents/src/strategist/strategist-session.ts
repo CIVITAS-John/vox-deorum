@@ -346,8 +346,8 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // Try to load existing seating map from DB
     try {
-      const result = await mcpClient.callTool("get-metadata", { Key: "seatingMap" }) as Record<string, unknown>;
-      const text = (result?.content as { type: string; text: string }[])?.[0]?.text;
+      const result = await mcpClient.callTool("get-metadata", { Key: "seatingMap" });
+      const text = result as string;
       if (text) {
         const savedMap = JSON.parse(text) as Record<string, number>;
         logger.info('Loaded existing seating map from database', savedMap);
@@ -383,14 +383,16 @@ Game.SetAIAutoPlay(2000, -1);`
    * Get the current player assignments mapping actual player IDs to their strategist config.
    * Used by the API to expose which AI controls which player.
    */
-  getPlayerAssignments(): Record<number, { strategist: string; model?: string }> {
-    const result: Record<number, { strategist: string; model?: string }> = {};
+  getPlayerAssignments(): Record<number, { strategist: string; model?: string; configSlot: number }> {
+    const result: Record<number, { strategist: string; model?: string; configSlot: number }> = {};
     for (const [configSlotStr, playerConfig] of Object.entries(this.config.llmPlayers)) {
-      const actualPlayerID = this.seatingMap?.[configSlotStr] ?? parseInt(configSlotStr);
+      const configSlot = parseInt(configSlotStr);
+      const actualPlayerID = this.seatingMap?.[configSlotStr] ?? configSlot;
       const mainModel = playerConfig.llms?.[playerConfig.strategist];
       result[actualPlayerID] = {
         strategist: playerConfig.strategist,
-        model: typeof mainModel === 'string' ? mainModel : mainModel?.name
+        model: typeof mainModel === 'string' ? mainModel : mainModel?.name,
+        configSlot
       };
     }
     return result;

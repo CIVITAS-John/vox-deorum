@@ -1,4 +1,4 @@
--- Get-Metadata Lua Script
+-- Get-Game-Settings Lua Script
 -- Retrieves static game metadata that doesn't change during gameplay
 -- Helper function to get localized text from GameInfo
 local function getLocalizedGameInfo(category, id)

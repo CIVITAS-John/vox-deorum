@@ -26,7 +26,7 @@ const emit = defineEmits<Emits>();
 const loading = ref(false);
 const error = ref<string | null>(null);
 const playersData = ref<Record<string, any>>({});
-const assignments = ref<Record<number, { strategist: string; model?: string }>>({});
+const assignments = ref<Record<number, { strategist: string; model?: string; configSlot: number }>>({});
 const lastUpdated = ref<Date | null>(null);
 let pollInterval: number | null = null;
 
@@ -96,12 +96,16 @@ function formatEra(era: string | undefined): string {
   return era.replace(/^ERA_/, '');
 }
 
-function getAssignmentTooltip(playerId: string): string | undefined {
-  const assignment = assignments.value[parseInt(playerId)];
-  if (!assignment) return undefined;
-  const model = assignment.model?.split('/').pop() ?? '';
-  return model ? `${model} / ${assignment.strategist}` : assignment.strategist;
-}
+// Precomputed tooltip map keyed by player ID string
+const assignmentTooltips = computed(() => {
+  const map: Record<string, string> = {};
+  for (const [pid, assignment] of Object.entries(assignments.value)) {
+    const model = assignment.model?.split('/').pop() ?? '';
+    const label = model ? `${model} / ${assignment.strategist}` : assignment.strategist;
+    map[pid] = `Slot ${assignment.configSlot}: ${label}`;
+  }
+  return map;
+});
 
 function formatLastUpdated(): string {
   if (!lastUpdated.value) return '';
@@ -194,7 +198,7 @@ onUnmounted(() => {
           :key="player.playerId"
           class="table-row"
         >
-          <div class="col-fixed-150" v-tooltip.top="getAssignmentTooltip(player.playerId)">{{ player.playerId }}: {{ player.Civilization || 'Unknown' }}</div>
+          <div class="col-fixed-150" v-tooltip.top="assignmentTooltips[player.playerId]">{{ player.playerId }}: {{ player.Civilization || 'Unknown' }}</div>
           <div class="col-fixed-80">{{ player.Score ?? 'N/A' }}</div>
           <div class="col-fixed-120">{{ formatEra(player.Era) }}</div>
           <div class="col-fixed-100">{{ player.Cities ?? 0 }} / {{ player.Population ?? 0 }}</div>

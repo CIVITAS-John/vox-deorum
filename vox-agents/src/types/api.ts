@@ -378,6 +378,6 @@ export interface StopSessionResponse {
 export interface PlayersSummaryResponse {
   /** Players report containing all major player data */
   players: PlayersReport;
-  /** Map of actual player ID to their AI assignment (strategist type and model) */
-  assignments?: Record<number, { strategist: string; model?: string }>;
+  /** Map of actual player ID to their AI assignment (strategist type, model, and original config slot) */
+  assignments?: Record<number, { strategist: string; model?: string; configSlot: number }>;
 }
