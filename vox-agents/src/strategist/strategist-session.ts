@@ -346,8 +346,9 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // Try to load existing seating map from DB
     try {
-      const result = await mcpClient.callTool("get-metadata", { Key: "seatingMap" });
-      const text = result as string;
+      const result = await mcpClient.callTool("get-metadata", { Key: "seatingMap" }) as Record<string, unknown>;
+      const content = result.content as Array<{ type: string; text: string }>;
+      const text = content?.[0]?.text;
       if (text) {
         const savedMap = JSON.parse(text) as Record<string, number>;
         logger.info('Loaded existing seating map from database', savedMap);
