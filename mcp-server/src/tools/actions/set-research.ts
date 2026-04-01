@@ -78,6 +78,14 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
 
     -- Validate that the technology is available if not clearing (-1)
     if techID ~= -1 then
+      -- Check if already researched
+      local teamTechs = Teams[activePlayer:GetTeam()]:GetTeamTechs()
+      if teamTechs:HasTech(techID) then return { Next = -2 } end
+
+      -- Check if currently being researched
+      if activePlayer:GetCurrentResearch() == techID then return { Next = -3 } end
+
+      -- Check if the technology is possible
       local possibleTechs = activePlayer:GetPossibleTechs(true)
       local isValid = false
       for _, id in ipairs(possibleTechs) do
@@ -117,9 +125,13 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
     const result = await super.call(PlayerID, techID);
 
     if (result.Success) {
-      // Check for validation failure
+      // Check for validation failures
       if (result.Result?.Next === -1)
         throw new Error(`Technology "${Technology}" is not currently available for this player.`);
+      if (result.Result?.Next === -2)
+        throw new Error(`Technology "${Technology}" has already been researched. Please check your availability list.`);
+      if (result.Result?.Next === -3)
+        throw new Error(`Technology "${Technology}" is already being researched. Please set the NEXT technology.`);
 
       // Convert the previous tech ID back to a name
       if (result.Result?.Previous !== undefined) {

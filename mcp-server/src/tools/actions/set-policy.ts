@@ -81,6 +81,14 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
 
     -- Validate that the policy/branch is available if not clearing
     if not (policyID == -1 and branchID == -1) then
+      -- Check if already adopted
+      if policyID ~= -1 then
+        if activePlayer:HasPolicy(policyID) then return { Next = -2 } end
+      end
+      if branchID ~= -1 then
+        if activePlayer:IsPolicyBranchUnlocked(branchID) then return { Next = -2 } end
+      end
+
       local possiblePolicies, possibleBranches = activePlayer:GetPossiblePolicies(true)
       local isValid = false
 
@@ -153,9 +161,11 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
     const result = await super.call(PlayerID, policyID, branchID);
 
     if (result.Success) {
-      // Check for validation failure
+      // Check for validation failures
       if (result.Result?.Next === -1)
         throw new Error(`The policy "${Policy}" is not currently available for this player. Please check available options using get-options.`);
+      if (result.Result?.Next === -2)
+        throw new Error(`Policy "${Policy}" has already been adopted. Please check your availability list.`);
 
       // Convert the previous policy/branch IDs back to names
       if (result.Result) {
