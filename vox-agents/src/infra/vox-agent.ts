@@ -273,11 +273,15 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
 
     // Check for removeUsedTools option
     if (this.removeUsedTools) {
-      // Get all tools that have been used so far
+      // Get all tools that have been successfully used so far
       const usedToolNames = new Set<string>();
       for (const step of allSteps) {
-        for (const toolCall of step.toolCalls) {
-          usedToolNames.add(toolCall.toolName);
+        for (const toolResult of step.toolResults) {
+          const output = toolResult.output;
+          const isError = output != null && typeof output === 'object' && 'isError' in output && (output as Record<string, unknown>).isError === true;
+          if (!isError) {
+            usedToolNames.add(toolResult.toolName);
+          }
         }
       }
 
