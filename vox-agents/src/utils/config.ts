@@ -161,9 +161,9 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
-    'openai-compatible/Qwen-3.5-27B': {
+    'openai-compatible/Qwen-3.5-35B': {
       provider: 'openai-compatible',
-      name: 'Qwen-3.5-27B',
+      name: 'Qwen-3.5-35B',
       options: {
         systemPromptFirst: true,
         toolMiddleware: 'prompt'
@@ -200,7 +200,10 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'openai-compatible/Nemotron-3-Super': {
       provider: 'openai-compatible',
-      name: 'Nemotron-3-Super'
+      name: 'Nemotron-3-Super',
+      options: {
+        toolMiddleware: 'prompt'
+      }
     },
     'openai-compatible/embedder': {
       provider: 'openai-compatible',
