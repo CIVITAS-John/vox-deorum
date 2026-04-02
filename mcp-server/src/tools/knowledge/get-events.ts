@@ -137,12 +137,17 @@ class GetEventsTool extends ToolBase {
     
     // Format the output
     const formattedEvents = events.map((event) => {
+      const processedPayload = postprocessPayload({ ...(event.Payload as Record<string, unknown>) }, player);
+      const toolPayload = event.Type === "DealMade"
+        ? hideDealMadeTradeItems(processedPayload)
+        : processedPayload;
+
       return {
         ID: event.ID,
         Turn: event.Turn,
         Type: event.Type,
         Visibility: args.PlayerID === undefined ? parseVisibility(event) : undefined,
-        ...postprocessPayload(event.Payload as Record<string, unknown>, player)
+        ...toolPayload
       };
     });
     
@@ -179,6 +184,12 @@ const consolidationConfig: Record<string, string[]> = {
 const blockedKeys: string[] = [ 
   "RevealedToTeam", "RevealedToTeamID", "RevealedByTeam", "RevealedByTeamID", "IsFirstDiscovery", 
   "DefenderMaxHp", "AttackerMaxHp" ];
+
+function hideDealMadeTradeItems(payload: Record<string, unknown>): Record<string, unknown> {
+  const cleaned = { ...payload };
+  delete cleaned.TradedItems;
+  return cleaned;
+}
 
 /**
  * Consolidates events by turn, stripping turn and ID from individual events

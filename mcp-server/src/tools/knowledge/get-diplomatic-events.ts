@@ -31,36 +31,6 @@ interface FormatContext {
   city: (x: number, y: number) => string;
 }
 
-/** Format a single trade item from a DealMade event */
-function fmtTradeItem(item: Record<string, any>, ctx: FormatContext): string {
-  switch (item.ItemType) {
-    case "Gold": return `${item.Data1} Gold`;
-    case "GoldPerTurn": return `${item.Data1} Gold Per Turn`;
-    case "Maps": return "World Map";
-    case "Resources": return `${item.Data2} ${retrieveEnumName("ResourceType", item.Data1) ?? `Resource ${item.Data1}`}`;
-    case "Cities": return `City of ${ctx.city(item.Data1, item.Data2)}`;
-    case "OpenBorders": return "Open Borders";
-    case "DefensivePact": return "Defensive Pact";
-    case "ResearchAgreement": return "Research Agreement";
-    case "PeaceTreaty": return "Peace Treaty";
-    case "ThirdPartyPeace": return `Peace with ${ctx.player(item.Data1)}`;
-    case "ThirdPartyWar": return `War against ${ctx.player(item.Data1)}`;
-    case "AllowEmbassy": return "Embassy";
-    case "DeclarationOfFriendship": return "Declaration of Friendship";
-    case "VoteCommitment": return `Vote Commitment: ${retrieveEnumName("ResolutionType", item.Data1) ?? "World Congress"}`;
-    case "Techs": return `Technology: ${retrieveEnumName("TechID", item.Data1) ?? `Tech ${item.Data1}`}`;
-    case "Vassalage": return "Vassalage";
-    case "VassalageRevoke": return "Vassalage Revoked";
-    default: return String(item.ItemType);
-  }
-}
-
-/** Format items for one side of a deal */
-function fmtDealSide(items: Record<string, any>[], ctx: FormatContext): string {
-  if (items.length === 0) return "nothing";
-  return items.map(i => fmtTradeItem(i, ctx)).join(", ");
-}
-
 /** Extract city name from enriched payload, falling back to ctx.city coordinate lookup */
 function getCityName(payload: Record<string, any>, ctx: FormatContext): string {
   // Try enriched names first
@@ -73,16 +43,24 @@ function getCityName(payload: Record<string, any>, ctx: FormatContext): string {
   return "a city";
 }
 
-/** Compute deal expiration suffix from TradedItems and StartTurn, marking expired deals */
-function getDealExpiry(e: Record<string, any>, ctx: FormatContext): string {
-  const items = (e.TradedItems as Record<string, any>[]) ?? [];
-  const duration = items.find((i: Record<string, any>) => i.Duration > 0)?.Duration;
-  if (duration && e.StartTurn !== undefined) {
-    const expiryTurn = e.StartTurn + duration;
-    if (ctx.currentTurn > expiryTurn) return " (expired at turn ${expiryTurn})";
-    return ` (will expire at turn ${expiryTurn})`;
-  }
-  return "";
+function formatDealSide(items: string[] = []): string {
+  if (items.length === 0) return "nothing";
+  return items.join(", ");
+}
+
+function getDealExpirySuffix(payload: Record<string, any>, currentTurn: number): string {
+  const turnsRemaining = payload.TurnsRemaining;
+  if (typeof turnsRemaining !== "number" || turnsRemaining <= 0 || payload.StartTurn === undefined) return "";
+
+  const expiryTurn = payload.StartTurn + turnsRemaining;
+  if (currentTurn > expiryTurn) return ` (expired at turn ${expiryTurn})`;
+  return ` (will expire at turn ${expiryTurn})`;
+}
+
+function hideDealMadeTradeItems(payload: Record<string, any>): Record<string, any> {
+  const cleaned = { ...payload };
+  delete cleaned.TradedItems;
+  return cleaned;
 }
 
 // ─── Diplomatic Event Configuration ───────────────────────────────────
@@ -126,10 +104,7 @@ const diplomaticEvents: Record<string, DiploEventConfig> = {
     toMarkdown: (e, ctx) => {
       const from = ctx.player(e.FromPlayerID);
       const to = ctx.player(e.ToPlayerID);
-      const items = (e.TradedItems as any[]) ?? [];
-      const fromGives = items.filter((i: any) => i.FromPlayerID === e.FromPlayerID);
-      const toGives = items.filter((i: any) => i.FromPlayerID === e.ToPlayerID);
-      return `Deal: **${from}** gives [${fmtDealSide(fromGives, ctx)}] ↔ **${to}** gives [${fmtDealSide(toGives, ctx)}]${getDealExpiry(e, ctx)}`;
+      return `Deal: **${from}** gives [${formatDealSide(e.FromGives ?? [])}] ↔ **${to}** gives [${formatDealSide(e.ToGives ?? [])}]${getDealExpirySuffix(e, ctx.currentTurn)}`;
     }
   },
   TeamMeet: {
@@ -441,7 +416,10 @@ class GetDiplomaticEventsTool extends ToolBase {
         // Raw mode: cleaned event payloads with type
         const turnKey = String(event.Turn);
         if (!result[turnKey]) result[turnKey] = [];
-        result[turnKey].push(cleanEventData({ Type: event.Type, ...payload }, false));
+        const rawPayload = event.Type === "DealMade"
+          ? hideDealMadeTradeItems(payload)
+          : payload;
+        result[turnKey].push(cleanEventData({ Type: event.Type, ...rawPayload }, false));
       }
     }
 
