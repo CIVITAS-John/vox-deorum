@@ -141,7 +141,7 @@ class GetOptionsTool extends ToolBase {
       readPlayerKnowledge(args.PlayerID, "PersonaChanges", getPlayerPersona),
       getTool("getTechnology")?.getSummaries(),
       getTool("getPolicy")?.getSummaries(),
-      loadGrandStrategyDescriptions(),
+      loadGrandStrategyDescriptions(args.Mode),
       readPlayerKnowledge(args.PlayerID, "ResearchChanges", async () => {
         return { Technology: "None", Rationale: undefined }
       }),

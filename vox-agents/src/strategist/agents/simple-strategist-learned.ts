@@ -45,9 +45,8 @@ export class SimpleStrategistLearned extends SimpleStrategistStaffed {
   /**
    * Shared prompt: Episode retrieval tool description
    */
-  static readonly episodeGoalPrompt = `- You can request historical episodes similar to your current situation by calling the \`find-episodes\` tool.
-  - Describe the situation you want to find episodes for. Episodes will be available NEXT turn.
-  - Use this as frequently as you want, especially when facing or expecting open-ended, inflection, or critical situations where historical episodes could inform your strategy.`;
+  static readonly episodeGoalPrompt = `- You can steer the retrieval of historical episodes by calling the \`find-episodes\` tool.
+  - Describe the situation you want to find episodes for. Episodes will be available NEXT turn.`;
 
   /**
    * Shared prompt: Historical episodes resource description
@@ -84,15 +83,12 @@ ${!!parameters.workingMemory[episodeRequestKey] ? SimpleStrategistLearned.episod
     // Check for a pending episode request from last turn
     let episodesContent: string | undefined;
     const pendingSituation = parameters.workingMemory[episodeRequestKey];
-
-    if (pendingSituation) {
-      const state = getRecentGameState(parameters)!;
-      const results = await requestEpisodes(state, parameters, pendingSituation);
-      if (results.length > 0) {
-        episodesContent = formatEpisodeResults(results);
-      }
-      delete parameters.workingMemory[episodeRequestKey];
+    const state = getRecentGameState(parameters)!;
+    const results = await requestEpisodes(state, parameters, pendingSituation);
+    if (results.length > 0) {
+      episodesContent = formatEpisodeResults(results);
     }
+    delete parameters.workingMemory[episodeRequestKey];
 
     // Get the standard messages from the staffed strategist
     const messages = await super.getInitialMessages(parameters, input, context);
@@ -101,7 +97,7 @@ ${!!parameters.workingMemory[episodeRequestKey] ? SimpleStrategistLearned.episod
     if (episodesContent) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === "user" && typeof lastMessage.content === "string") {
-        lastMessage.content += `\n\n# Historical Episodes\nBefore making your decisions, learn from the following episodes: what happened, what did the leader decide on, and whether that can inform your thinking.\n${episodesContent}`;
+        lastMessage.content += `\n\n# Historical Episodes\nBefore making your decisions, reason around the following episodes: what happened, what did the leader decide on, and whether that can inform your reasoning.\n${episodesContent}`;
       }
     }
 
@@ -123,7 +119,7 @@ ${!!parameters.workingMemory[episodeRequestKey] ? SimpleStrategistLearned.episod
       ...super.getExtraTools(context),
       "find-episodes": createSimpleTool({
         name: "find-episodes",
-        description: "Find historical episodes similar to a situation. Results available NEXT turn.",
+        description: "Steer the retrieval of historical episodes towards your specific query. Results available NEXT turn.",
         inputSchema: z.object({
           Situation: z.string().describe("A description of the situation to search for historical precedents")
         }),

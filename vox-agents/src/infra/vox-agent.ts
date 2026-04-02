@@ -95,6 +95,23 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
   public fireAndForget: boolean = false;
 
   /**
+   * Maximum steps before forced stop (default: 3)
+   */
+  public maxSteps: number = 3;
+
+  /**
+   * Tool names that must be called to complete execution.
+   * When set, stopCheck uses required-tool membership instead of default terminal-call logic.
+   */
+  public requiredTools?: string[];
+
+  /**
+   * Generates a nudge message when the loop continues without calling required tools.
+   * Called with current parameters to produce a mode-aware reminder string.
+   */
+  public continuationNudge?: (parameters: TParameters) => string;
+
+  /**
    * When true, this agent handles messages programmatically without an LLM.
    * The handleMessage() method is called instead of the normal LLM execution path.
    */
@@ -166,15 +183,21 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
     allSteps: StepResult<Record<string, Tool>>[],
     context: VoxContext<TParameters>
   ): boolean {
-    // Don't stop on empty responses (no tool calls AND no text)
-    if (lastStep.toolCalls.length === 0 && !lastStep.text?.trim()) {
-      return allSteps.length >= 3;
+    if (this.requiredTools?.length) {
+      // Required-tools mode: stop when any required tool succeeds
+      if (allSteps.some(step =>
+        step.toolResults.some(r => this.requiredTools!.includes(r.toolName) && r.output)
+      )) return true;
+    } else {
+      // Default mode: stop on empty responses or terminal-only calls
+      if (lastStep.toolCalls.length === 0 && !lastStep.text?.trim()) {
+        return allSteps.length >= this.maxSteps;
+      }
+      if (hasOnlyTerminalCalls(lastStep, context.mcpToolMap)) {
+        return true;
+      }
     }
-    // Stop when no tools or only terminal calls are issued
-    if (hasOnlyTerminalCalls(lastStep, context.mcpToolMap)) {
-      return true;
-    }
-    return allSteps.length >= 3;
+    return allSteps.length >= this.maxSteps;
   }
   
   /**
@@ -331,6 +354,15 @@ export abstract class VoxAgent<TParameters extends AgentParameters, TInput = unk
       }
 
       config.messages = filteredMessages;
+    }
+
+    // Inject continuation nudge when loop continues past first step
+    if (this.continuationNudge && allSteps.length > 0) {
+      const nudge = this.continuationNudge(parameters);
+      const msgs = config.messages || messages;
+      if (msgs[msgs.length - 1]?.content !== nudge) {
+        config.messages = [...msgs, { role: 'user', content: nudge }];
+      }
     }
 
     config.model = this.getModel(parameters, input, context.modelOverrides);

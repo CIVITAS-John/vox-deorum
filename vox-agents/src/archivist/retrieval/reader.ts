@@ -285,7 +285,7 @@ function buildResult(
  */
 export async function findEpisodes(query: EpisodeQuery): Promise<EpisodeResult[]> {
   const conn = await getConnection();
-  const resultLimit = query.resultLimit ?? 5;
+  const resultLimit = query.resultLimit ?? 3;
 
   // Generate embedding from abstract if provided
   let embeddingVector: number[] | null = null;

@@ -5,10 +5,15 @@
  * Provides common functionality for high-level strategic decision-making in Civilization V.
  */
 
-import { StepResult, Tool } from "ai";
 import { Strategist } from "../strategist.js";
 import { StrategistParameters } from "../strategy-parameters.js";
 import { StrategyDecisionType } from "../../types/config.js";
+
+/** Builds a mode-aware nudge reminding the model to finalize its strategic decision */
+function buildStrategistNudge(parameters: StrategistParameters): string {
+  const decisionTool = parameters.mode === "Flavor" ? "set-flavors" : "set-strategy";
+  return `Make sure to call \`${decisionTool}\` or \`keep-status-quo\` to finalize your decisions.`;
+}
 
 /**
  * Base class for simple strategist agents.
@@ -18,10 +23,10 @@ import { StrategyDecisionType } from "../../types/config.js";
  * @class
  */
 export abstract class SimpleStrategistBase extends Strategist {
-  /**
-   * Whether we will remove used tools from the active list
-   */
   public removeUsedTools: boolean = true;
+  public requiredTools = ["set-strategy", "set-flavors", "keep-status-quo"];
+  public maxSteps = 5;
+  public continuationNudge = buildStrategistNudge;
 
   // ============================================================
   // System Section Prompts (for getSystem method)
@@ -147,39 +152,4 @@ Your goal is to **call as many tools as you need** to make high-level decisions 
     ];
   }
 
-  /**
-   * Determines whether the agent should stop execution
-   */
-  public stopCheck(
-    _parameters: StrategistParameters,
-    _input: unknown,
-    _lastStep: StepResult<Record<string, Tool>>,
-    allSteps: StepResult<Record<string, Tool>>[]
-  ): boolean {
-    // Stop if we've executed set-strategy tool
-    for (var step of allSteps) {
-      for (const result of step.toolResults) {
-        if (result.toolName === "set-strategy" && result.output) {
-          this.logger.debug("Set-strategy tool executed, stopping agent");
-          return true;
-        }
-        if (result.toolName === "set-flavors" && result.output) {
-          this.logger.debug("Set-flavors tool executed, stopping agent");
-          return true;
-        }
-        if (result.toolName === "keep-status-quo" && result.output) {
-          this.logger.debug("Keep-status-quo tool executed, stopping agent");
-          return true;
-        }
-      }
-    }
-
-    // Also stop after 5 steps to prevent infinite loops
-    if (allSteps.length >= 5) {
-      this.logger.warn("Reached maximum step limit (5), stopping agent");
-      return true;
-    }
-
-    return false;
-  }
 }

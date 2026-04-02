@@ -78,8 +78,8 @@ export async function loadFlavorDescriptions(): Promise<Record<string, string>> 
 /**
  * Load grand strategy descriptions from JSON file
  */
-export async function loadGrandStrategyDescriptions(): Promise<Record<string, string>> {
-  return loadStrategyFile<Record<string, string>>('grand-strategy.json');
+export async function loadGrandStrategyDescriptions(mode: string): Promise<Record<string, string>> {
+  return loadStrategyFile<Record<string, string>>(`grand-${mode.toLowerCase()}.json`);
 }
 
 /**
