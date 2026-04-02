@@ -102,7 +102,7 @@ router.post('/pause-player/:id', async (req: Request, res: Response) => {
 router.delete('/pause-player/:id', async (req: Request, res: Response) => {
   await handleAPIError(res, '/external/pause-player/:id', async () => {
     const playerId = parseInt(req.params.id);
-    if (isNaN(playerId) || playerId < 0 || playerId >= 63) {
+    if (isNaN(playerId) || playerId < 0 || playerId >= MaxCivs) {
       return {
         success: false,
         error: 'Invalid player ID'

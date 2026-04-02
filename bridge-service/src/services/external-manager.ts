@@ -33,6 +33,11 @@ export class ExternalManager {
     dllConnector.on('external_call', (data) => {
       this.handleExternalCall(data);
     });
+
+    // Restore registrations after the DLL reconnects.
+    dllConnector.on('connected', () => {
+      this.reregisterAll();
+    });
   }
 
   /**

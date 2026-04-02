@@ -105,6 +105,9 @@ const defaultConfig: ServiceConfig = {
 export function loadConfig(): ServiceConfig {
   const configPath = path.join(process.cwd(), 'config.json');
   let fileConfig: Partial<ServiceConfig> = {};
+  const eventPipeEnabledOverride = process.env.EVENTPIPE_ENABLED === undefined
+    ? undefined
+    : process.env.EVENTPIPE_ENABLED === 'true';
 
   // Load from config file if exists
   if (fs.existsSync(configPath)) {
@@ -128,7 +131,7 @@ export function loadConfig(): ServiceConfig {
       retry: parseInt(process.env.gamepipe_RETRY || '') || fileConfig.gamepipe?.retry || defaultConfig.gamepipe.retry
     },
     eventpipe: {
-      enabled: process.env.EVENTPIPE_ENABLED === 'true' || fileConfig.eventpipe?.enabled || defaultConfig.eventpipe.enabled,
+      enabled: eventPipeEnabledOverride ?? fileConfig.eventpipe?.enabled ?? defaultConfig.eventpipe.enabled,
       name: process.env.EVENTPIPE_NAME || fileConfig.eventpipe?.name || defaultConfig.eventpipe.name
     },
     logging: {
