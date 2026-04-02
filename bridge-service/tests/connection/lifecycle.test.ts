@@ -3,16 +3,22 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { globalMockDLL, USE_MOCK } from '../setup.js';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
 import { logSuccess } from '../test-utils/helpers.js';
+import { restoreSharedMockDLL, startIsolatedMockDLL } from '../test-utils/isolated-mock.js';
+import { MockDLLServer } from '../test-utils/mock-dll-server.js';
 
 // DLLConnector connection lifecycle (connect/disconnect)
 describe('DLLConnector Connection Lifecycle', () => {
   let connector: DLLConnector;
+  let mockDLL: MockDLLServer;
+  let originalPipeId: string;
   
-  beforeEach(() => {
+  beforeEach(async () => {
+    const isolated = await startIsolatedMockDLL('lifecycle');
+    mockDLL = isolated.mockDLL;
+    originalPipeId = isolated.originalPipeId;
     connector = new DLLConnector();
   });
   
@@ -20,16 +26,14 @@ describe('DLLConnector Connection Lifecycle', () => {
     if (connector && connector.isConnected()) {
       await connector.disconnect();
     }
+    await restoreSharedMockDLL(mockDLL, originalPipeId);
   });
 
   // Basic connection establishment and communication
   it('should establish connection to DLL server', async () => {
-    if (USE_MOCK) {
-      // Verify mock server is running
-      const status = globalMockDLL!.getStatus();
-      expect(status.running).toBe(true);
-      logSuccess(`Mock server status: running=${status.running}`);
-    }
+    const status = mockDLL.getStatus();
+    expect(status.running).toBe(true);
+    logSuccess(`Mock server status: running=${status.running}`);
 
     // Test initial state
     expect(connector.isConnected()).toBe(false);
@@ -52,20 +56,18 @@ describe('DLLConnector Connection Lifecycle', () => {
     logSuccess('Successfully reconnected to DLL server');
     
     // Test basic communication - send a Lua call
-    if (USE_MOCK) {
-      const message: LuaCallMessage = {
-        type: 'lua_call',
-        function: 'GetPlayerName',
-        args: []
-      };
-      
-      const response = await connector.send(message);
-      
-      expect(response.success).toBe(true);
-      expect(response.result).toBe('Mock Player');
-      
-      logSuccess('Basic communication test passed');
-    }
+    const message: LuaCallMessage = {
+      type: 'lua_call',
+      function: 'GetPlayerName',
+      args: []
+    };
+    
+    const response = await connector.send(message);
+    
+    expect(response.success).toBe(true);
+    expect(response.result).toBe('Mock Player');
+    
+    logSuccess('Basic communication test passed');
   });
   
   // Clean disconnection with event emission

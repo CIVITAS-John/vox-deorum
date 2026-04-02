@@ -3,17 +3,23 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { USE_MOCK } from '../setup.js';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
 import bridgeService from '../../src/service.js';
 import { logSuccess } from '../test-utils/helpers.js';
+import { restoreSharedMockDLL, startIsolatedMockDLL } from '../test-utils/isolated-mock.js';
+import { MockDLLServer } from '../test-utils/mock-dll-server.js';
 
 // Connection statistics and monitoring
 describe('Connection Statistics and Monitoring', () => {
   let connector: DLLConnector;
+  let mockDLL: MockDLLServer;
+  let originalPipeId: string;
   
-  beforeEach(() => {
+  beforeEach(async () => {
+    const isolated = await startIsolatedMockDLL('statistics-connector');
+    mockDLL = isolated.mockDLL;
+    originalPipeId = isolated.originalPipeId;
     connector = new DLLConnector();
   });
   
@@ -21,6 +27,7 @@ describe('Connection Statistics and Monitoring', () => {
     if (connector && connector.isConnected()) {
       await connector.disconnect();
     }
+    await restoreSharedMockDLL(mockDLL, originalPipeId);
   });
 
   // Accurate connection statistics tracking
@@ -50,24 +57,17 @@ describe('Connection Statistics and Monitoring', () => {
   // Pending request tracking
   it('should track pending requests', async () => {
     await expect(connector.connect()).resolves.toBe(true);
-    
-    if (USE_MOCK) {
-      // Start a request but don't await it immediately
-      const requestPromise = connector.send({
-        type: 'lua_call',
-        function: 'GetPlayerName',
-        args: []
-      } as LuaCallMessage);
-      
-      // Note: Stats might be 0 if the mock server responds too quickly
-      
-      // Wait for response
-      await requestPromise;
-      
-      // Check stats after response
-      const statsAfterResponse = connector.getStats();
-      expect(statsAfterResponse.pendingRequests).toBe(0);
-    }
+
+    const requestPromise = connector.send({
+      type: 'lua_call',
+      function: 'GetPlayerName',
+      args: []
+    } as LuaCallMessage);
+
+    await requestPromise;
+
+    const statsAfterResponse = connector.getStats();
+    expect(statsAfterResponse.pendingRequests).toBe(0);
     
     logSuccess('Pending request tracking working');
   });
@@ -76,13 +76,34 @@ describe('Connection Statistics and Monitoring', () => {
 
 // Service-level connection coordination
 describe('Service-Level Connection Management', () => {
+  let mockDLL: MockDLLServer;
+  let originalPipeId: string;
+
+  beforeEach(async () => {
+    await bridgeService.shutdown();
+    const isolated = await startIsolatedMockDLL('statistics-service');
+    mockDLL = isolated.mockDLL;
+    originalPipeId = isolated.originalPipeId;
+  });
+
+  afterEach(async () => {
+    await bridgeService.shutdown();
+    await restoreSharedMockDLL(mockDLL, originalPipeId);
+  });
+
   // Health status based on connection state
   it('should provide health status based on connection state', async () => {
+    expect(bridgeService.getHealthStatus().success).toBe(false);
+
+    await bridgeService.start();
+
     const healthStatus = bridgeService.getHealthStatus();
-    
-    expect(healthStatus).toHaveProperty('success');
-    expect(healthStatus).toHaveProperty('dll_connected');
-    expect(healthStatus).toHaveProperty('uptime');
+    expect(healthStatus).toEqual(
+      expect.objectContaining({
+        success: true,
+        dll_connected: true
+      })
+    );
     expect(typeof healthStatus.uptime).toBe('number');
     expect(healthStatus.uptime).toBeGreaterThanOrEqual(0);
     
@@ -91,21 +112,17 @@ describe('Service-Level Connection Management', () => {
   
   // Detailed service statistics
   it('should provide detailed service statistics', async () => {
+    await bridgeService.start();
     const stats = bridgeService.getServiceStats();
     
-    expect(stats).toHaveProperty('uptime');
-    expect(stats).toHaveProperty('dll');
-    expect(stats).toHaveProperty('lua');
-    expect(stats).toHaveProperty('external');
-    expect(stats).toHaveProperty('memory');
-    
-    expect(stats.dll).toHaveProperty('connected');
-    expect(stats.dll).toHaveProperty('pendingRequests');
-    expect(stats.dll).toHaveProperty('reconnectAttempts');
-    
-    expect(typeof stats.dll.connected).toBe('boolean');
-    expect(typeof stats.dll.pendingRequests).toBe('number');
-    expect(typeof stats.dll.reconnectAttempts).toBe('number');
+    expect(stats.dll).toEqual(
+      expect.objectContaining({
+        connected: true,
+        pendingRequests: expect.any(Number),
+        reconnectAttempts: expect.any(Number)
+      })
+    );
+    expect(stats.eventPipe.pipeName).toBeDefined();
     
     logSuccess('Service statistics include connection details');
   });

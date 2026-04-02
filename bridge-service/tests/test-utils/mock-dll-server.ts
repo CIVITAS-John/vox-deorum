@@ -55,6 +55,8 @@ export class MockDLLServer extends EventEmitter {
   private eventTimer?: NodeJS.Timeout;
   private externalFunctions: Set<string> = new Set();
   private luaFunctions: Map<string, MockFunction> = new Map();
+  private incomingBuffer: string = '';
+  private connectedSockets: Set<any> = new Set();
 
   constructor(config: MockDLLConfig) {
     super();
@@ -119,20 +121,31 @@ export class MockDLLServer extends EventEmitter {
    */
   private setupMessageHandlers(): void {
     ipc.server.on('data', (data: any, socket: any) => {
-      // Remove the delimiter if present
-      const dataStr = data.toString();
-      const cleanData = dataStr.replace(/!@#\$%\^!$/, '');
-      data = JSON.parse(cleanData);
-      logger.debug('Received message from bridge:', data);
-      this.handleMessage(data, socket);
+      this.incomingBuffer += data.toString();
+      const delimiter = '!@#$%^!';
+      let delimiterIndex = this.incomingBuffer.indexOf(delimiter);
+
+      while (delimiterIndex !== -1) {
+        const message = this.incomingBuffer.slice(0, delimiterIndex);
+        this.incomingBuffer = this.incomingBuffer.slice(delimiterIndex + delimiter.length);
+
+        if (message.trim()) {
+          logger.debug('Received message from bridge:', message);
+          this.handleMessage(message, socket);
+        }
+
+        delimiterIndex = this.incomingBuffer.indexOf(delimiter);
+      }
     });
 
     ipc.server.on('connect', (socket: any) => {
+      this.connectedSockets.add(socket);
       logger.info('Bridge service connected to mock DLL');
       this.emit('client_connected', socket);
     });
 
     ipc.server.on('socket.disconnected', (socket: any) => {
+      this.connectedSockets.delete(socket);
       logger.info('Bridge service disconnected from mock DLL');
       this.emit('client_disconnected', socket);
     });
@@ -437,6 +450,10 @@ export class MockDLLServer extends EventEmitter {
     logger.info(`Registering external function: ${data.name}`);
     this.externalFunctions.add(data.name);
 
+    if (!data.id) {
+      return;
+    }
+
     const response: LuaResponseMessage = {
       type: 'lua_response',
       id: data.id!,
@@ -453,6 +470,10 @@ export class MockDLLServer extends EventEmitter {
   private async handleExternalUnregister(data: ExternalUnregisterMessage, _socket: any): Promise<void> {
     logger.info(`Unregistering external function: ${data.name}`);
     this.externalFunctions.delete(data.name);
+
+    if (!data.id) {
+      return;
+    }
 
     const response: LuaResponseMessage = {
       type: 'lua_response',
@@ -478,14 +499,42 @@ export class MockDLLServer extends EventEmitter {
    */
   private sendMessage(message: IPCMessage, socket?: any): void {
     try {
+      const payload = JSON.stringify(message) + '!@#$%^!';
       if (socket) {
-        ipc.server.emit(socket, JSON.stringify(message));
+        ipc.server.emit(socket, payload);
       } else {
-        ipc.server.broadcast(JSON.stringify(message));
+        ipc.server.broadcast(payload);
       }
       logger.debug('Sent message to bridge:', message);
     } catch (error) {
       logger.error('Failed to send message to bridge:', error);
+    }
+  }
+
+  /**
+   * Send raw data to the bridge service.
+   */
+  public sendRawData(raw: string, socket?: any): void {
+    try {
+      if (socket) {
+        ipc.server.emit(socket, raw);
+      } else {
+        ipc.server.broadcast(raw);
+      }
+    } catch (error) {
+      logger.error('Failed to send raw data to bridge:', error);
+    }
+  }
+
+  /**
+   * Send raw chunks to the bridge service to simulate partial frames.
+   */
+  public async sendRawChunks(chunks: string[], delayMs: number = 0): Promise<void> {
+    for (const chunk of chunks) {
+      this.sendRawData(chunk);
+      if (delayMs > 0) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
     }
   }
 
@@ -587,8 +636,23 @@ export class MockDLLServer extends EventEmitter {
         this.eventTimer = undefined;
       }
 
+      for (const socket of this.connectedSockets) {
+        try {
+          if (typeof socket.end === 'function') {
+            socket.end();
+          }
+          if (typeof socket.destroy === 'function') {
+            socket.destroy();
+          }
+        } catch (error) {
+          logger.warn('Failed to close mock DLL client socket:', error);
+        }
+      }
+      this.connectedSockets.clear();
+
       ipc.server.stop();
       this.isRunning = false;
+      this.incomingBuffer = '';
       this.externalFunctions.clear();
       this.luaFunctions.clear();
       
@@ -627,7 +691,7 @@ export async function createMockDLLServer(config: MockDLLConfig): Promise<MockDL
  */
 export async function createTestMockDLL(): Promise<MockDLLServer> {
   return createMockDLLServer({
-    id: 'vox-deorum-bridge',
+    id: process.env.gamepipe_ID || 'vox-deorum-bridge',
     simulateDelay: true,
     responseDelay: 50,
     autoEvents: false

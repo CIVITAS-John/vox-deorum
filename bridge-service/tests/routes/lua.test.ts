@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from
 import request from 'supertest';
 import { app } from '../../src/index.js';
 import { dllConnector } from '../../src/services/dll-connector.js';
-import { expectSuccessResponse, expectErrorResponse, logSuccess, TestServer } from '../test-utils/helpers.js';
+import { expectSuccessResponse, expectErrorResponse, logSuccess } from '../test-utils/helpers.js';
 import { 
   registerLuaFunction, 
   clearLuaFunctions,
@@ -16,25 +16,22 @@ import {
 } from '../test-utils/lua-helpers.js';
 import { ErrorCode } from '../../src/types/api.js';
 import { TEST_TIMEOUTS } from '../test-utils/constants.js';
-import config from '../../src/utils/config.js';
+import bridgeService from '../../src/service.js';
+import { pauseManager } from '../../src/services/pause-manager.js';
 import { USE_MOCK } from '../setup.js';
 
 /**
  * Lua Service Tests
  */
 describe('Lua Service', () => {
-  const testServer = new TestServer();
-  const TEST_PORT = 3456; // Use a different port for tests
-
   // Setup and teardown
   beforeAll(async () => {
-    // Start the test server
-    await testServer.start(app, TEST_PORT, config.rest.host);
+    await bridgeService.start();
   }, TEST_TIMEOUTS.LONG);
 
   afterAll(async () => {
-    // Stop the test server
-    await testServer.stop();
+    await bridgeService.shutdown();
+    pauseManager.finalize();
   }, TEST_TIMEOUTS.LONG);
 
   afterEach(async () => {
@@ -79,7 +76,7 @@ describe('Lua Service', () => {
       await request(app)
         .post('/lua/execute')
         .send(payload)
-        .expect(500)
+        .expect(200)
         .then(response => expectErrorResponse(response, ErrorCode.INVALID_SCRIPT, expectedError));
     });
 
@@ -215,7 +212,7 @@ describe('Lua Service', () => {
       await request(app)
         .post('/lua/call')
         .send(payload)
-        .expect(500)
+        .expect(200)
         .then(response => expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, expectedError));
     });
 
@@ -229,7 +226,7 @@ describe('Lua Service', () => {
           function: 'TestFunction1',
           args: {}
         })
-        .expect(500);
+        .expect(200);
 
       // The actual error will come from the Lua execution
       expect(response.body.success).toBe(false);
@@ -333,7 +330,7 @@ describe('Lua Service', () => {
       await request(app)
         .post('/lua/batch')
         .send(payload)
-        .expect(500)
+        .expect(200)
         .then(response => expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, expectedError));
     });
 

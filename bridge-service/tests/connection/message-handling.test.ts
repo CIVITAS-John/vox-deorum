@@ -2,18 +2,24 @@
  * Message handling test - Tests for request/response flow and message communication
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { USE_MOCK } from '../setup.js';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DLLConnector } from '../../src/services/dll-connector.js';
 import { LuaCallMessage } from '../../src/types/lua.js';
 import { ErrorCode } from '../../src/types/api.js';
 import { logSuccess } from '../test-utils/helpers.js';
+import { restoreSharedMockDLL, startIsolatedMockDLL } from '../test-utils/isolated-mock.js';
+import { MockDLLServer } from '../test-utils/mock-dll-server.js';
 
 // Message handling and request/response flow
 describe('Message Handling and Communication', () => {
   let connector: DLLConnector;
+  let mockDLL: MockDLLServer;
+  let originalPipeId: string;
   
   beforeEach(async () => {
+    const isolated = await startIsolatedMockDLL('message-handling');
+    mockDLL = isolated.mockDLL;
+    originalPipeId = isolated.originalPipeId;
     connector = new DLLConnector();
     await expect(connector.connect()).resolves.toBe(true);
   });
@@ -22,15 +28,11 @@ describe('Message Handling and Communication', () => {
     if (connector && connector.isConnected()) {
       await connector.disconnect();
     }
+    await restoreSharedMockDLL(mockDLL, originalPipeId);
   });
 
   // Successful message responses
   it('should handle successful message responses', async () => {
-    if (!USE_MOCK) {
-      logSuccess('Skipping mock-specific test in real server mode');
-      return;
-    }
-    
     const message: LuaCallMessage = {
       type: 'lua_call',
       function: 'GetPlayerName',
@@ -45,11 +47,6 @@ describe('Message Handling and Communication', () => {
   
   // Message error handling
   it('should handle message errors', async () => {
-    if (!USE_MOCK) {
-      logSuccess('Skipping mock-specific test in real server mode');
-      return;
-    }
-    
     const message: LuaCallMessage = {
       type: 'lua_call',
       function: 'NonExistentFunction',

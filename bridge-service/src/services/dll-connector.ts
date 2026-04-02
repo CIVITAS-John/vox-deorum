@@ -242,7 +242,18 @@ export class DLLConnector extends EventEmitter {
     // Clear the message buffer on disconnection
     this.messageBuffer = '';
 
-    // Reject all pending requests
+    // Reject all pending requests immediately when the DLL goes away.
+    // Note: disconnect() also clears pending requests before triggering this handler,
+    // so this loop is a no-op during graceful shutdown but handles unexpected disconnects.
+    for (const [, request] of this.pendingRequests) {
+      clearTimeout(request.timeout);
+      request.reject(respondError(
+        ErrorCode.DLL_DISCONNECTED,
+        'Lost connection to DLL while waiting for a response'
+      ));
+    }
+    this.pendingRequests.clear();
+
     if (this.shuttingDown) return;
     // Prevent parallel reconnection attempts
     if (this.reconnectTimer) return;
@@ -327,7 +338,13 @@ export class DLLConnector extends EventEmitter {
       messagesWithIds.forEach(msg => this.emit('ipc_send', msg));
     } catch (error) {
       // Clear all pending requests and return error for all
-      messagesWithIds.forEach(msg => this.pendingRequests.delete(msg.id));
+      messagesWithIds.forEach(msg => {
+        const request = this.pendingRequests.get(msg.id);
+        if (request) {
+          clearTimeout(request.timeout);
+          this.pendingRequests.delete(msg.id);
+        }
+      });
       return messages.map(() => respondError(ErrorCode.NETWORK_ERROR));
     }
 
@@ -395,13 +412,12 @@ export class DLLConnector extends EventEmitter {
    * Disconnect from the DLL
    */
   public async disconnect(): Promise<void> {
-    if (!this.connected) {
-      logger.info('Already disconnected from DLL');
-      return;
-    }
-    
     logger.info('Disconnecting from DLL');
-    
+    const wasConnected = this.connected;
+    this.shuttingDown = true;
+    this.connected = false;
+    this.messageBuffer = '';
+
     // Clear pending requests
     for (const [, request] of this.pendingRequests) {
       clearTimeout(request.timeout);
@@ -413,8 +429,21 @@ export class DLLConnector extends EventEmitter {
     this.pendingRequests.clear();
 
     // Avoid reconnection attempts during shutdown
-    this.reconnectTimer = undefined;
-    this.shuttingDown = true;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = undefined;
+    }
+
+    if (!ipc.of[config.gamepipe.id]) {
+      logger.info('Already disconnected from DLL');
+      return;
+    }
+
+    if (!wasConnected) {
+      ipc.disconnect(config.gamepipe.id);
+      logger.info('Cleaned up disconnected DLL IPC client');
+      return;
+    }
 
     // Create a promise that resolves when disconnected event is emitted
     const disconnectedPromise = new Promise<void>((resolve) => {
@@ -433,7 +462,6 @@ export class DLLConnector extends EventEmitter {
     });
 
     // Disconnect IPC
-    this.connected = false;
     if (ipc.of[config.gamepipe.id]) {
       ipc.disconnect(config.gamepipe.id);
     }

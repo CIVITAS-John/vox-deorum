@@ -7,12 +7,19 @@ import { DLLConnector } from '../../src/services/dll-connector.js';
 import { config } from '../../src/utils/config.js';
 import { ErrorCode } from '../../src/types/api.js';
 import { logSuccess } from '../test-utils/helpers.js';
+import { restoreSharedMockDLL, startIsolatedMockDLL } from '../test-utils/isolated-mock.js';
+import { MockDLLServer } from '../test-utils/mock-dll-server.js';
 
 // Connection failure scenarios and error handling
 describe('Connection Error Handling', () => {
   let connector: DLLConnector;
+  let mockDLL: MockDLLServer;
+  let originalPipeId: string;
   
-  beforeEach(() => {
+  beforeEach(async () => {
+    const isolated = await startIsolatedMockDLL('error-handling');
+    mockDLL = isolated.mockDLL;
+    originalPipeId = isolated.originalPipeId;
     connector = new DLLConnector();
   });
   
@@ -20,6 +27,7 @@ describe('Connection Error Handling', () => {
     if (connector && connector.isConnected()) {
       await connector.disconnect();
     }
+    await restoreSharedMockDLL(mockDLL, originalPipeId);
   });
 
   // Connection failures with invalid configurations

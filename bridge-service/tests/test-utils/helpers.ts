@@ -7,6 +7,7 @@ import request from 'supertest';
 import { Application } from 'express';
 import bridgeService from '../../src/service';
 import { TEST_TIMEOUTS } from './constants';
+import { pauseManager } from '../../src/services/pause-manager.js';
 
 /**
  * Standard response assertions
@@ -92,7 +93,9 @@ export class TestServer {
   async start(app: Application, port: number, host: string = '127.0.0.1'): Promise<void> {
     return new Promise(async (resolve) => {
       // Start the bridge service (DLL connection)
-      await bridgeService.start();
+      if (!bridgeService.isServiceRunning()) {
+        await bridgeService.start();
+      }
       // Start the Express server
       this.server = app.listen(port, host, () => resolve());
       // Wait for server to be ready
@@ -102,11 +105,10 @@ export class TestServer {
 
   async stop(): Promise<void> {
     if (this.server) {
-      return new Promise<void>(async (resolve) => {
-      // Shutdown bridge service
       await bridgeService.shutdown();
-        this.server.close(() => resolve());
-      });
+      pauseManager.finalize();
+      await new Promise<void>((resolve) => this.server.close(() => resolve()));
+      this.server = null;
     }
   }
 

@@ -1,70 +1,150 @@
-# Bridge Service Test Setup
+# Bridge-Service Test Suites
 
-This directory contains the test setup for the Bridge Service, including support for both mock and real DLL server testing.
+`bridge-service` uses a mock-first test strategy.
 
-## Test Commands
+- `npm test`
+- `npm run test:mock`
 
-| Command | Description |
-|---------|-------------|
-| `npm test` | Run all tests with default settings (mock mode) |
-| `npm run test:mock` | Run tests using mock DLL server |
-| `npm run test:real` | Run tests against real Civ5 DLL (requires game running) |
-| `npm run test:mock-watch` | Watch mode with mock server |
-| `npm run test:watch` | Default watch mode |
-| `npm run test:coverage` | Run tests with coverage report |
+Both commands run the mock suite by default.
 
-## Mock vs Real Server
+Use the live Civ smoke suite only when you explicitly want end-to-end verification against a running game:
 
-The test suite uses an environment variable `USE_MOCK` to switch between testing modes:
+- `npm run test:real`
 
-- **Mock Mode** (`USE_MOCK=true`, default): Uses the mock DLL server for testing
-- **Real Mode** (`USE_MOCK=false`): Tests against actual Civilization V DLL
+## Why Mock Is The Default
 
-### Mock Mode (Default)
-- Fast execution
-- No external dependencies
-- Consistent, predictable behavior
-- Ideal for CI/CD pipelines
+The mock suite covers almost all validation, route behavior, reconnect logic, IPC framing, and service state transitions. It is fast, deterministic, and safe to run even if a real Civ game is already open.
 
-### Real Mode
-- Tests actual integration with Civ5
-- Requires Civilization V running with Community Patch
-- Slower execution due to actual game interaction
-- Best for integration testing
+The real suite is intentionally small. It exists to prove that the bridge still works against an actual Civ instance, not to duplicate every mock-path assertion.
 
-## Test Structure
+## Mock vs Real
 
-- `setup.ts` - Global test configuration and environment setup
-- `connection.test.ts` - Basic connection and functionality tests
-- `vitest.config.ts` - Vitest configuration with extended timeouts for IPC operations
+Mock suite:
 
-## Running Tests
+- Runs all `tests/**/*.test.ts` except `*.real.test.ts`.
+- Uses a mock DLL, mock external services, and isolated test ports/pipes.
+- Covers the main regression surface and should be the CI/default path.
 
-### Basic Connection Test
-```bash
-# Test with mock server (default)
-npm run test:mock
+Real suite:
 
-# Test with real Civ5 DLL (make sure game is running)
-npm run test:real
-```
+- Runs only `tests/**/*.real.test.ts`.
+- Assumes Civilization V plus the relevant DLL/mod setup is already running.
+- Focuses on smoke coverage such as connect, Lua execution, external round-trip, and reconnect survival.
 
-### Development Workflow
-```bash
-# Start mock server in one terminal
-npm run mock
+## Isolation Rules
 
-# Run bridge service with mock in another terminal  
-npm run dev:with-mock
+Mock tests are designed to coexist with a real game session.
 
-# Run tests in watch mode in a third terminal
-npm run test:mock-watch
-```
+- The shared mock test run gets a unique named pipe ID instead of the production default.
+- The shared mock test run gets a unique event-pipe name.
+- The mock REST port and mock external service ports are generated per run.
+- A few stateful suites temporarily replace the shared mock with an isolated mock pipe, then restore the shared mock when the suite finishes.
 
-## Test Features
+This prevents collisions with:
 
-- **Extended Timeouts**: 15-second timeouts for IPC operations
-- **Automatic Retry**: Tests retry once in CI environments
-- **Environment Detection**: Automatically detects and reports test mode
-- **Clean Setup/Teardown**: Proper mock server lifecycle management
-- **TypeScript Support**: Full type checking and IntelliSense support
+- a real Civ instance using the normal production pipe
+- another local test run
+- per-suite reconnect and buffering tests that need exclusive connector state
+
+## Suite Layout
+
+Kept and revised:
+
+- `connection/lifecycle.test.ts`
+- `connection/message-handling.test.ts`
+- `connection/error-handling.test.ts`
+- `connection/reconnection.test.ts`
+- `routes/lua.test.ts`
+- `routes/external.test.ts`
+- `routes/sse.test.ts`
+- `routes/statistics.test.ts`
+
+Added:
+
+- `connection/reconnect-state.test.ts`
+- `routes/pause.test.ts`
+- `routes/events-state.test.ts`
+- `service/bridge-service.test.ts`
+- `services/dll-connector-buffering.test.ts`
+- `services/external-manager.test.ts`
+- `services/lua-manager.test.ts`
+- `services/pause-manager.test.ts`
+- `real/bridge.real.test.ts`
+
+Removed as low-value:
+
+- `connection/configuration.test.ts`
+
+## What Each Area Covers
+
+Connection:
+
+- connect/disconnect lifecycle
+- request success, timeout, and disconnect failure behavior
+- reconnect attempt tracking
+- reconnect state restoration for external registrations
+- IPC framing, partial buffers, and batched message handling
+
+Routes:
+
+- `/lua/*`
+- `/external/*`
+- pause routes
+- SSE delivery and DLL status broadcasting
+- current event-route behavior, including `PlayerDoTurn` handling and clearing paused players on DLL disconnect
+- stats and health endpoints with meaningful state assertions
+
+Services:
+
+- bridge startup/shutdown orchestration
+- external manager validation and re-registration
+- lua registry sync
+- pause manager local state and reconnect resync when state is still present
+
+Real smoke:
+
+- live Civ connection
+- live Lua execution
+- live external callback flow
+- reconnect recovery
+
+## Interpreting Failures
+
+Reconnect failures usually mean one of these:
+
+- the connector did not observe a clean pipe disconnect
+- external registrations were not restored after reconnect
+- tests assumed paused-player state survives a DLL disconnect when the route layer intentionally clears it
+
+IPC/buffering failures usually mean one of these:
+
+- the connector did not clear partial buffered data on disconnect
+- the mock DLL is not matching the real delimiter protocol
+- a suite accidentally reused shared connector state
+
+SSE failures usually mean one of these:
+
+- DLL status events were not broadcast
+- event buffering/flushing was not completed before assertion
+- the event pipe was unexpectedly enabled or disabled
+
+Pause failures usually mean one of these:
+
+- player ID validation drifted from `MaxCivs`
+- disconnect handling no longer matches the intentional route behavior
+- turn events are not mapping to the correct player IDs
+
+## Real-Test Preconditions
+
+Before running `npm run test:real`:
+
+- start Civilization V
+- load the mod/DLL configuration that the bridge expects
+- make sure the live game is on the real production pipe, not a test override
+- do not expect the real suite to cover every mock-only validation edge case
+
+## Maintenance Notes
+
+- Keep new edge-case coverage in mock mode unless it truly requires a live game.
+- Prefer isolated mock pipes for any suite that mutates connector-global state.
+- If a test only checks object shape or a library implementation detail, it probably does not belong here.

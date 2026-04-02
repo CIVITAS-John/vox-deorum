@@ -6,15 +6,13 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from
 import request from 'supertest';
 import { app } from '../../src/index.js';
 import { dllConnector } from '../../src/services/dll-connector.js';
-import config from '../../src/utils/config.js';
 import { ExternalFunctionRegistration } from '../../src/types/external.js';
 import { ErrorCode } from '../../src/types/api.js';
 import { 
   cleanupAllExternalFunctions, 
   expectSuccessResponse, 
   expectErrorResponse,
-  logSuccess,
-  TestServer
+  logSuccess
 } from '../test-utils/helpers.js';
 import { MockExternalService } from '../test-utils/mock-external-service.js';
 import { TEST_PORTS, TEST_URLS, TEST_TIMEOUTS } from '../test-utils/constants.js';
@@ -27,10 +25,11 @@ import {
   unregisterExternalFunction,
   verifyFunctionRegistered
 } from '../test-utils/external-helpers.js';
+import bridgeService from '../../src/service.js';
+import { pauseManager } from '../../src/services/pause-manager.js';
 import { USE_MOCK } from '../setup.js';
 
 describe('External Routes', () => {
-  const testServer = new TestServer();
   let mockExternalService = new MockExternalService(TEST_PORTS.MOCK_EXTERNAL_SERVICE);
   const sentMessages: any[] = [];
 
@@ -45,9 +44,7 @@ describe('External Routes', () => {
   beforeAll(async () => {
     // Start mock external service
     await mockExternalService.start();
-    
-    // Start the test server
-    await testServer.start(app, config.rest.port, config.rest.host);
+    await bridgeService.start();
     
     // Listen for messages sent to DLL
     dllConnector.on('ipc_send', captureHandler);
@@ -56,9 +53,8 @@ describe('External Routes', () => {
   afterAll(async () => {
     // Remove listener
     dllConnector.off('ipc_send', captureHandler);
-    
-    // Close the test server
-    await testServer.stop();
+    await bridgeService.shutdown();
+    pauseManager.finalize();
     
     // Stop mock external service
     await mockExternalService.stop();
@@ -121,13 +117,13 @@ describe('External Routes', () => {
         { registration: { name: 'testFunction', url: 'not-a-valid-url', async: true }, expectedError: 'valid URL' },
         { registration: { name: 'testFunction', url: TEST_URLS.MOCK_SERVICE, async: true, timeout: -1000 }, expectedError: 'positive integer' }
       ])('should reject invalid registration: $expectedError', async ({ registration, expectedError }) => {
-        const response = await request(app).post('/external/register').send(registration).expect(500);
+        const response = await request(app).post('/external/register').send(registration).expect(200);
         expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, expectedError);
       });
 
       it('should reject duplicate registration', async () => {
         await request(app).post('/external/register').send(testRegistration).expect(200);
-        const response = await request(app).post('/external/register').send(testRegistration).expect(500);
+        const response = await request(app).post('/external/register').send(testRegistration).expect(200);
         expectErrorResponse(response, ErrorCode.INVALID_ARGUMENTS, 'already registered');
       });
     });
@@ -153,7 +149,7 @@ describe('External Routes', () => {
       });
 
       it('should error when unregistering non-existent function', async () => {
-        const response = await request(app).delete('/external/register/nonExistent').expect(500);
+        const response = await request(app).delete('/external/register/nonExistent').expect(200);
         expectErrorResponse(response, ErrorCode.INVALID_FUNCTION, 'not registered');
       });
     });

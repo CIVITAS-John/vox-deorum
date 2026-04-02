@@ -1,9 +1,12 @@
 import { defineConfig } from 'vitest/config'
 
+const useMock = process.env.USE_MOCK !== 'false'
+
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    include: useMock ? ['tests/**/*.test.ts'] : ['tests/**/*.real.test.ts'],
+    exclude: useMock ? ['tests/**/*.real.test.ts'] : [],
     setupFiles: ['./tests/setup.ts'],
     coverage: {
       include: ['src/**/*.ts'],
