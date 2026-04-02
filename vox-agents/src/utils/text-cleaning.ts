@@ -30,12 +30,18 @@ export function cleanToolArtifacts(text: string): string {
     .replace(/<\|tool_call_begin\|>[\s\S]*?<\|tool_call_end\|>/g, '')
     // Truncate incomplete tool call blocks (beginning marker arrived but no end marker yet)
     .replace(/<\|tool_call_begin\|>[\s\S]*$/, '')
+    // Remove complete bracket-based tool call blocks: [TOOL_CALL] ... [/TOOL_CALL]
+    .replace(/\[TOOL_CALL\][\s\S]*?\[\/TOOL_CALL\]/g, '')
+    // Truncate incomplete bracket-based tool call blocks (opening tag arrived but no closing tag yet)
+    .replace(/\[TOOL_CALL\][\s\S]*$/, '')
     // Remove any leftover individual markers
     .replace(/<\|tool_call(?:_argument)?_(?:begin|end)\|>/g, '')
     // Remove standalone section markers: <|tool_calls_section_begin|>, <|tool_calls_section_end|>
     .replace(/<\|tool_calls_section_(?:begin|end)\|>/g, '')
     // Remove standalone section markers: <|tool_call_begin|>, <|tool_call_end|>
     .replace(/<\|tool_call_(?:begin|end)\|>/g, '')
+    // Remove standalone bracket-based markers: [TOOL_CALL], [/TOOL_CALL]
+    .replace(/\[\/?TOOL_CALL\]/g, '')
     // Remove empty/comma-only JSON arrays: [], [,], [ , , ], etc.
     .replace(/\[\s*(?:,\s*)*\]/g, '')
     // Truncate incomplete empty/comma-only JSON arrays (beginning marker arrived but no end marker yet)
