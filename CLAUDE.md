@@ -1,230 +1,47 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Tool-Calling Rules (reduces unnecessary permission prompts)
+- **Use built-in tools instead of bash equivalents** — Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`, Write not `echo >`, Grep not `grep`/`rg`, Glob not `find`/`ls`
+- **Never cd to the working directory** — do `git diff --stat v0.8.1..HEAD`, not `cd f:/vox-deorum/vox-deorum && git diff --stat v0.8.1..HEAD` or `git -C f:/vox-deorum/vox-deorum ...`
+- **Always use relative paths** in bash — never absolute paths like `f:\vox-deorum\...` or `/f/vox-deorum/...`
+- **Avoid noisy shell idioms** — don't use `2>/dev/null || echo "not found"` patterns; use the dedicated tools which handle missing paths gracefully
 
-## Communication Protocol
-- When asked to commit, always only commit the staged changes
-- When asked to implement a feature, always delegate work to appropriate sub-agents and coordinate their work
-- **Always review the relevant submodule's CLAUDE.md before working in that directory** - Each module has specific patterns and conventions
-- Always delegate to subagents when the task is complicated
-- **Release notes / update logs:**
-  - Read `release.txt` for the last released version (e.g., `v0.6.3`)
-  - Use `git log <tag>..HEAD --oneline --no-merges` and `git diff --stat <tag>..HEAD` to gather changes since that tag
-  - Keep notes very short — a handful of bullet items grouped by feature/theme, not exhaustive changelogs
-  - Output the notes as raw markdown to the console (don't write to ANY files unless asked)
+## Workflow Rules
+- Delegate to sub-agents for complex/multi-step features **with tool-calling rules in the prompt**
+- **Read the relevant submodule's CLAUDE.md before working in that directory**
+- Don't present action plans until requested; don't change test scripts unless asked
+- **Release notes:** Read `release.txt` for last version tag, then `git log <tag>..HEAD --oneline --no-merges` and `git diff --stat <tag>..HEAD`. Output short grouped bullets to console (don't write files).
 
 ## Project Overview
-This is Vox Deorum - an LLM-Enhanced AI for Civilization V using the Community Patch framework.
+Vox Deorum — LLM-Enhanced AI for Civilization V (Community Patch framework).
 
-### Architecture Components
-Each component has its own README with setup instructions and CLAUDE.md with development patterns.
+### Architecture
+Each component has its own CLAUDE.md with detailed patterns.
 
-1. **Community Patch DLL** (`civ5-dll/`) - Modified Community-Patch-DLL submodule
-   - Windows-only 32-bit build for external communication
-   - Named pipe IPC implementation
-   - Minimal changes to maintain compatibility
-   - Build: `python build_vp_clang_sdk.py`
-   - Deploy: `powershell -Command "& .\build-and-copy.bat"`
-   - See `civ5-dll/CLAUDE.md` for C++ patterns and IPC protocol
+1. **Community Patch DLL** (`civ5-dll/`) — C++ DLL with named pipe IPC
+   - Build: `python build_vp_clang_sdk.py` | Deploy: `powershell -Command "& .\build-and-copy.bat"`
+2. **Bridge Service** (`bridge-service/`) — REST/SSE bridge between Civ V and AI
+3. **MCP Server** (`mcp-server/`) — MCP tools + SQLite game data access (Kysely)
+4. **Vox Agents** (`vox-agents/`) — LLM-powered strategic AI framework
+5. **Civ 5 Mod** (`civ5-mod/`) — Lua hooks and UI for game integration
 
-2. **Bridge Service** (`bridge-service/`) - Communication layer between Civ V and AI
-   - REST API + Server-Sent Events (SSE)
-   - Named pipe client with auto-reconnection
-   - Message batching for 10x performance boost
-   - Game pause control system
-   - Mock DLL server for testing
-   - See `bridge-service/CLAUDE.md` for patterns
-
-3. **MCP Server** (`mcp-server/`) - Model Context Protocol server
-   - 17 MCP tools for game interaction
-   - Direct SQLite database access (Kysely ORM)
-   - Localization with TXT_KEY resolution
-   - Knowledge persistence with auto-save
-   - Multi-transport support (stdio/HTTP)
-   - See `mcp-server/CLAUDE.md` for patterns
-
-4. **Vox Agents** (`vox-agents/`) - LLM-powered strategic AI framework
-   - Extensible agent base classes (VoxAgent, Briefer, Strategist)
-   - Turn-based decision engine with session management
-   - Multi-LLM provider support (OpenRouter, OpenAI, Google AI)
-   - OpenTelemetry observability integration
-   - See `vox-agents/CLAUDE.md` for patterns
-
-5. **Civ 5 Mod** (`civ5-mod/`) - Game integration
-   - Lua hooks for external communication
-   - Custom UI elements
-   - Mod configuration files
-
-### Communication Flow
 ```
-Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents → LLM
-         (Named Pipe)         (REST/SSE)       (MCP/HTTP)   (LLMs)
+Civ 5 ↔ DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents → LLM
+     (Named Pipe) (REST/SSE)    (MCP/HTTP)     (LLMs)
 ```
 
-## Top-Level Development Patterns
+## Cross-Cutting Code Rules
+- **ESM everywhere** — all TS modules use `"type": "module"` with `.js` import extensions
+- **npm workspaces** — root package.json manages deps; `npm install` / `npm run build:all` / `npm run test:all`
+- **Vitest** for all TypeScript testing
+- **camelCase for exported constants** (e.g., `export const apiKeyFields`, not `API_KEY_FIELDS`)
+- **Winston logger only** — never `console.log/error/warn` in production code (OK in tests)
+- **Acceptable `any` usage**: Kysely dynamic queries, Lua/game data boundaries, `Player${i}` access, third-party interop, arbitrary JSON
+- Express route responses: union with `ErrorResponse` instead of casting `as any`
+- Backend sends complete data; frontend decides formatting
+- Use `// Vox Deorum:` prefix for C++ modifications outside CvConnectionService
+- Update existing docs after implementation; never create docs proactively; no concrete code in docs
 
-### Module System
-- All TypeScript modules use ESM ("type": "module")
-- **Always use `.js` extensions in imports**, even for `.ts` files
-- This applies to ALL submodules (bridge-service, mcp-server, vox-agents)
 
-### Dependency Management
-- **Root-level package.json with npm workspaces** manages shared dependencies
-- Centralized version management reduces duplication
-- Individual submodules keep their scripts and configs
-- Use `npm install` to install all workspace dependencies
-- Run commands across workspaces: `npm run build:all` or `npm test:all`
-
-### Testing Framework
-- **Use Vitest** for all TypeScript testing
-- Test files: `tests/*.test.ts`
-- Sequential execution for IPC tests: `singleFork: true`
-- Extended timeouts for game integration
-
-### Error Handling Patterns
-- Standardized response format: `respondSuccess()` / `respondError()`
-- Exponential backoff with jitter for retries
-- Graceful degradation with connection loss
-- Bounded retry attempts for crash recovery
-
-### State Management
-- Singleton pattern for services (export instance, not class)
-- Map-based registries for dynamic content
-- **Always refresh AbortController after abort** for proper cancellation
-- Distinguish manual vs automatic state changes
-- **Implement graceful shutdown handlers** in all services
-
-### Performance Optimization
-- Lazy loading with factory patterns
-- **Always batch operations** to reduce IPC overhead (up to 50 Lua calls)
-- Connection pooling (standard vs fast pools)
-- Multi-level caching (tool, manager, knowledge store)
-
-### IPC Communication
-- Message batching with `!@#$%^!` delimiter
-- JSON messaging with typed schemas
-- SSE for real-time events with keep-alive
-- Queue management with auto-pause on overflow
-
-## Development Guidelines
-
-### Tool Usage
-Bash commands that duplicate built-in tool functionality are **auto-rejected**. Always use the correct built-in tool instead.
-
-| Task | Use This Tool | Do NOT Use |
-|------|--------------|------------|
-| Read files | `Read` | `cat`, `head`, `tail`, `less`, `more` |
-| Edit files | `Edit` | `sed`, `awk`, inline shell edits |
-| Create/overwrite files | `Write` | `echo >`, `cat <<EOF`, heredocs |
-| Search file contents | `Grep` | `grep`, `rg`, `ag` |
-| Find files by name/pattern | `Glob` | `find`, `ls`, `dir` |
-
-Reserve `Bash` exclusively for operations that have no built-in equivalent (e.g., `git`, `npm`, `pip`, `python`, running scripts, system commands). Moreover:
-
-- **Never cd to the working directory** like `cd f:/vox-deorum/vox-deorum && git diff --stat v0.8.1..HEAD`; simply do `git diff --stat v0.8.1..HEAD` instead.
-- **Never use noisy shell idioms** like `ls -la /path 2>/dev/null || echo "Directory does not exist"` or `cat file 2>/dev/null || echo "not found"` — these trigger extra permission prompts and are hard to read. Instead, use the dedicated Glob, Read, and Grep tools which handle missing paths gracefully
-- **Always use relative paths** in shell commands and tool calls — never absolute paths like `/f/Minor Solutions/...` or `f:\Minor Solutions\...`. Use paths relative to the project root (e.g., `vox-agents/src/` not the full absolute path)
-
-### Implementation Philosophy
-- **Check existing infrastructure first** - Never reinvent the wheel. Research similar components/patterns before implementing new features
-- **Keep implementations simple** - Straightforward code focused on goals
-- **Avoid redundant error handling** - Don't add unnecessary layers
-- **Use existing utilities** - Check utils/ directories before creating new helpers
-- **Follow established patterns** - Consistency over cleverness. Review submodule CLAUDE.md for component-specific conventions
-- **Data layer separation** - Backend sends complete data structures, frontend decides formatting and display filtering
-
-### Planning
-- Use TodoWrite tool for task management
-- Don't present action plans until requested
-- Focus on conceptual level, not excessive technical details
-- Don't change test scripts unless explicitly asked
-- When working in submodules (bridge-service, mcp-server, vox-agents/ui), consult that module's CLAUDE.md for specific guidance
-- **Prefer already-allowed tools and simple shell commands** to reduce extra permission prompts. Use Read/Edit/Write/Grep/Glob instead of Bash equivalents. When Bash is needed, use simple well-known commands (`ls`, `dotnet build`, `git`) rather than complex pipelines.
-
-### Code Conventions
-- Straightforward implementation focused on goals
-- Production-ready code following existing patterns
-- DRY principles
-- Proper (not excessive) error handling - avoid redundant try-catch layers
-- Should never use any or unknown types unless absolutely necessary
-- Before creating new mechanisms, check if it already exists
-- **Use camelCase for exported constants** (e.g., `export const apiKeyFields`, not `API_KEY_FIELDS`)
-
-### Type Safety Conventions
-- **Never use `any` or `unknown` types unless absolutely necessary** — prefer specific types, generics, or `Record<string, unknown>`
-- **Use `catch (error: unknown)`** instead of `catch (error: any)` — narrow with `error instanceof Error` before accessing `.message`
-- **Use `(error: Error)` for Node.js `.on('error')` handlers** — Node error events always emit Error objects
-- **Acceptable `any` usage**: Kysely dynamic queries, Lua/game data boundaries (`LuaResponse.result`), dynamic `Player${i}` property access, third-party library interop without types, JSON processing of arbitrary shapes
-- **For Express route responses**, union the response type with `ErrorResponse` instead of casting `as any`
-
-### Logging Conventions
-- **Use Winston logger** for all TypeScript modules (bridge-service, mcp-server, vox-agents)
-- **Never use console.log/error/warn** in production code - always use the logger utility
-- Import the logger utility from the appropriate utils directory
-- Create logger instance with component context
-- Use appropriate log levels: debug, info, warn, error
-- Pass error objects as metadata when logging errors
-- Test files may use console.log for debugging during test runs
-
-### Database Conventions
-- **Use `is` / `is not` for SQLite null checks** (never `=` / `!=`)
-- Prepare statements for repeated queries
-- Use transactions for batch operations
-- Implement proper indexing for performance
-
-### Documentation & Comment Conventions
-- **Always update documentation but never create unless prompted** - Avoid creating README.md or docs files proactively
-- **After each successful implementation**, update the relevant module's CLAUDE.md and README.md to reflect new patterns, agents, tools, or architectural changes
-- Top-level comments in each code file describing the module's purpose
-- Comments on all public/exported definitions explaining their function
-- Comments within long functions for complex logic sections
-- Use `// Vox Deorum:` prefix for modifications in C++ code beyond CvConnectionService
-- Keep comments concise and focused on the "why" rather than the "what"
-- In the documentation, never bring concrete code as they can get outdated
-
-### Integration Best Practices
-- **Use manager classes for all cross-service communication** (not direct HTTP calls)
-- Test with both stdio and HTTP transports where applicable
-- Implement observability/telemetry wrapping
-- Handle connection failures with retry logic
-- Flush telemetry on shutdown
-- Use configuration-driven initialization
-- **Respect player visibility** when handling game data
-
-## Quick Reference
-
-### Build Commands by Module
-```bash
-# Root level (all workspaces)
-npm install         # Install all dependencies
-npm run build:all   # Build all TypeScript modules
-npm run test:all    # Run all tests
-
-# civ5-dll (Windows only)
-cd civ5-dll
-python build_vp_clang_sdk.py
-.\build-and-copy.bat
-
-# bridge-service
-npm run dev      # Development with watch
-npm test         # Vitest tests
-npm run build    # Production build
-
-# mcp-server
-npm run dev      # Development with watch
-npm test         # Vitest tests
-npm run build    # Production build
-
-# vox-agents
-npm run dev         # Standalone development
-npm run briefer     # Briefer workflow
-npm run strategist  # Strategist workflow
-npm test           # Vitest tests
-```
-
-### Key Files to Check
-- `protocol.md` - Communication protocol specification
-- `*/CLAUDE.md` - Component-specific patterns
-- `*/tests/setup.ts` - Test configuration
-- `*/src/config.ts` - Configuration management
-- `*/vitest.config.ts` - Test framework setup
+## Key Files
+`protocol.md` | `*/CLAUDE.md` | `*/tests/setup.ts` | `*/src/config.ts` | `*/vitest.config.ts`
