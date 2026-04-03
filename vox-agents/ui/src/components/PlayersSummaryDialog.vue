@@ -136,7 +136,14 @@ function navigateToSession(sessionId: string) {
   router.push({ name: 'telemetry-session', params: { sessionId } });
 }
 
-function navigateToDatabase(db: TelemetryMetadata) {
+function getPrimaryDatabase(playerId: string): TelemetryMetadata | undefined {
+  return databasesByPlayer.value[playerId]?.[0];
+}
+
+function navigateToDatabase(db: TelemetryMetadata | undefined) {
+  if (!db) {
+    return;
+  }
   const fullPath = db.folder === 'telemetry' ? db.filename : `${db.folder}/${db.filename}`;
   dialogVisible.value = false;
   router.push({ name: 'telemetry-database', params: { filename: fullPath } });
@@ -245,10 +252,10 @@ onUnmounted(() => {
                 href="#"
               ><i class="pi pi-circle-fill"></i></a>
               <a
-                v-if="(databasesByPlayer[player.playerId] ?? []).length > 0"
+                v-if="getPrimaryDatabase(player.playerId)"
                 class="telemetry-link"
                 v-tooltip.top="(databasesByPlayer[player.playerId] ?? []).length + ' database(s) — view most recent'"
-                @click.prevent="navigateToDatabase((databasesByPlayer[player.playerId] ?? [])[0])"
+                @click.prevent="navigateToDatabase(getPrimaryDatabase(player.playerId))"
                 href="#"
               ><i class="pi pi-database"></i> {{ (databasesByPlayer[player.playerId] ?? []).length }}</a>
             </div>
