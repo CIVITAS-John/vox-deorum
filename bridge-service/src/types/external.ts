@@ -51,7 +51,7 @@ export interface ExternalCall {
 /**
  * Response for a Lua external function call
  */
-export interface ExternalCallResponse<T = any> extends APIResponse<T> { }
+export type ExternalCallResponse<T = any> = APIResponse<T>;
 
 /**
  * IPC message for external function call

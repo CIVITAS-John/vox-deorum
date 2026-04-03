@@ -201,8 +201,8 @@ export class BridgeService extends EventEmitter {
       external: externalManager.getStats(),
       eventPipe: eventPipe.getStats(),
       memory: {
-        used: Math.round(memUsage.rss / 1024 / 1024), // MB
-        total: Math.round(memUsage.rss / 1024 / 1024), // MB
+        used: Math.round(memUsage.heapUsed / 1024 / 1024), // MB
+        total: Math.round(memUsage.heapTotal / 1024 / 1024), // MB
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024), // MB
         heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) // MB
       }

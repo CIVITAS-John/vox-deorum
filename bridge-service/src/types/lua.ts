@@ -64,7 +64,7 @@ export interface LuaExecuteMessage extends IPCMessage {
 /**
  * Response from a Lua operation
  */
-export interface LuaResponse<T = any> extends APIResponse<T> { }
+export type LuaResponse<T = any> = APIResponse<T>;
 
 /**
  * IPC response from Lua operation
@@ -76,13 +76,6 @@ export interface LuaResponseMessage<T = any> extends IPCMessage, LuaResponse<T> 
  * Batch response for multiple Lua operations
  */
 export type LuaBatchResponse = LuaResponse[];
-
-/**
- * List of available Lua functions
- */
-export interface LuaFunctionList {
-  functions: string[];
-}
 
 /**
  * Registered Lua function metadata

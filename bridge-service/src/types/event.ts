@@ -85,12 +85,3 @@ export interface GameEventMessage extends IPCMessage {
   extraPayload?: Record<string, unknown>;
   visibility?: number[];
 }
-
-/**
- * SSE client connection
- */
-export interface SSEClient {
-  id: string;
-  response: Response; // Express Response object
-  connectedAt: Date;
-}
