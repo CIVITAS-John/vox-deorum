@@ -3,7 +3,7 @@
  */
 
 import { LuaFunction } from '../../bridge/lua-function.js';
-import { CityInformation, CityInformationBasic } from '../schema/timed.js';
+import { CityInformation } from '../schema/timed.js';
 import { knowledgeManager, gameDatabase } from '../../server.js';
 import { createLogger } from '../../utils/logger.js';
 import { Selectable } from 'kysely';
@@ -210,27 +210,3 @@ export async function getCityInformations(): Promise<Selectable<CityInformation>
   return cities;
 }
 
-/**
- * Get basic city information from a full city information object
- * Extracts only the publicly visible fields
- * @param city Full city information object
- * @returns Basic city information
- */
-export function getCityBasicInfo(city: CityInformation | Selectable<CityInformation>): CityInformationBasic {
-  return {
-    Key: city.Key,
-    Owner: city.Owner,
-    Name: city.Name,
-    X: city.X,
-    Y: city.Y,
-    Population: city.Population,
-    MajorityReligion: city.MajorityReligion,
-    DefenseStrength: city.DefenseStrength,
-    HitPoints: city.HitPoints,
-    MaxHitPoints: city.MaxHitPoints,
-    IsCapital: city.IsCapital,
-    IsCoastal: city.IsCoastal,
-    IsPuppet: city.IsPuppet,
-    IsOccupied: city.IsOccupied,
-  };
-}

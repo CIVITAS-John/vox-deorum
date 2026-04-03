@@ -55,31 +55,6 @@ export function getPlayerVisibility(
 }
 
 /**
- * Gets all players visible to a specific player
- *
- * @param playerSummaries - Array of PlayerSummary objects from the game
- * @param playerID - The ID of the viewing player
- * @param minVisibility - Minimum visibility level to include (default: 1 for met players)
- * @returns Array of player IDs that are visible to the viewing player
- */
-export function getVisiblePlayers(
-  playerSummaries: PlayerSummary[],
-  playerID: number,
-  minVisibility: number = 1
-): number[] {
-  const visiblePlayers: number[] = [];
-
-  for (const summary of playerSummaries) {
-    const visibility = getVisibility(summary, playerID);
-    if (visibility >= minVisibility) {
-      visiblePlayers.push(summary.Key);
-    }
-  }
-
-  return visiblePlayers;
-}
-
-/**
  * Creates a visibility array for a list of player IDs
  * All specified players get visibility level 2, others get 0
  *

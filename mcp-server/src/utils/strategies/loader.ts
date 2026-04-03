@@ -100,14 +100,3 @@ export async function loadEconomicStrategies(): Promise<EconomicStrategy[]> {
   return Array.isArray(data) ? data : [];
 }
 
-/**
- * Clear the cache for a specific file or all files
- * @param filename Optional filename to clear specific cache entry
- */
-export function clearStrategyCache(filename?: string): void {
-  if (filename) {
-    strategyCache.delete(filename);
-  } else {
-    strategyCache.clear();
-  }
-}

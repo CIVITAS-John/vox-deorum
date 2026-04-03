@@ -205,25 +205,3 @@ export async function archiveGameData(
   }
 }
 
-/**
- * List all archived games for a strategist
- */
-export async function listArchivedGames(strategist?: string): Promise<string[]> {
-  try {
-    const strategistName = strategist || 'none';
-    const archivePath = path.join(process.cwd(), 'archive', strategistName);
-
-    try {
-      await fs.access(archivePath);
-    } catch (error) {
-      logger.debug(`Archive directory does not exist: ${archivePath}`);
-      return [];
-    }
-
-    const files = await fs.readdir(archivePath);
-    return files.filter(f => f.endsWith('.Civ5Save'));
-  } catch (error) {
-    logger.error('Error listing archived games:', error);
-    return [];
-  }
-}

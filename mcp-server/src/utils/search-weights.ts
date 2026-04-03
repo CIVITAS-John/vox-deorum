@@ -87,28 +87,3 @@ export function addFieldWithWeight(fields: string[], value: unknown, weight: num
   }
 }
 
-/**
- * Calculates weighted fields for a database item
- * @param item - Database item with various fields
- * @returns Array of field values with weighting applied
- */
-export function calculateWeightedFields(item: Record<string, unknown>): string[] {
-  const fields: string[] = [];
-
-  // Name is most important (3x weight)
-  addFieldWithWeight(fields, item.Name, 3);
-
-  // Type is important (2x weight)
-  addFieldWithWeight(fields, item.Type, 2);
-
-  // Descriptive fields have normal weight (1x)
-  addFieldWithWeight(fields, item.Help, 1);
-  addFieldWithWeight(fields, item.Description, 1);
-  addFieldWithWeight(fields, item.Strategy, 1);
-
-  // Context fields have normal weight (1x)
-  addFieldWithWeight(fields, item.Branch, 1);
-  addFieldWithWeight(fields, item.Era, 1);
-
-  return fields;
-}
