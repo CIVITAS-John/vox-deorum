@@ -671,7 +671,9 @@ export class KnowledgeStore {
   }
 
   /**
-   * Insert a render-time event (e.g. PlayerPanelSwitch, TurnAnimationComplete)
+   * Insert a render-time event (e.g. PlayerPanelSwitch, TurnAnimationComplete).
+   * `payload` should contain only event-specific fields after canonical metadata
+   * like time/turn has been extracted into the top-level columns.
    */
   async insertRenderEvent(time: number, turn: number, event: string, payload: Record<string, unknown>): Promise<void> {
     await this.writeQueue.add(() => this.getDatabase()

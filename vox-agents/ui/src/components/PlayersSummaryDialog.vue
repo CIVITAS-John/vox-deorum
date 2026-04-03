@@ -10,7 +10,6 @@ import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
 import { apiClient } from '@/api/client';
 import { activeSessions, databases } from '@/stores/telemetry';
-import type { TelemetrySession, TelemetryMetadata } from '@/utils/types';
 
 // Props interface
 interface Props {
@@ -112,41 +111,22 @@ const assignmentTooltips = computed(() => {
   return map;
 });
 
-// Telemetry lookups by player ID
-const sessionsByPlayer = computed(() => {
-  const map: Record<string, TelemetrySession[]> = {};
+const telemetryPlayerIds = computed(() => {
+  const playerIds = new Set<string>();
   for (const session of activeSessions.value) {
     if (session.playerID) {
-      (map[session.playerID] ??= []).push(session);
+      playerIds.add(session.playerID);
     }
   }
-  return map;
-});
-
-const databasesByPlayer = computed(() => {
-  const map: Record<string, TelemetryMetadata[]> = {};
   for (const db of databases.value) {
-    (map[db.playerID] ??= []).push(db);
+    playerIds.add(db.playerID);
   }
-  return map;
+  return playerIds;
 });
 
-function navigateToSession(sessionId: string) {
+function navigateToTelemetry() {
   dialogVisible.value = false;
-  router.push({ name: 'telemetry-session', params: { sessionId } });
-}
-
-function getPrimaryDatabase(playerId: string): TelemetryMetadata | undefined {
-  return databasesByPlayer.value[playerId]?.[0];
-}
-
-function navigateToDatabase(db: TelemetryMetadata | undefined) {
-  if (!db) {
-    return;
-  }
-  const fullPath = db.folder === 'telemetry' ? db.filename : `${db.folder}/${db.filename}`;
-  dialogVisible.value = false;
-  router.push({ name: 'telemetry-database', params: { filename: fullPath } });
+  router.push({ name: 'telemetry' });
 }
 
 function formatLastUpdated(): string {
@@ -241,23 +221,15 @@ onUnmounted(() => {
           class="table-row"
         >
           <div class="col-fixed-150" v-tooltip.top="assignmentTooltips[player.playerId]">
-            <div>{{ player.playerId }}: {{ player.Civilization || 'Unknown' }}</div>
-            <div class="telemetry-links">
+            <div class="player-heading">
+              <span>{{ player.playerId }}: {{ player.Civilization || 'Unknown' }}</span>
               <a
-                v-for="session in (sessionsByPlayer[player.playerId] ?? [])"
-                :key="session.sessionId"
-                class="telemetry-link telemetry-link--live"
-                v-tooltip.top="'Live: ' + session.sessionId"
-                @click.prevent="navigateToSession(session.sessionId)"
-                href="#"
-              ><i class="pi pi-circle-fill"></i></a>
-              <a
-                v-if="getPrimaryDatabase(player.playerId)"
+                v-if="telemetryPlayerIds.has(player.playerId)"
                 class="telemetry-link"
-                v-tooltip.top="(databasesByPlayer[player.playerId] ?? []).length + ' database(s) — view most recent'"
-                @click.prevent="navigateToDatabase(getPrimaryDatabase(player.playerId))"
+                v-tooltip.top="'Open telemetry'"
+                @click.prevent="navigateToTelemetry()"
                 href="#"
-              ><i class="pi pi-database"></i> {{ (databasesByPlayer[player.playerId] ?? []).length }}</a>
+              ><i class="pi pi-chart-line"></i></a>
             </div>
           </div>
           <div class="col-fixed-80">{{ player.Score ?? 'N/A' }}</div>
@@ -295,31 +267,21 @@ onUnmounted(() => {
   font-weight: normal;
 }
 
-.telemetry-links {
+.player-heading {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  margin-top: 0.2rem;
 }
 
 .telemetry-link {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--p-text-muted-color);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
 }
 
 .telemetry-link:hover {
   color: var(--p-primary-color);
-}
-
-.telemetry-link--live {
-  color: var(--p-green-500);
-}
-
-.telemetry-link--live:hover {
-  color: var(--p-green-600);
 }
 </style>

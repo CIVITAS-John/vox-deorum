@@ -10,8 +10,28 @@ import { KnowledgeStore } from './store.js';
 import path from 'path';
 import { MaxMajorCivs } from './schema/base.js';
 import { LuaFunction } from '../bridge/lua-function.js';
+import type { GameEvent as BridgeGameEvent } from '../bridge/manager.js';
 
 const logger = createLogger('KnowledgeManager');
+const RENDER_PREFIX = 'Render:';
+
+export function extractRenderEventForStorage(
+  data: Pick<BridgeGameEvent, 'type' | 'payload'>
+) {
+  if (typeof data.type !== 'string' || !data.type.startsWith(RENDER_PREFIX)) {
+    return null;
+  }
+
+  const event = data.type.slice(RENDER_PREFIX.length);
+  const { time, turn, ...payload } = data.payload;
+
+  return {
+    time: time as number,
+    turn: turn as number,
+    event,
+    payload,
+  };
+}
 
 export class KnowledgeManager {
   private gameIdentity?: GameIdentity;
@@ -55,14 +75,13 @@ export class KnowledgeManager {
           MCPServer.getInstance().sendNotification("DLLDisconnected", -1, -1, -1);
         }
       } else if (this.knowledgeStore) {
-        const RENDER_PREFIX = 'Render:';
-        if (typeof data.type === 'string' && data.type.startsWith(RENDER_PREFIX)) {
-          const eventName = data.type.slice(RENDER_PREFIX.length);
+        const renderEvent = extractRenderEventForStorage(data);
+        if (renderEvent) {
           await this.knowledgeStore.insertRenderEvent(
-            data.payload.time as number,
-            data.payload.turn as number,
-            eventName,
-            data.payload
+            renderEvent.time,
+            renderEvent.turn,
+            renderEvent.event,
+            renderEvent.payload
           );
         } else {
           await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload, data.visibility, data.extraPayload);

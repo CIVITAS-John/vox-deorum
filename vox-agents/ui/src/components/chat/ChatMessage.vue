@@ -31,7 +31,7 @@ import type { ModelMessage } from 'ai';
 import TextMessage from './TextMessage.vue';
 import ReasoningMessage from './ReasoningMessage.vue';
 import ToolCallMessage from './ToolCallMessage.vue';
-import { cleanToolArtifacts } from '@vox/utils/text-cleaning.js';
+import { cleanToolArtifacts } from '@vox/utils/text-cleaning';
 
 interface Props {
   message: ModelMessage;
