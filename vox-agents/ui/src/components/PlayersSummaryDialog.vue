@@ -9,7 +9,8 @@ import { useRouter } from 'vue-router';
 import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
 import { apiClient } from '@/api/client';
-import { activeSessions, databases } from '@/stores/telemetry';
+import { activeSessions } from '@/stores/telemetry';
+import type { TelemetrySession } from '@/utils/types';
 
 // Props interface
 interface Props {
@@ -111,22 +112,23 @@ const assignmentTooltips = computed(() => {
   return map;
 });
 
-const telemetryPlayerIds = computed(() => {
-  const playerIds = new Set<string>();
+const sessionsByPlayer = computed(() => {
+  const sessions: Record<string, TelemetrySession[]> = {};
   for (const session of activeSessions.value) {
     if (session.playerID) {
-      playerIds.add(session.playerID);
+      (sessions[session.playerID] ??= []).push(session);
     }
   }
-  for (const db of databases.value) {
-    playerIds.add(db.playerID);
-  }
-  return playerIds;
+  return sessions;
 });
 
-function navigateToTelemetry() {
+function getPrimarySession(playerId: string): TelemetrySession | undefined {
+  return sessionsByPlayer.value[playerId]?.[0];
+}
+
+function navigateToSession(sessionId: string) {
   dialogVisible.value = false;
-  router.push({ name: 'telemetry' });
+  router.push({ name: 'telemetry-session', params: { sessionId } });
 }
 
 function formatLastUpdated(): string {
@@ -224,10 +226,9 @@ onUnmounted(() => {
             <div class="player-heading">
               <span>{{ player.playerId }}: {{ player.Civilization || 'Unknown' }}</span>
               <a
-                v-if="telemetryPlayerIds.has(player.playerId)"
+                v-if="getPrimarySession(player.playerId)"
                 class="telemetry-link"
-                v-tooltip.top="'Open telemetry'"
-                @click.prevent="navigateToTelemetry()"
+                @click.prevent="navigateToSession(getPrimarySession(player.playerId)!.sessionId)"
                 href="#"
               ><i class="pi pi-chart-line"></i></a>
             </div>
