@@ -121,6 +121,7 @@ Bash commands that duplicate built-in tool functionality are **auto-rejected**. 
 
 Reserve `Bash` exclusively for operations that have no built-in equivalent (e.g., `git`, `npm`, `pip`, `python`, running scripts, system commands). Moreover:
 
+- **Never cd to the working directory** like `cd f:/vox-deorum/vox-deorum && git diff --stat v0.8.1..HEAD`; simply do `git diff --stat v0.8.1..HEAD` instead.
 - **Never use noisy shell idioms** like `ls -la /path 2>/dev/null || echo "Directory does not exist"` or `cat file 2>/dev/null || echo "not found"` — these trigger extra permission prompts and are hard to read. Instead, use the dedicated Glob, Read, and Grep tools which handle missing paths gracefully
 - **Always use relative paths** in shell commands and tool calls — never absolute paths like `/f/Minor Solutions/...` or `f:\Minor Solutions\...`. Use paths relative to the project root (e.g., `vox-agents/src/` not the full absolute path)
 
