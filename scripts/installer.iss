@@ -62,7 +62,7 @@ Source: "..\vox-agents\*"; DestDir: "{app}\vox-agents"; Flags: ignoreversion rec
 Source: "..\civ5-mod\*"; DestDir: "{app}\civ5-mod"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\civ5-dll\(1) Community Patch\*"; DestDir: "{app}\civ5-dll\(1) Community Patch"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "CvGameCore_Expansion2.*"
 Source: "..\civ5-dll\(2) Vox Populi\*"; DestDir: "{app}\civ5-dll\(2) Vox Populi"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\civ5-dll\(3a) EUI Compatibility Files\*"; DestDir: "{app}\civ5-dll\(3a) EUI Compatibility Files"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\civ5-dll\(3a) VP - EUI Compatibility Files\*"; DestDir: "{app}\civ5-dll\(3a) VP - EUI Compatibility Files"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\civ5-dll\VPUI\*"; DestDir: "{app}\civ5-dll\VPUI"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\civ5-dll\UI_bc1\*"; DestDir: "{app}\civ5-dll\UI_bc1"; Flags: ignoreversion recursesubdirs createallsubdirs
 
@@ -384,12 +384,12 @@ begin
 
         // Delete existing Vox Populi mod folders first
         DelTree(ModsPath + '\(2) Vox Populi', True, True, True);
-        DelTree(ModsPath + '\(3a) EUI Compatibility Files', True, True, True);
+        DelTree(ModsPath + '\(3a) VP - EUI Compatibility Files', True, True, True);
 
         // Copy Vox Populi mods
         Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-dll\(2) Vox Populi') + '" "' + ModsPath + '\(2) Vox Populi"',
              '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-        Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-dll\(3a) EUI Compatibility Files') + '" "' + ModsPath + '\(3a) EUI Compatibility Files"',
+        Exec('xcopy', '/E /I /Y "' + ExpandConstant('{app}\civ5-dll\(3a) VP - EUI Compatibility Files') + '" "' + ModsPath + '\(3a) VP - EUI Compatibility Files"',
              '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
         
         // Delete existing UI mods first (similar to robocopy /mir), but continue even if deletion fails
@@ -448,7 +448,7 @@ begin
       DelTree(ModsPath + '\(1) Community Patch', True, True, True);
       DelTree(ModsPath + '\(1b) Vox Deorum', True, True, True);
       DelTree(ModsPath + '\(2) Vox Populi', True, True, True);
-      DelTree(ModsPath + '\(3a) EUI Compatibility Files', True, True, True);
+      DelTree(ModsPath + '\(3a) VP - EUI Compatibility Files', True, True, True);
 
       // Try to find Civ5 installation to remove UI mods
       Civ5Path := FindCiv5Installation();

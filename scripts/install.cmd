@@ -296,7 +296,7 @@ set "VP_INSTALLED=0"
 set "CP_PATH=%MODS_DIR%\(1) Community Patch"
 set "VD_PATH=%MODS_DIR%\(1b) Vox Deorum"
 set "VP_PATH=%MODS_DIR%\(2) Vox Populi"
-set "EUI_PATH=%MODS_DIR%\(3a) EUI Compatibility Files"
+set "EUI_PATH=%MODS_DIR%\(3a) VP - EUI Compatibility Files"
 
 if exist "%CP_PATH%" (
     if exist "%VP_PATH%" (
@@ -320,7 +320,7 @@ if "%VP_INSTALLED%"=="0" (
     set "SOURCE_CP=%SCRIPT_DIR%\..\civ5-dll\(1) Community Patch"
     set "SOURCE_VD=%SCRIPT_DIR%\..\civ5-mod"
     set "SOURCE_VP=%SCRIPT_DIR%\..\civ5-dll\(2) Vox Populi"
-    set "SOURCE_EUI=%SCRIPT_DIR%\..\civ5-dll\(3a) EUI Compatibility Files"
+    set "SOURCE_EUI=%SCRIPT_DIR%\..\civ5-dll\(3a) VP - EUI Compatibility Files"
 
     if exist "!SOURCE_CP!" (
         echo   Removing old mod folders if they exist...

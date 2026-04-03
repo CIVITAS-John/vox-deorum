@@ -21,8 +21,8 @@ if exist "%MODS_DIR%\(2) Vox Populi" (
     rmdir /S /Q "%MODS_DIR%\(2) Vox Populi" 2>nul
 )
 
-if exist "%MODS_DIR%\(3a) EUI Compatibility Files" (
-    rmdir /S /Q "%MODS_DIR%\(3a) EUI Compatibility Files" 2>nul
+if exist "%MODS_DIR%\(3a) VP - EUI Compatibility Files" (
+    rmdir /S /Q "%MODS_DIR%\(3a) VP - EUI Compatibility Files" 2>nul
 )
 
 :: Try to remove UI mods from common Civ5 locations
