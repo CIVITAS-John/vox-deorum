@@ -10,9 +10,6 @@ import { z } from 'zod';
 import { TelepathistTool, inquiryField } from '../telepathist-tool.js';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import { cleanToolArtifacts } from '../../utils/text-cleaning.js';
-import { createLogger } from '../../utils/logger.js';
-
-const logger = createLogger('GetSituation');
 
 /** Maps category names to MCP tool names */
 const categoryToolMap: Record<string, string> = {
@@ -73,37 +70,11 @@ export class GetSituationTool extends TelepathistTool<GetSituationInput> {
 
   /** Default mode: read pre-generated situation from turn_summaries DB, falling back to detailed mode for missing turns */
   private async executeDefault(input: GetSituationInput, params: TelepathistParameters): Promise<string[]> {
-    const turns = this.parseTurns(input.Turns, params.availableTurns, 20);
-    if (turns.length === 0) {
-      return ['No turns found in the requested range.'];
-    }
-
-    const summaries = await params.telepathistDb
-      .selectFrom('turn_summaries')
-      .selectAll()
-      .where('turn', 'in', turns)
-      .orderBy('turn', 'asc')
-      .execute();
-
-    const sections: string[] = [];
-    for (const summary of summaries) {
-      sections.push(`## Turn ${summary.turn}\n${summary.situation}`);
-    }
-
-    // Fallback to detailed mode (with summarizer) for turns without summaries
-    const summarizedTurns = new Set(summaries.map(s => s.turn));
-    const missing = turns.filter(t => !summarizedTurns.has(t));
-    if (missing.length > 0) {
-      logger.info(`Missing situation summaries for turns: ${missing.join(', ')}; falling back to detailed mode`);
-      this.summarize = true;
-      const detailedSections = await this.executeDetailed(
-        { Turns: missing.join(','), Detailed: true, Categories: input.Categories, Inquiry: input.Inquiry },
-        params
-      );
-      sections.push(...detailedSections);
-    }
-
-    return sections;
+    return this.executeDefaultFromSummaries(
+      input.Turns, params.availableTurns, params, 'situation',
+      (fallbackInput, p) => this.executeDetailed(fallbackInput, p),
+      (missing) => ({ Turns: missing.join(','), Detailed: true, Categories: input.Categories, Inquiry: input.Inquiry })
+    );
   }
 
   /** Detailed mode: reconstruct actual game data from MCP tool output spans */
@@ -177,6 +148,3 @@ export class GetSituationTool extends TelepathistTool<GetSituationInput> {
     return sections;
   }
 }
-
-// Re-export class under old name for use in preparation module
-export { GetSituationTool as GetGameStateTool };

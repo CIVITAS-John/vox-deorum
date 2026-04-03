@@ -8,7 +8,7 @@ import type { StrategistParameters } from "../strategist/strategy-parameters.js"
  * Game speed multipliers based on Civilization V standard settings
  * These values represent how turn counts scale with different game speeds
  */
-export const gameSpeedMultipliers: Record<string, number> = {
+const gameSpeedMultipliers: Record<string, number> = {
   // Quick games are 67% of standard length
   "Quick": 0.67,
   // Standard is the baseline

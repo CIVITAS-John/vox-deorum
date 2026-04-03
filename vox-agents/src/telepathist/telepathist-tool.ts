@@ -150,6 +150,58 @@ export abstract class TelepathistTool<TInput = any> {
     return chunks;
   }
 
+  // --- Default/detailed mode helper ---
+
+  /**
+   * Shared implementation for default mode: read pre-generated summaries from turn_summaries,
+   * falling back to detailed mode for missing turns.
+   *
+   * @param turns - Raw turn string from user input
+   * @param availableTurns - Available turns in the telemetry DB
+   * @param params - Telepathist parameters with DB connections
+   * @param column - Which column to read from turn_summaries
+   * @param detailedFallback - Callback to execute detailed mode for missing turns
+   * @param buildFallbackInput - Builds the input for the detailed fallback from missing turn numbers
+   * @param maxTurns - Maximum number of turns to process
+   */
+  protected async executeDefaultFromSummaries(
+    turns: string,
+    availableTurns: number[],
+    params: TelepathistParameters,
+    column: 'decisions' | 'situation' | 'conversation',
+    detailedFallback: (input: any, params: TelepathistParameters) => Promise<string[]>,
+    buildFallbackInput: (missingTurns: number[]) => any,
+    maxTurns = 20
+  ): Promise<string[]> {
+    const parsed = this.parseTurns(turns, availableTurns, maxTurns);
+    if (parsed.length === 0) return ['No turns found in the requested range.'];
+
+    const summaries = await params.telepathistDb
+      .selectFrom('turn_summaries')
+      .selectAll()
+      .where('turn', 'in', parsed)
+      .orderBy('turn', 'asc')
+      .execute();
+
+    const sections: string[] = [];
+    for (const s of summaries) {
+      const value = s[column as keyof typeof s];
+      if (value) sections.push(`## Turn ${s.turn}\n${value}`);
+    }
+
+    const summarizedTurns = new Set(
+      summaries.filter(s => s[column as keyof typeof s]).map(s => s.turn)
+    );
+    const missing = parsed.filter(t => !summarizedTurns.has(t));
+    if (missing.length > 0) {
+      logger.info(`Missing ${column} summaries for turns: ${missing.join(', ')}; falling back to detailed mode`);
+      this.summarize = true;
+      sections.push(...await detailedFallback(buildFallbackInput(missing), params));
+    }
+
+    return sections;
+  }
+
   // --- Shared query helpers ---
 
   /**

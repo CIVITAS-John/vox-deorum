@@ -13,9 +13,6 @@ import type { Span } from '../../utils/telemetry/schema.js';
 import { jsonToMarkdown } from '../../utils/tools/json-to-markdown.js';
 import { cleanToolArtifacts } from '../../utils/text-cleaning.js';
 import { agentRegistry } from '../../infra/agent-registry.js';
-import { createLogger } from '../../utils/logger.js';
-
-const logger = createLogger('GetDecision');
 
 /** Decision tools whose inputs contain the AI's strategic choices */
 const decisionTools = [
@@ -66,37 +63,11 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
 
   /** Default mode: read pre-generated decisions from turn_summaries DB, falling back to detailed mode for missing turns */
   private async executeDefault(input: GetDecisionInput, params: TelepathistParameters): Promise<string[]> {
-    const turns = this.parseTurns(input.Turns, params.availableTurns, 20);
-    if (turns.length === 0) {
-      return ['No turns found in the requested range.'];
-    }
-
-    const summaries = await params.telepathistDb
-      .selectFrom('turn_summaries')
-      .selectAll()
-      .where('turn', 'in', turns)
-      .orderBy('turn', 'asc')
-      .execute();
-
-    const sections: string[] = [];
-    for (const summary of summaries) {
-      sections.push(`## Turn ${summary.turn}\n${summary.decisions}`);
-    }
-
-    // Fallback to detailed mode (with summarizer) for turns without summaries
-    const summarizedTurns = new Set(summaries.map(s => s.turn));
-    const missing = turns.filter(t => !summarizedTurns.has(t));
-    if (missing.length > 0) {
-      logger.info(`Missing decision summaries for turns: ${missing.join(', ')}; falling back to detailed mode`);
-      this.summarize = true;
-      const detailedSections = await this.executeDetailed(
-        { Turns: missing.join(','), Inquiry: input.Inquiry },
-        params
-      );
-      sections.push(...detailedSections);
-    }
-
-    return sections;
+    return this.executeDefaultFromSummaries(
+      input.Turns, params.availableTurns, params, 'decisions',
+      (fallbackInput, p) => this.executeDetailed(fallbackInput, p),
+      (missing) => ({ Turns: missing.join(','), Inquiry: input.Inquiry })
+    );
   }
 
   /** Detailed mode: extract full decision data from telemetry spans */
@@ -381,6 +352,3 @@ export class GetDecisionTool extends TelepathistTool<GetDecisionInput> {
     return decisions;
   }
 }
-
-// Re-export class under old name for use in preparation module
-export { GetDecisionTool as GetDecisionsTool };

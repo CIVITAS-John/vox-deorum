@@ -1,15 +1,15 @@
 /**
  * @module telepathist/preparation/turn-preparation
  *
- * Generates turn summaries by executing GetGameStateTool and GetDecisionsTool
+ * Generates turn summaries by executing GetSituationTool and GetDecisionTool
  * for each unsummarized turn, then calling the Summarizer with structured output.
  */
 
 import pLimit from 'p-limit';
 import { TelepathistParameters } from '../telepathist-parameters.js';
 import { VoxContext } from '../../infra/vox-context.js';
-import { GetGameStateTool } from '../tools/get-situation.js';
-import { GetDecisionsTool } from '../tools/get-decision.js';
+import { GetSituationTool } from '../tools/get-situation.js';
+import { GetDecisionTool } from '../tools/get-decision.js';
 import { SummarizerInput } from '../summarizer.js';
 import { turnSummarySchema, buildTurnSummaryInstruction, parseSummaryMarkdown } from './instructions.js';
 import { exponentialRetry } from '../../utils/retry.js';
@@ -47,8 +47,8 @@ export async function prepareTurnSummaries(
 
   logger.info(`Generating summaries for ${turnsToSummarize.length} turns`);
 
-  const gameStateTool = new GetGameStateTool();
-  const decisionsTool = new GetDecisionsTool();
+  const gameStateTool = new GetSituationTool();
+  const decisionsTool = new GetDecisionTool();
   const limit = pLimit(5);
 
   await Promise.all(
