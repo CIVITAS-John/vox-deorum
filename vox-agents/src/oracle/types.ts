@@ -54,8 +54,6 @@ export interface ModifiedPrompt {
   messages?: ModelMessage[];
   /** Override active tools */
   activeTools?: string[];
-  /** Rewrite tool schemas. Receives JSON-stringified { description, inputSchema } for each tool, returns modified JSON. Undefined keeps originals. */
-  rewriteToolSchemas?: (toolJson: string) => string;
   /** Arbitrary metadata stored in the trail */
   metadata?: Record<string, any>;
 }
@@ -68,8 +66,13 @@ export interface OracleConfig {
   experimentName: string;
   /** Callback to modify the original prompt before replay */
   modifyPrompt: (ctx: OriginalPromptContext) => ModifiedPrompt | Promise<ModifiedPrompt>;
-  /** Override model per-row. Undefined = keep original. */
-  modelOverride?: (originalModel: string, row: OracleRow) => string | Model | undefined;
+  /**
+   * Override model per-row. Return a single model or an array for multi-model comparison.
+   * Array = one ReplayResult per model per source row. Undefined = keep original.
+   */
+  modelOverride?: (originalModel: string, row: OracleRow) => string | Model | (string | Model)[] | undefined;
+  /** Rewrite MCP tool JSON schemas before replay. Receives JSON-stringified { description, inputSchema }, returns modified JSON. */
+  rewriteToolSchemas?: (toolJson: string) => string;
   /** Output directory. Default: '../temp/oracle' (relative or absolute) */
   outputDir?: string;
   /** Telemetry directory. Default: 'telemetry' (relative or absolute) */
@@ -140,6 +143,8 @@ export interface ExtractionContext {
   decisions: ReplayDecision[];
   /** The CSV row being processed */
   row: OracleRow;
+  /** Agent name from telemetry */
+  agentName: string;
 }
 
 /** Data extracted from a telemetry span for a single turn */
@@ -154,4 +159,24 @@ export interface ExtractedPrompt {
   modelString: string;
   /** Agent name (e.g. 'simple-strategist') */
   agentName: string;
+}
+
+/** Raw telemetry data extracted for a single CSV row. No prompt modifications applied. */
+export interface RetrievedRow {
+  /** Original CSV row */
+  row: OracleRow;
+  /** Raw model string from telemetry (e.g. 'openai-compatible/Kimi-K2.5@Medium') */
+  originalModel: string;
+  /** Agent name from telemetry (e.g. 'simple-strategist') */
+  agentName: string;
+  /** Agent type from OracleConfig */
+  agentType?: string;
+  /** Raw system prompt parts from telemetry (unmodified) */
+  system: string[];
+  /** Raw non-system messages from telemetry (unmodified) */
+  messages: ModelMessage[];
+  /** Tool names from the original span */
+  activeTools: string[];
+  /** Set when extraction failed for this row */
+  error?: string;
 }

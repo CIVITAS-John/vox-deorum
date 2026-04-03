@@ -1,5 +1,5 @@
 /**
- * @module oracle/db-resolver
+ * @module oracle/utils/db-resolver
  *
  * Auto-discovers telemetry database files for a given game/player pair.
  * Scans the telemetry directory for databases matching the naming convention
@@ -10,8 +10,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import { Kysely, SqliteDialect } from 'kysely';
-import { createLogger } from '../utils/logger.js';
-import type { TelemetryDatabase } from '../utils/telemetry/schema.js';
+import { createLogger } from '../../utils/logger.js';
+import type { TelemetryDatabase } from '../../utils/telemetry/schema.js';
 
 const logger = createLogger('OracleDbResolver');
 

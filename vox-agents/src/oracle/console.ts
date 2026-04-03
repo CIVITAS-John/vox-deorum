@@ -2,19 +2,21 @@
  * @module oracle/console
  *
  * CLI entry point for Oracle experiments.
- * Dynamically imports user experiment scripts and runs them through runExperiment().
+ * Dynamically imports user experiment scripts and runs them through the two-phase pipeline.
  *
  * Usage:
- *   npm run oracle -- -c nuke-real-world.js
- *   npm run oracle -- -c nuke-real-world.js --outputDir temp/oracle-v2
- *   npm run oracle -- -c experiments/nuke-real-world.js --agentType strategist
+ *   npm run oracle -- -c nuke-real-world.js              # retrieve + replay (default)
+ *   npm run oracle -- -c nuke-real-world.js --retrieve   # retrieve only (no LLM)
+ *   npm run oracle -- -c nuke-real-world.js --replay     # replay only (load saved JSONs)
+ *   npm run oracle -- -c nuke-real-world.js -o temp/oracle-v2 -t telemetry/custom
  */
 
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { createLogger } from '../utils/logger.js';
-import { runExperiment } from './oracle.js';
+import { runRetrieve } from './retriever.js';
+import { runReplay } from './replayer.js';
 import type { OracleConfig } from './types.js';
 import { startWebServer } from '../web/server.js';
 import { contextRegistry } from '../infra/context-registry.js';
@@ -39,27 +41,15 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGBREAK', () => shutdown('SIGBREAK'));
 
-/** Parse CLI flags (matches strategist pattern) */
 const { values } = parseArgs({
   options: {
-    config: {
-      type: 'string',
-      short: 'c',
-    },
-    outputDir: {
-      type: 'string',
-      short: 'o',
-    },
-    telemetryDir: {
-      type: 'string',
-      short: 't',
-    },
-    targetAgent: {
-      type: 'string',
-    },
-    agentType: {
-      type: 'string',
-    },
+    config:       { type: 'string',  short: 'c' },
+    outputDir:    { type: 'string',  short: 'o' },
+    telemetryDir: { type: 'string',  short: 't' },
+    targetAgent:  { type: 'string' },
+    agentType:    { type: 'string' },
+    retrieve:     { type: 'boolean' },
+    replay:       { type: 'boolean' },
   },
   strict: false,
   allowPositionals: false,
@@ -82,16 +72,26 @@ function printUsage(): void {
     'Usage: npm run oracle -- -c <experiment-script> [options]',
     '',
     'Options:',
-    '  --config, -c       Experiment script filename or path (required)',
-    '  --outputDir, -o    Override output directory',
-    '  --telemetryDir, -t Override telemetry directory',
-    '  --targetAgent      Override target agent name',
-    '  --agentType        Override agent type',
+    '  --config, -c        Experiment script filename or path (required)',
+    '  --outputDir, -o     Override output directory',
+    '  --telemetryDir, -t  Override telemetry directory',
+    '  --targetAgent       Override target agent name',
+    '  --agentType         Override agent type',
+    '  --retrieve          Retrieve only (extract raw prompts from telemetry, no LLM)',
+    '  --replay            Replay only (load retrieved JSONs, apply modifyPrompt, run LLM)',
+    '',
+    'Modes:',
+    '  (default)     Both retrieve + replay in sequence',
+    '  --retrieve    Extracts raw prompts → {experimentDir}/retrieved/*.json',
+    '  --replay      Loads *.json → applies modifyPrompt → runs LLM → results CSV',
     '',
     'Examples:',
     '  npm run oracle -- -c nuke-real-world.js',
-    '  npm run oracle -- -c nuke-real-world.js --outputDir temp/oracle-v2',
-    '  npm run oracle -- -c experiments/nuke-real-world.js --agentType strategist',
+    '  npm run oracle -- -c nuke-real-world.js --retrieve',
+    '  npm run oracle -- -c nuke-real-world.js --replay',
+    '  npm run oracle -- -c nuke-real-world.js -o temp/oracle-v2 -t telemetry/custom',
+    '',
+    'See docs/oracle.md for full documentation.',
   ].join('\n'));
 }
 
@@ -105,7 +105,6 @@ async function main() {
   logger.info(`Loading experiment: ${scriptPath}`);
 
   try {
-    // Dynamic import of the experiment script
     const scriptUrl = pathToFileURL(scriptPath).href;
     const module = await import(scriptUrl);
     const experimentConfig: OracleConfig = module.default;
@@ -116,29 +115,55 @@ async function main() {
     }
 
     // Merge CLI overrides into experiment config
-    const cliOverrides: Partial<OracleConfig> = {};
-    if (values.outputDir) cliOverrides.outputDir = values.outputDir as string;
-    if (values.telemetryDir) cliOverrides.telemetryDir = values.telemetryDir as string;
-    if (values.targetAgent) cliOverrides.targetAgent = values.targetAgent as string;
-    if (values.agentType) cliOverrides.agentType = values.agentType as string;
+    const cliOverrides = Object.fromEntries(
+      (['outputDir', 'telemetryDir', 'targetAgent', 'agentType'] as const)
+        .filter(k => values[k] !== undefined)
+        .map(k => [k, values[k]])
+    ) as Partial<OracleConfig>;
 
     const config: OracleConfig = { ...experimentConfig, ...cliOverrides };
 
+    const retrieveOnly = values.retrieve === true && values.replay !== true;
+    const replayOnly   = values.replay === true   && values.retrieve !== true;
+
     await startWebServer();
     logger.info(`Starting experiment: ${config.experimentName}`);
-    const results = await runExperiment(config);
 
-    // Print summary
-    const errors = results.filter(r => r.error).length;
-    const successes = results.length - errors;
-    logger.info([
-      `Experiment "${config.experimentName}" complete:`,
-      `  ${successes} successful replays`,
-      `  ${errors} errors`,
-      `  Results: temp/oracle/${config.experimentName}-results.csv`,
-      `  Trails: temp/oracle/${config.experimentName}/`,
-      `  Telemetry: telemetry/oracle/${config.experimentName}.db`,
-    ].join('\n'));
+    if (retrieveOnly) {
+      const rows = await runRetrieve(config, true);
+      const errors = rows.filter(r => r.error).length;
+      logger.info([
+        `Experiment "${config.experimentName}" retrieve complete:`,
+        `  ${rows.length - errors} rows retrieved`,
+        `  ${errors} errors`,
+        `  Retrieved JSONs: temp/oracle/${config.experimentName}/retrieved/`,
+      ].join('\n'));
+    } else if (replayOnly) {
+      const results = await runReplay(config);
+      const errors = results.filter(r => r.error).length;
+      logger.info([
+        `Experiment "${config.experimentName}" replay complete:`,
+        `  ${results.length - errors} successful replays`,
+        `  ${errors} errors`,
+        `  Results: temp/oracle/${config.experimentName}-results.csv`,
+        `  Trails: temp/oracle/${config.experimentName}/`,
+        `  Telemetry: telemetry/oracle/${config.experimentName}.db`,
+      ].join('\n'));
+    } else {
+      // Both: retrieve (saving to disk), then replay with in-memory rows
+      const rows = await runRetrieve(config, true);
+      const results = await runReplay(config, rows);
+      const errors = results.filter(r => r.error).length;
+      logger.info([
+        `Experiment "${config.experimentName}" complete:`,
+        `  ${results.length - errors} successful replays`,
+        `  ${errors} errors`,
+        `  Retrieved JSONs: temp/oracle/${config.experimentName}/retrieved/`,
+        `  Results: temp/oracle/${config.experimentName}-results.csv`,
+        `  Trails: temp/oracle/${config.experimentName}/`,
+        `  Telemetry: telemetry/oracle/${config.experimentName}.db`,
+      ].join('\n'));
+    }
   } catch (error) {
     logger.error('Experiment failed:', error);
     process.exit(1);

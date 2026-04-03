@@ -1,15 +1,15 @@
 /**
- * @module oracle/model-resolver
+ * @module oracle/utils/model-resolver
  *
  * Resolves model configurations from strings or Model objects.
  * Parses the model format ({provider}/{name}@{reasoningEffort})
  * and looks up full configurations from config.llms.
  */
 
-import { config } from '../utils/config.js';
-import { getModelConfig } from '../utils/models/models.js';
-import { createLogger } from '../utils/logger.js';
-import type { Model } from '../types/index.js';
+import { config } from '../../utils/config.js';
+import { getModelConfig } from '../../utils/models/models.js';
+import { createLogger } from '../../utils/logger.js';
+import type { Model } from '../../types/index.js';
 
 const logger = createLogger('OracleModelResolver');
 

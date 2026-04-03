@@ -262,18 +262,23 @@ Bare filenames resolve relative to the `telemetry/` directory. The web UI starts
 
 ## Oracle Workflow
 
-The Oracle runs counterfactual prompt replay experiments — replaying past agent turns with modified prompts or different LLMs to explore "what-if" scenarios.
+The Oracle runs counterfactual prompt replay experiments — replaying past agent turns with modified prompts or different LLMs to explore "what-if" scenarios. It operates in two phases: **retrieve** (extract raw prompts from telemetry, no LLM) and **replay** (apply modifications, run LLM, write results).
+
+See [docs/oracle.md](docs/oracle.md) for full documentation.
 
 ### Command-Line Usage
 ```bash
-# Run an experiment
+# Full experiment (retrieve + replay)
 npm run oracle -- -c my-experiment.js
 
-# Override output and telemetry directories
-npm run oracle -- -c my-experiment.js -o temp/oracle-v2 -t telemetry/custom
+# Retrieve phase only (extract prompts, no LLM calls)
+npm run oracle -- -c my-experiment.js --retrieve
 
-# Override target agent or type
-npm run oracle -- -c my-experiment.js --targetAgent simple-strategist --agentType strategist
+# Replay phase only (load saved JSONs, run LLM)
+npm run oracle -- -c my-experiment.js --replay
+
+# Override directories
+npm run oracle -- -c my-experiment.js -o temp/oracle-v2 -t telemetry/custom
 ```
 
 ### Options
@@ -284,10 +289,13 @@ npm run oracle -- -c my-experiment.js --targetAgent simple-strategist --agentTyp
 | `-t, --telemetryDir` | Override telemetry directory |
 | `--targetAgent` | Override target agent name |
 | `--agentType` | Override agent type (e.g., `strategist`) |
+| `--retrieve` | Retrieve phase only (extract raw prompts, no LLM) |
+| `--replay` | Replay phase only (load retrieved JSONs, run LLM) |
 
 Bare config filenames resolve to the `experiments/` directory. The experiment config must export an `OracleConfig` with `csvPath`, `experimentName`, and `modifyPrompt`.
 
 Outputs:
+- Retrieved JSONs: `temp/oracle/{experimentName}/retrieved/`
 - Results CSV: `temp/oracle/{experimentName}-results.csv`
 - JSON/Markdown trails: `temp/oracle/{experimentName}/`
 - Telemetry DB: `telemetry/oracle/{experimentName}.db`

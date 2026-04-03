@@ -1,5 +1,5 @@
 /**
- * @module oracle/prompt-extractor
+ * @module oracle/utils/prompt-extractor
  *
  * Extracts original prompts from telemetry databases.
  * Traverses the span hierarchy (root → agent → step) to recover
@@ -9,10 +9,10 @@
 import type { Kysely } from 'kysely';
 import type { ModelMessage } from 'ai';
 import { fuzzy } from 'fast-fuzzy';
-import { createLogger } from '../utils/logger.js';
-import { cleanToolArtifacts } from '../utils/text-cleaning.js';
-import type { TelemetryDatabase, Span, SpanAttributes } from '../utils/telemetry/schema.js';
-import type { ExtractedPrompt } from './types.js';
+import { createLogger } from '../../utils/logger.js';
+import { cleanToolArtifacts } from '../../utils/text-cleaning.js';
+import type { TelemetryDatabase, Span, SpanAttributes } from '../../utils/telemetry/schema.js';
+import type { ExtractedPrompt } from '../types.js';
 
 const logger = createLogger('OraclePromptExtractor');
 
@@ -168,9 +168,6 @@ export async function extractPrompt(
     logger.warn('Failed to parse active tools for agent ${agentName} at turn ${turn}');
   }
 
-  // Parse responses
-  const rawResponses = parseJson(stepAttrs['step.responses']);
-
   // Use model from step span if not on agent span
   const stepModel = stepAttrs['model'] as string || '';
   const finalModelString = modelString || stepModel;
@@ -284,32 +281,4 @@ function extractTextContent(content: unknown): string {
       .join('\n');
   }
   return '';
-}
-
-/** Extract response text and tool calls from response messages */
-function extractResponse(responses: unknown): { text: string; toolCalls: { toolName: string; args: unknown }[] } {
-  const result = { text: '', toolCalls: [] as { toolName: string; args: unknown }[] };
-
-  if (!Array.isArray(responses)) return result;
-
-  for (const msg of responses) {
-    if (msg.role !== 'assistant') continue;
-
-    if (typeof msg.content === 'string') {
-      result.text += cleanToolArtifacts(msg.content);
-    } else if (Array.isArray(msg.content)) {
-      for (const part of msg.content) {
-        if (part.type === 'text') {
-          result.text += cleanToolArtifacts(part.text || '');
-        } else if (part.type === 'tool-call') {
-          result.toolCalls.push({
-            toolName: part.toolName,
-            args: part.args,
-          });
-        }
-      }
-    }
-  }
-
-  return result;
 }

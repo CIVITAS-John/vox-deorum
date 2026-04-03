@@ -69,6 +69,16 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
 
       logger.info(`Starting strategist session ${this.id} in ${this.config.gameMode} mode`, this.config);
 
+    // Configure animation skipping based on mode (skip in interactive mode)
+    if (this.config.liveStream) {
+      await voxCivilization.updateSkipAnimations(false);   // animations play for viewers
+    } else if (!this.isInteractiveMode) {
+      await voxCivilization.updateSkipAnimations(true);    // skip animations in full-auto mode
+    }
+
+    // Generate MainMenu.lua — AI Observer only in non-interactive mode
+    await voxCivilization.generateMainMenuLua(!this.isInteractiveMode);
+
     // In wait mode, prompt the user to start the game manually
     if (this.config.gameMode === 'wait') {
       logger.warn('WAIT MODE: Please manually start or load your game.');
@@ -213,6 +223,10 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     logger.info('Strategist session shutdown complete');
   }
 
+  private get isInteractiveMode(): boolean {
+    return !this.config.autoPlay;
+  }
+
   private async handlePlayerDoneTurn(params: GameEventNotification): Promise<void> {
     await this.recoverGame();
     if (this.turn !== params.turn)
@@ -266,7 +280,7 @@ Game.SetAIAutoPlay(2000, -1);`
     } else {
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
     }
-    if (this.config.autoPlay) {
+    if (this.config.autoPlay && !this.config.liveStream) {
       await setTimeout(3000);
       await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
     }
@@ -285,7 +299,7 @@ Game.SetAIAutoPlay(2000, -1);`
         player.context.resetModelIdentity();
       }
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
-      if (this.config.autoPlay) {
+      if (this.config.autoPlay && !this.config.liveStream) {
         await setTimeout(3000);
         await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
       }

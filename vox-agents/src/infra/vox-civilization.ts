@@ -12,6 +12,7 @@ import { join } from 'path';
 import { promisify } from 'util';
 import { setTimeout } from 'node:timers/promises'
 import { readFile, writeFile } from 'fs/promises';
+import { homedir } from 'os';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('VoxCivilization');
@@ -193,6 +194,72 @@ export class VoxCivilization {
       logger.debug(`Generated ${outputPath}`);
     } catch (error) {
       logger.error('Failed to generate StartGame.lua from template:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Updates SinglePlayerQuickCombatEnabled and SinglePlayerQuickMovementEnabled in
+   * the user's Civ5 UserSettings.ini. Uses PowerShell to resolve the real Documents
+   * folder (handles OneDrive-redirected paths).
+   *
+   * @param skipEnabled - true enables quick-skip (value 1); false disables it (value 0)
+   */
+  async updateSkipAnimations(skipEnabled: boolean): Promise<void> {
+    const value = skipEnabled ? '1' : '0';
+    let documentsPath: string;
+    try {
+      const { stdout } = await execAsync(
+        'powershell -Command "[Environment]::GetFolderPath(\'MyDocuments\')"'
+      );
+      documentsPath = stdout.trim();
+    } catch {
+      documentsPath = join(homedir(), 'Documents');
+    }
+
+    const settingsPath = join(
+      documentsPath,
+      'My Games',
+      "Sid Meier's Civilization 5",
+      'UserSettings.ini'
+    );
+
+    let content: string;
+    try {
+      content = await readFile(settingsPath, 'utf-8');
+    } catch {
+      logger.warn(`UserSettings.ini not found at ${settingsPath}, skipping animation config`);
+      return;
+    }
+
+    const updated = content
+      .replace(/^(SinglePlayerQuickCombatEnabled\s*=\s*)\d/m, `$1${value}`)
+      .replace(/^(SinglePlayerQuickMovementEnabled\s*=\s*)\d/m, `$1${value}`);
+
+    await writeFile(settingsPath, updated, 'utf-8');
+    logger.info(`Set SinglePlayerQuickCombat/Movement to ${value} in UserSettings.ini`);
+  }
+
+  /**
+   * Generates scripts/MainMenu.lua from scripts/MainMenu.template.lua.
+   * Conditionally includes the AI Observer mod based on the parameter.
+   *
+   * @param enableAiObserver - When true, the AI Observer mod entry is included
+   */
+  async generateMainMenuLua(enableAiObserver: boolean): Promise<void> {
+    const templatePath = join('scripts', 'MainMenu.template.lua');
+    const outputPath = join('scripts', 'MainMenu.lua');
+    const aiObserverEntry = enableAiObserver
+      ? '["970aae10-1004-4c8a-af2d-8d601de5ec02"] = "AI Observer (JFD)"'
+      : '';
+
+    try {
+      const template = await readFile(templatePath, 'utf-8');
+      const generated = template.replace('{{AI_OBSERVER_MOD}}', aiObserverEntry);
+      await writeFile(outputPath, generated, 'utf-8');
+      logger.debug(`Generated MainMenu.lua (AIObserver: ${enableAiObserver})`);
+    } catch (error) {
+      logger.error('Failed to generate MainMenu.lua from template:', error);
       throw error;
     }
   }

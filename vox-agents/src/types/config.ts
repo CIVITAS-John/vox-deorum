@@ -155,4 +155,7 @@ export interface StrategistSessionConfig extends SessionConfig {
 
   /** When true, randomize the mapping between config slots and actual game player indices each game */
   randomizeSeating?: boolean;
+
+  /** When true: suppresses strategic view and disables animation skipping so combat animations play for viewers */
+  liveStream?: boolean;
 }
