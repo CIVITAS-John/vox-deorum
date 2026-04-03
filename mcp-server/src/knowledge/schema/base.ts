@@ -6,6 +6,7 @@
 import type { Generated, JSONColumnType } from 'kysely';
 import {
   GameEvent,
+  RenderEvent,
   StrategyChange,
   PolicyChange,
   ResearchChange,
@@ -105,6 +106,8 @@ export interface MutableKnowledge extends TimedKnowledge {
  */
 export interface KnowledgeDatabase {
   GameMetadata: GameMetadata;
+  // Render-Time Events
+  RenderEvents: RenderEvent;
   // Timed Knowledge
   GameEvents: GameEvent;
   PlayerOptions: PlayerOptions;

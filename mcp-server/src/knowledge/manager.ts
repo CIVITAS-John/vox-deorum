@@ -55,7 +55,18 @@ export class KnowledgeManager {
           MCPServer.getInstance().sendNotification("DLLDisconnected", -1, -1, -1);
         }
       } else if (this.knowledgeStore) {
-        await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload, data.visibility, data.extraPayload);
+        const RENDER_PREFIX = 'Render:';
+        if (typeof data.type === 'string' && data.type.startsWith(RENDER_PREFIX)) {
+          const eventName = data.type.slice(RENDER_PREFIX.length);
+          await this.knowledgeStore.insertRenderEvent(
+            data.payload.time as number,
+            data.payload.turn as number,
+            eventName,
+            data.payload
+          );
+        } else {
+          await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload, data.visibility, data.extraPayload);
+        }
       }
     });
     this.startAutoSave();

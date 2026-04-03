@@ -1,6 +1,17 @@
 import { JSONColumnType } from "kysely";
-import { MutableKnowledge, TimedKnowledge } from "./base";
+import { Knowledge, MutableKnowledge, TimedKnowledge } from "./base";
 import * as z from "zod";
+
+/**
+ * Render-time events from the observer mod (e.g. panel switch, turn animation complete)
+ * Not player-specific — timestamps anchor video recording metadata to on-screen moments
+ */
+export interface RenderEvent extends Knowledge {
+  Time: number; // Unix ms from Game.GetCurrentTimeEpochMs()
+  Turn: number;
+  Event: string; // Event name without "Render:" prefix (e.g. "PlayerPanelSwitch")
+  Payload: JSONColumnType<Record<string, unknown>>;
+}
 
 /**
  * Game events with typed payloads

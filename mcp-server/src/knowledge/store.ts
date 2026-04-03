@@ -669,4 +669,19 @@ export class KnowledgeStore {
     
     return results as Selectable<KnowledgeDatabase[TTable]>[];
   }
+
+  /**
+   * Insert a render-time event (e.g. PlayerPanelSwitch, TurnAnimationComplete)
+   */
+  async insertRenderEvent(time: number, turn: number, event: string, payload: Record<string, unknown>): Promise<void> {
+    await this.writeQueue.add(() => this.getDatabase()
+      .insertInto('RenderEvents')
+      .values({
+        Time: time,
+        Turn: turn,
+        Event: event,
+        Payload: JSON.stringify(payload),
+      })
+      .execute());
+  }
 }

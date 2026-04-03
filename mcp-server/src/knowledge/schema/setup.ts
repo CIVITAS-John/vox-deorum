@@ -31,6 +31,23 @@ export async function setupKnowledgeDatabase(
     .addColumn('Value', 'text', (col) => col.notNull())
     .execute();
   
+  // Create RenderEvents table (render-time events for video metadata)
+  await db.schema
+    .createTable('RenderEvents')
+    .ifNotExists()
+    .addColumn('ID', 'integer', (col) => col.primaryKey().autoIncrement())
+    .addColumn('Time', 'integer', (col) => col.notNull())
+    .addColumn('Turn', 'integer', (col) => col.notNull())
+    .addColumn('Event', 'text', (col) => col.notNull())
+    .addColumn('Payload', 'text')
+    .execute();
+  await db.schema
+    .createIndex('idx_renderevents_turn')
+    .ifNotExists()
+    .on('RenderEvents')
+    .column('Turn')
+    .execute();
+
   // Create GameEvents table (TimedKnowledge implementation)
   await createTimedKnowledgeTable(db, 'GameEvents')
     .addColumn('Type', 'text', (col) => col.notNull())
