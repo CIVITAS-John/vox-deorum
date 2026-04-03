@@ -2,14 +2,10 @@
  * Tool for setting a player's next policy selection in Civilization V
  */
 
-import { LuaFunctionTool } from "../abstract/lua-function.js";
+import { ActionTool, sourceTurnField } from "../abstract/action.js";
 import * as z from "zod";
-import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
-import { pushPlayerAction } from "../../utils/lua/player-actions.js";
-import { trimRationale } from "../../utils/text.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -29,7 +25,7 @@ type SetPolicyResultType = z.infer<typeof SetPolicyResultSchema>;
  * Tool that sets a player's next policy selection using a Lua function
  * Can accept either a PolicyBranchType or PolicyID
  */
-class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
+class SetPolicyTool extends ActionTool<SetPolicyResultType> {
   /**
    * Unique identifier for the set-policy tool
    */
@@ -47,7 +43,7 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
     Policy: z.string().describe("Policy name or branch name to adopt next (None to clear)"),
     Rationale: z.string().describe("Briefly explain your rationale for selecting this policy")
-  });
+  }).extend(sourceTurnField);
 
   /**
    * Result schema - returns the previous policy selection
@@ -58,20 +54,6 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
    * The Lua function arguments
    */
   protected arguments = ["playerID", "policyID", "branchID"];
-
-  /**
-   * Optional annotations for the Lua executor tool
-   */
-  readonly annotations: ToolAnnotations = {
-    readOnlyHint: false
-  }
-
-  /**
-   * Optional metadata
-   */
-  readonly metadata = {
-    autoComplete: ["PlayerID"]
-  }
 
   /**
    * The Lua script to execute
@@ -129,8 +111,9 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Extract the arguments and trim rationale
-    var { PlayerID, Policy, Rationale: rawRationale } = args;
-    const Rationale = trimRationale(rawRationale);
+    var { PlayerID, Policy, Rationale: rawRationale, Turn: _sourceTurn } = args;
+    const Rationale = this.trimRationale(rawRationale);
+    const turn = this.resolveSourceTurn(args);
 
     // Remove parenthetical content for better matching (e.g., "Authority (New Branch)" -> "Authority")
     Policy = Policy.replace(/\s*\([^)]*\)/g, '').trim();
@@ -186,7 +169,7 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
       }
 
       // Store the policy decision in the knowledge database
-      const store = knowledgeManager.getStore();
+      const store = this.getStore();
       await store.storeMutableKnowledge(
         'PolicyChanges',
         PlayerID,
@@ -194,7 +177,10 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
           Policy: Policy,
           IsBranch: isBranch ? 1 : 0,
           Rationale: Rationale
-        }
+        },
+        undefined,
+        undefined,
+        turn
       );
 
       // Send action event and replay message if the policy actually changed
@@ -202,7 +188,7 @@ class SetPolicyTool extends LuaFunctionTool<SetPolicyResultType> {
       if (Policy !== previousPolicy && !(Policy === "None" && previousPolicy === "Unknown")) {
         const summary = `${previousPolicy || "None"} → ${Policy}`;
         const typeDesc = isBranch ? "policy branch" : "policy";
-        await pushPlayerAction(PlayerID, "policy", summary, Rationale, `Changed next ${typeDesc}`);
+        await this.pushAction(PlayerID, "policy", summary, Rationale, `Changed next ${typeDesc}`, turn);
       }
     }
 

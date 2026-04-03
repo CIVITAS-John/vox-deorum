@@ -2,14 +2,10 @@
  * Tool for recording the decision to maintain current strategic direction
  */
 
-import { LuaFunctionTool } from "../abstract/lua-function.js";
+import { ActionTool, sourceTurnField } from "../abstract/action.js";
 import * as z from "zod";
-import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
-import { trimRationale } from "../../utils/text.js";
-import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 
 /**
  * Mode enum for keep-status-quo tool
@@ -19,7 +15,7 @@ const ModeEnum = z.enum(["Flavor", "Strategy"]).default("Strategy");
 /**
  * Tool that refreshes the current strategies/flavors and records the decision to keep the status quo
  */
-class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
+class KeepStatusQuoTool extends ActionTool<boolean> {
   /**
    * Unique identifier for the keep-status-quo tool
    */
@@ -37,7 +33,7 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
     Mode: ModeEnum.describe("'Flavor' to reapply custom flavors, 'Strategy' to reapply strategies (default)"),
     Rationale: z.string().describe("Briefly explain why the current strategic direction should be maintained")
-  });
+  }).extend(sourceTurnField);
 
   /**
    * Result schema - always true unless execution failed
@@ -50,17 +46,10 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
   protected arguments = ["playerID", "mode"];
 
   /**
-   * Optional annotations for the Lua executor tool
-   */
-  readonly annotations: ToolAnnotations = {
-    readOnlyHint: false
-  }
-
-  /**
    * Optional metadata
    */
   readonly metadata = {
-    autoComplete: ["PlayerID", "Mode"]
+    autoComplete: ["PlayerID", "Turn", "Mode"]
   }
 
   /**
@@ -96,14 +85,15 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Trim rationale
-    const { Rationale: rawRationale, ...otherArgs } = args;
-    const Rationale = trimRationale(rawRationale);
+    const { Rationale: rawRationale, Turn: _sourceTurn, ...otherArgs } = args;
+    const Rationale = this.trimRationale(rawRationale);
+    const turn = this.resolveSourceTurn(args);
 
     // Call the Lua function to refresh strategies or flavors
     const result = await super.call(otherArgs.PlayerID, otherArgs.Mode);
 
     if (result.Success) {
-      const store = knowledgeManager.getStore();
+      const store = this.getStore();
 
       if (otherArgs.Mode === "Flavor") {
         // Get the current flavors from the knowledge store
@@ -131,7 +121,10 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
           await store.storeMutableKnowledge(
             'FlavorChanges',
             otherArgs.PlayerID,
-            flavorData
+            flavorData,
+            undefined,
+            undefined,
+            turn
           );
         }
       } else {
@@ -147,12 +140,15 @@ class KeepStatusQuoTool extends LuaFunctionTool<boolean> {
             MilitaryStrategies: previous?.MilitaryStrategies ?? [],
             EconomicStrategies: previous?.EconomicStrategies ?? [],
             Rationale: Rationale
-          }
+          },
+          undefined,
+          undefined,
+          turn
         );
       }
 
       // Fire action event (no replay message for status-quo)
-      await pushPlayerAction(otherArgs.PlayerID, "status-quo", `Maintaining ${otherArgs.Mode}`, Rationale);
+      await this.pushAction(otherArgs.PlayerID, "status-quo", `Maintaining ${otherArgs.Mode}`, Rationale, undefined, turn);
     }
 
     return result;

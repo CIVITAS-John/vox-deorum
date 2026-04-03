@@ -2,14 +2,10 @@
  * Tool for setting a player's next research technology in Civilization V
  */
 
-import { LuaFunctionTool } from "../abstract/lua-function.js";
+import { ActionTool, sourceTurnField } from "../abstract/action.js";
 import * as z from "zod";
-import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { retrieveEnumValue, retrieveEnumName } from "../../utils/knowledge/enum.js";
-import { pushPlayerAction } from "../../utils/lua/player-actions.js";
-import { trimRationale } from "../../utils/text.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -26,7 +22,7 @@ type SetResearchResultType = z.infer<typeof SetResearchResultSchema>;
 /**
  * Tool that sets a player's next research technology using a Lua function
  */
-class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
+class SetResearchTool extends ActionTool<SetResearchResultType> {
   /**
    * Unique identifier for the set-research tool
    */
@@ -44,7 +40,7 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
     Technology: z.string().describe("Technology name to research next (None to clear)"),
     Rationale: z.string().describe("Briefly explain your rationale for selecting this technology")
-  });
+  }).extend(sourceTurnField);
 
   /**
    * Result schema - returns the previous technology selection
@@ -55,20 +51,6 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
    * The Lua function arguments
    */
   protected arguments = ["playerID", "techID"];
-
-  /**
-   * Optional annotations for the Lua executor tool
-   */
-  readonly annotations: ToolAnnotations = {
-    readOnlyHint: false
-  }
-
-  /**
-   * Optional metadata
-   */
-  readonly metadata = {
-    autoComplete: ["PlayerID"]
-  }
 
   /**
    * The Lua script to execute
@@ -111,8 +93,9 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Extract the arguments and trim rationale
-    const { PlayerID, Technology, Rationale: rawRationale } = args;
-    const Rationale = trimRationale(rawRationale);
+    const { PlayerID, Technology, Rationale: rawRationale, Turn: _sourceTurn } = args;
+    const Rationale = this.trimRationale(rawRationale);
+    const turn = this.resolveSourceTurn(args);
 
     // Convert technology name to ID
     const techID = Technology.toLowerCase() === "none" ? -1 : retrieveEnumValue("TechID", Technology);
@@ -147,21 +130,24 @@ class SetResearchTool extends LuaFunctionTool<SetResearchResultType> {
       }
 
       // Store the research decision in the knowledge database
-      const store = knowledgeManager.getStore();
+      const store = this.getStore();
       await store.storeMutableKnowledge(
         'ResearchChanges',
         PlayerID,
         {
           Technology: Technology,
           Rationale: Rationale
-        }
+        },
+        undefined,
+        undefined,
+        turn
       );
 
       // Send action event and replay message if the technology actually changed
       const previousTech = result.Result?.PreviousTech;
       if (Technology !== previousTech) {
         const summary = `${previousTech || "None"} → ${Technology}`;
-        await pushPlayerAction(PlayerID, "research", summary, Rationale, "Changed next research");
+        await this.pushAction(PlayerID, "research", summary, Rationale, "Changed next research", turn);
       }
     }
 

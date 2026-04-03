@@ -5,6 +5,7 @@
  */
 
 import { LuaFunction } from "../../bridge/lua-function.js";
+import { knowledgeManager } from "../../server.js";
 import { createLogger } from "../logger.js";
 
 const logger = createLogger('PlayerActions');
@@ -24,9 +25,8 @@ function sanitize(text: string): string {
  */
 const actionFunction = new LuaFunction(
   "registerAction",
-  ["playerID", "actionType", "summary", "rationale", "replayPrefix"],
+  ["playerID", "actionType", "summary", "rationale", "replayPrefix", "turn"],
   `
-    local turn = Game.GetGameTurn()
     LuaEvents.VoxDeorumAction(playerID, turn, actionType, summary, rationale)
 
     if replayPrefix then
@@ -75,15 +75,18 @@ export async function pushPlayerAction(
   actionType: string,
   summary: string,
   rationale: string,
-  replayPrefix?: string
+  replayPrefix?: string,
+  turn?: number
 ): Promise<void> {
+  const effectiveTurn = turn !== undefined && turn >= 0 ? turn : knowledgeManager.getTurn();
   // Pass false for no replay (Lua falsy), or the prefix string (Lua truthy, including "")
   const response = await actionFunction.execute(
     playerID,
     sanitize(actionType),
     sanitize(summary),
     sanitize(rationale),
-    replayPrefix !== undefined ? replayPrefix : false
+    replayPrefix !== undefined ? replayPrefix : false,
+    effectiveTurn
   );
 
   if (response.success) {

@@ -2,12 +2,9 @@
  * Tool for unsetting (clearing) custom flavor values for a player in Civilization V
  */
 
-import { LuaFunctionTool } from "../abstract/lua-function.js";
+import { ActionTool, sourceTurnField } from "../abstract/action.js";
 import * as z from "zod";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -22,7 +19,7 @@ type UnsetFlavorsResultType = z.infer<typeof UnsetFlavorsResultSchema>;
 /**
  * Tool that unsets (clears) flavor values for a player using a Lua function
  */
-class UnsetFlavorsTool extends LuaFunctionTool<UnsetFlavorsResultType> {
+class UnsetFlavorsTool extends ActionTool<UnsetFlavorsResultType> {
   /**
    * Unique identifier for the unset-flavors tool
    */
@@ -38,7 +35,7 @@ class UnsetFlavorsTool extends LuaFunctionTool<UnsetFlavorsResultType> {
    */
   inputSchema = z.object({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player")
-  });
+  }).extend(sourceTurnField);
 
   /**
    * Result schema - returns success status and optional message
@@ -49,20 +46,6 @@ class UnsetFlavorsTool extends LuaFunctionTool<UnsetFlavorsResultType> {
    * The Lua function arguments
    */
   protected arguments = ["playerID"];
-
-  /**
-   * Optional annotations for the Lua executor tool
-   */
-  readonly annotations: ToolAnnotations = {
-    readOnlyHint: false
-  }
-
-  /**
-   * Optional metadata
-   */
-  readonly metadata = {
-    autoComplete: ["PlayerID"]
-  }
 
   /**
    * The Lua script to execute
@@ -86,13 +69,15 @@ class UnsetFlavorsTool extends LuaFunctionTool<UnsetFlavorsResultType> {
   /**
    * Execute the unset-flavors command
    */
-  async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
+  async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.resultSchema>> {
+    const turn = this.resolveSourceTurn(args);
+
     // Call the parent execute
     const result = await super.call(args.PlayerID);
 
     if (result.Success) {
       // Delete the flavor change record from the knowledge store
-      const store = knowledgeManager.getStore();
+      const store = this.getStore();
 
       // Mark any existing FlavorChanges for this player as not latest
       // (We don't actually delete, just mark as historical)
@@ -105,7 +90,7 @@ class UnsetFlavorsTool extends LuaFunctionTool<UnsetFlavorsResultType> {
         .execute();
 
       // Fire action event and replay message
-      await pushPlayerAction(args.PlayerID, "unset-flavors", "Cleared custom flavors, reverting to default AI preferences", "", "");
+      await this.pushAction(args.PlayerID, "unset-flavors", "Cleared custom flavors, reverting to default AI preferences", "", "", turn);
     }
 
     return result;

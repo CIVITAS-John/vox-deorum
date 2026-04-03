@@ -354,16 +354,18 @@ export class KnowledgeStore {
       extra?: Record<string, any>;
       data: TData;
       visibilityFlags?: number[];
+      turn?: number;
     }>
   ): Promise<void> {
     const db = this.getDatabase();
-    const turn = knowledgeManager.getTurn();
+    const defaultTurn = knowledgeManager.getTurn();
 
     try {
       // Process all items in a single transaction for efficiency
       await this.writeQueue.add(() => db.transaction().execute(async (trx) => {
         for (const item of items) {
-          const { extra, data, visibilityFlags } = item;
+          const { extra, data, visibilityFlags, turn: itemTurn } = item;
+          const turn = itemTurn !== undefined && itemTurn >= 0 ? itemTurn : defaultTurn;
 
           // Prepare the new entry with TimedKnowledge fields
           const newEntry: any = {
@@ -385,7 +387,7 @@ export class KnowledgeStore {
         }
       }));
       logger.debug(
-        `Stored ${tableName} entries x ${items.length} - Turn: ${turn}`
+        `Stored ${tableName} entries x ${items.length} - Turn: ${defaultTurn}`
       );
     } catch (error) {
       logger.error(`Error storing TimedKnowledge batch in ${tableName}:`, error);
@@ -411,16 +413,18 @@ export class KnowledgeStore {
       data: TData;
       visibilityFlags?: number[];
       ignoreFields?: string[];
+      turn?: number;
     }>
   ): Promise<void> {
     const db = this.getDatabase();
-    const turn = knowledgeManager.getTurn();
+    const defaultTurn = knowledgeManager.getTurn();
 
     try {
       // Process all items in a single transaction for efficiency
       await this.writeQueue.add(() => db.transaction().execute(async (trx) => {
         for (const item of items) {
-          const { key, data, visibilityFlags, ignoreFields } = item;
+          const { key, data, visibilityFlags, ignoreFields, turn: itemTurn } = item;
+          const turn = itemTurn !== undefined && itemTurn >= 0 ? itemTurn : defaultTurn;
 
           // Find the latest version for this key
           const latestEntry = await (trx
@@ -502,13 +506,15 @@ export class KnowledgeStore {
     key: number,
     data: TData,
     visibilityFlags?: number[],
-    ignoreFields?: string[]
+    ignoreFields?: string[],
+    turn?: number
   ): Promise<void> {
     await this.storeMutableKnowledgeBatch(tableName, [{
       key,
       data,
       visibilityFlags,
-      ignoreFields
+      ignoreFields,
+      turn
     }]);
   }
 

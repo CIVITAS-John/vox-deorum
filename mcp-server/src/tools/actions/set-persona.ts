@@ -2,14 +2,10 @@
  * Tool for setting a player's AI persona values in Civilization V
  */
 
-import { LuaFunctionTool } from "../abstract/lua-function.js";
+import { ActionTool, sourceTurnField } from "../abstract/action.js";
 import * as z from "zod";
-import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
-import { pushPlayerAction } from "../../utils/lua/player-actions.js";
-import { trimRationale } from "../../utils/text.js";
 
 const personaSchema = z.object({
   // Core Competitiveness & Ambition
@@ -52,7 +48,7 @@ const personaSchema = z.object({
 /**
  * Tool that sets a player's AI persona values using a Lua function
  */
-class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
+class SetPersonaTool extends ActionTool<Record<string, number>> {
   /**
    * Unique identifier for the set-persona tool
    */
@@ -69,7 +65,7 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
   inputSchema = personaSchema.extend({
     PlayerID: z.number().min(0).max(MaxMajorCivs - 1).describe("ID of the player"),
     Rationale: z.string().describe("Briefly explain your rationale for adjusting these persona values")
-  });
+  }).extend(sourceTurnField);
 
   /**
    * Result schema - returns previous persona values
@@ -81,20 +77,6 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
    */
   protected arguments = ["playerID", "personaValues"];
   
-  /**
-   * Optional annotations for the Lua executor tool
-   */
-  readonly annotations: ToolAnnotations = {
-    readOnlyHint: false
-  }
-
-  /**
-   * Optional metadata
-   */
-  readonly metadata = {
-    autoComplete: ["PlayerID"]
-  }
-
   /**
    * The Lua script to execute
    */
@@ -115,9 +97,10 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
    * Execute the set-persona command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Extract the rationale and player ID, trim rationale
-    const { Rationale: rawRationale, PlayerID, ...personaValues } = args;
-    const Rationale = trimRationale(rawRationale);
+    // Resolve turn and trim rationale
+    const { Rationale: rawRationale, Turn: sourceTurn, PlayerID, ...personaValues } = args;
+    const Rationale = this.trimRationale(rawRationale);
+    const turn = this.resolveSourceTurn(args);
 
     // Filter out undefined values and clamp to 1-10 range
     const filteredPersona = Object.fromEntries(
@@ -130,7 +113,7 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
     const result = await super.call(PlayerID, filteredPersona);
 
     if (result.Success) {
-      const store = knowledgeManager.getStore();
+      const store = this.getStore();
       const previousPersona = result.Result;
       const lastRationale = (await store.getMutableKnowledge("PersonaChanges", PlayerID))?.Rationale ?? "Unknown";
 
@@ -144,7 +127,8 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
             Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI (${lastRationale.trim()})`
           },
           composeVisibility([PlayerID]),
-          ["Rationale"] // Only ignore Rationale when checking for changes
+          ["Rationale"], // Only ignore Rationale when checking for changes
+          turn
         );
       }
 
@@ -161,7 +145,9 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
           ...newPersona,
           Rationale: Rationale
         },
-        composeVisibility([PlayerID])
+        composeVisibility([PlayerID]),
+        undefined,
+        turn
       );
 
       // Compare and send replay messages for actual changes
@@ -176,7 +162,7 @@ class SetPersonaTool extends LuaFunctionTool<Record<string, number>> {
 
       if (changeDescriptions.length > 0) {
         const summary = changeDescriptions.join("; ");
-        await pushPlayerAction(PlayerID, "persona", summary, Rationale, "Diplomatic persona");
+        await this.pushAction(PlayerID, "persona", summary, Rationale, "Diplomatic persona", turn);
       }
     }
 

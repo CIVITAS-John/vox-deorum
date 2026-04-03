@@ -2,16 +2,12 @@
  * Tool for setting the active player's grand strategy in Civilization V
  */
 
-import { LuaFunctionTool } from "../abstract/lua-function.js";
+import { ActionTool, sourceTurnField } from "../abstract/action.js";
 import * as z from "zod";
 import { retrieveEnumValue, convertStrategyToNames } from "../../utils/knowledge/enum.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
 import { detectChanges } from "../../utils/knowledge/changes.js";
-import { pushPlayerAction } from "../../utils/lua/player-actions.js";
-import { trimRationale } from "../../utils/text.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -28,7 +24,7 @@ type SetStrategyResultType = z.infer<typeof SetStrategyResultSchema>;
 /**
  * Tool that sets the player's grand strategy using a Lua function
  */
-class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
+class SetStrategyTool extends ActionTool<SetStrategyResultType> {
   /**
    * Unique identifier for the set-strategy tool
    */
@@ -48,7 +44,7 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
     EconomicStrategies: z.array(z.string()).optional().describe("The economic strategy names to set (and override)"),
     MilitaryStrategies: z.array(z.string()).optional().describe("The military strategy names to set (and override)"),
     Rationale: z.string().describe("Briefly explain your rationale behind choosing this strategy set")
-  });
+  }).extend(sourceTurnField);
 
   /**
    * Result schema - returns strategy change information
@@ -59,20 +55,6 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
    * The Lua function arguments
    */
   protected arguments = ["playerID", "grandId", "economicIds", "militaryIds"];
-
-  /**
-   * Optional annotations for the Lua executor tool
-   */
-  readonly annotations: ToolAnnotations = {
-    readOnlyHint: false
-  }
-
-  /**
-   * Optional metadata
-   */
-  readonly metadata = {
-    autoComplete: ["PlayerID"]
-  }
 
   /**
    * The Lua script to execute
@@ -116,9 +98,10 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
    * Execute the set-strategy command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Trim rationale
-    const { Rationale: rawRationale, ...otherArgs } = args;
-    const Rationale = trimRationale(rawRationale);
+    // Resolve turn and trim rationale
+    const { Rationale: rawRationale, Turn: sourceTurn, ...otherArgs } = args;
+    const Rationale = this.trimRationale(rawRationale);
+    const turn = this.resolveSourceTurn(args);
 
     // Find the strategy ID from the string name
     let grandStrategyId = retrieveEnumValue("GrandStrategy", otherArgs.GrandStrategy)
@@ -130,7 +113,7 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
     // Call the parent execute with the strategy ID
     var result = await super.call(otherArgs.PlayerID, grandStrategyId, economicStrategyIds, militaryStrategyIds);
     if (result.Success) {
-      const store = knowledgeManager.getStore();
+      const store = this.getStore();
       const lastRationale = (await store.getMutableKnowledge("StrategyChanges", otherArgs.PlayerID))?.Rationale ?? "Unknown";
 
       // Store the previous strategy with reason "Tweaked by In-Game AI"
@@ -161,7 +144,8 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
           Rationale: lastRationale.startsWith("Tweaked by In-Game AI") ? lastRationale : `Tweaked by In-Game AI(${lastRationale.trim()})`
         },
         composeVisibility([otherArgs.PlayerID]),
-        ["Rationale"] // Only ignore Rationale when checking for changes
+        ["Rationale"], // Only ignore Rationale when checking for changes
+        turn
       );
 
       // Convert the numeric values back to string names for the response
@@ -179,7 +163,9 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
           ...after,
           Rationale: Rationale
         },
-        composeVisibility([otherArgs.PlayerID])
+        composeVisibility([otherArgs.PlayerID]),
+        undefined,
+        turn
       );
 
       // Compare and send replay messages
@@ -200,7 +186,7 @@ class SetStrategyTool extends LuaFunctionTool<SetStrategyResultType> {
         });
 
         const summary = changeDescriptions.join("; ");
-        await pushPlayerAction(otherArgs.PlayerID, "strategy", summary, Rationale, "Strategies");
+        await this.pushAction(otherArgs.PlayerID, "strategy", summary, Rationale, "Strategies", turn);
       }
     }
 

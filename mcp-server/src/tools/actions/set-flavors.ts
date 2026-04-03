@@ -2,18 +2,14 @@
  * Tool for setting custom flavor values for a player in Civilization V
  */
 
-import { LuaFunctionTool } from "../abstract/lua-function.js";
+import { ActionTool, sourceTurnField } from "../abstract/action.js";
 import * as z from "zod";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { knowledgeManager } from "../../server.js";
 import { MaxMajorCivs } from "../../knowledge/schema/base.js";
 import { composeVisibility } from "../../utils/knowledge/visibility.js";
-import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 import { pascalCase } from "change-case";
 import { retrieveEnumName, retrieveEnumValue } from "../../utils/knowledge/enum.js";
 import { loadFlavorDescriptions } from "../../utils/strategies/loader.js";
 import { FlavorChange } from "../../knowledge/schema/timed.js";
-import { trimRationale } from "../../utils/text.js";
 import { Insertable } from "kysely";
 
 /**
@@ -54,7 +50,7 @@ function convertToFlavorFormat(key: string): string {
 /**
  * Tool that sets custom flavor values for a player using a Lua function
  */
-class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
+class SetFlavorsTool extends ActionTool<SetFlavorsResultType> {
   /**
    * Unique identifier for the set-flavors tool
    */
@@ -76,7 +72,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
       z.number()
     ).optional().describe("Flavor values to set: 0 = forbid, 30 = enough, 50 = balanced, 70 = prioritize, 100 = emergency focus."),
     Rationale: z.string().describe("Briefly explain your rationale for these adjustments")
-  });
+  }).extend(sourceTurnField);
 
   /**
    * Result schema - returns previous grand strategy and flavor values
@@ -87,20 +83,6 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
    * The Lua function arguments
    */
   protected arguments = ["playerID", "flavors", "grandId"];
-
-  /**
-   * Optional annotations for the Lua executor tool
-   */
-  readonly annotations: ToolAnnotations = {
-    readOnlyHint: false
-  }
-
-  /**
-   * Optional metadata
-   */
-  readonly metadata = {
-    autoComplete: ["PlayerID"]
-  }
 
   /**
    * The Lua script to execute
@@ -141,9 +123,10 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
    * Execute the set-flavors command
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
-    // Trim rationale
-    const { Rationale: rawRationale, ...otherArgs } = args;
-    const Rationale = trimRationale(rawRationale);
+    // Trim rationale and extract source turn
+    const { Rationale: rawRationale, Turn: _sourceTurn, ...otherArgs } = args;
+    const Rationale = this.trimRationale(rawRationale);
+    const turn = this.resolveSourceTurn(args);
 
     // Load valid flavor keys from JSON
     const validFlavors = await loadFlavorDescriptions();
@@ -171,7 +154,7 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
     const result = await super.call(otherArgs.PlayerID, flavorsTable, grandStrategyId);
 
     if (result.Success) {
-      const store = knowledgeManager.getStore();
+      const store = this.getStore();
       const previous = result.Result!;
 
       // Build the complete flavor state to store
@@ -215,13 +198,15 @@ class SetFlavorsTool extends LuaFunctionTool<SetFlavorsResultType> {
         'FlavorChanges',
         otherArgs.PlayerID,
         flavorChange,
-        composeVisibility([otherArgs.PlayerID])
+        composeVisibility([otherArgs.PlayerID]),
+        undefined,
+        turn
       );
 
       // Compare and send action event + replay message for actual changes
       if (changeDescriptions.length > 0) {
         const summary = changeDescriptions.join("; ");
-        await pushPlayerAction(otherArgs.PlayerID, "flavors", summary, Rationale, "AI preferences");
+        await this.pushAction(otherArgs.PlayerID, "flavors", summary, Rationale, "AI preferences", turn);
       }
     }
 

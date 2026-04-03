@@ -3,14 +3,10 @@
  * Uses both ScenarioModifier1 (Public) and ScenarioModifier2 (Private) for nuanced diplomacy
  */
 
-import { LuaFunctionTool } from "../abstract/lua-function.js";
+import { ActionTool, sourceTurnField } from "../abstract/action.js";
 import * as z from "zod";
-import { knowledgeManager } from "../../server.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { pushPlayerAction } from "../../utils/lua/player-actions.js";
 import { readPublicKnowledgeBatch } from "../../utils/knowledge/cached.js";
 import { getPlayerInformations } from "../../knowledge/getters/player-information.js";
-import { trimRationale } from "../../utils/text.js";
 
 /**
  * Schema for the result returned by the Lua script
@@ -26,7 +22,7 @@ type SetRelationshipResultType = z.infer<typeof SetRelationshipResultSchema>;
 /**
  * Tool that sets diplomatic relationship modifiers using Lua functions
  */
-class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
+class SetRelationshipTool extends ActionTool<SetRelationshipResultType> {
   /**
    * Unique identifier for the set-relationship tool
    */
@@ -47,7 +43,7 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
     Public: z.number().default(0).describe("Visible diplomatic stance (-100 to 100)"),
     Private: z.number().default(0).describe("Hidden feelings/attitudes (-100 to 100)"),
     Rationale: z.string().describe("Briefly explain your rationale for this relationship change")
-  });
+  }).extend(sourceTurnField);
 
   /**
    * Result schema - returns the previous values
@@ -59,19 +55,6 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
    */
   protected arguments = ["playerID", "targetPlayerID", "publicValue", "privateValue"];
 
-  /**
-   * Optional annotations for the tool
-   */
-  readonly annotations: ToolAnnotations = {
-    readOnlyHint: false
-  }
-
-  /**
-   * Optional metadata
-   */
-  readonly metadata = {
-    autoComplete: ["PlayerID"]
-  }
 
   /**
    * The Lua script to execute
@@ -106,8 +89,9 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
    */
   async execute(args: z.infer<typeof this.inputSchema>): Promise<z.infer<typeof this.outputSchema>> {
     // Extract the arguments and trim rationale
-    const { PlayerID, TargetID, Public, Private, Rationale: rawRationale } = args;
-    const Rationale = trimRationale(rawRationale);
+    const { PlayerID, TargetID, Public, Private, Rationale: rawRationale, Turn: _sourceTurn } = args;
+    const Rationale = this.trimRationale(rawRationale);
+    const turn = this.resolveSourceTurn(args);
 
     // Validate that both players exist
     const playerInfos = await readPublicKnowledgeBatch("PlayerInformations", getPlayerInformations);
@@ -130,7 +114,7 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
       const targetName = result.Result.TargetPlayerName;
 
       // Store the relationship change in the knowledge database
-      const store = knowledgeManager.getStore();
+      const store = this.getStore();
       await store.storeTimedKnowledgeBatch(
         'RelationshipChanges',
         [{
@@ -140,7 +124,8 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
             PublicValue: Public,
             PrivateValue: Private,
             Rationale
-          }
+          },
+          turn
         }]
       );
 
@@ -157,7 +142,7 @@ class SetRelationshipTool extends LuaFunctionTool<SetRelationshipResultType> {
 
       if (changes.length > 0) {
         const summary = `${targetName}: ${changes.join("; ")}`;
-        await pushPlayerAction(PlayerID, "relationship", summary, Rationale, "");
+        await this.pushAction(PlayerID, "relationship", summary, Rationale, "", turn);
       }
 
       // Clean up the result
