@@ -260,14 +260,15 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
 
   private async handlePlayerDoneTurn(params: GameEventNotification): Promise<void> {
     await this.recoverGame();
-    if (this.turn !== params.turn)
+    if (this.turn !== params.turn) {
       this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 0.5);
+      this.obsEvent('turn', `${params.turn}`);
+    }
     const player = this.activePlayers.get(params.playerID);
     if (player) {
       player.notifyTurn(params.turn, params.latestID);
       this.turn = params.turn;  // Update current turn
     }
-    this.obsEvent('turn', `${params.turn}`);
   }
 
   private async handleGameSwitched(params: GameEventNotification): Promise<void> {

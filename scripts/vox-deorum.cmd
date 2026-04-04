@@ -130,14 +130,21 @@ set /p "STOP_CONFIRM="
 echo.
 echo [INFO] Shutting down services...
 
-:: First attempt graceful shutdown (without /F flag) in reverse order
+:: Graceful shutdown first, then force-kill after timeout (reverse order)
 echo [1/3] Stopping Vox Agents (PID: %VOX_PID%)...
-taskkill /PID %VOX_PID% /T /F >nul 2>&1
-
+taskkill /PID %VOX_PID% /T >nul 2>&1
 echo [2/3] Stopping MCP Server (PID: %MCP_PID%)...
-taskkill /PID %MCP_PID% /T /F >nul 2>&1
-
+taskkill /PID %MCP_PID% /T >nul 2>&1
 echo [3/3] Stopping Bridge Service (PID: %BRIDGE_PID%)...
+taskkill /PID %BRIDGE_PID% /T >nul 2>&1
+
+:: Wait for graceful shutdown
+echo [INFO] Waiting for services to shut down...
+timeout /t 5 /nobreak >nul
+
+:: Force-kill anything still running
+taskkill /PID %VOX_PID% /T /F >nul 2>&1
+taskkill /PID %MCP_PID% /T /F >nul 2>&1
 taskkill /PID %BRIDGE_PID% /T /F >nul 2>&1
 
 :: Clean up temp files
