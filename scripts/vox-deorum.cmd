@@ -121,6 +121,8 @@ set "VOX_PID="
 set "BRIDGE_SHUTDOWN_URL="
 set "MCP_SHUTDOWN_URL="
 set "VOX_SHUTDOWN_URL="
+set "KILL_CIV_MODE="
+set "CIV_PID="
 
 :: Start Bridge Service
 echo [1/3] Starting Bridge Service (%BRIDGE_COMMAND%)...
@@ -184,8 +186,14 @@ echo     %MCP_SHUTDOWN_URL%
 echo   - Vox Agents (Port: %VOX_PORT%, Mode: %VOX_MODE%, PID: %VOX_PID%)
 echo     %VOX_SHUTDOWN_URL%
 echo.
-echo Press ENTER to STOP all services...
-set /p "STOP_CONFIRM="
+echo Press ENTER to stop all services.
+echo Type K then press ENTER to stop all services and then offer to kill CivilizationV.exe.
+set /p "STOP_CONFIRM=> "
+
+if /I "%STOP_CONFIRM%"=="K" (
+    set "KILL_CIV_MODE=1"
+    echo [INFO] Kill-game mode selected. Services will stop first.
+)
 
 echo.
 echo [INFO] Shutting down services...
@@ -196,6 +204,27 @@ echo [2/3] Stopping MCP Server (PID: %MCP_PID%)...
 call :stop_service "MCP Server" "%MCP_PID%" "%MCP_SHUTDOWN_URL%" 10
 echo [3/3] Stopping Bridge Service (PID: %BRIDGE_PID%)...
 call :stop_service "Bridge Service" "%BRIDGE_PID%" "%BRIDGE_SHUTDOWN_URL%" 10
+
+if defined KILL_CIV_MODE (
+    echo.
+    echo [INFO] Looking for CivilizationV.exe...
+    call :find_civ_pid
+    if defined CIV_PID (
+        echo [INFO] Found CivilizationV.exe with PID: %CIV_PID%
+        set "KILL_CONFIRM="
+        set /p "KILL_CONFIRM=Kill CivilizationV.exe (PID: %CIV_PID%)? [Y/N]: "
+        if /I "%KILL_CONFIRM%"=="Y" (
+            echo [INFO] Force-killing CivilizationV.exe...
+            taskkill /PID %CIV_PID% /T /F >nul 2>&1
+            call :wait_for_exit "%CIV_PID%" 5 >nul 2>&1
+            echo [INFO] CivilizationV.exe kill requested.
+        ) else (
+            echo [INFO] CivilizationV.exe kill cancelled.
+        )
+    ) else (
+        echo [INFO] CivilizationV.exe is not running.
+    )
+)
 
 call :cleanup_temp_files
 
@@ -294,6 +323,16 @@ del "%VOX_PID_FILE%" 2>nul
 del "%BRIDGE_URL_FILE%" 2>nul
 del "%MCP_URL_FILE%" 2>nul
 del "%VOX_URL_FILE%" 2>nul
+exit /b 0
+
+:find_civ_pid
+set "CIV_PID="
+for /f "usebackq skip=1 tokens=1,2 delims=," %%a in (`tasklist /FI "IMAGENAME eq CivilizationV.exe" /FO CSV 2^>nul`) do (
+    set "CIV_IMAGE=%%~a"
+    set "CIV_PID=%%~b"
+    goto :find_civ_pid_done
+)
+:find_civ_pid_done
 exit /b 0
 
 :startup_failed
