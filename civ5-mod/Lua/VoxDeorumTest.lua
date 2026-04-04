@@ -23,7 +23,7 @@ end)
 
 -- Fires when the current player's animations are done and the game transitions
 -- to the next player — "turn animation complete" signal.
-LuaEvents.VD_AITurnProcessingStarted.Add(function(nextPlayerID)
+Events.AIProcessingStartedForPlayer.Add(function(nextPlayerID)
   Game.BroadcastEvent("Render:TurnAnimationComplete", {
     nextPlayerID = nextPlayerID,
     turn         = Game.GetGameTurn(),

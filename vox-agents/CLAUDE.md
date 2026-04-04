@@ -120,6 +120,12 @@ Different features require different testing infrastructure:
 - Sequential execution enforced via `singleFork: true`
 - Includes a Civ5 guard that aborts if CivilizationV.exe is already running
 
+#### OBS Integration Tests (`tests/infra/obs-manager.test.ts`)
+- Requires running OBS Studio with WebSocket server enabled
+- Skips gracefully via `describe.skipIf(!obsAvailable)` if OBS is unreachable
+- Tests recording lifecycle, scene switching, companion log files
+- Run with: `npm run test`
+
 ### Configuration
 - Extended timeouts: 15 seconds for tests and hooks
 - Retry on CI: 1 retry in CI environment, none locally
@@ -318,6 +324,28 @@ VoxAgent (Base)
 - Driven by a flexible instruction parameter for different summarization needs
 - Supports caching via content hashing to avoid redundant LLM calls
 - Shared historian guidelines ensure consistent tone across all summaries
+
+## Infrastructure
+
+### ProcessManager
+- Singleton at `src/infra/process-manager.ts` — consolidates signal handling (SIGINT, SIGTERM, SIGBREAK, SIGHUP) across all console entry points
+- `processManager.register(name, hook)` — lazily sets up signal handlers on first call
+- Hooks execute in insertion order during shutdown
+- All console entry points (strategist, telepathist, oracle, archivist, web server) register their cleanup hooks here instead of handling signals directly
+
+### ObsManager
+- Singleton at `src/infra/obs-manager.ts` — controls OBS Studio for recording/livestreaming via `obs-websocket-js` (WebSocket v5)
+- Lifecycle: `initialize()` → `startProduction()` → `pauseProduction()`/`resumeProduction()` → `stopProduction()` → `destroy()`
+- Creates game capture scenes targeting `CivilizationV.exe`, writes companion `.log.json` files alongside recordings
+- Health monitoring with bounded recovery (max 3 attempts)
+- Self-registers with ProcessManager for clean shutdown
+- See `docs/obs.md` for full documentation
+
+### ProductionMode
+- `'none'` | `'test'` | `'livestream'` | `'recording'` — controls animation and OBS behavior
+- `isVisualMode(mode?)` — true for test/livestream/recording (play animations)
+- `isObsMode(mode?)` — true for livestream/recording (use OBS)
+- Set via `production` field on `StrategistSessionConfig`
 
 ## Integration Points
 
