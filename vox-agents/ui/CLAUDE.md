@@ -32,6 +32,95 @@ import type { VoxContext, ToolCall, AIMessage } from '@/utils/types';
 - **SSE**: Auto-reconnect with exponential backoff (see `stores/logs.ts`)
 - **API**: Centralized client with typed responses (see `api/client.ts`)
 
+## Shared Style Classes
+
+**IMPORTANT**: Always reuse existing styles from `src/styles/` rather than creating duplicates.
+
+### Available Stylesheets
+- `global.css` — `.section-container` (card sections with gap), `.section-header` (card title with icon)
+- `data-table.css` — `.data-table`, `.table-header`, `.table-body`, `.table-row`, `.table-empty`, `.col-fixed-{50-250}`, `.col-expand`, `.text-truncate`, `.text-wrap`, `.text-muted`, `.text-small`
+- `chat.css` — Chat message and interface styles
+- `states.css` — `.loading-container`, `.error-container`, `.empty-state`
+
+### Rules
+1. Check all shared stylesheets before creating any new styles
+2. Use `.table-empty` for all empty states
+3. Use `.section-container` for views with multiple card sections
+4. If you must create a new style, add it to shared styles first — avoid splintered styles across components
+
+## PrimeVue Color System
+
+**IMPORTANT**: Always use PrimeVue 4's actual CSS variables, not guessed names.
+
+### Core Variables
+| Variable | Purpose |
+|----------|---------|
+| `--p-text-color` | Primary text |
+| `--p-text-muted-color` | Secondary/muted text |
+| `--p-text-hover-color` | Text hover state |
+| `--p-primary-color` | Theme primary (amber) |
+| `--p-primary-contrast-color` | Text on primary background |
+| `--p-highlight-background` | Highlighted element background |
+| `--p-highlight-color` | Highlighted element text |
+
+### Content Backgrounds
+**Use `--p-content-*` for content areas** — they adapt to dark mode:
+- `--p-content-background` — Main content area
+- `--p-content-hover-background` — Hovered content
+- `--p-content-border-color` — Content borders
+- `--p-hover-background` — General hover state
+
+**DO NOT use `--p-surface-0` for content backgrounds** — it stays white in dark mode!
+
+### Surface System
+`--p-surface-{0-950}` scale for UI layers (not content):
+- `0` pure white, `50` lightest gray, `100`/`200` light grays, `900` dark gray
+
+### Color Palette
+All colors available as `--p-{color}-{50-950}`:
+amber, blue, red, green, yellow, orange, slate, gray, zinc, neutral, stone, cyan, teal, emerald, lime, purple, violet, indigo, sky, pink, rose, fuchsia
+
+### Dark Mode
+Use `:root[data-theme="dark"]` selector for dark mode overrides:
+```css
+:root[data-theme="dark"] .message {
+  background: var(--p-surface-900);
+}
+```
+
+### Usage Examples
+```css
+/* Correct */
+.log-header {
+  background: var(--p-content-hover-background);
+  color: var(--p-text-color);
+  border: 1px solid var(--p-content-border-color);
+}
+
+.content-panel {
+  background: var(--p-content-background);
+}
+
+.log-error {
+  color: var(--p-red-700);
+  background: var(--p-red-50);
+}
+
+/* Incorrect - these don't exist */
+/* var(--p-surface-hover) - use specific surface values */
+/* var(--p-surface-border) - use var(--p-content-border-color) */
+/* var(--vp-c-*) - VitePress variables, not PrimeVue */
+```
+
+### Chat Styles
+Message type colors:
+- User: `--p-primary-50` bg, `--p-primary-500` border
+- Assistant: default surface colors
+- System: muted colors, italic text, `--p-gray-500` border
+- Tool: subtle surface with `--p-purple-500` label color
+
+Dark mode shadows: use `rgba(0, 0, 0, 0.4)` instead of theme shadow variables.
+
 ## Component Patterns
 
 ### Loading/Error/Empty States
@@ -131,6 +220,9 @@ npm run webui:dev     # Backend + frontend together
 - Don't skip error handling
 - Don't mutate props, use emits
 - Don't fetch in templates
+- Don't use monospace fonts (except code display)
+- Don't use `--p-surface-0` for content backgrounds — use `--p-content-background`
+- Don't hardcode colors like `rgba(0,0,0,0.15)` — use PrimeVue theme variables
 
 ## When Adding Features
 1. Check PrimeVue catalog first

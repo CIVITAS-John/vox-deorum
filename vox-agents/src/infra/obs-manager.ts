@@ -8,9 +8,10 @@
  * - Connect to OBS via WebSocket
  * - Set up game capture scenes automatically
  * - Start/stop/pause/resume recording or streaming
- * - Track recording files and write companion log files
+ * - Track recording files and write live JSONL event logs
  * - Health monitoring with automatic reconnection
  * - OBS process detection and launch
+ * - Game ID–based recording directory management
  */
 
 import OBSWebSocket from 'obs-websocket-js';
@@ -32,10 +33,10 @@ const DEFAULT_OBS_PATH = 'C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe';
 const HEALTH_POLL_INTERVAL = 10_000;
 const MAX_RECOVERY_ATTEMPTS = 3;
 
-/** Entry in the companion event log written alongside each recording. */
+/** Entry in the live JSONL event log. */
 export interface ObsEvent {
   type: string;
-  at: string;
+  at: number;
   details?: string;
 }
 
@@ -44,17 +45,8 @@ export interface RecordingFile {
   path: string;
   startedAt: Date;
   stoppedAt?: Date;
+  /** Path to the companion .events.jsonl file. */
   logPath: string;
-}
-
-/** Companion log written alongside each recording video file. */
-interface RecordingLog {
-  videoFile: string;
-  configName: string;
-  productionMode: ProductionMode;
-  startedAt: string;
-  stoppedAt: string;
-  events: ObsEvent[];
 }
 
 class ObsManager {
@@ -66,10 +58,18 @@ class ObsManager {
   private productionActive = false;
   private healthInterval?: ReturnType<typeof setInterval>;
   private recoveryAttempts = 0;
-  private events: ObsEvent[] = [];
   private recordingFiles: RecordingFile[] = [];
   private currentRecording?: RecordingFile;
   private processManagerRegistered = false;
+
+  // Game ID and recording directory management
+  private gameID?: string;
+  private baseRecordDir?: string;
+  private currentRecordDir?: string;
+
+  // Live JSONL event log
+  private eventLogPath?: string;
+  private eventLogReady = false;
 
   /**
    * Initialize OBS connection and set up scenes.
@@ -111,6 +111,12 @@ class ObsManager {
     // Set up scenes
     await this.setupScenes();
 
+    // Query and cache the OBS recording directory
+    this.baseRecordDir = await this.queryRecordingDirectory();
+    if (this.baseRecordDir) {
+      logger.info(`OBS recording directory: ${this.baseRecordDir}`);
+    }
+
     // Listen for recording state events
     this.obs.on('RecordStateChanged', (event) => {
       if (event.outputState === 'OBS_WEBSOCKET_OUTPUT_STOPPED' && event.outputPath) {
@@ -126,6 +132,22 @@ class ObsManager {
   }
 
   /**
+   * Set the game ID for recording directory organization.
+   * If not currently recording, updates the OBS recording directory immediately.
+   * If recording is active, the change takes effect on the next recording.
+   */
+  async setGameID(gameID: string): Promise<void> {
+    this.gameID = gameID;
+
+    if (this.connected && !this.productionActive) {
+      await this.updateRecordingDirectory();
+    } else if (this.productionActive) {
+      this.addEvent('game_id_set', gameID);
+      logger.info(`Game ID set to ${gameID} — will take effect on next recording`);
+    }
+  }
+
+  /**
    * Start recording or streaming based on the current mode.
    */
   async startProduction(): Promise<void> {
@@ -133,6 +155,10 @@ class ObsManager {
       logger.warn('Cannot start production: OBS not connected');
       return;
     }
+
+    // Set up recording directory and open event log before starting
+    await this.updateRecordingDirectory();
+    this.openEventLog();
 
     if (this.mode === 'recording') {
       // If already recording, treat as success (idempotent)
@@ -218,7 +244,7 @@ class ObsManager {
   }
 
   /**
-   * Stop production and write companion log file (for recording mode).
+   * Stop production and finalize event log.
    */
   async stopProduction(): Promise<void> {
     if (!this.connected || !this.productionActive) return;
@@ -254,22 +280,35 @@ class ObsManager {
   }
 
   /**
-   * Add an event to the current recording's event log.
+   * Append an event to the live JSONL event log.
    * Called by strategist-session at key lifecycle points.
    */
   addEvent(type: string, details?: string): void {
     const event: ObsEvent = {
       type,
-      at: new Date().toISOString(),
+      at: Date.now(),
       ...(details && { details }),
     };
-    this.events.push(event);
+
+    if (this.eventLogReady && this.eventLogPath) {
+      try {
+        fs.appendFileSync(this.eventLogPath, JSON.stringify(event) + '\n');
+      } catch (error) {
+        logger.error('Failed to write event to JSONL:', error);
+      }
+    }
+
     logger.debug(`Event logged: ${type}${details ? ` (${details})` : ''}`);
   }
 
   /** Get all recording files tracked during this session. */
   getRecordingFiles(): RecordingFile[] {
     return [...this.recordingFiles];
+  }
+
+  /** Get the path to the current event log file, if open. */
+  getEventLogPath(): string | undefined {
+    return this.eventLogPath;
   }
 
   /** Whether OBS is connected and operational. */
@@ -293,6 +332,18 @@ class ObsManager {
         await this.stopProduction();
       } catch {
         // Best-effort stop during destroy
+      }
+    }
+
+    // Close event log if still open
+    this.closeEventLog('session_destroyed');
+
+    // Restore OBS recording directory to original
+    if (this.connected && this.baseRecordDir && this.currentRecordDir && this.currentRecordDir !== this.baseRecordDir) {
+      try {
+        await this.obs.call('SetRecordDirectory' as any, { recordDirectory: this.baseRecordDir });
+      } catch {
+        // Best effort
       }
     }
 
@@ -328,6 +379,83 @@ class ObsManager {
       this.connected = false;
       return false;
     }
+  }
+
+  /** Query OBS for the current recording output directory. */
+  private async queryRecordingDirectory(): Promise<string | undefined> {
+    try {
+      const result = await this.obs.call('GetRecordDirectory' as any);
+      return (result as any).recordDirectory;
+    } catch (error) {
+      logger.warn('Failed to query OBS recording directory:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Update the OBS recording directory to {baseRecordDir}/{gameID}/.
+   * Idempotent — skips the OBS call if the target hasn't changed.
+   */
+  private async updateRecordingDirectory(): Promise<void> {
+    if (!this.gameID || !this.baseRecordDir) return;
+
+    const targetDir = path.join(this.baseRecordDir, this.gameID);
+    if (targetDir === this.currentRecordDir) return;
+
+    try {
+      fs.mkdirSync(targetDir, { recursive: true });
+      await this.obs.call('SetRecordDirectory' as any, { recordDirectory: targetDir });
+      this.currentRecordDir = targetDir;
+      logger.info(`Set OBS recording directory to: ${targetDir}`);
+    } catch (error) {
+      logger.error('Failed to set OBS recording directory:', error);
+    }
+  }
+
+  /** Open the session JSONL event log file. Idempotent — skips if already open. */
+  private openEventLog(): void {
+    if (this.eventLogReady) return;
+
+    const dir = this.currentRecordDir ?? this.baseRecordDir;
+    if (!dir) {
+      logger.warn('No recording directory available — event log will not be written');
+      return;
+    }
+
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      this.eventLogPath = path.join(dir, 'events.jsonl');
+
+      const header: Record<string, unknown> = {
+        type: 'session_start',
+        at: Date.now(),
+        configName: this.configName,
+        productionMode: this.mode,
+      };
+      if (this.gameID) header.gameID = this.gameID;
+
+      fs.writeFileSync(this.eventLogPath, JSON.stringify(header) + '\n');
+      this.eventLogReady = true;
+      logger.info(`Event log opened: ${this.eventLogPath}`);
+    } catch (error) {
+      logger.error('Failed to open event log:', error);
+    }
+  }
+
+  /** Close the current event log with a session_end marker. */
+  /** Close the event log with a final marker event. */
+  private closeEventLog(finalEventType = 'session_end'): void {
+    if (!this.eventLogReady || !this.eventLogPath) return;
+
+    try {
+      const footer: ObsEvent = { type: finalEventType, at: Date.now() };
+      fs.appendFileSync(this.eventLogPath, JSON.stringify(footer) + '\n');
+      logger.info(`Event log finalized: ${this.eventLogPath}`);
+    } catch (error) {
+      logger.error('Failed to finalize event log:', error);
+    }
+
+    this.eventLogReady = false;
   }
 
   /**
@@ -391,38 +519,13 @@ class ObsManager {
     if (this.currentRecording) {
       this.currentRecording.path = outputPath;
       this.currentRecording.stoppedAt = new Date();
+      this.currentRecording.logPath = this.eventLogPath || '';
 
-      // Derive log file path from video file path
-      const parsed = path.parse(outputPath);
-      this.currentRecording.logPath = path.join(parsed.dir, `${parsed.name}.log.json`);
-
-      // Write companion log file
-      this.writeRecordingLog(this.currentRecording);
+      // Log the video filename as an event
+      this.addEvent('recording_file', path.basename(outputPath));
 
       this.recordingFiles.push(this.currentRecording);
       this.currentRecording = undefined;
-    }
-  }
-
-  /** Write the companion .log.json file alongside the recording. */
-  private writeRecordingLog(recording: RecordingFile): void {
-    try {
-      const logData: RecordingLog = {
-        videoFile: path.basename(recording.path),
-        configName: this.configName,
-        productionMode: this.mode,
-        startedAt: recording.startedAt.toISOString(),
-        stoppedAt: recording.stoppedAt?.toISOString() || new Date().toISOString(),
-        events: [...this.events],
-      };
-
-      fs.writeFileSync(recording.logPath, JSON.stringify(logData, null, 2));
-      logger.info(`Recording log written: ${recording.logPath}`);
-
-      // Clear events for next recording
-      this.events = [];
-    } catch (error) {
-      logger.error('Failed to write recording log:', error);
     }
   }
 
@@ -523,6 +626,9 @@ class ObsManager {
       if (reconnected && this.productionActive) {
         // Restart production after recovery
         try {
+          await this.updateRecordingDirectory();
+          if (!this.eventLogReady) this.openEventLog();
+
           if (this.mode === 'recording') {
             await this.obs.call('StartRecord');
             this.currentRecording = {
@@ -556,7 +662,10 @@ class ObsManager {
  * import { obsManager } from './infra/obs-manager.js';
  *
  * const ready = await obsManager.initialize('recording', config.obs, configName);
- * if (ready) await obsManager.startProduction();
+ * if (ready) {
+ *   await obsManager.setGameID('game-abc123');
+ *   await obsManager.startProduction();
+ * }
  * ```
  */
 export const obsManager = new ObsManager();

@@ -34,9 +34,15 @@ const obsManagerModule = obsAvailable
 
 const GAME_SCENE = 'Vox Deorum';
 const PAUSE_SCENE = 'Vox Deorum - Paused';
+const TEST_GAME_ID = 'test-game-001';
 
 /** Short delay to let OBS propagate state changes after commands. */
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/** Parse a JSONL file into an array of objects. */
+function parseJsonl(content: string): any[] {
+  return content.trim().split('\n').map(line => JSON.parse(line));
+}
 
 /** Remove test scenes from OBS, ignoring errors. */
 async function removeTestScenes(obs: OBSWebSocket): Promise<void> {
@@ -104,8 +110,9 @@ describe.skipIf(!obsAvailable)('ObsManager (requires running OBS)', () => {
     expect(sceneNames).toContain(GAME_SCENE);
   });
 
-  it('should start and stop recording', async () => {
+  it('should start and stop recording under game ID folder', async () => {
     const obsManager = obsManagerModule!.obsManager;
+    await obsManager.setGameID(TEST_GAME_ID);
     await obsManager.startProduction();
     await delay(1000);
 
@@ -128,10 +135,13 @@ describe.skipIf(!obsAvailable)('ObsManager (requires running OBS)', () => {
     expect(lastFile.path).toBeTruthy();
     expect(lastFile.startedAt).toBeInstanceOf(Date);
     expect(lastFile.stoppedAt).toBeInstanceOf(Date);
-    expect(lastFile.logPath).toMatch(/\.log\.json$/);
+    expect(lastFile.logPath).toMatch(/events\.jsonl$/);
+
+    // Verify recording was saved under game ID folder
+    expect(lastFile.path).toContain(TEST_GAME_ID);
   }, 30000);
 
-  it('should write companion log file alongside recording', async () => {
+  it('should write live JSONL event log alongside recording', async () => {
     const obsManager = obsManagerModule!.obsManager;
     const files = obsManager.getRecordingFiles();
     expect(files.length).toBeGreaterThan(0);
@@ -140,15 +150,32 @@ describe.skipIf(!obsAvailable)('ObsManager (requires running OBS)', () => {
     const { default: fs } = await import('fs');
     expect(fs.existsSync(lastFile.logPath)).toBe(true);
 
-    const logContent = JSON.parse(fs.readFileSync(lastFile.logPath, 'utf-8'));
-    expect(logContent.configName).toBe('test-config');
-    expect(logContent.productionMode).toBe('recording');
-    expect(logContent.events).toBeInstanceOf(Array);
-    expect(logContent.events.length).toBeGreaterThan(0);
+    const lines = parseJsonl(fs.readFileSync(lastFile.logPath, 'utf-8'));
+    expect(lines.length).toBeGreaterThan(0);
 
-    const eventTypes = logContent.events.map((e: any) => e.type);
+    // First line should be session_start header
+    const header = lines[0];
+    expect(header.type).toBe('session_start');
+    expect(header.configName).toBe('test-config');
+    expect(header.productionMode).toBe('recording');
+    expect(header.gameID).toBe(TEST_GAME_ID);
+    expect(typeof header.at).toBe('number');
+
+    // All events should have numeric timestamps
+    for (const line of lines) {
+      expect(typeof line.at).toBe('number');
+    }
+
+    const eventTypes = lines.map((e: any) => e.type);
     expect(eventTypes).toContain('recording_started');
     expect(eventTypes).toContain('recording_stopped');
+    expect(eventTypes).toContain('recording_file');
+
+    // recording_file event should have the video filename (basename only)
+    const fileEvent = lines.find((e: any) => e.type === 'recording_file');
+    expect(fileEvent.details).toBeTruthy();
+    expect(fileEvent.details).not.toContain('\\');
+    expect(fileEvent.details).not.toContain('/');
   });
 
   it('should pause and resume recording', async () => {
@@ -178,10 +205,10 @@ describe.skipIf(!obsAvailable)('ObsManager (requires running OBS)', () => {
     expect(obsManager.isOperational()).toBe(true);
   });
 
-  it('should track custom events via addEvent', () => {
+  it('should not throw when addEvent is called without open log', () => {
     const obsManager = obsManagerModule!.obsManager;
-    obsManager.addEvent('test_event', 'test details');
-    obsManager.addEvent('another_event');
+    expect(() => obsManager.addEvent('test_event', 'test details')).not.toThrow();
+    expect(() => obsManager.addEvent('another_event')).not.toThrow();
   });
 });
 

@@ -11,7 +11,7 @@ The `production` field on `StrategistSessionConfig` controls animation behavior 
 | `"none"` (default) | Skip in autoplay | Yes | No |
 | `"test"` | Play | No | No |
 | `"livestream"` | Play | No | Streaming |
-| `"recording"` | Play | No | Recording with companion logs |
+| `"recording"` | Play | No | Recording with live event logs |
 
 Helper functions in `types/config.ts`:
 - `isVisualMode(mode?)` — true for `test`, `livestream`, `recording` (play animations, don't toggle strategic view)
@@ -55,18 +55,35 @@ initialize(mode, config?, configName?)
     ├── Ensure OBS is running (detect via tasklist, launch if needed)
     ├── Connect to OBS WebSocket
     ├── Set up scenes (game capture + pause scene)
+    ├── Query recording directory (GetRecordDirectory)
     ├── Listen for RecordStateChanged events
     └── Start health monitoring (10s poll)
     │
-startProduction()          // Idempotent — joins existing session if already active
+setGameID(gameID)              // Set game ID, update OBS recording directory
     │
-pauseProduction()          // Recording: PauseRecord / Livestream: switch to pause scene
-resumeProduction()         // Recording: ResumeRecord / Livestream: switch to game scene
+startProduction()              // Open event log, start recording/streaming
     │
-stopProduction()           // Stops recording/streaming, writes companion log file
+pauseProduction()              // Recording: PauseRecord / Livestream: switch to pause scene
+resumeProduction()             // Recording: ResumeRecord / Livestream: switch to game scene
     │
-destroy()                  // Disconnect, stop monitoring, cleanup
+stopProduction()               // Stop recording/streaming, finalize event log
+    │
+destroy()                      // Disconnect, restore recording dir, cleanup
 ```
+
+### Game ID Directory Management
+
+When a game ID is set via `setGameID(gameID)`, ObsManager organizes recordings under `{baseRecordDir}/{gameID}/`:
+
+```
+C:\Users\John\Videos\
+  └── game-abc123/
+      ├── events-1775232600000.jsonl     (session event log)
+      ├── 2026-04-03 16-30-00.mkv       (first recording)
+      └── 2026-04-03 17-50-00.mkv       (second recording)
+```
+
+Uses `SetRecordDirectory` (OBS 30.2+) to redirect OBS output. The directory is set before each `startProduction()` call and restored to the original on `destroy()`. Repeated calls with the same game ID are idempotent.
 
 ### Scene Setup
 
@@ -93,38 +110,35 @@ interface RecordingFile {
   path: string;       // Video file path (set when OBS finishes)
   startedAt: Date;
   stoppedAt?: Date;
-  logPath: string;    // Companion .log.json path
+  logPath: string;    // Companion .events.jsonl path
 }
 ```
 
 Access via `obsManager.getRecordingFiles()`.
 
-### Companion Log Files
+### Live Event Log (JSONL)
 
-When a recording stops, a `.log.json` file is written alongside the video file:
+Events are written to a JSONL file on disk as they happen, providing crash resilience. One centralized `.events.jsonl` file is created per production session (not per recording).
 
-```
-2026-04-03 16-30-00.mkv
-2026-04-03 16-30-00.log.json
+The log opens when `startProduction()` is called and closes when `stopProduction()` or `destroy()` is called. Each `addEvent()` call appends a line via `appendFileSync`, so events survive process crashes.
+
+```jsonl
+{"type":"session_start","at":1775232600000,"configName":"livestream","productionMode":"recording","gameID":"abc123"}
+{"type":"recording_started","at":1775232600100}
+{"type":"recording_paused","at":1775233501000}
+{"type":"recording_resumed","at":1775233591000}
+{"type":"recording_stopped","at":1775237100000}
+{"type":"recording_file","at":1775237100100,"details":"2026-04-03 16-30-00.mkv"}
+{"type":"recording_started","at":1775237400000}
+{"type":"recording_stopped","at":1775239800000}
+{"type":"recording_file","at":1775239800100,"details":"2026-04-03 17-50-00.mkv"}
+{"type":"session_end","at":1775239801000}
 ```
 
-Log contents:
-```json
-{
-  "videoFile": "2026-04-03 16-30-00.mkv",
-  "configName": "livestream",
-  "productionMode": "recording",
-  "startedAt": "2026-04-03T16:30:00.000Z",
-  "stoppedAt": "2026-04-03T17:45:00.000Z",
-  "events": [
-    { "type": "recording_started", "at": "2026-04-03T16:30:00.000Z" },
-    { "type": "game_crashed", "at": "2026-04-03T16:45:00.000Z" },
-    { "type": "recording_paused", "at": "2026-04-03T16:45:01.000Z" },
-    { "type": "recording_resumed", "at": "2026-04-03T16:46:31.000Z" },
-    { "type": "recording_stopped", "at": "2026-04-03T17:45:00.000Z" }
-  ]
-}
-```
+Event fields:
+- `type` — event identifier (string)
+- `at` — Unix timestamp in milliseconds (`Date.now()`)
+- `details` — optional context string
 
 Add custom events via `obsManager.addEvent(type, details?)` — called by strategist-session at key lifecycle points (crash, recovery, victory).
 
@@ -141,7 +155,7 @@ Recovery is bounded to 3 attempts. After that, monitoring stops.
 
 ### ProcessManager Integration
 
-ObsManager self-registers with `processManager` on first `initialize()` call, ensuring clean shutdown (stop production, disconnect) when the Node.js process exits via SIGINT/SIGTERM/SIGBREAK/SIGHUP.
+ObsManager self-registers with `processManager` on first `initialize()` call, ensuring clean shutdown (stop production, disconnect, restore recording directory) when the Node.js process exits via SIGINT/SIGTERM/SIGBREAK/SIGHUP.
 
 ## ProcessManager
 
@@ -168,16 +182,16 @@ Tests `isVisualMode()` and `isObsMode()` with all `ProductionMode` values. No ex
 
 Run: `npm test`
 
-### Integration Tests (`tests/infra/obs-manager.test.ts`)
+### Integration Tests (`tests/obs/obs-manager.test.ts`)
 
 Requires a running OBS Studio instance with WebSocket server enabled (default port 4455). Tests are skipped gracefully if OBS is not reachable.
 
-Covers: initialization, scene creation, start/stop recording, companion log files, pause/resume, scene switching, event tracking.
+Covers: initialization, scene creation, start/stop recording, game ID directory management, live JSONL event logs, pause/resume, scene switching, event tracking.
 
-Run: `npm run test:game`
+Run: `npm run test:obs`
 
 ## Prerequisites
 
-- OBS Studio installed with WebSocket server enabled (Tools > WebSocket Server Settings)
+- OBS Studio 30.2+ with WebSocket server enabled (Tools > WebSocket Server Settings)
 - `obs-websocket-js` npm package (installed at workspace root)
 - Windows (game capture and process detection use Windows-specific APIs)

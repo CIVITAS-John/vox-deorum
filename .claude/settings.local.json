@@ -60,7 +60,8 @@
       "WebFetch(domain:deepwiki.com)",
       "Bash(find vox-agents:*)",
       "WebFetch(domain:www.npmjs.com)",
-      "WebFetch(domain:obsproject.com)"
+      "WebFetch(domain:obsproject.com)",
+      "Bash(git mv:*)"
     ],
     "deny": [
       "Read(**/.env*)",
