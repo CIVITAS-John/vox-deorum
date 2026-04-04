@@ -90,9 +90,9 @@ export async function pushPlayerAction(
   );
 
   if (response.success) {
-    logger.debug(`Pushed ${actionType} action for player ${playerID}`);
+    logger.debug(`[Turn ${effectiveTurn}] Pushed ${actionType} action for player ${playerID}`);
   } else {
-    logger.error(`Failed to push ${actionType} action for player ${playerID}`, { error: response.error });
+    logger.error(`[Turn ${effectiveTurn}] Failed to push ${actionType} action for player ${playerID}`, { error: response.error });
   }
 }
 

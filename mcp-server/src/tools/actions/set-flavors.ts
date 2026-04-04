@@ -204,10 +204,8 @@ class SetFlavorsTool extends ActionTool<SetFlavorsResultType> {
       );
 
       // Compare and send action event + replay message for actual changes
-      if (changeDescriptions.length > 0) {
-        const summary = changeDescriptions.join("; ");
-        await this.pushAction(otherArgs.PlayerID, "flavors", summary, Rationale, "AI preferences", turn);
-      }
+      const summary = changeDescriptions.length > 0 ? changeDescriptions.join("; ") : "No changes";
+      await this.pushAction(otherArgs.PlayerID, "flavors", summary, Rationale, changeDescriptions.length > 0 ? "AI preferences" : undefined, turn);
     }
 
     delete result.Result;

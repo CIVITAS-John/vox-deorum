@@ -80,6 +80,7 @@ for %%a in (%*) do (
 )
 
 set "RUN_ID=%RANDOM%%RANDOM%%RANDOM%"
+set "GRACEFUL_STOP_TIMEOUT=10"
 set "BRIDGE_PID_FILE=%TEMP%\vox-deorum-bridge-%RUN_ID%.pid"
 set "MCP_PID_FILE=%TEMP%\vox-deorum-mcp-%RUN_ID%.pid"
 set "VOX_PID_FILE=%TEMP%\vox-deorum-vox-%RUN_ID%.pid"
@@ -199,11 +200,11 @@ echo.
 echo [INFO] Shutting down services...
 
 echo [1/3] Stopping Vox Agents (PID: %VOX_PID%)...
-call :stop_service "Vox Agents" "%VOX_PID%" "%VOX_SHUTDOWN_URL%" 10
+call :stop_service "Vox Agents" "%VOX_PID%" "%VOX_SHUTDOWN_URL%" %GRACEFUL_STOP_TIMEOUT%
 echo [2/3] Stopping MCP Server (PID: %MCP_PID%)...
-call :stop_service "MCP Server" "%MCP_PID%" "%MCP_SHUTDOWN_URL%" 10
+call :stop_service "MCP Server" "%MCP_PID%" "%MCP_SHUTDOWN_URL%" %GRACEFUL_STOP_TIMEOUT%
 echo [3/3] Stopping Bridge Service (PID: %BRIDGE_PID%)...
-call :stop_service "Bridge Service" "%BRIDGE_PID%" "%BRIDGE_SHUTDOWN_URL%" 10
+call :stop_service "Bridge Service" "%BRIDGE_PID%" "%BRIDGE_SHUTDOWN_URL%" %GRACEFUL_STOP_TIMEOUT%
 
 if defined KILL_CIV_MODE (
     echo.
@@ -274,6 +275,7 @@ set /a STOP_TIMEOUT=%~4
 
 if not defined STOP_PID exit /b 0
 
+:: Track the wrapper PID only. If it survives past the timeout, kill its process tree.
 if defined STOP_URL (
     echo        Requesting graceful shutdown via %STOP_URL%
     curl -s -X POST "%STOP_URL%" >nul 2>&1
