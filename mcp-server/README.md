@@ -93,6 +93,30 @@ npm run dev       # Hot reload with tsx
 npm test          # Run test suite
 ```
 
+## HTTP Endpoints
+
+When running in HTTP transport mode, the server exposes:
+
+```bash
+GET /health
+POST /shutdown
+POST /mcp
+GET /mcp
+DELETE /mcp
+```
+
+`POST /shutdown` is intended for local orchestration and performs a graceful shutdown.
+
+### Runtime Shutdown URL File
+
+When `MCP_SHUTDOWN_URL_FILE` is set, the HTTP server writes a one-line file after it binds:
+
+```text
+http://127.0.0.1:<actual-port>/shutdown
+```
+
+This lets launchers discover the real bound port without parsing logs.
+
 ## Configuration
 
 Edit `config.json`:

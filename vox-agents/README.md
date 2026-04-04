@@ -355,6 +355,25 @@ cd ui && npm run preview
 
 The web server starts automatically with the agents and serves the UI at http://localhost:5555
 
+If port `5555` is already in use, Vox Agents falls back to `5556`. The backend also exposes:
+
+```bash
+GET /api/health
+POST /shutdown
+```
+
+`POST /shutdown` is intended for local orchestration and routes through the normal process shutdown flow.
+
+### Runtime Shutdown URL File
+
+When `VOX_SHUTDOWN_URL_FILE` is set, the backend writes a one-line file after it binds:
+
+```text
+http://127.0.0.1:<actual-port>/shutdown
+```
+
+This gives local launchers the real shutdown endpoint even when the Web UI falls back to a different port.
+
 Features:
 - **Real-time Logs** - Stream logs from all components with filtering
 - **Telemetry Viewer** - Inspect OpenTelemetry spans, traces, and sessions

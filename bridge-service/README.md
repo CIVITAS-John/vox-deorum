@@ -41,6 +41,15 @@ npm run dev     # With hot reload and watch mode
 
 ## API Overview
 
+### Service Control
+```bash
+# Health check
+GET /health
+
+# Graceful local shutdown
+POST /shutdown
+```
+
 ### Lua Operations
 ```bash
 # Execute single function
@@ -88,6 +97,16 @@ events.onmessage = (e) => {
 ```
 
 **Complete API documentation:** [docs/API-REFERENCE.md](docs/API-REFERENCE.md)
+
+### Runtime Shutdown URL File
+
+When `BRIDGE_SHUTDOWN_URL_FILE` is set, the service writes a one-line file after it starts listening:
+
+```text
+http://127.0.0.1:<actual-port>/shutdown
+```
+
+This is intended for local launchers such as `scripts/vox-deorum.cmd`, so they can discover the real port without parsing logs or JSON.
 
 ## Configuration
 

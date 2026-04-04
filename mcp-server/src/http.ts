@@ -12,8 +12,26 @@ import { config } from './utils/config.js';
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
 import { randomUUID } from 'crypto';
+import * as fs from 'fs/promises';
 
 const logger = createLogger('HTTP');
+const shutdownUrlFile = process.env.MCP_SHUTDOWN_URL_FILE;
+
+function getShutdownHost(host: string): string {
+  if (host === '0.0.0.0' || host === '::' || host === '::1' || host === 'localhost') {
+    return '127.0.0.1';
+  }
+
+  return host;
+}
+
+async function writeShutdownUrlFile(host: string, port: number): Promise<void> {
+  if (!shutdownUrlFile) return;
+
+  const shutdownUrl = `http://${getShutdownHost(host)}:${port}/shutdown`;
+  await fs.writeFile(shutdownUrlFile, `${shutdownUrl}\n`, 'utf8');
+  logger.info(`Wrote shutdown URL to ${shutdownUrlFile}`);
+}
 
 /**
  * Start the MCP server with HTTP transport
@@ -22,6 +40,7 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
   const mcpServer = MCPServer.getInstance();
   const app = express();
   const httpServer = createServer(app);
+  let shuttingDown = false;
 
   // Disable nagles
   app.use(function(req, _res, next) {
@@ -45,6 +64,48 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
       server: config.server.name,
       version: config.server.version,
       transport: 'http',
+    });
+  });
+
+  // Set up graceful shutdown
+  const shutdown = async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+
+    logger.info('Shutting down HTTP server gracefully');
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        httpServer.close((error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          logger.info('HTTP server closed');
+          resolve();
+        });
+      });
+
+      await mcpServer.close();
+
+      if (process.env.NODE_ENV !== 'test') {
+        process.exit(0);
+      }
+    } catch (error) {
+      logger.error('Error during HTTP shutdown:', error);
+      if (process.env.NODE_ENV !== 'test') {
+        process.exit(1);
+      }
+      throw error;
+    }
+  };
+
+  app.post('/shutdown', (_req, res) => {
+    logger.info('Received HTTP shutdown request');
+    res.status(202).json({ success: true, message: 'Shutdown initiated' });
+    setImmediate(() => {
+      void shutdown();
     });
   });
 
@@ -129,24 +190,6 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
     res.status(500).json({ error: 'Internal server error' });
   });
 
-  // Set up graceful shutdown
-  const shutdown = async () => {
-    logger.info('Shutting down HTTP server gracefully');
-    
-    // Close HTTP server
-    httpServer.close(() => {
-      logger.info('HTTP server closed');
-    });
-
-    // Shutdown MCP server
-    await mcpServer.close();
-    
-    // Only exit if not in test mode
-    if (process.env.NODE_ENV !== 'test') {
-      process.exit(0);
-    }
-  };
-
   if (setupSignalHandlers) {
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
@@ -162,9 +205,18 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
     
     httpServer.keepAliveTimeout = 3600000;
     httpServer.listen(port, host, () => {
-      logger.info(`MCP HTTP server listening on http://${host}:${port}`);
-      logger.info(`Streamable HTTP endpoint: http://${host}:${port}/mcp`);
-      logger.info(`Health check: http://${host}:${port}/health`);
+      const address = httpServer.address();
+      const actualHost = typeof address === 'object' && address ? address.address : host;
+      const actualPort = typeof address === 'object' && address ? address.port : port;
+
+      logger.info(`MCP HTTP server listening on http://${actualHost}:${actualPort}`);
+      logger.info(`Streamable HTTP endpoint: http://${actualHost}:${actualPort}/mcp`);
+      logger.info(`Health check: http://${actualHost}:${actualPort}/health`);
+      logger.info(`Shutdown endpoint: POST http://${actualHost}:${actualPort}/shutdown`);
+
+      void writeShutdownUrlFile(actualHost, actualPort).catch((error) => {
+        logger.warn(`Failed to write shutdown URL file: ${String(error)}`);
+      });
     });
 
     return shutdown;

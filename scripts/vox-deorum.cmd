@@ -6,6 +6,7 @@ setlocal enabledelayedexpansion
 :: Default mode: webui (launches web interface)
 :: Supports any mode matching an npm script in vox-agents (e.g. briefer, strategist)
 :: Example: vox-deorum.cmd --strategist --verbose --debug
+:: Graceful shutdown uses local POST /shutdown endpoints discovered from plain-text temp files.
 
 :: Configure Node.js (prefer bundled over system)
 set "BUNDLED_NODE=%~dp0..\node"
@@ -36,6 +37,13 @@ if not defined NODE_FOUND (
 :: Exit if no Node.js found
 if not defined NODE_FOUND (
     echo [ERROR] Node.js not found. Install it or place a portable version in: %BUNDLED_NODE%
+    pause
+    exit /b 1
+)
+
+where curl >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] curl.exe not found in PATH. Windows curl is required for graceful shutdown.
     pause
     exit /b 1
 )
@@ -71,6 +79,21 @@ for %%a in (%*) do (
     )
 )
 
+set "RUN_ID=%RANDOM%%RANDOM%%RANDOM%"
+set "BRIDGE_PID_FILE=%TEMP%\vox-deorum-bridge-%RUN_ID%.pid"
+set "MCP_PID_FILE=%TEMP%\vox-deorum-mcp-%RUN_ID%.pid"
+set "VOX_PID_FILE=%TEMP%\vox-deorum-vox-%RUN_ID%.pid"
+set "BRIDGE_URL_FILE=%TEMP%\vox-deorum-bridge-%RUN_ID%.shutdown"
+set "MCP_URL_FILE=%TEMP%\vox-deorum-mcp-%RUN_ID%.shutdown"
+set "VOX_URL_FILE=%TEMP%\vox-deorum-vox-%RUN_ID%.shutdown"
+
+del "%BRIDGE_PID_FILE%" 2>nul
+del "%MCP_PID_FILE%" 2>nul
+del "%VOX_PID_FILE%" 2>nul
+del "%BRIDGE_URL_FILE%" 2>nul
+del "%MCP_URL_FILE%" 2>nul
+del "%VOX_URL_FILE%" 2>nul
+
 echo.
 echo ========================================
 echo     Vox Deorum Services Manager
@@ -92,37 +115,74 @@ if not exist "%~dp0..\mcp-server\src\index.ts" (
     set "MCP_COMMAND=start:dist"
 )
 
-:: Start Bridge Service and get PID
+set "BRIDGE_PID="
+set "MCP_PID="
+set "VOX_PID="
+set "BRIDGE_SHUTDOWN_URL="
+set "MCP_SHUTDOWN_URL="
+set "VOX_SHUTDOWN_URL="
+
+:: Start Bridge Service
 echo [1/3] Starting Bridge Service (%BRIDGE_COMMAND%)...
-powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\bridge-service','&&','npm','run','%BRIDGE_COMMAND%' -PassThru; $p.Id" > "%TEMP%\bridge.pid"
-set /p BRIDGE_PID=<"%TEMP%\bridge.pid"
+powershell -Command "$env:BRIDGE_SHUTDOWN_URL_FILE='%BRIDGE_URL_FILE%'; $p = Start-Process cmd -WorkingDirectory '%~dp0..\bridge-service' -ArgumentList '/c','npm run %BRIDGE_COMMAND%' -PassThru; $p.Id" > "%BRIDGE_PID_FILE%"
+if errorlevel 1 goto :startup_failed
+set /p BRIDGE_PID=<"%BRIDGE_PID_FILE%"
 echo        Started with PID: %BRIDGE_PID%
 
-:: Start MCP Server and get PID
+:: Start MCP Server
 echo [2/3] Starting MCP Server (%MCP_COMMAND%)...
-powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\mcp-server','&&','npm','run','%MCP_COMMAND%' -PassThru; $p.Id" > "%TEMP%\mcp.pid"
-set /p MCP_PID=<"%TEMP%\mcp.pid"
+powershell -Command "$env:MCP_SHUTDOWN_URL_FILE='%MCP_URL_FILE%'; $p = Start-Process cmd -WorkingDirectory '%~dp0..\mcp-server' -ArgumentList '/c','npm run %MCP_COMMAND%' -PassThru; $p.Id" > "%MCP_PID_FILE%"
+if errorlevel 1 goto :startup_failed
+set /p MCP_PID=<"%MCP_PID_FILE%"
 echo        Started with PID: %MCP_PID%
 
-:: Start Vox Agents and get PID
+:: Start Vox Agents
 echo [3/3] Starting Vox Agents (mode: %VOX_MODE%!ADDITIONAL_ARGS!)...
 if "!ADDITIONAL_ARGS!"=="" (
-    powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\vox-agents','&&','npm','run','%VOX_MODE%' -PassThru; $p.Id" > "%TEMP%\vox.pid"
+    powershell -Command "$env:VOX_SHUTDOWN_URL_FILE='%VOX_URL_FILE%'; $p = Start-Process cmd -WorkingDirectory '%~dp0..\vox-agents' -ArgumentList '/c','npm run %VOX_MODE%' -PassThru; $p.Id" > "%VOX_PID_FILE%"
 ) else (
     set "NPM_COMMAND=npm run %VOX_MODE% -- !ADDITIONAL_ARGS!"
-    powershell -Command "$p = Start-Process cmd -ArgumentList '/k','cd','/d','%~dp0..\vox-agents','&&','!NPM_COMMAND!' -PassThru; $p.Id" > "%TEMP%\vox.pid"
+    powershell -Command "$env:VOX_SHUTDOWN_URL_FILE='%VOX_URL_FILE%'; $p = Start-Process cmd -WorkingDirectory '%~dp0..\vox-agents' -ArgumentList '/c','!NPM_COMMAND!' -PassThru; $p.Id" > "%VOX_PID_FILE%"
 )
-set /p VOX_PID=<"%TEMP%\vox.pid"
+if errorlevel 1 goto :startup_failed
+set /p VOX_PID=<"%VOX_PID_FILE%"
 echo        Started with PID: %VOX_PID%
+
+echo.
+echo [INFO] Waiting for shutdown URLs...
+
+call :wait_for_url_file "%BRIDGE_URL_FILE%" "Bridge Service" "%BRIDGE_PID%" 60
+if errorlevel 1 goto :startup_failed
+set /p BRIDGE_SHUTDOWN_URL=<"%BRIDGE_URL_FILE%"
+call :extract_port "%BRIDGE_SHUTDOWN_URL%"
+set "BRIDGE_PORT=!EXTRACTED_PORT!"
+echo        Bridge Service URL: %BRIDGE_SHUTDOWN_URL%
+
+call :wait_for_url_file "%MCP_URL_FILE%" "MCP Server" "%MCP_PID%" 60
+if errorlevel 1 goto :startup_failed
+set /p MCP_SHUTDOWN_URL=<"%MCP_URL_FILE%"
+call :extract_port "%MCP_SHUTDOWN_URL%"
+set "MCP_PORT=!EXTRACTED_PORT!"
+echo        MCP Server URL: %MCP_SHUTDOWN_URL%
+
+call :wait_for_url_file "%VOX_URL_FILE%" "Vox Agents" "%VOX_PID%" 90
+if errorlevel 1 goto :startup_failed
+set /p VOX_SHUTDOWN_URL=<"%VOX_URL_FILE%"
+call :extract_port "%VOX_SHUTDOWN_URL%"
+set "VOX_PORT=!EXTRACTED_PORT!"
+echo        Shutdown URL: %VOX_SHUTDOWN_URL%
 
 echo ========================================
 echo All services started successfully!
-echo ========================================"
+echo ========================================
 echo.
 echo Services running:
-echo   - Bridge Service (Port 5000, PID: %BRIDGE_PID%)
-echo   - MCP Server (Port 4000, PID: %MCP_PID%)
-echo   - Vox Agents (Port 5555, Mode: %VOX_MODE%, PID: %VOX_PID%)
+echo   - Bridge Service (Port: %BRIDGE_PORT%, PID: %BRIDGE_PID%)
+echo     %BRIDGE_SHUTDOWN_URL%
+echo   - MCP Server (Port: %MCP_PORT%, PID: %MCP_PID%)
+echo     %MCP_SHUTDOWN_URL%
+echo   - Vox Agents (Port: %VOX_PORT%, Mode: %VOX_MODE%, PID: %VOX_PID%)
+echo     %VOX_SHUTDOWN_URL%
 echo.
 echo Press ENTER to STOP all services...
 set /p "STOP_CONFIRM="
@@ -130,27 +190,14 @@ set /p "STOP_CONFIRM="
 echo.
 echo [INFO] Shutting down services...
 
-:: Graceful shutdown first, then force-kill after timeout (reverse order)
 echo [1/3] Stopping Vox Agents (PID: %VOX_PID%)...
-taskkill /PID %VOX_PID% /T >nul 2>&1
+call :stop_service "Vox Agents" "%VOX_PID%" "%VOX_SHUTDOWN_URL%" 10
 echo [2/3] Stopping MCP Server (PID: %MCP_PID%)...
-taskkill /PID %MCP_PID% /T >nul 2>&1
+call :stop_service "MCP Server" "%MCP_PID%" "%MCP_SHUTDOWN_URL%" 10
 echo [3/3] Stopping Bridge Service (PID: %BRIDGE_PID%)...
-taskkill /PID %BRIDGE_PID% /T >nul 2>&1
+call :stop_service "Bridge Service" "%BRIDGE_PID%" "%BRIDGE_SHUTDOWN_URL%" 10
 
-:: Wait for graceful shutdown
-echo [INFO] Waiting for services to shut down...
-timeout /t 5 /nobreak >nul
-
-:: Force-kill anything still running
-taskkill /PID %VOX_PID% /T /F >nul 2>&1
-taskkill /PID %MCP_PID% /T /F >nul 2>&1
-taskkill /PID %BRIDGE_PID% /T /F >nul 2>&1
-
-:: Clean up temp files
-del "%TEMP%\bridge.pid" 2>nul
-del "%TEMP%\mcp.pid" 2>nul
-del "%TEMP%\vox.pid" 2>nul
+call :cleanup_temp_files
 
 echo.
 echo ========================================
@@ -159,3 +206,101 @@ echo ========================================
 echo.
 
 endlocal
+exit /b 0
+
+:wait_for_url_file
+set "WAIT_FILE=%~1"
+set "WAIT_NAME=%~2"
+set "WAIT_PID=%~3"
+set /a WAIT_LIMIT=%~4
+set /a WAIT_COUNT=0
+:wait_for_url_file_loop
+if exist "%WAIT_FILE%" (
+    set "WAIT_VALUE="
+    set /p WAIT_VALUE=<"%WAIT_FILE%"
+    if defined WAIT_VALUE exit /b 0
+)
+if defined WAIT_PID (
+    call :is_pid_running "%WAIT_PID%"
+    if errorlevel 1 (
+        echo [ERROR] %WAIT_NAME% exited before writing shutdown URL file.
+        exit /b 1
+    )
+)
+if !WAIT_COUNT! GEQ !WAIT_LIMIT! (
+    echo [ERROR] Timed out waiting for %WAIT_NAME% shutdown URL file: %WAIT_FILE%
+    exit /b 1
+)
+timeout /t 1 /nobreak >nul
+set /a WAIT_COUNT+=1
+goto :wait_for_url_file_loop
+
+:extract_port
+set "URL_VALUE=%~1"
+set "EXTRACTED_PORT="
+set "URL_VALUE=%URL_VALUE:*://=%"
+for /f "tokens=1 delims=/" %%a in ("%URL_VALUE%") do set "HOST_PORT=%%a"
+for /f "tokens=1,2 delims=:" %%a in ("%HOST_PORT%") do (
+    if not "%%b"=="" set "EXTRACTED_PORT=%%b"
+)
+exit /b 0
+
+:stop_service
+set "STOP_NAME=%~1"
+set "STOP_PID=%~2"
+set "STOP_URL=%~3"
+set /a STOP_TIMEOUT=%~4
+
+if not defined STOP_PID exit /b 0
+
+if defined STOP_URL (
+    echo        Requesting graceful shutdown via %STOP_URL%
+    curl -s -X POST "%STOP_URL%" >nul 2>&1
+    call :wait_for_exit "%STOP_PID%" !STOP_TIMEOUT!
+    if not errorlevel 1 (
+        echo        %STOP_NAME% stopped gracefully.
+        exit /b 0
+    )
+    echo        %STOP_NAME% did not stop gracefully within !STOP_TIMEOUT!s.
+) else (
+    echo        No shutdown URL published for %STOP_NAME%.
+)
+
+echo        Force-killing %STOP_NAME% (PID: %STOP_PID%)...
+taskkill /PID %STOP_PID% /T /F >nul 2>&1
+call :wait_for_exit "%STOP_PID%" 5 >nul 2>&1
+exit /b 0
+
+:wait_for_exit
+set "WAIT_PID=%~1"
+set /a EXIT_LIMIT=%~2
+set /a EXIT_COUNT=0
+:wait_for_exit_loop
+call :is_pid_running "%WAIT_PID%"
+if errorlevel 1 exit /b 0
+if !EXIT_COUNT! GEQ !EXIT_LIMIT! exit /b 1
+timeout /t 1 /nobreak >nul
+set /a EXIT_COUNT+=1
+goto :wait_for_exit_loop
+
+:is_pid_running
+tasklist /FI "PID eq %~1" /NH 2>nul | findstr /R /C:"^[ ]*%~1 " >nul
+exit /b %errorlevel%
+
+:cleanup_temp_files
+del "%BRIDGE_PID_FILE%" 2>nul
+del "%MCP_PID_FILE%" 2>nul
+del "%VOX_PID_FILE%" 2>nul
+del "%BRIDGE_URL_FILE%" 2>nul
+del "%MCP_URL_FILE%" 2>nul
+del "%VOX_URL_FILE%" 2>nul
+exit /b 0
+
+:startup_failed
+echo [ERROR] Failed to start all services cleanly. Cleaning up...
+if defined VOX_PID taskkill /PID %VOX_PID% /T /F >nul 2>&1
+if defined MCP_PID taskkill /PID %MCP_PID% /T /F >nul 2>&1
+if defined BRIDGE_PID taskkill /PID %BRIDGE_PID% /T /F >nul 2>&1
+call :cleanup_temp_files
+endlocal
+exit /b 1

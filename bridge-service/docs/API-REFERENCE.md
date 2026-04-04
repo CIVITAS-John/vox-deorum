@@ -434,6 +434,25 @@ Check if the service is running and connected to the DLL.
 curl http://127.0.0.1:5000/health
 ```
 
+### Graceful Shutdown
+
+**POST** `/shutdown`
+
+Request a graceful local shutdown. Intended for localhost-only orchestration.
+
+**Success Response:**
+```typescript
+{
+  "success": true,
+  "message": "Shutdown initiated"
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://127.0.0.1:5000/shutdown
+```
+
 ### Service Statistics
 
 **GET** `/stats`

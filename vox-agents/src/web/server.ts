@@ -8,6 +8,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import { createLogger } from '../utils/logger.js';
 import { sseManager } from './sse-manager.js';
 import config from '../utils/config.js';
@@ -15,7 +16,7 @@ import telemetryRoutes from './routes/telemetry.js';
 import configRoutes from './routes/config.js';
 import { createAgentRoutes } from './routes/agent.js';
 import sessionRoutes from './routes/session.js';
-import { contextRegistry } from '../infra/context-registry.js';
+import { processManager } from '../infra/process-manager.js';
 import type { HealthStatus, ErrorResponse } from '../types/index.js';
 
 // Get __dirname in ESM
@@ -25,10 +26,57 @@ const __dirname = path.dirname(__filename);
 // Initialize Express app
 const app = express();
 const PORT = config.webui.port;
+const shutdownUrlFile = process.env.VOX_SHUTDOWN_URL_FILE;
 
 // Create loggers using the unified logger utility
 // These will automatically stream to SSE when available
 const webLogger = createLogger('WebUI', 'webui');    // Web UI logger with source: 'webui'
+let activeServer: ReturnType<typeof app.listen> | null = null;
+let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+let activePort: number | null = null;
+
+function getShutdownHost(host: string): string {
+  if (host === '0.0.0.0' || host === '::' || host === '::1' || host === 'localhost') {
+    return '127.0.0.1';
+  }
+
+  return host;
+}
+
+async function writeShutdownUrlFile(port: number, host = '127.0.0.1'): Promise<void> {
+  if (!shutdownUrlFile) return;
+
+  const shutdownUrl = `http://${getShutdownHost(host)}:${port}/shutdown`;
+  await fsPromises.writeFile(shutdownUrlFile, `${shutdownUrl}\n`, 'utf8');
+  webLogger.info(`Wrote shutdown URL to ${shutdownUrlFile}`);
+}
+
+export async function shutdownWebServer(): Promise<void> {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+
+  if (!activeServer) {
+    return;
+  }
+
+  const server = activeServer;
+  activeServer = null;
+  activePort = null;
+
+  await new Promise<void>((resolve, reject) => {
+    server.close((error?: Error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      webLogger.info('Web UI server closed');
+      resolve();
+    });
+  });
+}
 
 // Middleware setup
 app.use(cors());
@@ -78,7 +126,7 @@ app.get('/api/health', (_req: Request, res: Response<HealthStatus>) => {
     version: config.versionInfo?.version || '0.0.0',
     uptime: process.uptime(),
     clients: sseManager.getClientCount(),
-    port: PORT
+    port: activePort ?? PORT
   };
   res.json(healthStatus);
 });
@@ -87,6 +135,14 @@ app.get('/api/health', (_req: Request, res: Response<HealthStatus>) => {
 app.get('/api/logs/stream', (_req: Request, res: Response) => {
   webLogger.info('New SSE client connected');
   sseManager.addClient(res);
+});
+
+app.post('/shutdown', (_req: Request, res: Response) => {
+  webLogger.info('Received HTTP shutdown request');
+  res.status(202).json({ success: true, message: 'Shutdown initiated' });
+  setImmediate(() => {
+    void processManager.shutdown('http-shutdown');
+  });
 });
 
 // Catch-all route for SPA - must come AFTER all API routes
@@ -106,19 +162,28 @@ app.get('*', (_req: Request, res: Response<ErrorResponse>) => {
 function tryListen(port: number): Promise<number | null> {
   return new Promise((resolve, reject) => {
     const server = app.listen(port, () => {
-      webLogger.info(`🌐 Web UI available at: http://localhost:${port}`);
-      webLogger.info('Press Ctrl+C to stop the server');
+      const address = server.address();
+      const actualHost = typeof address === 'object' && address ? address.address : '127.0.0.1';
+      const actualPort = typeof address === 'object' && address ? address.port : port;
 
-      // Start SSE heartbeat to keep connections alive
-      const heartbeatInterval = sseManager.startHeartbeat();
-
-      // Note: shutdown is handled by processManager in console entry points.
-      // Clean up SSE heartbeat on process exit.
-      process.on('exit', () => {
-        clearInterval(heartbeatInterval);
+      activeServer = server;
+      activePort = actualPort;
+      processManager.register('web-server', async () => {
+        await shutdownWebServer();
       });
 
-      resolve(port);
+      webLogger.info(`🌐 Web UI available at: http://localhost:${actualPort}`);
+      webLogger.info('Press Ctrl+C to stop the server');
+      webLogger.info(`Shutdown endpoint: POST http://${getShutdownHost(actualHost)}:${actualPort}/shutdown`);
+
+      // Start SSE heartbeat to keep connections alive
+      heartbeatInterval = sseManager.startHeartbeat();
+
+      void writeShutdownUrlFile(actualPort, actualHost).catch((error) => {
+        webLogger.warn(`Failed to write shutdown URL file: ${String(error)}`);
+      });
+
+      resolve(actualPort);
     });
 
     server.on('error', (err: NodeJS.ErrnoException) => {

@@ -30,8 +30,11 @@ import { respondError, respondSuccess, ErrorCode } from './types/api.js';
 import { handleAPIError } from './utils/api.js';
 import { createServer } from "http";
 import { pauseManager } from './services/pause-manager.js';
+import * as fs from 'fs/promises';
 
 const logger = createLogger('Index');
+const shutdownUrlFile = process.env.BRIDGE_SHUTDOWN_URL_FILE;
+let requestShutdown: (() => void) | null = null;
 
 // Create Express application
 const app = express();
@@ -97,6 +100,31 @@ app.get('/stats', async (_req: Request, res: Response) => {
   });
 });
 
+function getShutdownHost(host: string): string {
+  if (host === '0.0.0.0' || host === '::' || host === '::1' || host === 'localhost') {
+    return '127.0.0.1';
+  }
+
+  return host;
+}
+
+async function writeShutdownUrlFile(host: string, port: number): Promise<void> {
+  if (!shutdownUrlFile) return;
+
+  const shutdownUrl = `http://${getShutdownHost(host)}:${port}/shutdown`;
+  await fs.writeFile(shutdownUrlFile, `${shutdownUrl}\n`, 'utf8');
+  logger.info(`Wrote shutdown URL to ${shutdownUrlFile}`);
+}
+
+app.post('/shutdown', (_req: Request, res: Response) => {
+  logger.info('Received HTTP shutdown request');
+  res.status(202).json({ success: true, message: 'Shutdown initiated' });
+
+  setImmediate(() => {
+    requestShutdown?.();
+  });
+});
+
 /**
  * Route handlers
  */
@@ -115,6 +143,7 @@ app.get('/', async (_req: Request, res: Response) => {
       status: bridgeService.isServiceRunning() ? 'running' : 'stopped',
       endpoints: {
         health: '/health',
+        shutdown: 'POST /shutdown',
         stats: '/stats',
         lua: {
           call: 'POST /lua/call',
@@ -189,32 +218,60 @@ async function startServer(): Promise<void> {
     
     // Start HTTP server
     const server = createServer(app);
+    let shuttingDown = false;
+
+    const shutdown = async () => {
+      if (shuttingDown) return;
+      shuttingDown = true;
+
+      logger.info('Shutting down HTTP server...');
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          server.close((error) => {
+            if (error) {
+              reject(error);
+              return;
+            }
+
+            logger.info('HTTP server closed');
+            resolve();
+          });
+        });
+
+        await bridgeService.shutdown();
+        pauseManager.finalize();
+        logger.info('Server shutdown complete');
+        process.exit(0);
+      } catch (error) {
+        logger.error('Error during shutdown:', error);
+        process.exit(1);
+      }
+    };
+
+    requestShutdown = () => {
+      void shutdown();
+    };
+
     server.keepAliveTimeout = 3600000; // 3600 seconds keep-alive timeout
     server.listen(config.rest.port, config.rest.host, () => {
-      logger.info(`Bridge Service HTTP server listening on http://${config.rest.host}:${config.rest.port}`);
-      logger.info('Service endpoints:');
-      logger.info(`  Health: GET http://${config.rest.host}:${config.rest.port}/health`);
-      logger.info(`  Lua API: http://${config.rest.host}:${config.rest.port}/lua/*`);
-      logger.info(`  External API: http://${config.rest.host}:${config.rest.port}/external/*`);
-      logger.info(`  Events Stream: GET http://${config.rest.host}:${config.rest.port}/events`);
-      logger.info('Bridge Service is ready to accept connections');
-    });
+      const address = server.address();
+      const actualHost = typeof address === 'object' && address ? address.address : config.rest.host;
+      const actualPort = typeof address === 'object' && address ? address.port : config.rest.port;
 
-    // Graceful shutdown handling
-    const shutdown = async () => {
-      logger.info('Shutting down HTTP server...');
-      server.close(async () => {
-        try {
-          await bridgeService.shutdown();
-          pauseManager.finalize();
-          logger.info('Server shutdown complete');
-          process.exit(0);
-        } catch (error) {
-          logger.error('Error during shutdown:', error);
-          process.exit(1);
-        }
+      logger.info(`Bridge Service HTTP server listening on http://${actualHost}:${actualPort}`);
+      logger.info('Service endpoints:');
+      logger.info(`  Health: GET http://${actualHost}:${actualPort}/health`);
+      logger.info(`  Shutdown: POST http://${actualHost}:${actualPort}/shutdown`);
+      logger.info(`  Lua API: http://${actualHost}:${actualPort}/lua/*`);
+      logger.info(`  External API: http://${actualHost}:${actualPort}/external/*`);
+      logger.info(`  Events Stream: GET http://${actualHost}:${actualPort}/events`);
+      logger.info('Bridge Service is ready to accept connections');
+
+      void writeShutdownUrlFile(actualHost, actualPort).catch((error) => {
+        logger.warn(`Failed to write shutdown URL file: ${String(error)}`);
       });
-    };
+    });
 
     process.on('SIGTERM', shutdown);
     process.on('SIGBREAK', shutdown);
