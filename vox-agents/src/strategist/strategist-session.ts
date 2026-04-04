@@ -13,7 +13,9 @@ import { voxCivilization } from "../infra/vox-civilization.js";
 import { setTimeout } from 'node:timers/promises';
 import { VoxSession } from "../infra/vox-session.js";
 import { sessionRegistry } from "../infra/session-registry.js";
-import { StrategistSessionConfig, isVisualMode } from "../types/config.js";
+import { StrategistSessionConfig, isVisualMode, isObsMode } from "../types/config.js";
+import { obsManager } from "../infra/obs-manager.js";
+import { config } from "../utils/config.js";
 import { SessionStatus } from "../types/api.js";
 
 const logger = createLogger('StrategistSession');
@@ -74,6 +76,16 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       await voxCivilization.updateSkipAnimations(false);   // animations play for viewers
     } else if (!this.isInteractiveMode) {
       await voxCivilization.updateSkipAnimations(true);    // skip animations in full-auto mode
+    }
+
+    // Initialize OBS for recording/livestreaming (before game launch so scenes are ready)
+    const obsReady = await this.obsCall('initialize',
+      () => obsManager.initialize(this.config.production!, config.obs, this.config.name)
+    );
+    if (obsReady) {
+      logger.info('OBS initialized successfully for production mode');
+    } else if (isObsMode(this.config.production)) {
+      logger.warn('OBS initialization failed — session will continue without recording');
     }
 
     // Generate MainMenu.lua — AI Observer only in non-interactive mode
@@ -205,6 +217,10 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     // Wait for players to finish their cleanup (callTool metadata + context.shutdown)
     await setTimeout(8000);
 
+    // Stop OBS production for clean event log finalization
+    // (obsManager.destroy() is called automatically by ProcessManager on process exit)
+    await this.obsCall('stopProduction', () => obsManager.stopProduction());
+
     // Disconnect from MCP server
     await mcpClient.disconnect();
 
@@ -227,6 +243,21 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     return !this.config.autoPlay;
   }
 
+  private async obsCall<T>(operation: string, fn: () => Promise<T>): Promise<T | undefined> {
+    if (!isObsMode(this.config.production)) return undefined;
+    try {
+      return await fn();
+    } catch (error) {
+      logger.warn(`OBS operation '${operation}' failed (non-fatal):`, error);
+      return undefined;
+    }
+  }
+
+  private obsEvent(type: string, details?: string): void {
+    if (!isObsMode(this.config.production)) return;
+    obsManager.addEvent(type, details);
+  }
+
   private async handlePlayerDoneTurn(params: GameEventNotification): Promise<void> {
     await this.recoverGame();
     if (this.turn !== params.turn)
@@ -236,16 +267,25 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       player.notifyTurn(params.turn, params.latestID);
       this.turn = params.turn;  // Update current turn
     }
+    this.obsEvent('turn', `${params.turn}`);
   }
 
   private async handleGameSwitched(params: GameEventNotification): Promise<void> {
     // If nothing is changing, ignore this
     if (!params.gameID || params.gameID === this.lastGameID) return;
     if (this.state === 'stopping' || this.state === 'stopped') return;
+    // Stop existing OBS production before switching game context
+    if (obsManager.isProductionActive()) {
+      await this.obsCall('stopProduction', () => obsManager.stopProduction());
+    }
+
     this.lastGameID = params.gameID;
     this.gameID = params.gameID;  // Update current game ID
     this.turn = params.turn;  // Update current turn
     logger.warn(`Game context switching to ${params.gameID} at turn ${params.turn}`);
+
+    // Set OBS game ID for recording directory organization
+    await this.obsCall('setGameID', () => obsManager.setGameID(params.gameID!));
     if (this.state === 'starting') this.onStateChange('running');
 
     // Abort all existing players
@@ -284,6 +324,9 @@ Game.SetAIAutoPlay(2000, -1);`
       await setTimeout(3000);
       await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
     }
+
+    // Start OBS production after game is set up and unpaused
+    await this.obsCall('startProduction', () => obsManager.startProduction());
   }
 
   private async handleDLLConnected(_params: GameEventNotification): Promise<void> {
@@ -294,6 +337,8 @@ Game.SetAIAutoPlay(2000, -1);`
     if (this.state === 'recovering') {
       logger.warn(`Game successfully recovered from crash, resuming play... (autoplay: ${this.config.autoPlay})`);
       this.onStateChange('running');
+      this.obsEvent('crash_recovered');
+      await this.obsCall('resumeProduction', () => obsManager.resumeProduction());
       // Reset model identity on all players so it gets re-sent to the fresh game
       for (const player of this.activePlayers.values()) {
         player.context.resetModelIdentity();
@@ -308,6 +353,7 @@ Game.SetAIAutoPlay(2000, -1);`
 
   private async handlePlayerVictory(params: GameEventNotification): Promise<void> {
     logger.warn(`Player ${params.playerID} has won the game on turn ${params.turn}!`);
+    this.obsEvent('victory', `player=${params.playerID} turn=${params.turn}`);
 
     // Stop the game when autoplay
     if (this.config.autoPlay) {
@@ -327,6 +373,9 @@ Game.SetAIAutoPlay(2000, -1);`
       logger.info(`Requesting voluntary shutdown of the game...`);
       mcpClient.callTool("lua-executor", { Script: `Events.UserRequestClose();` }).catch((any) => null);
       await setTimeout(5000);
+
+      // Stop OBS production before killing the game
+      await this.obsCall('stopProduction', () => obsManager.stopProduction());
 
       // Kill the process
       const killed = await voxCivilization.killGame();
@@ -442,11 +491,14 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
+    this.obsEvent('game_crashed', `exitCode=${exitCode}`);
+    await this.obsCall('pauseProduction', () => obsManager.pauseProduction());
     this.onStateChange('error');
 
     // Check if we've exceeded recovery attempts
     if (this.crashRecoveryAttempts >= this.MAX_RECOVERY_ATTEMPTS) {
       logger.error(`Maximum recovery attempts (${this.MAX_RECOVERY_ATTEMPTS}) exceeded. Shutting down session.`);
+      await this.obsCall('stopProduction', () => obsManager.stopProduction());
       await this.shutdown();
       return;
     }

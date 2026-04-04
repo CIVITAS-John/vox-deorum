@@ -28,6 +28,8 @@ const GAME_SCENE_NAME = 'Vox Deorum';
 const PAUSE_SCENE_NAME = 'Vox Deorum - Paused';
 const GAME_CAPTURE_INPUT_NAME = 'Game Capture';
 const PAUSE_IMAGE_INPUT_NAME = 'Pause Image';
+const GAME_AUDIO_INPUT_NAME = 'Game Audio';
+const GAME_AUDIO_INPUT_KIND = 'wasapi_process_output_capture';
 const GAME_EXECUTABLE = 'CivilizationV.exe';
 const DEFAULT_OBS_PATH = 'C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe';
 const HEALTH_POLL_INTERVAL = 10_000;
@@ -66,6 +68,9 @@ class ObsManager {
   private gameID?: string;
   private baseRecordDir?: string;
   private currentRecordDir?: string;
+
+  /** Names of special inputs we muted — restore on destroy. */
+  private mutedInputs: string[] = [];
 
   // Live JSONL event log
   private eventLogPath?: string;
@@ -347,6 +352,9 @@ class ObsManager {
       }
     }
 
+    // Restore any audio inputs we muted
+    await this.restoreMutedInputs();
+
     if (this.connected) {
       try {
         this.obs.removeAllListeners();
@@ -485,6 +493,33 @@ class ObsManager {
         });
         logger.info(`Created game capture input targeting ${GAME_EXECUTABLE}`);
       }
+
+      // Ensure application audio capture exists in the game scene (idempotent)
+      try {
+        const { sceneItems } = await this.obs.call('GetSceneItemList', {
+          sceneName: GAME_SCENE_NAME,
+        });
+        const hasAudioCapture = sceneItems.some(
+          (item: any) => item.sourceName === GAME_AUDIO_INPUT_NAME
+        );
+        if (!hasAudioCapture) {
+          await this.obs.call('CreateInput', {
+            sceneName: GAME_SCENE_NAME,
+            inputName: GAME_AUDIO_INPUT_NAME,
+            inputKind: GAME_AUDIO_INPUT_KIND,
+            inputSettings: {
+              window: `${GAME_EXECUTABLE}:${GAME_EXECUTABLE}:${GAME_EXECUTABLE}`,
+              priority: 2,
+            },
+          });
+          logger.info(`Created application audio capture targeting ${GAME_EXECUTABLE}`);
+        }
+      } catch (error) {
+        logger.warn('Failed to set up application audio capture:', error);
+      }
+
+      // Mute default audio sources so only game audio is captured
+      await this.muteDefaultAudioSources();
 
       // Create pause scene if it doesn't exist (for livestream mode)
       if (this.mode === 'livestream' && !sceneNames.includes(PAUSE_SCENE_NAME)) {
@@ -647,6 +682,64 @@ class ObsManager {
         }
       }
     }
+  }
+
+  /**
+   * Mute default Desktop Audio and Mic/Aux inputs so only the
+   * application audio capture (game audio) is recorded/streamed.
+   * Tracks which inputs were actually muted for restoration on destroy().
+   */
+  private async muteDefaultAudioSources(): Promise<void> {
+    try {
+      const special = await this.obs.call('GetSpecialInputs');
+
+      const candidates = [
+        special.desktop1,
+        special.desktop2,
+        special.mic1,
+        special.mic2,
+        special.mic3,
+        special.mic4,
+      ].filter(name => name && name.length > 0);
+
+      for (const inputName of candidates) {
+        try {
+          const { inputMuted } = await this.obs.call('GetInputMute', { inputName });
+          if (!inputMuted) {
+            await this.obs.call('SetInputMute', { inputName, inputMuted: true });
+            this.mutedInputs.push(inputName);
+            logger.debug(`Muted default audio input: ${inputName}`);
+          }
+        } catch {
+          // Input may not exist in this OBS configuration — skip
+        }
+      }
+
+      if (this.mutedInputs.length > 0) {
+        logger.info(`Muted ${this.mutedInputs.length} default audio input(s) — game audio only`);
+      }
+    } catch (error) {
+      logger.warn('Failed to mute default audio sources:', error);
+    }
+  }
+
+  /**
+   * Restore the mute state of any inputs we muted during setup.
+   * Called during destroy() to leave OBS in its original state.
+   */
+  private async restoreMutedInputs(): Promise<void> {
+    for (const inputName of this.mutedInputs) {
+      try {
+        await this.obs.call('SetInputMute', { inputName, inputMuted: false });
+        logger.debug(`Unmuted audio input: ${inputName}`);
+      } catch {
+        // Best effort — input may no longer exist
+      }
+    }
+    if (this.mutedInputs.length > 0) {
+      logger.info(`Restored ${this.mutedInputs.length} default audio input(s)`);
+    }
+    this.mutedInputs = [];
   }
 
   private sleep(ms: number): Promise<void> {

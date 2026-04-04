@@ -54,7 +54,8 @@ initialize(mode, config?, configName?)
     │
     ├── Ensure OBS is running (detect via tasklist, launch if needed)
     ├── Connect to OBS WebSocket
-    ├── Set up scenes (game capture + pause scene)
+    ├── Set up scenes (game capture + audio capture + pause scene)
+    ├── Mute default audio sources (Desktop Audio, Mic/Aux)
     ├── Query recording directory (GetRecordDirectory)
     ├── Listen for RecordStateChanged events
     └── Start health monitoring (10s poll)
@@ -89,8 +90,12 @@ Uses `SetRecordDirectory` (OBS 30.2+) to redirect OBS output. The directory is s
 
 On `initialize()`, ObsManager creates OBS scenes programmatically:
 
-1. **"Vox Deorum"** scene with a `game_capture` input targeting `CivilizationV.exe` by executable name (`WINDOW_PRIORITY_EXE` matching)
+1. **"Vox Deorum"** scene with:
+   - A `game_capture` input targeting `CivilizationV.exe` by executable name (`WINDOW_PRIORITY_EXE` matching)
+   - An `Application Audio Capture` input (`wasapi_process_output_capture`) targeting `CivilizationV.exe` — captures only game audio
 2. **"Vox Deorum - Paused"** scene (livestream mode only) with an `image_source` input showing a static pause image
+
+Default Desktop Audio and Mic/Aux inputs are muted during the session to ensure only game audio is recorded. Original mute states are restored on `destroy()`.
 
 The game capture scene is set as the active program scene.
 

@@ -110,6 +110,26 @@ describe.skipIf(!obsAvailable)('ObsManager (requires running OBS)', () => {
     expect(sceneNames).toContain(GAME_SCENE);
   });
 
+  it('should have created an application audio capture input in the game scene', async () => {
+    const { sceneItems } = await verifyObs.call('GetSceneItemList', {
+      sceneName: GAME_SCENE,
+    });
+    const audioCapture = sceneItems.find(
+      (item: any) => item.sourceName === 'Game Audio'
+    );
+    expect(audioCapture).toBeDefined();
+  });
+
+  it('should have muted default desktop audio sources', async () => {
+    const special = await verifyObs.call('GetSpecialInputs');
+    if (special.desktop1) {
+      const { inputMuted } = await verifyObs.call('GetInputMute', {
+        inputName: special.desktop1,
+      });
+      expect(inputMuted).toBe(true);
+    }
+  });
+
   it('should start and stop recording under game ID folder', async () => {
     const obsManager = obsManagerModule!.obsManager;
     await obsManager.setGameID(TEST_GAME_ID);
