@@ -74,6 +74,8 @@ export interface VoxAgentsConfig {
   episodeDbPath: string;
   /** Directory for telemetry and telepathist databases. Empty string uses default 'telemetry' */
   telemetryDir: string;
+  /** OBS Studio configuration for production modes */
+  obs?: ObsConfig;
 }
 
 /**
@@ -143,6 +145,55 @@ export interface PlayerConfig {
 export type StrategyDecisionType = "Strategy" | "Flavor";
 
 /**
+ * Production mode for game sessions.
+ * Controls animation behavior and OBS Studio integration.
+ *
+ * - `"none"` (default): Skip animations in autoplay, toggle strategic view
+ * - `"test"`: Play animations, don't toggle strategic view, no OBS
+ * - `"livestream"`: Play animations, don't toggle strategic view, OBS streaming
+ * - `"recording"`: Play animations, don't toggle strategic view, OBS recording with file timestamps
+ */
+export type ProductionMode = 'none' | 'test' | 'livestream' | 'recording';
+
+/**
+ * OBS Studio configuration for production modes that use OBS (livestream, recording).
+ */
+export interface ObsConfig {
+  /** Path to obs64.exe. Auto-detected if not set. */
+  executablePath?: string;
+  /** OBS WebSocket port (default: 4455) */
+  wsPort?: number;
+  /** OBS WebSocket password */
+  wsPassword?: string;
+  /** OBS profile name to use */
+  profile?: string;
+  /** OBS scene collection name to use */
+  sceneCollection?: string;
+  /** OBS scene name for game capture */
+  scene?: string;
+  /** Directory for recording output files */
+  recordingOutputDir?: string;
+  /** Path to static image shown during paused livestream */
+  pauseImagePath?: string;
+}
+
+/**
+ * Returns true for production modes that should play animations and not toggle strategic view.
+ * Used for: test, livestream, recording.
+ */
+export function isVisualMode(mode?: ProductionMode): boolean {
+  return mode === 'test' || mode === 'livestream' || mode === 'recording';
+}
+
+/**
+ * Returns true for production modes that require OBS Studio.
+ * Used for: livestream, recording.
+ */
+export function isObsMode(mode?: ProductionMode): boolean {
+  return mode === 'livestream' || mode === 'recording';
+}
+
+/**
  * Configuration specific to Strategist sessions.
  * Extends base config with player-specific LLM settings.
  */
@@ -156,6 +207,6 @@ export interface StrategistSessionConfig extends SessionConfig {
   /** When true, randomize the mapping between config slots and actual game player indices each game */
   randomizeSeating?: boolean;
 
-  /** When true: suppresses strategic view and disables animation skipping so combat animations play for viewers */
-  liveStream?: boolean;
+  /** Production mode controlling animations and OBS integration */
+  production?: ProductionMode;
 }

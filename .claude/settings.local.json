@@ -58,7 +58,9 @@
       "WebFetch(domain:duckdb.org)",
       "Bash(cd vox-agents:*)",
       "WebFetch(domain:deepwiki.com)",
-      "Bash(find vox-agents:*)"
+      "Bash(find vox-agents:*)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:obsproject.com)"
     ],
     "deny": [
       "Read(**/.env*)",

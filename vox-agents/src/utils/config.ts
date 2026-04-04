@@ -214,7 +214,10 @@ export const defaultConfig: VoxAgentsConfig = {
   },
   configsDir: 'configs',
   episodeDbPath: 'episodes.duckdb',
-  telemetryDir: ''
+  telemetryDir: '',
+  obs: {
+    wsPort: 4455
+  }
 };
 
 /**
@@ -261,7 +264,7 @@ export function computeConfigDiff(
   const diff: Record<string, unknown> = {};
 
   // Compare simple top-level fields (skip versionInfo - runtime only)
-  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath', 'telemetryDir'];
+  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath', 'telemetryDir', 'obs'];
   for (const key of topLevelKeys) {
     if (!deepEqual(fullConfig[key], defaults[key])) {
       diff[key] = fullConfig[key];
@@ -312,7 +315,7 @@ export function mergeConfigWithDefaults(
   };
 
   // Override top-level fields from file (skip llms, handled separately)
-  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath', 'telemetryDir'];
+  const topLevelKeys: (keyof VoxAgentsConfig)[] = ['agent', 'webui', 'mcpServer', 'logging', 'configsDir', 'episodeDbPath', 'telemetryDir', 'obs'];
   for (const key of topLevelKeys) {
     if (key in fileConfig) {
       (result as any)[key] = fileConfig[key];
@@ -485,7 +488,13 @@ function loadConfig(): VoxAgentsConfig {
     llms: fileConfig.llms,
     configsDir: process.env.CONFIGS_DIR || fileConfig.configsDir,
     episodeDbPath: process.env.EPISODE_DB_PATH || fileConfig.episodeDbPath,
-    telemetryDir: process.env.TELEMETRY_DIR || fileConfig.telemetryDir
+    telemetryDir: process.env.TELEMETRY_DIR || fileConfig.telemetryDir,
+    obs: {
+      ...fileConfig.obs,
+      ...(process.env.OBS_EXECUTABLE_PATH && { executablePath: process.env.OBS_EXECUTABLE_PATH }),
+      ...(process.env.OBS_WS_PORT && { wsPort: parseInt(process.env.OBS_WS_PORT) }),
+      ...(process.env.OBS_WS_PASSWORD && { wsPassword: process.env.OBS_WS_PASSWORD }),
+    }
   };
 
   // Update logger level based on configuration

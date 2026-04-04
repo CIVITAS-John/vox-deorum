@@ -21,25 +21,17 @@ import type { OracleConfig } from './types.js';
 import { startWebServer } from '../web/server.js';
 import { contextRegistry } from '../infra/context-registry.js';
 import { sqliteExporter } from '../instrumentation.js';
+import { processManager } from '../infra/process-manager.js';
 
 const logger = createLogger('OracleCLI');
 
-// Graceful shutdown — closes all registered VoxContexts (and their DB connections)
-let shuttingdown = false;
-async function shutdown(signal: string) {
-  if (shuttingdown) return;
-  shuttingdown = true;
-
-  logger.info(`Received ${signal}, shutting down gracefully...`);
-
+// Register shutdown hooks with processManager
+processManager.register('contexts', async () => {
   await contextRegistry.shutdownAll();
+});
+processManager.register('telemetry', async () => {
   await sqliteExporter.forceFlush();
-  process.exit(0);
-}
-
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGBREAK', () => shutdown('SIGBREAK'));
+});
 
 const { values } = parseArgs({
   options: {

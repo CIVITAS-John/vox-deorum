@@ -32,6 +32,7 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'node:path';
 import { VoxSpanExporter } from "../utils/telemetry/vox-exporter.js";
 import { startWebServer } from "../web/server.js";
+import { processManager } from "../infra/process-manager.js";
 
 const logger = createLogger('Telepathist');
 
@@ -68,25 +69,14 @@ if (!rawDatabasePath) {
 
 const databasePath = path.resolve(path.join("telemetry", rawDatabasePath));
 
-// Graceful shutdown — closes all registered VoxContexts (and their DB connections)
-let shuttingdown = false;
-async function shutdown(signal: string) {
-  if (shuttingdown) return;
-  shuttingdown = true;
-
-  logger.info(`Received ${signal}, shutting down gracefully...`);
-
+// Register shutdown hooks with processManager
+processManager.register('contexts', async () => {
   await contextRegistry.shutdownAll();
+});
+processManager.register('telemetry', async () => {
   await sqliteExporter.forceFlush();
   await setTimeout(1000);
-
-  process.exit(0);
-}
-
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGBREAK', () => shutdown('SIGBREAK'));
-process.on('SIGHUP', () => shutdown('SIGHUP'));
+});
 
 // Web UI
 await startWebServer();
@@ -158,8 +148,8 @@ async function main() {
 
   logger.info('Bootstrapping complete');
 
-  // Clean up via shutdown (which calls contextRegistry.shutdownAll → context.shutdown → params.close)
-  await shutdown('complete');
+  // Clean up via processManager (calls contextRegistry.shutdownAll → context.shutdown → params.close)
+  await processManager.shutdown('complete');
 }
 
 main();

@@ -17,6 +17,7 @@ import { parseArgs } from 'node:util';
 import * as readline from 'node:readline';
 import * as path from 'node:path';
 import { startWebServer } from "../web/server.js";
+import { processManager } from "../infra/process-manager.js";
 
 const logger = createLogger('Strategists');
 
@@ -134,47 +135,22 @@ if (!sessionConfig.name) {
 let session: StrategistSession | null = null;
 let rl: readline.Interface | null = null;
 
-/**
- * Graceful shutdown handler.
- * Flushes telemetry and cleans up resources before exiting.
- *
- * @param signal - The signal that triggered the shutdown
- */
-let shuttingdown = false;
 let shuttingdownAfter = false;
-async function shutdown(signal: string) {
-  if (shuttingdown) return;
-  shuttingdown = true;
 
-  logger.info(`Received ${signal}, shutting down gracefully...`);
-
-  // Restore terminal settings
+// Register shutdown hooks with processManager
+processManager.register('terminal', async () => {
   if (process.stdin.isTTY && process.stdin.setRawMode) {
     process.stdin.setRawMode(false);
   }
-
-  // Close readline interface
-  if (rl) {
-    rl.close();
-  }
-
-  // Shutdown the session if it exists
-  if (session) {
-    await session.shutdown();
-  }
-
-  // Flush telemetry
+  if (rl) rl.close();
+});
+processManager.register('session', async () => {
+  if (session) await session.shutdown();
+});
+processManager.register('telemetry', async () => {
   await sqliteExporter.forceFlush();
   await setTimeout(1000);
-
-  process.exit(0);
-}
-
-// Register signal handlers
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGBREAK', () => shutdown('SIGBREAK'));
-process.on('SIGHUP', () => shutdown('SIGHUP'));
+});
 
 // Web UI
 await startWebServer();
@@ -203,9 +179,9 @@ process.stdin.on('data', (key) => {
       logger.info('Ctrl+A pressed again: Cancelled shutdown after current session');
     }
   }
-  // Ctrl+C is ASCII code 3 - let it pass through for immediate shutdown
+  // Ctrl+C is ASCII code 3 - immediate shutdown via processManager
   else if (key[0] === 3) {
-    process.emit('SIGINT', 'SIGINT');
+    processManager.shutdown('SIGINT');
   }
 });
 
@@ -217,7 +193,7 @@ async function main() {
   logger.info(`Starting in ${sessionConfig.gameMode} mode`);
   try {
     for (var I = 0; I < (sessionConfig.repetition ?? 1); I++) {
-      if (shuttingdown || shuttingdownAfter) break;
+      if (processManager.isShuttingDown || shuttingdownAfter) break;
       // Start a new session
       session = new StrategistSession(sessionConfig);
       await session.start();
@@ -225,13 +201,13 @@ async function main() {
       logger.info(`Session ${I} completed successfully`);
       // Shut down the session
       await session.shutdown();
-      if (shuttingdown || shuttingdownAfter) break;
+      if (processManager.isShuttingDown || shuttingdownAfter) break;
     }
   } catch (error) {
     logger.error('Session failed:', error);
     process.exit(1);
   } finally {
-    await shutdown('main-complete');
+    await processManager.shutdown('main-complete');
   }
 }
 

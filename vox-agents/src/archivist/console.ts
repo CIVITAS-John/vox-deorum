@@ -33,6 +33,7 @@ import { generateEmbeddings } from './pipeline/embeddings.js';
 import { selectLandmarks } from './pipeline/selector.js';
 import { computeTargetTurns, type WorkerStats } from './pipeline/target-turns.js';
 import { startWebServer } from '../web/server.js';
+import { processManager } from '../infra/process-manager.js';
 
 const logger = createLogger('Archivist');
 
@@ -382,28 +383,19 @@ async function main() {
   // Step 2: Initialize DuckDB writer
   const writer = await EpisodeWriter.create(outputPath);
 
-  // Shutdown handlers
-  async function shutdown(signal: string) {
-    if (shuttingdown) return;
-    shuttingdown = true;
-
-    logger.info(`Received ${signal}, shutting down...`);
-
+  // Register shutdown hooks with processManager
+  processManager.register('terminal', async () => {
     if (process.stdin.isTTY && process.stdin.setRawMode) {
       process.stdin.setRawMode(false);
     }
     if (rl) rl.close();
-
+  });
+  processManager.register('duckdb-ui', async () => {
     if (uiConn) {
       await uiConn.run('CALL stop_ui_server();').catch(() => {});
       uiConn.disconnectSync();
     }
-    process.exit(0);
-  }
-
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('SIGBREAK', () => shutdown('SIGBREAK'));
+  });
 
   // Setup readline for Ctrl+A
   rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
@@ -421,7 +413,7 @@ async function main() {
         logger.info('Ctrl+A pressed again: Cancelled shutdown');
       }
     } else if (key[0] === 3) {
-      process.emit('SIGINT', 'SIGINT');
+      processManager.shutdown('SIGINT');
     }
   });
 
@@ -495,13 +487,11 @@ async function main() {
 
     await new Promise<void>((resolve) => {
       const keepAlive = setInterval(() => {}, 1 << 30);
-      process.on('SIGINT', () => {
+      // processManager already has the duckdb-ui hook registered;
+      // just need to keep the process alive until Ctrl+C triggers it
+      processManager.register('duckdb-ui-keepalive', async () => {
         clearInterval(keepAlive);
-        logger.info('Shutting down DuckDB UI');
-        uiConn!.run('CALL stop_ui_server();').finally(() => {
-          uiConn!.disconnectSync();
-          resolve();
-        });
+        resolve();
       });
     });
   }

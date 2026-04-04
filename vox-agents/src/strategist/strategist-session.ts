@@ -13,7 +13,7 @@ import { voxCivilization } from "../infra/vox-civilization.js";
 import { setTimeout } from 'node:timers/promises';
 import { VoxSession } from "../infra/vox-session.js";
 import { sessionRegistry } from "../infra/session-registry.js";
-import { StrategistSessionConfig } from "../types/config.js";
+import { StrategistSessionConfig, isVisualMode } from "../types/config.js";
 import { SessionStatus } from "../types/api.js";
 
 const logger = createLogger('StrategistSession');
@@ -70,7 +70,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       logger.info(`Starting strategist session ${this.id} in ${this.config.gameMode} mode`, this.config);
 
     // Configure animation skipping based on mode (skip in interactive mode)
-    if (this.config.liveStream) {
+    if (isVisualMode(this.config.production)) {
       await voxCivilization.updateSkipAnimations(false);   // animations play for viewers
     } else if (!this.isInteractiveMode) {
       await voxCivilization.updateSkipAnimations(true);    // skip animations in full-auto mode
@@ -280,7 +280,7 @@ Game.SetAIAutoPlay(2000, -1);`
     } else {
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
     }
-    if (this.config.autoPlay && !this.config.liveStream) {
+    if (this.config.autoPlay && !isVisualMode(this.config.production)) {
       await setTimeout(3000);
       await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
     }
@@ -299,7 +299,7 @@ Game.SetAIAutoPlay(2000, -1);`
         player.context.resetModelIdentity();
       }
       await mcpClient.callTool("lua-executor", { Script: `Events.LoadScreenClose(); Game.SetPausePlayer(-1);` });
-      if (this.config.autoPlay && !this.config.liveStream) {
+      if (this.config.autoPlay && !isVisualMode(this.config.production)) {
         await setTimeout(3000);
         await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
       }

@@ -112,13 +112,10 @@ function tryListen(port: number): Promise<number | null> {
       // Start SSE heartbeat to keep connections alive
       const heartbeatInterval = sseManager.startHeartbeat();
 
-      // Cleanup on shutdown — close all VoxContexts (and their DB connections) before exiting
-      process.on('SIGINT', async () => {
-        webLogger.info('Shutting down web server');
+      // Note: shutdown is handled by processManager in console entry points.
+      // Clean up SSE heartbeat on process exit.
+      process.on('exit', () => {
         clearInterval(heartbeatInterval);
-        await contextRegistry.shutdownAll();
-        server.close();
-        process.exit(0);
       });
 
       resolve(port);
