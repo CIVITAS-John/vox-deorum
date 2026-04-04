@@ -83,6 +83,14 @@ export class KnowledgeManager {
             renderEvent.event,
             renderEvent.payload
           );
+          // Forward render events as MCP notifications for downstream consumers (e.g., OBS segment recording)
+          MCPServer.getInstance().sendNotification(
+            renderEvent.event,
+            renderEvent.payload.playerID as number ?? -1,
+            renderEvent.turn,
+            -1,
+            renderEvent.payload
+          );
         } else {
           await this.knowledgeStore.handleGameEvent(data.id, data.type, data.payload, data.visibility, data.extraPayload);
         }

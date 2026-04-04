@@ -193,7 +193,10 @@ export class MCPServer {
     return this.knowledgeManager;
   }
 
-  private eventsForNotification = ["GameSwitched", "PlayerDoneTurn", "PlayerVictory", "DLLConnected", "DLLDisconnected"];
+  private eventsForNotification = [
+    "GameSwitched", "PlayerDoneTurn", "PlayerVictory", "DLLConnected", "DLLDisconnected",
+    "PlayerPanelSwitch", "TurnAnimationComplete",
+  ];
   /**
    * Send a notification to all clients through MCP notification protocol.
    */

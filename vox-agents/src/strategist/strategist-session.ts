@@ -15,6 +15,7 @@ import { VoxSession } from "../infra/vox-session.js";
 import { sessionRegistry } from "../infra/session-registry.js";
 import { StrategistSessionConfig, isVisualMode, isObsMode } from "../types/config.js";
 import { obsManager } from "../infra/obs-manager.js";
+import { ProductionController } from "../infra/production-controller.js";
 import { config } from "../utils/config.js";
 import { SessionStatus } from "../types/api.js";
 
@@ -36,6 +37,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
   private mcpKillCounter = 0;
   private dllConnected = false;
   private seatingMap?: Record<string, number>;
+  private production?: ProductionController;
   private readonly MAX_RECOVERY_ATTEMPTS = 3;
 
   constructor(config: StrategistSessionConfig) {
@@ -80,9 +82,10 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
 
     // Initialize OBS for recording/livestreaming (before game launch so scenes are ready)
     const obsReady = await this.obsCall('initialize',
-      () => obsManager.initialize(this.config.production!, config.obs, this.config.name)
+      () => obsManager.initialize(this.config.production!, config.obs)
     );
     if (obsReady) {
+      this.production = new ProductionController(obsManager, this.config.production!);
       logger.info('OBS initialized successfully for production mode');
     } else if (isObsMode(this.config.production)) {
       logger.warn('OBS initialization failed — session will continue without recording');
@@ -133,6 +136,11 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
             logger.warn(`The DLL is no longer connected. Trying to restart the game...`);
             await voxCivilization.killGame();
           }
+          break;
+        case "PlayerPanelSwitch":
+        case "TurnAnimationComplete":
+          await this.obsCall('handleRenderEvent',
+            () => this.production!.handleRenderEvent(params.event, params));
           break;
         default:
           logger.info(`Received game event notification: ${params.event}`, params);
@@ -217,9 +225,8 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     // Wait for players to finish their cleanup (callTool metadata + context.shutdown)
     await setTimeout(8000);
 
-    // Stop OBS production for clean event log finalization
-    // (obsManager.destroy() is called automatically by ProcessManager on process exit)
-    await this.obsCall('stopProduction', () => obsManager.stopProduction());
+    // Stop production controller (obsManager.destroy() called by ProcessManager on exit)
+    await this.obsCall('stopProduction', () => this.production!.stop());
 
     // Disconnect from MCP server
     await mcpClient.disconnect();
@@ -253,16 +260,10 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     }
   }
 
-  private obsEvent(type: string, details?: string): void {
-    if (!isObsMode(this.config.production)) return;
-    obsManager.addEvent(type, details);
-  }
-
   private async handlePlayerDoneTurn(params: GameEventNotification): Promise<void> {
     await this.recoverGame();
     if (this.turn !== params.turn) {
       this.crashRecoveryAttempts = Math.max(0, this.crashRecoveryAttempts - 0.5);
-      this.obsEvent('turn', `${params.turn}`);
     }
     const player = this.activePlayers.get(params.playerID);
     if (player) {
@@ -275,10 +276,8 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     // If nothing is changing, ignore this
     if (!params.gameID || params.gameID === this.lastGameID) return;
     if (this.state === 'stopping' || this.state === 'stopped') return;
-    // Stop existing OBS production before switching game context
-    if (obsManager.isProductionActive()) {
-      await this.obsCall('stopProduction', () => obsManager.stopProduction());
-    }
+    // Stop existing production before switching game context
+    await this.obsCall('stopProduction', () => this.production!.stop());
 
     this.lastGameID = params.gameID;
     this.gameID = params.gameID;  // Update current game ID
@@ -326,8 +325,8 @@ Game.SetAIAutoPlay(2000, -1);`
       await mcpClient.callTool("lua-executor", { Script: `ToggleStrategicView();` });
     }
 
-    // Start OBS production after game is set up and unpaused
-    await this.obsCall('startProduction', () => obsManager.startProduction());
+    // Start production controller (recording waits for render events)
+    await this.obsCall('startProduction', () => this.production!.start());
   }
 
   private async handleDLLConnected(_params: GameEventNotification): Promise<void> {
@@ -338,8 +337,7 @@ Game.SetAIAutoPlay(2000, -1);`
     if (this.state === 'recovering') {
       logger.warn(`Game successfully recovered from crash, resuming play... (autoplay: ${this.config.autoPlay})`);
       this.onStateChange('running');
-      this.obsEvent('crash_recovered');
-      await this.obsCall('resumeProduction', () => obsManager.resumeProduction());
+      await this.obsCall('resumeProduction', () => this.production!.resume());
       // Reset model identity on all players so it gets re-sent to the fresh game
       for (const player of this.activePlayers.values()) {
         player.context.resetModelIdentity();
@@ -354,7 +352,6 @@ Game.SetAIAutoPlay(2000, -1);`
 
   private async handlePlayerVictory(params: GameEventNotification): Promise<void> {
     logger.warn(`Player ${params.playerID} has won the game on turn ${params.turn}!`);
-    this.obsEvent('victory', `player=${params.playerID} turn=${params.turn}`);
 
     // Stop the game when autoplay
     if (this.config.autoPlay) {
@@ -375,8 +372,8 @@ Game.SetAIAutoPlay(2000, -1);`
       mcpClient.callTool("lua-executor", { Script: `Events.UserRequestClose();` }).catch((any) => null);
       await setTimeout(5000);
 
-      // Stop OBS production before killing the game
-      await this.obsCall('stopProduction', () => obsManager.stopProduction());
+      // Stop production before killing the game
+      await this.obsCall('stopProduction', () => this.production!.stop());
 
       // Kill the process
       const killed = await voxCivilization.killGame();
@@ -492,14 +489,13 @@ Game.SetAIAutoPlay(2000, -1);`
 
     // Game crashed unexpectedly
     logger.error(`Game process crashed with exit code: ${exitCode}`);
-    this.obsEvent('game_crashed', `exitCode=${exitCode}`);
-    await this.obsCall('pauseProduction', () => obsManager.pauseProduction());
+    await this.obsCall('suspendProduction', () => this.production!.suspend());
     this.onStateChange('error');
 
     // Check if we've exceeded recovery attempts
     if (this.crashRecoveryAttempts >= this.MAX_RECOVERY_ATTEMPTS) {
       logger.error(`Maximum recovery attempts (${this.MAX_RECOVERY_ATTEMPTS}) exceeded. Shutting down session.`);
-      await this.obsCall('stopProduction', () => obsManager.stopProduction());
+      await this.obsCall('stopProduction', () => this.production!.stop());
       await this.shutdown();
       return;
     }

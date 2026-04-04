@@ -153,21 +153,21 @@ echo        Started with PID: %VOX_PID%
 echo.
 echo [INFO] Waiting for shutdown URLs...
 
-call :wait_for_url_file "%BRIDGE_URL_FILE%" "Bridge Service" "%BRIDGE_PID%" 60
+call :wait_for_url_file "%BRIDGE_URL_FILE%" "Bridge Service" 60
 if errorlevel 1 goto :startup_failed
 set /p BRIDGE_SHUTDOWN_URL=<"%BRIDGE_URL_FILE%"
 call :extract_port "%BRIDGE_SHUTDOWN_URL%"
 set "BRIDGE_PORT=!EXTRACTED_PORT!"
 echo        Bridge Service URL: %BRIDGE_SHUTDOWN_URL%
 
-call :wait_for_url_file "%MCP_URL_FILE%" "MCP Server" "%MCP_PID%" 60
+call :wait_for_url_file "%MCP_URL_FILE%" "MCP Server" 60
 if errorlevel 1 goto :startup_failed
 set /p MCP_SHUTDOWN_URL=<"%MCP_URL_FILE%"
 call :extract_port "%MCP_SHUTDOWN_URL%"
 set "MCP_PORT=!EXTRACTED_PORT!"
 echo        MCP Server URL: %MCP_SHUTDOWN_URL%
 
-call :wait_for_url_file "%VOX_URL_FILE%" "Vox Agents" "%VOX_PID%" 90
+call :wait_for_url_file "%VOX_URL_FILE%" "Vox Agents" 90
 if errorlevel 1 goto :startup_failed
 set /p VOX_SHUTDOWN_URL=<"%VOX_URL_FILE%"
 call :extract_port "%VOX_SHUTDOWN_URL%"
@@ -240,21 +240,13 @@ exit /b 0
 :wait_for_url_file
 set "WAIT_FILE=%~1"
 set "WAIT_NAME=%~2"
-set "WAIT_PID=%~3"
-set /a WAIT_LIMIT=%~4
+set /a WAIT_LIMIT=%~3
 set /a WAIT_COUNT=0
 :wait_for_url_file_loop
 if exist "%WAIT_FILE%" (
     set "WAIT_VALUE="
     set /p WAIT_VALUE=<"%WAIT_FILE%"
     if defined WAIT_VALUE exit /b 0
-)
-if defined WAIT_PID (
-    call :is_pid_running "%WAIT_PID%"
-    if errorlevel 1 (
-        echo [ERROR] %WAIT_NAME% exited before writing shutdown URL file.
-        exit /b 1
-    )
 )
 if !WAIT_COUNT! GEQ !WAIT_LIMIT! (
     echo [ERROR] Timed out waiting for %WAIT_NAME% shutdown URL file: %WAIT_FILE%

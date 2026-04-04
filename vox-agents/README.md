@@ -483,7 +483,8 @@ vox-agents/
 │   │   ├── vox-session.ts         # Base session management
 │   │   ├── agent-registry.ts      # Global centralized agent discovery
 │   │   ├── session-registry.ts    # Global session tracking
-│   │   └── context-registry.ts    # Global context lifecycle
+│   │   ├── context-registry.ts    # Global context lifecycle
+│   │   └── production-controller.ts # Segment-based recording via render events
 │   ├── strategist/                # Strategy agents
 │   │   ├── agents/
 │   │   │   ├── none-strategist.ts

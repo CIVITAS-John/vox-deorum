@@ -11,7 +11,7 @@ The `production` field on `StrategistSessionConfig` controls animation behavior 
 | `"none"` (default) | Skip in autoplay | Yes | No |
 | `"test"` | Play | No | No |
 | `"livestream"` | Play | No | Streaming |
-| `"recording"` | Play | No | Recording with live event logs |
+| `"recording"` | Play | No | Segment-based recording via render events |
 
 Helper functions in `types/config.ts`:
 - `isVisualMode(mode?)` — true for `test`, `livestream`, `recording` (play animations, don't toggle strategic view)
@@ -50,24 +50,21 @@ Singleton at `src/infra/obs-manager.ts`. Controls OBS via `obs-websocket-js` (We
 ### Lifecycle
 
 ```
-initialize(mode, config?, configName?)
+initialize(mode, config?)
     │
     ├── Ensure OBS is running (detect via tasklist, launch if needed)
     ├── Connect to OBS WebSocket
     ├── Set up scenes (game capture + audio capture + pause scene)
     ├── Mute default audio sources (Desktop Audio, Mic/Aux)
     ├── Query recording directory (GetRecordDirectory)
-    ├── Listen for RecordStateChanged events
     └── Start health monitoring (10s poll)
     │
 setGameID(gameID)              // Set game ID, update OBS recording directory
     │
-startProduction()              // Open event log, start recording/streaming
-    │
+startProduction()              // Start recording/streaming
 pauseProduction()              // Recording: PauseRecord / Livestream: switch to pause scene
 resumeProduction()             // Recording: ResumeRecord / Livestream: switch to game scene
-    │
-stopProduction()               // Stop recording/streaming, finalize event log
+stopProduction()               // Stop recording/streaming, return output path
     │
 destroy()                      // Disconnect, restore recording dir, cleanup
 ```
@@ -79,9 +76,9 @@ When a game ID is set via `setGameID(gameID)`, ObsManager organizes recordings u
 ```
 C:\Users\John\Videos\
   └── game-abc123/
-      ├── events-1775232600000.jsonl     (session event log)
-      ├── 2026-04-03 16-30-00.mkv       (first recording)
-      └── 2026-04-03 17-50-00.mkv       (second recording)
+      ├── segments.jsonl                 (segment log)
+      ├── 2026-04-03 16-30-00.mkv       (segment 1)
+      └── 2026-04-03 16-31-30.mkv       (segment 2)
 ```
 
 Uses `SetRecordDirectory` (OBS 30.2+) to redirect OBS output. The directory is set before each `startProduction()` call and restored to the original on `destroy()`. Repeated calls with the same game ID are idempotent.
@@ -106,46 +103,33 @@ The game capture scene is set as the active program scene.
 | Recording | `PauseRecord` (keeps file open, no dead air) | `ResumeRecord` |
 | Livestream | Switch to "Vox Deorum - Paused" scene | Switch back to "Vox Deorum" scene |
 
-### Recording File Tracking
+### ProductionController
 
-Each recording is tracked as a `RecordingFile`:
+`src/infra/production-controller.ts` wraps ObsManager for segment-based recording. Strategist session always calls through this — no mode branching.
 
-```typescript
-interface RecordingFile {
-  path: string;       // Video file path (set when OBS finishes)
-  startedAt: Date;
-  stoppedAt?: Date;
-  logPath: string;    // Companion .events.jsonl path
-}
-```
+State machine (recording mode):
+- `start()` → activate controller, open `segments.jsonl`
+- `PlayerPanelSwitch` → start new segment (or log `switch` if already recording)
+- `TurnAnimationComplete` → schedule stop after 5s grace (only the first one counts)
+- `PlayerPanelSwitch` during grace → cancel timer, continue recording
+- Grace expires → stop segment
+- `stop()` → stop active segment, deactivate
 
-Access via `obsManager.getRecordingFiles()`.
+Livestream mode: all calls pass through to ObsManager. `handleRenderEvent()` is a no-op.
 
-### Live Event Log (JSONL)
+### Segment Log (JSONL)
 
-Events are written to a JSONL file on disk as they happen, providing crash resilience. One centralized `.events.jsonl` file is created per production session (not per recording).
-
-The log opens when `startProduction()` is called and closes when `stopProduction()` or `destroy()` is called. Each `addEvent()` call appends a line via `appendFileSync`, so events survive process crashes.
+In recording mode, `ProductionController` writes `segments.jsonl` in the recording directory. Each entry carries `turn`, `playerID`, and `at` (Unix ms). Timestamps are faithful wall-clock times.
 
 ```jsonl
-{"type":"session_start","at":1775232600000,"configName":"livestream","productionMode":"recording","gameID":"abc123"}
-{"type":"recording_started","at":1775232600100}
-{"type":"recording_paused","at":1775233501000}
-{"type":"recording_resumed","at":1775233591000}
-{"type":"recording_stopped","at":1775237100000}
-{"type":"recording_file","at":1775237100100,"details":"2026-04-03 16-30-00.mkv"}
-{"type":"recording_started","at":1775237400000}
-{"type":"recording_stopped","at":1775239800000}
-{"type":"recording_file","at":1775239800100,"details":"2026-04-03 17-50-00.mkv"}
-{"type":"session_end","at":1775239801000}
+{"event":"start","turn":42,"playerID":3,"at":1712234567890}
+{"event":"switch","turn":42,"playerID":5,"at":1712234568500}
+{"event":"stop","turn":42,"playerID":5,"at":1712234575000,"file":"2026-04-03 16-30-00.mkv"}
 ```
 
-Event fields:
-- `type` — event identifier (string)
-- `at` — Unix timestamp in milliseconds (`Date.now()`)
-- `details` — optional context string
-
-Add custom events via `obsManager.addEvent(type, details?)` — called by strategist-session at key lifecycle points (crash, recovery, victory).
+- `start` — OBS recording started (triggered by `PlayerPanelSwitch`)
+- `switch` — additional `PlayerPanelSwitch` during active segment
+- `stop` — segment stopped after grace period. `file` = OBS output filename
 
 ### Health Monitoring
 
@@ -191,7 +175,7 @@ Run: `npm test`
 
 Requires a running OBS Studio instance with WebSocket server enabled (default port 4455). Tests are skipped gracefully if OBS is not reachable.
 
-Covers: initialization, scene creation, start/stop recording, game ID directory management, live JSONL event logs, pause/resume, scene switching, event tracking.
+Covers: initialization, scene creation, start/stop recording, game ID directory management, pause/resume, scene switching.
 
 Run: `npm run test:obs`
 

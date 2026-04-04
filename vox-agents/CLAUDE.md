@@ -99,9 +99,16 @@ Singleton signal handler (SIGINT, SIGTERM, SIGBREAK, SIGHUP). `processManager.re
 ### ObsManager (`src/infra/obs-manager.ts`)
 Controls OBS Studio for recording/livestreaming via `obs-websocket-js` (WebSocket v5).
 - Lifecycle: `initialize()` → `setGameID()` → `startProduction()` → `pauseProduction()`/`resumeProduction()` → `stopProduction()` → `destroy()`
-- Creates game capture scenes, writes `.events.jsonl` logs, organizes recordings under `{baseRecordDir}/{gameID}/`
+- Creates game capture scenes, organizes recordings under `{baseRecordDir}/{gameID}/`
 - Health monitoring with bounded recovery (max 3 attempts). Self-registers with ProcessManager
 - See `docs/obs.md` for full documentation
+
+### ProductionController (`src/infra/production-controller.ts`)
+Wraps ObsManager to add segment-based recording driven by game render events.
+- Recording: segments start on `PlayerPanelSwitch`, stop 5s after first `TurnAnimationComplete`
+- Livestream: pass-through to ObsManager
+- Writes `segments.jsonl` with faithful wall-clock timestamps per segment
+- Strategist session always calls through this — no mode branching needed
 
 ### ProductionMode
 - `'none'` | `'test'` | `'livestream'` | `'recording'`
