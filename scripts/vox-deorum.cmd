@@ -188,12 +188,12 @@ echo   - Vox Agents (Port: %VOX_PORT%, Mode: %VOX_MODE%, PID: %VOX_PID%)
 echo     %VOX_SHUTDOWN_URL%
 echo.
 echo Press ENTER to stop all services.
-echo Type K then press ENTER to stop all services and then offer to kill CivilizationV.exe.
+echo Type K then press ENTER to stop all services and then kill CivilizationV.exe.
 set /p "STOP_CONFIRM=> "
 
 if /I "%STOP_CONFIRM%"=="K" (
     set "KILL_CIV_MODE=1"
-    echo [INFO] Kill-game mode selected. Services will stop first.
+    echo [INFO] Kill-game mode selected. Services will stop first, then CivilizationV.exe will be force-killed if found.
 )
 
 echo.
@@ -212,16 +212,10 @@ if defined KILL_CIV_MODE (
     call :find_civ_pid
     if defined CIV_PID (
         echo [INFO] Found CivilizationV.exe with PID: %CIV_PID%
-        set "KILL_CONFIRM="
-        set /p "KILL_CONFIRM=Kill CivilizationV.exe (PID: %CIV_PID%)? [Y/N]: "
-        if /I "%KILL_CONFIRM%"=="Y" (
-            echo [INFO] Force-killing CivilizationV.exe...
-            taskkill /PID %CIV_PID% /T /F >nul 2>&1
-            call :wait_for_exit "%CIV_PID%" 5 >nul 2>&1
-            echo [INFO] CivilizationV.exe kill requested.
-        ) else (
-            echo [INFO] CivilizationV.exe kill cancelled.
-        )
+        echo [INFO] Force-killing CivilizationV.exe...
+        taskkill /PID %CIV_PID% /T /F >nul 2>&1
+        call :wait_for_exit "%CIV_PID%" 5 >nul 2>&1
+        echo [INFO] CivilizationV.exe kill requested.
     ) else (
         echo [INFO] CivilizationV.exe is not running.
     )

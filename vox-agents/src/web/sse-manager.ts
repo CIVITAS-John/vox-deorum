@@ -3,9 +3,6 @@
  */
 
 import type { Response } from 'express';
-import { createLogger } from '../utils/logger.js';
-
-const logger = createLogger('SSEManager');
 
 export class SSEManager {
   private clients: Set<Response> = new Set();
@@ -43,7 +40,7 @@ export class SSEManager {
         client.write(message);
       } catch (error) {
         // Client disconnected, will be removed on next close event
-        logger.warn('Failed to send to client:', error);
+        console.warn('Failed to send to client:', error);
       }
     }
   }
