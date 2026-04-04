@@ -389,11 +389,22 @@ class ObsManager {
     }
   }
 
-  /** Query OBS for the current recording output directory. */
+  /** Query OBS for the current recording output directory, stripping any
+   *  trailing UUID-shaped segments we may have appended in a previous session. */
   private async queryRecordingDirectory(): Promise<string | undefined> {
     try {
       const result = await this.obs.call('GetRecordDirectory' as any);
-      return (result as any).recordDirectory;
+      let dir: string | undefined = (result as any).recordDirectory;
+      if (!dir) return undefined;
+
+      // Strip trailing path segments that look like UUIDs (game IDs).
+      // Prevents recursive stacking: base/game1/game2/… → base
+      const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      while (dir && uuidRe.test(path.basename(dir))) {
+        dir = path.dirname(dir);
+      }
+
+      return dir;
     } catch (error) {
       logger.warn('Failed to query OBS recording directory:', error);
       return undefined;
