@@ -3,6 +3,9 @@
  */
 
 import type { Response } from 'express';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('SSEManager');
 
 export class SSEManager {
   private clients: Set<Response> = new Set();
@@ -40,7 +43,7 @@ export class SSEManager {
         client.write(message);
       } catch (error) {
         // Client disconnected, will be removed on next close event
-        console.error('Failed to send to client:', error);
+        logger.warn('Failed to send to client:', error);
       }
     }
   }
@@ -64,6 +67,20 @@ export class SSEManager {
    */
   getClientCount(): number {
     return this.clients.size;
+  }
+
+  /**
+   * Close all SSE client connections. Used during server shutdown.
+   */
+  closeAll(): void {
+    for (const client of this.clients) {
+      try {
+        client.end();
+      } catch {
+        // Client already disconnected
+      }
+    }
+    this.clients.clear();
   }
 
   /**

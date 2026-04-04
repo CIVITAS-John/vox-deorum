@@ -65,6 +65,8 @@ export async function shutdownWebServer(): Promise<void> {
   activeServer = null;
   activePort = null;
 
+  sseManager.closeAll();
+
   await new Promise<void>((resolve, reject) => {
     server.close((error?: Error) => {
       if (error) {
@@ -75,6 +77,7 @@ export async function shutdownWebServer(): Promise<void> {
       webLogger.info('Web UI server closed');
       resolve();
     });
+    server.closeAllConnections();
   });
 }
 

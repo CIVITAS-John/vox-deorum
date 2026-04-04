@@ -237,6 +237,7 @@ async function startServer(): Promise<void> {
             logger.info('HTTP server closed');
             resolve();
           });
+          server.closeAllConnections();
         });
 
         await bridgeService.shutdown();

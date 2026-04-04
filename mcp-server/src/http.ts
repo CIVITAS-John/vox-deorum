@@ -85,6 +85,7 @@ export async function startHttpServer(setupSignalHandlers = true): Promise<() =>
           logger.info('HTTP server closed');
           resolve();
         });
+        httpServer.closeAllConnections();
       });
 
       await mcpServer.close();
