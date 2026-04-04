@@ -80,7 +80,7 @@ for %%a in (%*) do (
 )
 
 set "RUN_ID=%RANDOM%%RANDOM%%RANDOM%"
-set "GRACEFUL_STOP_TIMEOUT=10"
+set "GRACEFUL_STOP_TIMEOUT=30"
 set "BRIDGE_PID_FILE=%TEMP%\vox-deorum-bridge-%RUN_ID%.pid"
 set "MCP_PID_FILE=%TEMP%\vox-deorum-mcp-%RUN_ID%.pid"
 set "VOX_PID_FILE=%TEMP%\vox-deorum-vox-%RUN_ID%.pid"
