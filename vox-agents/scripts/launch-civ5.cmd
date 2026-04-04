@@ -91,6 +91,20 @@ if exist "%~dp0MainMenu.lua" (
     )
 )
 
+:: Manage d3d9.dll based on OBS mode (second parameter)
+set "OBS_MODE=%~2"
+if /i "!OBS_MODE!"=="obs" (
+    if exist "!CIV5_PATH!\d3d9.dll" (
+        echo Backing up d3d9.dll for OBS recording...
+        ren "!CIV5_PATH!\d3d9.dll" "d3d9.dll.bak"
+    )
+) else (
+    if exist "!CIV5_PATH!\d3d9.dll.bak" (
+        echo Restoring d3d9.dll from backup...
+        ren "!CIV5_PATH!\d3d9.dll.bak" "d3d9.dll"
+    )
+)
+
 echo Launching Civilization V with automation script: !LUA_SCRIPT!
 echo Working directory: !CIV5_PATH!
 cd /d "!CIV5_PATH!"

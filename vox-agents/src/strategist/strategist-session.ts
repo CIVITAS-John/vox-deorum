@@ -98,7 +98,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     }
 
     // Register game exit handler for crash recovery
-    await voxCivilization.startGame(luaScript, playerCount);
+    await voxCivilization.startGame(luaScript, playerCount, isObsMode(this.config.production));
 
     // Connect to MCP server
     await mcpClient.connect();
@@ -518,7 +518,7 @@ Game.SetAIAutoPlay(2000, -1);`
     } else {
       logger.info(`Starting Civilization V with ${luaScript} to recover from crash...`);
     }
-    const started = await voxCivilization.startGame(luaScript, playerCount);
+    const started = await voxCivilization.startGame(luaScript, playerCount, isObsMode(this.config.production));
 
     if (!started) {
       logger.error('Failed to restart the game');
