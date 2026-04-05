@@ -105,7 +105,7 @@ Controls OBS Studio for recording/livestreaming via `obs-websocket-js` (WebSocke
 
 ### ProductionController (`src/infra/production-controller.ts`)
 Wraps ObsManager to add segment-based recording driven by game render events.
-- Recording: segments start on `PlayerPanelSwitch`, stop 5s after first `TurnAnimationComplete`
+- Recording: segments start on `PlayerPanelSwitch`, stop 10s after first `AnimationStarted` (estimated end)
 - Livestream: pass-through to ObsManager
 - Writes `segments.jsonl` with faithful wall-clock timestamps per segment
 - Strategist session always calls through this — no mode branching needed

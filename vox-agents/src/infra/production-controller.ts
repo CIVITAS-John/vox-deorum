@@ -4,12 +4,12 @@
  * Controls OBS production lifecycle based on game render events.
  * Wraps ObsManager to add segment-based recording driven by two events:
  *
- *   PlayerPanelSwitch      — the game UI switches to show a player's turn
- *   TurnAnimationComplete  — the current player's animations have finished
+ *   PlayerPanelSwitch  — the game UI switches to show a player's turn
+ *   AnimationStarted   — a player's turn animations are estimated to begin
  *
  * Recording mode state machine:
  *
- *   [idle] --PlayerPanelSwitch--> [recording] --TurnAnimationComplete--> [grace]
+ *   [idle] --PlayerPanelSwitch--> [recording] --AnimationStarted--> [grace]
  *                                      ^   \                              |
  *                                      |    \--PlayerPanelSwitch(log)     |
  *                                      |                                  |
@@ -20,7 +20,7 @@
  *   - PlayerPanelSwitch while idle    → start OBS recording (new segment)
  *   - PlayerPanelSwitch while recording → log a "switch" entry, continue
  *   - PlayerPanelSwitch during grace  → cancel pending stop, continue recording
- *   - TurnAnimationComplete           → schedule stop after SEGMENT_GRACE_MS
+ *   - AnimationStarted           → schedule stop after SEGMENT_GRACE_MS (estimated end)
  *     (only the first one counts; subsequent ones before a new PlayerPanelSwitch are ignored)
  *
  * Each segment produces a video file whose start timestamp (Unix ms) is logged to
@@ -39,8 +39,8 @@ import type { ProductionMode } from '../types/config.js';
 
 const logger = createLogger('ProductionController');
 
-/** Grace period (ms) after the first TurnAnimationComplete before stopping recording. */
-const SEGMENT_GRACE_MS = 5_000;
+/** Grace period (ms) after the first AnimationStarted before stopping recording. */
+const SEGMENT_GRACE_MS = 10_000;
 
 /** A single entry in the segments.jsonl log. */
 interface SegmentEntry {
@@ -56,7 +56,7 @@ interface SegmentEntry {
  * Controls OBS production (recording or livestream) based on game render events.
  *
  * In recording mode, segments are driven by render events — OBS recording starts
- * on the first PlayerPanelSwitch and stops SEGMENT_GRACE_MS after TurnAnimationComplete.
+ * on the first PlayerPanelSwitch and stops SEGMENT_GRACE_MS after AnimationStarted.
  * The strategist session routes all production calls through this controller so it
  * never needs to branch on mode itself.
  *
@@ -126,10 +126,10 @@ export class ProductionController {
         this.lastPlayerID = playerID;
         this.logEntry({ event: 'switch', turn, playerID, at: Date.now() });
       }
-    } else if (event === 'TurnAnimationComplete') {
-      // Only the first TurnAnimationComplete starts the grace timer.
+    } else if (event === 'AnimationStarted') {
+      // Only the first AnimationStarted starts the grace timer.
       // Subsequent ones (before a new PlayerPanelSwitch resets the cycle) are ignored
-      // so the grace window is measured from the first animation-complete signal.
+      // so the grace window is measured from the first animation-start signal.
       if (this.segmentActive && !this.graceTimer) {
         this.scheduleStop();
       }

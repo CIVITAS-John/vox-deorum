@@ -110,7 +110,7 @@ The game capture scene is set as the active program scene.
 State machine (recording mode):
 - `start()` → activate controller, open `segments.jsonl`
 - `PlayerPanelSwitch` → start new segment (or log `switch` if already recording)
-- `TurnAnimationComplete` → schedule stop after 5s grace (only the first one counts)
+- `AnimationStarted` → schedule stop after 10s grace (estimated end; only the first one counts)
 - `PlayerPanelSwitch` during grace → cancel timer, continue recording
 - Grace expires → stop segment
 - `stop()` → stop active segment, deactivate

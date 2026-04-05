@@ -21,12 +21,12 @@ LuaEvents.VD_TopPanelAutoSwitchedPlayer.Add(function(playerID, prevPlayerID)
   })
 end)
 
--- Fires when the current player's animations are done and the game transitions
--- to the next player — "turn animation complete" signal.
-Events.AIProcessingStartedForPlayer.Add(function(nextPlayerID)
-  Game.BroadcastEvent("Render:TurnAnimationComplete", {
-    nextPlayerID = nextPlayerID,
-    turn         = Game.GetGameTurn(),
-    time         = Game.GetCurrentTimeEpochMs(),
+-- Fires when a player's turn animations are estimated to begin.
+-- VD_AnimationStarted is triggered externally; we forward it to the bridge.
+LuaEvents.VD_AnimationStarted.Add(function(playerID)
+  Game.BroadcastEvent("Render:AnimationStarted", {
+    playerID = playerID,
+    turn     = Game.GetGameTurn(),
+    time     = Game.GetCurrentTimeEpochMs(),
   })
 end)

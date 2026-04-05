@@ -195,7 +195,7 @@ export class MCPServer {
 
   private eventsForNotification = [
     "GameSwitched", "PlayerDoneTurn", "PlayerVictory", "DLLConnected", "DLLDisconnected",
-    "PlayerPanelSwitch", "TurnAnimationComplete",
+    "PlayerPanelSwitch", "AnimationStarted",
   ];
   /**
    * Send a notification to all clients through MCP notification protocol.

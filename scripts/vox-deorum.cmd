@@ -211,10 +211,10 @@ if defined KILL_CIV_MODE (
     echo [INFO] Looking for CivilizationV.exe...
     call :find_civ_pid
     if defined CIV_PID (
-        echo [INFO] Found CivilizationV.exe with PID: %CIV_PID%
+        echo [INFO] Found CivilizationV.exe with PID: !CIV_PID!
         echo [INFO] Force-killing CivilizationV.exe...
-        taskkill /PID %CIV_PID% /T /F >nul 2>&1
-        call :wait_for_exit "%CIV_PID%" 5 >nul 2>&1
+        taskkill /PID !CIV_PID! /T /F >nul 2>&1
+        call :wait_for_exit "!CIV_PID!" 5 >nul 2>&1
         echo [INFO] CivilizationV.exe kill requested.
     ) else (
         echo [INFO] CivilizationV.exe is not running.

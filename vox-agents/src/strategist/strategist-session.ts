@@ -138,7 +138,7 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
           }
           break;
         case "PlayerPanelSwitch":
-        case "TurnAnimationComplete":
+        case "AnimationStarted":
           await this.obsCall('handleRenderEvent',
             () => this.production!.handleRenderEvent(params.event, params));
           break;
