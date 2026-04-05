@@ -110,6 +110,11 @@ export class ProductionController {
   async handleRenderEvent(event: string, payload: Record<string, unknown>): Promise<void> {
     if (this.mode !== 'recording' || !this.active || !this.obs.isOperational()) return;
 
+    // Minor civs (and barbarians, flagged as minor by the Lua listener) don't drive
+    // segment state transitions — their render events are recorded in the knowledge
+    // store but are invisible to the segment state machine.
+    if (payload.isMinorCiv === true) return;
+
     const turn = typeof payload.turn === 'number' ? payload.turn : this.lastTurn;
     const playerID = typeof payload.playerID === 'number' ? payload.playerID : this.lastPlayerID;
 
