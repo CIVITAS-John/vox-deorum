@@ -13,3 +13,4 @@ scripts/.dll-cache
 
 # Generated Lua files
 vox-agents/scripts/StartGame.temp.lua
+vox-agents/scripts/MainMenu.lua
