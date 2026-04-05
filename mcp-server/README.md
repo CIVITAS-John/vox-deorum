@@ -109,13 +109,15 @@ DELETE /mcp
 
 ### Runtime Shutdown URL File
 
-When `MCP_SHUTDOWN_URL_FILE` is set, the HTTP server writes a one-line file after it binds:
+When `MCP_SHUTDOWN_URL_FILE` is set, the HTTP server writes a one-line file as soon as the HTTP port binds:
 
 ```text
 http://127.0.0.1:<actual-port>/shutdown
 ```
 
 This lets launchers discover the real bound port without parsing logs.
+
+The MCP server may still be initializing after the file appears. During that window, `GET /health` reports `status: "initializing"` and `/mcp` returns `503` until startup completes.
 
 ## Configuration
 

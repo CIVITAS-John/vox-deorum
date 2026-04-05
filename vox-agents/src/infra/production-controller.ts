@@ -9,19 +9,16 @@
  *
  * Recording mode state machine:
  *
- *   [idle] --PlayerPanelSwitch--> [recording] --AnimationStarted--> [grace]
- *                                      ^   \                              |
- *                                      |    \--PlayerPanelSwitch(log)     |
- *                                      |                                  |
- *                                      +---PlayerPanelSwitch(cancel)------+
- *                                      |                                  |
- *                                      |              (SEGMENT_GRACE_MS)--+--> [idle]
+ *   [idle] --PlayerPanelSwitch--> [recording] --grace timer expires--> [idle]
+ *                                    ^    |
+ *                                    |    | PlayerPanelSwitch (log + extend grace)
+ *                                    |    | AnimationStarted  (extend grace)
+ *                                    +----+
  *
- *   - PlayerPanelSwitch while idle    → start OBS recording (new segment)
- *   - PlayerPanelSwitch while recording → log a "switch" entry, continue
- *   - PlayerPanelSwitch during grace  → cancel pending stop, continue recording
- *   - AnimationStarted           → schedule stop after SEGMENT_GRACE_MS (estimated end)
- *     (only the first one counts; subsequent ones before a new PlayerPanelSwitch are ignored)
+ *   - PlayerPanelSwitch while idle      → start OBS recording, arm grace timer
+ *   - PlayerPanelSwitch while recording → log a "switch" entry, extend grace timer
+ *   - AnimationStarted while recording  → extend grace timer
+ *   - Grace timer expires (SEGMENT_GRACE_MS with no events) → stop segment
  *
  * Each segment produces a video file whose start timestamp (Unix ms) is logged to
  * `segments.jsonl` in the recording directory. Every JSONL entry carries turn,
@@ -119,11 +116,8 @@ export class ProductionController {
     const playerID = typeof payload.playerID === 'number' ? payload.playerID : this.lastPlayerID;
 
     if (event === 'PlayerPanelSwitch') {
-      // Cancel any pending grace-period stop — we're still in action.
-      this.cancelGrace();
-
       if (!this.segmentActive) {
-        // Transition: idle/grace → recording
+        // Transition: idle → recording
         await this.startSegment(turn, playerID);
       } else {
         // Already recording — log that a new player panel appeared.
@@ -131,11 +125,11 @@ export class ProductionController {
         this.lastPlayerID = playerID;
         this.logEntry({ event: 'switch', turn, playerID, at: Date.now() });
       }
+      // PlayerPanelSwitch extends the grace window.
+      this.scheduleStop();
     } else if (event === 'AnimationStarted') {
-      // Only the first AnimationStarted starts the grace timer.
-      // Subsequent ones (before a new PlayerPanelSwitch resets the cycle) are ignored
-      // so the grace window is measured from the first animation-start signal.
-      if (this.segmentActive && !this.graceTimer) {
+      // Every AnimationStarted extends the grace window.
+      if (this.segmentActive) {
         this.scheduleStop();
       }
     }
@@ -224,11 +218,12 @@ export class ProductionController {
   }
 
   /**
-   * Schedule a segment stop after the grace period.
-   * Only called once per animation-complete cycle (guarded by the graceTimer check
-   * in handleRenderEvent). A subsequent PlayerPanelSwitch cancels this timer.
+   * (Re)schedule a segment stop after the grace period. Cancels any existing
+   * timer first so repeated calls from PlayerPanelSwitch/AnimationStarted
+   * extend the grace window rather than stacking.
    */
   private scheduleStop(): void {
+    this.cancelGrace();
     this.graceTimer = setTimeout(async () => {
       this.graceTimer = undefined;
       await this.stopSegment();
