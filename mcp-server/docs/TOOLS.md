@@ -53,8 +53,8 @@ All extend `DatabaseQueryTool`. Common input: `Search?`: string (fuzzy match), `
 | Tool | Description | Key Input |
 |------|-------------|-----------|
 | `set-strategy` | Set grand/economic/military strategies by name | `PlayerID`, `GrandStrategy?`, `EconomicStrategies?`, `MilitaryStrategies?`, `Rationale` |
-| `set-persona` | Set diplomatic personality values (1-10) across 22 personality fields | `PlayerID`, `[personality fields]`, `Rationale` |
-| `set-relationship` | Set additive diplomatic modifiers with another major civ | `PlayerID`, `TargetID`, `Public?` (-100 to 100), `Private?` (-100 to 100), `Rationale` |
+| `set-persona` | Set diplomatic personality values (1-10) across 26 personality fields | `PlayerID`, `[personality fields]`, `Rationale` |
+| `set-relationship` | Set additive diplomatic modifiers with another major civ; positive MCP values mean friendlier intent | `PlayerID`, `TargetID`, `Public?` (-100 to 100), `Private?` (-100 to 100), `Rationale` |
 | `set-flavors` | Set explicit flavor values (0-100) for tactical AI preferences and optionally set grand strategy as long-term victory direction / strategy state | `PlayerID`, `GrandStrategy?`, `Flavors?`: Record, `Rationale` |
 | `unset-flavors` | Clear all custom flavor values, revert to defaults | `PlayerID` |
 | `set-metadata` | Set a metadata key-value pair | `Key`, `Value` |

@@ -1,11 +1,11 @@
 {
   "Offense": "Pivots the military towards offensive stances. Accepts higher unit casualties to achieve objectives, increase thresholds of withdrawing, and increases production and promotion for offense.",
-  "Defense": "Pivots the military towards defensive stances. Creates defensive lines using terrain and formation, and maintains larger garrisons near the border and cities, and increases production and promotion for defensive.",
+  "Defense": "Increases military production and unit promotion for defensive purposes.",
   "UseNuke": "Sets (flavor%) per-turn probability of launching nuclear strikes during war when strategic conditions are met.",
-  "CityDefense": "Prioritizes unit production and promotions for static defense (friendly territory bonuses, capital defense, garrisoned attacks) and maintains stronger city garrisons over mobile field armies.",
+  "CityDefense": "Prioritizes unit production and promotions for static defense (friendly territory bonuses, capital defense, garrisoned attacks).",
   "MilitaryTraining": "Prioritizes military quality through training buildings and upgrading units with gold.",
 
-  "Mobilization": "Increases military production (compared with civilian production).",
+  "Mobilization": "Increases the proportion of military production (compared with civilian production).",
   "Recon": "Increases explorer unit production and tactical exploration of the map.",
   "Ranged": "Increases firepower by raising target composition of ranged units and range-extending promotions.",
   "Mobile": "Increases mobility and maneuverability by raising target composition of mobile units and prioritizes related promotions.",

@@ -65,7 +65,7 @@ AI Agents ← MCP Protocol → MCP Server ← HTTP/SSE → Bridge Service ← Na
 
 ### Action Tools (10)
 - `set-strategy` - Set grand, economic, and military strategies
-- `set-persona` - Set diplomatic personality values (22 traits)
+- `set-persona` - Set diplomatic personality values (26 traits)
 - `set-relationship` - Set diplomatic modifiers with another major civilization
 - `set-flavors` - Set flavor values (0-100) and grand strategy
 - `unset-flavors` - Clear all custom flavor values
