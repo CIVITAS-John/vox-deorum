@@ -17,6 +17,22 @@ local function isMinorCivPlayer(playerID)
   return p and (p:IsMinorCiv() or p:IsBarbarian()) or false
 end
 
+local function normalizeAnimationEventInfo(eventInfo)
+  if type(eventInfo) ~= "table" then
+    eventInfo = {}
+  end
+
+  return {
+    eventType       = type(eventInfo.eventType) == "string" and eventInfo.eventType or "",
+    plotIndex       = type(eventInfo.plotIndex) == "number" and eventInfo.plotIndex or -1,
+    plotX           = type(eventInfo.plotX) == "number" and eventInfo.plotX or -1,
+    plotY           = type(eventInfo.plotY) == "number" and eventInfo.plotY or -1,
+    nearestCity     = type(eventInfo.nearestCity) == "string" and eventInfo.nearestCity or "unknown",
+    nearestCityDist = type(eventInfo.nearestCityDist) == "number" and eventInfo.nearestCityDist or -1,
+    description     = type(eventInfo.description) == "string" and eventInfo.description or "",
+  }
+end
+
 -- Render-time event forwarding to the bridge (fire-and-forget via BroadcastEvent).
 -- Fires when the top panel auto-switches to show a player (rationale arrived).
 LuaEvents.VD_TopPanelAutoSwitchedPlayer.Add(function(playerID, prevPlayerID)
@@ -31,11 +47,18 @@ end)
 
 -- Fires when a player's turn animations are estimated to begin.
 -- VD_AnimationStarted is triggered externally; we forward it to the bridge.
-LuaEvents.VD_AnimationStarted.Add(function(playerID)
+LuaEvents.VD_AnimationStarted.Add(function(playerID, eventInfo)
+  local info = normalizeAnimationEventInfo(eventInfo)
   Game.BroadcastEvent("Render:AnimationStarted", {
-    playerID   = playerID,
-    isMinorCiv = isMinorCivPlayer(playerID),
-    turn       = Game.GetGameTurn(),
-    time       = Game.GetCurrentTimeEpochMs(),
+    playerID         = playerID,
+    isMinorCiv       = isMinorCivPlayer(playerID),
+    turn             = Game.GetGameTurn(),
+    time             = Game.GetCurrentTimeEpochMs(),
+    eventType        = info.eventType,
+    plotX            = info.plotX,
+    plotY            = info.plotY,
+    nearestCity      = info.nearestCity,
+    nearestCityDist  = info.nearestCityDist,
+    description      = info.description,
   })
 end)

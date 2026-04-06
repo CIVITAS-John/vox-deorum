@@ -96,28 +96,62 @@ This inversion exists because Civ V's opinion weight is signed in the opposite d
 
 The arrays themselves are local storage on the caller. Foreign AI code does not directly read another civ's raw scenario-modifier arrays.
 
-### The opinion cascade
+### Two propagation paths
+
+There are two distinct ways these modifiers matter:
+
+1. **Raw modifier path** -- the stored `ScenarioModifier1/2` values are read directly in a small number of places. The confirmed gameplay consumer is peace willingness in `CvDiplomacyAI`, where `GetScenarioModifier1(ePlayer) + GetScenarioModifier2(ePlayer)` directly shifts `iPeaceScore` when `MOD_IPC_CHANNEL` is active.
+2. **Cached opinion path** -- `CvDiplomacyAI::GetDiploModifiers` sums modifier1, modifier2, and modifier3 into an opinion delta, `CalculateCivOpinionWeight` includes that delta when `MOD_EVENTS_DIPLO_MODIFIERS` is active and the game is not network multiplayer, and `DoUpdateOpinions` then stores the result in `SetCachedOpinionWeight` and `SetCivOpinion`.
+
+Most downstream effects come from the second path, not the first.
+
+### Opinion cascade mechanics
 
 1. `CvDiplomacyAI::GetDiploModifiers` sums modifier1, modifier2, and modifier3 into an opinion delta. In Vox Deorum mode, modifier2's normal breakdown string is hidden behind the `MOD_IPC_CHANNEL` guard, but the numeric value still counts.
 2. `CalculateCivOpinionWeight` only adds `GetDiploModifiers` when `MOD_EVENTS_DIPLO_MODIFIERS` is active and the game is not network multiplayer.
 3. `DoUpdateOpinions` caches the refreshed weight through `SetCachedOpinionWeight`, then maps it to opinion bands using the normal thresholds: `160`, `80`, `30`, `-30`, `-80`, `-160`.
-4. `GetCachedOpinionWeight` and `GetCivOpinion` are then read cross-civ from many DLL call sites, including diplomacy, deal, voting, operation, and player logic.
+4. `GetCachedOpinionWeight` and `GetCivOpinion` are then consumed across many DLL subsystems.
 
-### Downstream decisions that shift
+These modifiers therefore do not only change how A "feels about" B. Once opinions refresh, they also change how other systems score B as a partner, rival, target, founder, trade partner, or diplomatic threat.
 
-When that cached opinion refresh happens, any logic that consumes `GetCachedOpinionWeight` or `GetCivOpinion` can shift, including:
+### What can change
 
-- **Approach re-scoring** -- diplomacy and coalition logic can change once `GetCivOpinion` / `GetCachedOpinionWeight` crosses a different band.
-- **Trade deal reweighting** -- `CvDealAI` consults opinion repeatedly when pricing offers, peace terms, vassalage, and cooperation.
-- **Target selection and strategic coordination** -- operations, voting, and broader diplomatic heuristics use cached opinion as one input.
-- **Threshold-crossing transitions** -- changes around `30`, `80`, `160`, `-30`, `-80`, and `-160` can flip civ opinion states and all the downstream checks keyed off those states.
+| Subsystem | Representative symbols | Mechanism | What shifts |
+|---|---|---|---|
+| Core diplomacy | `CvDiplomacyAI::CalculateApproachTowardsPlayer`, `IsCoopWarRequestUnacceptable`, friendship / denouncement / warning / war logic | Mostly `GetCivOpinion`; some `GetCachedOpinionWeight` comparisons | Approach selection, coop-war request reactions, "friend vs enemy" branching, denunciation and relationship-threshold behavior |
+| Peace willingness | `CvDiplomacyAI` peace scoring around `iPeaceScore` | **Direct `GetScenarioModifier1/2` read** | Immediate willingness to continue war or accept peace, without waiting for cached opinion recomputation |
+| Deals and treaty behavior | `CvDealAI` demand, gift, peace, vassalage, and treaty valuation paths | Mostly `GetCivOpinion` | Demand compliance, gift willingness, peace valuation, vassalage acceptability, and general deal scoring |
+| World Congress / voting | `CvVotingClasses` proposal evaluation and target scoring; `CvDiplomacyAI` league ally / competitor selection | Both `GetCivOpinion` and `GetCachedOpinionWeight` | Resolution support, sanctions and target preferences, ally/competitor ranking, and proposal priorities |
+| Trade and economic behavior | `CvTradeClasses`, `CvEconomicAI` | Mostly `GetCivOpinion` | International trade-route attractiveness, trade-partner friendliness handling, and hostile city-state-ally counting |
+| Settlement / territorial planning | `CvSiteEvaluationClasses`, `CvCultureClasses`, `CvBuilderTaskingAI` | Mostly `GetCivOpinion` | Borderland settlement pressure, archaeological landmark vs artifact choices, and tile-steal / build-task hostility weighting |
+| Military / tactical behavior | `CvMilitaryAI`, `CvTacticalAnalysisMap`, `CvDiplomacyAI` target / competitor logic | `GetCivOpinion` plus some `GetCachedOpinionWeight` comparisons | Nuclear launch willingness, tactical danger estimates, military threat framing, and rival/target ranking |
+| Religion / espionage / misc. systems | `CvReligionClasses`, `CvEspionageClasses`, `CvPlayer`, `CvGame` | Mostly `GetCivOpinion` | Religion founder preference weighting, coup / influence-penalty exceptions, grateful-settler defect chance, and high-level major-opinion summaries |
+
+### Important examples by category
+
+- **Core diplomacy** -- opinion bands drive friendly/guarded/hostile branching throughout `CvDiplomacyAI`, including coop-war request acceptability, ally/friend checks, enemy checks, and many "warn, denounce, help, backstab, or cooperate" decisions.
+- **Deals and treaty behavior** -- `CvDealAI` switches on `GetCivOpinion` for human-demand compliance, peace valuation, and vassalage-related deal scoring.
+- **World Congress / voting** -- `CvVotingClasses` uses both banded opinion and numeric cached-weight comparisons when scoring proposals, allies, competitors, sanctions, and targets.
+- **Trade and economy** -- `CvTradeClasses` discounts the downside of enriching civs that the AI likes, and `CvEconomicAI` tracks whether city-state allies belong to civs it sees as competitors, enemies, or hostiles.
+- **Settlement / planning** -- `CvSiteEvaluationClasses` pushes border settlement harder near disliked neighbors and backs off near friends; `CvCultureClasses` and `CvBuilderTaskingAI` also branch on major-civ opinion.
+- **Military / tactical** -- `CvMilitaryAI` is more willing to roll for nukes against hated civs, and `CvTacticalAnalysisMap` treats neighboring hostile/enemy civs as more dangerous.
+- **Religion / espionage / misc.** -- `CvReligionClasses` heavily scales some scores by founder opinion, `CvEspionageClasses` exempts some hated or untrustworthy prior allies from extra influence penalties, and `CvPlayer` / `CvGame` use opinion bands in broader world-state logic.
+
+### Bands vs weights
+
+Two different downstream patterns matter:
+
+- **Opinion-band consumers** react to state changes like `ALLY`, `FRIEND`, `FAVORABLE`, `NEUTRAL`, `COMPETITOR`, `ENEMY`, or `UNFORGIVABLE`. These are the most common.
+- **Cached-weight consumers** compare the numeric `GetCachedOpinionWeight` values directly, usually to rank which civ is the bigger rival, preferred ally, or more acceptable diplomatic target.
+
+Crossing a threshold such as `30`, `80`, `160`, `-30`, `-80`, or `-160` can therefore cause a wider jump than the raw number alone suggests, because many branches trigger on the band, not only the underlying weight.
 
 ### Timing
 
 Two timings matter:
 
-- **Immediate** -- the raw scenario modifiers are stored immediately, and raw getter/debug-style pathways can observe them immediately.
-- **Next opinion refresh** -- cached opinion, opinion bands, and foreign-AI side effects update on the next `CvDiplomacyAI::DoTurn` that runs `DoUpdateOpinions`.
+- **Immediate** -- the raw scenario modifiers are stored immediately, raw getter/debug-style pathways can observe them immediately, and the direct peace-score consumer can react immediately.
+- **Next opinion refresh** -- cached opinion, opinion bands, and most foreign-AI side effects update on the next `CvDiplomacyAI::DoTurn` that runs `DoUpdateOpinions`.
 
 In network multiplayer, `CalculateCivOpinionWeight` skips the `GetDiploModifiers` path, so the normal cached-opinion cascade should not be described as unconditional there.
 

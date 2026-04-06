@@ -16,7 +16,7 @@ For tool schemas and arguments, see [TOOLS.md](TOOLS.md). For the knowledge pers
 | `set-persona` | `CvDiplomacyAI` (26 personality fields) | Immediate write; most behavior shifts on next diplomacy reevaluation | Teammates see live estimates; non-teammates usually see XML/default estimates |
 | `set-research` | `CvTechAI::m_iNextResearch` | Next `ChooseNextTech`; one-shot | None |
 | `set-policy` | `CvPolicyAI::m_iNextPolicy` | Next `ChooseNextPolicy` when slot opens; one-shot | None |
-| `set-relationship` | `CvDiplomacyAI::m_aiScenarioModifier1/2[target]` via opinion cascade | Immediate raw write; cached opinion updates on next `DoUpdateOpinions` when diplo modifiers are active and not in network MP | **Yes** — via `GetCachedOpinionWeight` / `GetCivOpinion` |
+| `set-relationship` | Raw `ScenarioModifier1/2` plus the broader opinion cascade across diplomacy, deals, voting, trade, settlement, and tactical systems | Immediate raw write; direct peace logic can react immediately; cached opinion updates on next `DoUpdateOpinions` when diplo modifiers are active and not in network MP | **Yes** — via `GetCachedOpinionWeight` / `GetCivOpinion` |
 | `pause-game` / `resume-game` | `CvConnectionService::m_pausedPlayers` | Next `ProcessMessages` check | None (blocks named player only) |
 | `lua-executor` | Anything (`luaL_dostring`) | Immediate | Script-dependent (trust boundary) |
 | `relay-message` / `set-metadata` | Knowledge store only; never reaches DLL | n/a | LLM agents only; invisible to VPAI |
