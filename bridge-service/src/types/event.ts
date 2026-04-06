@@ -42,6 +42,14 @@ export interface PauseMessage extends IPCMessage {
 }
 
 /**
+ * Production mode message structure
+ */
+export interface ProductionModeMessage extends IPCMessage {
+  type: 'set_production_mode';
+  enabled: boolean;
+}
+
+/**
  * Game event structure for SSE broadcast
  *
  * @interface GameEvent

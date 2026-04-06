@@ -551,6 +551,20 @@ export class BridgeManager extends EventEmitter {
   }
 
   /**
+   * Set production mode (enables AI turn cooldown in DLL)
+   */
+  public async setProductionMode(enabled: boolean): Promise<boolean> {
+    try {
+      await this.httpClient.post('/external/production-mode', { enabled }, { fast: true });
+      logger.info(`Production mode ${enabled ? 'enabled' : 'disabled'}`);
+      return true;
+    } catch (error: unknown) {
+      logger.warn('Failed to set production mode:', error);
+      return false;
+    }
+  }
+
+  /**
    * Unregister a player from auto-pause (resume)
    */
   public async resumePlayer(playerId: number): Promise<boolean> {

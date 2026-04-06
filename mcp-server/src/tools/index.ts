@@ -21,6 +21,7 @@ import createGetFlavorsTool from "./databases/get-flavors.js";
 import createUnsetFlavorsTool from "./actions/unset-flavors.js";
 import createPauseGameTool from "./actions/pause-game.js";
 import createResumeGameTool from "./actions/resume-game.js";
+import createSetProductionModeTool from "./actions/set-production-mode.js";
 import createSummarizeUnitsTool from "./knowledge/summarize-units.js";
 import createSetMetadataTool from "./actions/set-metadata.js";
 import createKeepStatusQuoTool from "./actions/keep-status-quo.js";
@@ -69,6 +70,7 @@ const toolFactories = {
     relayMessage: createRelayMessageTool,
     pauseGame: createPauseGameTool,
     resumeGame: createResumeGameTool,
+    setProductionMode: createSetProductionModeTool,
 } as const;
  
 // Type for the tools object (inferred from factories)

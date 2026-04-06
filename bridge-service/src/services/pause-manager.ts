@@ -5,7 +5,7 @@
 import { EventEmitter } from 'events';
 import { createLogger } from '../utils/logger.js';
 import { dllConnector } from './dll-connector.js';
-import { IPCMessage, PauseMessage } from '../types/event.js';
+import { IPCMessage, PauseMessage, ProductionModeMessage } from '../types/event.js';
 
 const logger = createLogger('PauseManager');
 export const MaxCivs = 64; // From base.js schema
@@ -30,6 +30,8 @@ class PauseManager extends EventEmitter {
   private mutex: any = null;
   private isPaused = false;
   private readonly mutexName = 'TurnByTurn';
+  // Vox Deorum: Production mode state (synced with DLL)
+  private productionMode = false;
 
   constructor() {
     super();
@@ -44,6 +46,12 @@ class PauseManager extends EventEmitter {
    * Handle DLL reconnection - resync paused players
    */
   private async handleDllReconnected(): Promise<void> {
+    // Resync production mode with DLL
+    if (this.productionMode) {
+      const modeMsg: ProductionModeMessage = { type: 'set_production_mode', enabled: true };
+      dllConnector.sendNoWait(modeMsg);
+    }
+
     if (this.pausedPlayerIds.size === 0) return;
 
     logger.info(`DLL reconnected, resyncing ${this.pausedPlayerIds.size} paused players`);
@@ -185,6 +193,23 @@ class PauseManager extends EventEmitter {
     if (this.pausedPlayerIds.has(playerId)) {
       logger.info(`Player ${playerId} is in paused list - DLL will pause`);
     }
+  }
+
+  /**
+   * Set production mode (synced with DLL for AI turn cooldown)
+   */
+  setProductionMode(enabled: boolean): void {
+    this.productionMode = enabled;
+    const message: ProductionModeMessage = { type: 'set_production_mode', enabled };
+    dllConnector.sendNoWait(message);
+    logger.info(`Production mode ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  /**
+   * Check if production mode is active
+   */
+  isProductionMode(): boolean {
+    return this.productionMode;
   }
 
   /**

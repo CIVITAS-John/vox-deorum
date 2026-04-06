@@ -106,6 +106,11 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
     // Connect to MCP server
     await mcpClient.connect();
 
+    // Set production mode on the DLL (enables AI turn cooldown for visual modes)
+    await mcpClient.callTool('set-production-mode', {
+      enabled: isVisualMode(this.config.production)
+    });
+
     // Register notification handler for game events
     mcpClient.onNotification(async (params) => {
       if (this.abortController.signal.aborted) return;

@@ -143,4 +143,18 @@ router.delete('/paused-players', async (_req: Request, res: Response) => {
   });
 });
 
+/**
+ * POST /external/production-mode - Set production mode (enables AI turn cooldown in DLL)
+ */
+router.post('/production-mode', async (req: Request, res: Response) => {
+  await handleAPIError(res, '/external/production-mode', async () => {
+    const { enabled } = req.body;
+    pauseManager.setProductionMode(!!enabled);
+    return {
+      success: true,
+      productionMode: pauseManager.isProductionMode()
+    };
+  });
+});
+
 export default router;
