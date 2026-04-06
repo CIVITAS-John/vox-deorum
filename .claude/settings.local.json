@@ -61,7 +61,10 @@
       "Bash(find vox-agents:*)",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:obsproject.com)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(grep -l \"AIEconomicStrategy_\\\\|AIGrandStrategy\" \"f:/vox-deorum/vox-deorum/civ5-dll/\\(1\\) Community Patch/Database Changes/AI\"/*.sql)",
+      "Bash(find f:/vox-deorum/vox-deorum -type f \\\\\\(-name *.h -o -name *.cpp \\\\\\) -path *CvConnection*)"
     ],
     "deny": [
       "Read(**/.env*)",
