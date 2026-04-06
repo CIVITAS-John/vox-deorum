@@ -19,7 +19,7 @@ Vox Deorum — LLM-Enhanced AI for Civilization V (Community Patch framework).
 Each component has its own CLAUDE.md with detailed patterns.
 
 1. **Community Patch DLL** (`civ5-dll/`) — C++ DLL with named pipe IPC
-   - Build: `python build_vp_clang_sdk.py` | Deploy: `powershell -Command "& .\build-and-copy.bat"`
+   - Build & Deploy: `powershell -Command "& .\build-and-copy.bat"` (from `civ5-dll/`)
 2. **Bridge Service** (`bridge-service/`) — REST/SSE bridge between Civ V and AI
 3. **MCP Server** (`mcp-server/`) — MCP tools + SQLite game data access (Kysely)
 4. **Vox Agents** (`vox-agents/`) — LLM-powered strategic AI framework
