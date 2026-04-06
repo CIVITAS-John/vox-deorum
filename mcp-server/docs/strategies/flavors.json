@@ -2,7 +2,7 @@
   "Offense": "Pivots the military towards offensive stances. Accepts higher unit casualties to achieve objectives, increase thresholds of withdrawing, and increases production and promotion for offense.",
   "Defense": "Increases military production and unit promotion for defensive purposes.",
   "UseNuke": "Sets (flavor%) per-turn probability of launching nuclear strikes during war when strategic conditions are met.",
-  "CityDefense": "Prioritizes unit production and promotions for static defense (friendly territory bonuses, capital defense, garrisoned attacks).",
+  "CityDefense": "Prioritizes unit promotions for static defense (friendly territory bonuses, capital defense, garrisoned attacks).",
   "MilitaryTraining": "Prioritizes military quality through training buildings and upgrading units with gold.",
 
   "Mobilization": "Increases the proportion of military production (compared with civilian production).",
