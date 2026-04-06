@@ -297,5 +297,9 @@
         "PlayerID"
       ]
     }
+  },
+  {
+    "name": "set-production-mode",
+    "_meta": {}
   }
 ]
