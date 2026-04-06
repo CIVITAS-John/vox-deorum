@@ -100,7 +100,9 @@ The arrays themselves are local storage on the caller. Foreign AI code does not 
 
 There are two distinct ways these modifiers matter:
 
-1. **Raw modifier path** -- the stored `ScenarioModifier1/2` values are read directly in a small number of places. The confirmed gameplay consumer is peace willingness in `CvDiplomacyAI`, where `GetScenarioModifier1(ePlayer) + GetScenarioModifier2(ePlayer)` directly shifts `iPeaceScore` when `MOD_IPC_CHANNEL` is active.
+1. **Raw modifier path** -- the stored `ScenarioModifier1/2` values are read directly in a small number of places. The confirmed gameplay consumers are:
+   - peace willingness in `CvDiplomacyAI`, where `GetScenarioModifier1(ePlayer) + GetScenarioModifier2(ePlayer)` directly shifts `iPeaceScore` when `MOD_IPC_CHANNEL` is active
+   - coop-war desire in `CvDiplomacyAI::GetCoopWarDesireScore`, where `GetCachedScenarioModifier1(eTargetPlayer) + GetCachedScenarioModifier2(eTargetPlayer)` is added directly to the score before target-value scaling
 2. **Cached opinion path** -- `CvDiplomacyAI::GetDiploModifiers` sums modifier1, modifier2, and modifier3 into an opinion delta, `CalculateCivOpinionWeight` includes that delta when `MOD_EVENTS_DIPLO_MODIFIERS` is active and the game is not network multiplayer, and `DoUpdateOpinions` then stores the result in `SetCachedOpinionWeight` and `SetCivOpinion`.
 
 Most downstream effects come from the second path, not the first.
@@ -118,7 +120,7 @@ These modifiers therefore do not only change how A "feels about" B. Once opinion
 
 | Subsystem | Representative symbols | Mechanism | What shifts |
 |---|---|---|---|
-| Core diplomacy | `CvDiplomacyAI::CalculateApproachTowardsPlayer`, `IsCoopWarRequestUnacceptable`, friendship / denouncement / warning / war logic | Mostly `GetCivOpinion`; some `GetCachedOpinionWeight` comparisons | Approach selection, coop-war request reactions, "friend vs enemy" branching, denunciation and relationship-threshold behavior |
+| Core diplomacy | `CvDiplomacyAI::CalculateApproachTowardsPlayer`, `GetCoopWarDesireScore`, `RespondToCoopWarRequest`, `IsCoopWarRequestUnacceptable`, friendship / denouncement / warning / war logic | `GetCivOpinion`, some `GetCachedOpinionWeight`, plus direct cached `ScenarioModifier1/2` in coop-war desire | Approach selection, coop-war desire, coop-war request reactions, warn-target behavior, and "friend vs enemy" branching |
 | Peace willingness | `CvDiplomacyAI` peace scoring around `iPeaceScore` | **Direct `GetScenarioModifier1/2` read** | Immediate willingness to continue war or accept peace, without waiting for cached opinion recomputation |
 | Deals and treaty behavior | `CvDealAI` demand, gift, peace, vassalage, and treaty valuation paths | Mostly `GetCivOpinion` | Demand compliance, gift willingness, peace valuation, vassalage acceptability, and general deal scoring |
 | World Congress / voting | `CvVotingClasses` proposal evaluation and target scoring; `CvDiplomacyAI` league ally / competitor selection | Both `GetCivOpinion` and `GetCachedOpinionWeight` | Resolution support, sanctions and target preferences, ally/competitor ranking, and proposal priorities |
@@ -129,7 +131,8 @@ These modifiers therefore do not only change how A "feels about" B. Once opinion
 
 ### Important examples by category
 
-- **Core diplomacy** -- opinion bands drive friendly/guarded/hostile branching throughout `CvDiplomacyAI`, including coop-war request acceptability, ally/friend checks, enemy checks, and many "warn, denounce, help, backstab, or cooperate" decisions.
+- **Core diplomacy** -- opinion bands drive friendly/guarded/hostile branching throughout `CvDiplomacyAI`, including coop-war request acceptability, ally/friend checks, enemy checks, and many "warn, denounce, help, backstab, or cooperate" decisions. Separately, Vox Deorum adds the raw relationship modifiers directly into `GetCoopWarDesireScore`, so hostility toward the target can raise coop-war desire even before the next opinion refresh.
+- **Coop war specifics** -- `RespondToCoopWarRequest` accepts a request when `GetCoopWarDesireScore(...)` reaches the coop-war threshold; accepted or preparing requests then set `COOP_WAR_STATE_PREPARING` / `ONGOING` and update the target's approach to `CIV_APPROACH_WAR`. `IsCoopWarRequestUnacceptable` also branches on `GetCivOpinion` toward both asker and target, so the modifiers can affect coop war through both the direct desire hook and the later opinion-band path.
 - **Deals and treaty behavior** -- `CvDealAI` switches on `GetCivOpinion` for human-demand compliance, peace valuation, and vassalage-related deal scoring.
 - **World Congress / voting** -- `CvVotingClasses` uses both banded opinion and numeric cached-weight comparisons when scoring proposals, allies, competitors, sanctions, and targets.
 - **Trade and economy** -- `CvTradeClasses` discounts the downside of enriching civs that the AI likes, and `CvEconomicAI` tracks whether city-state allies belong to civs it sees as competitors, enemies, or hostiles.
@@ -150,7 +153,7 @@ Crossing a threshold such as `30`, `80`, `160`, `-30`, `-80`, or `-160` can ther
 
 Two timings matter:
 
-- **Immediate** -- the raw scenario modifiers are stored immediately, raw getter/debug-style pathways can observe them immediately, and the direct peace-score consumer can react immediately.
+- **Immediate** -- the raw scenario modifiers are stored immediately, raw getter/debug-style pathways can observe them immediately, and the direct peace-score and coop-war-desire consumers can react immediately.
 - **Next opinion refresh** -- cached opinion, opinion bands, and most foreign-AI side effects update on the next `CvDiplomacyAI::DoTurn` that runs `DoUpdateOpinions`.
 
 In network multiplayer, `CalculateCivOpinionWeight` skips the `GetDiploModifiers` path, so the normal cached-opinion cascade should not be described as unconditional there.
