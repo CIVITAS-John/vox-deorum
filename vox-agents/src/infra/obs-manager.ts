@@ -35,7 +35,7 @@ const GAME_AUDIO_INPUT_KIND = 'wasapi_process_output_capture';
 const GAME_EXECUTABLE = 'CivilizationV.exe';
 const DEFAULT_OBS_PATH = 'C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe';
 const HEALTH_POLL_INTERVAL = 10_000;
-const MAX_RECOVERY_ATTEMPTS = 3;
+const MAX_BACKOFF_INTERVAL = 60_000;
 
 class ObsManager {
   private obs = new OBSWebSocket();
@@ -43,8 +43,9 @@ class ObsManager {
   private obsConfig?: ObsConfig;
   private connected = false;
   private productionActive = false;
-  private healthInterval?: ReturnType<typeof setInterval>;
-  private recoveryAttempts = 0;
+  private healthTimer?: ReturnType<typeof setTimeout>;
+  private recovering = false;
+  private backoffMs = HEALTH_POLL_INTERVAL;
   private processManagerRegistered = false;
 
   // Game ID and recording directory management
@@ -298,11 +299,23 @@ class ObsManager {
     const password = this.obsConfig?.wsPassword;
     const url = `ws://127.0.0.1:${port}`;
 
+    // Avoid stacking listeners across reconnects
+    this.obs.removeAllListeners();
+
     try {
       await this.obs.connect(url, password);
       this.connected = true;
-      this.recoveryAttempts = 0;
+      this.backoffMs = HEALTH_POLL_INTERVAL;
       logger.info(`Connected to OBS WebSocket at ${url}`);
+
+      // Detect disconnects immediately instead of waiting for next health poll
+      this.obs.on('ConnectionClosed', () => {
+        if (!this.connected) return; // already handled
+        logger.warn('OBS WebSocket connection closed unexpectedly');
+        this.connected = false;
+        void this.attemptRecovery();
+      });
+
       return true;
     } catch (error) {
       logger.error(`Failed to connect to OBS WebSocket at ${url}:`, error);
@@ -484,38 +497,52 @@ class ObsManager {
     }
   }
 
-  /** Start periodic health monitoring. */
+  /** Start periodic health monitoring using a setTimeout chain (supports dynamic backoff). */
   private startHealthMonitor(): void {
-    this.healthInterval = setInterval(async () => {
+    this.scheduleHealthCheck();
+  }
+
+  /** Schedule the next health check after the current backoff interval. */
+  private scheduleHealthCheck(): void {
+    if (this.healthTimer) return; // already scheduled
+    this.healthTimer = setTimeout(async () => {
+      this.healthTimer = undefined;
       await this.healthCheck();
-    }, HEALTH_POLL_INTERVAL);
+      this.scheduleHealthCheck();
+    }, this.backoffMs);
   }
 
   /** Stop health monitoring. */
   private stopHealthMonitor(): void {
-    if (this.healthInterval) {
-      clearInterval(this.healthInterval);
-      this.healthInterval = undefined;
+    if (this.healthTimer) {
+      clearTimeout(this.healthTimer);
+      this.healthTimer = undefined;
     }
   }
 
-  /** Check OBS connection health and attempt recovery if needed. */
+  /** Check OBS connection health; trigger recovery on failure. */
   private async healthCheck(): Promise<void> {
+    if (!this.connected) return; // recovery already in progress or triggered by event
     try {
       await this.obs.call('GetVersion');
-      // Connection is healthy
     } catch {
       logger.warn('OBS health check failed — connection lost');
       this.connected = false;
+      await this.attemptRecovery();
+    }
+  }
 
-      if (this.recoveryAttempts >= MAX_RECOVERY_ATTEMPTS) {
-        logger.error(`OBS recovery failed after ${MAX_RECOVERY_ATTEMPTS} attempts — giving up`);
-        this.stopHealthMonitor();
-        return;
-      }
+  /**
+   * Attempt to recover the OBS connection.
+   * Guarded by `recovering` to prevent overlapping attempts from the
+   * ConnectionClosed event and the health poll firing simultaneously.
+   */
+  private async attemptRecovery(): Promise<void> {
+    if (this.recovering) return;
+    this.recovering = true;
 
-      this.recoveryAttempts++;
-      logger.info(`Attempting OBS recovery (attempt ${this.recoveryAttempts}/${MAX_RECOVERY_ATTEMPTS})`);
+    try {
+      logger.info(`Attempting OBS recovery (backoff: ${this.backoffMs / 1000}s)`);
 
       // Check if OBS process is still running
       if (!this.isObsRunning()) {
@@ -523,30 +550,48 @@ class ObsManager {
         const launched = this.launchObs();
         if (!launched) {
           logger.error('Failed to relaunch OBS');
+          this.increaseBackoff();
           return;
         }
-        await this.sleep(3000);
+        await this.sleep(5000);
       }
 
       // Try to reconnect
       const reconnected = await this.connect();
-      if (reconnected && this.productionActive) {
-        // Restart production after recovery
-        try {
-          await this.updateRecordingDirectory();
+      if (reconnected) {
+        // Re-establish scenes (fresh OBS launch won't have them)
+        await this.setupScenes();
 
-          if (this.mode === 'recording') {
-            await this.obs.call('StartRecord');
-            logger.info('Recording restarted after OBS recovery');
-          } else if (this.mode === 'livestream') {
-            await this.obs.call('StartStream');
-            logger.info('Streaming restarted after OBS recovery');
+        if (this.productionActive) {
+          try {
+            await this.updateRecordingDirectory();
+
+            if (this.mode === 'recording') {
+              await this.obs.call('StartRecord');
+              logger.info('Recording restarted after OBS recovery');
+            } else if (this.mode === 'livestream') {
+              await this.obs.call('StartStream');
+              logger.info('Streaming restarted after OBS recovery');
+            }
+          } catch (error) {
+            logger.error('Failed to restart production after recovery:', error);
           }
-        } catch (error) {
-          logger.error('Failed to restart production after recovery:', error);
         }
+
+        logger.info('OBS recovery successful');
+        // backoff already reset to HEALTH_POLL_INTERVAL inside connect()
+      } else {
+        this.increaseBackoff();
       }
+    } finally {
+      this.recovering = false;
     }
+  }
+
+  /** Double the health-check backoff interval, capped at MAX_BACKOFF_INTERVAL. */
+  private increaseBackoff(): void {
+    this.backoffMs = Math.min(this.backoffMs * 2, MAX_BACKOFF_INTERVAL);
+    logger.warn(`OBS recovery failed — next attempt in ${this.backoffMs / 1000}s`);
   }
 
   /**
