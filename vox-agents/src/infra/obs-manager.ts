@@ -485,6 +485,7 @@ class ObsManager {
 
     try {
       const child = spawn(executablePath, args, {
+        cwd: path.dirname(executablePath),
         detached: true,
         stdio: 'ignore',
       });
@@ -520,16 +521,21 @@ class ObsManager {
     }
   }
 
-  /** Check OBS connection health; trigger recovery on failure. */
+  /** Check OBS connection health; trigger recovery if disconnected. */
   private async healthCheck(): Promise<void> {
-    if (!this.connected) return; // recovery already in progress or triggered by event
-    try {
-      await this.obs.call('GetVersion');
-    } catch {
-      logger.warn('OBS health check failed — connection lost');
-      this.connected = false;
-      await this.attemptRecovery();
+    if (this.connected) {
+      try {
+        await this.obs.call('GetVersion');
+        return; // healthy
+      } catch {
+        logger.warn('OBS health check failed — connection lost');
+        this.connected = false;
+      }
     }
+
+    // Disconnected (just detected or from a prior failure) — retry.
+    // The recovering guard inside attemptRecovery() prevents overlap.
+    await this.attemptRecovery();
   }
 
   /**
