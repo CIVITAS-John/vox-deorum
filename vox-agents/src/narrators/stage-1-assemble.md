@@ -17,16 +17,24 @@ interface AssembleConfig extends NarratorStageConfig {
 - `segments.jsonl` from `recordingDir`
 - Knowledge DB at `knowledgeDbPath` (GameEvents, RenderEvents, PlayerInformations, GameMetadata)
 
-### Output: `workspace/episodes.json`
+### Output
 
+**`workspace/narrator-context.json`** — shared game context for all later stages:
+```typescript
+interface NarratorContext {
+  gameID: string;
+  knowledgePath: string;   // resolved absolute path
+  recordingDir: string;    // resolved absolute path
+}
+```
+
+**`workspace/episodes.json`** — episode manifest:
 ```typescript
 import type { Selectable } from 'kysely';
 import type { PlayerInformation } from 'mcp-server/dist/knowledge/schema/public.js';
 
 interface Episodes {
   gameID: string;
-  knowledgePath: string;           // so later stages can open the DB
-  recordingDir: string;              // so later stages can find video files
   totalTurns: number;
   players: Selectable<PlayerInformation>[];  // reuse existing type
   playerTypes: Record<number, string>;       // playerID -> friendly label (e.g., "Staffed LLM Strategist (deepseek-r1)")

@@ -106,6 +106,15 @@ export interface ConfigFile {
   lastModified?: string;
 }
 
+/** All supported session types */
+export type SessionType =
+  | 'strategist'
+  | 'narrator-assemble'
+  | 'narrator-select'
+  | 'narrator-script'
+  | 'narrator-voice'
+  | 'narrator-video';
+
 /**
  * Base configuration for all session types.
  * Contains common settings shared across different session implementations.
@@ -114,8 +123,8 @@ export interface SessionConfig {
   /** Configuration name (typically derived from filename) */
   name: string;
 
-  /** Session type - currently only 'strategist' is implemented */
-  type: 'strategist';
+  /** Session type identifier */
+  type: SessionType;
 
   /** Whether to automatically continue playing when it's the AI's turn */
   autoPlay: boolean;

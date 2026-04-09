@@ -14,8 +14,8 @@ interface ScriptConfig extends NarratorStageConfig {
 ### Input
 - `workspace/selection.json` (SelectionOutput from Stage 2)
 - `workspace/episodes.json` (Episodes from Stage 1)
-- Knowledge DB at `knowledgeDbPath`
-- Telemetry DBs (per LLM player, if available)
+- Knowledge DB via `workspace.openGameDb()` (path stored in `narrator-context.json`)
+- Telemetry DBs (per LLM player, if available — derived from knowledgePath)
 
 ### Output: `workspace/scripts.json`
 

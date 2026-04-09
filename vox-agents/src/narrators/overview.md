@@ -55,7 +55,25 @@ type NarratorStageType =
   | 'narrator-video';
 ```
 
-`SessionConfig.type` (currently `'strategist'` only) needs extending.
+`SessionConfig.type` extended to `SessionType` union in `types/config.ts`.
+
+### Workspace-Managed Shared Context
+
+Game-level parameters (`gameID`, `knowledgePath`, `recordingDir`) live in `narrator-context.json`, written by Stage 1 and read by all later stages. This avoids duplicating these values across per-stage configs.
+
+```typescript
+interface NarratorContext {
+  gameID: string;
+  knowledgePath: string;   // resolved absolute path
+  recordingDir: string;    // resolved absolute path
+}
+```
+
+The `NarratorWorkspace` class (in `workspace.ts`) manages context, DB access, and stage I/O:
+- `writeContext()` / `getContext()` — shared game context
+- `openGameDb()` — opens knowledge DB from stored context
+- `writeEpisodes()` / `readEpisodes()` — Stage 1 I/O
+- Future: `writeSelection()` / `readSelection()`, etc.
 
 ### CLI
 
@@ -67,10 +85,11 @@ npm run narrator -- --workspace <path> --stage <name> --config <file> [--force]
 
 ```
 workspace/
-├── narrator-state.json       # stage completion tracking
+├── narrator-context.json    # shared game context (gameID, knowledgePath, recordingDir)
 ├── episodes.json             # Stage 1
 ├── selection.json            # Stage 2
 ├── scripts.json              # Stage 3
+├── narrator-episodes.duckdb  # Stage 3 cached extractions
 ├── audio/
 │   ├── manifest.json
 │   └── t42-p3.mp3 ...
@@ -94,7 +113,7 @@ Each episode carries `eventCounts: Record<string, number>` — raw GameEvent typ
 
 ### Knowledge DB
 
-The knowledge DB remains queryable throughout. Stage 1 stores `knowledgeDbPath` in the manifest. If not provided, search `mcp-server/data` and `mcp-server/archive` for a copy. Stage 3 queries the DB directly for full game context when building LLM prompts.
+The knowledge DB remains queryable throughout. Stage 1 resolves the path and writes it to `narrator-context.json`. Later stages access it via `workspace.openGameDb()`. If not provided in config, Stage 1 searches `mcp-server/data` and `mcp-server/archive`.
 
 ### Reused types
 
@@ -114,12 +133,12 @@ The knowledge DB remains queryable throughout. Stage 1 stores `knowledgeDbPath` 
 ## Source File Layout
 
 ```
-vox-agents/src/narrator/
-├── console.ts                    # CLI entry point
-├── workspace.ts                  # NarratorWorkspace helper
-├── types.ts                      # Shared types & configs
+vox-agents/src/narrators/
+├── console.ts                    # CLI entry point (TODO)
+├── workspace.ts                  # NarratorWorkspace — context, DB access, stage I/O
+├── types.ts                      # Shared types, configs, NarratorContext
 ├── sessions/
-│   ├── assemble-session.ts       # Stage 1
+│   ├── assemble-session.ts       # Stage 1 ✓
 │   ├── select-session.ts         # Stage 2
 │   ├── script-session.ts         # Stage 3
 │   ├── voice-session.ts          # Stage 4
@@ -131,7 +150,7 @@ vox-agents/src/narrator/
 ├── tts/
 │   └── provider.ts               # TTSProvider interface
 └── utils/
-    └── episode-parser.ts         # segments.jsonl parsing
+    └── episode-parser.ts         # segments.jsonl parsing ✓
 ```
 
 ## Key Dependencies

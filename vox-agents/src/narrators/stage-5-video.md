@@ -7,7 +7,6 @@
 ```typescript
 interface VideoConfig extends NarratorStageConfig {
   type: 'narrator-video';
-  recordingDir: string;              // needed to find source video files
   outputFormat?: 'mp4' | 'mkv';
   includeSubtitles?: boolean;
   includeGameAudio?: boolean;        // mix in original game audio (attenuated)
@@ -18,7 +17,7 @@ interface VideoConfig extends NarratorStageConfig {
 - `workspace/scripts.json` (ScriptsOutput from Stage 3, for presentation order + episode refs)
 - `workspace/audio/manifest.json` (AudioManifest from Stage 4)
 - `workspace/episodes.json` (Episodes from Stage 1, for video file refs + offsets)
-- Source video files from `recordingDir`
+- Source video files from `workspace.getContext().recordingDir`
 
 ### Output: `workspace/output/final.mp4`
 
