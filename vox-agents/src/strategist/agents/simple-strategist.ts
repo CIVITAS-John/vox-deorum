@@ -25,6 +25,8 @@ export class SimpleStrategist extends SimpleStrategistBase {
    */
   readonly name = "simple-strategist";
 
+  readonly displayName = "Simple LLM Strategist";
+
   /**
    * Human-readable description of what this agent does
    */

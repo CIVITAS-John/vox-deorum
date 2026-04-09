@@ -22,6 +22,8 @@ export class NoneStrategist extends Strategist {
    */
   readonly name = "none-strategist";
 
+  readonly displayName = "Vox Populi AI";
+
   /**
    * Human-readable description of what this agent does
    */

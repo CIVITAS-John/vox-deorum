@@ -33,6 +33,9 @@ export class SimpleStrategistLearned extends SimpleStrategistStaffed {
   // @ts-expect-error - narrowing parent literal type to a different literal
   override readonly name = "simple-strategist-learned";
 
+  // @ts-expect-error - narrowing parent literal type to a different literal
+  override readonly displayName = "Learned LLM Strategist";
+
   /**
    * Human-readable description of what this agent does
    */

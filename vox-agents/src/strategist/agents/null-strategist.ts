@@ -22,6 +22,8 @@ import { StrategistParameters, ensureGameState } from "../strategy-parameters.js
 export class NullStrategist extends Strategist {
   readonly name = "null-strategist";
 
+  readonly displayName = "Vox Populi AI (Baseline)";
+
   readonly description = "Baseline agent that resets VPAI to defaults: empty strategies (Strategy mode) or balanced flavors (Flavor mode), with no grand strategy override";
 
   /**

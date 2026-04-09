@@ -18,6 +18,7 @@ import { getModelConfig } from "../utils/models/models.js";
  * @class
  */
 export abstract class Strategist extends VoxAgent<StrategistParameters> {
+  abstract readonly displayName: string;
   /**
    * Gets the language model to use for this agent execution.
    * Can return undefined to use the default model from VoxContext.
