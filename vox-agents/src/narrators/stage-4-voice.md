@@ -25,10 +25,9 @@ interface TTSConfig {
 
 ```typescript
 // workspace/audio/manifest.json
-interface AudioManifest {
-  provider: string;
-  voice: string;
+interface AudioOutput {
   episodes: AudioEntry[];
+  audioPath: string; // folder for storing audio files
 }
 
 interface AudioEntry {

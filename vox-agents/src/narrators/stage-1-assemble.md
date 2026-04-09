@@ -9,7 +9,7 @@ interface AssembleConfig extends NarratorStageConfig {
   type: 'narrator-assemble';
   gameID: string;
   recordingDir: string;              // path to <gameID>/ with segments.jsonl + videos
-  knowledgeDbPath?: string;           // path to game's knowledge SQLite DB - if empty, search for mcp-server/data and mcp-server/archive for a copy.
+  knowledgePath?: string;           // path to game's knowledge + telemetry SQLite DB - if empty, search for mcp-server/archive for the knowledge DB path. other paths are calculated as derivatives (see archivists).
 }
 ```
 
@@ -25,7 +25,7 @@ import type { PlayerInformation } from 'mcp-server/dist/knowledge/schema/public.
 
 interface Episodes {
   gameID: string;
-  knowledgeDbPath: string;           // so later stages can open the DB
+  knowledgePath: string;           // so later stages can open the DB
   recordingDir: string;              // so later stages can find video files
   totalTurns: number;
   players: Selectable<PlayerInformation>[];  // reuse existing type

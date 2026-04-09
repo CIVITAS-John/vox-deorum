@@ -76,11 +76,14 @@ interface BroadSelectionInput {
     players: Selectable<PlayerInformation>[];
     winner?: { playerID: number; victoryType: string };
     totalTurns: number;
+    totalEpisodes: number;
   };
   prompt?: string;                      // from config prompts['select']
   targetDuration: number;              // final target — agent aims for ~2x this
+  previousDuration: number;            // from selected episodes
   previousCandidates: SelectedEpisode[];  // from prior batches
-  batch: Episode[];                      // this batch's episodes
+  batchBudget: number;                        // duration budget for this batch
+  batchEpisodes: Episode[];                      // this batch's episodes
 }
 ```
 
@@ -93,7 +96,7 @@ interface BroadSelectionOutput {
 
 ### Pass 2: Pruning
 
-A single LLM call sees all candidates from Pass 1. With full visibility of the candidate pool and game overview, it prunes to the target duration and assigns final rationales.
+A single LLM call sees all candidates from Pass 1. With full visibility of the candidate pool and game overview, it prunes to the target duration and assigns final rationales. Loop until the duration is within an acceptable range.
 
 ### Agent: NarratorPruner
 
@@ -114,6 +117,7 @@ interface PruningInput {
   };
   prompt?: string;                      // from config prompts['select']
   targetDuration: number;
+  currentDuration: number;             // current duration as a hint
   candidates: SelectedEpisode[];       // all candidates from Pass 1
 }
 ```
