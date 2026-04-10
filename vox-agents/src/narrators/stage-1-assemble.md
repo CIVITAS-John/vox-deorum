@@ -56,9 +56,11 @@ interface Episode {
   // Sparse map: only types with count > 0
   eventCounts: Record<string, number>;
 
-  // Special flag: only on minor civ episodes (playerID = -1) where
-  // ResolutionResult events exist in this turn
-  worldCongress?: boolean;
+  // Pre-formatted World Congress summary (only on minor civ episodes, playerID = -1).
+  // Built from VictoryProgress.DiplomaticVictory + ResolutionResult GameEvents.
+  // String format includes: status, votes needed, delegates by civ, active resolutions,
+  // proposals, and voting results. Stage 2 reads this directly — no archivist loop needed.
+  worldCongress?: string;
 }
 ```
 
@@ -98,18 +100,24 @@ The archivist pipeline already has reusable DB access utilities. Extract/share t
    - **Minor civ detection:** The `segments.jsonl` already contains `isMinorCiv` in RenderEvent payloads forwarded via ProductionController. If the entry's playerID maps to a minor civ (cross-reference `PlayerInformations.IsMajor`), set episode `playerID = -1`
 
 3. **Build eventCounts** for each episode
-   - Query `GameEvents` for this turn where the event is associated with this playerID
+   - Batch-query all `GameEvents` for the relevant turns in a single query
+   - For each event, increment counters for every player whose `Player{N} >= 1` visibility flag is set (use `MaxMajorCivs` for the loop bound)
    - Count by event `Type` -> `Record<string, number>`
    - For minor civ episodes (playerID = -1): eventCounts stays empty
-   - For minor civ episodes: check if any `ResolutionResult` events exist globally in this turn -> set `hasWorldCongress = true`
 
-4. **Extract game metadata** (reuse archivist patterns)
+4. **Build worldCongress strings** for minor civ episodes
+   - For each turn that has at least one minor civ episode, query `VictoryProgress` (Key=0, latest version per turn) and read `DiplomaticVictory`
+   - Combine with `ResolutionResult` events for that turn (already collected during step 3)
+   - Format into a concise multi-line string: status, votes needed, delegates, active resolutions, proposals, voting results
+   - Skip if there's no diplomatic data and no voting results
+
+5. **Extract game metadata** (reuse archivist patterns)
    - `openReadonlyGameDb(knowledgeDbPath)` — shared with archivist
    - Query `PlayerInformations` -> players array (same pattern as `archivist/pipeline/extractor.ts:48-58`)
    - Query `GameMetadata` for `victoryPlayerID` and `victoryType` -> winner (same pattern as `archivist/console.ts:119-124`)
    - Compute totalTurns from max turn in episodes
 
-5. **Extract player types** from GameMetadata + agent registry
+6. **Extract player types** from GameMetadata + agent registry
    - For each major player in `PlayerInformations`:
      - Query `GameMetadata` for `strategist-{playerID}` and `model-{playerID}`
      - Look up the strategist's `displayName` via `agentRegistry.get(strategistName)` cast to `Strategist`
@@ -137,9 +145,9 @@ After conversion, wall-clock timestamps are discarded. All downstream stages see
 
 When a minor civ's UI appears on screen (the game cycles through all players including city-states), it creates an episode with `playerID = -1`. These episodes:
 - Have empty `eventCounts` (no player-specific events to count)
-- May have `hasWorldCongress: true` if World Congress voting happened this turn
+- May carry a `worldCongress` string if congress is active or had voting results that turn
 - Are typically short (a few seconds of city-state UI)
-- Can be selected by Stage 2 if they contain World Congress activity
+- Can be selected by Stage 2 if they contain World Congress activity — Stage 2 reads the pre-formatted string directly, no archivist loop needed
 
 ### Event Counting
 

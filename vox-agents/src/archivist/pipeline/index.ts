@@ -4,7 +4,7 @@
  * Barrel file for the batch ETL pipeline (Phases A/B/C).
  */
 
-export { scanArchive, openReadonlyGameDb } from './scanner.js';
+export { scanArchive } from './scanner.js';
 export { extractTurnContexts, extractPlayerEpisodes, loadTurnSummaries } from './extractor.js';
 export { transformEpisode } from './transformer.js';
 export { EpisodeWriter } from './writer.js';

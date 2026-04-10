@@ -103,6 +103,11 @@ export interface Episode {
   duration: number;
   /** Sparse map: event Type -> count for the current player in this turn */
   eventCounts: Record<string, number>;
-  /** Only on minor civ episodes (playerID = -1) with ResolutionResult events */
-  worldCongress?: boolean;
+  /**
+   * Pre-formatted World Congress summary for downstream LLMs.
+   * Only set on minor civ episodes (playerID = -1) when the congress is active
+   * or had voting results this turn. Built from VictoryProgress.DiplomaticVictory
+   * plus ResolutionResult GameEvents.
+   */
+  worldCongress?: string;
 }

@@ -23,7 +23,8 @@ import { parseArgs } from 'node:util';
 import { config } from '../utils/config.js';
 import { getEpisodeDbInstance } from './episode-db.js';
 import { createLogger } from '../utils/logger.js';
-import { openReadonlyGameDb, scanArchive } from './pipeline/scanner.js';
+import { openReadonlyGameDb, getWinner } from '../utils/knowledge-db.js';
+import { scanArchive } from './pipeline/scanner.js';
 import { EpisodeWriter } from './pipeline/writer.js';
 import type { ArchiveEntry } from './types.js';
 import { prepareTelepathist } from './pipeline/telepathist-prep.js';
@@ -115,12 +116,9 @@ async function processGame(
 
     try {
       // Query game metadata for winner determination
-      const victoryRow = await gameDb
-        .selectFrom('GameMetadata')
-        .select('Value')
-        .where('Key', '=', 'victoryPlayerID')
-        .executeTakeFirst();
-      const victoryPlayerId = victoryRow ? parseInt(victoryRow.Value, 10) : -1;
+      const winner = await getWinner(gameDb);
+      const victoryPlayerId = winner?.playerID ?? -1;
+      const victoryType = winner?.victoryType ?? null;
 
       // Build player info lookup (ID -> civ name + leader name)
       const playerInfoRows = await gameDb
@@ -133,13 +131,6 @@ async function processGame(
       const turnContexts = await extractTurnContexts(gameDb);
       allTurns = new Set(turnContexts.keys());
 
-      // Query victory type and compute max turn for game outcome metadata
-      const victoryTypeRow = await gameDb
-        .selectFrom('GameMetadata')
-        .select('Value')
-        .where('Key', '=', 'victoryType')
-        .executeTakeFirst();
-      const victoryType = victoryTypeRow?.Value ?? null;
       const maxTurn = allTurns.size > 0 ? Math.max(...allTurns) : 0;
 
       await writer.writeGameOutcome(entry.gameId, victoryPlayerId, victoryType, maxTurn);

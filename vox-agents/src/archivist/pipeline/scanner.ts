@@ -9,44 +9,17 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import Database from 'better-sqlite3';
-import { Kysely, SqliteDialect, ParseJSONResultsPlugin } from 'kysely';
 import { createLogger } from '../../utils/logger.js';
-import type { KnowledgeDatabase } from '../../../../mcp-server/dist/knowledge/schema/index.js';
+import { GAME_DB_REGEX, openReadonlyGameDb } from '../../utils/knowledge-db.js';
 import type { ArchiveEntry, PlayerEntry } from '../types.js';
 
 const logger = createLogger('ArchivistScanner');
-
-/** Regex for game database files: {gameId}_{timestamp}.db */
-const GAME_DB_REGEX = /^(.+?)_(\d+)\.db$/;
 
 /** Regex for telepathist database files (checked first to exclude from telemetry match) */
 const TELEPATHIST_DB_REGEX = /^(.+)-player-(\d+)\.telepathist\.db$/;
 
 /** Regex for telemetry database files: {gameId}-player-{playerId}.db */
 const TELEMETRY_DB_REGEX = /^(.+)-player-(\d+)\.db$/;
-
-/**
- * Opens a game knowledge database in read-only mode with JSON parsing support.
- * Follows the pattern from oracle/db-resolver.ts.
- *
- * @param dbPath - Absolute path to the SQLite database
- * @returns Kysely instance for querying, or null on failure
- */
-export function openReadonlyGameDb(dbPath: string): Kysely<KnowledgeDatabase> | null {
-  let sqliteDb: InstanceType<typeof Database> | undefined;
-  try {
-    sqliteDb = new Database(dbPath, { readonly: true });
-    return new Kysely<KnowledgeDatabase>({
-      dialect: new SqliteDialect({ database: sqliteDb }),
-      plugins: [new ParseJSONResultsPlugin()],
-    });
-  } catch (error) {
-    sqliteDb?.close();
-    logger.error(`Failed to open game database: ${dbPath}`, { error });
-    return null;
-  }
-}
 
 /**
  * Scans the archive directory for game databases and identifies LLM-controlled players.

@@ -35,7 +35,6 @@ export type {
 // Pipeline (batch processing)
 export {
   scanArchive,
-  openReadonlyGameDb,
   extractTurnContexts,
   extractPlayerEpisodes,
   loadTurnSummaries,

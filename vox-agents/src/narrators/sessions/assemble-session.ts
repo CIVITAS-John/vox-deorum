@@ -11,20 +11,24 @@ import path from 'node:path';
 import type { Kysely, Selectable } from 'kysely';
 import type { KnowledgeDatabase } from '../../../../mcp-server/dist/knowledge/schema/index.js';
 import type { PlayerInformation } from '../../../../mcp-server/dist/knowledge/schema/index.js';
+import { MaxMajorCivs } from '../../../../mcp-server/dist/knowledge/schema/index.js';
 import { VoxSession } from '../../infra/vox-session.js';
 import { createLogger } from '../../utils/logger.js';
-import { openReadonlyGameDb } from '../../archivist/pipeline/scanner.js';
+import {
+  openReadonlyGameDb,
+  resolveKnowledgePath,
+  getWinner,
+  getPlayerStrategistMetadata,
+} from '../../utils/knowledge-db.js';
 import { agentRegistry } from '../../infra/agent-registry.js';
 import type { Strategist } from '../../strategist/strategist.js';
 import { NarratorWorkspace } from '../workspace.js';
 import { parseAndDecompose } from '../utils/episode-parser.js';
+import { formatWorldCongress } from '../utils/world-congress.js';
 import type { AssembleConfig, Episode, Episodes } from '../types.js';
 import type { SessionStatus } from '../../types/api.js';
 
 const logger = createLogger('AssembleSession');
-
-/** Regex for game database files: {gameId}_{timestamp}.db */
-const GAME_DB_REGEX = /^(.+?)_(\d+)\.db$/;
 
 export class AssembleSession extends VoxSession<AssembleConfig> {
   private workspace: NarratorWorkspace;
@@ -51,20 +55,10 @@ export class AssembleSession extends VoxSession<AssembleConfig> {
       }
 
       // 3. Resolve knowledge DB path
-      const knowledgePath = this.config.knowledgePath
-        ? path.resolve(this.config.knowledgePath)
-        : this.findKnowledgeDb(this.config.gameID);
-
-      if (!knowledgePath) {
-        throw new Error(
-          `Could not find knowledge DB for game ${this.config.gameID}. ` +
-          `Provide knowledgePath explicitly or ensure the DB exists in mcp-server/archive/.`
-        );
-      }
-
-      if (!fs.existsSync(knowledgePath)) {
-        throw new Error(`Knowledge DB not found at ${knowledgePath}`);
-      }
+      const knowledgePath = resolveKnowledgePath(
+        this.config.knowledgePath,
+        this.config.gameID,
+      );
 
       // 4. Write workspace context for later stages
       this.workspace.writeContext({
@@ -107,7 +101,7 @@ export class AssembleSession extends VoxSession<AssembleConfig> {
       await this.populateEventCounts(db, episodes);
 
       // 9. Query game metadata (winner)
-      const winner = await this.queryWinner(db);
+      const winner = await getWinner(db);
 
       // 10. Extract player types
       const playerTypes = await this.extractPlayerTypes(db, playerInfoMap);
@@ -160,70 +154,9 @@ export class AssembleSession extends VoxSession<AssembleConfig> {
   // ── Private helpers ──────────────────────────────────────────────────
 
   /**
-   * Search mcp-server/archive/ for a knowledge DB matching the gameID.
-   * Returns the path with the latest timestamp, or null if not found.
-   */
-  private findKnowledgeDb(gameID: string): string | null {
-    // Resolve archive path relative to project root
-    const archiveDir = path.resolve('mcp-server', 'archive');
-    if (!fs.existsSync(archiveDir)) {
-      logger.warn(`Archive directory not found: ${archiveDir}`);
-      return null;
-    }
-
-    let bestPath: string | null = null;
-    let bestTimestamp = 0;
-
-    const experiments = fs.readdirSync(archiveDir, { withFileTypes: true });
-    for (const entry of experiments) {
-      if (!entry.isDirectory()) continue;
-      const expDir = path.join(archiveDir, entry.name);
-      const files = fs.readdirSync(expDir);
-
-      for (const file of files) {
-        const match = GAME_DB_REGEX.exec(file);
-        if (match && match[1] === gameID) {
-          const timestamp = parseInt(match[2], 10);
-          if (timestamp > bestTimestamp) {
-            bestTimestamp = timestamp;
-            bestPath = path.join(expDir, file);
-          }
-        }
-      }
-    }
-
-    // Also check mcp-server/data/ for an active game DB
-    const dataDir = path.resolve('mcp-server', 'data');
-    if (fs.existsSync(dataDir)) {
-      const files = fs.readdirSync(dataDir);
-      for (const file of files) {
-        // Active DBs may be named {gameID}.db (no timestamp)
-        if (file === `${gameID}.db`) {
-          const candidate = path.join(dataDir, file);
-          // Prefer archive (has full game data) unless no archive exists
-          if (!bestPath) bestPath = candidate;
-        }
-        const match = GAME_DB_REGEX.exec(file);
-        if (match && match[1] === gameID) {
-          const timestamp = parseInt(match[2], 10);
-          if (timestamp > bestTimestamp) {
-            bestTimestamp = timestamp;
-            bestPath = path.join(dataDir, file);
-          }
-        }
-      }
-    }
-
-    if (bestPath) {
-      logger.info(`Found knowledge DB for ${gameID}: ${bestPath}`);
-    }
-
-    return bestPath;
-  }
-
-  /**
    * Batch-query all GameEvents for relevant turns and populate episode eventCounts.
-   * For minor civ episodes, also checks for ResolutionResult → worldCongress flag.
+   * For minor civ episodes, also extracts World Congress info from VictoryProgress
+   * and ResolutionResult GameEvents into a pre-formatted string.
    */
   private async populateEventCounts(
     db: Kysely<KnowledgeDatabase>,
@@ -241,17 +174,22 @@ export class AssembleSession extends VoxSession<AssembleConfig> {
       .execute();
 
     // Build lookup: (turn, playerID) → eventType → count
-    // Also track ResolutionResult turns for World Congress detection
+    // Also collect ResolutionResult events per turn for World Congress voting results
     const eventBuckets = new Map<string, Record<string, number>>();
-    const resolutionTurns = new Set<number>();
+    const resolutionEventsByTurn = new Map<number, Record<string, unknown>[]>();
 
     for (const event of events) {
       if (event.Type === 'ResolutionResult') {
-        resolutionTurns.add(event.Turn);
+        let arr = resolutionEventsByTurn.get(event.Turn);
+        if (!arr) {
+          arr = [];
+          resolutionEventsByTurn.set(event.Turn, arr);
+        }
+        arr.push(event.Payload as Record<string, unknown>);
       }
 
       // Check which players can see this event via Player{N} visibility flags
-      for (let pid = 0; pid < 22; pid++) {
+      for (let pid = 0; pid < MaxMajorCivs; pid++) {
         const visibility = (event as any)[`Player${pid}`];
         if (typeof visibility === 'number' && visibility >= 1) {
           const key = `${event.Turn}:${pid}`;
@@ -264,13 +202,23 @@ export class AssembleSession extends VoxSession<AssembleConfig> {
       }
     }
 
+    // Determine which turns need World Congress data (turns with minor civ episodes)
+    const minorCivTurns = new Set<number>();
+    for (const episode of episodes) {
+      if (episode.playerID === -1) minorCivTurns.add(episode.turn);
+    }
+
+    const wcStringByTurn = await this.fetchWorldCongressData(
+      db,
+      minorCivTurns,
+      resolutionEventsByTurn,
+    );
+
     // Apply to episodes
     for (const episode of episodes) {
       if (episode.playerID === -1) {
-        // Minor civ: check for World Congress
-        if (resolutionTurns.has(episode.turn)) {
-          episode.worldCongress = true;
-        }
+        const wc = wcStringByTurn.get(episode.turn);
+        if (wc) episode.worldCongress = wc;
       } else {
         const key = `${episode.turn}:${episode.playerID}`;
         const counts = eventBuckets.get(key);
@@ -285,29 +233,49 @@ export class AssembleSession extends VoxSession<AssembleConfig> {
     );
   }
 
-  /** Query victoryPlayerID and victoryType from GameMetadata */
-  private async queryWinner(
+  /**
+   * Fetch VictoryProgress.DiplomaticVictory for each minor civ turn and combine
+   * with ResolutionResult events into pre-formatted World Congress summary strings.
+   */
+  private async fetchWorldCongressData(
     db: Kysely<KnowledgeDatabase>,
-  ): Promise<{ playerID: number; victoryType: string } | null> {
-    const victoryRow = await db
-      .selectFrom('GameMetadata')
-      .select('Value')
-      .where('Key', '=', 'victoryPlayerID')
-      .executeTakeFirst();
+    turns: Set<number>,
+    resolutionEventsByTurn: Map<number, Record<string, unknown>[]>,
+  ): Promise<Map<number, string>> {
+    const result = new Map<number, string>();
+    if (turns.size === 0) return result;
 
-    if (!victoryRow) return null;
+    // VictoryProgress is global (Key=0) and mutable — query latest version per turn
+    const turnList = [...turns];
+    const rows = await db
+      .selectFrom('VictoryProgress')
+      .select(['Turn', 'DiplomaticVictory'])
+      .where('Key', '=', 0)
+      .where('Turn', 'in', turnList)
+      .where('ID', 'in',
+        db.selectFrom('VictoryProgress')
+          .select((eb) => eb.fn.max('ID').as('ID'))
+          .where('Key', '=', 0)
+          .where('Turn', 'in', turnList)
+          .groupBy(['Key', 'Turn'])
+      )
+      .execute();
 
-    const playerID = parseInt(victoryRow.Value, 10);
-    if (isNaN(playerID) || playerID < 0) return null;
+    for (const row of rows) {
+      const dipl = row.DiplomaticVictory;
+      const events = resolutionEventsByTurn.get(row.Turn) ?? [];
+      const formatted = formatWorldCongress(dipl, events);
+      if (formatted) result.set(row.Turn, formatted);
+    }
 
-    const victoryTypeRow = await db
-      .selectFrom('GameMetadata')
-      .select('Value')
-      .where('Key', '=', 'victoryType')
-      .executeTakeFirst();
+    // Also handle turns that have ResolutionResult events but no VictoryProgress row
+    for (const [turn, events] of resolutionEventsByTurn) {
+      if (!turns.has(turn) || result.has(turn)) continue;
+      const formatted = formatWorldCongress(null, events);
+      if (formatted) result.set(turn, formatted);
+    }
 
-    const victoryType = victoryTypeRow?.Value ?? 'Unknown';
-    return { playerID, victoryType };
+    return result;
   }
 
   /**
@@ -324,20 +292,8 @@ export class AssembleSession extends VoxSession<AssembleConfig> {
     for (const [playerID, info] of playerInfoMap) {
       if (!info.IsMajor) continue;
 
-      const strategistRow = await db
-        .selectFrom('GameMetadata')
-        .select('Value')
-        .where('Key', '=', `strategist-${playerID}`)
-        .executeTakeFirst();
-
-      const modelRow = await db
-        .selectFrom('GameMetadata')
-        .select('Value')
-        .where('Key', '=', `model-${playerID}`)
-        .executeTakeFirst();
-
-      const strategistName = strategistRow?.Value;
-      const modelName = modelRow?.Value;
+      const { strategist: strategistName, model: modelName } =
+        await getPlayerStrategistMetadata(db, playerID);
 
       if (strategistName) {
         const agent = agentRegistry.get(strategistName);
