@@ -153,6 +153,13 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
+    'openai-compatible/GLM-5.1': {
+      provider: 'openai-compatible',
+      name: 'GLM-5.1',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
     'openai-compatible/Qwen-3.5': {
       provider: 'openai-compatible',
       name: 'Qwen-3.5',
@@ -193,6 +200,14 @@ export const defaultConfig: VoxAgentsConfig = {
     'openai-compatible/Minimax-M2.5': {
       provider: 'openai-compatible',
       name: 'Minimax-M2.5',
+      options: {
+        toolMiddleware: 'prompt',
+        thinkMiddleware: 'think'
+      }
+    },
+    'openai-compatible/Minimax-M2.7': {
+      provider: 'openai-compatible',
+      name: 'Minimax-M2.7',
       options: {
         toolMiddleware: 'prompt',
         thinkMiddleware: 'think'
