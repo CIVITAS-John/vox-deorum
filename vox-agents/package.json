@@ -24,6 +24,8 @@
     "test:obs": "vitest run tests/obs",
     "archivist": "npm run build && npm run archivist:dist --",
     "archivist:dist": "node --import ./dist/instrumentation.js dist/archivist/console.js",
+    "narrator": "npm run build && npm run narrator:dist --",
+    "narrator:dist": "node --inspect --import ./dist/instrumentation.js --experimental-loader=@opentelemetry/instrumentation/hook.mjs dist/narrators/console.js",
     "type-check": "tsc --noEmit",
     "docs": "typedoc"
   },
