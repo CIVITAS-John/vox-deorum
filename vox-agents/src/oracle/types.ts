@@ -85,6 +85,14 @@ export interface OracleConfig {
   concurrency?: number;
   /** Extract custom columns from replay context for the output CSV */
   extractColumns?: (ctx: ExtractionContext) => Record<string, any>;
+  /** Filter which CSV rows to process. Return true to include, false to skip. Applied in both retrieve and replay phases. */
+  filter?: (row: OracleRow, index: number) => boolean;
+  /**
+   * Directory name for retrieved data. When set, retrieve phase saves to
+   * {outputDir}/{retrievalName}/retrieved/ instead of using experimentName.
+   * Multiple experiments can share the same retrievalName to avoid re-retrieving.
+   */
+  retrievalName?: string;
 }
 
 /** Parameters passed to OracleAgent per execution */
@@ -129,6 +137,8 @@ export interface ReplayResult {
   metadata?: Record<string, any>;
   /** Custom columns from extractColumns callback */
   extractedColumns?: Record<string, any>;
+  /** 1-based repetition index when the same model appears multiple times in modelOverride */
+  repetition?: number;
 }
 
 /** Context provided to the extractColumns callback */

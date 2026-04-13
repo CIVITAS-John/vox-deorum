@@ -33,6 +33,7 @@ export function writeCsv(outputPath: string, results: ReplayResult[]): void {
       reasoning_tokens: r.tokens.reasoningTokens,
       output_tokens: r.tokens.outputTokens,
       ...(r.error ? { error: r.error } : {}),
+      ...(r.repetition !== undefined ? { repetition: r.repetition } : {}),
       ...(r.extractedColumns ?? {}),
     };
   });

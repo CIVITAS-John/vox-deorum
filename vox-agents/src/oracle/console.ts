@@ -38,10 +38,11 @@ const { values } = parseArgs({
     config:       { type: 'string',  short: 'c' },
     outputDir:    { type: 'string',  short: 'o' },
     telemetryDir: { type: 'string',  short: 't' },
-    targetAgent:  { type: 'string' },
-    agentType:    { type: 'string' },
-    retrieve:     { type: 'boolean' },
-    replay:       { type: 'boolean' },
+    targetAgent:    { type: 'string' },
+    agentType:      { type: 'string' },
+    retrievalName:  { type: 'string' },
+    retrieve:       { type: 'boolean' },
+    replay:         { type: 'boolean' },
   },
   strict: false,
   allowPositionals: false,
@@ -69,6 +70,7 @@ function printUsage(): void {
     '  --telemetryDir, -t  Override telemetry directory',
     '  --targetAgent       Override target agent name',
     '  --agentType         Override agent type',
+    '  --retrievalName     Override retrieval directory name (share retrieved data across experiments)',
     '  --retrieve          Retrieve only (extract raw prompts from telemetry, no LLM)',
     '  --replay            Replay only (load retrieved JSONs, apply modifyPrompt, run LLM)',
     '',
@@ -108,7 +110,7 @@ async function main() {
 
     // Merge CLI overrides into experiment config
     const cliOverrides = Object.fromEntries(
-      (['outputDir', 'telemetryDir', 'targetAgent', 'agentType'] as const)
+      (['outputDir', 'telemetryDir', 'targetAgent', 'agentType', 'retrievalName'] as const)
         .filter(k => values[k] !== undefined)
         .map(k => [k, values[k]])
     ) as Partial<OracleConfig>;
@@ -121,6 +123,8 @@ async function main() {
     await startWebServer();
     logger.info(`Starting experiment: ${config.experimentName}`);
 
+    const retrieveBaseName = config.retrievalName ?? config.experimentName;
+
     if (retrieveOnly) {
       const rows = await runRetrieve(config, true);
       const errors = rows.filter(r => r.error).length;
@@ -128,7 +132,7 @@ async function main() {
         `Experiment "${config.experimentName}" retrieve complete:`,
         `  ${rows.length - errors} rows retrieved`,
         `  ${errors} errors`,
-        `  Retrieved JSONs: temp/oracle/${config.experimentName}/retrieved/`,
+        `  Retrieved JSONs: temp/oracle/${retrieveBaseName}/retrieved/`,
       ].join('\n'));
     } else if (replayOnly) {
       const results = await runReplay(config);
@@ -150,7 +154,7 @@ async function main() {
         `Experiment "${config.experimentName}" complete:`,
         `  ${results.length - errors} successful replays`,
         `  ${errors} errors`,
-        `  Retrieved JSONs: temp/oracle/${config.experimentName}/retrieved/`,
+        `  Retrieved JSONs: temp/oracle/${retrieveBaseName}/retrieved/`,
         `  Results: temp/oracle/${config.experimentName}-results.csv`,
         `  Trails: temp/oracle/${config.experimentName}/`,
         `  Telemetry: telemetry/oracle/${config.experimentName}.db`,

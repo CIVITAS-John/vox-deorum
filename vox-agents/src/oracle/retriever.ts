@@ -29,8 +29,9 @@ export async function runRetrieve(config: OracleConfig, save = false): Promise<R
   const outputDir = resolvePath(config.outputDir || '../temp/oracle');
   const telemetryDir = resolvePath(config.telemetryDir || 'telemetry');
   const csvPath = resolvePath(config.csvPath);
-  const experimentDir = path.join(outputDir, config.experimentName);
-  const retrieveDir = path.join(experimentDir, 'retrieved');
+  const retrieveBaseName = config.retrievalName ?? config.experimentName;
+  const retrieveBaseDir = path.join(outputDir, retrieveBaseName);
+  const retrieveDir = path.join(retrieveBaseDir, 'retrieved');
 
   if (save) {
     fs.mkdirSync(retrieveDir, { recursive: true });
@@ -45,8 +46,15 @@ export async function runRetrieve(config: OracleConfig, save = false): Promise<R
     logger.warn(`CSV parse warnings: ${parsed.errors.map(e => e.message).join(', ')}`);
   }
 
-  const rows = parsed.data;
+  let rows = parsed.data;
   logger.info(`Loaded ${rows.length} rows from CSV`);
+
+  // Apply filter if provided
+  if (config.filter) {
+    const before = rows.length;
+    rows = rows.filter((row, i) => config.filter!(row, i));
+    logger.info(`Filtered to ${rows.length} of ${before} rows`);
+  }
 
   // Process rows in parallel
   const limit = pLimit(config.concurrency ?? 5);

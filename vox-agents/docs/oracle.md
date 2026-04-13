@@ -114,6 +114,8 @@ npm run oracle -- -c my-experiment.js --replay     # replay only
 | `targetAgent` | `string` | No | Target agent name (default: auto-detect strategist) |
 | `agentType` | `string` | No | Agent type for stop behavior (e.g. `strategist`) |
 | `concurrency` | `number` | No | Max parallel executions (default: `5`) |
+| `filter` | `(row, index) => boolean` | No | Filter which CSV rows to process (both phases) |
+| `retrievalName` | `string` | No | Directory name for retrieved data (share across experiments) |
 
 ### `modifyPrompt` callback
 
@@ -158,6 +160,21 @@ modelOverride: (original) => [
 ]
 ```
 
+Duplicate model names in the array are supported for repeated sampling. Each duplicate gets a 1-based index suffix to distinguish trail files:
+
+```js
+// Three runs of the same model
+modelOverride: (original) => [
+  'anthropic/claude-sonnet-4-6',
+  'anthropic/claude-sonnet-4-6',
+  'anthropic/claude-sonnet-4-6',
+]
+// Produces trails: ...-claude-sonnet-4-6-1.json, ...-claude-sonnet-4-6-2.json, ...-claude-sonnet-4-6-3.json
+// CSV includes a `repetition` column (1, 2, 3)
+```
+
+In mixed arrays, only duplicated models get indexed. A model appearing once keeps its suffix without an index.
+
 Return `undefined` (or omit the callback) to keep the original model.
 
 ### `rewriteToolSchemas`
@@ -186,6 +203,50 @@ interface ExtractionContext {
 ```
 
 Returns an object of key-value pairs added as columns to the output CSV.
+
+### `filter` — row filtering
+
+Filter which CSV rows to process. Applied in both retrieve and replay phases:
+
+```js
+// Process only a specific game
+filter: (row) => row.game_id === 'game-42',
+
+// Process only the first 10 rows (for testing)
+filter: (row, index) => index < 10,
+
+// Complex filter
+filter: (row) => row.player_type === 'human' && parseInt(row.turn) > 20,
+```
+
+### `retrievalName` — sharing retrieved data
+
+By default, retrieved JSONs are stored under `{experimentName}/retrieved/`. To share retrieved data across experiments, set `retrievalName` to a common name:
+
+```js
+// experiments/baseline.js
+export default {
+  experimentName: 'baseline-v1',
+  retrievalName: 'shared-nuke-data',
+  // ...
+};
+
+// experiments/aggressive-prompt.js
+export default {
+  experimentName: 'aggressive-v1',
+  retrievalName: 'shared-nuke-data',
+  // ...
+};
+```
+
+Run retrieve once with either config, then replay with any config that shares the same `retrievalName`:
+
+```bash
+npm run oracle -- -c baseline.js --retrieve
+npm run oracle -- -c aggressive-prompt.js --replay
+```
+
+Can also be set via CLI: `--retrievalName shared-nuke-data`
 
 ## Output Files
 
@@ -216,6 +277,7 @@ The output CSV contains all original CSV columns (with `rationale` renamed to `o
 | `reasoning_tokens` | Reasoning tokens used |
 | `output_tokens` | Output tokens used |
 | `error` | Error message (if replay failed) |
+| `repetition` | 1-based index when same model appears multiple times (omitted otherwise) |
 | *(custom)* | Any columns returned by `extractColumns` |
 
 ## CLI Reference
@@ -231,6 +293,7 @@ npm run oracle -- -c <experiment-script> [options]
 | `--telemetryDir` | `-t` | Override telemetry directory |
 | `--targetAgent` | | Override target agent name |
 | `--agentType` | | Override agent type (e.g. `strategist`) |
+| `--retrievalName` | | Override retrieval directory name (share across experiments) |
 | `--retrieve` | | Retrieve phase only (no LLM calls) |
 | `--replay` | | Replay phase only (load retrieved JSONs) |
 

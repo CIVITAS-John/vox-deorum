@@ -40,7 +40,8 @@ const logger = createLogger('OracleReplayer');
 export async function runReplay(config: OracleConfig, rows?: RetrievedRow[]): Promise<ReplayResult[]> {
   const outputDir = resolvePath(config.outputDir || '../temp/oracle');
   const experimentDir = path.join(outputDir, config.experimentName);
-  const retrieveDir = path.join(experimentDir, 'retrieved');
+  const retrieveBaseName = config.retrievalName ?? config.experimentName;
+  const retrieveDir = path.join(outputDir, retrieveBaseName, 'retrieved');
 
   // Load retrieved rows from disk if not provided
   if (!rows) {
@@ -57,10 +58,17 @@ export async function runReplay(config: OracleConfig, rows?: RetrievedRow[]): Pr
     logger.info(`Loaded ${rows.length} retrieved rows from ${retrieveDir}`);
   }
 
+  // Apply filter if provided
+  if (config.filter) {
+    const before = rows.length;
+    rows = rows.filter((r, i) => config.filter!(r.row, i));
+    logger.info(`Filtered to ${rows.length} of ${before} rows`);
+  }
+
   // Ensure output directory exists for trails
   fs.mkdirSync(experimentDir, { recursive: true });
 
-  // Expand rows into (retrieved, resolvedModel, suffix) tasks for multi-model support
+  // Expand rows into (retrieved, resolvedModel, suffix, repetition) tasks for multi-model support
   const tasks = rows.flatMap(retrieved => {
     if (retrieved.error) {
       logger.warn(`Skipping row with error: game=${retrieved.row.game_id}, player=${retrieved.row.player_id}, turn=${retrieved.row.turn}: ${retrieved.error}`);
@@ -72,12 +80,35 @@ export async function runReplay(config: OracleConfig, rows?: RetrievedRow[]): Pr
       ? [retrieved.originalModel]
       : Array.isArray(override) ? override : [override];
 
-    return modelInputs.map(m => {
-      const resolvedModel = resolveModel(m);
-      const suffix = modelInputs.length > 1
-        ? `-${resolvedModel.name.split('/').pop()!.replace(/[^a-zA-Z0-9._-]/g, '-')}`
-        : '';
-      return { retrieved, resolvedModel, suffix };
+    if (modelInputs.length <= 1) {
+      return [{ retrieved, resolvedModel: resolveModel(modelInputs[0]), suffix: '', repetition: undefined as number | undefined }];
+    }
+
+    // Resolve all models and count occurrences for duplicate detection
+    const resolved = modelInputs.map(m => resolveModel(m));
+    const nameCounts = new Map<string, number>();
+    for (const r of resolved) {
+      nameCounts.set(r.name, (nameCounts.get(r.name) ?? 0) + 1);
+    }
+    const nameIndexes = new Map<string, number>();
+
+    return resolved.map(resolvedModel => {
+      const baseSuffix = resolvedModel.name.split('/').pop()!.replace(/[^a-zA-Z0-9._-]/g, '-');
+      const isDuplicate = nameCounts.get(resolvedModel.name)! > 1;
+      let suffix: string;
+      let repetition: number | undefined;
+
+      if (isDuplicate) {
+        const index = (nameIndexes.get(resolvedModel.name) ?? 0) + 1;
+        nameIndexes.set(resolvedModel.name, index);
+        suffix = `-${baseSuffix}-${index}`;
+        repetition = index;
+      } else {
+        suffix = `-${baseSuffix}`;
+        repetition = undefined;
+      }
+
+      return { retrieved, resolvedModel, suffix, repetition };
     });
   });
 
@@ -98,12 +129,14 @@ export async function runReplay(config: OracleConfig, rows?: RetrievedRow[]): Pr
     const limit = pLimit(config.concurrency ?? 5);
 
     const results = await Promise.all(
-      tasks.map(({ retrieved, resolvedModel, suffix }, i) =>
+      tasks.map(({ retrieved, resolvedModel, suffix, repetition }, i) =>
         limit(async (): Promise<ReplayResult> => {
           const { game_id: gameId, player_id: playerId, turn } = retrieved.row;
           logger.info(`Replaying task ${i + 1}/${tasks.length}: game=${gameId}, player=${playerId}, turn=${turn}${suffix}`);
           try {
-            return await replaySingleRow(retrieved, resolvedModel, config, voxContext, experimentDir, suffix);
+            const result = await replaySingleRow(retrieved, resolvedModel, config, voxContext, experimentDir, suffix);
+            if (repetition !== undefined) result.repetition = repetition;
+            return result;
           } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             logger.error(`Error replaying task ${i + 1}: ${errorMsg}`);
@@ -114,6 +147,7 @@ export async function runReplay(config: OracleConfig, rows?: RetrievedRow[]): Pr
               tokens: { inputTokens: 0, reasoningTokens: 0, outputTokens: 0 },
               messages: [],
               error: errorMsg,
+              ...(repetition !== undefined ? { repetition } : {}),
             };
           }
         })
