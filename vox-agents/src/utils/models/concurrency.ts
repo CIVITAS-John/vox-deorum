@@ -168,7 +168,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
       } catch (error) {
         // Resurface context length errors that the AI SDK swallowed into AI_NoOutputGeneratedError
         const streamError = (modifiedParams as any).__streamError;
-        if (streamError && isContextLengthError(streamError)) {
+        if (streamError) {
           delete (modifiedParams as any).__streamError;
           throw streamError;
         }
