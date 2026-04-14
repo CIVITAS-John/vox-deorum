@@ -16,7 +16,7 @@ import { spanProcessor } from '../instrumentation.js';
 import { createLogger } from '../utils/logger.js';
 import { resolveModel } from './utils/model-resolver.js';
 import { loadToolSchemaCache, replaceToolsWithSchemaOnly } from './utils/schema-tools.js';
-import { resolvePath, writeCsv, writeTrail } from './utils/output.js';
+import { getTrailBase, getTrailPaths, readReplayCache, resolvePath, writeCsv, writeTrail } from './utils/output.js';
 import type {
   OracleConfig,
   OracleParameters,
@@ -196,6 +196,19 @@ async function replaySingleRow(
 ): Promise<ReplayResult> {
   const { game_id: gameId, player_id: playerId, turn: turnStr } = retrieved.row;
   const turn = parseInt(turnStr, 10);
+  const trailBase = getTrailBase(retrieved.row, trailSuffix);
+  const { jsonPath: trailJsonPath } = getTrailPaths(experimentDir, trailBase);
+
+  if (config.readCache !== false && fs.existsSync(trailJsonPath)) {
+    try {
+      const cachedResult = readReplayCache(trailJsonPath);
+      logger.info(`Using cached oracle replay: ${trailJsonPath}`);
+      return cachedResult;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.warn(`Failed to read cached oracle replay at ${trailJsonPath}; rerunning task: ${errorMsg}`);
+    }
+  }
 
   // Build callback context from raw retrieved data
   const promptContext: OriginalPromptContext = {
@@ -262,7 +275,6 @@ async function replaySingleRow(
   }
 
   // Write trail
-  const trailBase = `${gameId}-p${playerId}-t${turn}${trailSuffix}`;
   writeTrail(experimentDir, trailBase, {
     row: retrieved.row,
     originalModel: retrieved.originalModel,

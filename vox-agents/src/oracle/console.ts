@@ -8,6 +8,7 @@
  *   npm run oracle -- -c nuke-real-world.js              # retrieve + replay (default)
  *   npm run oracle -- -c nuke-real-world.js --retrieve   # retrieve only (no LLM)
  *   npm run oracle -- -c nuke-real-world.js --replay     # replay only (load saved JSONs)
+ *   npm run oracle -- -c nuke-real-world.js --forceReplay # ignore cached replay trails
  *   npm run oracle -- -c nuke-real-world.js -o temp/oracle-v2 -t telemetry/custom
  */
 
@@ -43,6 +44,7 @@ const { values } = parseArgs({
     retrievalName:  { type: 'string' },
     retrieve:       { type: 'boolean' },
     replay:         { type: 'boolean' },
+    forceReplay:    { type: 'boolean' },
   },
   strict: false,
   allowPositionals: false,
@@ -73,6 +75,7 @@ function printUsage(): void {
     '  --retrievalName     Override retrieval directory name (share retrieved data across experiments)',
     '  --retrieve          Retrieve only (extract raw prompts from telemetry, no LLM)',
     '  --replay            Replay only (load retrieved JSONs, apply modifyPrompt, run LLM)',
+    '  --forceReplay       Ignore existing replay trail JSON cache and rerun LLM calls',
     '',
     'Modes:',
     '  (default)     Both retrieve + replay in sequence',
@@ -115,7 +118,11 @@ async function main() {
         .map(k => [k, values[k]])
     ) as Partial<OracleConfig>;
 
-    const config: OracleConfig = { ...experimentConfig, ...cliOverrides };
+    const config: OracleConfig = {
+      ...experimentConfig,
+      ...cliOverrides,
+      ...(values.forceReplay === true ? { readCache: false } : {}),
+    };
 
     const retrieveOnly = values.retrieve === true && values.replay !== true;
     const replayOnly   = values.replay === true   && values.retrieve !== true;

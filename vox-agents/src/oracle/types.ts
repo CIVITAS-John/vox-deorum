@@ -83,6 +83,8 @@ export interface OracleConfig {
   agentType?: string;
   /** Max parallel row executions. Default: 5 */
   concurrency?: number;
+  /** Read existing per-task replay trail JSONs as cache. Default: true */
+  readCache?: boolean;
   /** Extract custom columns from replay context for the output CSV */
   extractColumns?: (ctx: ExtractionContext) => Record<string, any>;
   /** Filter which CSV rows to process. Return true to include, false to skip. Applied in both retrieve and replay phases. */
