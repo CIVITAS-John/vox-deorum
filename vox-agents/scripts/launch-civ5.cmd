@@ -91,14 +91,16 @@ if exist "%~dp0MainMenu.lua" (
     )
 )
 
-:: Set VOX_DEORUM_PRODUCTION based on OBS mode (second parameter)
-:: The hook DLL (d3d9.dll) reads this env var at attach to decide whether to
-:: suppress rendering (non-production) or enable rendering + force background audio (production).
+:: Set production mode via marker file next to the proxy DLL
+:: (env vars are lost when Steam re-parents the process)
 set "OBS_MODE=%~2"
+set "MARKER=!CIV5_PATH!\vox_deorum_production"
 if /i "!OBS_MODE!"=="obs" (
-    set "VOX_DEORUM_PRODUCTION=1"
+    echo.> "!MARKER!"
+    echo Production mode enabled (marker file created)
 ) else (
-    set "VOX_DEORUM_PRODUCTION=0"
+    if exist "!MARKER!" del "!MARKER!"
+    echo Non-production mode (marker file removed)
 )
 
 echo Launching Civilization V with automation script: !LUA_SCRIPT!
