@@ -289,7 +289,7 @@ export class VoxCivilization {
     const scriptPath = join('scripts', 'launch-civ5.cmd');
 
     try {
-      logger.info(`Launching Civilization V with script: ${actualLuaName}`);
+      logger.info(`Launching Civilization V with script: ${actualLuaName}${obsMode ? " in OBS mode" : ""}`);
 
       // Launch the cmd script and wait for it to complete
       const args = ['/c', scriptPath, actualLuaName];

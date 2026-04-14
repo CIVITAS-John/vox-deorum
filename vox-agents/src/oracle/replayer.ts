@@ -254,6 +254,7 @@ async function replaySingleRow(
       originalMessages: retrieved.messages,
       replayPrompts: finalSystem,
       decisions: result.decisions,
+      model: result.model,
       row: retrieved.row,
       agentName: retrieved.agentName,
     };

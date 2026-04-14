@@ -151,6 +151,8 @@ export interface ExtractionContext {
   replayPrompts: string[];
   /** Tool call decisions from the replay */
   decisions: ReplayDecision[];
+  /** Model used for the replay */
+  model: string;
   /** The CSV row being processed */
   row: OracleRow;
   /** Agent name from telemetry */

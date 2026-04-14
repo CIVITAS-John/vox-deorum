@@ -199,7 +199,7 @@ export function isVisualMode(mode?: ProductionMode): boolean {
  * Used for: livestream, recording.
  */
 export function isObsMode(mode?: ProductionMode): boolean {
-  return mode === 'livestream' || mode === 'recording';
+  return mode === 'livestream' || mode === 'recording' || mode === 'test';
 }
 
 /**
