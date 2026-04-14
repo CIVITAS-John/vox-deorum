@@ -15,7 +15,7 @@ import { mcpClient } from '../utils/models/mcp-client.js';
 import { spanProcessor } from '../instrumentation.js';
 import { createLogger } from '../utils/logger.js';
 import { resolveModel } from './utils/model-resolver.js';
-import { replaceToolsWithSchemaOnly } from './utils/schema-tools.js';
+import { loadToolSchemaCache, replaceToolsWithSchemaOnly } from './utils/schema-tools.js';
 import { resolvePath, writeCsv, writeTrail } from './utils/output.js';
 import type {
   OracleConfig,
@@ -116,11 +116,18 @@ export async function runReplay(config: OracleConfig, rows?: RetrievedRow[]): Pr
 
   // Initialize VoxContext with MCP for schema-only tools
   const voxContext = new VoxContext<OracleParameters>({}, config.experimentName);
+  let connectedToMcp = false;
 
   try {
-    logger.info('Connecting to MCP server for tool schemas...');
-    await mcpClient.connect();
-    await voxContext.registerTools();
+    const loadedCachedSchemas = loadToolSchemaCache(voxContext);
+    if (loadedCachedSchemas) {
+      logger.info('Using cached MCP tool schemas for replay');
+    } else {
+      logger.info('Connecting to MCP server for tool schemas...');
+      await mcpClient.connect();
+      connectedToMcp = true;
+      await voxContext.registerTools();
+    }
     replaceToolsWithSchemaOnly(voxContext, config.rewriteToolSchemas);
     logger.info(`Registered ${Object.keys(voxContext.tools).length} schema-only tools`);
 
@@ -169,7 +176,9 @@ export async function runReplay(config: OracleConfig, rows?: RetrievedRow[]): Pr
     return results;
   } finally {
     await voxContext.shutdown();
-    await mcpClient.disconnect();
+    if (connectedToMcp) {
+      await mcpClient.disconnect();
+    }
   }
 }
 

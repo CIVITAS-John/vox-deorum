@@ -1,30 +1,144 @@
 [
   {
     "name": "calculator",
+    "description": "Evaluates mathematical expressions using mathjs library",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Expression": {
+          "type": "string",
+          "description": "Mathematical expression to evaluate"
+        }
+      },
+      "required": [
+        "Expression"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {}
   },
   {
     "name": "lua-executor",
+    "description": "Executes raw Lua scripts in the Civilization V game context through the Bridge Service",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Script": {
+          "type": "string",
+          "description": "Raw Lua script to execute in the game context (e.g., 'return Game.GetActivePlayer()', 'print(\"Hello from Lua\")')"
+        },
+        "Description": {
+          "description": "Description of what this script does",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Script"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {}
   },
   {
     "name": "get-game-settings",
+    "description": "Retrieves static game metadata including game speed, map type/size, difficulty, start era, max turns, and enabled victory types",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "description": "Optional player ID to get player-specific information",
+          "type": "number"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {}
   },
   {
     "name": "get-metadata",
+    "description": "Get a metadata value by key from the knowledge store",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The metadata key to retrieve"
+        }
+      },
+      "required": [
+        "Key"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {}
   },
   {
     "name": "set-metadata",
+    "description": "Set a metadata key-value pair",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string",
+          "description": "The metadata key"
+        },
+        "Value": {
+          "type": "string",
+          "description": "The metadata value"
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {}
   },
   {
     "name": "search-database",
+    "description": "Searches across all database tools (technologies, policies, buildings, civilizations, units, flavors) using fuzzy matching and returns reranked results",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Keywords to search for across all database tools"
+        },
+        "MaxResults": {
+          "default": 10,
+          "description": "Maximum number of results to return (default: 10)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "Keywords"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {}
   },
   {
     "name": "get-technology",
+    "description": "Retrieves technology information from the Civilization V game database with listing and fuzzy search capabilities",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Search": {
+          "description": "Fuzzy-matching search term",
+          "type": "string"
+        },
+        "MaxResults": {
+          "default": 20,
+          "description": "Maximum number to return (default: 20)",
+          "type": "number"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "markdownConfig": [
         "{key}"
@@ -33,6 +147,22 @@
   },
   {
     "name": "get-policy",
+    "description": "Retrieves policy information from the Civilization V game database with listing and fuzzy search capabilities",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Search": {
+          "description": "Fuzzy-matching search term",
+          "type": "string"
+        },
+        "MaxResults": {
+          "default": 20,
+          "description": "Maximum number to return (default: 20)",
+          "type": "number"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "markdownConfig": [
         "{key}"
@@ -41,6 +171,22 @@
   },
   {
     "name": "get-building",
+    "description": "Retrieves building information from the Civilization V game database with listing and fuzzy search capabilities",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Search": {
+          "description": "Fuzzy-matching search term",
+          "type": "string"
+        },
+        "MaxResults": {
+          "default": 20,
+          "description": "Maximum number to return (default: 20)",
+          "type": "number"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "markdownConfig": [
         "{key}"
@@ -49,6 +195,22 @@
   },
   {
     "name": "get-civilization",
+    "description": "Retrieves civilization and leader information from the Civilization V game database with listing and fuzzy search capabilities",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Search": {
+          "description": "Fuzzy-matching search term",
+          "type": "string"
+        },
+        "MaxResults": {
+          "default": 20,
+          "description": "Maximum number to return (default: 20)",
+          "type": "number"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "markdownConfig": [
         "{key}"
@@ -57,6 +219,22 @@
   },
   {
     "name": "get-unit",
+    "description": "Retrieves unit information from the Civilization V game database with listing and fuzzy search capabilities",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Search": {
+          "description": "Fuzzy-matching search term",
+          "type": "string"
+        },
+        "MaxResults": {
+          "default": 20,
+          "description": "Maximum number to return (default: 20)",
+          "type": "number"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "markdownConfig": [
         "{key}"
@@ -65,6 +243,22 @@
   },
   {
     "name": "get-economic-strategies",
+    "description": "Retrieves AI economic strategy information including production (city) and overall (player) flavors",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Search": {
+          "description": "Fuzzy-matching search term",
+          "type": "string"
+        },
+        "MaxResults": {
+          "default": 20,
+          "description": "Maximum number to return (default: 20)",
+          "type": "number"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "markdownConfig": [
         "{key}"
@@ -73,6 +267,22 @@
   },
   {
     "name": "get-military-strategies",
+    "description": "Retrieves AI military strategy information including production (city) and overall (player) flavors",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Search": {
+          "description": "Fuzzy-matching search term",
+          "type": "string"
+        },
+        "MaxResults": {
+          "default": 20,
+          "description": "Maximum number to return (default: 20)",
+          "type": "number"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "markdownConfig": [
         "{key}"
@@ -81,6 +291,19 @@
   },
   {
     "name": "get-victory-progress",
+    "description": "Retrieves progress towards all victory types for all players, filtered by diplomatic visibility",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "description": "Optional player ID to filter victory progress based on diplomatic visibility",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID"
@@ -92,6 +315,22 @@
   },
   {
     "name": "get-military-report",
+    "description": "Retrieves military report for a player including units organized by AI type and tactical zones with unit assignments",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "Player ID whose military report to retrieve"
+        }
+      },
+      "required": [
+        "PlayerID"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID"
@@ -103,6 +342,39 @@
   },
   {
     "name": "get-events",
+    "description": "Retrieves a detailed list of recent game events",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Turn": {
+          "description": "Turn number filter",
+          "type": "number"
+        },
+        "Type": {
+          "description": "Event type string filter",
+          "type": "string"
+        },
+        "After": {
+          "description": "Only filter events after the ID",
+          "type": "number"
+        },
+        "Before": {
+          "description": "Only filter events before or at the ID",
+          "type": "number"
+        },
+        "PlayerID": {
+          "description": "Player ID visibility filter",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21
+        },
+        "Original": {
+          "description": "Send out original events before consolidation",
+          "type": "boolean"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -118,6 +390,41 @@
   },
   {
     "name": "get-diplomatic-events",
+    "description": "Retrieves diplomatic events (wars, peace, deals, city-state relations, espionage, world congress) grouped by turn",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "Player ID whose perspective to view from (visibility filter)"
+        },
+        "OtherPlayerID": {
+          "description": "Only show events relevant to this other player",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21
+        },
+        "FromTurn": {
+          "description": "Only show events from this turn onwards",
+          "type": "number"
+        },
+        "ToTurn": {
+          "description": "Only show events up to and including this turn",
+          "type": "number"
+        },
+        "Formatted": {
+          "default": false,
+          "description": "Return formatted markdown summaries instead of raw event data",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "PlayerID"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -132,6 +439,19 @@
   },
   {
     "name": "get-players",
+    "description": "Retrieves a list of in-game players and their summary information",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "description": "Optional player ID to filter for a specific player",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID"
@@ -143,6 +463,26 @@
   },
   {
     "name": "get-opinions",
+    "description": "Retrieves diplomatic opinions TO and FROM a player with all other alive major civilizations along with their static player information",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "Player ID whose opinions to retrieve"
+        },
+        "RevealAll": {
+          "description": "Optional flag to reveal all players regardless of met status (default: false)",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "PlayerID"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -155,6 +495,23 @@
   },
   {
     "name": "get-cities",
+    "description": "Retrieves city information from a player's perspective with optional owner filtering",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "description": "Player ID from whose perspective to retrieve cities",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21
+        },
+        "Owner": {
+          "description": "Optional filter to retrieve only cities owned by this leader/civilization name",
+          "type": "string"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -168,6 +525,20 @@
   },
   {
     "name": "summarize-units",
+    "description": "Gets an overview of all visible units for a player, grouped by civilization and AI type",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "description": "The player ID to get unit visibility for"
+        }
+      },
+      "required": [
+        "PlayerID"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID"
@@ -181,6 +552,31 @@
   },
   {
     "name": "get-options",
+    "description": "Retrieves available strategic options (technologies, policies, strategies) for a specific player",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "Player ID to retrieve strategic options for"
+        },
+        "Mode": {
+          "default": "Strategy",
+          "description": "Mode for retrieving options - 'Flavor' for tactical AI preferences, 'Strategy' for high-level strategies",
+          "type": "string",
+          "enum": [
+            "Flavor",
+            "Strategy"
+          ]
+        }
+      },
+      "required": [
+        "PlayerID"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -195,6 +591,50 @@
   },
   {
     "name": "set-strategy",
+    "description": "Set a player's in-game strategy by names. Inputs must match exact values in the provided options.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "ID of the player"
+        },
+        "GrandStrategy": {
+          "description": "The grand strategy name to set (and override)",
+          "type": "string"
+        },
+        "EconomicStrategies": {
+          "description": "The economic strategy names to set (and override)",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "MilitaryStrategies": {
+          "description": "The military strategy names to set (and override)",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Rationale": {
+          "type": "string",
+          "description": "Briefly explain your rationale behind choosing this strategy set"
+        },
+        "Turn": {
+          "default": -1,
+          "description": "Source turn for this action (-1 = use server's current turn)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "PlayerID",
+        "Rationale"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -204,6 +644,136 @@
   },
   {
     "name": "set-persona",
+    "description": "Set a player's diplomatic personality (1-10). These values control the in-game AI's diplomatic patterns and decision-making. Only send in values you intend to change.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "VictoryCompetitiveness": {
+          "description": "How aggressively the AI reacts to others pursuing victories (1-10)",
+          "type": "number"
+        },
+        "WonderCompetitiveness": {
+          "description": "How aggressively the AI reacts to others competing for wonders (1-10)",
+          "type": "number"
+        },
+        "MinorCivCompetitiveness": {
+          "description": "How aggressively the AI reacts to others competing for city-state influence (1-10)",
+          "type": "number"
+        },
+        "Boldness": {
+          "description": "Military risk-taking, territorial claim, and conquest desire (1-10)",
+          "type": "number"
+        },
+        "WarBias": {
+          "description": "Likelihood to plan for or declare offensive war (1-10)",
+          "type": "number"
+        },
+        "HostileBias": {
+          "description": "Tendency toward hostile relationships without direct wars (1-10)",
+          "type": "number"
+        },
+        "WarmongerHate": {
+          "description": "How negatively AI reacts to warlike behaviors (1-10)",
+          "type": "number"
+        },
+        "NeutralBias": {
+          "description": "Tendency toward neutral relationships (1-10)",
+          "type": "number"
+        },
+        "FriendlyBias": {
+          "description": "Tendency toward friendly relationships (1-10)",
+          "type": "number"
+        },
+        "GuardedBias": {
+          "description": "Tendency to be guarded or cautiously defensive in diplomacy (1-10)",
+          "type": "number"
+        },
+        "AfraidBias": {
+          "description": "Tendency to be afraid of stronger civs (1-10)",
+          "type": "number"
+        },
+        "DiplomaticBalance": {
+          "description": "Increases relationship with non-competitive civilizations and peaceful resolution of wars (1-10)",
+          "type": "number"
+        },
+        "Friendliness": {
+          "description": "Desire for friendship declarations and increases maximum DoFs (1-10)",
+          "type": "number"
+        },
+        "WorkWithWillingness": {
+          "description": "Tendency to support or collaborate with allies. Increase opinions to shared friends (1-10)",
+          "type": "number"
+        },
+        "WorkAgainstWillingness": {
+          "description": "Tendency to bond over shared enemies and jointly act against them (1-10)",
+          "type": "number"
+        },
+        "Loyalty": {
+          "description": "Loyalty to allies. Lower values allow for backstabbing (1-10)",
+          "type": "number"
+        },
+        "MinorCivFriendlyBias": {
+          "description": "Tendency to be friendly with city-states (1-10)",
+          "type": "number"
+        },
+        "MinorCivNeutralBias": {
+          "description": "Tendency to be neutral with city-states (1-10)",
+          "type": "number"
+        },
+        "MinorCivHostileBias": {
+          "description": "Tendency to be hostile with city-states (1-10)",
+          "type": "number"
+        },
+        "MinorCivWarBias": {
+          "description": "Likelihood to attack city-states (1-10)",
+          "type": "number"
+        },
+        "DenounceWillingness": {
+          "description": "Readiness to denounce other civs (1-10)",
+          "type": "number"
+        },
+        "Forgiveness": {
+          "description": "How quickly to forgive past transgressions (1-10)",
+          "type": "number"
+        },
+        "Meanness": {
+          "description": "Aggressiveness in general. Demanding/bullying more while less likely to accept peace (1-10)",
+          "type": "number"
+        },
+        "Neediness": {
+          "description": "Desire for support from friends (1-10)",
+          "type": "number"
+        },
+        "Chattiness": {
+          "description": "How often they initiate diplomatic contact (1-10)",
+          "type": "number"
+        },
+        "DeceptiveBias": {
+          "description": "Tendency to be deceptively friendly (1-10)",
+          "type": "number"
+        },
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "ID of the player"
+        },
+        "Rationale": {
+          "type": "string",
+          "description": "Briefly explain your rationale for adjusting these persona values"
+        },
+        "Turn": {
+          "default": -1,
+          "description": "Source turn for this action (-1 = use server's current turn)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "PlayerID",
+        "Rationale"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -213,6 +783,47 @@
   },
   {
     "name": "set-relationship",
+    "description": "Set additive diplomatic modifiers between you and another MAJOR (non-city-state) civilization. Public or private modifiers add up in calculation.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "description": "ID of the player setting the relationship"
+        },
+        "TargetID": {
+          "type": "number",
+          "minimum": 0,
+          "description": "ID of the target MAJOR civilization"
+        },
+        "Public": {
+          "default": 0,
+          "description": "Visible diplomatic stance (-100 to 100)",
+          "type": "number"
+        },
+        "Private": {
+          "default": 0,
+          "description": "Hidden feelings/attitudes (-100 to 100)",
+          "type": "number"
+        },
+        "Rationale": {
+          "type": "string",
+          "description": "Briefly explain your rationale for this relationship change"
+        },
+        "Turn": {
+          "default": -1,
+          "description": "Source turn for this action (-1 = use server's current turn)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "PlayerID",
+        "TargetID",
+        "Rationale"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -222,6 +833,46 @@
   },
   {
     "name": "set-flavors",
+    "description": "Set flavor values (0-100, 50 is balanced) and/or grand strategy to shape tactical AI preferences without changing ongoing queues. Only send in values you intend to change.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "ID of the player"
+        },
+        "GrandStrategy": {
+          "description": "The grand strategy name to set (and override)",
+          "type": "string"
+        },
+        "Flavors": {
+          "description": "Flavor values to set: 0 = forbid, 30 = enough, 50 = balanced, 70 = prioritize, 100 = emergency focus.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "Rationale": {
+          "type": "string",
+          "description": "Briefly explain your rationale for these adjustments"
+        },
+        "Turn": {
+          "default": -1,
+          "description": "Source turn for this action (-1 = use server's current turn)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "PlayerID",
+        "Rationale"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -231,6 +882,22 @@
   },
   {
     "name": "get-flavors",
+    "description": "Retrieves flavor descriptions for AI preference tuning",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "Search": {
+          "description": "Fuzzy-matching search term",
+          "type": "string"
+        },
+        "MaxResults": {
+          "default": 20,
+          "description": "Maximum number to return (default: 20)",
+          "type": "number"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "markdownConfig": [
         "{key}"
@@ -239,6 +906,27 @@
   },
   {
     "name": "unset-flavors",
+    "description": "Clear all custom flavor values for a player, reverting to default AI preferences.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "ID of the player"
+        },
+        "Turn": {
+          "default": -1,
+          "description": "Source turn for this action (-1 = use server's current turn)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "PlayerID"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -248,6 +936,37 @@
   },
   {
     "name": "set-research",
+    "description": "Set a player's next research technology by name. The in-game AI will start researching it after completing the current one.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "ID of the player"
+        },
+        "Technology": {
+          "type": "string",
+          "description": "Technology name to research next (None to clear)"
+        },
+        "Rationale": {
+          "type": "string",
+          "description": "Briefly explain your rationale for selecting this technology"
+        },
+        "Turn": {
+          "default": -1,
+          "description": "Source turn for this action (-1 = use server's current turn)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "PlayerID",
+        "Technology",
+        "Rationale"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -257,6 +976,37 @@
   },
   {
     "name": "set-policy",
+    "description": "Set a player's next policy selection by name. The in-game AI will be forced to select this policy or policy branch when making its next policy choice.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "ID of the player"
+        },
+        "Policy": {
+          "type": "string",
+          "description": "Policy name or branch name to adopt next (None to clear)"
+        },
+        "Rationale": {
+          "type": "string",
+          "description": "Briefly explain your rationale for selecting this policy"
+        },
+        "Turn": {
+          "default": -1,
+          "description": "Source turn for this action (-1 = use server's current turn)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "PlayerID",
+        "Policy",
+        "Rationale"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -266,6 +1016,41 @@
   },
   {
     "name": "keep-status-quo",
+    "description": "Maintain the current in-game strategy and document the rationale",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "ID of the player"
+        },
+        "Mode": {
+          "default": "Strategy",
+          "description": "'Flavor' to reapply custom flavors, 'Strategy' to reapply strategies (default)",
+          "type": "string",
+          "enum": [
+            "Flavor",
+            "Strategy"
+          ]
+        },
+        "Rationale": {
+          "type": "string",
+          "description": "Briefly explain why the current strategic direction should be maintained"
+        },
+        "Turn": {
+          "default": -1,
+          "description": "Source turn for this action (-1 = use server's current turn)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "PlayerID",
+        "Rationale"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID",
@@ -276,6 +1061,68 @@
   },
   {
     "name": "relay-message",
+    "description": "Relay a message from a diplomat to the leader, stored as a game event. Supports diplomatic messages and intelligence reports.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "The receiving player ID (the leader being informed)"
+        },
+        "FromPlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "The player ID of the civilization the message concerns"
+        },
+        "Message": {
+          "type": "string",
+          "enum": [
+            "Diplomatic",
+            "Intelligence"
+          ],
+          "description": "Message type: \"diplomatic\" for official communications, \"intelligence\" for gathered information"
+        },
+        "Content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "description": "The message content"
+        },
+        "Confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9,
+          "description": "Reliability assessment (0 = unreliable rumor, 9 = authoritative leader statement)"
+        },
+        "Categories": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Searchable categories (e.g., \"Military\", \"Economic\", \"Diplomacy\")"
+        },
+        "Memo": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "The analyst's memo: assessment, reaction, and contextual notes"
+        }
+      },
+      "required": [
+        "PlayerID",
+        "FromPlayerID",
+        "Message",
+        "Content",
+        "Confidence",
+        "Categories",
+        "Memo"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID"
@@ -284,6 +1131,22 @@
   },
   {
     "name": "pause-game",
+    "description": "Pause the game during the turn of a specific player",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "ID of the player whose turn should trigger a pause"
+        }
+      },
+      "required": [
+        "PlayerID"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID"
@@ -292,6 +1155,22 @@
   },
   {
     "name": "resume-game",
+    "description": "Resume the game during the turn of a specific player",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "PlayerID": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 21,
+          "description": "ID of the player to resume the game for"
+        }
+      },
+      "required": [
+        "PlayerID"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {
       "autoComplete": [
         "PlayerID"
@@ -300,6 +1179,20 @@
   },
   {
     "name": "set-production-mode",
+    "description": "Enable or disable production mode (AI turn cooldown) in the DLL",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether to enable production mode"
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
     "_meta": {}
   }
 ]

@@ -178,8 +178,9 @@ export class VoxContext<TParameters extends AgentParameters> {
   }
 
   /**
-   * Save MCP tool metadata to a JSON cache file.
-   * Only persists name and _meta (markdownConfig) since that's all offline consumers need.
+   * Save MCP tool definitions to a JSON cache file.
+   * The full schema is needed by offline Oracle replay; metadata-only readers below
+   * remain tolerant of older cache files.
    */
   private saveToolCache(tools: MCPTool[]): void {
     try {
@@ -187,7 +188,12 @@ export class VoxContext<TParameters extends AgentParameters> {
       if (!fs.existsSync(cacheDir)) {
         fs.mkdirSync(cacheDir, { recursive: true });
       }
-      const cacheData = tools.map(t => ({ name: t.name, _meta: t._meta }));
+      const cacheData = tools.map(t => ({
+        name: t.name,
+        description: t.description,
+        inputSchema: t.inputSchema,
+        _meta: t._meta
+      }));
       fs.writeFileSync(VoxContext.toolCachePath, JSON.stringify(cacheData, null, 2));
       this.logger.debug(`Saved MCP tool cache (${tools.length} tools)`);
     } catch (error) {

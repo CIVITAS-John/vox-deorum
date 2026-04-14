@@ -6,8 +6,15 @@
  */
 
 import { dynamicTool, jsonSchema } from 'ai';
+import fs from 'node:fs';
+import path from 'node:path';
+import type { Tool as MCPTool } from '@modelcontextprotocol/sdk/types.js';
 import type { VoxContext } from '../../infra/vox-context.js';
 import type { OracleParameters } from '../types.js';
+import { createLogger } from '../../utils/logger.js';
+
+const logger = createLogger('OracleSchemaTools');
+const toolCachePath = path.join('cache', 'mcp-tools.json');
 
 /**
  * Create a schema-only tool from an MCP tool entry.
@@ -68,4 +75,27 @@ export function replaceToolsWithSchemaOnly(
     schemaTools[name] = schemaOnlyTool(name, mcpTool, rewriter);
   }
   voxContext.tools = schemaTools;
+}
+
+/**
+ * Load cached MCP tool definitions for schema-only replay.
+ * The cache is trusted as written; malformed cache reads fail as a whole and
+ * let the caller fall back to live MCP discovery.
+ */
+export function loadToolSchemaCache(voxContext: VoxContext<OracleParameters>): boolean {
+  try {
+    if (!fs.existsSync(toolCachePath)) {
+      logger.info('No MCP tool schema cache found');
+      return false;
+    }
+
+    const raw = fs.readFileSync(toolCachePath, 'utf-8');
+    const tools = JSON.parse(raw) as MCPTool[];
+    voxContext.mcpToolMap = new Map(tools.map(t => [t.name, t]));
+    logger.info(`Loaded MCP tool schema cache (${tools.length} tools)`);
+    return true;
+  } catch (error) {
+    logger.warn('Failed to load MCP tool schema cache', { error });
+    return false;
+  }
 }
