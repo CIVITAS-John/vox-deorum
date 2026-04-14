@@ -70,6 +70,10 @@ export const defaultConfig: VoxAgentsConfig = {
       provider: 'anthropic',
       name: 'claude-haiku-4-5'
     },
+    'anthropic/claude-sonnet-4-5': {
+      provider: 'anthropic',
+      name: 'claude-sonnet-4-5'
+    },
     'anthropic/claude-sonnet-4-6': {
       provider: 'anthropic',
       name: 'claude-sonnet-4-6'
@@ -77,10 +81,6 @@ export const defaultConfig: VoxAgentsConfig = {
     'anthropic/claude-opus-4-6': {
       provider: 'anthropic',
       name: 'claude-opus-4-6'
-    },
-    'aws/anthropic/claude-sonnet-4-5': {
-      provider: 'aws',
-      name: 'arn:aws:bedrock:us-east-2:147032477449:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0'
     },
     'chutes/zai-org/glm-4.7': {
       provider: 'chutes',
