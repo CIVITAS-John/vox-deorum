@@ -147,6 +147,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
           });
         }
       };
+      modifiedParams.providerOptions = modifiedParams.providerOptions ?? {};
 
       // Consume the raw stream
       const result = streamText(modifiedParams);
@@ -167,9 +168,9 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         return response;
       } catch (error) {
         // Resurface context length errors that the AI SDK swallowed into AI_NoOutputGeneratedError
-        const streamError = (modifiedParams as any).__streamError;
+        const streamError = (modifiedParams as any).providerOptions.error;
         if (streamError) {
-          delete (modifiedParams as any).__streamError;
+          delete (modifiedParams as any).providerOptions.error;
           throw streamError;
         }
         throw error;

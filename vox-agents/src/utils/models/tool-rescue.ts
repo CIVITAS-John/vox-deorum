@@ -460,8 +460,8 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
 
       // Return modified params without tools (since we're using JSON format)
       const newParams: any = params;
-      newParams.tools = undefined;
       newParams.originalTools = params.tools;
+      newParams.tools = undefined;
       newParams.prompt = modifiedPrompt;
       return newParams;
     },
@@ -502,7 +502,9 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
         return result;
       } catch (error) {
         // Re-throw the error to let the retry mechanism handle it
-        logger.error("Error in wrapGenerate middleware", error);
+        logger.error("Error in wrapGenerate middleware, passing down");
+        // Preserve context length errors so they survive the AI SDK's error wrapping
+        (params as any).providerOptions.error = error;
         throw error;
       }
     },
@@ -630,8 +632,6 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
           }
         });
 
-        throw new Error("max_tokens")
-
         return {
           stream: stream.pipeThrough(transformStream),
           ...rest,
@@ -640,7 +640,7 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
         // Re-throw the error to let the retry mechanism handle it
         logger.error("Error in wrapStream middleware, passing down");
         // Preserve context length errors so they survive the AI SDK's error wrapping
-        (params as any).__streamError = error;
+        (params as any).providerOptions.error = error;
         throw error;
       }
     }
