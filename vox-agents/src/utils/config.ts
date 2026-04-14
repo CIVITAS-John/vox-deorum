@@ -37,13 +37,17 @@ export const defaultConfig: VoxAgentsConfig = {
   },
   llms: {
     default: 'openai-compatible/gpt-oss-120b',
-    'openai/gpt-5-mini': {
+    'openai/gpt-5.4': {
       provider: 'openai',
-      name: 'gpt-5-mini'
+      name: 'gpt-5.4'
     },
-    'openai/gpt-5-nano': {
+    'openai/gpt-5.4-mini': {
       provider: 'openai',
-      name: 'gpt-5-nano'
+      name: 'gpt-5.4-mini'
+    },
+    'openai/gpt-5.4-nano': {
+      provider: 'openai',
+      name: 'gpt-5.4-nano'
     },
     'openrouter/openai/gpt-oss-120b': {
       provider: 'openrouter',
@@ -57,13 +61,6 @@ export const defaultConfig: VoxAgentsConfig = {
       name: 'google/gemma-3-27b-it',
       options: {
         toolMiddleware: 'gemma'
-      }
-    },
-    'openrouter/google/gemini-2.5-flash-lite': {
-      provider: 'openrouter',
-      name: 'google/gemini-2.5-flash-lite',
-      options: {
-        toolMiddleware: 'prompt'
       }
     },
     'anthropic/claude-haiku-4-5': {
@@ -216,6 +213,13 @@ export const defaultConfig: VoxAgentsConfig = {
     'openai-compatible/Nemotron-3-Super': {
       provider: 'openai-compatible',
       name: 'Nemotron-3-Super',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
+    'openai-compatible/Gemma-4': {
+      provider: 'openai-compatible',
+      name: 'Gemma-4',
       options: {
         toolMiddleware: 'prompt'
       }
