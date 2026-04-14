@@ -8,7 +8,7 @@
 import { Logger } from "winston";
 
 /** Pattern matching context-length-exceeded errors from LLM providers. */
-const contextLengthPattern = /input.*tokens.*is longer than.*context.length|token limit|context length|maximum input|maximum context|ContextWindowExceeded/i;
+const contextLengthPattern = /input.*tokens.*is longer than.*context.length|token limit|context length|maximum input|maximum context|ContextWindowExceeded|max_tokens/i;
 
 /** Check whether an error indicates the input exceeded the model's context window. */
 export function isContextLengthError(error: unknown): boolean {
