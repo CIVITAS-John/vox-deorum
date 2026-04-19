@@ -38,7 +38,11 @@ export function writeCsv(outputPath: string, results: ReplayResult[]): void {
     };
   });
 
-  fs.writeFileSync(outputPath, Papa.unparse(csvRows), 'utf-8');
+  // Papa.unparse infers columns from the first row only; collect all keys so
+  // columns introduced by later rows (e.g. extractedColumns after a cache miss)
+  // are not silently dropped.
+  const fields = [...new Set(csvRows.flatMap(r => Object.keys(r)))];
+  fs.writeFileSync(outputPath, Papa.unparse({ fields, data: csvRows }), 'utf-8');
 }
 
 /** Build the stable base filename used for replay trails and cache lookups. */
