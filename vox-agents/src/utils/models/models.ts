@@ -234,6 +234,17 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
     };
   }
 
+  // Handle Gemma's thinking format
+  if (model.provider === 'openai-compatible' && model.options.reasoningEffort && model.options.reasoningEffort !== "minimal" && model.name.toLowerCase().includes('gemma-4')) {
+    return {
+      'openai-compatible': {
+        ...model.options,
+        extra_body: { chat_template_kwargs: { enable_thinking: true } },
+        allowed_openai_params: ['reasoning_effort']
+      }
+    };
+  }
+
   // Handle LiteLLM's reasoning format
   if (model.provider === 'openai-compatible' && model.options.reasoningEffort) {
     return {
