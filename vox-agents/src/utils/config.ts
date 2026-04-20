@@ -194,6 +194,13 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
+    'openai-compatible/Kimi-K2.6': {
+      provider: 'openai-compatible',
+      name: 'Kimi-K2.6',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
     'openai-compatible/Minimax-M2.5': {
       provider: 'openai-compatible',
       name: 'Minimax-M2.5',
@@ -223,6 +230,10 @@ export const defaultConfig: VoxAgentsConfig = {
       options: {
         toolMiddleware: 'prompt'
       }
+    },
+    'openai-compatible/mistral-small-4': {
+      provider: 'openai-compatible',
+      name: 'mistral-small-4'
     },
     'openai-compatible/embedder': {
       provider: 'openai-compatible',
