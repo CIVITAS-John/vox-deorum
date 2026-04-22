@@ -12,9 +12,6 @@ import type { VoxContext } from '../infra/vox-context.js';
 import type { Model } from '../types/index.js';
 import type { OracleParameters, OracleInput, ReplayResult, ReplayDecision } from './types.js';
 
-/** Strategist decision tools -- the "terminal" tools that end a strategist turn */
-const strategistDecisionTools = ['set-flavors', 'set-strategy', 'keep-status-quo'];
-
 /**
  * Oracle agent that replays prompts through an LLM for counterfactual analysis.
  * Stop behavior adapts to the agent type being replayed.
@@ -25,6 +22,8 @@ export class OracleAgent extends VoxAgent<OracleParameters, OracleInput, ReplayR
 
   /** Let the LLM decide whether to call tools */
   public override toolChoice = 'auto';
+  public override requiredTools = ['set-strategy', 'set-flavors', 'keep-status-quo'];
+  public override maxSteps = 5;
 
   /** Return the pre-resolved model from parameters */
   public override getModel(parameters: OracleParameters, _input: OracleInput, _overrides: Record<string, Model | string>): Model {
@@ -65,16 +64,7 @@ export class OracleAgent extends VoxAgent<OracleParameters, OracleInput, ReplayR
     parameters.capturedSteps.push(lastStep);
 
     if (!parameters.agentType || parameters.agentType?.includes('strategist')) {
-      // Check if any step has a strategist decision tool call
-      for (const step of allSteps) {
-        for (const tc of step.toolCalls) {
-          if (strategistDecisionTools.includes(tc.toolName)) {
-            return true;
-          }
-        }
-      }
-      // Prevent runaway -- max 5 steps
-      return allSteps.length >= 5;
+      return super.stopCheck(parameters, _input, lastStep, allSteps, _context);
     }
 
     // Default: stop after one step
@@ -98,7 +88,7 @@ export class OracleAgent extends VoxAgent<OracleParameters, OracleInput, ReplayR
         };
 
         // Extract Rationale from strategist decision tool args
-        if (strategistDecisionTools.includes(tc.toolName) && decision.args.Rationale) {
+        if (this.requiredTools!.includes(tc.toolName) && decision.args.Rationale) {
           decision.rationale = decision.args.Rationale as string;
           delete decision.args.Rationale;
         }
