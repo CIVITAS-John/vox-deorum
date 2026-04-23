@@ -17,18 +17,14 @@ const logger = createLogger('OracleSchemaTools');
 const toolCachePath = path.join('cache', 'mcp-tools.json');
 
 /**
- * Create a schema-only tool from an MCP tool entry.
- * The LLM can generate call intents but nothing executes.
- *
- * @param name - Tool name
- * @param mcpTool - MCP tool entry with description and inputSchema
- * @param rewriter - Optional function to rewrite the tool's JSON schema
+ * Compute the final description and inputSchema for a tool after
+ * autoComplete filtering and optional rewriting.
  */
-export function schemaOnlyTool(
+function computeFinalSchema(
   name: string,
   mcpTool: { description?: string; inputSchema: any },
   rewriter?: (json: string) => string
-): any {
+): { description: string; inputSchema: any } {
   let description = mcpTool.description ?? `Tool: ${name}`;
   let schema = mcpTool.inputSchema;
 
@@ -52,6 +48,24 @@ export function schemaOnlyTool(
     schema = rewritten.inputSchema;
   }
 
+  return { description, inputSchema: schema };
+}
+
+/**
+ * Create a schema-only tool from an MCP tool entry.
+ * The LLM can generate call intents but nothing executes.
+ *
+ * @param name - Tool name
+ * @param mcpTool - MCP tool entry with description and inputSchema
+ * @param rewriter - Optional function to rewrite the tool's JSON schema
+ */
+export function schemaOnlyTool(
+  name: string,
+  mcpTool: { description?: string; inputSchema: any },
+  rewriter?: (json: string) => string
+): any {
+  const { description, inputSchema: schema } = computeFinalSchema(name, mcpTool, rewriter);
+
   return dynamicTool({
     description,
     inputSchema: jsonSchema(schema as any),
@@ -71,10 +85,20 @@ export function replaceToolsWithSchemaOnly(
   rewriter?: (json: string) => string
 ): void {
   const schemaTools: Record<string, any> = {};
+  const convertedSchemas: Record<string, { description: string; inputSchema: any }> = {};
+
   for (const [name, mcpTool] of voxContext.mcpToolMap) {
-    schemaTools[name] = schemaOnlyTool(name, mcpTool, rewriter);
+    const finalSchema = computeFinalSchema(name, mcpTool, rewriter);
+    convertedSchemas[name] = finalSchema;
+    schemaTools[name] = dynamicTool({
+      description: finalSchema.description,
+      inputSchema: jsonSchema(finalSchema.inputSchema as any),
+      execute: async () => ({ _oracle: true, message: `Tool ${name} not executed in replay mode.` }),
+    });
   }
+
   voxContext.tools = schemaTools;
+  logger.info('Converted tool schemas:\n' + JSON.stringify(convertedSchemas, null, 2));
 }
 
 /**
