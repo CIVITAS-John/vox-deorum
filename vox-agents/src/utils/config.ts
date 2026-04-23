@@ -165,9 +165,17 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
-    'openai-compatible/Qwen-3.5-35B': {
+    'openai-compatible/Qwen-3.6-35B': {
       provider: 'openai-compatible',
-      name: 'Qwen-3.5-35B',
+      name: 'Qwen-3.6-35B',
+      options: {
+        systemPromptFirst: true,
+        toolMiddleware: 'prompt'
+      }
+    },
+    'openai-compatible/Qwen-3.6-27B': {
+      provider: 'openai-compatible',
+      name: 'Qwen-3.6-27B',
       options: {
         systemPromptFirst: true,
         toolMiddleware: 'prompt'
