@@ -15,7 +15,7 @@ export MCP_TRANSPORT="${MCP_TRANSPORT:-http}"
 export MCP_HOST="${MCP_HOST:-127.0.0.1}"
 export MCP_PORT="${MCP_PORT:-4000}"
 export BRIDGE_SERVICE_HOST="${BRIDGE_SERVICE_HOST:-127.0.0.1}"
-export BRIDGE_SERVICE_PORT="${BRIDGE_SERVICE_PORT:-5000}"
+export BRIDGE_SERVICE_PORT="${BRIDGE_SERVICE_PORT:-5050}"
 export WEBUI_PORT="${WEBUI_PORT:-5555}"
 export REQUIRE_VOX_POPULI_SCHEMA="${REQUIRE_VOX_POPULI_SCHEMA:-false}"
 
@@ -49,7 +49,7 @@ start_service() {
   pids+=("$!")
 }
 
-start_service "Bridge Service (copilot mode)" npm --workspace bridge-service run dev
+start_service "Bridge Service (copilot mode)" env PORT="$BRIDGE_SERVICE_PORT" HOST="$BRIDGE_SERVICE_HOST" npm --workspace bridge-service run dev
 sleep 2
 start_service "MCP Server" npm --workspace mcp-server run dev
 sleep 2

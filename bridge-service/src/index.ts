@@ -299,7 +299,7 @@ async function startServer(): Promise<void> {
 }
 
 // Start the server if this file is run directly
-if (process.argv[1].endsWith("index.js")) {
+if (process.argv[1]?.endsWith("index.js") || process.argv[1]?.endsWith("index.ts")) {
   startServer().catch((error) => {
     logger.error('Failed to start Bridge Service:', error);
     process.exit(1);
