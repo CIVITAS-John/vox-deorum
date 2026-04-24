@@ -8,7 +8,7 @@ import Database from 'better-sqlite3';
 import { createLogger } from '../utils/logger.js';
 import path from 'path';
 import fs from 'fs/promises';
-import { config, getDocumentsPath } from '../utils/config.js';
+import { config, getCiv5UserDataPath } from '../utils/config.js';
 import type { DB as MainDB } from './database.js';
 import type { DB as LocalizationDB } from './localization.js';
 import { enumMappings } from '../utils/knowledge/enum.js';
@@ -54,8 +54,7 @@ export class DatabaseManager {
   private async loadDatabaseWithRetry(): Promise<void> {
     while (true) {
       try {
-        const documentsPath = await getDocumentsPath();
-        const civ5Path = path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5', 'cache');
+        const civ5Path = path.join(await getCiv5UserDataPath(), 'cache');
 
         const mainDbPath = path.join(civ5Path, 'Civ5DebugDatabase.db');
         const localizationDbPath = path.join(civ5Path, 'Localization-Merged.db');

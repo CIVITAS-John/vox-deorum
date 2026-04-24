@@ -52,6 +52,7 @@ export interface MCPServerConfig {
   database?: {
     language?: string;
     documentsPath?: string;
+    civ5UserDataPath?: string;
   };
   logging: {
     level: string;
@@ -89,7 +90,8 @@ const defaultConfig: MCPServerConfig = {
   },
   database: {
     language: 'en_US',
-    documentsPath: undefined // Will be auto-detected if not specified
+    documentsPath: undefined, // Will be auto-detected if not specified
+    civ5UserDataPath: undefined
   },
   logging: {
     level: 'info'
@@ -136,8 +138,17 @@ export function loadConfig(): MCPServerConfig {
   // Build final configuration with environment variable overrides
   const bridgeHost = process.env.BRIDGE_SERVICE_HOST || fileConfig.bridgeService?.endpoint?.host || defaultConfig.bridgeService.endpoint.host;
   const bridgePort = parseInt(process.env.BRIDGE_SERVICE_PORT || '') || fileConfig.bridgeService?.endpoint?.port || defaultConfig.bridgeService.endpoint.port;
-  const eventPipeEnabled = process.env.EVENTPIPE_ENABLED === 'true' || fileConfig.bridgeService?.eventPipe?.enabled || defaultConfig.bridgeService.eventPipe?.enabled || false;
+  const eventPipeEnabledOverride = process.env.EVENTPIPE_ENABLED === undefined
+    ? undefined
+    : process.env.EVENTPIPE_ENABLED === 'true';
+  const eventPipeEnabled = eventPipeEnabledOverride ?? fileConfig.bridgeService?.eventPipe?.enabled ?? defaultConfig.bridgeService.eventPipe?.enabled ?? false;
   const eventPipeName = process.env.EVENTPIPE_NAME || fileConfig.bridgeService?.eventPipe?.name || defaultConfig.bridgeService.eventPipe?.name || 'vox-deorum-events';
+  const rawEventPipeEnabled = eventPipeEnabled;
+  const platformEventPipeEnabled = rawEventPipeEnabled && process.platform === 'win32';
+
+  if (rawEventPipeEnabled && !platformEventPipeEnabled) {
+    logger.warn('Event pipe disabled: Windows named pipes are only supported on win32. SSE remains available.');
+  }
 
   const config: MCPServerConfig = {
     server: {
@@ -170,13 +181,14 @@ export function loadConfig(): MCPServerConfig {
         port: bridgePort
       },
       eventPipe: {
-        enabled: eventPipeEnabled,
+        enabled: platformEventPipeEnabled,
         name: eventPipeName
       }
     },
     database: {
       language: process.env.DB_LANGUAGE || fileConfig.database?.language || defaultConfig.database?.language,
-      documentsPath: process.env.DB_DOCUMENTS_PATH || fileConfig.database?.documentsPath || defaultConfig.database?.documentsPath
+      documentsPath: process.env.DB_DOCUMENTS_PATH || fileConfig.database?.documentsPath || defaultConfig.database?.documentsPath,
+      civ5UserDataPath: process.env.CIV5_USER_DATA_PATH || fileConfig.database?.civ5UserDataPath || defaultConfig.database?.civ5UserDataPath
     },
     logging: {
       level: process.env.LOG_LEVEL || fileConfig.logging?.level || defaultConfig.logging.level
@@ -201,6 +213,7 @@ export function loadConfig(): MCPServerConfig {
  * This function caches the result after first call
  */
 let cachedDocumentsPath: string | undefined;
+let cachedCiv5UserDataPath: string | undefined;
 
 export async function getDocumentsPath(): Promise<string> {
   // Return cached value if available
@@ -212,6 +225,12 @@ export async function getDocumentsPath(): Promise<string> {
   if (config.database?.documentsPath) {
     cachedDocumentsPath = config.database.documentsPath;
     logger.info(`Using configured documents path: ${cachedDocumentsPath}`);
+    return cachedDocumentsPath;
+  }
+
+  if (process.platform !== 'win32') {
+    cachedDocumentsPath = path.join(process.env.HOME || process.env.USERPROFILE || '.', 'Documents');
+    logger.info(`Using standard documents folder path: ${cachedDocumentsPath}`);
     return cachedDocumentsPath;
   }
 
@@ -230,6 +249,55 @@ export async function getDocumentsPath(): Promise<string> {
     logger.warn(`Using fallback documents path: ${cachedDocumentsPath}`);
     return cachedDocumentsPath;
   }
+}
+
+export function getCiv5UserDataPathCandidates(platform: NodeJS.Platform, homeDir: string, documentsPath: string): string[] {
+  if (platform === 'darwin') {
+    return [
+      path.join(homeDir, 'Library', 'Application Support', 'Sid Meier\'s Civilization 5'),
+      path.join(homeDir, 'Documents', 'Aspyr', 'Sid Meier\'s Civilization 5'),
+      path.join(homeDir, 'Library', 'Containers', 'com.aspyr.civ5campaign', 'Data', 'Library', 'Application Support', 'Civilization V Campaign Edition')
+    ];
+  }
+
+  if (platform === 'linux') {
+    return [
+      path.join(homeDir, '.local', 'share', 'Aspyr', 'Sid Meier\'s Civilization 5'),
+      path.join(homeDir, '.local', 'share', 'aspyr-media', 'Sid Meier\'s Civilization 5'),
+      path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5')
+    ];
+  }
+
+  return [
+    path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5')
+  ];
+}
+
+export async function getCiv5UserDataPath(): Promise<string> {
+  if (cachedCiv5UserDataPath) {
+    return cachedCiv5UserDataPath;
+  }
+
+  if (config.database?.civ5UserDataPath) {
+    cachedCiv5UserDataPath = config.database.civ5UserDataPath;
+    logger.info(`Using configured Civ5 user data path: ${cachedCiv5UserDataPath}`);
+    return cachedCiv5UserDataPath;
+  }
+
+  const documentsPath = await getDocumentsPath();
+  const homeDir = process.env.HOME || process.env.USERPROFILE || documentsPath;
+  const candidates = getCiv5UserDataPathCandidates(process.platform, homeDir, documentsPath);
+  const existingCandidate = candidates.find(candidate => fs.existsSync(candidate));
+
+  cachedCiv5UserDataPath = existingCandidate ?? candidates[0];
+
+  if (existingCandidate) {
+    logger.info(`Auto-detected Civ5 user data path: ${cachedCiv5UserDataPath}`);
+  } else {
+    logger.warn(`Using fallback Civ5 user data path: ${cachedCiv5UserDataPath}`);
+  }
+
+  return cachedCiv5UserDataPath;
 }
 
 /**

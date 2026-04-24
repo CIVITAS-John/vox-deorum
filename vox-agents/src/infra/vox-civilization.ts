@@ -3,7 +3,7 @@
  *
  * Manages Civilization V game process lifecycle.
  * Handles game launching, process monitoring, and exit callback management
- * for the Windows environment. Supports binding to existing processes and
+ * across Windows and macOS. Supports binding to existing processes and
  * crash recovery scenarios.
  */
 
@@ -11,13 +11,16 @@ import { spawn, exec } from 'child_process';
 import { join } from 'path';
 import { promisify } from 'util';
 import { setTimeout } from 'node:timers/promises'
-import { readFile, writeFile } from 'fs/promises';
+import { access, readFile, writeFile } from 'fs/promises';
 import { homedir } from 'os';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('VoxCivilization');
 const execAsync = promisify(exec);
 type ExitCallback = (code: number | null) => void;
+
+const windowsExecutableName = 'CivilizationV.exe';
+const macProcessPattern = 'Civilization V|CivilizationV|Sid Meier.*Civilization V';
 
 /**
  * Controls Civilization V game instance.
@@ -43,7 +46,7 @@ export class VoxCivilization {
   private pollInterval: NodeJS.Timeout | null = null;
 
   /**
-   * Finds and binds to an existing CivilizationV.exe process.
+   * Finds and binds to an existing Civilization V process.
    *
    * @private
    * @returns True if found and bound successfully, false otherwise
@@ -51,7 +54,7 @@ export class VoxCivilization {
   private async bindToExistingProcess(): Promise<boolean> {
     const pid = await this.findCivilizationProcess();
     if (pid) {
-      logger.info(`Found existing CivilizationV.exe process (PID: ${pid})`);
+      logger.info(`Found existing Civilization V process (PID: ${pid})`);
       this.externalProcessPid = pid;
       this.monitoring = true;
       this.startProcessMonitoring();
@@ -62,20 +65,35 @@ export class VoxCivilization {
   }
 
   /**
-   * Finds CivilizationV.exe process using Windows tasklist.
+   * Finds a Civilization V process on the current platform.
    *
    * @private
    * @returns Process ID if found, null otherwise
    */
   private async findCivilizationProcess(): Promise<number | null> {
+    if (process.platform === 'win32') {
+      return this.findWindowsCivilizationProcess();
+    }
+
+    if (process.platform === 'darwin') {
+      return this.findUnixCivilizationProcess(macProcessPattern);
+    }
+
+    return null;
+  }
+
+  /**
+   * Finds CivilizationV.exe process using Windows tasklist.
+   */
+  private async findWindowsCivilizationProcess(): Promise<number | null> {
     try {
-      const { stdout } = await execAsync('tasklist /FI "IMAGENAME eq CivilizationV.exe" /FO CSV');
+      const { stdout } = await execAsync(`tasklist /FI "IMAGENAME eq ${windowsExecutableName}" /FO CSV`);
       const lines = stdout.trim().split('\n');
 
       // Skip header line, look for process
       for (let i = 1; i < lines.length; i++) {
         const parts = lines[i].split(',');
-        if (parts[0]?.includes('CivilizationV.exe')) {
+        if (parts[0]?.includes(windowsExecutableName)) {
           const pid = parseInt(parts[1].replace(/"/g, ''), 10);
           if (!isNaN(pid)) {
             return pid;
@@ -86,6 +104,19 @@ export class VoxCivilization {
       // Command failed, no process found
     }
     return null;
+  }
+
+  /**
+   * Finds Civilization V using pgrep on Unix-like platforms.
+   */
+  private async findUnixCivilizationProcess(pattern: string): Promise<number | null> {
+    try {
+      const { stdout } = await execAsync(`pgrep -f "${pattern}"`);
+      const pid = parseInt(stdout.trim().split('\n')[0], 10);
+      return Number.isNaN(pid) ? null : pid;
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -126,6 +157,15 @@ export class VoxCivilization {
    * Checks if a process with given PID is running
    */
   private async isProcessRunning(pid: number): Promise<boolean> {
+    if (process.platform !== 'win32') {
+      try {
+        await execAsync(`kill -0 ${pid}`);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
     try {
       const { stdout } = await execAsync(`tasklist /FI "PID eq ${pid}" /FO CSV`);
       const lines = stdout.trim().split('\n');
@@ -198,6 +238,64 @@ export class VoxCivilization {
     }
   }
 
+  private async getWindowsDocumentsPath(): Promise<string> {
+    try {
+      const { stdout } = await execAsync(
+        'powershell -Command "[Environment]::GetFolderPath(\'MyDocuments\')"'
+      );
+      return stdout.trim();
+    } catch {
+      return join(homedir(), 'Documents');
+    }
+  }
+
+  private getMacUserSettingsCandidates(): string[] {
+    const home = homedir();
+    return [
+      join(home, 'Library', 'Application Support', 'Sid Meier\'s Civilization 5', 'UserSettings.ini'),
+      join(home, 'Documents', 'Aspyr', 'Sid Meier\'s Civilization 5', 'UserSettings.ini'),
+      join(home, 'Library', 'Containers', 'com.aspyr.civ5campaign', 'Data', 'Library', 'Application Support', 'Civilization V Campaign Edition', 'UserSettings.ini')
+    ];
+  }
+
+  private async findFirstExistingPath(candidates: string[]): Promise<string | null> {
+    for (const candidate of candidates) {
+      try {
+        await access(candidate);
+        return candidate;
+      } catch {
+        // Try the next known platform location.
+      }
+    }
+
+    return null;
+  }
+
+  private async findUserSettingsPath(): Promise<string | null> {
+    if (process.env.CIV5_USER_SETTINGS_PATH) {
+      return process.env.CIV5_USER_SETTINGS_PATH;
+    }
+
+    if (process.platform === 'win32') {
+      const documentsPath = await this.getWindowsDocumentsPath();
+      return join(
+        documentsPath,
+        'My Games',
+        "Sid Meier's Civilization 5",
+        'UserSettings.ini'
+      );
+    }
+
+    if (process.platform === 'darwin') {
+      return this.findFirstExistingPath(this.getMacUserSettingsCandidates());
+    }
+
+    return this.findFirstExistingPath([
+      join(homedir(), '.local', 'share', 'Aspyr', 'Sid Meier\'s Civilization 5', 'UserSettings.ini'),
+      join(homedir(), '.local', 'share', 'aspyr-media', 'Sid Meier\'s Civilization 5', 'UserSettings.ini')
+    ]);
+  }
+
   /**
    * Updates SinglePlayerQuickCombatEnabled and SinglePlayerQuickMovementEnabled in
    * the user's Civ5 UserSettings.ini. Uses PowerShell to resolve the real Documents
@@ -207,22 +305,12 @@ export class VoxCivilization {
    */
   async updateSkipAnimations(skipEnabled: boolean): Promise<void> {
     const value = skipEnabled ? '1' : '0';
-    let documentsPath: string;
-    try {
-      const { stdout } = await execAsync(
-        'powershell -Command "[Environment]::GetFolderPath(\'MyDocuments\')"'
-      );
-      documentsPath = stdout.trim();
-    } catch {
-      documentsPath = join(homedir(), 'Documents');
-    }
+    const settingsPath = await this.findUserSettingsPath();
 
-    const settingsPath = join(
-      documentsPath,
-      'My Games',
-      "Sid Meier's Civilization 5",
-      'UserSettings.ini'
-    );
+    if (!settingsPath) {
+      logger.warn('UserSettings.ini not found in known Civ5 locations, skipping animation config');
+      return;
+    }
 
     let content: string;
     try {
@@ -279,6 +367,16 @@ export class VoxCivilization {
       return true;
     }
 
+    if (process.platform === 'darwin') {
+      logger.info('Launching macOS Civilization V in copilot mode; Lua bootstrap scripts are Windows-only.');
+      return this.startMacGame();
+    }
+
+    if (process.platform !== 'win32') {
+      logger.warn(`Automatic Civ5 launch is not supported on ${process.platform}; start the game manually and use wait mode.`);
+      return false;
+    }
+
     // Generate StartGame.temp.lua if using StartGame.lua with player count
     let actualLuaName = luaName;
     if (luaName === 'StartGame.lua' && playerCount !== undefined) {
@@ -327,6 +425,52 @@ export class VoxCivilization {
       logger.error('Failed to launch game:', error);
       return false;
     }
+  }
+
+  private async startMacGame(): Promise<boolean> {
+    const appPath = process.env.CIV5_APP_PATH;
+    const appName = process.env.CIV5_APP_NAME;
+    const launchArgs = appPath
+      ? [[appPath]]
+      : appName
+        ? [['-a', appName]]
+        : [
+            ['-a', 'Sid Meier\'s Civilization V'],
+            ['-a', 'Civilization V'],
+            ['-a', 'Civilization V Campaign Edition']
+          ];
+
+    for (const args of launchArgs) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const openProcess = spawn('open', args, {
+            detached: false,
+            stdio: 'ignore',
+            shell: false
+          });
+
+          openProcess.on('exit', (code) => {
+            if (code === 0) {
+              resolve();
+            } else {
+              reject(new Error(`open exited with code ${code}`));
+            }
+          });
+
+          openProcess.on('error', reject);
+        });
+
+        logger.info('Waiting 5 seconds for Civilization V to start...');
+        await setTimeout(5000);
+
+        return await this.bindToExistingProcess();
+      } catch (error) {
+        logger.warn(`Failed macOS Civilization V launch attempt (${args.join(' ')}):`, error);
+      }
+    }
+
+    logger.error('Failed to launch macOS Civilization V. Set CIV5_APP_PATH or CIV5_APP_NAME if the app is installed under a custom name.');
+    return false;
   }
 
   /**
@@ -380,7 +524,7 @@ export class VoxCivilization {
   }
 
   /**
-   * Forcefully kill the game process using Windows taskkill.
+   * Forcefully kill the game process.
    *
    * @returns True if kill command succeeded, false otherwise
    */
@@ -392,10 +536,19 @@ export class VoxCivilization {
 
     try {
       logger.info(`Killing game process with PID: ${this.externalProcessPid}`);
-      await execAsync(`taskkill /F /PID ${this.externalProcessPid}`);
+      if (process.platform === 'win32') {
+        await execAsync(`taskkill /F /PID ${this.externalProcessPid}`);
+      } else {
+        await execAsync(`kill -TERM ${this.externalProcessPid}`);
+      }
 
       // Wait a bit for the process to terminate
       await setTimeout(5000);
+
+      if (this.externalProcessPid && await this.isProcessRunning(this.externalProcessPid) && process.platform !== 'win32') {
+        await execAsync(`kill -KILL ${this.externalProcessPid}`);
+        await setTimeout(1000);
+      }
 
       // Update internal state if haven't
       this.handleGameExit(-1);

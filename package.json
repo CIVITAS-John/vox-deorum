@@ -13,7 +13,8 @@
     "install:all": "npm install",
     "build:all": "npm run build -ws",
     "test:all": "npm run test -ws",
-    "clean:all": "npm run clean -ws"
+    "clean:all": "npm run clean -ws",
+    "start:macos": "bash scripts/vox-deorum-macos.sh"
   },
   "author": "John Chen",
   "license": "CC-BY-NC-SA-4.0",

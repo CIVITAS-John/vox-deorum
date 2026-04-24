@@ -50,6 +50,7 @@ export interface ServiceConfig {
     host: string;
   };
   gamepipe: {
+    enabled: boolean;
     id: string;
     retry: number;
   };
@@ -73,6 +74,7 @@ const defaultConfig: ServiceConfig = {
     host: '127.0.0.1'
   },
   gamepipe: {
+    enabled: true,
     id: 'vox-deorum-bridge',
     retry: 5000
   },
@@ -105,6 +107,9 @@ const defaultConfig: ServiceConfig = {
 export function loadConfig(): ServiceConfig {
   const configPath = path.join(process.cwd(), 'config.json');
   let fileConfig: Partial<ServiceConfig> = {};
+  const gamePipeEnabledOverride = process.env.GAMEPIPE_ENABLED === undefined
+    ? undefined
+    : process.env.GAMEPIPE_ENABLED === 'true';
   const eventPipeEnabledOverride = process.env.EVENTPIPE_ENABLED === undefined
     ? undefined
     : process.env.EVENTPIPE_ENABLED === 'true';
@@ -120,6 +125,13 @@ export function loadConfig(): ServiceConfig {
     }
   }
 
+  const rawEventPipeEnabled = eventPipeEnabledOverride ?? fileConfig.eventpipe?.enabled ?? defaultConfig.eventpipe.enabled;
+  const eventPipeEnabled = rawEventPipeEnabled && process.platform === 'win32';
+
+  if (rawEventPipeEnabled && !eventPipeEnabled) {
+    logger.warn('Event pipe disabled: Windows named pipes are only supported on win32. SSE remains available.');
+  }
+
   // Build final configuration with environment variable overrides
   const config: ServiceConfig = {
     rest: {
@@ -127,11 +139,12 @@ export function loadConfig(): ServiceConfig {
       host: process.env.HOST || fileConfig.rest?.host || defaultConfig.rest.host
     },
     gamepipe: {
-      id: process.env.gamepipe_ID || fileConfig.gamepipe?.id || defaultConfig.gamepipe.id,
+      enabled: gamePipeEnabledOverride ?? fileConfig.gamepipe?.enabled ?? defaultConfig.gamepipe.enabled,
+      id: process.env.GAMEPIPE_ID || process.env.gamepipe_ID || fileConfig.gamepipe?.id || defaultConfig.gamepipe.id,
       retry: parseInt(process.env.gamepipe_RETRY || '') || fileConfig.gamepipe?.retry || defaultConfig.gamepipe.retry
     },
     eventpipe: {
-      enabled: eventPipeEnabledOverride ?? fileConfig.eventpipe?.enabled ?? defaultConfig.eventpipe.enabled,
+      enabled: eventPipeEnabled,
       name: process.env.EVENTPIPE_NAME || fileConfig.eventpipe?.name || defaultConfig.eventpipe.name
     },
     logging: {
@@ -144,7 +157,7 @@ export function loadConfig(): ServiceConfig {
 
   logger.info('Configuration loaded:', {
     rest: config.rest,
-    gamepipe: { id: config.gamepipe.id, retry: config.gamepipe.retry },
+    gamepipe: { enabled: config.gamepipe.enabled, id: config.gamepipe.id, retry: config.gamepipe.retry },
     eventpipe: config.eventpipe,
     logging: { level: config.logging.level }
   });

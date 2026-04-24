@@ -4,7 +4,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { getDocumentsPath } from '../config.js';
+import { getCiv5UserDataPath } from '../config.js';
 import { createLogger } from '../logger.js';
 import { knowledgeManager } from '../../server.js';
 
@@ -73,8 +73,8 @@ async function findLatestFile(
  * Find the latest replay file for Civilization V
  */
 export async function findLatestReplayFile(): Promise<SaveFileInfo | null> {
-  const documentsPath = await getDocumentsPath();
-  const replaysPath = path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5', 'Replays');
+  const civ5UserDataPath = await getCiv5UserDataPath();
+  const replaysPath = path.join(civ5UserDataPath, 'Replays');
   return findLatestFile(replaysPath, '.Civ5Replay', 'replay');
 }
 
@@ -82,8 +82,8 @@ export async function findLatestReplayFile(): Promise<SaveFileInfo | null> {
  * Find the latest save file for Civilization V
  */
 export async function findLatestSaveFile(): Promise<SaveFileInfo | null> {
-  const documentsPath = await getDocumentsPath();
-  const savesPath = path.join(documentsPath, 'My Games', 'Sid Meier\'s Civilization 5', 'ModdedSaves', 'single', 'auto');
+  const civ5UserDataPath = await getCiv5UserDataPath();
+  const savesPath = path.join(civ5UserDataPath, 'ModdedSaves', 'single', 'auto');
   return findLatestFile(savesPath, '.Civ5Save', 'save');
 }
 
@@ -204,4 +204,3 @@ export async function archiveGameData(
     return null;
   }
 }
-
