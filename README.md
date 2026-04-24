@@ -30,7 +30,7 @@ For macOS, Vox Deorum runs in **copilot mode**: the advisor stack runs locally a
 3. Run `npm run start:macos`.
 4. Open `http://127.0.0.1:5555` and choose the `macos-copilot` config, or connect Codex/ChatGPT to the MCP server at `http://127.0.0.1:4000/mcp`.
 
-The macOS launcher disables the Windows game pipe and event pipe, then uses SSE/HTTP between the Bridge Service, MCP Server, and Vox Agents. Set `CIV5_USER_DATA_PATH` if your Civ V data folder is not auto-detected.
+The macOS launcher disables the Windows game pipe and event pipe, then uses SSE/HTTP between the Bridge Service, MCP Server, and Vox Agents. Set `CIV5_USER_DATA_PATH` if your Civ V data folder is not auto-detected. It also allows vanilla macOS Civ V caches by default; set `REQUIRE_VOX_POPULI_SCHEMA=true` if you want strict Vox Populi schema validation.
 
 ### Features
 

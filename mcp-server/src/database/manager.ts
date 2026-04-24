@@ -79,9 +79,13 @@ export class DatabaseManager {
         });
         logger.info('Connected to localization database');
 
-        // Sanity check: Wait 10s for VD to load, then for GreatPersons table to exist
+        // Sanity check: Wait 10s for VD to load, then verify the Vox Populi table on platforms that require it.
         await new Promise(resolve => setTimeout(resolve, 10000));
-        await this.waitForTable('GreatPersons');
+        if (config.database?.requireVoxPopuliSchema !== false) {
+          await this.waitForTable('GreatPersons');
+        } else if (!await this.tableExists('GreatPersons')) {
+          logger.warn('GreatPersons table not found; continuing with vanilla/macOS Civ5 database in copilot mode');
+        }
 
         // Wait for policy descriptions to be localized before reading mappings
         await this.waitForPolicyDescriptions();
@@ -320,6 +324,23 @@ export class DatabaseManager {
     }
   }
 
+  private async tableExists(tableName: string): Promise<boolean> {
+    if (!this.mainDb) {
+      throw new Error('Database not initialized');
+    }
+
+    try {
+      await this.mainDb
+        .selectFrom(tableName as any)
+        .select('ID')
+        .limit(1)
+        .execute();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /**
    * Wait for policy localized descriptions to be available in the localization DB.
    * Policies in the main DB use TXT_KEY_* references that must resolve in the localization DB.
@@ -385,7 +406,9 @@ export class DatabaseManager {
       await this.addEnumMappings("GreatWorks", "GreatWorkType");
       await this.addEnumMappings("Beliefs", "BeliefType");
       await this.addEnumMappings("GoodyHuts", "GoodyType");
-      await this.addEnumMappings("GreatPersons", "GreatPersonType", "Great ");
+      await this.addEnumMappings("GreatPersons", "GreatPersonType", "Great ", {
+        optional: config.database?.requireVoxPopuliSchema === false
+      });
       await this.addEnumMappings("PolicyBranchTypes", "BranchType");
       await this.addEnumMappings("Resolutions", "ResolutionType");
       await this.addEnumMappings("Units", "UnitType");
@@ -406,7 +429,12 @@ export class DatabaseManager {
   /**
    * Read a named table and add int-number mappings to enumMappings
    */
-  async addEnumMappings(tableName: string, mappedName: string, prefix: string = ""): Promise<void> {
+  async addEnumMappings(
+    tableName: string,
+    mappedName: string,
+    prefix: string = "",
+    options: { optional?: boolean } = {}
+  ): Promise<void> {
     if (!this.mainDb) {
       throw new Error('Database not initialized. Call initialize() first.');
     }
@@ -437,6 +465,12 @@ export class DatabaseManager {
       enumMappings[mappedName] = await this.localizeObject(tableMap);
       logger.info(`Added ${Object.keys(tableMap).length} enum mappings from table ${tableName}`);
     } catch (error) {
+      if (options.optional) {
+        enumMappings[mappedName] = { "-1": "None" };
+        logger.warn(`Optional enum mapping table ${tableName} not found; using fallback mapping`);
+        return;
+      }
+
       logger.error(`Failed to read enum mappings from table ${tableName}:`, error);
       throw new Error(`Failed to read enum mappings from table ${tableName}: ${error}`);
     }

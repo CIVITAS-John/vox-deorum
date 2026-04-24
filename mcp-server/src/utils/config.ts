@@ -53,6 +53,7 @@ export interface MCPServerConfig {
     language?: string;
     documentsPath?: string;
     civ5UserDataPath?: string;
+    requireVoxPopuliSchema?: boolean;
   };
   logging: {
     level: string;
@@ -91,7 +92,8 @@ const defaultConfig: MCPServerConfig = {
   database: {
     language: 'en_US',
     documentsPath: undefined, // Will be auto-detected if not specified
-    civ5UserDataPath: undefined
+    civ5UserDataPath: undefined,
+    requireVoxPopuliSchema: true
   },
   logging: {
     level: 'info'
@@ -145,6 +147,9 @@ export function loadConfig(): MCPServerConfig {
   const eventPipeName = process.env.EVENTPIPE_NAME || fileConfig.bridgeService?.eventPipe?.name || defaultConfig.bridgeService.eventPipe?.name || 'vox-deorum-events';
   const rawEventPipeEnabled = eventPipeEnabled;
   const platformEventPipeEnabled = rawEventPipeEnabled && process.platform === 'win32';
+  const requireVoxPopuliSchema = process.env.REQUIRE_VOX_POPULI_SCHEMA === undefined
+    ? fileConfig.database?.requireVoxPopuliSchema ?? defaultConfig.database?.requireVoxPopuliSchema ?? true
+    : process.env.REQUIRE_VOX_POPULI_SCHEMA === 'true';
 
   if (rawEventPipeEnabled && !platformEventPipeEnabled) {
     logger.warn('Event pipe disabled: Windows named pipes are only supported on win32. SSE remains available.');
@@ -188,7 +193,8 @@ export function loadConfig(): MCPServerConfig {
     database: {
       language: process.env.DB_LANGUAGE || fileConfig.database?.language || defaultConfig.database?.language,
       documentsPath: process.env.DB_DOCUMENTS_PATH || fileConfig.database?.documentsPath || defaultConfig.database?.documentsPath,
-      civ5UserDataPath: process.env.CIV5_USER_DATA_PATH || fileConfig.database?.civ5UserDataPath || defaultConfig.database?.civ5UserDataPath
+      civ5UserDataPath: process.env.CIV5_USER_DATA_PATH || fileConfig.database?.civ5UserDataPath || defaultConfig.database?.civ5UserDataPath,
+      requireVoxPopuliSchema
     },
     logging: {
       level: process.env.LOG_LEVEL || fileConfig.logging?.level || defaultConfig.logging.level
