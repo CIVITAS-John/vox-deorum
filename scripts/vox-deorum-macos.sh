@@ -22,6 +22,12 @@ if [[ ! -d node_modules ]]; then
   npm install --include=dev
 fi
 
+if [[ ! -d vox-agents/ui/node_modules ]]; then
+  npm --prefix vox-agents/ui install
+fi
+
+npm --prefix vox-agents/ui run build
+
 pids=()
 
 cleanup() {
