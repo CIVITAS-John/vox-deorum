@@ -97,6 +97,11 @@ export class DLLConnector extends EventEmitter {
    * Configure IPC settings
    */
   private setupIPC(): void {
+    if (!config.gamepipe.enabled) {
+      logger.info('DLL game pipe is disabled; Bridge Service will run without direct game IPC.');
+      return;
+    }
+
     ipc.config.id = 'bridge-service';
     ipc.config.retry = config.gamepipe.retry;
     ipc.config.maxRetries = false; // Infinite retries
@@ -110,6 +115,12 @@ export class DLLConnector extends EventEmitter {
    */
   public async connect(): Promise<boolean> {
     this.shuttingDown = false;
+    if (!config.gamepipe.enabled) {
+      logger.info('Skipping DLL connection because gamepipe is disabled');
+      this.connected = false;
+      return false;
+    }
+
     if (this.connected) {
       logger.info('Already connected to DLL');
       return Promise.resolve(true);
@@ -298,6 +309,14 @@ export class DLLConnector extends EventEmitter {
    * ```
    */
   public async sendBatch<T>(messages: IPCMessage[], timeout: number = 300000): Promise<APIResponse<T>[]> {
+    if (!config.gamepipe.enabled) {
+      logger.warn('Cannot send messages, DLL game pipe is disabled');
+      return messages.map(() => respondError(
+        ErrorCode.DLL_DISCONNECTED,
+        'DLL game pipe is disabled'
+      ));
+    }
+
     if (!this.connected) {
       logger.warn('Cannot send messages, DLL is disconnected');
       return messages.map(() => respondError(ErrorCode.DLL_DISCONNECTED));
@@ -384,6 +403,11 @@ export class DLLConnector extends EventEmitter {
    * Send a message without waiting for response
    */
   public sendNoWait(message: IPCMessage): APIResponse<any> {
+    if (!config.gamepipe.enabled) {
+      logger.warn('Cannot send message, DLL game pipe is disabled');
+      return respondError(ErrorCode.DLL_DISCONNECTED, 'DLL game pipe is disabled');
+    }
+
     if (!this.connected) {
       logger.warn('Cannot send message, DLL is disconnected');
       return respondError(ErrorCode.DLL_DISCONNECTED);
@@ -434,6 +458,11 @@ export class DLLConnector extends EventEmitter {
       this.reconnectTimer = undefined;
     }
 
+    if (!config.gamepipe.enabled) {
+      logger.info('DLL game pipe was disabled; no IPC client to disconnect');
+      return;
+    }
+
     if (!ipc.of[config.gamepipe.id]) {
       logger.info('Already disconnected from DLL');
       return;
@@ -475,11 +504,13 @@ export class DLLConnector extends EventEmitter {
    * Get connection statistics
    */
   public getStats(): {
+    enabled: boolean;
     connected: boolean;
     pendingRequests: number;
     reconnectAttempts: number;
   } {
     return {
+      enabled: config.gamepipe.enabled,
       connected: this.connected,
       pendingRequests: this.pendingRequests.size,
       reconnectAttempts: this.reconnectAttempts

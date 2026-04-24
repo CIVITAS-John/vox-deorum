@@ -63,7 +63,7 @@ export class BridgeService extends EventEmitter {
    *
    * @description
    * Initializes and starts all Bridge Service components:
-   * 1. Connects to the DLL via IPC
+   * 1. Connects to the DLL via IPC when gamepipe is enabled
    * 2. Starts the event pipe (if enabled)
    * 3. Emits 'started' event on successful startup
    *
@@ -76,8 +76,11 @@ export class BridgeService extends EventEmitter {
     logger.info('Starting Bridge Service...');
     this.isRunning = true;
 
-    // Connect to DLL
-    await dllConnector.connect();
+    if (config.gamepipe.enabled) {
+      await dllConnector.connect();
+    } else {
+      logger.info('Game pipe disabled; running Bridge Service in copilot mode without DLL IPC');
+    }
 
     // Start event pipe if enabled
     await eventPipe.start();
@@ -141,7 +144,7 @@ export class BridgeService extends EventEmitter {
     const dllConnected = dllConnector.isConnected();
     
     return {
-      success: this.isRunning && dllConnected,
+      success: this.isRunning && (!config.gamepipe.enabled || dllConnected),
       dll_connected: dllConnected,
       uptime,
       version: process.env.npm_package_version
@@ -168,6 +171,7 @@ export class BridgeService extends EventEmitter {
   public getServiceStats(): {
     uptime: number;
     dll: {
+      enabled: boolean;
       connected: boolean;
       pendingRequests: number;
       reconnectAttempts: number;

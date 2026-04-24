@@ -23,6 +23,7 @@ import { Selectable } from "kysely";
 import { sortBySchema } from "../../utils/schema.js";
 import { stripTags } from "../../utils/database/localized.js";
 import { annotateSubjects } from "./get-opinions.js";
+import { config } from "../../utils/config.js";
 
 /**
  * Input schema for the GetPlayers tool
@@ -138,6 +139,11 @@ class GetPlayersTool extends ToolBase {
       getPlayerSummaries(),
       readPlayerKnowledge(args.PlayerID, "PlayerOpinions", getPlayerOpinions)
     ]);
+
+    if (config.copilotMode && playerInfos.length === 0 && playerSummaries.length === 0) {
+      logger.warn('DLL-backed player data is unavailable; returning macOS copilot placeholder player');
+      return createCopilotPlayersReport(args.PlayerID);
+    }
 
     // Sanity check: verify all players in summary have corresponding information
     // If any player is missing information, refresh and store it
@@ -255,6 +261,17 @@ class GetPlayersTool extends ToolBase {
  */
 export default function createGetPlayersTool() {
   return new GetPlayersTool();
+}
+
+function createCopilotPlayersReport(playerID: number | undefined): PlayersReport {
+  const id = playerID ?? 0;
+  return {
+    [id.toString()]: {
+      Civilization: `Player ${id}`,
+      Leader: "Human",
+      IsMajor: true
+    }
+  };
 }
 
 /**

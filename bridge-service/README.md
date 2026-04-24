@@ -119,6 +119,7 @@ Create `config.json` in the bridge-service root:
     "host": "127.0.0.1"
   },
   "gamepipe": {
+    "enabled": true,
     "id": "vox-deorum-bridge",
     "retry": 5000
   },
@@ -140,6 +141,7 @@ Create `config.json` in the bridge-service root:
 - **External function timeout**: 5 seconds default (configurable per registration)
 - **SSE keep-alive**: 5 seconds
 - **Pipe name format**: `\\.\pipe\tmp-app.{gamepipe.id}` (node-ipc adds prefix)
+- **macOS copilot mode**: set `GAMEPIPE_ENABLED=false` and `EVENTPIPE_ENABLED=false` to run the HTTP/SSE bridge without Windows DLL IPC
 
 ## Testing
 

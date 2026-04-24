@@ -55,5 +55,6 @@ config.json
 configs/**/*.json
 !configs/observe-*.json
 !configs/play-*.json
+!configs/macos-copilot.json
 
 /telemetry/

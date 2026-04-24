@@ -14,6 +14,7 @@ import { stripMutableKnowledgeMetadata, stripPublicKnowledgeMetadata } from './s
 export async function readPlayerKnowledge<T>
   (playerId: number | undefined, table: string, fetch: (playerId: number) => Promise<T | null>): Promise<T | null | undefined> {
   if (playerId === undefined) return undefined;
+  if (!knowledgeManager.hasStore()) return undefined;
 
   // First attempt to read from the mutable knowledge store
   const store = knowledgeManager.getStore();
@@ -46,6 +47,8 @@ export async function readPlayerKnowledge<T>
  */
 export async function readPublicKnowledgeBatch<T>
   (table: string, fetch: () => Promise<T[]>): Promise<T[]> {
+  if (!knowledgeManager.hasStore()) return fetch();
+
   // First attempt to read from the mutable knowledge store
   const store = knowledgeManager.getStore();
 

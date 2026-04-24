@@ -1,0 +1,14 @@
+{
+  "name": "macos-copilot",
+  "type": "strategist",
+  "autoPlay": false,
+  "gameMode": "wait",
+  "llmPlayers": {
+    "0": {
+      "strategist": "simple-strategist-briefed",
+      "mode": "Strategy",
+      "llms": {}
+    }
+  },
+  "repetition": null
+}

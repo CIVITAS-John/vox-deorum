@@ -145,13 +145,13 @@ Edit `config.json`:
 Hardcoded settings:
 - Knowledge auto-save interval: 30 seconds
 - Bridge retry delay: 5 seconds
-- Database paths: auto-detected from standard Civ5 installation
+- Database paths: auto-detected from standard Civ5 user-data locations on Windows, macOS, and Linux. Set `CIV5_USER_DATA_PATH` when the cache lives somewhere custom.
 
 ## Key Implementation Details
 
 ### Bridge Integration
 - Queue-based request management with batching (up to 50 Lua calls)
-- SSE and event pipe (Windows named pipe) for real-time events
+- SSE for real-time events, with the Windows event pipe used only on win32
 - Auto-pause game when queue reaches capacity
 - Automatic reconnection with 5s retry
 

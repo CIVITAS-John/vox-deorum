@@ -13,6 +13,8 @@ Play Civilization V with AI-enhanced opponents powered by GPT, Claude, and other
 - Civilization V (Only tested with both expansion packs)
 - An API key from your favorite LLM provider
 
+For macOS, Vox Deorum runs in **copilot mode**: the advisor stack runs locally and can be used from the Web UI or an MCP client such as Codex/ChatGPT, while DLL-backed in-game automation remains Windows-only because Civilization V for macOS cannot load the Community Patch DLL.
+
 ### Installation
 
 1. **Download the installer**: Get the installer from our [releases page](https://github.com/CIVITAS-John/vox-deorum/releases)
@@ -20,6 +22,15 @@ Play Civilization V with AI-enhanced opponents powered by GPT, Claude, and other
 3. **Run Vox Deorum**: 
 - "Vox Deorum" in Start Menu
 - Or, manually open `scripts\vox-deorum.cmd`
+
+### macOS Copilot
+
+1. Install Node.js 20 or newer.
+2. Start Civilization V once so it creates its user data/cache folder.
+3. Run `npm run start:macos`.
+4. Open `http://127.0.0.1:5555` and choose the `macos-copilot` config, or connect Codex/ChatGPT to the MCP server at `http://127.0.0.1:4000/mcp`.
+
+The macOS launcher disables the Windows game pipe and event pipe, then uses SSE/HTTP between the Bridge Service, MCP Server, and Vox Agents. Set `CIV5_USER_DATA_PATH` if your Civ V data folder is not auto-detected. It also allows vanilla macOS Civ V caches by default; set `REQUIRE_VOX_POPULI_SCHEMA=true` if you want strict Vox Populi schema validation. The bridge defaults to port `5050` on macOS to avoid AirPlay Receiver on port `5000`.
 
 ### Features
 
@@ -45,7 +56,7 @@ Civ 5 ↔ Community Patch DLL ↔ Bridge Service ↔ MCP Server ↔ Vox Agents �
 
 ### Building from Source
 
-**Prerequisites:** Node.js ≥20, Windows 10/11, Python 3.x, Visual Studio Build Tools, Git with LFS
+**Prerequisites:** Node.js ≥20, Python 3.x, Git with LFS. Windows DLL builds also require Windows 10/11 and Visual Studio Build Tools.
 
 ```bash
 # Clone and setup

@@ -418,6 +418,10 @@ npm run test:game         # Game tests (launches Civilization V)
 npm run test:coverage     # Coverage report
 ```
 
+### macOS Copilot
+
+Vox Agents can launch or bind to the macOS Civilization V app for copilot sessions, but Lua bootstrapping and DLL-backed autoplay are Windows-only. Use the root `npm run start:macos` launcher and the `macos-copilot` config for advisory play.
+
 ### Test Categories
 
 - **Unit tests** (`tests/utils/`) - Pure logic, no external dependencies. Utility functions, data transformations, agent logic with mocks.

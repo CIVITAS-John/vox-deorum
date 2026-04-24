@@ -34,7 +34,7 @@ export async function getPlayerInformations(saving: boolean = true): Promise<Sel
   const players = response.result as Selectable<PlayerInformation>[];
 
   // Store each player's information in the PlayerInformation table
-  if (saving) {
+  if (saving && knowledgeManager.hasStore()) {
     const store = knowledgeManager.getStore();
     for (const player of players) {
       await store.storePublicKnowledge('PlayerInformations', player.Key, player);

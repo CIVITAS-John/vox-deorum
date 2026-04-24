@@ -227,6 +227,13 @@ export class KnowledgeManager {
   }
 
   /**
+   * Check whether a knowledge store is available for the current game context.
+   */
+  hasStore(): boolean {
+    return this.knowledgeStore !== undefined;
+  }
+
+  /**
    * Get current game turn
    */
   getTurn(): number {
