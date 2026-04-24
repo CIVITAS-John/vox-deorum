@@ -27,7 +27,6 @@ export async function getPlayerSummaries(saving: boolean = true): Promise<Select
   const response = await luaFunc.execute();
   if (!response.success)
     return [];
-  const store = knowledgeManager.getStore();
 
   // Process all summaries
   for (var summary of response.result) {
@@ -65,7 +64,8 @@ export async function getPlayerSummaries(saving: boolean = true): Promise<Select
 
   // Store all summaries in batch if saving is enabled
   // Visibility handled by Lua script
-  if (saving) {
+  if (saving && knowledgeManager.hasStore()) {
+    const store = knowledgeManager.getStore();
     await store.storeMutableKnowledgeBatch(
       'PlayerSummaries',
       response.result.map((summary: any) => {

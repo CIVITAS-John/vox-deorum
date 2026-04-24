@@ -25,6 +25,7 @@ export interface MCPServerConfig {
     name: string;
     version: string;
   };
+  copilotMode?: boolean;
   transport: {
     type: TransportType;
     port?: number;
@@ -68,6 +69,7 @@ const defaultConfig: MCPServerConfig = {
     name: 'vox-deorum-mcp-server',
     version: '1.0.0'
   },
+  copilotMode: false,
   transport: {
     type: 'http',
     port: 4000,
@@ -150,6 +152,9 @@ export function loadConfig(): MCPServerConfig {
   const requireVoxPopuliSchema = process.env.REQUIRE_VOX_POPULI_SCHEMA === undefined
     ? fileConfig.database?.requireVoxPopuliSchema ?? defaultConfig.database?.requireVoxPopuliSchema ?? true
     : process.env.REQUIRE_VOX_POPULI_SCHEMA === 'true';
+  const copilotMode = process.env.COPILOT_MODE === undefined
+    ? fileConfig.copilotMode ?? (requireVoxPopuliSchema === false ? true : defaultConfig.copilotMode ?? false)
+    : process.env.COPILOT_MODE === 'true';
 
   if (rawEventPipeEnabled && !platformEventPipeEnabled) {
     logger.warn('Event pipe disabled: Windows named pipes are only supported on win32. SSE remains available.');
@@ -160,6 +165,7 @@ export function loadConfig(): MCPServerConfig {
       name: process.env.MCP_SERVER_NAME || fileConfig.server?.name || defaultConfig.server.name,
       version: process.env.MCP_SERVER_VERSION || fileConfig.server?.version || defaultConfig.server.version
     },
+    copilotMode,
     transport: {
       type: transportType,
       port: parseInt(process.env.MCP_PORT || '') || 
@@ -206,6 +212,7 @@ export function loadConfig(): MCPServerConfig {
 
   logger.info('Configuration loaded:', {
     server: config.server,
+    copilotMode: config.copilotMode,
     transport: config.transport,
     bridgeService: config.bridgeService,
     logging: { level: config.logging.level }
