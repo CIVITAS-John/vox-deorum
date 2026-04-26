@@ -217,14 +217,16 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
  * // Returns: { openrouter: { reasoning: { effort: 'medium' } } }
  */
 export function buildProviderOptions(model: Model): ProviderMetadata {
+  let result: ProviderMetadata;
+
   if (!model.options) {
-    return { [model.provider]: {} };
+    result = { [model.provider]: {} };
   }
 
   // Handle OpenRouter's reasoning format
-  if (model.provider === 'openrouter' && model.options.reasoningEffort) {
+  else if (model.provider === 'openrouter' && model.options.reasoningEffort) {
     const { reasoningEffort, ...otherOptions } = model.options;
-    return {
+    result = {
       openrouter: {
         ...otherOptions,
         reasoning: {
@@ -235,8 +237,8 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   }
 
   // Handle Gemma's thinking format
-  if (model.provider === 'openai-compatible' && model.options.reasoningEffort && model.options.reasoningEffort !== "minimal" && model.name.toLowerCase().includes('gemma-4')) {
-    return {
+  else if (model.provider === 'openai-compatible' && model.options.reasoningEffort && model.options.reasoningEffort !== "minimal" && model.name.toLowerCase().includes('gemma-4')) {
+    result = {
       'openai-compatible': {
         ...model.options,
         extra_body: { chat_template_kwargs: { enable_thinking: true } },
@@ -246,8 +248,8 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   }
 
   // Handle LiteLLM's reasoning format
-  if (model.provider === 'openai-compatible' && model.options.reasoningEffort) {
-    return {
+  else if (model.provider === 'openai-compatible' && model.options.reasoningEffort) {
+    result = {
       'openai-compatible': {
         ...model.options,
         allowed_openai_params: ['reasoning_effort']
@@ -256,7 +258,7 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   }
 
   // Handle Anthropic's reasoning format
-  if (model.provider === 'anthropic' && model.options.reasoningEffort && model.options.reasoningEffort !== "minimal") {
+  else if (model.provider === 'anthropic' && model.options.reasoningEffort && model.options.reasoningEffort !== "minimal") {
     const { reasoningEffort, ...otherOptions } = model.options;
     let budget = 1024;
     switch (model.options.reasoningEffort) {
@@ -270,7 +272,7 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
         budget = 8192;
         break;
     }
-    return {
+    result = {
       anthropic: {
         ...otherOptions,
         thinking: { type: 'enabled', budgetTokens: budget }
@@ -279,9 +281,30 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   }
 
   // Default: pass options through as-is
-  return {
-    [model.provider]: model.options
-  };
+  else {
+    result = {
+      [model.provider]: model.options
+    };
+  }
+
+  // LiteLLM-specific: inject cache_salt and allowed_openai_params for openai-compatible
+  if (model.provider === 'openai-compatible') {
+    const compat = (result['openai-compatible'] ?? {}) as Record<string, any>;
+    result = {
+      'openai-compatible': {
+        ...compat,
+        extra_body: {
+          cache_salt: "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXphYmNkZWZnaGlqa2xtbm9wcQ==",
+          ...compat.extra_body,
+        },
+        allowed_openai_params: [
+          ...new Set([...(compat.allowed_openai_params ?? []), 'reasoning_effort']),
+        ],
+      },
+    };
+  }
+
+  return result;
 }
 
 /**
