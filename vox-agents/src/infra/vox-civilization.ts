@@ -277,29 +277,13 @@ export class VoxCivilization {
   }
 
   /**
-   * Generates scripts/MainMenu.lua from scripts/MainMenu.template.lua.
-   * Conditionally includes the AI Observer mod based on the parameter.
+   * Enables or disables AI Observer mod inclusion in generated automation scripts.
    *
-   * @param enableAiObserver - When true, the AI Observer mod entry is included
+   * @param enabled - When true, the AI Observer mod is included in the required mods list
    */
-  async generateMainMenuLua(enableAiObserver: boolean): Promise<void> {
-    this.aiObserverEnabled = enableAiObserver;
-
-    const templatePath = join('scripts', 'MainMenu.template.lua');
-    const outputPath = join('scripts', 'MainMenu.lua');
-    const aiObserverEntry = enableAiObserver
-      ? '["970aae10-1004-4c8a-af2d-8d601de5ec02"] = "AI Observer (JFD)"'
-      : '';
-
-    try {
-      const template = await readFile(templatePath, 'utf-8');
-      const generated = template.replace('{{AI_OBSERVER_MOD}}', aiObserverEntry);
-      await writeFile(outputPath, generated, 'utf-8');
-      logger.debug(`Generated MainMenu.lua (AIObserver: ${enableAiObserver})`);
-    } catch (error) {
-      logger.error('Failed to generate MainMenu.lua from template:', error);
-      throw error;
-    }
+  setAiObserver(enabled: boolean): void {
+    this.aiObserverEnabled = enabled;
+    logger.debug(`AI Observer ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   /**

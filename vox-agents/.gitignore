@@ -57,3 +57,11 @@ configs/**/*.json
 !configs/play-*.json
 
 /telemetry/
+
+# Generated Lua scripts (non-template)
+scripts/StartGame.lua
+scripts/StartGame.temp.lua
+scripts/LoadGame.lua
+scripts/LoadGame.temp.lua
+scripts/LoadMods.lua
+scripts/LoadMods.temp.lua

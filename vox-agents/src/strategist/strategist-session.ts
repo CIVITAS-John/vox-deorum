@@ -91,8 +91,8 @@ export class StrategistSession extends VoxSession<StrategistSessionConfig> {
       logger.warn('OBS initialization failed — session will continue without recording');
     }
 
-    // Generate MainMenu.lua — AI Observer only in non-interactive mode
-    await voxCivilization.generateMainMenuLua(!this.isInteractiveMode);
+    // Enable AI Observer mod in non-interactive mode
+    voxCivilization.setAiObserver(!this.isInteractiveMode);
 
     // In wait mode, prompt the user to start the game manually
     if (this.config.gameMode === 'wait') {
