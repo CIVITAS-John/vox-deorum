@@ -120,7 +120,7 @@ export interface PlayerSummary extends MutableKnowledge {
   PolicyBranches: JSONColumnType<Record<string, string[]>> | null; // Policy branch -> array of policy names (details visibility 2 only)
   FoundedReligion: string | null;
   MajorityReligion: string | null;
-  ResourcesAvailable: JSONColumnType<Record<string, number>> | null;
+  Resources: JSONColumnType<Record<string, string | number>> | null; // "available / total" for majors, count for minors
   Relationships: JSONColumnType<Record<string, string | string[]>> | null; // Civ name -> relationship status (string for minor civs) or array of relationship types (array for major civs)
   OutgoingTradeRoutes: JSONColumnType<Record<string, number | TradeRouteDetails>> | null; // "Not assigned": count or "FromCity => ToCity (Civ)": route details
   IncomingTradeRoutes: JSONColumnType<Record<string, TradeRouteDetails>> | null; // "FromCity (Civ) => ToCity": route details

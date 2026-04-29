@@ -68,7 +68,7 @@ const PlayerDataSchema = z.object({
   FaithPerTurn: z.number().optional(),
   SciencePerTurn: z.number().optional(),
   PolicyBranches: z.union([z.record(z.string(), z.array(z.string())), z.record(z.string(), z.number())]).optional(),
-  ResourcesAvailable: z.record(z.string(), z.number()).optional(),
+  Resources: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
   FoundedReligion: z.string().nullable().optional(),
   MajorityReligion: z.string().nullable().optional(),
   Relationships: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional(),
@@ -343,9 +343,11 @@ function postProcessData(
   }
 
   // Remove resources with value 0 from other players' data
-  if (summary.ResourcesAvailable) {
-    summary.ResourcesAvailable = Object.fromEntries(
-      Object.entries(summary.ResourcesAvailable).filter(([_, value]) => value !== 0)
+  if (summary.Resources) {
+    summary.Resources = Object.fromEntries(
+      Object.entries(summary.Resources).filter(([_, value]) =>
+        typeof value === 'number' ? value !== 0 : value !== '0 / 0'
+      )
     );
   }
 

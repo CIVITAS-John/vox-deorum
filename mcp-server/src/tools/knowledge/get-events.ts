@@ -551,7 +551,7 @@ function postprocessPayload(value: Record<string, unknown>, player: Selectable<P
     const val = value[key];
     if (!val) continue;
     if (key === "ResourceType" || key === "Resource") {
-      if (player.ResourcesAvailable && Object.keys(player.ResourcesAvailable).indexOf(val as string) === -1) {
+      if (player.Resources && Object.keys(player.Resources).indexOf(val as string) === -1) {
         value[key] = "None";
       }
     } else if (typeof(val) === "object") {

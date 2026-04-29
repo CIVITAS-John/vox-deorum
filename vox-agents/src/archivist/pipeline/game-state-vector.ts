@@ -73,7 +73,7 @@ export function reportsToTurnContext(
       PolicyBranches: entry.PolicyBranches ?? null,
       FoundedReligion: entry.FoundedReligion ?? null,
       MajorityReligion: entry.MajorityReligion ?? null,
-      ResourcesAvailable: null,
+      Resources: null,
       Relationships: entry.Relationships ?? null,
       OutgoingTradeRoutes: null,
       IncomingTradeRoutes: null,

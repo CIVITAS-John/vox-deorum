@@ -233,7 +233,7 @@ export async function setupKnowledgeDatabase(
     .addColumn('MilitaryUnits', 'integer') // Current military units needing supply
     .addColumn('MilitarySupply', 'integer') // Maximum supply capacity
     .addColumn('MilitaryStrength', 'integer') // Total military strength (attack power of all units)
-    .addColumn('ResourcesAvailable', 'text')
+    .addColumn('Resources', 'text')
     .addColumn('FoundedReligion', 'text')
     .addColumn('MajorityReligion', 'text')
     .addColumn('Relationships', 'text') // JSON object of diplomatic relationships

@@ -285,7 +285,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         PolicyBranches = nil,  -- Will be populated if player has policies
         FoundedReligion = nil,  -- Will be populated if player founded religion
         MajorityReligion = player:GetStateReligionName(),
-        ResourcesAvailable = nil,  -- Will be populated if player has resources
+        Resources = nil,  -- Will be populated if player has resources
         Relationships = nil,  -- Will be populated if player has diplomatic relationships
         OutgoingTradeRoutes = nil,  -- Will be populated if player has outgoing trade routes
         IncomingTradeRoutes = nil,  -- Will be populated if player has incoming trade routes
@@ -356,18 +356,26 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         end
       end
       
-      -- Get resources for major civs (revealed and owned resources in format {"Iron": 0})
-      local availableResources = nil  -- Start with nil, only allocate if needed
+      -- Get resources for major civs: strategic as "available / total", luxuries as available count
+      local resources = nil  -- Start with nil, only allocate if needed
       for resource in GameInfo.Resources() do
         if player:IsResourceRevealed(resource.ID) then
-          local resourceCount = player:GetNumResourceAvailable(resource.ID, true)
-          -- Only allocate and add if we have revealed resources
-          if not availableResources then availableResources = {} end
-          local resourceName = Locale.ConvertTextKey(resource.Description)
-          availableResources[resourceName] = resourceCount
+          local available = player:GetNumResourceAvailable(resource.ID, true)
+          local resourceValue = nil
+          if resource.ResourceClassType == "RESOURCECLASS_RUSH" or resource.ResourceClassType == "RESOURCECLASS_MODERN" then
+            local total = player:GetNumResourceTotal(resource.ID, true)
+            resourceValue = available .. " / " .. total
+          elseif resource.ResourceClassType == "RESOURCECLASS_LUXURY" then
+            resourceValue = available
+          end
+          if resourceValue ~= nil then
+            if not resources then resources = {} end
+            local resourceName = Locale.ConvertTextKey(resource.Description)
+            resources[resourceName] = resourceValue
+          end
         end
       end
-      summary.ResourcesAvailable = availableResources
+      summary.Resources = resources
 
       -- Get diplomatic relationships with other major civilizations (only if player is major civ)
       local relationships = {}
@@ -683,7 +691,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
         Gold = player:GetGold(),
         GoldPerTurn = math.floor(player:CalculateGoldRateTimes100() / 100),
         Technologies = fromTeam:GetTeamTechs():GetNumTechsKnown() or 0,  -- Get actual tech count for minor civs
-        ResourcesAvailable = nil,  -- Will be populated with actual available resources
+        Resources = nil,  -- Will be populated with actual available resources
         Relationships = nil  -- Will be populated with relationships to major civs
       }
       
@@ -779,7 +787,7 @@ Game.RegisterFunction("${Name}", function(${Arguments})
           availableResources[resourceName] = resourceCount
         end
       end
-      summary.ResourcesAvailable = availableResources
+      summary.Resources = availableResources
 
       -- Get active quests for this city-state
       local quests = {}
