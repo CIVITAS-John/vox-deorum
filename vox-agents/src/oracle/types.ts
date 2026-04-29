@@ -58,6 +58,14 @@ export interface ModifiedPrompt {
   metadata?: Record<string, any>;
 }
 
+/** Options for Oracle batch mode */
+export interface BatchOptions {
+  /** Time window to collect requests before submitting a batch (ms, default 15000) */
+  flushInterval?: number;
+  /** How often to poll for batch completion (ms, default 30000) */
+  pollInterval?: number;
+}
+
 /** Configuration for an Oracle experiment */
 export interface OracleConfig {
   /** Input CSV path (relative or absolute) */
@@ -89,6 +97,13 @@ export interface OracleConfig {
   extractColumns?: (ctx: ExtractionContext) => Record<string, any>;
   /** Filter which CSV rows to process. Return true to include, false to skip. Applied in both retrieve and replay phases. */
   filter?: (row: OracleRow, index: number) => boolean;
+  /**
+   * Enable batch mode via OpenAI Batch API.
+   * Requests are collected over a time window and submitted as a batch for ~50% cost savings.
+   * Only supported for openai and openai-compatible providers — others will throw.
+   * Set to true for defaults, or pass BatchOptions to customize intervals.
+   */
+  batch?: boolean | BatchOptions;
   /**
    * Directory name for retrieved data. When set, retrieve phase saves to
    * {outputDir}/{retrievalName}/retrieved/ instead of using experimentName.

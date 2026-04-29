@@ -3,6 +3,10 @@
  *
  * Concurrency-limited streamText wrapper with exponential retry.
  * Provides per-model concurrency limiting to prevent overwhelming API endpoints.
+ *
+ * When the batch manager is active (for Oracle batch mode), requests for
+ * batch-compatible providers are routed through the batch manager instead
+ * of being sent as live streaming HTTP calls.
  */
 
 import pLimit from 'p-limit';
@@ -11,6 +15,8 @@ import { exponentialRetry, isContextLengthError } from '../retry.js';
 import type { Model } from '../../types/index.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { AgentParameters } from '../../infra/vox-agent.js';
+import { hasBatchManager, getBatchManager, isBatchableProvider } from '../../oracle/batch/batch-manager.js';
+import { convertToOpenAIRequest, convertToStepResult } from '../../oracle/batch/format-converter.js';
 
 /** Map of model IDs to their p-limit instances */
 const modelLimiters = new Map<string, ReturnType<typeof pLimit>>();
@@ -73,6 +79,15 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
   // We need to get the original Model config to determine concurrency limits
   // This is a bit of a hack but works since we control the call site
   const modelConfig = (params as any).__modelConfig as Model | undefined;
+
+  // Batch mode: route through the batch manager if it's active and the provider supports it.
+  // This bypasses streaming, per-model concurrency limiting, and retry logic entirely —
+  // the batch API handles all of that server-side.
+  if (hasBatchManager() && modelConfig && isBatchableProvider(modelConfig)) {
+    const request = convertToOpenAIRequest(params, modelConfig);
+    const response = await getBatchManager().enqueue(request);
+    return convertToStepResult(response);
+  }
 
   // If we don't have the config, use a default limiter
   const limiter = modelConfig

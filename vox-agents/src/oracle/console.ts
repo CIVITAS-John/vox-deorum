@@ -45,6 +45,7 @@ const { values } = parseArgs({
     retrieve:       { type: 'boolean' },
     replay:         { type: 'boolean' },
     forceReplay:    { type: 'boolean' },
+    batch:          { type: 'boolean' },
   },
   strict: false,
   allowPositionals: false,
@@ -76,6 +77,7 @@ function printUsage(): void {
     '  --retrieve          Retrieve only (extract raw prompts from telemetry, no LLM)',
     '  --replay            Replay only (load retrieved JSONs, apply modifyPrompt, run LLM)',
     '  --forceReplay       Ignore existing replay trail JSON cache and rerun LLM calls',
+    '  --batch             Use OpenAI Batch API for ~50% cost savings (openai/openai-compatible only)',
     '',
     'Modes:',
     '  (default)     Both retrieve + replay in sequence',
@@ -122,6 +124,7 @@ async function main() {
       ...experimentConfig,
       ...cliOverrides,
       ...(values.forceReplay === true ? { readCache: false } : {}),
+      ...(values.batch === true ? { batch: true } : {}),
     };
 
     const retrieveOnly = values.retrieve === true && values.replay !== true;
