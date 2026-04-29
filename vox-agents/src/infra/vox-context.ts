@@ -574,7 +574,7 @@ export class VoxContext<TParameters extends AgentParameters> {
           // Clean tool rescue artifacts from response messages
           for (const msg of stepResponse.response.messages) {
             if (Array.isArray(msg.content)) {
-              msg.content = msg.content.filter(part => {
+              msg.content = msg.content.filter((part: any) => {
                 if (part.type === 'text') {
                   part.text = cleanToolArtifacts(part.text);
                   return part.text.length > 0;

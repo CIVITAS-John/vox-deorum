@@ -49,6 +49,13 @@ export const defaultConfig: VoxAgentsConfig = {
       provider: 'openai',
       name: 'gpt-5.4-nano'
     },
+    'google/Gemma-4-26B': {
+      provider: 'openai-compatible',
+      name: 'gemma-4-26b-a4b-it',
+      options: {
+        toolMiddleware: 'prompt'
+      }
+    },
     'openrouter/openai/gpt-oss-120b': {
       provider: 'openrouter',
       name: 'openai/gpt-oss-120b',
@@ -79,34 +86,6 @@ export const defaultConfig: VoxAgentsConfig = {
       provider: 'anthropic',
       name: 'claude-opus-4-6'
     },
-    'chutes/zai-org/glm-4.7': {
-      provider: 'chutes',
-      name: 'zai-org/GLM-4.7-TEE',
-      options: {
-        toolMiddleware: 'prompt'
-      }
-    },
-    'chutes/deepseek-ai/DeepSeek-V3.2': {
-      provider: 'chutes',
-      name: 'deepseek-ai/DeepSeek-V3.2-TEE',
-      options: {
-        toolMiddleware: 'prompt'
-      }
-    },
-    'synthetic/hf:zai-org/GLM-4.7': {
-      provider: 'synthetic',
-      name: 'hf:zai-org/GLM-4.7',
-      options: {
-        toolMiddleware: 'prompt'
-      }
-    },
-    'synthetic/hf:deepseek-ai/DeepSeek-V3.2': {
-      provider: 'synthetic',
-      name: 'hf:deepseek-ai/DeepSeek-V3.2',
-      options: {
-        toolMiddleware: 'prompt'
-      }
-    },
     'synthetic/hf:moonshotai/Kimi-K2.5': {
       provider: 'synthetic',
       name: 'hf:moonshotai/Kimi-K2.5',
@@ -114,9 +93,9 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
-    'synthetic/hf:MiniMaxAI/MiniMax-M2.5': {
+    'synthetic/hf:MiniMaxAI/MiniMax-M2.7': {
       provider: 'synthetic',
-      name: 'hf:MiniMaxAI/MiniMax-M2.5',
+      name: 'hf:MiniMaxAI/MiniMax-M2.7',
       options: {
         toolMiddleware: 'prompt'
       }
@@ -128,24 +107,9 @@ export const defaultConfig: VoxAgentsConfig = {
         toolMiddleware: 'prompt'
       }
     },
-    'openai-compatible/gpt-oss-120b-high': {
-      provider: 'openai-compatible',
-      name: 'gpt-oss-120b',
-      options: {
-        toolMiddleware: 'prompt',
-        reasoningEffort: 'high'
-      }
-    },
     'openai-compatible/GLM-4.7': {
       provider: 'openai-compatible',
       name: 'GLM-4.7',
-      options: {
-        toolMiddleware: 'prompt'
-      }
-    },
-    'openai-compatible/GLM-5': {
-      provider: 'openai-compatible',
-      name: 'GLM-5',
       options: {
         toolMiddleware: 'prompt'
       }
