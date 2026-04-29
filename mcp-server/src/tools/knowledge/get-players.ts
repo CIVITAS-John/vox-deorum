@@ -69,6 +69,7 @@ const PlayerDataSchema = z.object({
   SciencePerTurn: z.number().optional(),
   PolicyBranches: z.union([z.record(z.string(), z.array(z.string())), z.record(z.string(), z.number())]).optional(),
   Resources: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+  ResourcesAvailable: z.record(z.string(), z.number()).optional(),
   FoundedReligion: z.string().nullable().optional(),
   MajorityReligion: z.string().nullable().optional(),
   Relationships: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional(),
@@ -342,13 +343,17 @@ function postProcessData(
     summary.Relationships = updatedRelationships;
   }
 
-  // Remove resources with value 0 from other players' data
+  // For non-team players, expose only available resource counts.
   if (summary.Resources) {
-    summary.Resources = Object.fromEntries(
-      Object.entries(summary.Resources).filter(([_, value]) =>
-        typeof value === 'number' ? value !== 0 : value !== '0 / 0'
-      )
+    const resourcesAvailable = Object.fromEntries(
+      Object.entries(summary.Resources)
+        .map(([resource, value]) => [resource, getAvailableResourceCount(value)] as const)
+        .filter(([_, value]) => value !== 0)
     );
+    delete summary.Resources;
+    if (Object.keys(resourcesAvailable).length > 0) {
+      summary.ResourcesAvailable = resourcesAvailable;
+    }
   }
 
   // Remove info from minor civs
@@ -372,4 +377,10 @@ function postProcessData(
     delete summary.Quests;
   }
   return summary;
+}
+
+function getAvailableResourceCount(value: string | number): number {
+  if (typeof value === 'number') return value;
+  const available = Number.parseInt(value.split('/')[0].trim(), 10);
+  return Number.isNaN(available) ? 0 : available;
 }

@@ -97,7 +97,7 @@ export function pickPlayerFields<K extends keyof PlayerData>(
  * @returns Filtered players report without specified fields
  *
  * @example
- * const filtered = omitPlayerFields(players, ['Resources', 'Spies', 'Quests']);
+ * const filtered = omitPlayerFields(players, ['Resources', 'ResourcesAvailable', 'Spies', 'Quests']);
  */
 export function omitPlayerFields<K extends keyof PlayerData>(
   players: PlayersReport,
@@ -173,7 +173,7 @@ export function omitCityFields<K extends keyof CityData>(
 
 /**
  * Filters players report by removing detailed fields that are not needed for high-level strategic decisions.
- * Removes: Spies, Quests, IncomingTradeRoutes, OutgoingTradeRoutes, Resources, DiplomaticDeals
+ * Removes: Spies, Quests, IncomingTradeRoutes, OutgoingTradeRoutes, Resources, ResourcesAvailable, DiplomaticDeals
  *
  * @param players - The full players report
  * @returns Filtered players report for strategic analysis
@@ -183,6 +183,6 @@ export function omitCityFields<K extends keyof CityData>(
  */
 export function getStrategicPlayersReport(players: PlayersReport) {
   return omitPlayerFields(players, [
-    'Spies', 'Quests', 'IncomingTradeRoutes', 'OutgoingTradeRoutes', 'Resources', 'DiplomaticDeals'
+    'Spies', 'Quests', 'IncomingTradeRoutes', 'OutgoingTradeRoutes', 'Resources', 'ResourcesAvailable', 'DiplomaticDeals'
   ]);
 }

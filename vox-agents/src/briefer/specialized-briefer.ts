@@ -224,7 +224,7 @@ ${SimpleBriefer.instructionFooter}`.trim(),
       'Score', 'Territory', 'MilitaryStrength', 'Cities', 'Population', 'Gold', 'GoldPerTurn',
       'OurOpinionOfThem', 'TheirOpinionOfUs', 'Relationships', 'MyEvaluation', 'PolicyBranches',
       'FoundedReligion', 'MajorityReligion', 'MajorAlly', 'Quests', 'DiplomaticDeals',
-      'GoldenAge', 'HappinessSituation', 'Resources', 'IncomingTradeRoutes', 'OutgoingTradeRoutes', 'Spies'
+      'GoldenAge', 'HappinessSituation', 'Resources', 'ResourcesAvailable', 'IncomingTradeRoutes', 'OutgoingTradeRoutes', 'Spies'
     ]);
     const filteredCities = pickCityFields(state.cities!, [
       'ID', 'X', 'Y', 'Population', 'MajorityReligion',
