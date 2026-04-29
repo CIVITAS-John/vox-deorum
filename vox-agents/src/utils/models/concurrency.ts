@@ -15,7 +15,7 @@ import { exponentialRetry, isContextLengthError } from '../retry.js';
 import type { Model } from '../../types/index.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { AgentParameters } from '../../infra/vox-agent.js';
-import { hasBatchManager, getBatchManager, isBatchableProvider } from '../../oracle/batch/batch-manager.js';
+import { hasBatchManager, getBatchManager } from '../../oracle/batch/batch-manager.js';
 import { convertToOpenAIRequest, convertToStepResult } from '../../oracle/batch/format-converter.js';
 
 /** Map of model IDs to their p-limit instances */
@@ -80,10 +80,10 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
   // This is a bit of a hack but works since we control the call site
   const modelConfig = (params as any).__modelConfig as Model | undefined;
 
-  // Batch mode: route through the batch manager if it's active and the provider supports it.
+  // Batch mode: route through the batch manager if it's active.
   // This bypasses streaming, per-model concurrency limiting, and retry logic entirely —
   // the batch API handles all of that server-side.
-  if (hasBatchManager() && modelConfig && isBatchableProvider(modelConfig)) {
+  if (hasBatchManager() && modelConfig) {
     const request = convertToOpenAIRequest(params, modelConfig);
     const response = await getBatchManager().enqueue(request);
     return convertToStepResult(response);

@@ -97,17 +97,6 @@ export async function shutdownBatchManager(): Promise<void> {
 // ── Provider Routing ──
 
 /**
- * Check whether a model's provider supports the OpenAI Batch API.
- * Only `openai` and `openai-compatible` providers are supported.
- *
- * @param model - Model configuration
- * @returns true if the provider supports batch mode
- */
-export function isBatchableProvider(model: Model): boolean {
-  return model.provider === 'openai' || model.provider === 'openai-compatible';
-}
-
-/**
  * Resolve the batch API endpoint and credentials for a model's provider.
  * Throws for unsupported providers — no silent fallback.
  *
@@ -129,6 +118,11 @@ export function getBatchEndpoint(model: Model): { baseURL: string; apiKey: strin
       return {
         baseURL: process.env.OPENAI_COMPATIBLE_URL,
         apiKey: process.env.OPENAI_COMPATIBLE_API_KEY!,
+      };
+    case 'google':
+      return {
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
+        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
       };
     default:
       throw new Error(
@@ -160,6 +154,14 @@ class BatchManager {
   private shuttingDown = false;
   /** Tracks all poll loops so shutdown can await them */
   private pollPromises: Promise<void>[] = [];
+  /**
+   * Counts how many times the same base content hash has been enqueued.
+   * Oracle intentionally sends the same prompt multiple times (repetitions);
+   * the occurrence index is appended to the hash so each run is unique.
+   * On restart the counter resets to 0, but the DB already has hash:0, hash:1, etc.
+   * so they match up via cache hits in order.
+   */
+  private hashOccurrences = new Map<string, number>();
   /** Monotonic counter for generating unique custom_ids within this process */
   private customIdCounter = 0;
 
@@ -256,7 +258,12 @@ class BatchManager {
    */
   async enqueue(request: ChatCompletionRequest): Promise<ChatCompletion> {
     const modelId = request.model;
-    const hash = this.hashRequest(modelId, request);
+    // Compute a base hash from the content, then append an occurrence index
+    // so that identical requests (Oracle repetitions) get distinct hashes.
+    const baseHash = this.hashRequest(modelId, request);
+    const occurrence = this.hashOccurrences.get(baseHash) ?? 0;
+    this.hashOccurrences.set(baseHash, occurrence + 1);
+    const hash = `${baseHash}:${occurrence}`;
 
     // Check SQLite for an existing record with this hash
     const existing = await this.batchDb.findByHash(hash);
@@ -362,7 +369,7 @@ class BatchManager {
           update(true);
           return result;
         },
-        logger, undefined, 'batch-upload', 3, 5000, 60000
+        logger, undefined, 'batch-upload', this.maxBatchRetries, 5000, 60000
       );
 
       // Create the batch with retry
@@ -372,7 +379,7 @@ class BatchManager {
           update(true);
           return result;
         },
-        logger, undefined, 'batch-create', 3, 5000, 60000
+        logger, undefined, 'batch-create', this.maxBatchRetries, 5000, 60000
       );
 
       const batchId = batchObj.id;

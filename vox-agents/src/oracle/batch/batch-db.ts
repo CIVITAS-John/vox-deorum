@@ -126,7 +126,8 @@ export class BatchDb {
 
   /**
    * Insert a new request into the database as 'pending'.
-   * The request body is stored as JSON text for later JSONL generation.
+   * Uses ON CONFLICT DO NOTHING to handle concurrent enqueue calls
+   * for the same request hash (race between findByHash and insert).
    *
    * @param req - Insertable request record (hash, modelId, customId, requestBody, etc.)
    */
@@ -134,6 +135,7 @@ export class BatchDb {
     await this.db
       .insertInto('requests')
       .values(req)
+      .onConflict(oc => oc.column('hash').doNothing())
       .execute();
   }
 

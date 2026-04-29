@@ -50,11 +50,8 @@ export const defaultConfig: VoxAgentsConfig = {
       name: 'gpt-5.4-nano'
     },
     'google/Gemma-4-26B': {
-      provider: 'openai-compatible',
-      name: 'gemma-4-26b-a4b-it',
-      options: {
-        toolMiddleware: 'prompt'
-      }
+      provider: 'google',
+      name: 'gemma-4-26b-a4b-it'
     },
     'openrouter/openai/gpt-oss-120b': {
       provider: 'openrouter',
