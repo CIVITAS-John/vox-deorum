@@ -41,6 +41,7 @@ export class VoxCivilization {
   private monitoring = false;
   private externalProcessPid: number | null = null;
   private pollInterval: NodeJS.Timeout | null = null;
+  private aiObserverEnabled = false;
 
   /**
    * Finds and binds to an existing CivilizationV.exe process.
@@ -160,15 +161,61 @@ export class VoxCivilization {
   }
 
   /**
+   * Builds a Lua table literal string for required mods,
+   * conditionally including AI Observer based on aiObserverEnabled.
+   */
+  private buildRequiredModsLua(): string {
+    const mods: Record<string, string> = {
+      'd1b6328c-ff44-4b0d-aad7-c657f83610cd': 'Community Patch',
+      '8411a7a8-dad3-4622-a18e-fcc18324c799': 'Vox Populi',
+      '24923240-e4fb-4bf6-8f0e-6e5b6cf4d3c2': 'Vox Populi + EUI',
+      '04c67ca5-d408-4b9e-be1b-bbc00e67fd8e': 'Vox Deorum',
+    };
+    if (this.aiObserverEnabled) {
+      mods['970aae10-1004-4c8a-af2d-8d601de5ec02'] = 'AI Observer (JFD)';
+    }
+    const entries = Object.entries(mods)
+      .map(([id, name]) => `  ["${id}"] = "${name}"`)
+      .join(',\n');
+    return `{\n${entries}\n}`;
+  }
+
+  /**
+   * Generates a Lua file from a template by replacing placeholders.
+   *
+   * @private
+   * @param templateName - Template filename in scripts/
+   * @param outputName - Output filename in scripts/
+   * @param replacements - Map of placeholder keys to values (keys without {{ }})
+   */
+  private async generateFromTemplate(
+    templateName: string,
+    outputName: string,
+    replacements: Record<string, string>
+  ): Promise<void> {
+    const templatePath = join('scripts', templateName);
+    const outputPath = join('scripts', outputName);
+
+    try {
+      let content = await readFile(templatePath, 'utf-8');
+      for (const [key, value] of Object.entries(replacements)) {
+        content = content.replace(`{{${key}}}`, value);
+      }
+      await writeFile(outputPath, content, 'utf-8');
+      logger.debug(`Generated ${outputPath} from ${templateName}`);
+    } catch (error) {
+      logger.error(`Failed to generate ${outputName} from ${templateName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Generates a StartGame.lua file from the template with dynamic player count and map size.
    *
    * @private
    * @param playerCount - Number of players to configure
    */
   private async generateStartGameLua(playerCount: number): Promise<void> {
-    const templatePath = join('scripts', 'StartGame.template.lua');
-    const outputPath = join('scripts', 'StartGame.temp.lua');
-
     // Round player count to nearest even number
     const roundedPlayerCount = Math.ceil(playerCount / 2) * 2;
 
@@ -180,22 +227,11 @@ export class VoxCivilization {
 
     logger.info(`Generating StartGame.lua for ${roundedPlayerCount} players (requested: ${playerCount}) with world size ${worldSize}`);
 
-    try {
-      // Read template
-      const template = await readFile(templatePath, 'utf-8');
-
-      // Replace placeholders
-      const generated = template
-        .replace('{{WORLD_SIZE}}', worldSize.toString())
-        .replace('{{PLAYER_SLOTS}}', `{ ${playerSlots} }`);
-
-      // Write generated file
-      await writeFile(outputPath, generated, 'utf-8');
-      logger.debug(`Generated ${outputPath}`);
-    } catch (error) {
-      logger.error('Failed to generate StartGame.lua from template:', error);
-      throw error;
-    }
+    await this.generateFromTemplate('StartGame.template.lua', 'StartGame.temp.lua', {
+      WORLD_SIZE: worldSize.toString(),
+      PLAYER_SLOTS: `{ ${playerSlots} }`,
+      REQUIRED_MODS: this.buildRequiredModsLua(),
+    });
   }
 
   /**
@@ -247,6 +283,8 @@ export class VoxCivilization {
    * @param enableAiObserver - When true, the AI Observer mod entry is included
    */
   async generateMainMenuLua(enableAiObserver: boolean): Promise<void> {
+    this.aiObserverEnabled = enableAiObserver;
+
     const templatePath = join('scripts', 'MainMenu.template.lua');
     const outputPath = join('scripts', 'MainMenu.lua');
     const aiObserverEntry = enableAiObserver
@@ -279,11 +317,21 @@ export class VoxCivilization {
       return true;
     }
 
-    // Generate StartGame.temp.lua if using StartGame.lua with player count
+    // Generate temp Lua scripts from templates with required mods
     let actualLuaName = luaName;
     if (luaName === 'StartGame.lua' && playerCount !== undefined) {
       await this.generateStartGameLua(playerCount);
       actualLuaName = 'StartGame.temp.lua';
+    } else if (luaName === 'LoadGame.lua') {
+      await this.generateFromTemplate('LoadGame.template.lua', 'LoadGame.temp.lua', {
+        REQUIRED_MODS: this.buildRequiredModsLua(),
+      });
+      actualLuaName = 'LoadGame.temp.lua';
+    } else if (luaName === 'LoadMods.lua') {
+      await this.generateFromTemplate('LoadMods.template.lua', 'LoadMods.temp.lua', {
+        REQUIRED_MODS: this.buildRequiredModsLua(),
+      });
+      actualLuaName = 'LoadMods.temp.lua';
     }
 
     const scriptPath = join('scripts', 'launch-civ5.cmd');

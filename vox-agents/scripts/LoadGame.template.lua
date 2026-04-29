@@ -1,7 +1,7 @@
 local modActivating = -1
 local modActivated = -1
 
-print("StartGame automation started!")
+print("LoadGame automation started!")
 
 -- Access FrontEnd thread environment for direct API calls
 local function getFrontEndEnv()
@@ -38,6 +38,58 @@ local function activateMods()
   Modding.ActivateEnabledMods()
 end
 
+-- Find the most recent save file using FrontEnd UI APIs
+local function getMostRecentSave()
+  local env = getFrontEndEnv()
+  if not env then
+    print("ERROR: FrontEnd environment not found!")
+    return nil
+  end
+
+  local UI = env.UI
+  local GameTypes = env.GameTypes
+
+  local fileList = {}
+  print("Loading recent saves...")
+  UI.SaveFileList(fileList, GameTypes.GAME_SINGLE_PLAYER, true, true)
+
+  if #fileList == 0 then
+    print("No save files found")
+    return nil
+  end
+
+  print("Loaded recent saves: " .. #fileList)
+  local mostRecentFile = fileList[1]
+  local mostRecentHigh, mostRecentLow = UI.GetSavedGameModificationTimeRaw(mostRecentFile)
+
+  for i = 2, #fileList do
+    local high, low = UI.GetSavedGameModificationTimeRaw(fileList[i])
+    local compareResult = UI.CompareFileTime(high, low, mostRecentHigh, mostRecentLow)
+    if compareResult == 1 then
+      local header = UI.GetReplayFileHeader(fileList[i])
+      if header ~= nil then
+        mostRecentFile = fileList[i]
+        mostRecentHigh = high
+        mostRecentLow = low
+      end
+    end
+  end
+
+  print("Found most recent save: " .. mostRecentFile)
+  return mostRecentFile
+end
+
+-- Load the most recent save file
+local function loadLastSave()
+  local saveToLoad = getMostRecentSave()
+  if saveToLoad then
+    print("Loading save file: " .. saveToLoad)
+    Events.PlayerChoseToLoadGame(saveToLoad, false)
+  else
+    print("No save file found to load")
+  end
+end
+
 function onEndFrame()
   if modActivating > 0 and os.time() > modActivating + 2 then
     print("Trying to activate the mods...");
@@ -45,27 +97,10 @@ function onEndFrame()
     modActivating = 0;
   end
   if modActivated > 0 and os.time() > modActivated + 2 then
+    print("Trying to load the save...");
     Automation.SetEventFunction("EndFrame", nil);
-    -- Game settings
-    local t = {};
-    t.worldSize = {{WORLD_SIZE}};
-    t.climate = 0; -- Temperate
-    t.seaLevel = 0; -- Medium
-    t.era = 0; -- Ancient
-    -- Player slots
-    -- 0 = empty
-    -- 1 = human
-    -- 2 = computer
-    t.slot = {{PLAYER_SLOTS}};
-    -- Set how many turns we want to play
-    -- t.autorunTurnLimit = 10;
-    -- Set the delay between AI turns, in seconds.  Can be 0.
-    t.autorunTurnDelay = 1;
-    -- Start the game
-    print("Starting the game...");
-    modActivated = -1
-    Automation.SetGameCoreInit(t);
-    Events.SerialEventStartGame(0);
+    modActivated = -1;
+    loadLastSave();
   end
 end
 
@@ -73,7 +108,6 @@ Events.AfterModsActivate.Add(function()
   if (modActivating == -1) then
     print("Vanilla game activated!");
     modActivating = os.time();
-    -- Set the 'EndFrame' event handler
     Automation.SetEventFunction("EndFrame", onEndFrame);
     return
   elseif (modActivated == -1) then

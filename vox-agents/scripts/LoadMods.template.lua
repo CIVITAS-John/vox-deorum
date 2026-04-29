@@ -1,7 +1,7 @@
 local modActivating = -1
 local modActivated = -1
 
-print("StartGame automation started!")
+print("LoadMods automation started!")
 
 -- Access FrontEnd thread environment for direct API calls
 local function getFrontEndEnv()
@@ -22,12 +22,7 @@ local function activateMods()
   end
 
   local Modding = env.Modding
-  local requiredMods = {
-    ["d1b6328c-ff44-4b0d-aad7-c657f83610cd"] = "Community Patch",
-    ["8411a7a8-dad3-4622-a18e-fcc18324c799"] = "Vox Populi",
-    ["24923240-e4fb-4bf6-8f0e-6e5b6cf4d3c2"] = "Vox Populi + EUI",
-    ["04c67ca5-d408-4b9e-be1b-bbc00e67fd8e"] = "Vox Deorum",
-  }
+  local requiredMods = {{REQUIRED_MODS}}
 
   for modId, modName in pairs(requiredMods) do
     local modVersion = Modding.GetLatestInstalledModVersion(modId)
@@ -48,29 +43,7 @@ function onEndFrame()
     print("Trying to activate the mods...");
     activateMods();
     modActivating = 0;
-  end
-  if modActivated > 0 and os.time() > modActivated + 2 then
     Automation.SetEventFunction("EndFrame", nil);
-    -- Game settings
-    local t = {};
-    t.worldSize = 3; -- Standard
-    t.climate = 0; -- Temperate
-    t.seaLevel = 0; -- Medium
-    t.era = 0; -- Ancient
-    -- Player slots
-    -- 0 = empty
-    -- 1 = human
-    -- 2 = computer
-    t.slot = { 2, 2, 2, 2, 2, 2, 2, 2 }; -- 8 Players for standard
-    -- Set how many turns we want to play
-    -- t.autorunTurnLimit = 10;
-    -- Set the delay between AI turns, in seconds.  Can be 0.
-    t.autorunTurnDelay = 1;
-    -- Start the game
-    print("Starting the game...");
-    modActivated = -1
-    Automation.SetGameCoreInit(t);
-    Events.SerialEventStartGame(0);
   end
 end
 
@@ -78,7 +51,6 @@ Events.AfterModsActivate.Add(function()
   if (modActivating == -1) then
     print("Vanilla game activated!");
     modActivating = os.time();
-    -- Set the 'EndFrame' event handler
     Automation.SetEventFunction("EndFrame", onEndFrame);
     return
   elseif (modActivated == -1) then
