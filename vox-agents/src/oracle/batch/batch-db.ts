@@ -70,6 +70,7 @@ export class BatchDb {
       .createTable('batches')
       .ifNotExists()
       .addColumn('batchId', 'text', col => col.primaryKey())
+      .addColumn('provider', 'text', col => col.notNull())
       .addColumn('modelId', 'text', col => col.notNull())
       .addColumn('fileId', 'text', col => col.notNull())
       .addColumn('status', 'text', col => col.notNull())

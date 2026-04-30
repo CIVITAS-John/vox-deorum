@@ -17,7 +17,7 @@ import { createLogger } from '../utils/logger.js';
 import { resolveModel } from './utils/model-resolver.js';
 import { loadToolSchemaCache, replaceToolsWithSchemaOnly } from './utils/schema-tools.js';
 import { getTrailBase, getTrailPaths, readReplayCache, resolvePath, writeCsv, writeTrail } from './utils/output.js';
-import { startBatchManager, shutdownBatchManager, getBatchEndpoint } from './batch/batch-manager.js';
+import { startBatchManager, shutdownBatchManager } from './batch/batch-manager.js';
 import type {
   OracleConfig,
   OracleParameters,
@@ -138,19 +138,13 @@ export async function runReplay(config: OracleConfig, rows?: RetrievedRow[]): Pr
     // The batch manager is transparent infrastructure — streamTextWithConcurrency
     // checks for it and routes requests automatically.
     if (config.batch) {
-      // Determine the first resolved model to get the provider endpoint.
-      // All batchable tasks must use the same provider (openai or openai-compatible).
-      const firstModel = tasks[0]?.resolvedModel;
-      if (firstModel) {
-        const { apiKey, baseURL } = getBatchEndpoint(firstModel);
-        const batchOpts = typeof config.batch === 'object' ? config.batch : {};
-        await startBatchManager(apiKey, baseURL, {
-          stateDir: path.join(experimentDir, 'batch'),
-          flushInterval: batchOpts.flushInterval,
-          pollInterval: batchOpts.pollInterval,
-        });
-        logger.info('Batch mode enabled');
-      }
+      const batchOpts = typeof config.batch === 'object' ? config.batch : {};
+      await startBatchManager({
+        stateDir: path.join(experimentDir, 'batch'),
+        flushInterval: batchOpts.flushInterval,
+        pollInterval: batchOpts.pollInterval,
+      });
+      logger.info('Batch mode enabled');
     }
 
     const limit = pLimit(config.concurrency ?? 5);

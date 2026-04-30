@@ -45,6 +45,8 @@ export interface QueuedRequest {
   resolve: (response: ChatCompletion) => void;
   /** Rejects the caller's promise on failure */
   reject: (error: Error) => void;
+  /** Normalized base URL identifying which BatchApi to use */
+  endpointKey: string;
   /** Timestamp when this request was enqueued */
   timestamp: number;
 }

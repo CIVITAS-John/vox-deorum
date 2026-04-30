@@ -85,7 +85,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
   // the batch API handles all of that server-side.
   if (hasBatchManager() && modelConfig) {
     const request = convertToOpenAIRequest(params, modelConfig);
-    const response = await getBatchManager().enqueue(request);
+    const response = await getBatchManager().enqueue(request, modelConfig);
     return convertToStepResult(response);
   }
 

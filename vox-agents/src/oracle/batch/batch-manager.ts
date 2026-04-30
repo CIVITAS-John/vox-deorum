@@ -3,17 +3,19 @@
  *
  * Queue-based batch manager for the OpenAI Batch API.
  *
- * Collects LLM requests over a configurable time window, submits them as a
- * single batch, polls for completion, and resolves each caller's promise with
- * the result. Uses SQLite (via BatchDb) for durable state so that in-flight
- * batches survive process crashes and completed results are cached.
+ * Collects LLM requests over a configurable time window, submits them as
+ * batches (grouped by provider endpoint), polls for completion, and resolves
+ * each caller's promise with the result. Uses SQLite (via BatchDb) for durable
+ * state so that in-flight batches survive process crashes and completed results
+ * are cached.
  *
- * Modeled after the Lua call queue pattern in mcp-server/src/bridge/manager.ts.
+ * Supports multiple providers simultaneously — each provider gets its own
+ * BatchApi instance, and flush groups requests by endpoint before submitting.
  *
  * Lifecycle:
- *   startBatchManager(apiKey, baseURL, options)  →  active, flush loop running
- *   getBatchManager().enqueue(request)           →  Promise<ChatCompletion>
- *   shutdownBatchManager()                       →  flush remaining, wait, close DB
+ *   startBatchManager(options)                      →  active, flush loop running
+ *   getBatchManager().enqueue(request, modelConfig)  →  Promise<ChatCompletion>
+ *   shutdownBatchManager()                           →  flush remaining, wait, close DB
  */
 
 import { createHash } from 'node:crypto';
@@ -23,6 +25,7 @@ import { createLogger } from '../../utils/logger.js';
 import { exponentialRetry } from '../../utils/retry.js';
 import { BatchDb } from './batch-db.js';
 import { BatchApi } from './batch-api.js';
+import { getBatchEndpoint } from './batch-endpoints.js';
 import { isTerminalBatchStatus } from './types.js';
 import type {
   BatchManagerOptions,
@@ -30,6 +33,7 @@ import type {
   ChatCompletionRequest,
   QueuedRequest,
 } from './types.js';
+import type { BatchEndpoint } from './batch-endpoints.js';
 import type { Model } from '../../types/index.js';
 
 const logger = createLogger('BatchManager');
@@ -63,21 +67,20 @@ export function hasBatchManager(): boolean {
  * Creates the SQLite database, resumes any in-flight batches from a previous
  * process, and begins the periodic flush loop.
  *
- * @param apiKey - API key for the OpenAI-compatible provider
- * @param baseURL - Base URL of the API (e.g. "https://api.openai.com/v1")
+ * Endpoint resolution happens lazily per-model when requests are enqueued,
+ * so no provider credentials are needed at startup.
+ *
  * @param options - Batch manager configuration
  * @returns The initialized BatchManager
  */
 export async function startBatchManager(
-  apiKey: string,
-  baseURL: string,
   options: BatchManagerOptions
 ): Promise<BatchManager> {
   if (instance) {
     logger.warn('BatchManager already initialized, returning existing instance');
     return instance;
   }
-  instance = new BatchManager(apiKey, baseURL, options);
+  instance = new BatchManager(options);
   await instance.start();
   return instance;
 }
@@ -94,43 +97,6 @@ export async function shutdownBatchManager(): Promise<void> {
   }
 }
 
-// ── Provider Routing ──
-
-/**
- * Resolve the batch API endpoint and credentials for a model's provider.
- * Throws for unsupported providers — no silent fallback.
- *
- * @param model - Model configuration
- * @returns Base URL and API key for the batch API
- * @throws Error if the provider doesn't support batch mode
- */
-export function getBatchEndpoint(model: Model): { baseURL: string; apiKey: string } {
-  switch (model.provider) {
-    case 'openai':
-      return {
-        baseURL: 'https://api.openai.com/v1',
-        apiKey: process.env.OPENAI_API_KEY!,
-      };
-    case 'openai-compatible':
-      if (!process.env.OPENAI_COMPATIBLE_URL) {
-        throw new Error('OPENAI_COMPATIBLE_URL not set for batch mode');
-      }
-      return {
-        baseURL: process.env.OPENAI_COMPATIBLE_URL,
-        apiKey: process.env.OPENAI_COMPATIBLE_API_KEY!,
-      };
-    case 'google':
-      return {
-        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
-        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
-      };
-    default:
-      throw new Error(
-        `Batch mode not supported for provider '${model.provider}'. Use openai or openai-compatible.`
-      );
-  }
-}
-
 // ── Batch Manager ──
 
 /**
@@ -139,7 +105,8 @@ export function getBatchEndpoint(model: Model): { baseURL: string; apiKey: strin
  */
 class BatchManager {
   private batchDb: BatchDb;
-  private batchApi: BatchApi;
+  /** Lazily-created BatchApi instances keyed by normalized baseURL */
+  private batchApis = new Map<string, BatchApi>();
   private queue: QueuedRequest[] = [];
   /**
    * Promises waiting on in-flight batches.
@@ -171,7 +138,7 @@ class BatchManager {
   private readonly maxItemRetries: number;
   private readonly maxBatchRetries: number;
 
-  constructor(apiKey: string, baseURL: string, options: BatchManagerOptions) {
+  constructor(options: BatchManagerOptions) {
     this.stateDir = options.stateDir;
     this.flushInterval = options.flushInterval ?? 15_000;
     this.pollInterval = options.pollInterval ?? 30_000;
@@ -181,10 +148,9 @@ class BatchManager {
     // Ensure state directory exists for JSONL temp files
     fs.mkdirSync(this.stateDir, { recursive: true });
 
-    // Initialize database and API client
+    // Initialize database (API clients are created lazily per-provider)
     const dbPath = path.join(this.stateDir, 'batch.db');
     this.batchDb = new BatchDb(dbPath);
-    this.batchApi = new BatchApi(apiKey, baseURL.replace(/\/+$/, ''));
   }
 
   /** Whether the batch manager is active and accepting requests */
@@ -254,10 +220,17 @@ class BatchManager {
    * from the SQLite cache.
    *
    * @param request - OpenAI chat completion request body (must include `model` field)
+   * @param modelConfig - Model configuration for provider endpoint resolution
    * @returns Promise resolving to the chat completion response
    */
-  async enqueue(request: ChatCompletionRequest): Promise<ChatCompletion> {
+  async enqueue(request: ChatCompletionRequest, modelConfig: Model): Promise<ChatCompletion> {
     const modelId = request.model;
+
+    // Resolve the endpoint for this model's provider and ensure a BatchApi exists
+    const endpoint = getBatchEndpoint(modelConfig);
+    const endpointKey = endpoint.baseURL.replace(/\/+$/, '');
+    this.getOrCreateBatchApi(endpoint);
+
     // Compute a base hash from the content, then append an occurrence index
     // so that identical requests (Oracle repetitions) get distinct hashes.
     const baseHash = this.hashRequest(modelId, request);
@@ -327,25 +300,64 @@ class BatchManager {
         request,
         resolve,
         reject,
+        endpointKey,
         timestamp: Date.now(),
       });
     });
   }
 
+  // ── Internal: BatchApi Management ──
+
+  /**
+   * Get or create a BatchApi instance for the given endpoint.
+   * Instances are cached by normalized baseURL.
+   */
+  private getOrCreateBatchApi(endpoint: BatchEndpoint): BatchApi {
+    const key = endpoint.baseURL.replace(/\/+$/, '');
+    let api = this.batchApis.get(key);
+    if (!api) {
+      api = new BatchApi(endpoint.apiKey, key);
+      this.batchApis.set(key, api);
+      logger.info(`Created BatchApi for endpoint: ${key}`);
+    }
+    return api;
+  }
+
   // ── Internal: Flush & Submit ──
 
   /**
-   * Drain the in-memory queue, write a JSONL file, upload it, create a batch,
-   * and start polling. Each queued request's promise will be resolved when
-   * the batch completes.
+   * Drain the in-memory queue, group requests by endpoint, and submit
+   * each group as a separate batch.
    */
   private async flush(): Promise<void> {
     if (this.queue.length === 0) return;
 
     // Drain the entire queue
-    const batch = this.queue.splice(0);
-    logger.info(`Flushing ${batch.length} request(s) to batch API`);
+    const all = this.queue.splice(0);
+    logger.info(`Flushing ${all.length} request(s) to batch API`);
 
+    // Group by endpoint
+    const groups = new Map<string, QueuedRequest[]>();
+    for (const q of all) {
+      const group = groups.get(q.endpointKey) ?? [];
+      group.push(q);
+      groups.set(q.endpointKey, group);
+    }
+
+    // Submit each group as a separate batch (in parallel)
+    await Promise.all(
+      [...groups.entries()].map(([endpointKey, requests]) => {
+        const api = this.batchApis.get(endpointKey)!;
+        return this.submitBatch(requests, api);
+      })
+    );
+  }
+
+  /**
+   * Submit a group of requests as a single batch to the given API endpoint.
+   * Writes JSONL, uploads, creates batch, and starts polling.
+   */
+  private async submitBatch(batch: QueuedRequest[], api: BatchApi): Promise<void> {
     // Build JSONL content — one request per line
     const jsonlLines = batch.map(q =>
       JSON.stringify({
@@ -365,7 +377,7 @@ class BatchManager {
       // Upload the JSONL file with retry
       const fileId = await exponentialRetry(
         async (update) => {
-          const result = await this.batchApi.uploadFile(jsonlPath);
+          const result = await api.uploadFile(jsonlPath);
           update(true);
           return result;
         },
@@ -375,7 +387,7 @@ class BatchManager {
       // Create the batch with retry
       const batchObj = await exponentialRetry(
         async (update) => {
-          const result = await this.batchApi.createBatch(fileId);
+          const result = await api.createBatch(fileId);
           update(true);
           return result;
         },
@@ -385,9 +397,10 @@ class BatchManager {
       const batchId = batchObj.id;
       const modelIds = [...new Set(batch.map(q => q.modelId))].join(',');
 
-      // Record the batch in the database
+      // Record the batch in the database (include provider for crash recovery)
       await this.batchDb.insertBatch({
         batchId,
+        provider: batch[0].endpointKey,
         modelId: modelIds,
         fileId,
         status: batchObj.status,
@@ -413,7 +426,7 @@ class BatchManager {
       this.inFlightPromises.set(batchId, promiseMap);
 
       // Start polling in the background (tracked for shutdown)
-      const pollPromise = this.pollBatch(batchId);
+      const pollPromise = this.pollBatch(batchId, api);
       this.pollPromises.push(pollPromise);
       pollPromise.finally(() => {
         this.pollPromises = this.pollPromises.filter(p => p !== pollPromise);
@@ -444,8 +457,9 @@ class BatchManager {
    * Updates the database on each poll and resolves/rejects promises on completion.
    *
    * @param batchId - OpenAI batch ID to poll
+   * @param api - BatchApi instance for this batch's endpoint
    */
-  private async pollBatch(batchId: string): Promise<void> {
+  private async pollBatch(batchId: string, api: BatchApi): Promise<void> {
     logger.info(`Polling batch ${batchId}...`);
 
     while (true) {
@@ -453,7 +467,7 @@ class BatchManager {
       await new Promise(resolve => setTimeout(resolve, this.pollInterval));
 
       try {
-        const batchObj = await this.batchApi.getBatchStatus(batchId);
+        const batchObj = await api.getBatchStatus(batchId);
         const status = batchObj.status;
 
         // Update the database with current status
@@ -475,7 +489,7 @@ class BatchManager {
 
         // Handle terminal states
         if (status === 'completed') {
-          await this.downloadResults(batchId, batchObj.output_file_id!);
+          await this.downloadResults(batchId, batchObj.output_file_id!, api);
           return;
         }
 
@@ -501,11 +515,12 @@ class BatchManager {
    *
    * @param batchId - The completed batch ID
    * @param outputFileId - The output JSONL file ID from the batch object
+   * @param api - BatchApi instance for this batch's endpoint
    */
-  private async downloadResults(batchId: string, outputFileId: string): Promise<void> {
+  private async downloadResults(batchId: string, outputFileId: string, api: BatchApi): Promise<void> {
     logger.info(`Downloading results for batch ${batchId}`);
 
-    const content = await this.batchApi.getFileContent(outputFileId);
+    const content = await api.getFileContent(outputFileId);
     const lines = content.split('\n').filter(line => line.trim());
 
     // Parse each line as a batch response object
@@ -552,9 +567,8 @@ class BatchManager {
 
   /**
    * Resume polling for batches that were in-flight when the process last exited.
-   * Loads non-terminal batches from the database and starts polling each one.
-   * When callers re-enqueue the same requests, their promises get attached
-   * to the appropriate batch's promise map.
+   * Loads non-terminal batches from the database, reconstructs the BatchApi
+   * for each batch's provider, and starts polling.
    */
   private async resumeInFlightBatches(): Promise<void> {
     const batches = await this.batchDb.getInFlightBatches();
@@ -563,11 +577,15 @@ class BatchManager {
     logger.info(`Resuming ${batches.length} in-flight batch(es) from previous run`);
 
     for (const batch of batches) {
+      // Reconstruct the BatchApi from the stored provider endpoint URL
+      const endpoint = getBatchEndpoint({ provider: batch.provider } as Model);
+      const api = this.getOrCreateBatchApi(endpoint);
+
       // Create an empty promise map — callers will attach when they re-enqueue
       this.inFlightPromises.set(batch.batchId, new Map());
 
       // Start polling in the background
-      const pollPromise = this.pollBatch(batch.batchId);
+      const pollPromise = this.pollBatch(batch.batchId, api);
       this.pollPromises.push(pollPromise);
       pollPromise.finally(() => {
         this.pollPromises = this.pollPromises.filter(p => p !== pollPromise);

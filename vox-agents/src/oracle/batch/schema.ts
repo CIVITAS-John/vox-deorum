@@ -50,6 +50,8 @@ export interface BatchRequestRecord {
 export interface BatchRecord {
   /** OpenAI batch ID (e.g. "batch_abc123") */
   batchId: string;
+  /** Provider name used for this batch (needed to reconstruct endpoint on resume) */
+  provider: string;
   /** Comma-separated model IDs included in this batch (for logging/debugging) */
   modelId: string;
   /** OpenAI file ID of the uploaded JSONL input file */
