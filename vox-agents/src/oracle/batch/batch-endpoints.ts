@@ -10,6 +10,8 @@ import type { Model } from '../../types/index.js';
 
 /** Resolved batch API endpoint with credentials */
 export interface BatchEndpoint {
+  /** Provider name (determines which BatchApi implementation to use) */
+  provider: string;
   baseURL: string;
   apiKey: string;
 }
@@ -26,6 +28,7 @@ export function getBatchEndpoint(model: Model): BatchEndpoint {
   switch (model.provider) {
     case 'openai':
       return {
+        provider: 'openai',
         baseURL: 'https://api.openai.com/v1',
         apiKey: process.env.OPENAI_API_KEY!,
       };
@@ -34,11 +37,13 @@ export function getBatchEndpoint(model: Model): BatchEndpoint {
         throw new Error('OPENAI_COMPATIBLE_URL not set for batch mode');
       }
       return {
+        provider: 'openai-compatible',
         baseURL: process.env.OPENAI_COMPATIBLE_URL,
         apiKey: process.env.OPENAI_COMPATIBLE_API_KEY!,
       };
     case 'google':
       return {
+        provider: 'google',
         baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
         apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
       };

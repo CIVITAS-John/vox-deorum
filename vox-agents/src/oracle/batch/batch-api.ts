@@ -19,7 +19,7 @@ const logger = createLogger('BatchApi');
  * file upload, batch creation, status polling, and result download.
  */
 export class BatchApi {
-  private client: OpenAI;
+  protected client: OpenAI;
 
   /**
    * Create a new Batch API client.

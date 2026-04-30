@@ -25,6 +25,7 @@ import { createLogger } from '../../utils/logger.js';
 import { exponentialRetry } from '../../utils/retry.js';
 import { BatchDb } from './batch-db.js';
 import { BatchApi } from './batch-api.js';
+import { GoogleBatchApi } from './google-batch-api.js';
 import { getBatchEndpoint } from './batch-endpoints.js';
 import { isTerminalBatchStatus } from './types.js';
 import type {
@@ -300,6 +301,7 @@ class BatchManager {
         request,
         resolve,
         reject,
+        provider: endpoint.provider,
         endpointKey,
         timestamp: Date.now(),
       });
@@ -310,15 +312,18 @@ class BatchManager {
 
   /**
    * Get or create a BatchApi instance for the given endpoint.
-   * Instances are cached by normalized baseURL.
+   * Instances are cached by normalized baseURL. Google gets a specialized
+   * implementation that uses the GenAI SDK for file upload/download.
    */
   private getOrCreateBatchApi(endpoint: BatchEndpoint): BatchApi {
     const key = endpoint.baseURL.replace(/\/+$/, '');
     let api = this.batchApis.get(key);
     if (!api) {
-      api = new BatchApi(endpoint.apiKey, key);
+      api = endpoint.provider === 'google'
+        ? new GoogleBatchApi(endpoint.apiKey, key)
+        : new BatchApi(endpoint.apiKey, key);
       this.batchApis.set(key, api);
-      logger.info(`Created BatchApi for endpoint: ${key}`);
+      logger.info(`Created BatchApi for endpoint: ${key} (${endpoint.provider})`);
     }
     return api;
   }
@@ -400,7 +405,7 @@ class BatchManager {
       // Record the batch in the database (include provider for crash recovery)
       await this.batchDb.insertBatch({
         batchId,
-        provider: batch[0].endpointKey,
+        provider: batch[0].provider,
         modelId: modelIds,
         fileId,
         status: batchObj.status,
