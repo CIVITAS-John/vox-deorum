@@ -6,6 +6,7 @@
  */
 
 import type OpenAI from 'openai';
+import type { Model } from '../../types/index.js';
 
 /** Re-export commonly used OpenAI types for convenience */
 export type ChatCompletionRequest = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
@@ -33,21 +34,23 @@ export interface BatchManagerOptions {
 
 /** A request waiting in the in-memory queue for the next batch flush */
 export interface QueuedRequest {
-  /** SHA-256 hash of modelId + request body, used as DB primary key */
+  /** SHA-256 hash of modelId + params body, used as DB primary key */
   hash: string;
-  /** Unique ID for this request within the JSONL batch file */
+  /** Unique ID for this request within the batch */
   customId: string;
   /** Model identifier (e.g. "gpt-4o") included in the hash for cross-model dedup */
   modelId: string;
-  /** The full OpenAI chat completion request body */
-  request: ChatCompletionRequest;
+  /** Vercel AI SDK streamText params (messages, tools, toolChoice, etc.) */
+  params: Record<string, any>;
+  /** Model configuration for provider-specific conversion */
+  modelConfig: Model;
   /** Resolves the caller's promise with the completion response */
   resolve: (response: ChatCompletion) => void;
   /** Rejects the caller's promise on failure */
   reject: (error: Error) => void;
   /** Provider name (e.g. "openai", "google") for DB persistence */
   provider: string;
-  /** Normalized base URL identifying which BatchApi to use */
+  /** Normalized base URL identifying which BatchProvider to use */
   endpointKey: string;
   /** Timestamp when this request was enqueued */
   timestamp: number;
@@ -55,7 +58,7 @@ export interface QueuedRequest {
 
 // ── Batch Status Helpers ──
 
-/** All possible OpenAI batch status values */
+/** All possible batch status values (normalized across providers) */
 export type BatchStatus =
   | 'validating'
   | 'in_progress'
@@ -74,4 +77,30 @@ export function isTerminalBatchStatus(status: string): boolean {
     || status === 'failed'
     || status === 'expired'
     || status === 'cancelled';
+}
+
+/**
+ * Map Google JobState to normalized batch status.
+ * Used by GoogleBatchProvider to convert native states.
+ */
+export function mapGoogleJobState(state: string | undefined): string {
+  switch (state) {
+    case 'JOB_STATE_QUEUED':
+    case 'JOB_STATE_PENDING':
+      return 'validating';
+    case 'JOB_STATE_RUNNING':
+      return 'in_progress';
+    case 'JOB_STATE_SUCCEEDED':
+      return 'completed';
+    case 'JOB_STATE_FAILED':
+      return 'failed';
+    case 'JOB_STATE_CANCELLED':
+      return 'cancelled';
+    case 'JOB_STATE_EXPIRED':
+      return 'expired';
+    case 'JOB_STATE_CANCELLING':
+      return 'cancelling';
+    default:
+      return 'in_progress';
+  }
 }

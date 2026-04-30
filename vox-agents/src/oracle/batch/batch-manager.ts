@@ -1,7 +1,7 @@
 /**
  * @module oracle/batch/batch-manager
  *
- * Queue-based batch manager for the OpenAI Batch API.
+ * Queue-based batch manager for LLM batch APIs.
  *
  * Collects LLM requests over a configurable time window, submits them as
  * batches (grouped by provider endpoint), polls for completion, and resolves
@@ -10,12 +10,12 @@
  * are cached.
  *
  * Supports multiple providers simultaneously — each provider gets its own
- * BatchApi instance, and flush groups requests by endpoint before submitting.
+ * BatchProvider instance, and flush groups requests by endpoint before submitting.
  *
  * Lifecycle:
- *   startBatchManager(options)                      →  active, flush loop running
- *   getBatchManager().enqueue(request, modelConfig)  →  Promise<ChatCompletion>
- *   shutdownBatchManager()                           →  flush remaining, wait, close DB
+ *   startBatchManager(options)                    →  active, flush loop running
+ *   getBatchManager().enqueue(params, modelConfig) →  Promise<ChatCompletion>
+ *   shutdownBatchManager()                         →  flush remaining, wait, close DB
  */
 
 import { createHash } from 'node:crypto';
@@ -24,14 +24,16 @@ import path from 'node:path';
 import { createLogger } from '../../utils/logger.js';
 import { exponentialRetry } from '../../utils/retry.js';
 import { BatchDb } from './batch-db.js';
-import { BatchApi } from './batch-api.js';
-import { GoogleBatchApi } from './google-batch-api.js';
 import { getBatchEndpoint } from './batch-endpoints.js';
 import { isTerminalBatchStatus } from './types.js';
+import {
+  BatchProvider,
+  OpenAiBatchProvider,
+  GoogleBatchProvider,
+} from './providers/index.js';
 import type {
   BatchManagerOptions,
   ChatCompletion,
-  ChatCompletionRequest,
   QueuedRequest,
 } from './types.js';
 import type { BatchEndpoint } from './batch-endpoints.js';
@@ -106,8 +108,8 @@ export async function shutdownBatchManager(): Promise<void> {
  */
 class BatchManager {
   private batchDb: BatchDb;
-  /** Lazily-created BatchApi instances keyed by normalized baseURL */
-  private batchApis = new Map<string, BatchApi>();
+  /** Lazily-created BatchProvider instances keyed by normalized baseURL */
+  private batchProviders = new Map<string, BatchProvider>();
   private queue: QueuedRequest[] = [];
   /**
    * Promises waiting on in-flight batches.
@@ -146,10 +148,10 @@ class BatchManager {
     this.maxItemRetries = options.maxItemRetries ?? 3;
     this.maxBatchRetries = options.maxBatchRetries ?? 3;
 
-    // Ensure state directory exists for JSONL temp files
+    // Ensure state directory exists for temp files
     fs.mkdirSync(this.stateDir, { recursive: true });
 
-    // Initialize database (API clients are created lazily per-provider)
+    // Initialize database (providers are created lazily per-endpoint)
     const dbPath = path.join(this.stateDir, 'batch.db');
     this.batchDb = new BatchDb(dbPath);
   }
@@ -213,28 +215,28 @@ class BatchManager {
   }
 
   /**
-   * Enqueue a chat completion request for batch processing.
+   * Enqueue a request for batch processing.
    *
    * Returns a promise that resolves when the batch completes and the response
    * is available. If the same request (identified by content hash including
    * model ID) was already completed in a previous run, resolves immediately
    * from the SQLite cache.
    *
-   * @param request - OpenAI chat completion request body (must include `model` field)
+   * @param params - Vercel AI SDK streamText params (messages, tools, toolChoice, etc.)
    * @param modelConfig - Model configuration for provider endpoint resolution
    * @returns Promise resolving to the chat completion response
    */
-  async enqueue(request: ChatCompletionRequest, modelConfig: Model): Promise<ChatCompletion> {
-    const modelId = request.model;
+  async enqueue(params: Record<string, any>, modelConfig: Model): Promise<ChatCompletion> {
+    const modelId = modelConfig.name;
 
-    // Resolve the endpoint for this model's provider and ensure a BatchApi exists
+    // Resolve the endpoint for this model's provider and ensure a BatchProvider exists
     const endpoint = getBatchEndpoint(modelConfig);
     const endpointKey = endpoint.baseURL.replace(/\/+$/, '');
-    this.getOrCreateBatchApi(endpoint);
+    this.getOrCreateProvider(endpoint);
 
     // Compute a base hash from the content, then append an occurrence index
     // so that identical requests (Oracle repetitions) get distinct hashes.
-    const baseHash = this.hashRequest(modelId, request);
+    const baseHash = this.hashRequest(modelId, params);
     const occurrence = this.hashOccurrences.get(baseHash) ?? 0;
     this.hashOccurrences.set(baseHash, occurrence + 1);
     const hash = `${baseHash}:${occurrence}`;
@@ -280,7 +282,7 @@ class BatchManager {
         hash,
         modelId,
         customId,
-        requestBody: JSON.stringify(request) as any,
+        requestBody: JSON.stringify(params) as any,
         responseBody: null,
         error: null,
         status: 'pending',
@@ -298,7 +300,8 @@ class BatchManager {
         hash,
         customId: row.customId,
         modelId,
-        request,
+        params,
+        modelConfig,
         resolve,
         reject,
         provider: endpoint.provider,
@@ -308,24 +311,24 @@ class BatchManager {
     });
   }
 
-  // ── Internal: BatchApi Management ──
+  // ── Internal: Provider Management ──
 
   /**
-   * Get or create a BatchApi instance for the given endpoint.
-   * Instances are cached by normalized baseURL. Google gets a specialized
-   * implementation that uses the GenAI SDK for file upload/download.
+   * Get or create a BatchProvider instance for the given endpoint.
+   * Instances are cached by normalized baseURL. Google gets a native
+   * implementation using the GenAI SDK.
    */
-  private getOrCreateBatchApi(endpoint: BatchEndpoint): BatchApi {
+  private getOrCreateProvider(endpoint: BatchEndpoint): BatchProvider {
     const key = endpoint.baseURL.replace(/\/+$/, '');
-    let api = this.batchApis.get(key);
-    if (!api) {
-      api = endpoint.provider === 'google'
-        ? new GoogleBatchApi(endpoint.apiKey, key)
-        : new BatchApi(endpoint.apiKey, key);
-      this.batchApis.set(key, api);
-      logger.info(`Created BatchApi for endpoint: ${key} (${endpoint.provider})`);
+    let provider = this.batchProviders.get(key);
+    if (!provider) {
+      provider = endpoint.provider === 'google'
+        ? new GoogleBatchProvider(endpoint.apiKey, endpoint)
+        : new OpenAiBatchProvider(endpoint.apiKey, key, this.stateDir);
+      this.batchProviders.set(key, provider);
+      logger.info(`Created BatchProvider for endpoint: ${key} (${endpoint.provider})`);
     }
-    return api;
+    return provider;
   }
 
   // ── Internal: Flush & Submit ──
@@ -352,54 +355,35 @@ class BatchManager {
     // Submit each group as a separate batch (in parallel)
     await Promise.all(
       [...groups.entries()].map(([endpointKey, requests]) => {
-        const api = this.batchApis.get(endpointKey)!;
-        return this.submitBatch(requests, api);
+        const provider = this.batchProviders.get(endpointKey)!;
+        return this.submitBatch(requests, provider);
       })
     );
   }
 
   /**
-   * Submit a group of requests as a single batch to the given API endpoint.
-   * Writes JSONL, uploads, creates batch, and starts polling.
+   * Submit a group of requests as a single batch to the given provider.
    */
-  private async submitBatch(batch: QueuedRequest[], api: BatchApi): Promise<void> {
-    // Build JSONL content — one request per line
-    const jsonlLines = batch.map(q =>
-      JSON.stringify({
-        custom_id: q.customId,
-        method: 'POST',
-        url: '/v1/chat/completions',
-        body: q.request,
-      })
-    );
-    const jsonlContent = jsonlLines.join('\n');
-
-    // Write to a temp file in the state directory
-    const jsonlPath = path.join(this.stateDir, `requests-${Date.now()}.jsonl`);
-    fs.writeFileSync(jsonlPath, jsonlContent, 'utf-8');
-
+  private async submitBatch(batch: QueuedRequest[], provider: BatchProvider): Promise<void> {
     try {
-      // Upload the JSONL file with retry
-      const fileId = await exponentialRetry(
+      // Build BatchSubmitItem[] from queue entries
+      const items = batch.map(q => ({
+        customId: q.customId,
+        params: q.params,
+        modelConfig: q.modelConfig,
+      }));
+
+      // Submit with retry
+      const batchResult = await exponentialRetry(
         async (update) => {
-          const result = await api.uploadFile(jsonlPath);
+          const result = await provider.submitBatch(items);
           update(true);
           return result;
         },
-        logger, undefined, 'batch-upload', this.maxBatchRetries, 5000, 60000
+        logger, undefined, 'batch-submit', this.maxBatchRetries, 5000, 60000
       );
 
-      // Create the batch with retry
-      const batchObj = await exponentialRetry(
-        async (update) => {
-          const result = await api.createBatch(fileId);
-          update(true);
-          return result;
-        },
-        logger, undefined, 'batch-create', this.maxBatchRetries, 5000, 60000
-      );
-
-      const batchId = batchObj.id;
+      const batchId = batchResult.id;
       const modelIds = [...new Set(batch.map(q => q.modelId))].join(',');
 
       // Record the batch in the database (include provider for crash recovery)
@@ -407,8 +391,8 @@ class BatchManager {
         batchId,
         provider: batch[0].provider,
         modelId: modelIds,
-        fileId,
-        status: batchObj.status,
+        fileId: '',
+        status: batchResult.status,
         outputFileId: null,
         errorFileId: null,
         createdAt: new Date().toISOString(),
@@ -431,7 +415,7 @@ class BatchManager {
       this.inFlightPromises.set(batchId, promiseMap);
 
       // Start polling in the background (tracked for shutdown)
-      const pollPromise = this.pollBatch(batchId, api);
+      const pollPromise = this.pollBatch(batchId, provider);
       this.pollPromises.push(pollPromise);
       pollPromise.finally(() => {
         this.pollPromises = this.pollPromises.filter(p => p !== pollPromise);
@@ -447,11 +431,6 @@ class BatchManager {
         await this.batchDb.markFailed(q.customId, '', errorMsg);
         q.reject(new Error(`Batch submission failed: ${errorMsg}`));
       }
-    } finally {
-      // Clean up the temp JSONL file
-      try {
-        fs.unlinkSync(jsonlPath);
-      } catch { /* ignore cleanup errors */ }
     }
   }
 
@@ -460,11 +439,8 @@ class BatchManager {
   /**
    * Poll a batch until it reaches a terminal status.
    * Updates the database on each poll and resolves/rejects promises on completion.
-   *
-   * @param batchId - OpenAI batch ID to poll
-   * @param api - BatchApi instance for this batch's endpoint
    */
-  private async pollBatch(batchId: string, api: BatchApi): Promise<void> {
+  private async pollBatch(batchId: string, provider: BatchProvider): Promise<void> {
     logger.info(`Polling batch ${batchId}...`);
 
     while (true) {
@@ -472,21 +448,17 @@ class BatchManager {
       await new Promise(resolve => setTimeout(resolve, this.pollInterval));
 
       try {
-        const batchObj = await api.getBatchStatus(batchId);
-        const status = batchObj.status;
+        const statusResult = await provider.getBatchStatus(batchId);
+        const { status } = statusResult;
 
         // Update the database with current status
         await this.batchDb.updateBatchStatus(batchId, status, {
-          outputFileId: batchObj.output_file_id ?? undefined,
-          errorFileId: batchObj.error_file_id ?? undefined,
-          completedAt: batchObj.completed_at
-            ? new Date(batchObj.completed_at * 1000).toISOString()
-            : undefined,
+          completedAt: statusResult.completedAt,
         });
 
         // Log progress if request counts are available
-        if (batchObj.request_counts) {
-          const { total, completed, failed } = batchObj.request_counts;
+        if (statusResult.requestCounts) {
+          const { total, completed, failed } = statusResult.requestCounts;
           logger.info(
             `Batch ${batchId}: ${completed}/${total} completed, ${failed} failed (status: ${status})`
           );
@@ -494,7 +466,7 @@ class BatchManager {
 
         // Handle terminal states
         if (status === 'completed') {
-          await this.downloadResults(batchId, batchObj.output_file_id!, api);
+          await this.downloadResults(batchId, provider);
           return;
         }
 
@@ -517,43 +489,28 @@ class BatchManager {
 
   /**
    * Download results from a completed batch, save to DB, and resolve promises.
-   *
-   * @param batchId - The completed batch ID
-   * @param outputFileId - The output JSONL file ID from the batch object
-   * @param api - BatchApi instance for this batch's endpoint
    */
-  private async downloadResults(batchId: string, outputFileId: string, api: BatchApi): Promise<void> {
+  private async downloadResults(batchId: string, provider: BatchProvider): Promise<void> {
     logger.info(`Downloading results for batch ${batchId}`);
 
-    const content = await api.getFileContent(outputFileId);
-    const lines = content.split('\n').filter(line => line.trim());
-
-    // Parse each line as a batch response object
-    const responses = lines.map(line => JSON.parse(line) as {
-      id: string;
-      custom_id: string;
-      response: { status_code: number; body: ChatCompletion } | null;
-      error: { code: string; message: string } | null;
-    });
-
+    const results = await provider.getResults(batchId);
     const promiseMap = this.inFlightPromises.get(batchId);
 
-    // Process each response: save to DB and resolve/reject the corresponding promise
-    for (const resp of responses) {
-      if (resp.response && resp.response.status_code === 200) {
+    // Process each result: save to DB and resolve/reject the corresponding promise
+    for (const result of results) {
+      if (result.response) {
         // Success — save response and resolve
-        await this.batchDb.markCompleted(resp.custom_id, batchId, resp.response.body);
-        promiseMap?.get(resp.custom_id)?.resolve(resp.response.body);
+        await this.batchDb.markCompleted(result.customId, batchId, result.response);
+        promiseMap?.get(result.customId)?.resolve(result.response);
       } else {
         // Failure — save error and reject
-        const errorMsg = resp.error?.message
-          ?? `HTTP ${resp.response?.status_code ?? 'unknown'}`;
-        await this.batchDb.markFailed(resp.custom_id, batchId, errorMsg);
-        promiseMap?.get(resp.custom_id)?.reject(
+        const errorMsg = result.error?.message ?? 'Unknown error';
+        await this.batchDb.markFailed(result.customId, batchId, errorMsg);
+        promiseMap?.get(result.customId)?.reject(
           new Error(`Batch request failed: ${errorMsg}`)
         );
       }
-      promiseMap?.delete(resp.custom_id);
+      promiseMap?.delete(result.customId);
     }
 
     // Handle any promises that didn't get a response (shouldn't happen, but be safe)
@@ -565,14 +522,14 @@ class BatchManager {
       this.inFlightPromises.delete(batchId);
     }
 
-    logger.info(`Batch ${batchId} completed: ${responses.length} result(s) processed`);
+    logger.info(`Batch ${batchId} completed: ${results.length} result(s) processed`);
   }
 
   // ── Internal: Resume ──
 
   /**
    * Resume polling for batches that were in-flight when the process last exited.
-   * Loads non-terminal batches from the database, reconstructs the BatchApi
+   * Loads non-terminal batches from the database, reconstructs the BatchProvider
    * for each batch's provider, and starts polling.
    */
   private async resumeInFlightBatches(): Promise<void> {
@@ -582,15 +539,15 @@ class BatchManager {
     logger.info(`Resuming ${batches.length} in-flight batch(es) from previous run`);
 
     for (const batch of batches) {
-      // Reconstruct the BatchApi from the stored provider endpoint URL
+      // Reconstruct the BatchProvider from the stored provider
       const endpoint = getBatchEndpoint({ provider: batch.provider } as Model);
-      const api = this.getOrCreateBatchApi(endpoint);
+      const provider = this.getOrCreateProvider(endpoint);
 
       // Create an empty promise map — callers will attach when they re-enqueue
       this.inFlightPromises.set(batch.batchId, new Map());
 
       // Start polling in the background
-      const pollPromise = this.pollBatch(batch.batchId, api);
+      const pollPromise = this.pollBatch(batch.batchId, provider);
       this.pollPromises.push(pollPromise);
       pollPromise.finally(() => {
         this.pollPromises = this.pollPromises.filter(p => p !== pollPromise);
@@ -601,25 +558,18 @@ class BatchManager {
   // ── Internal: Helpers ──
 
   /**
-   * Compute a SHA-256 hash of the model ID and request body for deduplication.
+   * Compute a SHA-256 hash of the model ID and params for deduplication.
    * Including the model ID in the hash prevents the same prompt sent to
    * different models from colliding.
-   *
-   * @param modelId - Model identifier (e.g. "gpt-4o")
-   * @param request - The chat completion request body
-   * @returns Hex-encoded SHA-256 hash
    */
-  private hashRequest(modelId: string, request: ChatCompletionRequest): string {
-    const content = modelId + '\0' + JSON.stringify(request);
+  private hashRequest(modelId: string, params: Record<string, any>): string {
+    const content = modelId + '\0' + JSON.stringify(params);
     return createHash('sha256').update(content).digest('hex');
   }
 
   /**
-   * Generate a unique custom_id for a request within a JSONL batch file.
+   * Generate a unique custom_id for a request within a batch.
    * Scoped by model name to make IDs easier to debug in batch output.
-   *
-   * @param modelId - Model identifier for prefixing
-   * @returns A unique custom_id string
    */
   private generateCustomId(modelId: string): string {
     const safeModel = modelId.replace(/[^a-zA-Z0-9._-]/g, '-');
@@ -629,9 +579,6 @@ class BatchManager {
   /**
    * Reject all promises waiting on a specific batch.
    * Called when a batch reaches a terminal failure state.
-   *
-   * @param batchId - The batch whose promises should be rejected
-   * @param error - The error to reject with
    */
   private rejectBatchPromises(batchId: string, error: Error): void {
     const promiseMap = this.inFlightPromises.get(batchId);
