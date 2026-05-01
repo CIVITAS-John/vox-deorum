@@ -37,11 +37,9 @@ export class GoogleBatchProvider extends BatchProvider {
   /** Stores completed BatchJob objects for getResults() */
   private completedJobs = new Map<string, BatchJob>();
 
-  constructor(apiKey: string, endpoint: BatchEndpoint) {
+  constructor(apiKey: string, _endpoint: BatchEndpoint) {
     super();
-    this.genai = endpoint.environment === 'vertexai'
-      ? new GoogleGenAI({ vertexai: true, apiKey })
-      : new GoogleGenAI({ apiKey });
+    this.genai = new GoogleGenAI({ apiKey });
   }
 
   async submitBatch(items: BatchSubmitItem[]): Promise<BatchCreateResult> {

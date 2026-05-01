@@ -14,8 +14,6 @@ export interface BatchEndpoint {
   provider: string;
   baseURL: string;
   apiKey: string;
-  /** Google environment: 'vertexai' for Vertex AI Express, undefined for Google AI */
-  environment?: 'vertexai';
 }
 
 /**
@@ -44,12 +42,15 @@ export function getBatchEndpoint(model: Model): BatchEndpoint {
         apiKey: process.env.OPENAI_COMPATIBLE_API_KEY!,
       };
     case 'google':
+      if (model.options?.environment === 'vertexai' || process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true') {
+        throw new Error(
+          'Batch mode not supported for Google Vertex AI. Vertex AI uses flex tier via streaming instead.'
+        );
+      }
       return {
         provider: 'google',
         baseURL: 'google-native',
         apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
-        environment: model.options?.environment === 'vertexai' || process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true'
-          ? 'vertexai' : undefined,
       };
     default:
       throw new Error(

@@ -11,7 +11,7 @@
 
 import pLimit from 'p-limit';
 import { streamText, TextStreamPart, ToolSet } from 'ai';
-import { exponentialRetry, isContextLengthError } from '../retry.js';
+import { exponentialRetry } from '../retry.js';
 import type { Model } from '../../types/index.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { AgentParameters } from '../../infra/vox-agent.js';

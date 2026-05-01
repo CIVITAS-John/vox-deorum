@@ -130,7 +130,16 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
       result = createOpenAI()(config.name);
       break;
     case "google":
-      result = createGoogleGenerativeAI()(config.name);
+      if (process.env.GOOGLE_GENAI_USE_FLEX === 'true') {
+        result = createGoogleGenerativeAI({
+          fetch: (url, init) => fetch(url, {
+            ...init,
+            headers: { ...init?.headers as any, 'X-Vertex-AI-LLM-Shared-Request-Type': 'flex' },
+          }),
+        })(config.name);
+      } else {
+        result = createGoogleGenerativeAI()(config.name);
+      }
       break;
     case "anthropic":
       result = createAnthropic()(config.name);
