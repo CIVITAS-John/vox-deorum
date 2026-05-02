@@ -79,17 +79,13 @@ export const defaultConfig: VoxAgentsConfig = {
       provider: 'anthropic',
       name: 'claude-haiku-4-5'
     },
-    'anthropic/claude-sonnet-4-5': {
-      provider: 'anthropic',
-      name: 'claude-sonnet-4-5'
-    },
     'anthropic/claude-sonnet-4-6': {
       provider: 'anthropic',
       name: 'claude-sonnet-4-6'
     },
-    'anthropic/claude-opus-4-6': {
+    'anthropic/claude-opus-4-7': {
       provider: 'anthropic',
-      name: 'claude-opus-4-6'
+      name: 'claude-opus-4-7'
     },
     'synthetic/hf:moonshotai/Kimi-K2.5': {
       provider: 'synthetic',

@@ -14,6 +14,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { hermesToolMiddleware } from '@ai-sdk-tool/parser';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createVertex } from '@ai-sdk/google-vertex';
+import { createVertexAnthropic } from '@ai-sdk/google-vertex/anthropic';
 import dotenv from 'dotenv';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
@@ -131,12 +132,21 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
       result = createOpenAI()(config.name);
       break;
     case "google": {
-      const useVertex = process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true';
+      const isAnthropicModel = config.name.startsWith('claude-');
       const flexHeaders = process.env.USE_FLEX === 'true'
         ? { 'X-Vertex-AI-LLM-Shared-Request-Type': 'flex' } : undefined;
-      result = useVertex
-        ? createVertex({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY, headers: flexHeaders })(config.name)
-        : createGoogleGenerativeAI({ headers: flexHeaders })(config.name);
+      if (isAnthropicModel) {
+        const provider = createVertexAnthropic({ 
+          headers: flexHeaders, 
+          googleAuthOptions: { apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY } }
+        );
+        result = provider(config.name);
+      } else {
+        const useVertex = process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true';
+        result = useVertex
+          ? createVertex({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY, headers: flexHeaders })(config.name)
+          : createGoogleGenerativeAI({ headers: flexHeaders })(config.name);
+      }
       break;
     }
     case "anthropic":
@@ -226,8 +236,11 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
 export function buildProviderOptions(model: Model): ProviderMetadata {
   let result: ProviderMetadata;
 
+  const isVertexAnthropic = model.provider === 'google' && model.name.startsWith('claude-');
+  const providerOptionsKey = isVertexAnthropic ? 'anthropic' : model.provider;
+
   if (!model.options) {
-    result = { [model.provider]: {} };
+    result = { [providerOptionsKey]: {} };
   }
 
   // Handle OpenRouter's reasoning format
@@ -264,8 +277,8 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
     };
   }
 
-  // Handle Anthropic's reasoning format
-  else if (model.provider === 'anthropic' && model.options.reasoningEffort) {
+  // Handle Anthropic's reasoning format (direct Anthropic or Claude on Vertex)
+  else if ((model.provider === 'anthropic' || (model.provider === 'google' && model.name.startsWith('claude-'))) && model.options.reasoningEffort) {
     const { reasoningEffort, ...otherOptions } = model.options;
     if (reasoningEffort === 'minimal') {
       // minimal maps to no thinking — pass through without effort
@@ -304,7 +317,7 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   // Default: pass options through as-is
   else {
     result = {
-      [model.provider]: model.options
+      [providerOptionsKey]: model.options
     };
   }
 
