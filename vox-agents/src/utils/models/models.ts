@@ -8,7 +8,7 @@
 import { type EmbeddingModel, LanguageModel, ProviderMetadata, extractReasoningMiddleware, wrapLanguageModel } from 'ai';
 import { config } from '../config.js';
 import type { Model } from '../../types/index.js';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { createOpenRouter, LanguageModelV3 } from '@openrouter/ai-sdk-provider';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { hermesToolMiddleware } from '@ai-sdk-tool/parser';
@@ -96,7 +96,7 @@ export function getModelConfig(
  * ```
  */
 export function getModel(config: Model, options?: { useToolPrompt?: boolean }): LanguageModel {
-  var result: LanguageModel;
+  var result: LanguageModelV3;
   // Find providers
   switch (config.provider) {
     case "openrouter":
@@ -132,7 +132,7 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
       break;
     case "google": {
       const useVertex = process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true';
-      const flexHeaders = process.env.GOOGLE_GENAI_USE_FLEX === 'true'
+      const flexHeaders = process.env.USE_FLEX === 'true'
         ? { 'X-Vertex-AI-LLM-Shared-Request-Type': 'flex' } : undefined;
       result = useVertex
         ? createVertex({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY, headers: flexHeaders })(config.name)
@@ -246,7 +246,7 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   // Handle Gemma's thinking format
   else if (model.provider === 'openai-compatible' && model.options.reasoningEffort && model.options.reasoningEffort !== "minimal" && model.name.toLowerCase().includes('gemma-4')) {
     result = {
-      'openai-compatible': {
+      openaiCompatible: {
         ...model.options,
         extra_body: { chat_template_kwargs: { enable_thinking: true } },
         allowed_openai_params: ['reasoning_effort']
@@ -257,7 +257,7 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   // Handle LiteLLM's reasoning format
   else if (model.provider === 'openai-compatible' && model.options.reasoningEffort) {
     result = {
-      'openai-compatible': {
+      openaiCompatible: {
         ...model.options,
         allowed_openai_params: ['reasoning_effort']
       }
@@ -265,24 +265,38 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   }
 
   // Handle Anthropic's reasoning format
-  else if (model.provider === 'anthropic' && model.options.reasoningEffort && model.options.reasoningEffort !== "minimal") {
+  else if (model.provider === 'anthropic' && model.options.reasoningEffort) {
     const { reasoningEffort, ...otherOptions } = model.options;
-    let budget = 1024;
-    switch (model.options.reasoningEffort) {
-      case 'low':
-        budget = 1024;
-        break;
-      case 'medium':
-        budget = 4096;
-        break;
-      case 'high':
-        budget = 8192;
-        break;
+    if (reasoningEffort === 'minimal') {
+      // minimal maps to no thinking — pass through without effort
+      result = {
+        anthropic: {
+          ...otherOptions,
+          thinking: { type: 'disabled' },
+        }
+      };
+    } else {
+      result = {
+        anthropic: {
+          ...otherOptions,
+          thinking: { type: 'adaptive', display: 'summarized' },
+          effort: reasoningEffort
+        }
+      };
     }
+  }
+
+  // Handle Google/Vertex's thinking format
+  else if (model.provider === 'google' && model.options.reasoningEffort) {
+    const { reasoningEffort, ...otherOptions } = model.options;
+    const providerKey = process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true' ? 'vertex' : 'google';
     result = {
-      anthropic: {
+      [providerKey]: {
         ...otherOptions,
-        thinking: { type: 'enabled', budgetTokens: budget }
+        thinkingConfig: {
+          thinkingLevel: reasoningEffort === 'minimal' ? 'low' : reasoningEffort,
+          includeThoughts: true,
+        },
       }
     };
   }
@@ -291,23 +305,6 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
   else {
     result = {
       [model.provider]: model.options
-    };
-  }
-
-  // LiteLLM-specific: inject cache_salt and allowed_openai_params for openai-compatible
-  if (model.provider === 'openai-compatible') {
-    const compat = (result['openai-compatible'] ?? {}) as Record<string, any>;
-    result = {
-      'openai-compatible': {
-        ...compat,
-        extra_body: {
-          cache_salt: "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXphYmNkZWZnaGlqa2xtbm9wcQ==",
-          ...compat.extra_body,
-        },
-        allowed_openai_params: [
-          ...new Set([...(compat.allowed_openai_params ?? []), 'reasoning_effort']),
-        ],
-      },
     };
   }
 

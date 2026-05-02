@@ -55,7 +55,7 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'google/Gemini-3.1-Pro': {
       provider: 'google',
-      name: 'gemini-3.1-pro'
+      name: 'gemini-3.1-pro-preview'
     },
     'google/Gemini-3.1-Flash-Lite': {
       provider: 'google',
@@ -121,10 +121,7 @@ export const defaultConfig: VoxAgentsConfig = {
     },
     'openai-compatible/GLM-5.1': {
       provider: 'openai-compatible',
-      name: 'GLM-5.1',
-      options: {
-        toolMiddleware: 'prompt'
-      }
+      name: 'GLM-5.1'
     },
     'openai-compatible/Qwen-3.5': {
       provider: 'openai-compatible',

@@ -137,6 +137,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
       const callId = streamCallCounter++;
       const modifiedParams = {
         ...params,
+        allowSystemInMessages: true,
         onChunk: (args: any) => {
           if (maxIteration !== iteration) return;
           // Prefix chunk IDs with call counter to prevent block merging across steps
@@ -181,7 +182,7 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         const steps = await result.steps;
 
         // Validate flex tier is effective when enabled
-        if (process.env.GOOGLE_GENAI_USE_FLEX === 'true' && modelConfig?.provider === 'google') {
+        if (process.env.USE_FLEX === 'true' && modelConfig?.provider === 'google') {
           const lastStep = steps[steps.length - 1];
           const providerMeta = lastStep?.providerMetadata as any;
           const trafficType = providerMeta?.google?.usageMetadata?.trafficType
@@ -205,7 +206,11 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         }
         throw error;
       }
-    }, context.logger, undefined, modelName)
+    }, context.logger, undefined, modelName,
+      /* maxRetries */ 100, /* initialDelay */ 5000, /* maxDelay */ 180000, /* backoffFactor */ 1.2,
+      /* executionTimeout */ process.env.USE_FLEX === 'true' && modelConfig?.provider === 'google'
+        ? 900000  // 15 minutes for flex tier (queued requests)
+        : 300000) // 5 minutes default
   });
 }
 
