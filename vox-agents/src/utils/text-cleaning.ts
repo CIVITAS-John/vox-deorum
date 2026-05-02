@@ -4,8 +4,13 @@
  * Text cleaning and formatting utilities for tool call/result text representations.
  */
 
-import { type LanguageModelV2ToolResultPart } from '@ai-sdk/provider';
 import { jsonToMarkdown } from './tools/json-to-markdown.js';
+
+/** Minimal interface for tool result parts accepted by formatting functions. */
+interface ToolResultLike {
+  toolName: string;
+  output: { type: string; value?: unknown };
+}
 
 /**
  * Strips a leading `[Turn N]` marker from text.
@@ -76,25 +81,26 @@ export function formatToolResultText(toolName: string, resultText: string): stri
 /**
  * Serializes a tool result part's output into readable text.
  */
-export function formatToolResultOutput(part: LanguageModelV2ToolResultPart, maxLength: number = -1): string | undefined {
+export function formatToolResultOutput(part: ToolResultLike, maxLength: number = -1): string | undefined {
   const output = part.output;
+  const value = output.value;
   let resultText: string;
 
   switch (output.type) {
     case 'text':
-      resultText = output.value;
+      resultText = String(value);
       break;
     case 'json':
-      if (typeof(output.value) === "string")
-        resultText = output.value;
-      else resultText = jsonToMarkdown(output.value);
+      if (typeof value === "string")
+        resultText = value;
+      else resultText = jsonToMarkdown(value);
       break;
     case 'error-text':
-      resultText = `Error: ${output.value}`;
+      resultText = `Error: ${value}`;
       if (maxLength !== -1) resultText = "[Error]";
       break;
     case 'error-json':
-      resultText = `Error: ${jsonToMarkdown(output.value)}`;
+      resultText = `Error: ${jsonToMarkdown(value)}`;
       if (maxLength !== -1) resultText = "[Error]";
       break;
     case 'content':

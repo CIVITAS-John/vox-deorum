@@ -111,6 +111,7 @@ export abstract class Envoy<TParameters extends AgentParameters = AgentParameter
       // Replace tool-result messages with a plain text summary
       if (message.role === 'tool' && Array.isArray(message.content)) {
         const texts = message.content
+          .filter(part => part.type === 'tool-result')
           .map(part => formatToolResultOutput(part))
           .filter((t): t is string => t !== undefined);
         if (texts.length === 0) continue;

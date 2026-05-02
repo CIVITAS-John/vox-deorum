@@ -7,7 +7,7 @@
  */
 import { type LanguageModelMiddleware, type Tool } from 'ai';
 import { createLogger } from '../logger.js';
-import { LanguageModelV2FunctionTool, LanguageModelV2Message, LanguageModelV2Prompt, LanguageModelV2ProviderDefinedTool, LanguageModelV2StreamPart, LanguageModelV2ToolCall, LanguageModelV2ToolChoice, LanguageModelV2ToolResultPart } from '@ai-sdk/provider';
+import { LanguageModelV3FunctionTool, LanguageModelV3Message, LanguageModelV3Prompt, LanguageModelV3ProviderTool, LanguageModelV3StreamPart, LanguageModelV3ToolCall, LanguageModelV3ToolChoice, LanguageModelV3ToolResultPart } from '@ai-sdk/provider';
 
 // @ts-ignore - jaison doesn't have type definitions
 import jaison from 'jaison';
@@ -33,9 +33,9 @@ export interface ToolRescueOptions {
   systemPromptFirst?: boolean;
 }
 
-export function createToolPrompt(tool: (LanguageModelV2FunctionTool | LanguageModelV2ProviderDefinedTool)) {
+export function createToolPrompt(tool: (LanguageModelV3FunctionTool | LanguageModelV3ProviderTool)) {
   // We don't support provider tools this way
-  if (tool.type === "provider-defined") return;
+  if (tool.type === "provider") return;
   let toolInfo = `### ${tool.name}`;
   if (tool.description) {
     toolInfo += `\n- Description: ${tool.description}`;
@@ -51,8 +51,8 @@ export function createToolPrompt(tool: (LanguageModelV2FunctionTool | LanguageMo
  * @param tools Array of tool definitions with names and schemas
  * @returns System prompt text instructing the model to use JSON format for tool calls
  */
-export function createToolPrompts(tools: (LanguageModelV2FunctionTool | LanguageModelV2ProviderDefinedTool)[],
-  choice: LanguageModelV2ToolChoice): string | undefined {
+export function createToolPrompts(tools: (LanguageModelV3FunctionTool | LanguageModelV3ProviderTool)[],
+  choice: LanguageModelV3ToolChoice): string | undefined {
   // Format tools with their schemas
   const descriptions = tools.map(createToolPrompt).join('\n\n');
 
@@ -105,11 +105,11 @@ export function rescueToolCallsFromText(
   text: string,
   availableTools: Set<string>,
   useJaison: boolean = true
-): { remainingText?: string, toolCalls: LanguageModelV2ToolCall[] } {
+): { remainingText?: string, toolCalls: LanguageModelV3ToolCall[] } {
   // Check for delimiter-based tool call format: <|tool_call_begin|> functions.name:N <|tool_call_argument_begin|> {...} <|tool_call_end|>
   const delimiterRegex = /<\|tool_call_begin\|>\s*(?:functions\.)?(.+?)(?::(\d+))?\s*<\|tool_call_argument_begin\|>\s*([\s\S]*?)\s*<\|tool_call_end\|>/g;
   let delimiterMatch;
-  const delimiterToolCalls: LanguageModelV2ToolCall[] = [];
+  const delimiterToolCalls: LanguageModelV3ToolCall[] = [];
   let remainingAfterDelimiters = text;
 
   while ((delimiterMatch = delimiterRegex.exec(text)) !== null) {
@@ -247,7 +247,7 @@ export function rescueToolCallsFromText(
   // Check if it's an array of tool calls
   const toolCalls = Array.isArray(parsed) ? parsed : [parsed];
   let allToolCallsValid = true;
-  const rescuedToolCalls: LanguageModelV2ToolCall[] = [];
+  const rescuedToolCalls: LanguageModelV3ToolCall[] = [];
 
   for (const toolCall of toolCalls) {
     if (!toolCall) continue;
@@ -327,8 +327,8 @@ function generateId(): string {
  * @param controller Transform stream controller
  */
 function emitToolCallChunks(
-  toolCalls: LanguageModelV2ToolCall[],
-  controller: TransformStreamDefaultController<LanguageModelV2StreamPart>
+  toolCalls: LanguageModelV3ToolCall[],
+  controller: TransformStreamDefaultController<LanguageModelV3StreamPart>
 ): void {
   toolCalls.forEach((toolCall) => {
     controller.enqueue({
@@ -348,7 +348,7 @@ function emitToolCallChunks(
  */
 function emitRemainingText(
   text: string | undefined,
-  controller: TransformStreamDefaultController<LanguageModelV2StreamPart>,
+  controller: TransformStreamDefaultController<LanguageModelV3StreamPart>,
   id: string
 ): void {
   if (text) {
@@ -365,8 +365,8 @@ function emitRemainingText(
  * Used in prompt mode so the model sees a consistent text-based conversation history
  * instead of native tool-call/tool-result parts it never produced.
  */
-export function convertPromptToolMessagesToText(prompt: LanguageModelV2Prompt): LanguageModelV2Prompt {
-  const converted: LanguageModelV2Message[] = [];
+export function convertPromptToolMessagesToText(prompt: LanguageModelV3Prompt): LanguageModelV3Prompt {
+  const converted: LanguageModelV3Message[] = [];
 
   for (const message of prompt) {
     if (message.role === 'assistant') {
@@ -393,6 +393,7 @@ export function convertPromptToolMessagesToText(prompt: LanguageModelV2Prompt): 
     } else if (message.role === 'tool') {
       // Convert tool message to user message with text content
       const textParts = message.content
+        .filter(part => part.type === 'tool-result')
         .map(part => formatToolResultOutput(part))
         .filter((text): text is string => text !== undefined)
         .map(text => ({ type: 'text' as const, text }));
@@ -423,7 +424,7 @@ export function convertPromptToolMessagesToText(prompt: LanguageModelV2Prompt): 
  */
 export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModelMiddleware {
   return {
-    middlewareVersion: 'v2',
+    specificationVersion: 'v3' as const,
 
     // Transform params if prompt mode is enabled
     transformParams: async ({ params }) => {
@@ -442,7 +443,7 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
       // Build the modified prompt, respecting systemPromptFirst models that only
       // accept a single system message. When set, merge the tool prompt into the
       // first existing system message instead of prepending a new one.
-      let modifiedPrompt: LanguageModelV2Prompt;
+      let modifiedPrompt: LanguageModelV3Prompt;
       if (!toolPrompt) {
         modifiedPrompt = convertedPrompt;
       } else if (options?.systemPromptFirst && convertedPrompt.length > 0 && convertedPrompt[0].role === 'system') {
@@ -488,7 +489,7 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
                 if (processed.remainingText) newContents.push({ type: 'text', text: processed.remainingText });
                 // Add the rescued tool calls to content
                 newContents.push(...processed.toolCalls);
-                result.finishReason = 'tool-calls';
+                result.finishReason = { unified: 'tool-calls', raw: result.finishReason?.raw };
                 return;
               }
             }
@@ -528,8 +529,8 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
         let incompleteBuffers: Record<string, string> = {};
 
         const transformStream = new TransformStream<
-          LanguageModelV2StreamPart,
-          LanguageModelV2StreamPart
+          LanguageModelV3StreamPart,
+          LanguageModelV3StreamPart
         >({
           transform(chunk, controller) {
             switch (chunk.type) {
@@ -615,7 +616,7 @@ export function toolRescueMiddleware(options?: ToolRescueOptions): LanguageModel
                 if (toolCallsFound) {
                   controller.enqueue({
                     ...chunk,
-                    finishReason: 'tool-calls'
+                    finishReason: { unified: 'tool-calls', raw: chunk.finishReason?.raw }
                   });
                 } else {
                   controller.enqueue(chunk);

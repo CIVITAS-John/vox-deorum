@@ -12,11 +12,14 @@
 import pLimit from 'p-limit';
 import { streamText, TextStreamPart, ToolSet } from 'ai';
 import { exponentialRetry } from '../retry.js';
+import { createLogger } from '../logger.js';
 import type { Model } from '../../types/index.js';
 import { VoxContext } from '../../infra/vox-context.js';
 import { AgentParameters } from '../../infra/vox-agent.js';
 import { hasBatchManager, getBatchManager } from '../../oracle/batch/batch-manager.js';
 import { convertToStepResult } from '../../oracle/batch/format-converter.js';
+
+const logger = createLogger('concurrency');
 
 /** Map of model IDs to their p-limit instances */
 const modelLimiters = new Map<string, ReturnType<typeof pLimit>>();
@@ -175,9 +178,22 @@ export async function streamTextWithConcurrency<T extends Parameters<typeof stre
         update(true);
 
         // And return the found steps
+        const steps = await result.steps;
+
+        // Validate flex tier is effective when enabled
+        if (process.env.GOOGLE_GENAI_USE_FLEX === 'true' && modelConfig?.provider === 'google') {
+          const lastStep = steps[steps.length - 1];
+          const providerMeta = lastStep?.providerMetadata as any;
+          const trafficType = providerMeta?.google?.usageMetadata?.trafficType
+            ?? providerMeta?.vertex?.usageMetadata?.trafficType;
+          if (trafficType !== 'ON_DEMAND_FLEX') {
+            logger.warn(`Flex tier not active for ${modelName}: trafficType=${trafficType}`, lastStep?.providerMetadata);
+          }
+        }
+
         var response = {
           ...result,
-          steps: await result.steps
+          steps,
         };
         return response;
       } catch (error) {

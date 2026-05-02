@@ -53,6 +53,14 @@ export const defaultConfig: VoxAgentsConfig = {
       provider: 'google',
       name: 'gemma-4-26b-a4b-it'
     },
+    'google/Gemini-3.1-Pro': {
+      provider: 'google',
+      name: 'gemini-3.1-pro'
+    },
+    'google/Gemini-3.1-Flash-Lite': {
+      provider: 'google',
+      name: 'gemini-3.1-flash-lite-preview'
+    },
     'openrouter/openai/gpt-oss-120b': {
       provider: 'openrouter',
       name: 'openai/gpt-oss-120b',

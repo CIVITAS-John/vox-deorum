@@ -5,7 +5,7 @@
 
 import type { Ref } from 'vue';
 import type { EnvoyThread, ChatMessageRequest } from '@/utils/types';
-import type { LanguageModelV2TextPart, LanguageModelV2ReasoningPart, LanguageModelV2ToolCallPart, LanguageModelV2ToolResultPart } from '@ai-sdk/provider';
+import type { LanguageModelV3TextPart, LanguageModelV3ReasoningPart, LanguageModelV3ToolCallPart, LanguageModelV3ToolResultPart } from '@ai-sdk/provider';
 import { api } from '@/api/client';
 import type { ModelMessage } from 'ai';
 
@@ -18,7 +18,7 @@ export interface UseThreadMessagesOptions {
 
 export function useThreadMessages(options: UseThreadMessagesOptions) {
   const { thread, sessionId, isStreaming, onNewChunk } = options;
-  let contents: Array<LanguageModelV2TextPart | LanguageModelV2ReasoningPart | LanguageModelV2ToolCallPart | LanguageModelV2ToolResultPart>;
+  let contents: Array<LanguageModelV3TextPart | LanguageModelV3ReasoningPart | LanguageModelV3ToolCallPart | LanguageModelV3ToolResultPart>;
 
   /**
    * Push or update an error message
@@ -60,11 +60,11 @@ export function useThreadMessages(options: UseThreadMessagesOptions) {
     contents = thread.value.messages[thread.value.messages.length - 1]!.message.content as any;
 
     // Prepare for each type
-    let currentText: LanguageModelV2TextPart | null = null;
+    let currentText: LanguageModelV3TextPart | null = null;
     let currentTextID: string = "";
-    let currentReasoning: LanguageModelV2ReasoningPart | null = null;
+    let currentReasoning: LanguageModelV3ReasoningPart | null = null;
     let currentReasoningID: string = "";
-    let currentToolCall: LanguageModelV2ToolCallPart | null = null;
+    let currentToolCall: LanguageModelV3ToolCallPart | null = null;
 
     return api.streamAgentMessage(
       request,

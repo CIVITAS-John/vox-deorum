@@ -11,8 +11,9 @@ import type { Model } from '../../types/index.js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { gemmaToolMiddleware } from '@ai-sdk-tool/parser';
+import { hermesToolMiddleware } from '@ai-sdk-tool/parser';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createVertex } from '@ai-sdk/google-vertex';
 import dotenv from 'dotenv';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
@@ -129,18 +130,15 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
     case "openai":
       result = createOpenAI()(config.name);
       break;
-    case "google":
-      if (process.env.GOOGLE_GENAI_USE_FLEX === 'true') {
-        result = createGoogleGenerativeAI({
-          fetch: (url, init) => fetch(url, {
-            ...init,
-            headers: { ...init?.headers as any, 'X-Vertex-AI-LLM-Shared-Request-Type': 'flex' },
-          }),
-        })(config.name);
-      } else {
-        result = createGoogleGenerativeAI()(config.name);
-      }
+    case "google": {
+      const useVertex = process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true';
+      const flexHeaders = process.env.GOOGLE_GENAI_USE_FLEX === 'true'
+        ? { 'X-Vertex-AI-LLM-Shared-Request-Type': 'flex' } : undefined;
+      result = useVertex
+        ? createVertex({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY, headers: flexHeaders })(config.name)
+        : createGoogleGenerativeAI({ headers: flexHeaders })(config.name);
       break;
+    }
     case "anthropic":
       result = createAnthropic()(config.name);
       break;
@@ -180,7 +178,7 @@ export function getModel(config: Model, options?: { useToolPrompt?: boolean }): 
     case "gemma":
       result = wrapLanguageModel({
         model: result,
-        middleware: gemmaToolMiddleware
+        middleware: hermesToolMiddleware
       });
       break;
     case "prompt":
@@ -324,12 +322,15 @@ export function buildProviderOptions(model: Model): ProviderMetadata {
  * @returns EmbeddingModel instance from the AI SDK
  * @throws Error if the provider doesn't support embedding models
  */
-export function getEmbeddingModel(config: Model): EmbeddingModel<string> {
+export function getEmbeddingModel(config: Model): EmbeddingModel {
   switch (config.provider) {
     case "openai":
       return createOpenAI().textEmbeddingModel(config.name);
     case "google":
-      return createGoogleGenerativeAI().textEmbeddingModel(config.name);
+      return (process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true'
+        ? createVertex({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY })
+        : createGoogleGenerativeAI()
+      ).textEmbeddingModel(config.name);
     case "openai-compatible": {
       if (!process.env.OPENAI_COMPATIBLE_URL)
         throw new Error("OPENAI_COMPATIBLE_URL not set for embedding model");

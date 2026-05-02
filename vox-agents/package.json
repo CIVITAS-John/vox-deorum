@@ -30,6 +30,7 @@
     "docs": "typedoc"
   },
   "dependencies": {
+    "@ai-sdk/google-vertex": "^4.0.0",
     "@types/uuid": "^10.0.0",
     "open": "^11.0.0",
     "openai": "^6.35.0",
